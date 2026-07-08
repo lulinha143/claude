@@ -1,42 +1,42 @@
 @component()
 export class CutGameAuto extends APJS.BasicScriptComponent {
-  @serializeProperty() @label("Speed")
+  @serializeProperty() @label("Velocidade")
   speed: number = 0.65;
 
-  @serializeProperty() @label("Rounds Before Speed Up")
+  @serializeProperty() @label("Rodadas Antes de Acelerar")
   roundsBeforeSpeedUp: number = 3;
 
-  @serializeProperty() @label("Speed Increment / Round")
+  @serializeProperty() @label("Incremento de Velocidade / Rodada")
   speedIncrement: number = 0.08;
 
-  @serializeProperty() @label("Max Speed")
+  @serializeProperty() @label("Velocidade Máxima")
   maxSpeed: number = 2.4;
 
-  @serializeProperty() @label("Travel Distance")
+  @serializeProperty() @label("Distância do Percurso")
   travelDistance: number = 600;
 
-  @serializeProperty() @label("Perfect Tolerance")
+  @serializeProperty() @label("Tolerância Perfeita")
   perfectTolerance: number = 0.04;
 
-  @serializeProperty() @label("Good Tolerance")
+  @serializeProperty() @label("Tolerância Boa")
   goodTolerance: number = 0.13;
 
-  @serializeProperty() @label("Target Zone Height")
+  @serializeProperty() @label("Altura da Zona-Alvo")
   targetZoneHeight: number = 320;
 
-  @serializeProperty() @label("Lives")
+  @serializeProperty() @label("Vidas")
   startingLives: number = 3;
 
-  @serializeProperty() @label("Result Duration")
+  @serializeProperty() @label("Duração do Resultado")
   resolveDuration: number = 0.65;
 
-  @serializeProperty() @label("Main Text Size")
+  @serializeProperty() @label("Tamanho do Texto Principal")
   statusFontSize: number = 60;
 
-  @serializeProperty() @label("Score Text Size")
+  @serializeProperty() @label("Tamanho do Texto de Pontos")
   scoreFontSize: number = 38;
 
-  @serializeProperty() @label("Combo Text Size")
+  @serializeProperty() @label("Tamanho do Texto de Combo")
   comboFontSize: number = 44;
 
   private readonly PLAYING: number = 0;
@@ -74,7 +74,7 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
     console.log("[CutGameAuto] onStart");
 
     this.tapCallback = (_event: APJS.IEvent) => {
-      console.log("[CutGameAuto] Tap");
+      console.log("[CutGameAuto] Toque");
       this.onTap();
     };
 
@@ -84,7 +84,7 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
       this
     );
 
-    console.log("[CutGameAuto] Tap registered");
+    console.log("[CutGameAuto] Toque registrado");
   }
 
   onUpdate(deltaTime: number): void {
@@ -149,7 +149,7 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
     if (!this.knife || !this.targetZone) {
       if (!this.warned) {
         console.log(
-          "[CutGameAuto] Could not find Knife or TargetZone by name."
+          "[CutGameAuto] Não encontrou Knife ou TargetZone pelo nome."
         );
 
         this.warned = true;
@@ -169,7 +169,7 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
     if (!this.knifeTransform || !this.targetTransform) {
       if (!this.warned) {
         console.log(
-          "[CutGameAuto] Knife and TargetZone need ScreenTransform."
+          "[CutGameAuto] Knife e TargetZone precisam de ScreenTransform."
         );
 
         this.warned = true;
@@ -187,7 +187,7 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
 
     this.applyTextStyles();
 
-    console.log("[CutGameAuto] initialized");
+    console.log("[CutGameAuto] inicializado");
 
     this.resetGame();
   }
@@ -230,7 +230,7 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
     );
 
     this.setStatusText(
-      "TAP TO CUT!\nCUT " + (this.rounds + 1),
+      "TOQUE PARA CORTAR!\nCORTE " + (this.rounds + 1),
       false
     );
   }
@@ -260,20 +260,20 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
       this.combo += 1;
       this.score += 100 + Math.max(0, this.combo - 1) * 10;
 
-      this.setStatusText("PERFECT CUT!", false);
+      this.setStatusText("CORTE PERFEITO!", false);
       this.showCutFood();
     } else if (difference <= good) {
       this.combo += 1;
       this.score += 50 + Math.max(0, this.combo - 1) * 5;
 
-      this.setStatusText("GOOD CUT!", false);
+      this.setStatusText("BOM CORTE!", false);
       this.showCutFood();
     } else {
       this.combo = 0;
       this.lives -= 1;
 
       this.setStatusText(
-        "MISSED!\nLIVES: " + Math.max(0, this.lives),
+        "ERROU!\nVIDAS: " + Math.max(0, this.lives),
         false
       );
     }
@@ -321,7 +321,7 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
     this.setEnabled(this.targetZone, false);
 
     this.setStatusText(
-      "GAME OVER!\nTAP TO PLAY AGAIN",
+      "FIM DE JOGO!\nTOQUE PARA JOGAR DE NOVO",
       true
     );
   }
@@ -329,7 +329,7 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
   private updateHud(): void {
     this.setText(
       this.scoreText,
-      "SCORE: " + this.score + "   LIVES: " + Math.max(0, this.lives)
+      "PONTOS: " + this.score + "   VIDAS: " + Math.max(0, this.lives)
     );
 
     this.setText(
