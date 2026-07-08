@@ -315,6 +315,8 @@ export class CutGame extends APJS.BasicScriptComponent {
   private applyTargetZone(): void {
     if (!this.targetZone) return;
 
+    // Religa a zona (o gameOver a esconde) e reposiciona/redimensiona.
+    this.setEnabled(this.targetZone, true);
     this.setPos(this.targetZone, this.trackX(this.targetT), this.knifeY);
 
     const autoWidth = this.goodTolerance * 2 * this.travelDistance;
