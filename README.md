@@ -3,33 +3,26 @@
  *  CUT GAME - Filtro de corte por timing para TikTok Effect House (APJS)
  * ============================================================================
  *
- *  Mecânica: a faca se move; toque no momento certo para cortar na zona-alvo.
- *   - Perto do centro   -> CORTE PERFEITO
- *   - Zona boa           -> BOM CORTE
- *   - Fora               -> ERROU (perde 1 vida)
- *  A partida tem "cutsPerGame" rodadas OU acaba quando as vidas zeram.
- *  No fim: ranking + "toque para jogar de novo".
+ *  Esta versão usa SOMENTE a API que já funcionava no seu script original,
+ *  mais logs de diagnóstico no Console para descobrir onde trava.
  *
- *  API APJS (correções importantes desta versão):
- *   - Eventos de gesto: getGestureEmitter().on(GestureType.Tap, cb, this)
- *     e .off(...) no onDestroy (NÃO existe .subscribe).
- *   - Componentes por NOME (string): getComponent("ScreenTransform"),
- *     getComponent("Text") — não passar a classe.
- *   - Visibilidade: setEnabledInHierarchy(bool) / isEnabledInHierarchy()
- *     (NÃO existe .enabled).
- *   - Objetos 2D se movem por ScreenTransform.anchoredPosition (pixels),
- *     não por transform.localPosition.
- *   - Inicialização preguiçosa em onUpdate: campos @serializeProperty() podem
- *     estar vazios no onStart.
+ *  >>> COMO COLOCAR PRA FUNCIONAR (leia isto!) <<<
+ *   1) Este script precisa estar ANEXADO como componente a um objeto ATIVO
+ *      (ex.: um Empty Object chamado "GameController"). Se o objeto estiver
+ *      desabilitado, o onStart NEM roda.
+ *   2) Tenha só UM script de jogo no projeto (remova versões antigas como
+ *      CutGameFixed) para não conflitar. Nomes de classe repetidos quebram.
+ *   3) No Inspector, arraste os objetos nos campos: knife, targetZone, food,
+ *      foodHalfLeft, foodHalfRight, statusText, scoreText, comboText.
+ *   4) Abra o painel de Console/Log da Effect House. Você DEVE ver a linha
+ *      "[CutGame] onStart". Se não vê, é anexação/objeto desabilitado ou erro
+ *      de compilação (veja o painel de erros).
  *
- *  ZONA-ALVO VERTICAL:
- *   - A imagem da lâmina agora fica EM PÉ (tesoura vertical). Por isso a zona
- *     verde é desenhada como uma BARRA VERTICAL: largura estreita (a janela do
- *     "bom corte") e altura alta (TARGET_ZONE_HEIGHT).
- *   - TARGET_ZONE_HEIGHT é uma constante privada (NÃO é @serializeProperty),
- *     de propósito: assim não muda a lista de propriedades serializadas e as
- *     ligações de objetos que você já fez no inspetor NÃO são perdidas.
- *     Para ajustar a altura, mude o número em TARGET_ZONE_HEIGHT abaixo.
+ *  API APJS verificada:
+ *   - Gestos: getGestureEmitter().on(GestureType.Tap, cb, this) / .off(...).
+ *   - Componentes por NOME: getComponent("ScreenTransform"), getComponent("Text").
+ *   - Visibilidade: setEnabledInHierarchy(bool) (SceneObject NÃO tem .enabled).
+ *   - 2D move por ScreenTransform.anchoredPosition (px) e sizeDelta (Vector2f).
  * ============================================================================
  */
 
@@ -74,11 +67,7 @@ export class CutGame extends APJS.BasicScriptComponent {
   @serializeProperty()
   maxSpeed: number = 2.2;
 
-  /**
-   * Largura TOTAL do trajeto da faca (em pixels). A faca oscila metade disso
-   * para cada lado do ponto onde você a colocou. Coloque a faca no CENTRO da
-   * tela e ajuste este valor até o trajeto caber na tela.
-   */
+  /** Largura TOTAL do trajeto da faca (px). A faca oscila metade para cada lado. */
   @serializeProperty()
   travelDistance: number = 240;
 
@@ -91,7 +80,7 @@ export class CutGame extends APJS.BasicScriptComponent {
   @serializeProperty()
   resolveDuration: number = 0.6;
 
-  /** Distância (pixels) que cada metade "voa" ao ser cortada. */
+  /** Distância (px) que cada metade "voa" ao ser cortada. */
   @serializeProperty()
   splitDistance: number = 160;
 
@@ -113,13 +102,14 @@ export class CutGame extends APJS.BasicScriptComponent {
   /**
    * Altura (px) da zona-alvo verde. Alta porque a tesoura fica EM PÉ (vertical).
    * Ajuste este número para casar com a altura da sua imagem de tesoura.
-   * (Constante privada de propósito: não é serializada, então não afeta as
-   *  ligações de objetos já feitas no inspetor.)
+   * Constante privada de propósito: não é serializada, então não afeta as
+   * ligações de objetos já feitas no Inspector.
    */
   private readonly TARGET_ZONE_HEIGHT: number = 320;
 
   private state: number = 0;
   private initialized: boolean = false;
+  private warnedMissing: boolean = false;
 
   private speed: number = 0.55;
   private phase: number = 0;
@@ -139,7 +129,6 @@ export class CutGame extends APJS.BasicScriptComponent {
   // Posições/tamanhos base (lidos na inicialização)
   private knifeX: number = 0; private knifeY: number = 0;
   private foodX: number = 0; private foodY: number = 0;
-  private targetY: number = 0;
   private leftBaseX: number = 0; private leftBaseY: number = 0;
   private rightBaseX: number = 0; private rightBaseY: number = 0;
   private leftW: number = 0; private leftH: number = 0;
@@ -156,15 +145,26 @@ export class CutGame extends APJS.BasicScriptComponent {
   //  CICLO DE VIDA
   // ==========================================================================
   onStart(): void {
+    console.log("[CutGame] onStart | knife=" + (!!this.knife) +
+      " targetZone=" + (!!this.targetZone) +
+      " food=" + (!!this.food) +
+      " statusText=" + (!!this.statusText));
     this.subscribeTap();
   }
 
   onUpdate(deltaTime: number): void {
     // Inicialização preguiçosa: espera as referências estarem disponíveis.
     if (!this.initialized) {
-      if (!this.knife || !this.food || !this.statusText) return;
+      if (!this.knife || !this.food || !this.statusText) {
+        if (!this.warnedMissing) {
+          console.log("[CutGame] AGUARDANDO: ligue knife, food e statusText no Inspector.");
+          this.warnedMissing = true;
+        }
+        return;
+      }
       this.initializeGame();
       this.initialized = true;
+      console.log("[CutGame] inicializado | knifeX=" + this.knifeX + " knifeY=" + this.knifeY);
     }
 
     if (this.state === this.STATE_RESOLVE) {
@@ -190,9 +190,11 @@ export class CutGame extends APJS.BasicScriptComponent {
   // ==========================================================================
   private subscribeTap(): void {
     this.tapCallback = (_event: APJS.IEvent) => {
+      console.log("[CutGame] Tap recebido | state=" + this.state);
       this.onTap();
     };
     APJS.EventManager.getGestureEmitter().on(APJS.GestureType.Tap, this.tapCallback, this);
+    console.log("[CutGame] Tap registrado");
   }
 
   private onTap(): void {
@@ -245,7 +247,6 @@ export class CutGame extends APJS.BasicScriptComponent {
     const k = this.getPos(this.knife); this.knifeX = k.x; this.knifeY = k.y;
     const f = this.getPos(this.food); this.foodX = f.x; this.foodY = f.y;
     if (this.targetZone) {
-      this.targetY = this.getPos(this.targetZone).y;
       this.targetH = this.getSize(this.targetZone).y;
     }
 
@@ -278,9 +279,9 @@ export class CutGame extends APJS.BasicScriptComponent {
     this.targetT = 0.18 + Math.random() * 0.64;
 
     if (this.targetZone) {
-      // Fica na MESMA linha horizontal da faca. A largura vira exatamente a
-      // janela de acerto "bom", e a altura é alta (TARGET_ZONE_HEIGHT) para
-      // acompanhar a lâmina VERTICAL (tesoura em pé).
+      // Barra VERTICAL: largura = janela do "bom corte"; altura = alta,
+      // para casar com a lâmina em pé (tesoura vertical).
+      this.setEnabled(this.targetZone, true);
       this.setPos(this.targetZone, this.trackX(this.targetT), this.knifeY);
       const goodWidthPx = this.goodTolerance * 2 * this.travelDistance;
       this.setSize(this.targetZone, goodWidthPx, this.TARGET_ZONE_HEIGHT);
@@ -355,6 +356,7 @@ export class CutGame extends APJS.BasicScriptComponent {
     this.setEnabled(this.food, false);
     this.setEnabled(this.foodHalfLeft, false);
     this.setEnabled(this.foodHalfRight, false);
+    if (this.targetZone) this.setEnabled(this.targetZone, false);
     this.setText(this.statusText, this.getRank() + "\nPontos: " + this.score + "   |   Toque para jogar de novo");
   }
 
@@ -382,11 +384,7 @@ export class CutGame extends APJS.BasicScriptComponent {
     return a + (b - a) * t;
   }
 
-  /**
-   * Converte t (0..1) na posição X ao longo do trajeto, CENTRADO na posição
-   * onde a faca foi colocada. t=0 -> extremo esquerdo, t=0.5 -> centro (a
-   * posição original da faca), t=1 -> extremo direito.
-   */
+  /** Converte t (0..1) na posição X ao longo do trajeto, centrado na faca. */
   private trackX(t: number): number {
     return this.knifeX + this.travelDistance * (t - 0.5);
   }
