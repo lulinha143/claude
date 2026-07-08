@@ -3,20 +3,12 @@
  *  CUT GAME - Filtro de corte por timing para TikTok Effect House (APJS)
  * ============================================================================
  *
- *  Mecânica: a faca/tesoura se move na horizontal; toque no momento certo para
- *  cortar dentro da zona-alvo verde.
- *   - Perto do centro da zona -> CORTE PERFEITO
- *   - Dentro da zona          -> BOM CORTE
- *   - Fora                    -> ERROU (perde 1 vida)
+ *  Mecânica: a faca se move; toque no momento certo para cortar na zona-alvo.
+ *   - Perto do centro   -> CORTE PERFEITO
+ *   - Zona boa           -> BOM CORTE
+ *   - Fora               -> ERROU (perde 1 vida)
  *  A partida tem "cutsPerGame" rodadas OU acaba quando as vidas zeram.
  *  No fim: ranking + "toque para jogar de novo".
- *
- *  IMPORTANTE (formato da zona-alvo):
- *   - A imagem da lâmina agora fica EM PÉ (tesoura vertical), não achatada.
- *   - Por isso a zona verde é desenhada como uma BARRA VERTICAL: largura
- *     estreita (a janela de acerto) e altura alta (targetZoneHeight).
- *   - Ajuste targetZoneWidth / targetZoneHeight no inspetor para casar
- *     exatamente com o tamanho da sua imagem.
  *
  *  API APJS (correções importantes desta versão):
  *   - Eventos de gesto: getGestureEmitter().on(GestureType.Tap, cb, this)
@@ -29,6 +21,15 @@
  *     não por transform.localPosition.
  *   - Inicialização preguiçosa em onUpdate: campos @serializeProperty() podem
  *     estar vazios no onStart.
+ *
+ *  ZONA-ALVO VERTICAL:
+ *   - A imagem da lâmina agora fica EM PÉ (tesoura vertical). Por isso a zona
+ *     verde é desenhada como uma BARRA VERTICAL: largura estreita (a janela do
+ *     "bom corte") e altura alta (TARGET_ZONE_HEIGHT).
+ *   - TARGET_ZONE_HEIGHT é uma constante privada (NÃO é @serializeProperty),
+ *     de propósito: assim não muda a lista de propriedades serializadas e as
+ *     ligações de objetos que você já fez no inspetor NÃO são perdidas.
+ *     Para ajustar a altura, mude o número em TARGET_ZONE_HEIGHT abaixo.
  * ============================================================================
  */
 
@@ -87,22 +88,6 @@ export class CutGame extends APJS.BasicScriptComponent {
   @serializeProperty()
   goodTolerance: number = 0.13;
 
-  /**
-   * Largura (px) da zona-alvo verde.
-   *   0  -> automático: usa exatamente a janela do "bom corte".
-   *  >0  -> valor fixo, caso queira casar com a arte manualmente.
-   * Como a lâmina agora é vertical, mantenha esta largura ESTREITA.
-   */
-  @serializeProperty()
-  targetZoneWidth: number = 0;
-
-  /**
-   * Altura (px) da zona-alvo verde. A tesoura fica EM PÉ, então use um valor
-   * ALTO para a barra verde acompanhar a lâmina vertical.
-   */
-  @serializeProperty()
-  targetZoneHeight: number = 320;
-
   @serializeProperty()
   resolveDuration: number = 0.6;
 
@@ -125,9 +110,13 @@ export class CutGame extends APJS.BasicScriptComponent {
   private readonly STATE_RESOLVE: number = 1;
   private readonly STATE_OVER: number = 2;
 
-  /** Faixa aleatória (em t = 0..1) onde a zona-alvo pode aparecer. */
-  private readonly TARGET_MIN_T: number = 0.18;
-  private readonly TARGET_RANGE_T: number = 0.64;
+  /**
+   * Altura (px) da zona-alvo verde. Alta porque a tesoura fica EM PÉ (vertical).
+   * Ajuste este número para casar com a altura da sua imagem de tesoura.
+   * (Constante privada de propósito: não é serializada, então não afeta as
+   *  ligações de objetos já feitas no inspetor.)
+   */
+  private readonly TARGET_ZONE_HEIGHT: number = 320;
 
   private state: number = 0;
   private initialized: boolean = false;
@@ -150,10 +139,12 @@ export class CutGame extends APJS.BasicScriptComponent {
   // Posições/tamanhos base (lidos na inicialização)
   private knifeX: number = 0; private knifeY: number = 0;
   private foodX: number = 0; private foodY: number = 0;
+  private targetY: number = 0;
   private leftBaseX: number = 0; private leftBaseY: number = 0;
   private rightBaseX: number = 0; private rightBaseY: number = 0;
   private leftW: number = 0; private leftH: number = 0;
   private rightW: number = 0; private rightH: number = 0;
+  private targetH: number = 0;
 
   // Destinos da animação de corte
   private lToX: number = 0; private lToY: number = 0;
@@ -222,7 +213,12 @@ export class CutGame extends APJS.BasicScriptComponent {
     } else if (diff <= this.goodTolerance) {
       this.registerCut(1, "BOM CORTE!");
     } else {
-      this.registerMiss();
+      this.combo = 0;
+      this.livesLeft -= 1;
+      this.roundsPlayed += 1;
+      this.updateComboText();
+      this.setText(this.statusText, "ERROU!   Vidas: " + Math.max(0, this.livesLeft));
+      this.startResolve(false);
     }
   }
 
@@ -242,21 +238,16 @@ export class CutGame extends APJS.BasicScriptComponent {
     this.startResolve(true);
   }
 
-  private registerMiss(): void {
-    this.combo = 0;
-    this.livesLeft -= 1;
-    this.roundsPlayed += 1;
-    this.updateComboText();
-    this.setText(this.statusText, "ERROU!   Vidas: " + Math.max(0, this.livesLeft));
-    this.startResolve(false);
-  }
-
   // ==========================================================================
   //  FLUXO DE PARTIDA
   // ==========================================================================
   private initializeGame(): void {
     const k = this.getPos(this.knife); this.knifeX = k.x; this.knifeY = k.y;
     const f = this.getPos(this.food); this.foodX = f.x; this.foodY = f.y;
+    if (this.targetZone) {
+      this.targetY = this.getPos(this.targetZone).y;
+      this.targetH = this.getSize(this.targetZone).y;
+    }
 
     if (this.foodHalfLeft) {
       const p = this.getPos(this.foodHalfLeft); this.leftBaseX = p.x; this.leftBaseY = p.y;
@@ -284,9 +275,16 @@ export class CutGame extends APJS.BasicScriptComponent {
   }
 
   private newRound(): void {
-    this.targetT = this.TARGET_MIN_T + Math.random() * this.TARGET_RANGE_T;
+    this.targetT = 0.18 + Math.random() * 0.64;
 
-    this.applyTargetZone();
+    if (this.targetZone) {
+      // Fica na MESMA linha horizontal da faca. A largura vira exatamente a
+      // janela de acerto "bom", e a altura é alta (TARGET_ZONE_HEIGHT) para
+      // acompanhar a lâmina VERTICAL (tesoura em pé).
+      this.setPos(this.targetZone, this.trackX(this.targetT), this.knifeY);
+      const goodWidthPx = this.goodTolerance * 2 * this.travelDistance;
+      this.setSize(this.targetZone, goodWidthPx, this.TARGET_ZONE_HEIGHT);
+    }
 
     if (this.food) {
       this.setEnabled(this.food, true);
@@ -303,26 +301,6 @@ export class CutGame extends APJS.BasicScriptComponent {
 
     this.state = this.STATE_PLAY;
     this.setText(this.statusText, "Toque para cortar!   (" + (this.roundsPlayed + 1) + "/" + this.cutsPerGame + ")");
-  }
-
-  /**
-   * Posiciona e dimensiona a zona-alvo verde.
-   * - Fica na MESMA linha horizontal da faca (o eixo em que ela se move).
-   * - Largura = janela real do "bom corte" (ou targetZoneWidth, se definido),
-   *   então o que aparece na tela é exatamente onde dá pra pontuar.
-   * - Altura = targetZoneHeight, para acompanhar a lâmina VERTICAL (em pé).
-   */
-  private applyTargetZone(): void {
-    if (!this.targetZone) return;
-
-    // Religa a zona (o gameOver a esconde) e reposiciona/redimensiona.
-    this.setEnabled(this.targetZone, true);
-    this.setPos(this.targetZone, this.trackX(this.targetT), this.knifeY);
-
-    const autoWidth = this.goodTolerance * 2 * this.travelDistance;
-    const width = this.targetZoneWidth > 0 ? this.targetZoneWidth : autoWidth;
-    const height = this.targetZoneHeight > 0 ? this.targetZoneHeight : autoWidth;
-    this.setSize(this.targetZone, width, height);
   }
 
   private startResolve(success: boolean): void {
@@ -377,7 +355,6 @@ export class CutGame extends APJS.BasicScriptComponent {
     this.setEnabled(this.food, false);
     this.setEnabled(this.foodHalfLeft, false);
     this.setEnabled(this.foodHalfRight, false);
-    if (this.targetZone) this.setEnabled(this.targetZone, false);
     this.setText(this.statusText, this.getRank() + "\nPontos: " + this.score + "   |   Toque para jogar de novo");
   }
 
