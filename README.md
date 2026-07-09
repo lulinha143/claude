@@ -18,6 +18,11 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
   @serializeProperty() @label("Distância do Percurso")
   travelDistance: number = 300;
 
+  // Empurra a escova E o alvo na horizontal (px). Negativo = esquerda,
+  // positivo = direita. Ajuste até ficar no centro da tela do TikTok.
+  @serializeProperty() @label("Deslocamento Horizontal")
+  horizontalOffset: number = -80;
+
   @serializeProperty() @label("Tolerância Perfeita")
   perfectTolerance: number = 0.04;
 
@@ -438,6 +443,7 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
   private trackX(value: number): number {
     return (
       this.startX +
+      this.horizontalOffset +
       Math.abs(this.travelDistance) * (value - 0.5)
     );
   }
