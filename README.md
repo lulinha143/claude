@@ -15,6 +15,15 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
   @serializeProperty() @label("Distância do Percurso")
   travelDistance: number = 600;
 
+  @serializeProperty() @label("Centro Horizontal")
+  centerX: number = 0;
+
+  @serializeProperty() @label("Centro Vertical")
+  centerY: number = 0;
+
+  @serializeProperty() @label("Distância das Metades")
+  splitGap: number = 90;
+
   @serializeProperty() @label("Tolerância Perfeita")
   perfectTolerance: number = 0.04;
 
@@ -54,6 +63,9 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
 
   private knifeTransform: APJS.ScreenTransform | null = null;
   private targetTransform: APJS.ScreenTransform | null = null;
+  private foodTransform: APJS.ScreenTransform | null = null;
+  private leftTransform: APJS.ScreenTransform | null = null;
+  private rightTransform: APJS.ScreenTransform | null = null;
 
   private initialized: boolean = false;
   private warned: boolean = false;
@@ -103,7 +115,7 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
 
       this.knifeTransform!.anchoredPosition = new APJS.Vector2f(
         this.trackX(this.knifeT),
-        this.startY
+        this.centerY
       );
 
       return;
@@ -178,6 +190,17 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
       return;
     }
 
+    // ScreenTransform das sujeiras (opcionais) para centralizá-las via script.
+    this.foodTransform = this.food
+      ? (this.food.getComponent("ScreenTransform") as APJS.ScreenTransform)
+      : null;
+    this.leftTransform = this.foodHalfLeft
+      ? (this.foodHalfLeft.getComponent("ScreenTransform") as APJS.ScreenTransform)
+      : null;
+    this.rightTransform = this.foodHalfRight
+      ? (this.foodHalfRight.getComponent("ScreenTransform") as APJS.ScreenTransform)
+      : null;
+
     const position = this.knifeTransform.anchoredPosition;
 
     this.startX = position.x;
@@ -214,9 +237,12 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
     this.setEnabled(this.foodHalfLeft, false);
     this.setEnabled(this.foodHalfRight, false);
 
+    // Mantém a sujeira (e as metades) centralizadas na tela.
+    this.centerDirt();
+
     this.targetTransform!.anchoredPosition = new APJS.Vector2f(
       this.trackX(this.targetT),
-      this.startY
+      this.centerY
     );
 
     const width =
@@ -230,7 +256,7 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
     );
 
     this.setStatusText(
-      "TOQUE PARA CORTAR!\nCORTE " + (this.rounds + 1),
+      "TOQUE PARA ESCOVAR!\nESCOVADA " + (this.rounds + 1),
       false
     );
   }
@@ -260,13 +286,13 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
       this.combo += 1;
       this.score += 100 + Math.max(0, this.combo - 1) * 10;
 
-      this.setStatusText("CORTE PERFEITO!", false);
+      this.setStatusText("ESCOVADA PERFEITA!", false);
       this.showCutFood();
     } else if (difference <= good) {
       this.combo += 1;
       this.score += 50 + Math.max(0, this.combo - 1) * 5;
 
-      this.setStatusText("BOM CORTE!", false);
+      this.setStatusText("BOA ESCOVADA!", false);
       this.showCutFood();
     } else {
       this.combo = 0;
@@ -286,8 +312,8 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
   }
 
   /**
-   * Velocidade atual da faca.
-   * Até "roundsBeforeSpeedUp" cortes, mantém a velocidade base. A partir daí,
+   * Velocidade atual da escova.
+   * Até "roundsBeforeSpeedUp" escovadas, mantém a velocidade base. A partir daí,
    * cada rodada soma "speedIncrement", limitado por "maxSpeed" — assim o jogo
    * vai ficando mais difícil conforme você avança.
    */
@@ -303,6 +329,33 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
     const ceiling = Math.max(this.speed, this.maxSpeed);
 
     return Math.min(ceiling, ramped);
+  }
+
+  /**
+   * Posiciona a sujeira inteira no centro e as duas metades levemente
+   * afastadas do centro, para tudo ficar mais centralizado na tela.
+   */
+  private centerDirt(): void {
+    if (this.foodTransform) {
+      this.foodTransform.anchoredPosition = new APJS.Vector2f(
+        this.centerX,
+        this.centerY
+      );
+    }
+
+    if (this.leftTransform) {
+      this.leftTransform.anchoredPosition = new APJS.Vector2f(
+        this.centerX - Math.max(0, this.splitGap),
+        this.centerY
+      );
+    }
+
+    if (this.rightTransform) {
+      this.rightTransform.anchoredPosition = new APJS.Vector2f(
+        this.centerX + Math.max(0, this.splitGap),
+        this.centerY
+      );
+    }
   }
 
   private showCutFood(): void {
@@ -441,7 +494,7 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
 
   private trackX(value: number): number {
     return (
-      this.startX +
+      this.centerX +
       Math.abs(this.travelDistance) * (value - 0.5)
     );
   }
