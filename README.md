@@ -1,245 +1,203 @@
-/**
- * ============================================================================
- *  CUT GAME - Filtro de corte por timing para TikTok Effect House (APJS)
- * ============================================================================
- *
- *  Mecânica: a faca se move; toque no momento certo para cortar na zona-alvo.
- *   - Perto do centro   -> CORTE PERFEITO
- *   - Zona boa           -> BOM CORTE
- *   - Fora               -> ERROU (perde 1 vida)
- *  A partida tem "cutsPerGame" rodadas OU acaba quando as vidas zeram.
- *  No fim: ranking + "toque para jogar de novo".
- *
- *  API APJS (correções importantes desta versão):
- *   - Eventos de gesto: getGestureEmitter().on(GestureType.Tap, cb, this)
- *     e .off(...) no onDestroy (NÃO existe .subscribe).
- *   - Componentes por NOME (string): getComponent("ScreenTransform"),
- *     getComponent("Text") — não passar a classe.
- *   - Visibilidade: setEnabledInHierarchy(bool) / isEnabledInHierarchy()
- *     (NÃO existe .enabled).
- *   - Objetos 2D se movem por ScreenTransform.anchoredPosition (pixels),
- *     não por transform.localPosition.
- *   - Inicialização preguiçosa em onUpdate: campos @serializeProperty() podem
- *     estar vazios no onStart.
- * ============================================================================
- */
-
 @component()
-export class CutGame extends APJS.BasicScriptComponent {
-  // -------------------------------------------------------------------------
-  //  REFERÊNCIAS DA CENA
-  // -------------------------------------------------------------------------
-  @serializeProperty()
-  knife: APJS.SceneObject;
+export class CutGameAuto extends APJS.BasicScriptComponent {
+  @serializeProperty() @label("Speed")
+  speed: number = 0.65;
 
-  @serializeProperty()
-  targetZone: APJS.SceneObject;
+  @serializeProperty() @label("Rounds Before Speed Up")
+  roundsBeforeSpeedUp: number = 3;
 
-  @serializeProperty()
-  food: APJS.SceneObject;
+  @serializeProperty() @label("Speed Increment / Round")
+  speedIncrement: number = 0.08;
 
-  @serializeProperty()
-  foodHalfLeft: APJS.SceneObject;
+  @serializeProperty() @label("Max Speed")
+  maxSpeed: number = 2.4;
 
-  @serializeProperty()
-  foodHalfRight: APJS.SceneObject;
+  // Back-and-forth range (px). Smaller = more central, without reaching edges.
+  // Note: if you already changed this value in the Inspector, the saved value
+  // overrides this default — so adjust it there if it's still too wide.
+  @serializeProperty() @label("Travel Distance")
+  travelDistance: number = 300;
 
-  @serializeProperty()
-  statusText: APJS.SceneObject;
+  // Pushes the brush AND the target horizontally (px). Negative = left,
+  // positive = right. Adjust until it sits in the center of the TikTok screen.
+  @serializeProperty() @label("Horizontal Offset")
+  horizontalOffset: number = -80;
 
-  @serializeProperty()
-  scoreText: APJS.SceneObject;
+  @serializeProperty() @label("Perfect Tolerance")
+  perfectTolerance: number = 0.04;
 
-  @serializeProperty()
-  comboText: APJS.SceneObject;
-
-  // -------------------------------------------------------------------------
-  //  AJUSTES DE JOGO
-  // -------------------------------------------------------------------------
-  @serializeProperty()
-  startSpeed: number = 0.55;
-
-  @serializeProperty()
-  speedIncrement: number = 0.06;
-
-  @serializeProperty()
-  maxSpeed: number = 2.2;
-
-  /**
-   * Largura TOTAL do trajeto da faca (em pixels). A faca oscila metade disso
-   * para cada lado do ponto onde você a colocou. Coloque a faca no CENTRO da
-   * tela e ajuste este valor até o trajeto caber na tela.
-   */
-  @serializeProperty()
-  travelDistance: number = 240;
-
-  @serializeProperty()
-  perfectTolerance: number = 0.05;
-
-  @serializeProperty()
+  @serializeProperty() @label("Good Tolerance")
   goodTolerance: number = 0.13;
 
-  @serializeProperty()
-  resolveDuration: number = 0.6;
+  @serializeProperty() @label("Target Zone Height")
+  targetZoneHeight: number = 320;
 
-  /** Distância (pixels) que cada metade "voa" ao ser cortada. */
-  @serializeProperty()
-  splitDistance: number = 160;
+  @serializeProperty() @label("Lives")
+  startingLives: number = 3;
 
-  /** Quantos cortes tem uma partida. */
-  @serializeProperty()
-  cutsPerGame: number = 5;
+  @serializeProperty() @label("Result Duration")
+  resolveDuration: number = 0.65;
 
-  /** Vidas (erros permitidos) por partida. */
-  @serializeProperty()
-  lives: number = 3;
+  @serializeProperty() @label("Main Text Size")
+  statusFontSize: number = 60;
 
-  // -------------------------------------------------------------------------
-  //  ESTADO
-  // -------------------------------------------------------------------------
-  private readonly STATE_PLAY: number = 0;
-  private readonly STATE_RESOLVE: number = 1;
-  private readonly STATE_OVER: number = 2;
+  @serializeProperty() @label("Score Text Size")
+  scoreFontSize: number = 38;
 
-  private state: number = 0;
+  @serializeProperty() @label("Combo Text Size")
+  comboFontSize: number = 44;
+
+  private readonly PLAYING: number = 0;
+  private readonly RESOLVING: number = 1;
+  private readonly GAME_OVER: number = 2;
+
+  private knife: APJS.SceneObject | null = null;
+  private targetZone: APJS.SceneObject | null = null;
+  private food: APJS.SceneObject | null = null;
+  private foodHalfLeft: APJS.SceneObject | null = null;
+  private foodHalfRight: APJS.SceneObject | null = null;
+  private statusText: APJS.SceneObject | null = null;
+  private scoreText: APJS.SceneObject | null = null;
+  private comboText: APJS.SceneObject | null = null;
+
+  private knifeTransform: APJS.ScreenTransform | null = null;
+  private targetTransform: APJS.ScreenTransform | null = null;
+
   private initialized: boolean = false;
-
-  private speed: number = 0.55;
+  private warned: boolean = false;
+  private state: number = 0;
   private phase: number = 0;
-  private currentT: number = 0;
+  private knifeT: number = 0;
   private targetT: number = 0.5;
-
+  private startX: number = 0;
+  private startY: number = 0;
   private score: number = 0;
-  private best: number = 0;
   private combo: number = 0;
-  private livesLeft: number = 3;
-  private roundsPlayed: number = 0;
-  private hits: number = 0;
-  private perfects: number = 0;
+  private lives: number = 3;
+  private rounds: number = 0;
+  private timer: number = 0;
+  private tapCallback: any = null;
 
-  private resolveTimer: number = 0;
-
-  // Posições/tamanhos base (lidos na inicialização)
-  private knifeX: number = 0; private knifeY: number = 0;
-  private foodX: number = 0; private foodY: number = 0;
-  private targetY: number = 0;
-  private leftBaseX: number = 0; private leftBaseY: number = 0;
-  private rightBaseX: number = 0; private rightBaseY: number = 0;
-  private leftW: number = 0; private leftH: number = 0;
-  private rightW: number = 0; private rightH: number = 0;
-  private targetH: number = 0;
-
-  // Destinos da animação de corte
-  private lToX: number = 0; private lToY: number = 0;
-  private rToX: number = 0; private rToY: number = 0;
-
-  private tapCallback!: (event: APJS.IEvent) => void;
-
-  // ==========================================================================
-  //  CICLO DE VIDA
-  // ==========================================================================
   onStart(): void {
-    this.subscribeTap();
+    console.log("[CutGameAuto] onStart");
+
+    this.tapCallback = (_event: APJS.IEvent) => {
+      console.log("[CutGameAuto] Tap");
+      this.onTap();
+    };
+
+    APJS.EventManager.getGestureEmitter().on(
+      APJS.GestureType.Tap,
+      this.tapCallback,
+      this
+    );
+
+    console.log("[CutGameAuto] Tap registered");
   }
 
   onUpdate(deltaTime: number): void {
-    // Inicialização preguiçosa: espera as referências estarem disponíveis.
     if (!this.initialized) {
-      if (!this.knife || !this.food || !this.statusText) return;
-      this.initializeGame();
-      this.initialized = true;
+      this.initialize();
+
+      if (!this.initialized) {
+        return;
+      }
     }
 
-    if (this.state === this.STATE_RESOLVE) {
-      this.updateResolve(deltaTime);
+    if (this.state === this.PLAYING) {
+      // Speed ramps up as the level advances (see getCurrentSpeed()).
+      this.phase += Math.max(0.01, this.getCurrentSpeed()) * deltaTime;
+      this.knifeT = this.triangle(this.phase);
+
+      this.knifeTransform!.anchoredPosition = new APJS.Vector2f(
+        this.trackX(this.knifeT),
+        this.startY
+      );
+
       return;
     }
 
-    if (this.state === this.STATE_PLAY) {
-      this.phase += this.speed * deltaTime;
-      this.currentT = this.triangle(this.phase);
-      this.setPos(this.knife, this.trackX(this.currentT), this.knifeY);
+    if (this.state === this.RESOLVING) {
+      this.timer += deltaTime;
+
+      if (this.timer >= Math.max(0.05, this.resolveDuration)) {
+        if (this.lives <= 0) {
+          this.finishGame();
+        } else {
+          this.newRound();
+        }
+      }
     }
-    // STATE_OVER: a faca para; aguardando toque para reiniciar.
   }
 
   onDestroy(): void {
-    if (!this.tapCallback) return;
-    APJS.EventManager.getGestureEmitter().off(APJS.GestureType.Tap, this.tapCallback, this);
-  }
-
-  // ==========================================================================
-  //  TOQUE
-  // ==========================================================================
-  private subscribeTap(): void {
-    this.tapCallback = (_event: APJS.IEvent) => {
-      this.onTap();
-    };
-    APJS.EventManager.getGestureEmitter().on(APJS.GestureType.Tap, this.tapCallback, this);
-  }
-
-  private onTap(): void {
-    if (!this.initialized) return;
-
-    // Fim de jogo: toque reinicia.
-    if (this.state === this.STATE_OVER) {
-      this.resetGame();
+    if (!this.tapCallback) {
       return;
     }
-    if (this.state !== this.STATE_PLAY) return;
 
-    const diff = Math.abs(this.currentT - this.targetT);
-
-    if (diff <= this.perfectTolerance) {
-      this.perfects += 1;
-      this.registerCut(3, "CORTE PERFEITO!");
-    } else if (diff <= this.goodTolerance) {
-      this.registerCut(1, "BOM CORTE!");
-    } else {
-      this.combo = 0;
-      this.livesLeft -= 1;
-      this.roundsPlayed += 1;
-      this.updateComboText();
-      this.setText(this.statusText, "ERROU!   Vidas: " + Math.max(0, this.livesLeft));
-      this.startResolve(false);
-    }
+    APJS.EventManager.getGestureEmitter().off(
+      APJS.GestureType.Tap,
+      this.tapCallback,
+      this
+    );
   }
 
-  private registerCut(points: number, label: string): void {
-    this.combo += 1;
-    this.hits += 1;
-    const gained = points * (1 + Math.floor(this.combo / 3));
-    this.score += gained;
-    if (this.score > this.best) this.best = this.score;
+  private initialize(): void {
+    const scene = this.getSceneObject().scene;
 
-    this.speed = Math.min(this.maxSpeed, this.speed + this.speedIncrement);
-    this.roundsPlayed += 1;
+    this.knife = scene.findSceneObject("Knife") || null;
+    this.targetZone = scene.findSceneObject("TargetZone") || null;
+    this.food = scene.findSceneObject("Food") || null;
+    this.foodHalfLeft = scene.findSceneObject("FoodHalfLeft") || null;
+    this.foodHalfRight = scene.findSceneObject("FoodHalfRight") || null;
+    this.statusText = scene.findSceneObject("StatusText") || null;
+    this.scoreText = scene.findSceneObject("ScoreText") || null;
+    this.comboText = scene.findSceneObject("ComboText") || null;
 
-    this.setText(this.statusText, label + "   +" + gained);
-    this.updateScoreText();
-    this.updateComboText();
-    this.startResolve(true);
-  }
+    if (!this.knife || !this.targetZone) {
+      if (!this.warned) {
+        console.log(
+          "[CutGameAuto] Could not find Knife or TargetZone by name."
+        );
 
-  // ==========================================================================
-  //  FLUXO DE PARTIDA
-  // ==========================================================================
-  private initializeGame(): void {
-    const k = this.getPos(this.knife); this.knifeX = k.x; this.knifeY = k.y;
-    const f = this.getPos(this.food); this.foodX = f.x; this.foodY = f.y;
-    if (this.targetZone) {
-      this.targetY = this.getPos(this.targetZone).y;
-      this.targetH = this.getSize(this.targetZone).y;
+        this.warned = true;
+      }
+
+      return;
     }
 
-    if (this.foodHalfLeft) {
-      const p = this.getPos(this.foodHalfLeft); this.leftBaseX = p.x; this.leftBaseY = p.y;
-      const s = this.getSize(this.foodHalfLeft); this.leftW = s.x; this.leftH = s.y;
+    this.knifeTransform = this.knife.getComponent(
+      "ScreenTransform"
+    ) as APJS.ScreenTransform;
+
+    this.targetTransform = this.targetZone.getComponent(
+      "ScreenTransform"
+    ) as APJS.ScreenTransform;
+
+    if (!this.knifeTransform || !this.targetTransform) {
+      if (!this.warned) {
+        console.log(
+          "[CutGameAuto] Knife and TargetZone need a ScreenTransform."
+        );
+
+        this.warned = true;
+      }
+
+      return;
     }
-    if (this.foodHalfRight) {
-      const p = this.getPos(this.foodHalfRight); this.rightBaseX = p.x; this.rightBaseY = p.y;
-      const s = this.getSize(this.foodHalfRight); this.rightW = s.x; this.rightH = s.y;
-    }
+
+    const position = this.knifeTransform.anchoredPosition;
+
+    // The brush and target swing around wherever you placed the brush.
+    // Place the brush in the middle (lower) and everything follows that point.
+    this.startX = position.x;
+    this.startY = position.y;
+    this.initialized = true;
+    this.warned = false;
+
+    this.applyTextStyles();
+
+    console.log("[CutGameAuto] initialized");
 
     this.resetGame();
   }
@@ -247,207 +205,272 @@ export class CutGame extends APJS.BasicScriptComponent {
   private resetGame(): void {
     this.score = 0;
     this.combo = 0;
-    this.livesLeft = this.lives;
-    this.roundsPlayed = 0;
-    this.hits = 0;
-    this.perfects = 0;
-    this.speed = this.startSpeed;
-    this.updateScoreText();
-    this.updateComboText();
+    this.lives = Math.max(1, Math.floor(this.startingLives));
+    this.rounds = 0;
+    this.phase = Math.random();
+
+    this.setTextColor(this.statusText, this.whiteColor());
+    this.updateHud();
     this.newRound();
   }
 
   private newRound(): void {
+    this.state = this.PLAYING;
+    this.timer = 0;
     this.targetT = 0.18 + Math.random() * 0.64;
 
-    if (this.targetZone) {
-      // Fica na MESMA linha horizontal da faca, e a largura vira exatamente a
-      // janela de acerto "bom" — assim o que aparece na tela é onde dá pra
-      // pontuar (nada de faixa enganosa).
-      this.setPos(this.targetZone, this.trackX(this.targetT), this.knifeY);
-      if (this.targetH > 0) {
-        const goodWidthPx = this.goodTolerance * 2 * this.travelDistance;
-        this.setSize(this.targetZone, goodWidthPx, this.targetH);
-      }
-    }
-
-    if (this.food) {
-      this.setEnabled(this.food, true);
-      this.setPos(this.food, this.foodX, this.foodY);
-    }
+    // Brush, target (dirt) and character stay VISIBLE. We no longer hide
+    // anything while brushing; the character image is always on screen.
+    this.setEnabled(this.knife, true);
+    this.setEnabled(this.targetZone, true);
+    this.setEnabled(this.food, true);
     this.setEnabled(this.foodHalfLeft, false);
     this.setEnabled(this.foodHalfRight, false);
 
-    // Começa numa fase aleatória e JÁ atualiza a posição da faca / currentT,
-    // para que um toque imediato seja avaliado corretamente.
-    this.phase = Math.random();
-    this.currentT = this.triangle(this.phase);
-    this.setPos(this.knife, this.trackX(this.currentT), this.knifeY);
+    this.targetTransform!.anchoredPosition = new APJS.Vector2f(
+      this.trackX(this.targetT),
+      this.startY
+    );
 
-    this.state = this.STATE_PLAY;
-    this.setText(this.statusText, "Toque para cortar!   (" + (this.roundsPlayed + 1) + "/" + this.cutsPerGame + ")");
+    const width =
+      Math.max(0.001, this.goodTolerance) *
+      2 *
+      Math.max(1, Math.abs(this.travelDistance));
+
+    this.targetTransform!.sizeDelta = new APJS.Vector2f(
+      width,
+      Math.max(1, this.targetZoneHeight)
+    );
+
+    this.setStatusText(
+      "TAP TO BRUSH!\nBRUSH " + (this.rounds + 1),
+      false
+    );
   }
 
-  private startResolve(success: boolean): void {
-    this.state = this.STATE_RESOLVE;
-    this.resolveTimer = 0;
-
-    if (success && this.food && this.foodHalfLeft && this.foodHalfRight) {
-      this.setEnabled(this.food, false);
-      this.setEnabled(this.foodHalfLeft, true);
-      this.setEnabled(this.foodHalfRight, true);
-
-      // Metades começam nas SUAS posições originais (montadas) e voam pra fora.
-      this.setPos(this.foodHalfLeft, this.leftBaseX, this.leftBaseY);
-      this.setPos(this.foodHalfRight, this.rightBaseX, this.rightBaseY);
-
-      this.lToX = this.leftBaseX - this.splitDistance;
-      this.lToY = this.leftBaseY - this.splitDistance * 0.5;
-      this.rToX = this.rightBaseX + this.splitDistance;
-      this.rToY = this.rightBaseY - this.splitDistance * 0.5;
-    }
-  }
-
-  private updateResolve(deltaTime: number): void {
-    this.resolveTimer += deltaTime;
-    const t = Math.min(1, this.resolveTimer / this.resolveDuration);
-    const ease = this.easeOutCubic(t);
-
-    if (this.foodHalfLeft && this.isEnabled(this.foodHalfLeft)) {
-      this.setPos(this.foodHalfLeft, this.lerp(this.leftBaseX, this.lToX, ease), this.lerp(this.leftBaseY, this.lToY, ease));
-      this.setSize(this.foodHalfLeft, this.leftW * (1 - ease), this.leftH * (1 - ease));
-    }
-    if (this.foodHalfRight && this.isEnabled(this.foodHalfRight)) {
-      this.setPos(this.foodHalfRight, this.lerp(this.rightBaseX, this.rToX, ease), this.lerp(this.rightBaseY, this.rToY, ease));
-      this.setSize(this.foodHalfRight, this.rightW * (1 - ease), this.rightH * (1 - ease));
+  private onTap(): void {
+    if (!this.initialized) {
+      this.initialize();
+      return;
     }
 
-    if (t >= 1) {
-      // Restaura o tamanho das metades para a próxima vez.
-      if (this.foodHalfLeft) this.setSize(this.foodHalfLeft, this.leftW, this.leftH);
-      if (this.foodHalfRight) this.setSize(this.foodHalfRight, this.rightW, this.rightH);
-
-      if (this.livesLeft <= 0 || this.roundsPlayed >= this.cutsPerGame) {
-        this.gameOver();
-      } else {
-        this.newRound();
-      }
+    if (this.state === this.GAME_OVER) {
+      this.resetGame();
+      return;
     }
-  }
 
-  private gameOver(): void {
-    this.state = this.STATE_OVER;
-    this.setEnabled(this.food, false);
-    this.setEnabled(this.foodHalfLeft, false);
-    this.setEnabled(this.foodHalfRight, false);
-    this.setText(this.statusText, this.getRank() + "\nPontos: " + this.score + "   |   Toque para jogar de novo");
-  }
+    if (this.state !== this.PLAYING) {
+      return;
+    }
 
-  private getRank(): string {
-    if (this.hits <= 0) return "Desastre na cozinha";
-    if (this.perfects >= this.cutsPerGame) return "MESTRE DO CORTE!";
-    if (this.hits >= Math.ceil(this.cutsPerGame * 0.6)) return "Cozinheiro promissor";
-    return "Aprendiz de cozinha";
-  }
+    const difference = Math.abs(this.knifeT - this.targetT);
+    const perfect = Math.max(0, this.perfectTolerance);
+    const good = Math.max(perfect, this.goodTolerance);
 
-  // ==========================================================================
-  //  MATEMÁTICA
-  // ==========================================================================
-  private triangle(phase: number): number {
-    const p = phase - Math.floor(phase);
-    return p < 0.5 ? p * 2 : 2 - p * 2;
-  }
+    this.rounds += 1;
 
-  private easeOutCubic(t: number): number {
-    const u = 1 - t;
-    return 1 - u * u * u;
-  }
+    if (difference <= perfect) {
+      this.combo += 1;
+      this.score += 100 + Math.max(0, this.combo - 1) * 10;
 
-  private lerp(a: number, b: number, t: number): number {
-    return a + (b - a) * t;
+      this.setStatusText("PERFECT BRUSH!", false);
+    } else if (difference <= good) {
+      this.combo += 1;
+      this.score += 50 + Math.max(0, this.combo - 1) * 5;
+
+      this.setStatusText("GOOD BRUSH!", false);
+    } else {
+      this.combo = 0;
+      this.lives -= 1;
+
+      this.setStatusText(
+        "MISSED!\nLIVES: " + Math.max(0, this.lives),
+        false
+      );
+    }
+
+    this.updateHud();
+    this.setEnabled(this.targetZone, false);
+
+    this.state = this.RESOLVING;
+    this.timer = 0;
   }
 
   /**
-   * Converte t (0..1) na posição X ao longo do trajeto, CENTRADO na posição
-   * onde a faca foi colocada. t=0 -> extremo esquerdo, t=0.5 -> centro (a
-   * posição original da faca), t=1 -> extremo direito.
+   * Current brush speed.
+   * Up to "roundsBeforeSpeedUp" brushes, it keeps the base speed. After that,
+   * each round adds "speedIncrement", capped by "maxSpeed" — so the game
+   * gets harder as you progress.
    */
-  private trackX(t: number): number {
-    return this.knifeX + this.travelDistance * (t - 0.5);
-  }
+  private getCurrentSpeed(): number {
+    const threshold = Math.max(0, Math.floor(this.roundsBeforeSpeedUp));
+    const level = this.rounds - threshold;
 
-  // ==========================================================================
-  //  HELPERS 2D — ScreenTransform via getComponent("...") COM fallback 3D
-  // ==========================================================================
-  private getScreenTransform(obj: APJS.SceneObject): APJS.ScreenTransform | null {
-    if (!obj) return null;
-    return obj.getComponent("ScreenTransform") as APJS.ScreenTransform;
-  }
-
-  private getPos(obj: APJS.SceneObject): { x: number; y: number } {
-    if (!obj) return { x: 0, y: 0 };
-    const st = this.getScreenTransform(obj);
-    if (st) {
-      const p = st.anchoredPosition;
-      return { x: p.x, y: p.y };
+    if (level <= 0) {
+      return this.speed;
     }
-    const p = obj.transform.localPosition;
-    return { x: p.x, y: p.y };
+
+    const ramped = this.speed + level * Math.max(0, this.speedIncrement);
+    const ceiling = Math.max(this.speed, this.maxSpeed);
+
+    return Math.min(ceiling, ramped);
   }
 
-  private setPos(obj: APJS.SceneObject, x: number, y: number): void {
-    if (!obj) return;
-    const st = this.getScreenTransform(obj);
-    if (st) {
-      st.anchoredPosition = new APJS.Vector2f(x, y);
+  private finishGame(): void {
+    this.state = this.GAME_OVER;
+
+    this.setEnabled(this.targetZone, false);
+
+    this.setStatusText(
+      "GAME OVER!\nTAP TO PLAY AGAIN",
+      true
+    );
+  }
+
+  private updateHud(): void {
+    this.setText(
+      this.scoreText,
+      "SCORE: " + this.score + "   LIVES: " + Math.max(0, this.lives)
+    );
+
+    this.setText(
+      this.comboText,
+      this.combo > 1 ? "COMBO x" + this.combo : ""
+    );
+
+    this.setTextColor(this.scoreText, this.whiteColor());
+    this.setTextColor(this.comboText, this.whiteColor());
+  }
+
+  private applyTextStyles(): void {
+    this.styleText(
+      this.statusText,
+      this.statusFontSize
+    );
+
+    this.styleText(
+      this.scoreText,
+      this.scoreFontSize
+    );
+
+    this.styleText(
+      this.comboText,
+      this.comboFontSize
+    );
+  }
+
+  private styleText(
+    object: APJS.SceneObject | null,
+    fontSize: number
+  ): void {
+    if (!object) {
       return;
     }
-    const z = obj.transform.localPosition.z;
-    obj.transform.localPosition = new APJS.Vector3f(x, y, z);
-  }
 
-  private getSize(obj: APJS.SceneObject): { x: number; y: number } {
-    if (!obj) return { x: 0, y: 0 };
-    const st = this.getScreenTransform(obj);
-    if (st && st.sizeDelta) return { x: st.sizeDelta.x, y: st.sizeDelta.y };
-    return { x: 0, y: 0 };
-  }
+    const text = object.getComponent("Text") as APJS.Text;
 
-  private setSize(obj: APJS.SceneObject, w: number, h: number): void {
-    if (!obj) return;
-    const st = this.getScreenTransform(obj);
-    if (st) {
-      st.sizeDelta = new APJS.Vector2f(Math.max(0, w), Math.max(0, h));
+    if (!text) {
       return;
     }
-    const base = this.leftW > 0 ? this.leftW : 1;
-    const f = Math.max(0, w / base);
-    obj.transform.localScale = new APJS.Vector3f(f, f, f);
+
+    text.fontSize = Math.max(1, fontSize);
+    text.bold = true;
+    text.italic = false;
+    text.letterSpacing = 0;
+    text.lineSpacing = 0;
+    text.opacity = 1;
+    text.color = this.whiteColor();
+
+    const black = this.blackColor();
+
+    if (text.getOutlineCount() > 0) {
+      text.setOutlineColorAtIndex(0, black);
+    }
+
+    if (text.getShadowCount() > 0) {
+      text.setShadowColorAtIndex(
+        0,
+        new APJS.Color(0, 0, 0, 0.85)
+      );
+    }
   }
 
-  private setEnabled(obj: APJS.SceneObject, on: boolean): void {
-    if (obj) obj.setEnabledInHierarchy(on);
+  private setStatusText(
+    value: string,
+    defeat: boolean
+  ): void {
+    this.setText(this.statusText, value);
+
+    this.setTextColor(
+      this.statusText,
+      defeat
+        ? new APJS.Color(1.0, 0.08, 0.08, 1.0)
+        : this.whiteColor()
+    );
   }
 
-  private isEnabled(obj: APJS.SceneObject): boolean {
-    return obj ? obj.isEnabledInHierarchy() : false;
+  private setTextColor(
+    object: APJS.SceneObject | null,
+    color: APJS.Color
+  ): void {
+    if (!object) {
+      return;
+    }
+
+    const text = object.getComponent("Text") as APJS.Text;
+
+    if (text) {
+      text.color = color;
+    }
   }
 
-  // ==========================================================================
-  //  TEXTO / HUD  — getComponent("Text")
-  // ==========================================================================
-  private setText(obj: APJS.SceneObject, value: string): void {
-    if (!obj) return;
-    const txt = obj.getComponent("Text") as APJS.Text;
-    if (txt) txt.text = value;
+  private whiteColor(): APJS.Color {
+    return new APJS.Color(1, 1, 1, 1);
   }
 
-  private updateScoreText(): void {
-    this.setText(this.scoreText, "Pontos: " + this.score + "   Recorde: " + this.best);
+  private blackColor(): APJS.Color {
+    return new APJS.Color(0, 0, 0, 1);
   }
 
-  private updateComboText(): void {
-    if (!this.comboText) return;
-    this.setText(this.comboText, this.combo > 1 ? "Sequencia: " + this.combo : "");
+  private triangle(value: number): number {
+    const normalized = value - Math.floor(value);
+
+    return normalized < 0.5
+      ? normalized * 2
+      : 2 - normalized * 2;
+  }
+
+  private trackX(value: number): number {
+    return (
+      this.startX +
+      this.horizontalOffset +
+      Math.abs(this.travelDistance) * (value - 0.5)
+    );
+  }
+
+  private setEnabled(
+    object: APJS.SceneObject | null,
+    enabled: boolean
+  ): void {
+    if (!object) {
+      return;
+    }
+
+    object.setEnabledInHierarchy(enabled);
+  }
+
+  private setText(
+    object: APJS.SceneObject | null,
+    value: string
+  ): void {
+    if (!object) {
+      return;
+    }
+
+    const text = object.getComponent("Text") as APJS.Text;
+
+    if (text) {
+      text.text = value;
+    }
   }
 }
