@@ -12,17 +12,11 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
   @serializeProperty() @label("Velocidade Máxima")
   maxSpeed: number = 2.4;
 
+  // Alcance do vai-e-vem (px). Menor = mais central, sem ir pras bordas.
+  // Obs.: se você já mudou este valor no Inspector, o valor salvo prevalece
+  // sobre este padrão — então ajuste por lá se ainda estiver muito largo.
   @serializeProperty() @label("Distância do Percurso")
-  travelDistance: number = 600;
-
-  @serializeProperty() @label("Centro Horizontal")
-  centerX: number = 0;
-
-  @serializeProperty() @label("Centro Vertical")
-  centerY: number = 0;
-
-  @serializeProperty() @label("Distância das Metades")
-  splitGap: number = 90;
+  travelDistance: number = 300;
 
   @serializeProperty() @label("Tolerância Perfeita")
   perfectTolerance: number = 0.04;
@@ -54,18 +48,12 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
 
   private knife: APJS.SceneObject | null = null;
   private targetZone: APJS.SceneObject | null = null;
-  private food: APJS.SceneObject | null = null;
-  private foodHalfLeft: APJS.SceneObject | null = null;
-  private foodHalfRight: APJS.SceneObject | null = null;
   private statusText: APJS.SceneObject | null = null;
   private scoreText: APJS.SceneObject | null = null;
   private comboText: APJS.SceneObject | null = null;
 
   private knifeTransform: APJS.ScreenTransform | null = null;
   private targetTransform: APJS.ScreenTransform | null = null;
-  private foodTransform: APJS.ScreenTransform | null = null;
-  private leftTransform: APJS.ScreenTransform | null = null;
-  private rightTransform: APJS.ScreenTransform | null = null;
 
   private initialized: boolean = false;
   private warned: boolean = false;
@@ -115,7 +103,7 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
 
       this.knifeTransform!.anchoredPosition = new APJS.Vector2f(
         this.trackX(this.knifeT),
-        this.centerY
+        this.startY
       );
 
       return;
@@ -151,9 +139,6 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
 
     this.knife = scene.findSceneObject("Knife") || null;
     this.targetZone = scene.findSceneObject("TargetZone") || null;
-    this.food = scene.findSceneObject("Food") || null;
-    this.foodHalfLeft = scene.findSceneObject("FoodHalfLeft") || null;
-    this.foodHalfRight = scene.findSceneObject("FoodHalfRight") || null;
     this.statusText = scene.findSceneObject("StatusText") || null;
     this.scoreText = scene.findSceneObject("ScoreText") || null;
     this.comboText = scene.findSceneObject("ComboText") || null;
@@ -190,19 +175,10 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
       return;
     }
 
-    // ScreenTransform das sujeiras (opcionais) para centralizá-las via script.
-    this.foodTransform = this.food
-      ? (this.food.getComponent("ScreenTransform") as APJS.ScreenTransform)
-      : null;
-    this.leftTransform = this.foodHalfLeft
-      ? (this.foodHalfLeft.getComponent("ScreenTransform") as APJS.ScreenTransform)
-      : null;
-    this.rightTransform = this.foodHalfRight
-      ? (this.foodHalfRight.getComponent("ScreenTransform") as APJS.ScreenTransform)
-      : null;
-
     const position = this.knifeTransform.anchoredPosition;
 
+    // A escova e o alvo giram em torno de onde você posicionou a escova.
+    // Coloque a escova no meio (mais embaixo) e tudo acompanha esse ponto.
     this.startX = position.x;
     this.startY = position.y;
     this.initialized = true;
@@ -232,17 +208,13 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
     this.timer = 0;
     this.targetT = 0.18 + Math.random() * 0.64;
 
+    // Só a sujeira (zona-alvo) é ligada/posicionada. A imagem do personagem
+    // NÃO é tocada aqui: você a posiciona e controla manualmente.
     this.setEnabled(this.targetZone, true);
-    this.setEnabled(this.food, true);
-    this.setEnabled(this.foodHalfLeft, false);
-    this.setEnabled(this.foodHalfRight, false);
-
-    // Mantém a sujeira (e as metades) centralizadas na tela.
-    this.centerDirt();
 
     this.targetTransform!.anchoredPosition = new APJS.Vector2f(
       this.trackX(this.targetT),
-      this.centerY
+      this.startY
     );
 
     const width =
@@ -287,13 +259,11 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
       this.score += 100 + Math.max(0, this.combo - 1) * 10;
 
       this.setStatusText("ESCOVADA PERFEITA!", false);
-      this.showCutFood();
     } else if (difference <= good) {
       this.combo += 1;
       this.score += 50 + Math.max(0, this.combo - 1) * 5;
 
       this.setStatusText("BOA ESCOVADA!", false);
-      this.showCutFood();
     } else {
       this.combo = 0;
       this.lives -= 1;
@@ -329,43 +299,6 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
     const ceiling = Math.max(this.speed, this.maxSpeed);
 
     return Math.min(ceiling, ramped);
-  }
-
-  /**
-   * Posiciona a sujeira inteira no centro e as duas metades levemente
-   * afastadas do centro, para tudo ficar mais centralizado na tela.
-   */
-  private centerDirt(): void {
-    if (this.foodTransform) {
-      this.foodTransform.anchoredPosition = new APJS.Vector2f(
-        this.centerX,
-        this.centerY
-      );
-    }
-
-    if (this.leftTransform) {
-      this.leftTransform.anchoredPosition = new APJS.Vector2f(
-        this.centerX - Math.max(0, this.splitGap),
-        this.centerY
-      );
-    }
-
-    if (this.rightTransform) {
-      this.rightTransform.anchoredPosition = new APJS.Vector2f(
-        this.centerX + Math.max(0, this.splitGap),
-        this.centerY
-      );
-    }
-  }
-
-  private showCutFood(): void {
-    if (!this.foodHalfLeft || !this.foodHalfRight) {
-      return;
-    }
-
-    this.setEnabled(this.food, false);
-    this.setEnabled(this.foodHalfLeft, true);
-    this.setEnabled(this.foodHalfRight, true);
   }
 
   private finishGame(): void {
@@ -494,7 +427,7 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
 
   private trackX(value: number): number {
     return (
-      this.centerX +
+      this.startX +
       Math.abs(this.travelDistance) * (value - 0.5)
     );
   }
