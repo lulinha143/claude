@@ -48,6 +48,9 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
 
   private knife: APJS.SceneObject | null = null;
   private targetZone: APJS.SceneObject | null = null;
+  private food: APJS.SceneObject | null = null;
+  private foodHalfLeft: APJS.SceneObject | null = null;
+  private foodHalfRight: APJS.SceneObject | null = null;
   private statusText: APJS.SceneObject | null = null;
   private scoreText: APJS.SceneObject | null = null;
   private comboText: APJS.SceneObject | null = null;
@@ -139,6 +142,9 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
 
     this.knife = scene.findSceneObject("Knife") || null;
     this.targetZone = scene.findSceneObject("TargetZone") || null;
+    this.food = scene.findSceneObject("Food") || null;
+    this.foodHalfLeft = scene.findSceneObject("FoodHalfLeft") || null;
+    this.foodHalfRight = scene.findSceneObject("FoodHalfRight") || null;
     this.statusText = scene.findSceneObject("StatusText") || null;
     this.scoreText = scene.findSceneObject("ScoreText") || null;
     this.comboText = scene.findSceneObject("ComboText") || null;
@@ -208,9 +214,13 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
     this.timer = 0;
     this.targetT = 0.18 + Math.random() * 0.64;
 
-    // Só a sujeira (zona-alvo) é ligada/posicionada. A imagem do personagem
-    // NÃO é tocada aqui: você a posiciona e controla manualmente.
+    // Escova, alvo (sujeira) e personagem ficam VISÍVEIS. Não escondemos mais
+    // nada ao escovar; a imagem do personagem permanece sempre na tela.
+    this.setEnabled(this.knife, true);
     this.setEnabled(this.targetZone, true);
+    this.setEnabled(this.food, true);
+    this.setEnabled(this.foodHalfLeft, false);
+    this.setEnabled(this.foodHalfRight, false);
 
     this.targetTransform!.anchoredPosition = new APJS.Vector2f(
       this.trackX(this.targetT),
