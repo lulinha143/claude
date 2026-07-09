@@ -1,50 +1,50 @@
 @component()
 export class CutGameAuto extends APJS.BasicScriptComponent {
-  @serializeProperty() @label("Velocidade")
+  @serializeProperty() @label("Speed")
   speed: number = 0.65;
 
-  @serializeProperty() @label("Rodadas Antes de Acelerar")
+  @serializeProperty() @label("Rounds Before Speed Up")
   roundsBeforeSpeedUp: number = 3;
 
-  @serializeProperty() @label("Incremento de Velocidade / Rodada")
+  @serializeProperty() @label("Speed Increment / Round")
   speedIncrement: number = 0.08;
 
-  @serializeProperty() @label("Velocidade Máxima")
+  @serializeProperty() @label("Max Speed")
   maxSpeed: number = 2.4;
 
-  // Alcance do vai-e-vem (px). Menor = mais central, sem ir pras bordas.
-  // Obs.: se você já mudou este valor no Inspector, o valor salvo prevalece
-  // sobre este padrão — então ajuste por lá se ainda estiver muito largo.
-  @serializeProperty() @label("Distância do Percurso")
+  // Back-and-forth range (px). Smaller = more central, without reaching edges.
+  // Note: if you already changed this value in the Inspector, the saved value
+  // overrides this default — so adjust it there if it's still too wide.
+  @serializeProperty() @label("Travel Distance")
   travelDistance: number = 300;
 
-  // Empurra a escova E o alvo na horizontal (px). Negativo = esquerda,
-  // positivo = direita. Ajuste até ficar no centro da tela do TikTok.
-  @serializeProperty() @label("Deslocamento Horizontal")
+  // Pushes the brush AND the target horizontally (px). Negative = left,
+  // positive = right. Adjust until it sits in the center of the TikTok screen.
+  @serializeProperty() @label("Horizontal Offset")
   horizontalOffset: number = -80;
 
-  @serializeProperty() @label("Tolerância Perfeita")
+  @serializeProperty() @label("Perfect Tolerance")
   perfectTolerance: number = 0.04;
 
-  @serializeProperty() @label("Tolerância Boa")
+  @serializeProperty() @label("Good Tolerance")
   goodTolerance: number = 0.13;
 
-  @serializeProperty() @label("Altura da Zona-Alvo")
+  @serializeProperty() @label("Target Zone Height")
   targetZoneHeight: number = 320;
 
-  @serializeProperty() @label("Vidas")
+  @serializeProperty() @label("Lives")
   startingLives: number = 3;
 
-  @serializeProperty() @label("Duração do Resultado")
+  @serializeProperty() @label("Result Duration")
   resolveDuration: number = 0.65;
 
-  @serializeProperty() @label("Tamanho do Texto Principal")
+  @serializeProperty() @label("Main Text Size")
   statusFontSize: number = 60;
 
-  @serializeProperty() @label("Tamanho do Texto de Pontos")
+  @serializeProperty() @label("Score Text Size")
   scoreFontSize: number = 38;
 
-  @serializeProperty() @label("Tamanho do Texto de Combo")
+  @serializeProperty() @label("Combo Text Size")
   comboFontSize: number = 44;
 
   private readonly PLAYING: number = 0;
@@ -82,7 +82,7 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
     console.log("[CutGameAuto] onStart");
 
     this.tapCallback = (_event: APJS.IEvent) => {
-      console.log("[CutGameAuto] Toque");
+      console.log("[CutGameAuto] Tap");
       this.onTap();
     };
 
@@ -92,7 +92,7 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
       this
     );
 
-    console.log("[CutGameAuto] Toque registrado");
+    console.log("[CutGameAuto] Tap registered");
   }
 
   onUpdate(deltaTime: number): void {
@@ -105,7 +105,7 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
     }
 
     if (this.state === this.PLAYING) {
-      // A velocidade sobe conforme o nível avança (ver getCurrentSpeed()).
+      // Speed ramps up as the level advances (see getCurrentSpeed()).
       this.phase += Math.max(0.01, this.getCurrentSpeed()) * deltaTime;
       this.knifeT = this.triangle(this.phase);
 
@@ -157,7 +157,7 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
     if (!this.knife || !this.targetZone) {
       if (!this.warned) {
         console.log(
-          "[CutGameAuto] Não encontrou Knife ou TargetZone pelo nome."
+          "[CutGameAuto] Could not find Knife or TargetZone by name."
         );
 
         this.warned = true;
@@ -177,7 +177,7 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
     if (!this.knifeTransform || !this.targetTransform) {
       if (!this.warned) {
         console.log(
-          "[CutGameAuto] Knife e TargetZone precisam de ScreenTransform."
+          "[CutGameAuto] Knife and TargetZone need a ScreenTransform."
         );
 
         this.warned = true;
@@ -188,8 +188,8 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
 
     const position = this.knifeTransform.anchoredPosition;
 
-    // A escova e o alvo giram em torno de onde você posicionou a escova.
-    // Coloque a escova no meio (mais embaixo) e tudo acompanha esse ponto.
+    // The brush and target swing around wherever you placed the brush.
+    // Place the brush in the middle (lower) and everything follows that point.
     this.startX = position.x;
     this.startY = position.y;
     this.initialized = true;
@@ -197,7 +197,7 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
 
     this.applyTextStyles();
 
-    console.log("[CutGameAuto] inicializado");
+    console.log("[CutGameAuto] initialized");
 
     this.resetGame();
   }
@@ -219,8 +219,8 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
     this.timer = 0;
     this.targetT = 0.18 + Math.random() * 0.64;
 
-    // Escova, alvo (sujeira) e personagem ficam VISÍVEIS. Não escondemos mais
-    // nada ao escovar; a imagem do personagem permanece sempre na tela.
+    // Brush, target (dirt) and character stay VISIBLE. We no longer hide
+    // anything while brushing; the character image is always on screen.
     this.setEnabled(this.knife, true);
     this.setEnabled(this.targetZone, true);
     this.setEnabled(this.food, true);
@@ -243,7 +243,7 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
     );
 
     this.setStatusText(
-      "TOQUE PARA ESCOVAR!\nESCOVADA " + (this.rounds + 1),
+      "TAP TO BRUSH!\nBRUSH " + (this.rounds + 1),
       false
     );
   }
@@ -273,18 +273,18 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
       this.combo += 1;
       this.score += 100 + Math.max(0, this.combo - 1) * 10;
 
-      this.setStatusText("ESCOVADA PERFEITA!", false);
+      this.setStatusText("PERFECT BRUSH!", false);
     } else if (difference <= good) {
       this.combo += 1;
       this.score += 50 + Math.max(0, this.combo - 1) * 5;
 
-      this.setStatusText("BOA ESCOVADA!", false);
+      this.setStatusText("GOOD BRUSH!", false);
     } else {
       this.combo = 0;
       this.lives -= 1;
 
       this.setStatusText(
-        "ERROU!\nVIDAS: " + Math.max(0, this.lives),
+        "MISSED!\nLIVES: " + Math.max(0, this.lives),
         false
       );
     }
@@ -297,10 +297,10 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
   }
 
   /**
-   * Velocidade atual da escova.
-   * Até "roundsBeforeSpeedUp" escovadas, mantém a velocidade base. A partir daí,
-   * cada rodada soma "speedIncrement", limitado por "maxSpeed" — assim o jogo
-   * vai ficando mais difícil conforme você avança.
+   * Current brush speed.
+   * Up to "roundsBeforeSpeedUp" brushes, it keeps the base speed. After that,
+   * each round adds "speedIncrement", capped by "maxSpeed" — so the game
+   * gets harder as you progress.
    */
   private getCurrentSpeed(): number {
     const threshold = Math.max(0, Math.floor(this.roundsBeforeSpeedUp));
@@ -322,7 +322,7 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
     this.setEnabled(this.targetZone, false);
 
     this.setStatusText(
-      "FIM DE JOGO!\nTOQUE PARA JOGAR DE NOVO",
+      "GAME OVER!\nTAP TO PLAY AGAIN",
       true
     );
   }
@@ -330,7 +330,7 @@ export class CutGameAuto extends APJS.BasicScriptComponent {
   private updateHud(): void {
     this.setText(
       this.scoreText,
-      "PONTOS: " + this.score + "   VIDAS: " + Math.max(0, this.lives)
+      "SCORE: " + this.score + "   LIVES: " + Math.max(0, this.lives)
     );
 
     this.setText(
