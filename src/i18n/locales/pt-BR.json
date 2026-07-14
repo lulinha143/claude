@@ -479,7 +479,39 @@
     "result": "Você fez {{value}} pontos!",
     "goodNut": "Castanha boa",
     "brokenShell": "Casca quebrada",
-    "start": "Começar"
+    "start": "Começar",
+    "exit": "Sair",
+    "combo": "Combo x{{value}}",
+    "binGood": "Castanhas Boas",
+    "binShell": "Cascas Quebradas",
+    "rewardNote": "Recompensa adicionada à sua empresa!",
+    "playAgain": "Jogar de novo",
+    "memorize": "Memorize a prateleira…",
+    "whatChanged": "O que mudou?",
+    "ready": "Estou pronto",
+    "correct": "Correto!",
+    "incorrect": "Quase lá.",
+    "itChanged": "O item {{before}} virou {{after}}.",
+    "next": "Próximo",
+    "coffeeDrop": "Pegue o café",
+    "grade": {
+      "poor": "Continue praticando!",
+      "ok": "Bom trabalho!",
+      "great": "Ótimo trabalho!",
+      "perfect": "Sensacional!"
+    },
+    "item": {
+      "stapler": "Grampeador",
+      "mug": "Caneca",
+      "clip": "Clipe de papel",
+      "nut": "Castanha",
+      "floppy": "Disquete",
+      "plant": "Planta",
+      "lamp": "Luminária",
+      "phone": "Telefone",
+      "key": "Chave",
+      "battery": "Bateria"
+    }
   },
   "collections": {
     "title": "Coleções",

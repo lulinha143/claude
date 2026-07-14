@@ -479,7 +479,39 @@
     "result": "You scored {{value}}!",
     "goodNut": "Good nut",
     "brokenShell": "Broken shell",
-    "start": "Start"
+    "start": "Start",
+    "exit": "Exit",
+    "combo": "Combo x{{value}}",
+    "binGood": "Good Nuts",
+    "binShell": "Broken Shells",
+    "rewardNote": "Reward added to your company!",
+    "playAgain": "Play again",
+    "memorize": "Memorize the shelf…",
+    "whatChanged": "What changed?",
+    "ready": "I'm ready",
+    "correct": "Correct!",
+    "incorrect": "Not quite.",
+    "itChanged": "The {{before}} became a {{after}}.",
+    "next": "Next",
+    "coffeeDrop": "Catch the coffee",
+    "grade": {
+      "poor": "Keep practising!",
+      "ok": "Nice work!",
+      "great": "Great job!",
+      "perfect": "Nut-standing!"
+    },
+    "item": {
+      "stapler": "Stapler",
+      "mug": "Mug",
+      "clip": "Paper clip",
+      "nut": "Nut",
+      "floppy": "Floppy disk",
+      "plant": "Plant",
+      "lamp": "Lamp",
+      "phone": "Phone",
+      "key": "Key",
+      "battery": "Battery"
+    }
   },
   "collections": {
     "title": "Collections",

@@ -21,8 +21,31 @@ export interface EmployeeRuntimeState {
   friendship: number; // 0..100
   outfitId: string | null;
   nickname: string | null;
+  /**
+   * The room the player has assigned this employee to, or null to use the
+   * employee's default department. The engine guarantees a valid *resolved*
+   * room at render time (see resolveEmployeeRoom) so an employee is never
+   * invisible even if their department isn't unlocked yet.
+   */
+  room: string | null;
   /** Position within the office scene, normalized 0..1 (x only for the 2D office). */
   x: number;
+}
+
+export type EmployeeMood =
+  | 'focused'
+  | 'relaxed'
+  | 'inspired'
+  | 'tired'
+  | 'frustrated'
+  | 'curious'
+  | 'proud';
+
+/** A compact, persisted record of a resolved event decision (company timeline). */
+export interface EventHistoryEntry {
+  eventId: string;
+  choiceId: string;
+  at: number;
 }
 
 export type PrestigeBranchId =
@@ -128,6 +151,8 @@ export interface GameState {
   eventCooldowns: Record<string, number>;
   /** Pending multi-step event chain, if any. */
   pendingChain: { eventId: string; step: number } | null;
+  /** Chronological record of resolved event decisions (most recent last). */
+  eventHistory: EventHistoryEntry[];
 }
 
 export interface ProductionBreakdownEntry {

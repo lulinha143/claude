@@ -998,36 +998,212 @@ select,
   font-size: 0.78em;
   color: var(--cream-dim);
 }
-.microgame__hud {
+/* --- shared micro-game shell --- */
+.microgame__bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.microgame__bar strong {
+  flex: 1;
+}
+.microgame__timer {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-variant-numeric: tabular-nums;
+  color: var(--amber);
+  font-weight: 700;
+}
+.microgame__exit {
+  padding: 4px 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.microgame__instructions {
+  font-size: 0.82em;
+  color: var(--text-secondary);
+  margin: 0 0 8px;
+}
+.microgame__result {
+  text-align: center;
+  padding: 12px;
+}
+.microgame__grade {
+  font-size: 1.1em;
+  font-weight: 800;
+  color: var(--gold);
+  margin-bottom: 4px;
+}
+.microgame__result .button-row {
+  justify-content: center;
+  margin-top: 10px;
+}
+@keyframes pop-in {
+  from { transform: scale(0.3); }
+  to { transform: scale(1); }
+}
+
+/* --- Shell Sort --- */
+.shellsort {
+  border-radius: var(--r-md);
+  transition: background var(--dur) var(--ease);
+}
+.shellsort.is-flash-good { background: rgba(79, 157, 105, 0.18); }
+.shellsort.is-flash-bad { background: rgba(176, 71, 58, 0.16); }
+.shellsort__hud {
   display: flex;
   justify-content: space-between;
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
   margin-bottom: 6px;
 }
-.microgame__area {
+.shellsort__item {
+  height: 90px;
+  display: grid;
+  place-items: center;
+}
+.shellsort__token {
+  animation: pop-in 0.18s var(--ease);
+}
+.shellsort__bins {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.bin {
   position: relative;
-  height: 220px;
-  background: repeating-linear-gradient(45deg, #33261a, #33261a 12px, #2d2216 12px, #2d2216 24px);
-  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 8px;
+  border-radius: var(--r-md);
+  border: 2px solid var(--border);
+  cursor: pointer;
+  color: var(--text);
   overflow: hidden;
 }
-.microgame__start {
+.bin--good { border-color: var(--positive); background: rgba(79, 157, 105, 0.12); }
+.bin--shell { border-color: var(--wood-light); background: rgba(169, 116, 59, 0.12); }
+.bin:hover { filter: brightness(1.1); }
+.bin:active { transform: scale(0.97); }
+.bin__label { font-weight: 700; font-size: 0.85em; }
+.bin__pattern {
   position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
+  inset: 0;
+  opacity: 0.12;
+  pointer-events: none;
 }
-.microgame__target {
+.bin__pattern--dots {
+  background-image: radial-gradient(currentColor 2px, transparent 2px);
+  background-size: 12px 12px;
+}
+.bin__pattern--stripes {
+  background-image: repeating-linear-gradient(45deg, currentColor 0 3px, transparent 3px 8px);
+}
+.bin kbd {
+  font-size: 0.7em;
+  background: var(--surface-sunken);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+
+/* --- Coffee Rescue --- */
+.coffee__hud {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 6px;
+}
+.coffee__area {
+  position: relative;
+  height: 220px;
+  background: linear-gradient(180deg, #3a2c1f, #2d2216);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  cursor: none;
+  touch-action: none;
+}
+.coffee__drop {
   position: absolute;
+  width: 12px;
+  height: 16px;
   transform: translate(-50%, -50%);
-  background: none;
+  background: radial-gradient(circle at 40% 30%, #a9743b, #6f4a2f);
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+}
+.coffee__drop--tap {
+  width: 26px;
+  height: 30px;
   border: none;
   cursor: pointer;
-  animation: pop-in 0.15s ease-out;
+  animation: pop-in 0.15s var(--ease);
 }
-@keyframes pop-in {
-  from { transform: translate(-50%, -50%) scale(0.3); }
-  to { transform: translate(-50%, -50%) scale(1); }
+.coffee__mug {
+  position: absolute;
+  bottom: 6px;
+  width: 40px;
+  height: 26px;
+  transform: translateX(-50%);
+  background: var(--wood-light);
+  border: 2px solid var(--wood-dark);
+  border-radius: 4px 4px 10px 10px;
+}
+.coffee__mug::after {
+  content: '';
+  position: absolute;
+  right: -10px;
+  top: 4px;
+  width: 10px;
+  height: 12px;
+  border: 3px solid var(--wood-dark);
+  border-left: none;
+  border-radius: 0 8px 8px 0;
+}
+
+/* --- Raccoon Inventory --- */
+.inv__hud {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.inv__phase { color: var(--amber); }
+.inv__shelf {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 12px;
+  background: linear-gradient(180deg, rgba(255, 244, 224, 0.06), rgba(0, 0, 0, 0.25));
+  border-bottom: 4px solid var(--wood-light);
+  border-radius: var(--r-md);
+}
+.inv__slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  width: 64px;
+  padding: 8px 4px;
+  border: 2px solid transparent;
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--text);
+}
+.inv__slot.is-clickable { cursor: pointer; }
+.inv__slot.is-clickable:hover { border-color: var(--accent); }
+.inv__slot.is-answer { border-color: var(--positive); background: rgba(79, 157, 105, 0.2); }
+.inv__slot.is-wrong { border-color: var(--negative); background: rgba(176, 71, 58, 0.2); }
+.inv__slot-label { font-size: 0.66em; color: var(--text-secondary); }
+.inv__explain {
+  text-align: center;
+  margin-top: 10px;
+  font-size: 0.9em;
 }
 
 /* ------- prestige ------- */

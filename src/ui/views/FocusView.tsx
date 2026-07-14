@@ -4,7 +4,7 @@ import { useGame } from '../../state/hooks';
 import { useStore } from '../../state/store';
 import { BALANCE } from '../../sim/config';
 import { formatClock } from '../../sim/format';
-import { MicroGame, type MicroMode } from '../MicroGame';
+import { MicroGame, type MicroMode } from '../minigames/MicroGame';
 
 export function FocusView() {
   const { t } = useTranslation();
@@ -74,19 +74,16 @@ export function FocusView() {
       <div className="panel">
         <h3>{t('microgame.title')}</h3>
         {micro ? (
-          <>
-            <MicroGame
-              mode={micro}
-              onFinish={(score) => {
-                engine.rewardMicrogame(micro, score);
-                audio.play('celebrate');
-                setMicro(null);
-              }}
-            />
-            <button className="ghost-btn" onClick={() => setMicro(null)}>
-              {t('common.back')}
-            </button>
-          </>
+          <MicroGame
+            mode={micro}
+            seed={Date.now() & 0xffff}
+            reducedMotion={state.settings.reducedMotion}
+            onReward={(score) => {
+              engine.rewardMicrogame(micro, score);
+              audio.play('celebrate');
+            }}
+            onClose={() => setMicro(null)}
+          />
         ) : (
           <div className="microgame-menu">
             {(['shellSort', 'coffeeRescue', 'inventory'] as MicroMode[]).map((m) => (
