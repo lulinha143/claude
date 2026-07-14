@@ -22,6 +22,7 @@ export function defaultSettings(): GameSettings {
     fpsLimit: 60,
     focusHarvestEnabled: false,
     offlineCapHours: BALANCE.offline.defaultCapHours,
+    showHints: true,
   };
 }
 

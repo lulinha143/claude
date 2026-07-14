@@ -541,6 +541,23 @@
     "comfort": "Conforto da sala +{{value}}",
     "autoRoom": "Padrão (departamento)"
   },
+  "nextStep": {
+    "claimDaily": "Um desafio diário está pronto para resgatar!",
+    "hire": "Você já pode contratar {{name}}!",
+    "upgrade": "Você já pode comprar uma melhoria.",
+    "prestige": "Você está pronto para Ficar Completamente Louco!",
+    "focus": "Experimente uma sessão de Colheita de Foco.",
+    "decorate": "Você já pode comprar uma decoração."
+  },
+  "mood": {
+    "focused": "Focado",
+    "relaxed": "Relaxado",
+    "inspired": "Inspirado",
+    "tired": "Cansado",
+    "frustrated": "Frustrado",
+    "curious": "Curioso",
+    "proud": "Orgulhoso"
+  },
   "collections": {
     "title": "Coleções",
     "nuts": "Enciclopédia da Castanha",
@@ -593,6 +610,7 @@
     "uiScale": "Escala da interface",
     "subtitles": "Legendas de áudio",
     "pauseInMenus": "Pausar animações nos menus",
+    "showHints": "Mostrar dicas úteis",
     "fpsLimit": "Limite de quadros",
     "desktop": "Janela de Desktop",
     "alwaysOnTop": "Sempre no topo",

@@ -4,6 +4,47 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/), and this project adheres to
 semantic versioning.
 
+## [Unreleased] — repair + expansion pass
+
+### Fixed
+
+- **Disappearing characters:** hired employees whose department wasn't unlocked
+  (or had invalid saved placement) could render in no room and vanish. Employees
+  now resolve to a guaranteed-valid room (their department if unlocked, else the
+  Founder's Desk) and invalid placement data is auto-repaired on load, import,
+  and prestige. Added placement/persistence tests.
+
+### Changed / Added
+
+- **Minigames rebuilt** as three genuinely distinct, playable games with a
+  shared shell (countdown, safe exit, reward-once guard, result + play-again):
+  Shell Sort (colourblind-safe bins, combo, keyboard), Coffee Rescue (mouse/arrow
+  catch with a motion-free tap variant), Raccoon Inventory (deterministic
+  spot-the-change memory). Pure logic in `src/sim/minigames.ts` is unit-tested.
+- **Employee identities:** creative full names (e.g. *Pip Acornsworth*,
+  *Rizzo "Receipts" Ringtail*) + personal goals, shown on the profile. Stable
+  ids unchanged.
+- **Event decisions announce consequences:** a result panel spells out every
+  effect (+/- with icons) plus team reactions; gated choices are disabled with a
+  reason. *The Office Is Technically On Fire* now offers four strategic choices.
+  A persisted event history feeds a "Recent decisions" timeline.
+- **Notifications:** centralized toast system (reduced-motion + `aria-live`) for
+  hires, room unlocks, and achievements.
+- **Interactive decorations:** owned decorations appear in their room as
+  clickable props (lamps toggle, plants wiggle, aquariums bubble); a decoration
+  mode shows/hides each (persisted); rooms show a comfort score.
+- **Company overview:** the office scene shows per-room status chips (workers,
+  comfort); employees can be reassigned between unlocked rooms from the Team
+  panel.
+- **Depth & UX:** lightweight derived employee mood (indicator + label), and a
+  gentle, dismissible "recommended next step" hint (toggle in Settings).
+
+### Save compatibility
+
+- **Save schema v4** with a v3→v4 migration (adds `employee.room` and
+  `eventHistory`); new optional fields (`settings.showHints`, decoration
+  hide-flags) use schema defaults, so older saves load unchanged.
+
 ## [Unreleased] — production polish pass
 
 ### Changed / Added

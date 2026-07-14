@@ -66,6 +66,7 @@ const settingsSchema = z
     fpsLimit: z.union([z.literal(30), z.literal(60)]).catch(60),
     focusHarvestEnabled: z.boolean().catch(false),
     offlineCapHours: z.number().catch(8),
+    showHints: z.boolean().catch(true),
   })
   .default({})
   .catch({} as never);
