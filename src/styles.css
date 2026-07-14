@@ -1593,3 +1593,161 @@ select,
 .critter-btn .critter--capybara + .focus-hat {
   top: 0;
 }
+
+
+/* employee profile: full name + personal goal */
+.employee-card__fullname {
+  font-size: 0.72em;
+  color: var(--text-muted);
+  margin-top: -2px;
+}
+.employee-card__goal {
+  font-size: 0.75em;
+  color: var(--text-secondary);
+  margin-top: 4px;
+  font-style: italic;
+}
+.employee-card__goal .goal-label {
+  color: var(--amber);
+  font-style: normal;
+  font-weight: 700;
+}
+
+
+/* ==========================================================================
+   Notifications (toasts)
+   ========================================================================== */
+.toasts {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: min(320px, 80vw);
+  pointer-events: none;
+}
+.toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  padding: 8px 12px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border-strong);
+  background: linear-gradient(160deg, #43331f, var(--wood));
+  color: var(--text);
+  font-size: 0.85em;
+  font-weight: 600;
+  box-shadow: var(--shadow-md);
+  border-left: 4px solid var(--text-muted);
+  cursor: pointer;
+  animation: toast-in 0.24s var(--ease);
+}
+.toast--positive { border-left-color: var(--positive); }
+.toast--negative { border-left-color: var(--negative); }
+.toast--gold { border-left-color: var(--gold); }
+.toast--gold .ui-icon { color: var(--gold); }
+@keyframes toast-in {
+  from { transform: translateX(30px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* ==========================================================================
+   Event consequence result panel
+   ========================================================================== */
+.consequence-modal {
+  text-align: left;
+  max-width: 380px;
+}
+.consequence-modal__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.consequence-modal__head h2 {
+  margin: 0;
+  font-size: 1.05em;
+}
+.consequence-list {
+  list-style: none;
+  margin: 0 0 10px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.consequence-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  font-size: 0.9em;
+  font-weight: 600;
+  border-left: 3px solid var(--text-muted);
+}
+.consequence-line--positive { border-left-color: var(--positive); }
+.consequence-line--positive .ui-icon { color: var(--positive); }
+.consequence-line--negative { border-left-color: var(--negative); }
+.consequence-line--negative .ui-icon { color: var(--negative); }
+.consequence-reactions {
+  background: var(--surface-sunken);
+  border-radius: var(--r-sm);
+  padding: 8px 10px;
+  margin-bottom: 12px;
+}
+.consequence-reactions__label {
+  font-size: 0.72em;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--amber);
+  margin-bottom: 4px;
+}
+.consequence-reaction {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85em;
+  color: var(--text-secondary);
+  font-style: italic;
+  padding: 2px 0;
+}
+
+/* gated event choices */
+.event-choice {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+.event-choice__req {
+  font-size: 0.72em;
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+/* company decision timeline */
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.timeline__row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 8px;
+  padding: 6px 8px;
+  background: var(--surface);
+  border-radius: var(--r-sm);
+  font-size: 0.82em;
+}
+.timeline__title { font-weight: 700; }
+.timeline__choice { color: var(--amber); }
+.timeline__date { color: var(--text-muted); font-size: 0.9em; grid-column: 2; grid-row: 1 / span 2; align-self: center; }

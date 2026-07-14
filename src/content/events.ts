@@ -85,8 +85,18 @@ export const GAME_EVENTS: GameEventDef[] = [
     cooldownSeconds: 900,
     momentWorthy: true,
     choices: [
-      { id: 'befriend', labelKey: 'event.coffeeAI.befriend', effects: [{ type: 'morale', value: 10 }, { type: 'momentCard' }] },
-      { id: 'unplug', labelKey: 'event.coffeeAI.unplug', effects: [{ type: 'nuts', value: 500 }] },
+      {
+        id: 'befriend',
+        labelKey: 'event.coffeeAI.befriend',
+        effects: [{ type: 'morale', value: 10 }, { type: 'momentCard' }],
+        reactions: ['react.teamHappy', 'react.beaConcerned'],
+      },
+      {
+        id: 'unplug',
+        labelKey: 'event.coffeeAI.unplug',
+        effects: [{ type: 'nuts', value: 500 }],
+        reactions: ['react.teamNervous'],
+      },
     ],
   },
   {
@@ -136,8 +146,46 @@ export const GAME_EVENTS: GameEventDef[] = [
     cooldownSeconds: 600,
     momentWorthy: true,
     choices: [
-      { id: 'panic', labelKey: 'event.fire.panic', effects: [{ type: 'nuts', value: -100 }, { type: 'morale', value: -2 }] },
-      { id: 'stay-calm', labelKey: 'event.fire.calm', effects: [{ type: 'morale', value: 6 }, { type: 'momentCard' }] },
+      {
+        id: 'evacuate',
+        labelKey: 'event.fire.evacuate',
+        effects: [
+          { type: 'morale', value: 3 },
+          { type: 'nuts', value: -50 },
+        ],
+        reactions: ['react.marlowCalm'],
+      },
+      {
+        id: 'contain',
+        labelKey: 'event.fire.contain',
+        effects: [
+          { type: 'reputation', value: 3 },
+          { type: 'morale', value: 1 },
+        ],
+        requires: { hiredEmployee: 'bea' },
+        disabledKey: 'event.fire.needBea',
+        reactions: ['react.beaProud'],
+      },
+      {
+        id: 'livestream',
+        labelKey: 'event.fire.livestream',
+        effects: [
+          { type: 'nuts', value: 400 },
+          { type: 'reputation', value: -2 },
+          { type: 'productionBoost', value: 1.3, durationSeconds: 90 },
+          { type: 'momentCard' },
+        ],
+        reactions: ['react.corvusExcited', 'react.teamNervous'],
+      },
+      {
+        id: 'study',
+        labelKey: 'event.fire.study',
+        effects: [
+          { type: 'goldenNuts', value: 1 },
+          { type: 'unlockSecret', secretId: 'fire-science' },
+        ],
+        reactions: ['react.minaCurious'],
+      },
     ],
   },
   {
@@ -238,7 +286,12 @@ export const GAME_EVENTS: GameEventDef[] = [
     cooldownSeconds: 1000,
     momentWorthy: true,
     choices: [
-      { id: 'approve', labelKey: 'event.chairPromoted.approve', effects: [{ type: 'unlockSecret', secretId: 'chair' }, { type: 'morale', value: 5 }, { type: 'momentCard' }] },
+      {
+        id: 'approve',
+        labelKey: 'event.chairPromoted.approve',
+        effects: [{ type: 'unlockSecret', secretId: 'chair' }, { type: 'morale', value: 5 }, { type: 'momentCard' }],
+        reactions: ['react.teamHappy', 'react.pipProud'],
+      },
     ],
   },
   {

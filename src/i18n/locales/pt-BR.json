@@ -81,35 +81,50 @@
     "nickname": "Apelido",
     "renamePlaceholder": "Dê um apelido…",
     "unlockAt": "Desbloqueia com {{value}} de reputação",
+    "goal": "Meta:",
+    "assignRoom": "Local de trabalho",
+    "mood": "Humor",
     "pip": {
       "name": "Pip",
+      "fullName": "Pip Bolotenberg",
       "role": "Fundador e CEO",
-      "story": "Pip começou esta empresa com uma bolota e a crença inabalável de que reuniões resolvem tudo. Confiança: máxima. Competência: negociável."
+      "story": "Pip começou esta empresa com uma bolota e a crença inabalável de que reuniões resolvem tudo. Confiança: máxima. Competência: negociável.",
+      "goal": "Construir o maior império de castanhas do mundo (e finalmente terminar uma planilha)."
     },
     "marlow": {
       "name": "Marlow",
+      "fullName": "Marlow Águasmansas",
       "role": "Chefe de Recursos Humanos",
-      "story": "Marlow, a capivara, nunca levantou a voz, entrou em pânico ou piscou durante uma crise. A moral sobe só por ela estar perto."
+      "story": "Marlow, a capivara, nunca levantou a voz, entrou em pânico ou piscou durante uma crise. A moral sobe só por ela estar perto.",
+      "goal": "Garantir que absolutamente todos tirem uma boa soneca."
     },
     "rizzo": {
       "name": "Rizzo",
+      "fullName": "Rizzo \u201cNota Fiscal\u201d Anelrabo",
       "role": "Especialista em Compras",
-      "story": "Rizzo acha tudo o que a empresa precisa. E também várias coisas de que não precisava. Por favor, não pergunte pelo grampeador."
+      "story": "Rizzo acha tudo o que a empresa precisa. E também várias coisas de que não precisava. Por favor, não pergunte pelo grampeador.",
+      "goal": "Conseguir tudo por um preço suspeitosamente bom."
     },
     "bea": {
       "name": "Bea",
+      "fullName": "Beatriz \u201cBea\u201d Madeirão",
       "role": "Gerente de Construção",
-      "story": "Bea acredita que todo problema se resolve com mais madeira. As cadeiras agora são 40% mais firmes e 60% mais amadeiradas."
+      "story": "Bea acredita que todo problema se resolve com mais madeira. As cadeiras agora são 40% mais firmes e 60% mais amadeiradas.",
+      "goal": "Reforçar cada coisinha do prédio."
     },
     "corvus": {
       "name": "Corvus",
+      "fullName": "Corvus Corvalho",
       "role": "Diretor de Marketing",
-      "story": "Corvus, o corvo, tem grandes ideias, a maioria juridicamente duvidosa, todas extremamente brilhantes."
+      "story": "Corvus, o corvo, tem grandes ideias, a maioria juridicamente duvidosa, todas extremamente brilhantes.",
+      "goal": "Fazer a marca de castanhas viralizar. Ética é opcional."
     },
     "mina": {
       "name": "Mina",
+      "fullName": "Mina Poçofundo",
       "role": "Engenheira de Pesquisa",
-      "story": "Mina cava. Às vezes rumo ao futuro da tecnologia da castanha, às vezes rumo à sala de reunião, sempre com entusiasmo."
+      "story": "Mina cava. Às vezes rumo ao futuro da tecnologia da castanha, às vezes rumo à sala de reunião, sempre com entusiasmo.",
+      "goal": "Descobrir o que há embaixo do porão do porão."
     }
   },
   "item": {
@@ -166,6 +181,9 @@
   },
   "event": {
     "resolvePrompt": "O que você faz?",
+    "resultTitle": "Veja o que aconteceu",
+    "reactionsLabel": "A equipe reage",
+    "noEffects": "Nada mensurável mudou — mas a história continua.",
     "printer": {
       "title": "A Impressora Está Fazendo Exigências",
       "body": "A impressora do escritório redigiu uma lista de exigências. Item um: respeito.",
@@ -221,8 +239,11 @@
     "fire": {
       "title": "O Escritório Está Tecnicamente Pegando Fogo",
       "body": "É um foguinho. Bem administrável. A Marlow nem levantou a cabeça.",
-      "panic": "Entrar em pânico apropriadamente",
-      "calm": "Manter a calma como a Marlow"
+      "evacuate": "Evacuar com calma",
+      "contain": "Pedir para a Bea conter o fogo",
+      "needBea": "Requer a Bea (Construção)",
+      "livestream": "Transformar numa live de marketing",
+      "study": "Deixar a Mina estudar o fenômeno"
     },
     "casualFriday": {
       "title": "A Sexta Casual Ficou Casual Demais",
@@ -529,7 +550,9 @@
     "rename": "Renomear empresa",
     "renamePlaceholder": "Nome da empresa…",
     "founded": "Fundada em {{date}}",
-    "prestigeCount": "Linhas do tempo: {{count}}"
+    "prestigeCount": "Linhas do tempo: {{count}}",
+    "timeline": "Decisões recentes",
+    "timelineEmpty": "Nenhuma grande decisão ainda — os eventos aparecerão aqui."
   },
   "stats": {
     "title": "Estatísticas",
@@ -609,6 +632,40 @@
     "company": "Empresa",
     "rarityLabel": "Raridade",
     "rarity": { "common": "Comum", "uncommon": "Incomum", "rare": "Raro", "legendary": "Lendário" }
+  },
+  "consequence": {
+    "nutsGain": "+{{value}} castanhas",
+    "nutsLoss": "-{{value}} castanhas",
+    "goldenGain": "+{{value}} Castanhas Douradas",
+    "moraleUp": "Moral +{{value}}",
+    "moraleDown": "Moral {{value}}",
+    "repUp": "Reputação +{{value}}",
+    "repDown": "Reputação {{value}}",
+    "boost": "Produção x{{value}} por {{seconds}}s",
+    "friendship": "A amizade de um funcionário aumentou",
+    "friendshipNamed": "A amizade de {{name}} aumentou",
+    "newNut": "Você descobriu uma nova castanha!",
+    "secret": "Uma descoberta secreta foi desbloqueada",
+    "moment": "Um Cartão de Momento foi salvo"
+  },
+  "notify": {
+    "hired": "{{name}} entrou para a empresa!",
+    "roomUnlocked": "Nova sala: {{name}}",
+    "assigned": "{{name}} foi para {{room}}",
+    "decoration": "Decoração posicionada",
+    "policy": "Política alterada"
+  },
+  "react": {
+    "marlowApproves": "Marlow aprovou esta decisão.",
+    "marlowCalm": "Marlow permaneceu perfeitamente calma.",
+    "beaConcerned": "Bea está preocupada com a fiação.",
+    "beaProud": "Bea reforçou algo, só por garantia.",
+    "corvusExcited": "Corvus já está filmando.",
+    "minaCurious": "Mina quer estudar isso melhor.",
+    "pipProud": "Pip finge que esse era o plano o tempo todo.",
+    "rizzoSuspicious": "Rizzo discretamente guardou algo no bolso.",
+    "teamHappy": "A equipe está encantada.",
+    "teamNervous": "A equipe troca olhares nervosos."
   },
   "daily": {
     "title": "Desafios Diários",

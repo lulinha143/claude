@@ -9,6 +9,12 @@ import { audio } from '../audio/audio';
 import { createAchievementAdapter } from '../platform/achievements';
 import { DECORATIONS_BY_ID } from '../content/decorations';
 import { evaluateAchievements } from '../sim/achievements';
+import { unlockedRooms } from '../sim/rooms';
+import { ROOMS_BY_ID } from '../content/rooms';
+import { EMPLOYEES_BY_ID } from '../content/employees';
+import { ACHIEVEMENTS_BY_ID } from '../content/achievements';
+import { notify } from '../ui/notifications';
+import i18n from '../i18n';
 
 export type ViewId =
   | 'office'
@@ -129,7 +135,7 @@ export const useStore = create<StoreState>((set) => {
 
     doPrestige: (branch) => {
       const next = performPrestige(engine.state, branch, Date.now());
-      engine.replaceState(next);
+      replaceStateQuietly(next);
       engine.save();
       audio.play('prestige');
       set({ view: 'office' });
@@ -147,7 +153,7 @@ export const useStore = create<StoreState>((set) => {
 
     hardReset: () => {
       const fresh = save.reset();
-      engine.replaceState(fresh);
+      replaceStateQuietly(fresh);
       engine.save();
       set({ showOnboarding: true, view: 'office' });
     },
@@ -155,7 +161,7 @@ export const useStore = create<StoreState>((set) => {
     importSave: (json) => {
       const result = save.importSave(json);
       if (!result.ok || !result.state) return false;
-      engine.replaceState(result.state);
+      replaceStateQuietly(result.state);
       engine.save();
       set({ view: 'office' });
       return true;
@@ -163,13 +169,65 @@ export const useStore = create<StoreState>((set) => {
   };
 });
 
-// Sync achievement unlocks to the platform adapter whenever they change.
-let lastAchCount = Object.values(engine.state.achievements).filter((v) => v > 0).length;
+// ---------------------------------------------------------------------------
+// Change detection: diff the state each emit and (a) mirror achievement unlocks
+// to the platform adapter, (b) raise player-facing toast notifications for
+// meaningful changes (hires, room unlocks, achievements). Runs renderer-side so
+// it may use i18n; the sim layer stays framework-independent.
+// ---------------------------------------------------------------------------
+function unlockedRoomIdSet(state: GameState): Set<string> {
+  return new Set(unlockedRooms(state).map((r) => r.id));
+}
+let prevAch = new Set(Object.entries(engine.state.achievements).filter(([, v]) => v > 0).map(([k]) => k));
+let prevHired = new Set(Object.keys(engine.state.employees).filter((id) => engine.state.employees[id]?.hired));
+let prevRooms = unlockedRoomIdSet(engine.state);
+
+let suppressNotify = false;
+function resetChangeTracking(): void {
+  prevAch = new Set(Object.entries(engine.state.achievements).filter(([, v]) => v > 0).map(([k]) => k));
+  prevHired = new Set(Object.keys(engine.state.employees).filter((id) => engine.state.employees[id]?.hired));
+  prevRooms = unlockedRoomIdSet(engine.state);
+}
+
+/** Replace state (prestige/import/reset) without flooding toasts for the whole company. */
+export function replaceStateQuietly(next: GameState): void {
+  suppressNotify = true;
+  engine.replaceState(next);
+  resetChangeTracking();
+  suppressNotify = false;
+}
+
 engine.subscribe(() => {
-  const now = Object.entries(engine.state.achievements).filter(([, v]) => v > 0);
-  if (now.length !== lastAchCount) {
-    for (const [id] of now) achievements.unlock(id);
-    lastAchCount = now.length;
+  if (suppressNotify) return;
+  const st = engine.state;
+
+  // achievements
+  for (const [id, v] of Object.entries(st.achievements)) {
+    if (v > 0 && !prevAch.has(id)) {
+      prevAch.add(id);
+      achievements.unlock(id);
+      const def = ACHIEVEMENTS_BY_ID[id];
+      if (def) notify('achievements', `${i18n.t('ach.unlocked')} ${i18n.t(def.nameKey)}`, 'gold');
+    }
+  }
+
+  // employee hires
+  for (const id of Object.keys(st.employees)) {
+    if (st.employees[id]?.hired && !prevHired.has(id)) {
+      prevHired.add(id);
+      const def = EMPLOYEES_BY_ID[id];
+      if (def) notify('employees', i18n.t('notify.hired', { name: i18n.t(def.nameKey) }), 'positive');
+    }
+  }
+
+  // room unlocks
+  const rooms = unlockedRoomIdSet(st);
+  for (const rid of rooms) {
+    if (!prevRooms.has(rid)) {
+      prevRooms.add(rid);
+      const def = ROOMS_BY_ID[rid];
+      if (def) notify('rooms', i18n.t('notify.roomUnlocked', { name: i18n.t(def.nameKey) }), 'positive');
+    }
   }
 });
 

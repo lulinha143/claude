@@ -28,9 +28,14 @@ export interface OutfitDef {
 
 export interface EmployeeDef {
   id: string;
+  /** short display name (used everywhere in the UI). */
   nameKey: string;
+  /** full character name (shown on the employee profile card). */
+  fullNameKey: string;
   roleKey: string;
   storyKey: string;
+  /** the employee's personal goal, shown on the profile for personality. */
+  goalKey: string;
   /** primary body color for the generated SVG silhouette. */
   color: string;
   accent: string;

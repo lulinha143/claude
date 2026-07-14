@@ -16,9 +16,11 @@ import { StatsView } from './ui/views/StatsView';
 import { PrestigeView } from './ui/views/PrestigeView';
 import { SettingsView } from './ui/views/SettingsView';
 import { EventModal } from './ui/modals/EventModal';
+import { ConsequenceModal } from './ui/modals/ConsequenceModal';
 import { OfflineModal } from './ui/modals/OfflineModal';
 import { Onboarding } from './ui/modals/Onboarding';
 import { OpeningSequence } from './ui/modals/OpeningSequence';
+import { Notifications } from './ui/Notifications';
 import { DevPanel } from './ui/DevPanel';
 
 const VIEWS: Record<ViewId, () => JSX.Element> = {
@@ -113,9 +115,11 @@ export function App() {
         <Current />
       </main>
       <EventModal />
+      <ConsequenceModal />
       <OfflineModal />
       <OpeningSequence />
       <Onboarding />
+      <Notifications />
       {devEnabled ? <DevPanel /> : null}
     </div>
   );

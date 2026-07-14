@@ -45,8 +45,12 @@ export function EmployeesView() {
                   {rt.nickname ?? t(def.nameKey)}
                   {rt.hired ? <span className="pill">{t('common.level', { level: rt.level })}</span> : null}
                 </div>
+                <div className="employee-card__fullname">{t(def.fullNameKey)}</div>
                 <div className="employee-card__role">{t(def.roleKey)}</div>
                 <div className="employee-card__story">{t(def.storyKey)}</div>
+                <div className="employee-card__goal">
+                  <span className="goal-label">{t('employee.goal')}</span> {t(def.goalKey)}
+                </div>
                 {rt.hired ? (
                   <div className="friendship">
                     <span>{t('employee.friendship')}</span>

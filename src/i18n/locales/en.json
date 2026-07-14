@@ -81,35 +81,50 @@
     "nickname": "Nickname",
     "renamePlaceholder": "Give a nickname…",
     "unlockAt": "Unlocks at {{value}} reputation",
+    "goal": "Goal:",
+    "assignRoom": "Work location",
+    "mood": "Mood",
     "pip": {
       "name": "Pip",
+      "fullName": "Pip Acornsworth",
       "role": "Founder & CEO",
-      "story": "Pip started this company with one acorn and an unshakeable belief that meetings can fix anything. Confidence: maximum. Competence: negotiable."
+      "story": "Pip started this company with one acorn and an unshakeable belief that meetings can fix anything. Confidence: maximum. Competence: negotiable.",
+      "goal": "Build the world's largest nut empire (and finally finish a spreadsheet)."
     },
     "marlow": {
       "name": "Marlow",
+      "fullName": "Marlow Stillwater",
       "role": "Head of Human Resources",
-      "story": "Marlow the capybara has never once raised their voice, panicked, or blinked during a crisis. Morale rises simply by being near them."
+      "story": "Marlow the capybara has never once raised their voice, panicked, or blinked during a crisis. Morale rises simply by being near them.",
+      "goal": "Ensure absolutely everyone gets a proper nap."
     },
     "rizzo": {
       "name": "Rizzo",
+      "fullName": "Rizzo \u201cReceipts\u201d Ringtail",
       "role": "Procurement Specialist",
-      "story": "Rizzo can find anything the company needs. Also several things it didn't. Please do not ask where the stapler went."
+      "story": "Rizzo can find anything the company needs. Also several things it didn't. Please do not ask where the stapler went.",
+      "goal": "Source everything at a suspiciously good price."
     },
     "bea": {
       "name": "Bea",
+      "fullName": "Beatrice \u201cBea\u201d Timberton",
       "role": "Construction Manager",
-      "story": "Bea believes every problem can be solved with more wood. The chairs are now 40% sturdier and 60% more wooden."
+      "story": "Bea believes every problem can be solved with more wood. The chairs are now 40% sturdier and 60% more wooden.",
+      "goal": "Reinforce every single thing in the building."
     },
     "corvus": {
       "name": "Corvus",
+      "fullName": "Corvus Crowley",
       "role": "Marketing Director",
-      "story": "Corvus the crow has big ideas, most of them legally questionable, all of them extremely shiny."
+      "story": "Corvus the crow has big ideas, most of them legally questionable, all of them extremely shiny.",
+      "goal": "Make the nut brand go viral. Ethics optional."
     },
     "mina": {
       "name": "Mina",
+      "fullName": "Mina Deepwell",
       "role": "Research Engineer",
-      "story": "Mina digs. Sometimes into the future of nut technology, sometimes into the meeting room, always with enthusiasm."
+      "story": "Mina digs. Sometimes into the future of nut technology, sometimes into the meeting room, always with enthusiasm.",
+      "goal": "Discover what's beneath the basement's basement."
     }
   },
   "item": {
@@ -166,6 +181,9 @@
   },
   "event": {
     "resolvePrompt": "What do you do?",
+    "resultTitle": "Here's what happened",
+    "reactionsLabel": "The team reacts",
+    "noEffects": "Nothing measurable changed — but the story continues.",
     "printer": {
       "title": "The Printer Is Making Demands",
       "body": "The office printer has drafted a list of demands. Item one: respect.",
@@ -221,8 +239,11 @@
     "fire": {
       "title": "The Office Is Technically On Fire",
       "body": "It's a small fire. Very manageable. Marlow hasn't even looked up.",
-      "panic": "Panic appropriately",
-      "calm": "Remain calm like Marlow"
+      "evacuate": "Evacuate calmly",
+      "contain": "Ask Bea to contain it",
+      "needBea": "Requires Bea (Construction)",
+      "livestream": "Turn it into a marketing livestream",
+      "study": "Let Mina study the phenomenon"
     },
     "casualFriday": {
       "title": "Casual Friday Became Too Casual",
@@ -529,7 +550,9 @@
     "rename": "Rename company",
     "renamePlaceholder": "Company name…",
     "founded": "Founded {{date}}",
-    "prestigeCount": "Timelines: {{count}}"
+    "prestigeCount": "Timelines: {{count}}",
+    "timeline": "Recent decisions",
+    "timelineEmpty": "No big decisions yet — events will appear here."
   },
   "stats": {
     "title": "Statistics",
@@ -609,6 +632,40 @@
     "company": "Company",
     "rarityLabel": "Rarity",
     "rarity": { "common": "Common", "uncommon": "Uncommon", "rare": "Rare", "legendary": "Legendary" }
+  },
+  "consequence": {
+    "nutsGain": "+{{value}} nuts",
+    "nutsLoss": "-{{value}} nuts",
+    "goldenGain": "+{{value}} Golden Nuts",
+    "moraleUp": "Morale +{{value}}",
+    "moraleDown": "Morale {{value}}",
+    "repUp": "Reputation +{{value}}",
+    "repDown": "Reputation {{value}}",
+    "boost": "Production x{{value}} for {{seconds}}s",
+    "friendship": "An employee's friendship grew",
+    "friendshipNamed": "{{name}}'s friendship grew",
+    "newNut": "Discovered a new nut!",
+    "secret": "Unlocked a secret discovery",
+    "moment": "A Moment Card was saved"
+  },
+  "notify": {
+    "hired": "{{name}} joined the company!",
+    "roomUnlocked": "New room: {{name}}",
+    "assigned": "{{name}} moved to {{room}}",
+    "decoration": "Decoration placed",
+    "policy": "Policy changed"
+  },
+  "react": {
+    "marlowApproves": "Marlow approved of this decision.",
+    "marlowCalm": "Marlow remained perfectly calm.",
+    "beaConcerned": "Bea is concerned about the wiring.",
+    "beaProud": "Bea reinforced something, just in case.",
+    "corvusExcited": "Corvus is already filming it.",
+    "minaCurious": "Mina wants to study this further.",
+    "pipProud": "Pip pretends this was the plan all along.",
+    "rizzoSuspicious": "Rizzo quietly pocketed something.",
+    "teamHappy": "The team is delighted.",
+    "teamNervous": "The team exchanges nervous glances."
   },
   "daily": {
     "title": "Daily Challenges",
