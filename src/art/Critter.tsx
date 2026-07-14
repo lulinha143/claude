@@ -117,15 +117,53 @@ function renderBack(species: CritterSpecies, p: Palette): JSX.Element | null {
         </g>
       );
     case 'crow':
+    case 'owl':
       return (
         <g className="critter__tail critter__tail--feathers">
           <path d="M70 82 l24 6 -22 6 Z" fill={dark} />
           <path d="M70 86 l22 2 -20 8 Z" fill={shade(color, -0.15)} />
         </g>
       );
+    case 'mouse':
+      // thin curly tail
+      return (
+        <path
+          className="critter__tail"
+          d="M72 84 q22 4 20 -14 q-2 -10 -10 -8 q8 0 7 8 q-1 12 -18 10 Z"
+          fill={light}
+          stroke={dark}
+          strokeWidth="1.6"
+        />
+      );
+    case 'otter':
+      // short, thick, flat tail
+      return (
+        <path
+          className="critter__tail"
+          d="M72 84 q20 2 22 -10 q-2 8 -22 4 Z"
+          fill={dark}
+          stroke={shade(dark, -0.2)}
+          strokeWidth="1.6"
+        />
+      );
+    case 'rabbit':
+      // small fluffy cottontail
+      return <circle className="critter__tail" cx="76" cy="80" r="8" fill={light} stroke={dark} strokeWidth="1.5" />;
+    case 'fox':
+      // bushy tail with a pale tip
+      return (
+        <g className="critter__tail critter__tail--bushy">
+          <path d="M74 86 C 102 80, 104 38, 80 26 C 96 34, 94 60, 82 68 C 98 62, 98 42, 90 34 C 102 50, 96 80, 74 82 Z" fill={color} stroke={dark} strokeWidth="2" />
+          <path d="M80 26 C 90 30, 94 40, 92 50 C 86 40, 84 32, 78 30 Z" fill={light} />
+        </g>
+      );
     default:
       return null;
   }
+}
+
+function isBeaked(species: CritterSpecies): boolean {
+  return species === 'crow' || species === 'owl';
 }
 
 // ---- body ----------------------------------------------------------------
@@ -176,7 +214,7 @@ function renderAccent(species: CritterSpecies, accent: string): JSX.Element {
 // ---- limbs (arms / wings / claws) ---------------------------------------
 function renderLimbs(species: CritterSpecies, p: Palette): JSX.Element {
   const { color, dark } = p;
-  if (species === 'crow') {
+  if (species === 'crow' || species === 'owl') {
     return (
       <g>
         <path className="critter__arm critter__arm--l critter__wing" d="M30 60 q-12 8 -6 22 q8 -6 12 -12 Z" fill={shade(color, -0.12)} stroke={dark} strokeWidth="1.5" />
@@ -269,6 +307,66 @@ function renderEars(species: CritterSpecies, p: Palette): JSX.Element | null {
           <ellipse cx="62" cy="20" rx="3.5" ry="3" fill={color} stroke={dark} strokeWidth="1.2" />
         </g>
       );
+    case 'mouse':
+      // big round ears with pink inners
+      return (
+        <g>
+          <circle cx="33" cy="16" r="10" fill={color} stroke={dark} strokeWidth="1.4" />
+          <circle cx="67" cy="16" r="10" fill={color} stroke={dark} strokeWidth="1.4" />
+          <circle cx="33" cy="16" r="5" fill="#e59aa8" opacity="0.8" />
+          <circle cx="67" cy="16" r="5" fill="#e59aa8" opacity="0.8" />
+        </g>
+      );
+    case 'otter':
+      return (
+        <g>
+          <ellipse cx="37" cy="15" rx="4.5" ry="3.5" fill={color} stroke={dark} strokeWidth="1.3" />
+          <ellipse cx="63" cy="15" rx="4.5" ry="3.5" fill={color} stroke={dark} strokeWidth="1.3" />
+        </g>
+      );
+    case 'hedgehog':
+      // a crown of spikes behind the head
+      return (
+        <g>
+          {[30, 38, 46, 54, 62, 70].map((x, i) => (
+            <path
+              key={x}
+              d={`M${x} 18 l${i % 2 ? 4 : -4} -14 l6 12 Z`}
+              fill={shade(color, -0.15)}
+              stroke={dark}
+              strokeWidth="1"
+            />
+          ))}
+        </g>
+      );
+    case 'rabbit':
+      // tall upright ears
+      return (
+        <g>
+          <path d="M40 16 q-6 -22 2 -22 q6 0 3 22 Z" fill={color} stroke={dark} strokeWidth="1.4" />
+          <path d="M60 16 q6 -22 -2 -22 q-6 0 -3 22 Z" fill={color} stroke={dark} strokeWidth="1.4" />
+          <path d="M41 12 q-2 -12 2 -16" stroke="#e59aa8" strokeWidth="2.4" fill="none" strokeLinecap="round" />
+          <path d="M59 12 q2 -12 -2 -16" stroke="#e59aa8" strokeWidth="2.4" fill="none" strokeLinecap="round" />
+        </g>
+      );
+    case 'owl':
+      // small feather ear-tufts
+      return (
+        <g>
+          <path d="M36 14 l-3 -12 9 8 Z" fill={color} stroke={dark} strokeWidth="1.3" />
+          <path d="M64 14 l3 -12 -9 8 Z" fill={color} stroke={dark} strokeWidth="1.3" />
+        </g>
+      );
+    case 'fox':
+      // tall pointed ears with dark tips
+      return (
+        <g>
+          <path d="M36 16 L30 -2 46 10 Z" fill={color} stroke={dark} strokeWidth="1.4" />
+          <path d="M64 16 L70 -2 54 10 Z" fill={color} stroke={dark} strokeWidth="1.4" />
+          <path d="M32 2 L30 -2 37 4 Z" fill={dark} />
+          <path d="M68 2 L70 -2 63 4 Z" fill={dark} />
+        </g>
+      );
     default:
       return null;
   }
@@ -303,7 +401,8 @@ function renderHeadShape(species: CritterSpecies, p: Palette): JSX.Element {
 function renderFace(species: CritterSpecies, p: Palette): JSX.Element {
   const { dark, accent = '#000', hasGlasses, mood = 'neutral' } = p;
   const eyeY = species === 'capybara' ? 30 : 29;
-  const eyeDx = species === 'crow' ? 6 : 7;
+  const beaked = isBeaked(species);
+  const eyeDx = beaked ? 6 : 7;
   const cx = 50;
   const droopy = species === 'capybara';
   const mole = species === 'mole';
@@ -343,7 +442,7 @@ function renderFace(species: CritterSpecies, p: Palette): JSX.Element {
       ) : null}
 
       {/* muzzle / nose / beak */}
-      {species === 'crow' ? (
+      {beaked ? (
         <path d={`M${cx - 2} 33 l14 4 -14 4 Z`} fill="#e0a43b" stroke={shade('#e0a43b', -0.3)} strokeWidth="0.8" />
       ) : mole ? (
         <path d={`M${cx} 36 l4 3 -1 3 -3 1 -3 -1 -1 -3 Z`} fill="#e59aa8" stroke={dark} strokeWidth="0.8" />
@@ -351,8 +450,8 @@ function renderFace(species: CritterSpecies, p: Palette): JSX.Element {
         <ellipse cx={cx} cy={species === 'capybara' ? 40 : 37} rx="3" ry="2.4" fill={dark} />
       )}
 
-      {/* mouth by mood (skip for crow — beak is the mouth) */}
-      {species !== 'crow' ? <Mouth cx={cx} y={species === 'capybara' ? 44 : 41} mood={mood} color={dark} /> : null}
+      {/* mouth by mood (skip for beaked species — the beak is the mouth) */}
+      {!beaked ? <Mouth cx={cx} y={species === 'capybara' ? 44 : 41} mood={mood} color={dark} /> : null}
 
       {/* buck teeth for squirrel & beaver */}
       {(species === 'beaver' || species === 'squirrel') && mood !== 'asleep' ? (

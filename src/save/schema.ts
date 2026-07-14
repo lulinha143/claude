@@ -43,6 +43,15 @@ const settingsSchema = z
   .object({
     language: z.string().catch('en'),
     masterMuted: z.boolean().catch(false),
+    channelMuted: z
+      .object({
+        music: z.boolean().catch(false),
+        ambience: z.boolean().catch(false),
+        ui: z.boolean().catch(false),
+        sfx: z.boolean().catch(false),
+      })
+      .catch({ music: false, ambience: false, ui: false, sfx: false }),
+    muteWhenUnfocused: z.boolean().catch(false),
     volumes: z
       .object({
         master: z.number().catch(0.8),

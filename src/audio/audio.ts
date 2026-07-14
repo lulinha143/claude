@@ -50,6 +50,8 @@ export class AudioManager {
   private volumes: AudioVolumes = { master: 0.8, music: 0.4, ambience: 0.5, ui: 0.8, sfx: 0.8 };
   private flags: AudioFlags = { muted: false, quiet: false, focus: false };
 
+  private limiter: DynamicsCompressorNode | null = null;
+  private channelMuted = { music: false, ambience: false, ui: false, sfx: false };
   private musicTimer: ReturnType<typeof setInterval> | null = null;
   private ambienceTimer: ReturnType<typeof setTimeout> | null = null;
   private nextNoteTime = 0;
@@ -67,7 +69,15 @@ export class AudioManager {
       if (!Ctor) return;
       this.ctx = new Ctor();
       this.master = this.ctx.createGain();
-      this.master.connect(this.ctx.destination);
+      // A gentle master limiter catches peaks so the louder mix never clips.
+      this.limiter = this.ctx.createDynamicsCompressor();
+      this.limiter.threshold.value = -6;
+      this.limiter.knee.value = 6;
+      this.limiter.ratio.value = 12;
+      this.limiter.attack.value = 0.003;
+      this.limiter.release.value = 0.25;
+      this.master.connect(this.limiter);
+      this.limiter.connect(this.ctx.destination);
       this.musicGain = this.ctx.createGain();
       this.musicGain.connect(this.master);
       this.ambienceGain = this.ctx.createGain();
@@ -87,6 +97,11 @@ export class AudioManager {
     this.applyGains();
   }
 
+  setChannelMutes(m: Partial<{ music: boolean; ambience: boolean; ui: boolean; sfx: boolean }>): void {
+    this.channelMuted = { ...this.channelMuted, ...m };
+    this.applyGains();
+  }
+
   private effectiveMaster(): number {
     if (this.flags.muted) return 0;
     let m = this.volumes.master;
@@ -98,13 +113,14 @@ export class AudioManager {
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
     this.master?.gain.setTargetAtTime(this.effectiveMaster(), t, 0.08);
-    // music dips a little in focus mode; ambience dips more
-    this.musicGain?.gain.setTargetAtTime(this.volumes.music * 0.32 * (this.flags.focus ? 0.6 : 1), t, 0.4);
-    this.ambienceGain?.gain.setTargetAtTime(
-      this.volumes.ambience * 0.5 * (this.flags.focus ? 0.35 : 1),
-      t,
-      0.4,
-    );
+    // Louder, present mix; the master limiter prevents clipping. Music dips a
+    // little in focus mode; ambience dips more. Per-channel mute forces 0.
+    const music = this.channelMuted.music ? 0 : this.volumes.music * 0.5 * (this.flags.focus ? 0.6 : 1);
+    const ambience = this.channelMuted.ambience
+      ? 0
+      : this.volumes.ambience * 0.62 * (this.flags.focus ? 0.35 : 1);
+    this.musicGain?.gain.setTargetAtTime(music, t, 0.4);
+    this.ambienceGain?.gain.setTargetAtTime(ambience, t, 0.4);
   }
 
   /** Starts the music + ambience beds (idempotent). Named startAmbience for
@@ -312,7 +328,10 @@ export class AudioManager {
   // -- SFX ------------------------------------------------------------------
   play(name: SfxName): void {
     if (!this.ctx || !this.master || this.flags.muted) return;
-    const ch = name === 'click' || name === 'error' ? this.volumes.ui : this.volumes.sfx;
+    const isUi = name === 'click' || name === 'error';
+    if (isUi ? this.channelMuted.ui : this.channelMuted.sfx) return;
+    // slightly stronger SFX presence than before (limiter guards the peaks)
+    const ch = (isUi ? this.volumes.ui : this.volumes.sfx) * 1.15;
     if (ch <= 0) return;
     const now = this.ctx.currentTime;
 

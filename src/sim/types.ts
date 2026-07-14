@@ -107,6 +107,10 @@ export interface StatsState {
 export interface GameSettings {
   language: string;
   masterMuted: boolean;
+  /** per-channel mute (independent of the channel's stored volume). */
+  channelMuted: { music: boolean; ambience: boolean; ui: boolean; sfx: boolean };
+  /** reduce/mute audio while the window is unfocused (desktop). */
+  muteWhenUnfocused: boolean;
   volumes: { master: number; music: number; ambience: number; ui: number; sfx: number };
   reducedMotion: boolean;
   disableShake: boolean;

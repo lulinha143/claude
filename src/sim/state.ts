@@ -7,7 +7,10 @@ export function defaultSettings(): GameSettings {
   return {
     language: 'en',
     masterMuted: false,
-    volumes: { master: 0.8, music: 0.5, ambience: 0.5, ui: 0.8, sfx: 0.8 },
+    channelMuted: { music: false, ambience: false, ui: false, sfx: false },
+    muteWhenUnfocused: false,
+    // Louder, more present default mix (0..1). A master limiter prevents clipping.
+    volumes: { master: 0.85, music: 0.7, ambience: 0.75, ui: 0.8, sfx: 0.85 },
     reducedMotion: false,
     disableShake: false,
     disableFlashing: false,

@@ -127,6 +127,48 @@
       "role": "Research Engineer",
       "story": "Mina digs. Sometimes into the future of nut technology, sometimes into the meeting room, always with enthusiasm.",
       "goal": "Discover what's beneath the basement's basement."
+    },
+    "nixie": {
+      "name": "Nixie",
+      "fullName": "Nixie Bolt",
+      "role": "Head of Automation & IT",
+      "story": "Nixie the mouse thinks faster than she talks and builds machines from staplers, rubber bands, and pure confidence. Roughly 80% of them work.",
+      "goal": "Automate everything, including the automation."
+    },
+    "otto": {
+      "name": "Otto",
+      "fullName": "Otto Driftwood",
+      "role": "Head of Finance",
+      "story": "Otto the otter keeps the books immaculate — right up until something shiny floats by. Explains the budget beautifully, then chases a paperclip.",
+      "goal": "Balance the books without getting distracted by shiny things."
+    },
+    "hazel": {
+      "name": "Hazel",
+      "fullName": "Hazel Quill",
+      "role": "Legal & Compliance",
+      "story": "Hazel the hedgehog reads every contract twice and secretly adores the office chaos. Prickly on the outside, delighted on the inside.",
+      "goal": "Keep the company just barely on the right side of the rules."
+    },
+    "junie": {
+      "name": "Junie",
+      "fullName": "Junie Hopwell",
+      "role": "Logistics & Scheduling",
+      "story": "Junie the rabbit is everywhere at once and booked three meetings deep. Crates move faster simply because she's already there.",
+      "goal": "Deliver everything five minutes early, forever."
+    },
+    "moss": {
+      "name": "Moss",
+      "fullName": "Moss Moonfeather",
+      "role": "Night Operations & Observation",
+      "story": "Moss the owl works the quiet hours, notices what everyone else misses, and speaks mostly in gentle, slightly unsettling observations.",
+      "goal": "Watch over the company while it sleeps."
+    },
+    "fenn": {
+      "name": "Fenn",
+      "fullName": "Fenn Fenwick",
+      "role": "Sales & Client Relations",
+      "story": "Fenn the fox could sell a walnut back to the tree it fell from. Charming, ambitious, and just a little too persuasive.",
+      "goal": "Close the biggest nut deal in company history."
     }
   },
   "item": {
@@ -135,7 +177,13 @@
     "stapler": "The one true stapler",
     "plank": "Suspiciously nice plank",
     "megaphone": "Slightly-too-loud megaphone",
-    "goggles": "Digging goggles"
+    "goggles": "Digging goggles",
+    "gadget": "Homemade gadget",
+    "ledger": "Immaculate ledger",
+    "gavel": "Tiny gavel",
+    "clipboard": "Overbooked clipboard",
+    "telescope": "Brass telescope",
+    "briefcase": "Charming briefcase"
   },
   "outfit": {
     "pip": { "classic": "Green Necktie", "ceo": "CEO Blazer", "cozy": "Cozy Sweater" },
@@ -143,7 +191,13 @@
     "rizzo": { "vest": "Utility Vest", "heist": "Heist Turtleneck" },
     "bea": { "hardhat": "Hard Hat", "architect": "Architect Coat" },
     "corvus": { "suit": "Sharp Suit", "influencer": "Influencer Fit" },
-    "mina": { "labcoat": "Lab Coat", "miner": "Miner Gear" }
+    "mina": { "labcoat": "Lab Coat", "miner": "Miner Gear" },
+    "nixie": { "tech": "Tech Vest", "hazmat": "Hazmat Suit" },
+    "otto": { "suit": "Accountant Suit", "diver": "Diving Gear" },
+    "hazel": { "robe": "Legal Robe", "judge": "Judge's Robe" },
+    "junie": { "vest": "Courier Vest", "runner": "Runner Kit" },
+    "moss": { "cloak": "Night Cloak", "scholar": "Scholar Robe" },
+    "fenn": { "blazer": "Sales Blazer", "tux": "Sharp Tuxedo" }
   },
   "room": {
     "founderDesk": { "name": "Founder's Desk", "desc": "Where it all began. One desk, one dream, one very tired squirrel." },
@@ -611,6 +665,10 @@
     "ui": "Interface",
     "sfx": "Sound effects",
     "mute": "Mute all",
+    "muteChannel": "Mute {{channel}}",
+    "muteWhenUnfocused": "Mute when window is unfocused",
+    "resetAudio": "Reset audio to defaults",
+    "audioNote": "Master controls everything. Each channel has its own volume and a mute button. Muting keeps your volume so unmuting restores it.",
     "accessibility": "Accessibility",
     "reducedMotion": "Reduced motion",
     "disableShake": "Disable screen shake",
@@ -801,6 +859,78 @@
       "The lab smells like the future. And ozone.",
       "Eureka! ...I forgot what for.",
       "Everything's connected if you tunnel far enough."
+    ],
+    "nixie": [
+      "I fixed it. I also improved it. It now has opinions.",
+      "Give me two staplers and an afternoon.",
+      "Automation means never doing the boring part twice.",
+      "The machine is fine. The machine is always fine.",
+      "I taught the conveyor belt a shortcut.",
+      "Ninety percent of my inventions work. This is the other ten.",
+      "Beep boop! ...sorry, force of habit.",
+      "Why click when a tiny robot can click for you?",
+      "I rewired the coffee machine. It's faster now. And judgmental.",
+      "Efficiency is just laziness with a plan."
+    ],
+    "otto": [
+      "The numbers all line up. It's beautiful. Anyway—ooh, shiny.",
+      "We're under budget! Mostly. Roughly. Directionally.",
+      "A nut saved is a nut earned.",
+      "Let me walk you through the spreadsheet. Wait, what was that?",
+      "Cash flow is like a river. A river full of nuts.",
+      "I found a rounding error in our favor. Don't tell Hazel.",
+      "Every acorn accounted for. Every single one. Probably.",
+      "Diversify! Half nuts, half... more nuts.",
+      "I love a balanced ledger almost as much as smooth pebbles.",
+      "Fiscally responsible AND fun at parties. Rare combo."
+    ],
+    "hazel": [
+      "Technically legal. My favorite kind of legal.",
+      "I read the fine print. All of it. Twice.",
+      "Compliance is just chaos wearing a nice suit.",
+      "I found a loophole. A cozy little loophole.",
+      "Don't worry, I'll make this defensible.",
+      "Prickly? I prefer 'thoroughly protected.'",
+      "The contract says we can. So we shall.",
+      "I secretly love how weird this place is.",
+      "Liability is my love language.",
+      "Sign here. And here. And... you know what, everywhere."
+    ],
+    "junie": [
+      "Already done! What's next? What's after that?",
+      "I scheduled the schedule. It's schedules all the way down.",
+      "Crate incoming in three, two—there it is!",
+      "I'm not fast, everything else is just slow.",
+      "Double-booked again. Triple, actually. Love it.",
+      "Logistics is just choreography with clipboards.",
+      "I know a shortcut. I know all the shortcuts.",
+      "Deadline? I met it yesterday.",
+      "Hop hop, let's move those nuts!",
+      "Give me a route and I'll shave a minute off it."
+    ],
+    "moss": [
+      "The night sees everything. So do I.",
+      "You were up late last night. ...Just an observation.",
+      "Quiet hours are the honest hours.",
+      "I found something in the dark. I'll keep it safe.",
+      "The office dreams, you know. Softly.",
+      "Whooo approved this? ...I did, actually.",
+      "I notice the small things. They add up.",
+      "While you slept, the nuts kept coming.",
+      "The moon is good for the reputation. Trust me.",
+      "Shh. Listen. ...Yes. Just as I thought."
+    ],
+    "fenn": [
+      "I could sell a walnut back to its tree.",
+      "It's not a scheme, it's a strategy. A charming strategy.",
+      "Everyone's a client if you smile enough.",
+      "I closed the deal before they finished saying hello.",
+      "Trust me — and you will, that's the whole point.",
+      "Reputation is currency. I'm extremely rich.",
+      "A handshake, a wink, and we're in business.",
+      "No such thing as a hard sell, only a soft target.",
+      "I don't chase clients. They arrive, delighted.",
+      "Let's make a deal you can't quite say no to."
     ],
     "idle": [
       "The office hums quietly.",

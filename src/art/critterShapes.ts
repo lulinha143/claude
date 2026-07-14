@@ -2,7 +2,19 @@
 // genuinely different animal (distinct head, body, ears, tail, limbs) by the
 // Critter component, not a recoloured template.
 
-export type CritterSpecies = 'squirrel' | 'capybara' | 'raccoon' | 'beaver' | 'crow' | 'mole';
+export type CritterSpecies =
+  | 'squirrel'
+  | 'capybara'
+  | 'raccoon'
+  | 'beaver'
+  | 'crow'
+  | 'mole'
+  | 'mouse'
+  | 'otter'
+  | 'hedgehog'
+  | 'rabbit'
+  | 'owl'
+  | 'fox';
 
 export interface CritterShape {
   species: CritterSpecies;
@@ -16,6 +28,13 @@ export const CRITTER_SHAPES: Record<string, CritterShape> = {
   bea: { species: 'beaver', hasGlasses: false },
   corvus: { species: 'crow', hasGlasses: false },
   mina: { species: 'mole', hasGlasses: true },
+  // second wave
+  nixie: { species: 'mouse', hasGlasses: true },
+  otto: { species: 'otter', hasGlasses: false },
+  hazel: { species: 'hedgehog', hasGlasses: true },
+  junie: { species: 'rabbit', hasGlasses: false },
+  moss: { species: 'owl', hasGlasses: true },
+  fenn: { species: 'fox', hasGlasses: false },
 };
 
 export function shapeFor(id: string): CritterShape {
