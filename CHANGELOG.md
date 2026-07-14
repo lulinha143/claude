@@ -31,5 +31,25 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
   validators, dev overlay, Makefile, CI + release GitHub Actions, export presets.
 - Documentation suite and marketing/store materials.
 
+### Changed — player-facing visual & feel overhaul
+- **Lighting/atmosphere:** the suburban house is now a warm, dressed interior
+  (wood floor, area rug, bookshelf with books, cardboard boxes, wall pictures,
+  kitchen counter, fridge, glowing ceiling panels) with readable day and
+  cozy-dim night variants — replacing the previous dark empty box.
+- **Third-person mover:** the player is now a stylised chunky character (boots,
+  company uniform, oversized gloves, helmet, face) with a raised carry pose and
+  walk bob, viewed through a collision-aware spring-arm camera (third person is
+  now the default).
+- **Furniture characters:** every object shows an always-visible cartoon face
+  (eyes + pupils + a mouth that reacts to emotion), a floating name tag, and a
+  brief emotion "speech" label. The piano gained a real mesh.
+- **HUD:** rebuilt into clean styled cards with no overlapping text, correct
+  key-prompt labels (e.g. "[E] Interact"), and a contextual carry panel.
+- **Main menu:** now an enclosed warm 3D room with furniture actors and the Boxy
+  mascot, instead of a flat panel.
+- **Fix:** floor/rug planes were accidentally vertical (a rotation bug) leaving a
+  blown-out white floor; floors are now correct horizontal slabs with flat
+  diffuse materials.
+
 ### Known limitations
 See `docs/KNOWN_LIMITATIONS.md`.

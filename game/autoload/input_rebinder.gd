@@ -56,11 +56,20 @@ func _input(event: InputEvent) -> void:
 
 func binding_label(action: String) -> String:
 	if not InputMap.has_action(action):
-		return "—"
+		return "?"
 	var events := InputMap.action_get_events(action)
 	if events.is_empty():
-		return "—"
-	return events[0].as_text()
+		return "?"
+	# Clean up Godot's verbose event text ("E (Physical)" -> "E", mouse -> "LMB").
+	var ev := events[0]
+	if ev is InputEventMouseButton:
+		match (ev as InputEventMouseButton).button_index:
+			MOUSE_BUTTON_LEFT: return "LMB"
+			MOUSE_BUTTON_RIGHT: return "RMB"
+			MOUSE_BUTTON_MIDDLE: return "MMB"
+	var txt := ev.as_text()
+	txt = txt.replace(" (Physical)", "").replace(" (Keycode)", "").strip_edges()
+	return txt
 
 
 # --- Serialization (pure, unit-testable) -----------------------------------

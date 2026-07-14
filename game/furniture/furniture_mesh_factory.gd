@@ -17,7 +17,7 @@ static func build_visual(fd: FurnitureData) -> Node3D:
 		"fridge": _build_fridge(root, fd, mat, accent)
 		"wardrobe": _build_wardrobe(root, fd, mat, accent)
 		"lamp": _build_lamp(root, fd, mat, accent)
-		"piano": _build_block(root, fd, mat, accent, 0.6)
+		"piano": _build_piano(root, fd, mat, accent)
 		"bed": _build_bed(root, fd, mat, accent)
 		"van": _build_van(root, fd, mat, accent)
 		_: _build_block(root, fd, mat, accent, 0.15)
@@ -119,6 +119,25 @@ static func _build_lamp(root: Node3D, fd: FurnitureData, mat: Material, accent: 
 	glow.emission = fd.base_color
 	glow.emission_energy_multiplier = 1.5
 	_mesh_instance(shade, glow, Vector3(0, d.y * 0.35, 0), root)
+
+
+static func _build_piano(root: Node3D, fd: FurnitureData, mat: Material, accent: Material) -> void:
+	var d := fd.dimensions
+	# Upright body.
+	_mesh_instance(_box(Vector3(d.x, d.y * 0.78, d.z)), mat, Vector3(0, d.y * 0.02, 0), root)
+	# Overhanging lid.
+	_mesh_instance(_box(Vector3(d.x * 1.05, d.y * 0.09, d.z * 1.12)), accent, Vector3(0, d.y * 0.44, 0), root)
+	# White keyboard strip at the front.
+	var white := _material(Color(0.95, 0.95, 0.9))
+	_mesh_instance(_box(Vector3(d.x * 0.9, d.y * 0.08, d.z * 0.2)), white, Vector3(0, d.y * 0.02, d.z * 0.52), root)
+	# A few black keys.
+	var black := _material(Color(0.07, 0.07, 0.1))
+	for i in range(-3, 4):
+		_mesh_instance(_box(Vector3(0.05, d.y * 0.05, d.z * 0.11)),
+			black, Vector3(i * 0.18, d.y * 0.05, d.z * 0.55), root)
+	# Legs.
+	for sx in [-d.x * 0.42, d.x * 0.42]:
+		_mesh_instance(_box(Vector3(0.12, d.y * 0.4, 0.12)), accent, Vector3(sx, -d.y * 0.4, d.z * 0.3), root)
 
 
 static func _build_bed(root: Node3D, fd: FurnitureData, mat: Material, accent: Material) -> void:

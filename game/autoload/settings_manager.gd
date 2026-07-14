@@ -31,7 +31,7 @@ const DEFAULTS: Dictionary = {
 		"play_in_background": false,
 	},
 	"gameplay": {
-		"camera_mode": 0,        # 0 first-person, 1 third-person
+		"camera_mode": 1,        # 0 first-person, 1 third-person (default)
 		"fov": 75.0,
 		"sensitivity_x": 1.0,
 		"sensitivity_y": 1.0,

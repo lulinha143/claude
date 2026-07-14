@@ -23,9 +23,13 @@ var _external_pull: Vector3 = Vector3.ZERO
 
 # Nodes
 var _cam_pivot: Node3D
+var _cam_arm: SpringArm3D
 var _camera: Camera3D
-var _body_mesh: MeshInstance3D
+var _body_mesh: Node3D          # the visible chunky mover character
+var _arm_l: Node3D
+var _arm_r: Node3D
 var _look_ray: RayCast3D
+var _anim_time: float = 0.0
 
 var _yaw: float = 0.0
 var _pitch: float = 0.0
@@ -61,35 +65,128 @@ func _build_nodes() -> void:
 	cs.position = Vector3(0, 0.7, 0)
 	add_child(cs)
 
-	_body_mesh = MeshInstance3D.new()
-	var cap := CapsuleMesh.new()
-	cap.radius = 0.35
-	cap.height = 1.4
-	_body_mesh.mesh = cap
-	_body_mesh.position = Vector3(0, 0.7, 0)
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color(0.90, 0.45, 0.15)
-	_body_mesh.material_override = mat
-	add_child(_body_mesh)
+	_build_character(_character_color())
 
+	# Camera rig: pivot -> spring arm (collision) -> camera.
 	_cam_pivot = Node3D.new()
-	_cam_pivot.position = Vector3(0, 1.3, 0)
+	_cam_pivot.position = Vector3(0, 1.35, 0)
 	add_child(_cam_pivot)
+	_cam_arm = SpringArm3D.new()
+	_cam_arm.spring_length = 4.2
+	_cam_arm.margin = 0.4
+	_cam_arm.collision_mask = 1 << (GameConstants.LAYER_WORLD - 1)
+	_cam_pivot.add_child(_cam_arm)
 	_camera = Camera3D.new()
 	_camera.fov = float(Settings.get_value("gameplay", "fov"))
-	_cam_pivot.add_child(_camera)
+	_cam_arm.add_child(_camera)
 	_apply_camera_mode()
 
+	# Grab aim ray originates at the character and points forward.
 	_look_ray = RayCast3D.new()
+	_look_ray.position = Vector3(0, 1.0, 0)
 	_look_ray.target_position = Vector3(0, 0, -Balance.GRAB_REACH)
 	_look_ray.collision_mask = 1 << (GameConstants.LAYER_FURNITURE - 1)
-	_camera.add_child(_look_ray)
+	add_child(_look_ray)
+
+
+func _character_color() -> Color:
+	# Uniform colour from the saved character, if any.
+	var default := Color(0.92, 0.46, 0.13)
+	if SaveManager.current == null or SaveManager.current.is_empty():
+		return default
+	var raw: Variant = SaveManager.current.get("character", {}).get("uniform_color", "")
+	if raw is String and not (raw as String).is_empty():
+		return Color(raw)
+	return default
+
+
+## Builds a stylised, chunky mover: boots, body in a company uniform, oversized
+## gloves, a helmet and a simple face. Arms are separate so they can raise into a
+## carry pose. All primitives — replaceable later with an imported model.
+func _build_character(uniform: Color) -> void:
+	_body_mesh = Node3D.new()
+	_body_mesh.name = "Character"
+	add_child(_body_mesh)
+	var skin := _std(Color(0.86, 0.66, 0.5))
+	var uni := _std(uniform)
+	var dark := _std(Color(0.18, 0.16, 0.2))
+	var glove := _std(Color(0.95, 0.82, 0.35))
+	var helmet := _std(Color(0.95, 0.78, 0.2), 0.5)
+
+	# Boots.
+	for sx in [-0.16, 0.16]:
+		_part(_body_mesh, _boxmesh(Vector3(0.22, 0.22, 0.34)), dark, Vector3(sx, 0.11, 0.02))
+	# Legs.
+	for sx in [-0.14, 0.14]:
+		_part(_body_mesh, _boxmesh(Vector3(0.2, 0.5, 0.24)), dark, Vector3(sx, 0.42, 0))
+	# Torso (rounded-ish body).
+	_part(_body_mesh, _boxmesh(Vector3(0.62, 0.7, 0.42)), uni, Vector3(0, 1.02, 0))
+	# Company badge stripe.
+	_part(_body_mesh, _boxmesh(Vector3(0.64, 0.14, 0.02)), glove, Vector3(0, 1.0, 0.22))
+	# Head + helmet + face.
+	var head := _part(_body_mesh, _sphere(0.2), skin, Vector3(0, 1.55, 0))
+	_part(head, _hemisphere(0.24), helmet, Vector3(0, 0.06, 0))
+	_part(head, _boxmesh(Vector3(0.42, 0.08, 0.02)), helmet, Vector3(0, 0.02, 0.19))  # visor brim
+	var eyes := _std(Color(0.1, 0.1, 0.12))
+	for ex in [-0.07, 0.07]:
+		_part(head, _sphere(0.03), eyes, Vector3(ex, 0.0, 0.19))
+	# Arms (pivot at shoulder so we can raise them).
+	_arm_l = Node3D.new()
+	_arm_l.position = Vector3(-0.38, 1.25, 0)
+	_body_mesh.add_child(_arm_l)
+	_part(_arm_l, _boxmesh(Vector3(0.18, 0.5, 0.2)), uni, Vector3(0, -0.22, 0))
+	_part(_arm_l, _boxmesh(Vector3(0.22, 0.2, 0.24)), glove, Vector3(0, -0.5, 0.02))
+	_arm_r = Node3D.new()
+	_arm_r.position = Vector3(0.38, 1.25, 0)
+	_body_mesh.add_child(_arm_r)
+	_part(_arm_r, _boxmesh(Vector3(0.18, 0.5, 0.2)), uni, Vector3(0, -0.22, 0))
+	_part(_arm_r, _boxmesh(Vector3(0.22, 0.2, 0.24)), glove, Vector3(0, -0.5, 0.02))
 
 
 func _apply_camera_mode() -> void:
 	var third := int(Settings.get_value("gameplay", "camera_mode")) == 1
-	_camera.position = Vector3(0, 0, 3.2) if third else Vector3.ZERO
+	_cam_arm.spring_length = 4.2 if third else 0.0
+	_camera.position = Vector3(0.4, 0.1, 0) if third else Vector3(0, 0, 0)
 	_body_mesh.visible = third
+	_camera.fov = float(Settings.get_value("gameplay", "fov"))
+
+
+# --- Small mesh helpers ----------------------------------------------------
+func _std(c: Color, rough: float = 0.85) -> StandardMaterial3D:
+	var m := StandardMaterial3D.new()
+	m.albedo_color = c
+	m.roughness = rough
+	return m
+
+
+func _boxmesh(size: Vector3) -> BoxMesh:
+	var b := BoxMesh.new()
+	b.size = size
+	return b
+
+
+func _sphere(r: float) -> SphereMesh:
+	var s := SphereMesh.new()
+	s.radius = r
+	s.height = r * 2.0
+	return s
+
+
+func _hemisphere(r: float) -> SphereMesh:
+	var s := SphereMesh.new()
+	s.radius = r
+	s.height = r * 2.0
+	s.is_hemisphere = true
+	return s
+
+
+func _part(parent: Node3D, mesh: Mesh, mat: Material, pos: Vector3) -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	mi.mesh = mesh
+	mi.material_override = mat
+	mi.position = pos
+	parent.add_child(mi)
+	return mi
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -161,6 +258,7 @@ func _process_movement(delta: float) -> void:
 		stamina = minf(Balance.PLAYER_MAX_STAMINA, stamina + Balance.PLAYER_STAMINA_REGEN * delta)
 
 	move_and_slide()
+	_animate(delta)
 
 
 func _process_actions() -> void:
@@ -222,10 +320,54 @@ func is_carrying() -> bool:
 	return _carrying_count() > 0
 
 
+## HUD helper: the furniture currently aimed at (or nearby), if any.
+func aimed_furniture() -> FurnitureController:
+	return _look_furniture()
+
+
+## HUD helper: summary of the first carried object (name/emotion/carriers).
+func carried_summary() -> Dictionary:
+	for h in _hands.values():
+		if h != null and is_instance_valid(h["furniture"]):
+			var f: FurnitureController = h["furniture"]
+			var emo := ""
+			if f.emotion_machine != null:
+				emo = Emotions.display_name(f.emotion_machine.emotion)
+			return {
+				"name": f.display_name(),
+				"emotion": emo,
+				"carriers": f.data.min_carriers,
+				"have": f.carrier_count(),
+			}
+	return {}
+
+
 func _hand_target(hand: String) -> Vector3:
-	var side := -0.35 if hand == "left" else 0.35
-	var offset := _camera.global_transform.basis * Vector3(side, -0.1, -HOLD_DISTANCE)
-	return _camera.global_position + offset
+	# Hold the object in front of the MOVER (keeps it in frame in third person).
+	var side := -0.38 if hand == "left" else 0.38
+	var forward := -global_transform.basis.z
+	var origin := global_position + Vector3(0, 1.15, 0)
+	return origin + forward * HOLD_DISTANCE + global_transform.basis.x * side
+
+
+## Procedural mover animation: a subtle walk bob and a raised "carry" arm pose.
+func _animate(delta: float) -> void:
+	if _body_mesh == null:
+		return
+	var reduced := bool(Settings.get_value("accessibility", "reduced_motion"))
+	var speed := Vector2(velocity.x, velocity.z).length()
+	_anim_time += delta * (6.0 + speed * 2.0)
+	var bob := 0.0
+	if not reduced and speed > 0.2:
+		bob = sin(_anim_time) * 0.035
+	_body_mesh.position.y = bob
+	# Carry pose: raise arms forward when holding something.
+	var carrying := _carrying_count() > 0
+	var target := -1.25 if carrying else 0.0
+	if _arm_l != null:
+		_arm_l.rotation.x = lerp_angle(_arm_l.rotation.x, target, clampf(delta * 10.0, 0.0, 1.0))
+	if _arm_r != null:
+		_arm_r.rotation.x = lerp_angle(_arm_r.rotation.x, target, clampf(delta * 10.0, 0.0, 1.0))
 
 
 func _look_furniture() -> FurnitureController:

@@ -29,6 +29,14 @@ var _grabbers: Dictionary = {}
 var _visual: Node3D
 var _face: Node3D
 var _collision: CollisionShape3D
+# Expressive-face parts + floating labels.
+var _eye_l: Node3D
+var _eye_r: Node3D
+var _mouth: MeshInstance3D
+var _name_label: Label3D
+var _speech: Label3D
+var _speech_timer: float = 0.0
+var _face_mat: StandardMaterial3D
 
 # --- Behaviour timers ---
 var _behaviour_accum: float = 0.0
@@ -78,6 +86,11 @@ func setup(fd: FurnitureData, id: String, target: bool) -> void:
 func _physics_process(delta: float) -> void:
 	if emotion_machine != null:
 		emotion_machine.tick(delta)
+
+	if _speech_timer > 0.0:
+		_speech_timer -= delta
+		if _speech_timer <= 0.0 and _speech != null:
+			_speech.visible = false
 
 	if is_multiplayer_authority():
 		_apply_grab_forces(delta)
@@ -357,31 +370,118 @@ func current_value() -> int:
 
 # --- Face (procedural expression) ------------------------------------------
 func _build_face() -> void:
+	# Cartoon face on the top-front of the object — ALWAYS visible so every
+	# object reads as a character. Expression changes with emotion.
+	var eye_scale: float = clampf(minf(data.dimensions.x, data.dimensions.y) * 0.5, 0.5, 1.6)
 	_face = Node3D.new()
 	_face.name = "Face"
-	# Place near the top-front of the object.
-	_face.position = Vector3(0, data.dimensions.y * 0.25, data.dimensions.z * 0.5 + 0.01)
+	_face.position = Vector3(0, data.dimensions.y * 0.22, data.dimensions.z * 0.5 + 0.02)
+	_face.scale = Vector3.ONE * eye_scale
 	add_child(_face)
-	var eye_mat := StandardMaterial3D.new()
-	eye_mat.albedo_color = Color.WHITE
-	for sx in [-0.12, 0.12]:
-		var eye := MeshInstance3D.new()
-		var sphere := SphereMesh.new()
-		sphere.radius = 0.06
-		sphere.height = 0.12
-		eye.mesh = sphere
-		eye.material_override = eye_mat
-		eye.position = Vector3(sx, 0, 0)
-		_face.add_child(eye)
-	_face.visible = false
+
+	var white := _mkmat(Color(0.98, 0.98, 1.0))
+	var pupil := _mkmat(Color(0.08, 0.08, 0.12))
+	_face_mat = _mkmat(Color(0.1, 0.08, 0.1))
+	_eye_l = _make_eye(Vector3(-0.15, 0.02, 0), white, pupil)
+	_eye_r = _make_eye(Vector3(0.15, 0.02, 0), white, pupil)
+	_mouth = MeshInstance3D.new()
+	var mm := BoxMesh.new()
+	mm.size = Vector3(0.18, 0.05, 0.02)
+	_mouth.mesh = mm
+	_mouth.material_override = _face_mat
+	_mouth.position = Vector3(0, -0.16, 0)
+	_face.add_child(_mouth)
+
+	# Floating name tag (billboarded).
+	_name_label = Label3D.new()
+	_name_label.text = display_name()
+	_name_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_name_label.font_size = 48
+	_name_label.outline_size = 16
+	_name_label.modulate = Color(1, 0.92, 0.75)
+	_name_label.pixel_size = 0.004
+	_name_label.position = Vector3(0, data.dimensions.y * 0.5 + 0.45, 0)
+	_name_label.no_depth_test = false
+	add_child(_name_label)
+
+	# Emotion "speech" label — shown briefly on emotion changes.
+	_speech = Label3D.new()
+	_speech.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_speech.font_size = 40
+	_speech.outline_size = 14
+	_speech.pixel_size = 0.004
+	_speech.position = Vector3(0, data.dimensions.y * 0.5 + 0.85, 0)
+	_speech.visible = false
+	add_child(_speech)
+	_set_expression(Emotions.E.CALM)
+
+
+func _make_eye(pos: Vector3, white: Material, pupil: Material) -> Node3D:
+	var eye := Node3D.new()
+	eye.position = pos
+	_face.add_child(eye)
+	var w := MeshInstance3D.new()
+	var ws := SphereMesh.new()
+	ws.radius = 0.09
+	ws.height = 0.18
+	w.mesh = ws
+	w.material_override = white
+	eye.add_child(w)
+	var p := MeshInstance3D.new()
+	var ps := SphereMesh.new()
+	ps.radius = 0.045
+	ps.height = 0.09
+	p.mesh = ps
+	p.material_override = pupil
+	p.position = Vector3(0, 0, 0.07)
+	eye.add_child(p)
+	return eye
+
+
+func _mkmat(c: Color) -> StandardMaterial3D:
+	var m := StandardMaterial3D.new()
+	m.albedo_color = c
+	return m
+
+
+## Adjusts the mouth/eyes to read the current emotion at a glance.
+func _set_expression(emotion: int) -> void:
+	if _mouth == null:
+		return
+	match emotion:
+		Emotions.E.CALM, Emotions.E.EXCITED:
+			_mouth.scale = Vector3(1.0, 1.0, 1.0)
+			_mouth.position = Vector3(0, -0.16, 0)
+			_mouth.rotation_degrees = Vector3(0, 0, 0)
+		Emotions.E.ANGRY, Emotions.E.POSSESSIVE, Emotions.E.SUSPICIOUS:
+			_mouth.scale = Vector3(1.2, 0.7, 1.0)
+			_mouth.rotation_degrees = Vector3(0, 0, 12)  # frown-ish slant
+			if _eye_l != null:
+				_eye_l.rotation_degrees = Vector3(0, 0, -18)
+				_eye_r.rotation_degrees = Vector3(0, 0, 18)
+		Emotions.E.PANICKED, Emotions.E.UNHINGED:
+			_mouth.scale = Vector3(1.4, 2.6, 1.0)  # wide open scream
+			_mouth.rotation_degrees = Vector3(0, 0, 0)
+		Emotions.E.LONELY, Emotions.E.MELANCHOLIC:
+			_mouth.scale = Vector3(1.0, 0.8, 1.0)
+			_mouth.position = Vector3(0, -0.19, 0)
+		_:
+			_mouth.scale = Vector3(1.0, 1.0, 1.0)
+	if emotion == Emotions.E.CALM or emotion == Emotions.E.EXCITED:
+		if _eye_l != null:
+			_eye_l.rotation_degrees = Vector3.ZERO
+			_eye_r.rotation_degrees = Vector3.ZERO
 
 
 func _on_emotion_changed(emotion: int, arousal: float) -> void:
-	# Faces appear as emotional intensity rises (per art direction).
-	if _face != null:
-		_face.visible = arousal > Balance.AROUSAL_NERVOUS
+	_set_expression(emotion)
+	# Brief speech bubble with the emotion word.
+	if _speech != null:
+		_speech.text = Emotions.display_name(emotion)
+		_speech.modulate = Color(1, 0.5, 0.4) if Emotions.is_agitated(emotion) else Color(0.7, 1, 0.8)
+		_speech.visible = true
+		_speech_timer = 2.2
 	EventBus.furniture_emotion_changed.emit(furniture_id, emotion, arousal)
-	# Emotional vocalization.
 	if Emotions.is_agitated(emotion):
 		Audio.play_sfx("murmur_panic" if emotion == Emotions.E.PANICKED else "murmur_nervous",
 			randf_range(0.9, 1.15))
