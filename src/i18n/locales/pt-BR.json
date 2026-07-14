@@ -401,6 +401,114 @@
       "title": "Todos Usaram Óculos Escuros",
       "body": "Sem motivo claro, cada funcionário chegou de óculos escuros. O escritório está 200% mais descolado.",
       "cool": "Ser descolado sobre isso"
+    },
+    "nixieMachine": {
+      "title": "O Teclado Está Digitando Antes de Alguém Tocar Nele",
+      "body": "A nova geringonça da Nixie está terminando os relatórios de todo mundo. Parece útil. Definitivamente está observando.",
+      "trust": "Deixa rolar",
+      "unplug": "Desligar educadamente",
+      "whirBody": "A máquina zune, imprime um relatório trimestral impecável e um bilhetinho de agradecimento.",
+      "ship": "Liberar para toda a empresa",
+      "recall": "Recolher para revisão de segurança"
+    },
+    "ottoAudit": {
+      "title": "A Contabilidade Encontrou uma Castanha Negativa",
+      "body": "Otto está segurando uma castanha que, por todas as medidas, tem valor negativo. O livro-caixa está suando.",
+      "investigate": "Investigar direito",
+      "ignore": "Arredondar e esquecer",
+      "frame": "Emoldurar na parede"
+    },
+    "hazelLoophole": {
+      "title": "O Logotipo da Empresa É Redondo Demais (Legalmente)",
+      "body": "Hazel achou uma regra obscura: o logo excede a redondeza máxima permitida. Tecnicamente.",
+      "redesign": "Redesenhar o logo",
+      "fight": "Brigar na justiça (divertido)",
+      "squares": "Deixar tudo quadrado"
+    },
+    "junieSchedule": {
+      "title": "Marcaram uma Reunião no Horário da Soneca",
+      "body": "Junie achou uma reunião marcada bem em cima da hora sagrada da Câmara de Soneca. O caos se aproxima.",
+      "protectNap": "Proteger a soneca",
+      "holdMeeting": "Fazer a reunião mesmo assim"
+    },
+    "mossNight": {
+      "title": "O Sino de Vento do Telhado Está Prevendo o Mercado",
+      "body": "Moss relata que o sino tocou exatamente três vezes antes de cada bom trimestre. Ele acabou de tocar três vezes.",
+      "listen": "Escutar com atenção",
+      "dismiss": "É só o vento",
+      "omenBody": "O sino soletra na brisa uma dica de investimento suspeitosamente específica.",
+      "invest": "Agir com base no presságio",
+      "record": "Registrar pela ciência"
+    },
+    "fennDeal": {
+      "title": "Um Cliente Quer Reembolso em Nozes",
+      "body": "Fenn fechou uma venda enorme, mas o cliente agora exige que o reembolso seja pago inteiramente em nozes.",
+      "refund": "Honrar com elegância",
+      "upsell": "Fazer upsell no lugar",
+      "walnuts": "Pagar em nozes premium"
+    },
+    "breakRoom": {
+      "title": "A Copa Declarou Independência",
+      "body": "Uma bandeira feita à mão agora paira sobre a mesa de petiscos. A copa se separou.",
+      "negotiate": "Abrir negociações",
+      "annex": "Retomar pela força (da papelada)",
+      "treatyBody": "O embaixador da copa (um esquilo muito confiante) propõe um tratado de petiscos.",
+      "sign": "Assinar o Acordo dos Petiscos"
+    },
+    "acornWater": {
+      "title": "Alguém Trocou o Café por Água de Bolota",
+      "body": "O café está com gosto… terroso hoje. Suspeitosamente terroso. Ninguém confessa.",
+      "drink": "Beber mesmo assim",
+      "replace": "Repor café de verdade"
+    },
+    "staplers17": {
+      "title": "A Rizzo Adquiriu Dezessete Grampeadores Idênticos",
+      "body": "Agora há dezessete grampeadores idênticos nas compras. Rizzo insiste que isso é normal e necessário.",
+      "return": "Devolver dezesseis deles",
+      "keep": "Ficar com a coleção"
+    },
+    "elevator": {
+      "title": "O Elevador Só Anda de Lado",
+      "body": "O elevador decidiu que subir e descer é superestimado. Agora ele anda exclusivamente de lado.",
+      "fix": "Chamar a manutenção",
+      "embrace": "Abraçar a vida de lado"
+    },
+    "vaultHum": {
+      "title": "O Cofre das Castanhas Douradas Está Zumbindo",
+      "body": "Um zumbido baixo e agradável vem do cofre. As castanhas douradas parecem… contentes.",
+      "investigate": "Investigar o zumbido",
+      "harmonize": "Zumbir junto"
+    },
+    "fakeAward": {
+      "title": "Indicados a um Prêmio Que Não Existe",
+      "body": "A empresa foi indicada a 'Melhor Sinergia de Castanhas 2026'. A entidade premiadora não pode ser localizada.",
+      "accept": "Aceitar com graça",
+      "decline": "Recusar educadamente"
+    },
+    "slogan": {
+      "title": "Um Concorrente Roubou o Slogan da Empresa",
+      "body": "Uma firma rival agora usa 'Trabalhando Nossas Castanhas'. Que audácia. Que ousadia. Que fonte quase idêntica.",
+      "sue": "Enviar uma carta severa",
+      "rebrand": "Rebrand maior e melhor",
+      "petty": "Roubar o slogan deles de volta"
+    },
+    "namedNuts": {
+      "title": "Cada Castanha do Estoque Ganhou um Nome",
+      "body": "Alguém deu nomes carinhosos a todas as 40.000 castanhas do estoque. Enviá-las agora parece… pessoal.",
+      "allow": "Deixar os nomes",
+      "forbid": "Castanhas são estoque, não amigos"
+    },
+    "ghost": {
+      "title": "O Fantasma do Escritório Quer Plano Odontológico",
+      "body": "O fantasma do escritório abriu um processo no RH pedindo cobertura odontológica. Ele tecnicamente tem dentes.",
+      "grant": "Conceder o benefício",
+      "deny": "Negar o pedido"
+    },
+    "coffeeLeave": {
+      "title": "A Cafeteira Está Pedindo Férias Remuneradas",
+      "body": "A cafeteira (agora consciente) pediu umas merecidas férias. Ela tem feito hora extra.",
+      "approve": "Aprovar as férias",
+      "deny": "Pedir que fique mais uma semana"
     }
   },
   "ach": {
@@ -760,7 +868,13 @@
     "pipProud": "Pip finge que esse era o plano o tempo todo.",
     "rizzoSuspicious": "Rizzo discretamente guardou algo no bolso.",
     "teamHappy": "A equipe está encantada.",
-    "teamNervous": "A equipe troca olhares nervosos."
+    "teamNervous": "A equipe troca olhares nervosos.",
+    "nixieProud": "Nixie está radiante por ter funcionado (desta vez).",
+    "ottoDistracted": "Otto aprova e então se distrai com algo brilhante.",
+    "hazelApproves": "Hazel assente — juridicamente sólido.",
+    "junieReady": "Junie já reagendou tudo em volta disso.",
+    "mossKnowing": "Moss não diz nada, mas parece já saber.",
+    "fennGrin": "Fenn sorri como se o negócio já estivesse fechado."
   },
   "daily": {
     "title": "Desafios Diários",

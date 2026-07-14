@@ -417,6 +417,353 @@ export const GAME_EVENTS: GameEventDef[] = [
     momentWorthy: true,
     choices: [{ id: 'cool', labelKey: 'event.sunglasses.cool', effects: [{ type: 'morale', value: 8 }, { type: 'momentCard' }] }],
   },
+
+  // ======================================================================
+  // Second wave: employee story chains + more absurd office events
+  // ======================================================================
+
+  // --- Nixie (mouse / IT): a two-step machine chain ---
+  {
+    id: 'nixie-machine',
+    titleKey: 'event.nixieMachine.title',
+    bodyKey: 'event.nixieMachine.body',
+    rarity: 'uncommon',
+    weight: 6,
+    cooldownSeconds: 600,
+    requires: { hiredEmployee: 'nixie' },
+    employeeId: 'nixie',
+    momentWorthy: true,
+    choices: [
+      { id: 'trust', labelKey: 'event.nixieMachine.trust', effects: [], next: 'whir', reactions: ['react.nixieProud'] },
+      {
+        id: 'unplug',
+        labelKey: 'event.nixieMachine.unplug',
+        effects: [{ type: 'morale', value: -2 }, { type: 'nuts', value: 200 }],
+        reactions: ['react.nixieProud'],
+      },
+    ],
+    steps: {
+      whir: {
+        bodyKey: 'event.nixieMachine.whirBody',
+        choices: [
+          {
+            id: 'ship',
+            labelKey: 'event.nixieMachine.ship',
+            effects: [{ type: 'productionBoost', value: 1.4, durationSeconds: 180 }, { type: 'momentCard' }],
+            reactions: ['react.nixieProud', 'react.teamHappy'],
+          },
+          {
+            id: 'recall',
+            labelKey: 'event.nixieMachine.recall',
+            effects: [{ type: 'reputation', value: 5 }],
+            reactions: ['react.hazelApproves'],
+          },
+        ],
+      },
+    },
+  },
+
+  // --- Otto (otter / finance) ---
+  {
+    id: 'otto-audit',
+    titleKey: 'event.ottoAudit.title',
+    bodyKey: 'event.ottoAudit.body',
+    rarity: 'uncommon',
+    weight: 6,
+    cooldownSeconds: 500,
+    requires: { hiredEmployee: 'otto' },
+    employeeId: 'otto',
+    choices: [
+      {
+        id: 'investigate',
+        labelKey: 'event.ottoAudit.investigate',
+        effects: [{ type: 'goldenNuts', value: 1 }, { type: 'reputation', value: 3 }],
+        reactions: ['react.ottoDistracted'],
+      },
+      {
+        id: 'ignore',
+        labelKey: 'event.ottoAudit.ignore',
+        effects: [{ type: 'nuts', value: 500 }, { type: 'morale', value: -2 }],
+        reactions: ['react.hazelApproves'],
+      },
+      {
+        id: 'frame',
+        labelKey: 'event.ottoAudit.frame',
+        effects: [{ type: 'morale', value: 4 }, { type: 'unlockSecret', secretId: 'negative-nut' }, { type: 'momentCard' }],
+        reactions: ['react.teamHappy'],
+      },
+    ],
+  },
+
+  // --- Hazel (hedgehog / legal) ---
+  {
+    id: 'hazel-loophole',
+    titleKey: 'event.hazelLoophole.title',
+    bodyKey: 'event.hazelLoophole.body',
+    rarity: 'uncommon',
+    weight: 6,
+    cooldownSeconds: 600,
+    requires: { hiredEmployee: 'hazel' },
+    employeeId: 'hazel',
+    momentWorthy: true,
+    choices: [
+      {
+        id: 'redesign',
+        labelKey: 'event.hazelLoophole.redesign',
+        effects: [{ type: 'nuts', value: -400 }, { type: 'reputation', value: 6 }],
+        reactions: ['react.hazelApproves', 'react.corvusExcited'],
+      },
+      {
+        id: 'fight',
+        labelKey: 'event.hazelLoophole.fight',
+        effects: [{ type: 'morale', value: 5 }, { type: 'unlockSecret', secretId: 'too-round' }, { type: 'momentCard' }],
+        reactions: ['react.hazelApproves'],
+      },
+      {
+        id: 'squares',
+        labelKey: 'event.hazelLoophole.squares',
+        effects: [{ type: 'reputation', value: -2 }, { type: 'nuts', value: 300 }],
+        reactions: ['react.teamNervous'],
+      },
+    ],
+  },
+
+  // --- Junie (rabbit / logistics) ---
+  {
+    id: 'junie-schedule',
+    titleKey: 'event.junieSchedule.title',
+    bodyKey: 'event.junieSchedule.body',
+    rarity: 'common',
+    weight: 8,
+    cooldownSeconds: 420,
+    requires: { hiredEmployee: 'junie' },
+    employeeId: 'junie',
+    choices: [
+      {
+        id: 'protect-nap',
+        labelKey: 'event.junieSchedule.protectNap',
+        effects: [{ type: 'morale', value: 6 }],
+        reactions: ['react.marlowCalm', 'react.teamHappy'],
+      },
+      {
+        id: 'hold-meeting',
+        labelKey: 'event.junieSchedule.holdMeeting',
+        effects: [{ type: 'productionBoost', value: 1.15, durationSeconds: 120 }, { type: 'morale', value: -3 }],
+        reactions: ['react.junieReady', 'react.teamNervous'],
+      },
+    ],
+  },
+
+  // --- Moss (owl / night ops): a two-step prophecy chain ---
+  {
+    id: 'moss-night',
+    titleKey: 'event.mossNight.title',
+    bodyKey: 'event.mossNight.body',
+    rarity: 'rare',
+    weight: 4,
+    cooldownSeconds: 900,
+    requires: { hiredEmployee: 'moss' },
+    employeeId: 'moss',
+    momentWorthy: true,
+    choices: [
+      { id: 'listen', labelKey: 'event.mossNight.listen', effects: [], next: 'omen', reactions: ['react.mossKnowing'] },
+      { id: 'dismiss', labelKey: 'event.mossNight.dismiss', effects: [{ type: 'nuts', value: 300 }] },
+    ],
+    steps: {
+      omen: {
+        bodyKey: 'event.mossNight.omenBody',
+        choices: [
+          {
+            id: 'invest',
+            labelKey: 'event.mossNight.invest',
+            effects: [{ type: 'goldenNuts', value: 2 }, { type: 'reputation', value: 4 }, { type: 'momentCard' }],
+            reactions: ['react.mossKnowing', 'react.fennGrin'],
+          },
+          {
+            id: 'record',
+            labelKey: 'event.mossNight.record',
+            effects: [{ type: 'unlockSecret', secretId: 'wind-chime' }, { type: 'reputation', value: 6 }],
+            reactions: ['react.minaCurious'],
+          },
+        ],
+      },
+    },
+  },
+
+  // --- Fenn (fox / sales) ---
+  {
+    id: 'fenn-deal',
+    titleKey: 'event.fennDeal.title',
+    bodyKey: 'event.fennDeal.body',
+    rarity: 'uncommon',
+    weight: 6,
+    cooldownSeconds: 500,
+    requires: { hiredEmployee: 'fenn' },
+    employeeId: 'fenn',
+    choices: [
+      {
+        id: 'refund',
+        labelKey: 'event.fennDeal.refund',
+        effects: [{ type: 'nuts', value: -600 }, { type: 'reputation', value: 8 }],
+        reactions: ['react.fennGrin', 'react.hazelApproves'],
+      },
+      {
+        id: 'upsell',
+        labelKey: 'event.fennDeal.upsell',
+        effects: [{ type: 'nuts', value: 1200 }, { type: 'reputation', value: -3 }],
+        reactions: ['react.fennGrin', 'react.teamNervous'],
+      },
+      {
+        id: 'walnuts',
+        labelKey: 'event.fennDeal.walnuts',
+        effects: [{ type: 'collectNut', nutId: 'legally-distinct-walnut' }, { type: 'morale', value: 3 }, { type: 'momentCard' }],
+        reactions: ['react.teamHappy'],
+      },
+    ],
+  },
+
+  // --- absurd standalone events ---
+  {
+    id: 'break-room-independence',
+    titleKey: 'event.breakRoom.title',
+    bodyKey: 'event.breakRoom.body',
+    rarity: 'rare',
+    weight: 3,
+    cooldownSeconds: 1000,
+    momentWorthy: true,
+    choices: [
+      { id: 'negotiate', labelKey: 'event.breakRoom.negotiate', effects: [], next: 'treaty' },
+      { id: 'annex', labelKey: 'event.breakRoom.annex', effects: [{ type: 'morale', value: -6 }, { type: 'nuts', value: 400 }], reactions: ['react.teamNervous'] },
+    ],
+    steps: {
+      treaty: {
+        bodyKey: 'event.breakRoom.treatyBody',
+        choices: [
+          {
+            id: 'sign',
+            labelKey: 'event.breakRoom.sign',
+            effects: [{ type: 'morale', value: 8 }, { type: 'unlockSecret', secretId: 'break-room-nation' }, { type: 'momentCard' }],
+            reactions: ['react.marlowApproves', 'react.hazelApproves'],
+          },
+        ],
+      },
+    },
+  },
+  {
+    id: 'acorn-water',
+    titleKey: 'event.acornWater.title',
+    bodyKey: 'event.acornWater.body',
+    rarity: 'common',
+    weight: 7,
+    cooldownSeconds: 400,
+    choices: [
+      { id: 'drink', labelKey: 'event.acornWater.drink', effects: [{ type: 'morale', value: -4 }, { type: 'productionBoost', value: 1.2, durationSeconds: 90 }], reactions: ['react.teamNervous'] },
+      { id: 'replace', labelKey: 'event.acornWater.replace', effects: [{ type: 'morale', value: 4 }], reactions: ['react.teamHappy'] },
+    ],
+  },
+  {
+    id: 'seventeen-staplers',
+    titleKey: 'event.staplers17.title',
+    bodyKey: 'event.staplers17.body',
+    rarity: 'uncommon',
+    weight: 5,
+    cooldownSeconds: 700,
+    requires: { hiredEmployee: 'rizzo' },
+    employeeId: 'rizzo',
+    momentWorthy: true,
+    choices: [
+      { id: 'return', labelKey: 'event.staplers17.return', effects: [{ type: 'reputation', value: 3 }], reactions: ['react.hazelApproves'] },
+      { id: 'keep', labelKey: 'event.staplers17.keep', effects: [{ type: 'nuts', value: 250 }, { type: 'friendship', value: 6, employeeId: 'rizzo' }], reactions: ['react.rizzoSuspicious'] },
+    ],
+  },
+  {
+    id: 'sideways-elevator',
+    titleKey: 'event.elevator.title',
+    bodyKey: 'event.elevator.body',
+    rarity: 'uncommon',
+    weight: 5,
+    cooldownSeconds: 600,
+    choices: [
+      { id: 'fix', labelKey: 'event.elevator.fix', effects: [{ type: 'nuts', value: -300 }, { type: 'morale', value: 3 }], reactions: ['react.beaProud'] },
+      { id: 'embrace', labelKey: 'event.elevator.embrace', effects: [{ type: 'morale', value: 5 }, { type: 'unlockSecret', secretId: 'sideways' }], reactions: ['react.teamHappy'] },
+    ],
+  },
+  {
+    id: 'vault-humming',
+    titleKey: 'event.vaultHum.title',
+    bodyKey: 'event.vaultHum.body',
+    rarity: 'rare',
+    weight: 3,
+    cooldownSeconds: 1000,
+    requires: { reputation: 60 },
+    momentWorthy: true,
+    choices: [
+      { id: 'investigate', labelKey: 'event.vaultHum.investigate', effects: [{ type: 'goldenNuts', value: 2 }, { type: 'momentCard' }], reactions: ['react.minaCurious'] },
+      { id: 'harmonize', labelKey: 'event.vaultHum.harmonize', effects: [{ type: 'morale', value: 7 }], reactions: ['react.teamHappy'] },
+    ],
+  },
+  {
+    id: 'fake-award',
+    titleKey: 'event.fakeAward.title',
+    bodyKey: 'event.fakeAward.body',
+    rarity: 'uncommon',
+    weight: 5,
+    cooldownSeconds: 700,
+    choices: [
+      { id: 'accept', labelKey: 'event.fakeAward.accept', effects: [{ type: 'reputation', value: 5 }, { type: 'morale', value: 4 }, { type: 'momentCard' }], reactions: ['react.corvusExcited', 'react.pipProud'] },
+      { id: 'decline', labelKey: 'event.fakeAward.decline', effects: [{ type: 'reputation', value: 2 }], reactions: ['react.hazelApproves'] },
+    ],
+  },
+  {
+    id: 'stolen-slogan',
+    titleKey: 'event.slogan.title',
+    bodyKey: 'event.slogan.body',
+    rarity: 'uncommon',
+    weight: 5,
+    cooldownSeconds: 700,
+    choices: [
+      { id: 'sue', labelKey: 'event.slogan.sue', effects: [{ type: 'reputation', value: 4 }, { type: 'nuts', value: -200 }], reactions: ['react.hazelApproves'] },
+      { id: 'rebrand', labelKey: 'event.slogan.rebrand', effects: [{ type: 'productionBoost', value: 1.2, durationSeconds: 120 }], reactions: ['react.corvusExcited'] },
+      { id: 'petty', labelKey: 'event.slogan.petty', effects: [{ type: 'morale', value: 5 }, { type: 'reputation', value: -1 }], reactions: ['react.teamHappy'] },
+    ],
+  },
+  {
+    id: 'named-nuts',
+    titleKey: 'event.namedNuts.title',
+    bodyKey: 'event.namedNuts.body',
+    rarity: 'common',
+    weight: 6,
+    cooldownSeconds: 500,
+    choices: [
+      { id: 'allow', labelKey: 'event.namedNuts.allow', effects: [{ type: 'morale', value: 5 }, { type: 'productionBoost', value: 0.9, durationSeconds: 60 }], reactions: ['react.teamHappy'] },
+      { id: 'forbid', labelKey: 'event.namedNuts.forbid', effects: [{ type: 'productionBoost', value: 1.1, durationSeconds: 60 }, { type: 'morale', value: -2 }], reactions: ['react.teamNervous'] },
+    ],
+  },
+  {
+    id: 'office-ghost',
+    titleKey: 'event.ghost.title',
+    bodyKey: 'event.ghost.body',
+    rarity: 'rare',
+    weight: 2,
+    cooldownSeconds: 1200,
+    momentWorthy: true,
+    choices: [
+      { id: 'grant', labelKey: 'event.ghost.grant', effects: [{ type: 'nuts', value: -300 }, { type: 'morale', value: 8 }, { type: 'unlockSecret', secretId: 'ghost' }, { type: 'momentCard' }], reactions: ['react.marlowApproves'] },
+      { id: 'deny', labelKey: 'event.ghost.deny', effects: [{ type: 'morale', value: -4 }], reactions: ['react.teamNervous'] },
+    ],
+  },
+  {
+    id: 'coffee-leave',
+    titleKey: 'event.coffeeLeave.title',
+    bodyKey: 'event.coffeeLeave.body',
+    rarity: 'uncommon',
+    weight: 5,
+    cooldownSeconds: 800,
+    choices: [
+      { id: 'approve', labelKey: 'event.coffeeLeave.approve', effects: [{ type: 'morale', value: 6 }, { type: 'productionBoost', value: 0.85, durationSeconds: 90 }], reactions: ['react.marlowApproves'] },
+      { id: 'deny', labelKey: 'event.coffeeLeave.deny', effects: [{ type: 'productionBoost', value: 1.15, durationSeconds: 90 }, { type: 'morale', value: -3 }], reactions: ['react.teamNervous'] },
+    ],
+  },
 ];
 
 export const GAME_EVENTS_BY_ID: Record<string, GameEventDef> = Object.fromEntries(
