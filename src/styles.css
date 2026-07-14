@@ -1,6 +1,10 @@
+@import './ui/tokens.css';
+
 /* ==========================================================================
    Working My Nuts Off! — cozy diorama theme
    Palette: warm wood, cream, moss green, amber, muted red.
+   Semantic design tokens live in ui/tokens.css; the legacy aliases below map
+   onto them so older rules keep working while new components use tokens.
    ========================================================================== */
 :root {
   --wood-dark: #2a2016;
@@ -141,23 +145,39 @@ body {
 }
 .nav__item {
   flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   background: transparent;
   border: none;
-  color: var(--cream-dim);
+  color: var(--text-secondary);
   padding: 6px 10px;
-  border-radius: 10px;
+  border-radius: var(--r-sm);
   cursor: pointer;
   font-size: 0.82em;
   font-weight: 600;
   white-space: nowrap;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.nav__item .ui-icon {
+  opacity: 0.85;
 }
 .nav__item:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--cream);
+  background: var(--interactive-hover);
+  color: var(--text);
 }
 .nav__item.is-active {
-  background: var(--moss);
-  color: #fff;
+  background: var(--primary);
+  color: var(--text-on-accent);
+}
+.nav__item.is-active .ui-icon {
+  opacity: 1;
+}
+/* In very small desktop widths, collapse nav labels to icons only. */
+@media (max-width: 340px) {
+  .nav__label {
+    display: none;
+  }
 }
 
 /* ------- main ------- */
@@ -191,40 +211,186 @@ body {
   display: flex;
   flex-direction: column;
 }
+.office__frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.4));
+}
 .office__trunk {
+  position: relative;
+  z-index: 1;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  background: repeating-linear-gradient(
-    90deg,
-    #4a3826,
-    #4a3826 18px,
-    #442f1e 18px,
-    #442f1e 36px
-  );
-  border-radius: 10px;
-  padding: 8px;
+  gap: 7px;
+  padding: 14px 16px;
   overflow-y: auto;
+  scrollbar-width: thin;
 }
 .floor {
+  --dept: var(--dept-founder);
   position: relative;
-  background: linear-gradient(180deg, rgba(255, 244, 224, 0.06), rgba(0, 0, 0, 0.25));
-  border: 1px solid rgba(0, 0, 0, 0.4);
-  border-radius: 8px;
-  min-height: 96px;
-  padding: 4px 6px;
+  background:
+    linear-gradient(180deg, rgba(255, 244, 224, 0.08), rgba(0, 0, 0, 0.28)),
+    color-mix(in srgb, var(--dept) 10%, transparent);
+  border: 1px solid rgba(0, 0, 0, 0.45);
+  border-left: 3px solid var(--dept);
+  border-radius: var(--r-sm);
+  min-height: 100px;
+  padding: 5px 8px 6px;
+  box-shadow: inset 0 -8px 12px -8px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+/* subtle wood-grain back wall inside each room */
+.floor::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    92deg,
+    rgba(0, 0, 0, 0.05),
+    rgba(0, 0, 0, 0.05) 10px,
+    rgba(255, 255, 255, 0.02) 10px,
+    rgba(255, 255, 255, 0.02) 20px
+  );
+  opacity: 0.6;
+  pointer-events: none;
 }
 .floor__label {
-  font-size: 0.7em;
-  color: var(--cream-dim);
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.66em;
+  font-weight: 700;
+  color: color-mix(in srgb, var(--dept) 55%, var(--cream));
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
 }
 .floor__stage {
   position: relative;
-  height: 72px;
+  z-index: 2;
+  height: 74px;
 }
+/* --- locked / under-construction next room --- */
+.floor--locked {
+  min-height: 52px;
+  border-style: dashed;
+  border-left-color: var(--text-muted);
+  opacity: 0.75;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+}
+.floor--locked .floor__label {
+  color: var(--text-muted);
+}
+.floor__construction {
+  font-size: 0.68em;
+  color: var(--text-muted);
+}
+/* --- ambient room decorations --- */
+.floor__ambient {
+  position: absolute;
+  right: 8px;
+  bottom: 6px;
+  z-index: 1;
+  width: 26px;
+  height: 40px;
+  pointer-events: none;
+}
+.floor__ambient::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  border-radius: 3px;
+}
+.floor__ambient--coffee::before {
+  width: 12px;
+  height: 12px;
+  background: var(--coffee, #6f4a2f);
+  box-shadow: 0 -14px 0 -4px rgba(255, 255, 255, 0.25);
+  animation: steam 2.6s ease-in-out infinite;
+}
+.floor__ambient--conveyor::before {
+  width: 24px;
+  height: 6px;
+  background: repeating-linear-gradient(90deg, #555 0 4px, #333 4px 8px);
+  background-size: 8px 6px;
+  animation: conveyor 0.8s linear infinite;
+}
+.floor__ambient--beaker::before {
+  width: 10px;
+  height: 14px;
+  background: var(--dept-lab);
+  border-radius: 0 0 4px 4px;
+  animation: bubble 1.8s ease-in-out infinite;
+}
+.floor__ambient--vault::before {
+  width: 14px;
+  height: 14px;
+  background: var(--gold);
+  border-radius: 50%;
+  animation: glint 3s ease-in-out infinite;
+}
+.floor__ambient--plant::before {
+  width: 10px;
+  height: 16px;
+  background: var(--dept-rooftop);
+  border-radius: 6px 6px 2px 2px;
+  transform-origin: bottom center;
+  animation: sway 3.4s ease-in-out infinite;
+}
+.floor__ambient--clock::before {
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--text-muted);
+  border-radius: 50%;
+}
+.floor__ambient--sign::before {
+  width: 16px;
+  height: 10px;
+  background: var(--dept-marketing);
+  border-radius: 2px;
+  animation: pulse 2.2s ease-in-out infinite;
+}
+.floor__ambient--moon::before {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  box-shadow: inset -4px 0 0 0 var(--dept-nap);
+}
+.floor__ambient--pipe::before {
+  width: 6px;
+  height: 18px;
+  background: var(--text-muted);
+  animation: drip 2.4s ease-in-out infinite;
+}
+.floor__dust {
+  position: absolute;
+  right: 4px;
+  top: 2px;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: rgba(255, 244, 224, 0.5);
+  animation: float-dust 4s ease-in-out infinite;
+}
+@keyframes steam { 0%, 100% { box-shadow: 0 -12px 0 -5px rgba(255,255,255,0.15); } 50% { box-shadow: 0 -20px 0 -4px rgba(255,255,255,0.05); } }
+@keyframes conveyor { to { background-position: 8px 0; } }
+@keyframes bubble { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+@keyframes glint { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; box-shadow: 0 0 8px 2px var(--gold); } }
+@keyframes sway { 0%, 100% { transform: rotate(-6deg); } 50% { transform: rotate(6deg); } }
+@keyframes pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+@keyframes drip { 0%, 70% { box-shadow: 0 2px 0 0 transparent; } 85% { box-shadow: 0 6px 0 0 var(--dept-lab); } 100% { box-shadow: 0 12px 0 0 transparent; } }
+@keyframes float-dust { 0%, 100% { transform: translateY(0); opacity: 0.2; } 50% { transform: translateY(-8px); opacity: 0.7; } }
 .desk {
   position: absolute;
   left: 4px;
@@ -277,16 +443,42 @@ body {
 .crate-btn {
   position: absolute;
   right: 6px;
-  bottom: 0;
+  bottom: 2px;
   background: none;
   border: none;
   cursor: pointer;
   animation: bob 1.6s ease-in-out infinite;
+  transition: transform var(--dur-fast) var(--ease);
+}
+.crate-btn:hover {
+  transform: scale(1.08);
+}
+.crate-btn:active {
+  transform: scale(0.92);
+}
+.crate-btn__glow {
+  position: absolute;
+  inset: 6px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 213, 74, 0.5), transparent 70%);
+  animation: pulse 1.6s ease-in-out infinite;
+  z-index: -1;
 }
 .crate-btn__hint {
   display: block;
-  font-size: 0.62em;
+  font-size: 0.6em;
+  font-weight: 700;
   color: var(--gold);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+.floor__ambient--desk::before {
+  width: 18px;
+  height: 12px;
+  background: #1c150d;
+  border: 2px solid var(--wood-light);
+  border-radius: 3px;
+  box-shadow: 0 0 14px 3px rgba(111, 168, 220, 0.35);
+  animation: pulse 3s ease-in-out infinite;
 }
 .bubble {
   position: absolute;
@@ -1137,4 +1329,91 @@ select,
 ::-webkit-scrollbar-thumb {
   background: var(--wood-light);
   border-radius: 8px;
+}
+
+
+/* ==========================================================================
+   Icons, numeric text, and misc component polish
+   ========================================================================== */
+.ui-icon {
+  display: inline-block;
+  vertical-align: middle;
+  flex: none;
+}
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+.res .ui-icon {
+  color: var(--accent);
+}
+.res--golden .ui-icon,
+.res--golden {
+  color: var(--gold);
+}
+.res--morale .ui-icon {
+  color: var(--positive);
+}
+.res--rep .ui-icon {
+  color: var(--accent);
+}
+.header__rate {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.skill-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.kernel-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--gold);
+  font-size: 0.9em;
+}
+
+/* ==========================================================================
+   Character animation: blinking, breathing, wing-flap, contact shadow
+   (These layer on top of the existing critter state keyframes. All of them are
+   disabled globally by [data-reduced-motion='true'] * { animation: none }.)
+   ========================================================================== */
+.critter__eyes {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: blink 5.5s ease-in-out var(--blink-delay, 0s) infinite;
+}
+@keyframes blink {
+  0%, 94%, 100% { transform: scaleY(1); }
+  96%, 98% { transform: scaleY(0.12); }
+}
+.critter__shadow {
+  animation: shadow-breathe 2.6s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+@keyframes shadow-breathe {
+  0%, 100% { transform: scaleX(1); opacity: 0.28; }
+  50% { transform: scaleX(0.92); opacity: 0.22; }
+}
+/* crows flap their wings while working or celebrating */
+.critter--sorting .critter__wing,
+.critter--typing .critter__wing,
+.critter--celebrate .critter__wing {
+  transform-box: fill-box;
+  transform-origin: top center;
+  animation: flap 0.5s ease-in-out infinite alternate;
+}
+.critter__arm--l.critter__wing {
+  animation-delay: 0.05s;
+}
+@keyframes flap {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(-16deg); }
+}
+/* focus hat sits a little higher on the wide capybara head */
+.critter--capybara ~ .focus-hat,
+.critter-btn .critter--capybara + .focus-hat {
+  top: 0;
 }

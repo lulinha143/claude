@@ -1,0 +1,131 @@
+/* ==========================================================================
+   Design tokens — the single source of truth for colour, elevation, spacing,
+   radius, and motion. Components reference these semantic tokens rather than
+   hardcoding hex values, so the whole game can be re-themed from one place and
+   high-contrast / colourblind modes stay consistent.
+   ========================================================================== */
+:root {
+  /* --- raw palette (warm cozy tree-trunk office) --- */
+  --c-bark-900: #1c150d;
+  --c-bark-800: #241a12;
+  --c-bark-700: #2a2016;
+  --c-bark-600: #3a2c1f;
+  --c-bark-500: #4a3826;
+  --c-bark-400: #5a4632;
+  --c-bark-300: #6b533b;
+  --c-wood-500: #8a5a2b;
+  --c-wood-400: #a9743b;
+  --c-wood-300: #c98a4b;
+
+  --c-cream-100: #fff4e0;
+  --c-cream-200: #f0e2c8;
+  --c-cream-300: #d8c4a8;
+  --c-cream-400: #a89577;
+
+  --c-moss-600: #2f6b40;
+  --c-moss-500: #3f7d4f;
+  --c-moss-400: #5a9a68;
+  --c-amber-500: #e0a43b;
+  --c-amber-400: #f0be5e;
+  --c-brick-500: #c65b3c;
+  --c-brick-600: #a8492e;
+  --c-coffee-500: #6f4a2f;
+  --c-gold-500: #ffd54a;
+  --c-gold-600: #d9a800;
+  --c-charcoal: #2f3640;
+  --c-plum-500: #7c5cff;
+
+  /* --- semantic tokens --- */
+  --bg: #2a2016;
+  --bg-app-top: #43331f;
+  --surface: rgba(0, 0, 0, 0.22);
+  --surface-raised: rgba(255, 244, 224, 0.06);
+  --surface-sunken: rgba(0, 0, 0, 0.4);
+  --border: rgba(0, 0, 0, 0.4);
+  --border-strong: var(--c-bark-900);
+
+  --text: var(--c-cream-100);
+  --text-secondary: var(--c-cream-300);
+  --text-muted: var(--c-cream-400);
+  --text-disabled: #8a7d6c;
+  --text-on-accent: #ffffff;
+
+  --primary: var(--c-moss-500);
+  --primary-hover: var(--c-moss-400);
+  --primary-press: var(--c-moss-600);
+
+  --accent: var(--c-amber-500);
+  --positive: #4f9d69;
+  --warning: var(--c-amber-500);
+  --negative: #b0473a;
+  --rare: #4f7dd6;
+  --gold: var(--c-gold-500);
+  --focus-mode: #6fa8dc;
+  --quiet-mode: #9a8cff;
+
+  --interactive-hover: rgba(255, 255, 255, 0.06);
+  --interactive-press: rgba(255, 255, 255, 0.12);
+  --focus-ring: var(--c-gold-500);
+
+  /* department accents (desaturated, distinct, compatible) */
+  --dept-founder: #c98a4b;
+  --dept-sorting: #b98a4b;
+  --dept-morale: #7fb8a0;
+  --dept-procurement: #8a8f98;
+  --dept-construction: #c98a4b;
+  --dept-lab: #7fb0c8;
+  --dept-marketing: #b98ad0;
+  --dept-vault: var(--c-gold-500);
+  --dept-research: #d0a86a;
+  --dept-meeting: #a0906a;
+  --dept-nap: #9aa0c8;
+  --dept-basement: #6a6f78;
+  --dept-rooftop: #7fb86a;
+
+  /* elevation */
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.5);
+  --shadow-contact: 0 3px 4px -2px rgba(0, 0, 0, 0.55);
+
+  /* spacing scale */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+
+  /* radius */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-pill: 999px;
+
+  /* motion */
+  --dur-fast: 0.08s;
+  --dur: 0.15s;
+  --dur-slow: 0.3s;
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  /* scaling (driven by settings) */
+  --font-scale: 1;
+  --ui-scale: 1;
+}
+
+/* High-contrast overrides only need to touch semantic tokens. */
+[data-high-contrast='true'] {
+  --bg: #000000;
+  --bg-app-top: #000000;
+  --surface: #0a0a0a;
+  --surface-raised: #141414;
+  --surface-sunken: #000000;
+  --border: #ffffff;
+  --border-strong: #ffffff;
+  --text: #ffffff;
+  --text-secondary: #f0f0f0;
+  --text-muted: #d0d0d0;
+  --text-disabled: #999999;
+  --primary: #2fbf5f;
+  --accent: #ffd54a;
+  --interactive-hover: rgba(255, 255, 255, 0.2);
+}

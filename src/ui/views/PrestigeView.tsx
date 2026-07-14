@@ -6,6 +6,7 @@ import { useFmt } from '../useFmt';
 import { canPrestige, kernelsFromPrestige } from '../../sim/prestige';
 import { PRESTIGE_BRANCHES, PRESTIGE_SKILLS } from '../../content/prestige';
 import type { PrestigeBranchId } from '../../sim/types';
+import { Icon } from '../../art/UiIcon';
 
 export function PrestigeView() {
   const { t } = useTranslation();
@@ -69,9 +70,11 @@ export function PrestigeView() {
       )}
 
       <div className="panel">
-        <h3>
-          {t('prestige.skillTree')} · {fmt.int(state.resources.permanentKernels)}{' '}
-          {t('resource.permanentKernels')}
+        <h3 className="skill-head">
+          {t('prestige.skillTree')}
+          <span className="kernel-count">
+            <Icon name="kernel" size={16} /> {fmt.int(state.resources.permanentKernels)}
+          </span>
         </h3>
         <ul className="card-list">
           {PRESTIGE_SKILLS.map((sk) => {
@@ -88,7 +91,13 @@ export function PrestigeView() {
                   <div className="card__desc">{t(sk.descriptionKey)}</div>
                 </div>
                 <button className="buy-btn" disabled={maxed || !afford} onClick={() => buySkill(sk.id)}>
-                  {maxed ? t('common.max') : `${sk.cost} PK`}
+                  {maxed ? (
+                    t('common.max')
+                  ) : (
+                    <>
+                      <Icon name="kernel" size={14} /> {sk.cost}
+                    </>
+                  )}
                 </button>
               </li>
             );
