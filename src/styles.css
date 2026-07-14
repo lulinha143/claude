@@ -2047,3 +2047,44 @@ select,
   color: var(--negative);
   border-color: var(--negative);
 }
+
+
+/* ==========================================================================
+   Developer diagnostics panel
+   ========================================================================== */
+.dev-panel__tabs {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+  justify-content: center;
+}
+.dev-panel__tabs button {
+  background: #2b2450;
+  border: 1px solid #7c5cff;
+  color: #fff;
+  border-radius: 6px;
+  padding: 2px 8px;
+  cursor: pointer;
+  font-size: 0.9em;
+}
+.dev-panel__tabs button.is-on {
+  background: #7c5cff;
+}
+.dev-diag {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82em;
+}
+.dev-diag th {
+  text-align: left;
+  color: #b9adf0;
+  font-weight: 600;
+  padding: 2px 4px;
+  white-space: nowrap;
+}
+.dev-diag td {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  padding: 2px 4px;
+  color: #fff;
+}
