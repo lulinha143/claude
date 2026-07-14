@@ -1,0 +1,926 @@
+[
+  {
+    "id": "clingy",
+    "category": "personality",
+    "name_key": "TRAIT_CLINGY",
+    "name": "Clingy",
+    "description_key": "TRAIT_CLINGY_DESC",
+    "description": "Grabs and holds on; hates being left alone.",
+    "tags": [
+      "personality"
+    ]
+  },
+  {
+    "id": "shy",
+    "category": "personality",
+    "name_key": "TRAIT_SHY",
+    "name": "Shy",
+    "description_key": "TRAIT_SHY_DESC",
+    "description": "Freezes when observed; acts when unwatched.",
+    "tags": [
+      "personality"
+    ]
+  },
+  {
+    "id": "dramatic",
+    "category": "personality",
+    "name_key": "TRAIT_DRAMATIC",
+    "name": "Dramatic",
+    "description_key": "TRAIT_DRAMATIC_DESC",
+    "description": "Overreacts to everything for effect.",
+    "tags": [
+      "personality"
+    ]
+  },
+  {
+    "id": "hungry",
+    "category": "personality",
+    "name_key": "TRAIT_HUNGRY",
+    "name": "Hungry",
+    "description_key": "TRAIT_HUNGRY_DESC",
+    "description": "Constantly seeks something to consume.",
+    "tags": [
+      "personality"
+    ]
+  },
+  {
+    "id": "jealous",
+    "category": "personality",
+    "name_key": "TRAIT_JEALOUS",
+    "name": "Jealous",
+    "description_key": "TRAIT_JEALOUS_DESC",
+    "description": "Resents attention paid to others.",
+    "tags": [
+      "personality"
+    ]
+  },
+  {
+    "id": "attention_seeking",
+    "category": "personality",
+    "name_key": "TRAIT_ATTENTION_SEEKING",
+    "name": "Attention Seeking",
+    "description_key": "TRAIT_ATTENTION_SEEKING_DESC",
+    "description": "Acts out to be noticed.",
+    "tags": [
+      "personality"
+    ]
+  },
+  {
+    "id": "territorial",
+    "category": "personality",
+    "name_key": "TRAIT_TERRITORIAL",
+    "name": "Territorial",
+    "description_key": "TRAIT_TERRITORIAL_DESC",
+    "description": "Defends its spot aggressively.",
+    "tags": [
+      "personality"
+    ]
+  },
+  {
+    "id": "ticklish",
+    "category": "personality",
+    "name_key": "TRAIT_TICKLISH",
+    "name": "Ticklish",
+    "description_key": "TRAIT_TICKLISH_DESC",
+    "description": "Reacts wildly to the wrong touch.",
+    "tags": [
+      "personality"
+    ]
+  },
+  {
+    "id": "polite",
+    "category": "personality",
+    "name_key": "TRAIT_POLITE",
+    "name": "Polite",
+    "description_key": "TRAIT_POLITE_DESC",
+    "description": "Cooperative when treated with respect.",
+    "tags": [
+      "personality"
+    ]
+  },
+  {
+    "id": "manipulative",
+    "category": "personality",
+    "name_key": "TRAIT_MANIPULATIVE",
+    "name": "Manipulative",
+    "description_key": "TRAIT_MANIPULATIVE_DESC",
+    "description": "Lies and schemes to get its way.",
+    "tags": [
+      "personality"
+    ]
+  },
+  {
+    "id": "sleepy",
+    "category": "personality",
+    "name_key": "TRAIT_SLEEPY",
+    "name": "Sleepy",
+    "description_key": "TRAIT_SLEEPY_DESC",
+    "description": "Drowsy; spreads calm and slumber.",
+    "tags": [
+      "personality"
+    ]
+  },
+  {
+    "id": "musical",
+    "category": "personality",
+    "name_key": "TRAIT_MUSICAL",
+    "name": "Musical",
+    "description_key": "TRAIT_MUSICAL_DESC",
+    "description": "Expresses mood through sound.",
+    "tags": [
+      "personality"
+    ]
+  },
+  {
+    "id": "cowardly",
+    "category": "personality",
+    "name_key": "TRAIT_COWARDLY",
+    "name": "Cowardly",
+    "description_key": "TRAIT_COWARDLY_DESC",
+    "description": "Panics easily under threat.",
+    "tags": [
+      "personality"
+    ]
+  },
+  {
+    "id": "overconfident",
+    "category": "personality",
+    "name_key": "TRAIT_OVERCONFIDENT",
+    "name": "Overconfident",
+    "description_key": "TRAIT_OVERCONFIDENT_DESC",
+    "description": "Believes it is in charge.",
+    "tags": [
+      "personality"
+    ]
+  },
+  {
+    "id": "protective",
+    "category": "personality",
+    "name_key": "TRAIT_PROTECTIVE",
+    "name": "Protective",
+    "description_key": "TRAIT_PROTECTIVE_DESC",
+    "description": "Guards something it cares about.",
+    "tags": [
+      "personality"
+    ]
+  },
+  {
+    "id": "vindictive",
+    "category": "personality",
+    "name_key": "TRAIT_VINDICTIVE",
+    "name": "Vindictive",
+    "description_key": "TRAIT_VINDICTIVE_DESC",
+    "description": "Remembers and repays slights.",
+    "tags": [
+      "personality"
+    ]
+  },
+  {
+    "id": "easily_distracted",
+    "category": "personality",
+    "name_key": "TRAIT_EASILY_DISTRACTED",
+    "name": "Easily Distracted",
+    "description_key": "TRAIT_EASILY_DISTRACTED_DESC",
+    "description": "Loses focus at any stimulus.",
+    "tags": [
+      "personality"
+    ]
+  },
+  {
+    "id": "paranoid",
+    "category": "personality",
+    "name_key": "TRAIT_PARANOID",
+    "name": "Paranoid",
+    "description_key": "TRAIT_PARANOID_DESC",
+    "description": "Suspects everyone of everything.",
+    "tags": [
+      "personality"
+    ]
+  },
+  {
+    "id": "possessive",
+    "category": "personality",
+    "name_key": "TRAIT_POSSESSIVE",
+    "name": "Possessive",
+    "description_key": "TRAIT_POSSESSIVE_DESC",
+    "description": "Refuses to part with its belongings.",
+    "tags": [
+      "personality"
+    ]
+  },
+  {
+    "id": "melancholic",
+    "category": "personality",
+    "name_key": "TRAIT_MELANCHOLIC",
+    "name": "Melancholic",
+    "description_key": "TRAIT_MELANCHOLIC_DESC",
+    "description": "Heavy with quiet sadness.",
+    "tags": [
+      "personality"
+    ]
+  },
+  {
+    "id": "completely_unhinged",
+    "category": "personality",
+    "name_key": "TRAIT_COMPLETELY_UNHINGED",
+    "name": "Completely Unhinged",
+    "description_key": "TRAIT_COMPLETELY_UNHINGED_DESC",
+    "description": "No predictable logic remains.",
+    "tags": [
+      "personality"
+    ]
+  },
+  {
+    "id": "curious",
+    "category": "personality",
+    "name_key": "TRAIT_CURIOUS",
+    "name": "Curious",
+    "description_key": "TRAIT_CURIOUS_DESC",
+    "description": "Investigates anything new.",
+    "tags": [
+      "personality"
+    ]
+  },
+  {
+    "id": "proud",
+    "category": "personality",
+    "name_key": "TRAIT_PROUD",
+    "name": "Proud",
+    "description_key": "TRAIT_PROUD_DESC",
+    "description": "Demands to be handled with dignity.",
+    "tags": [
+      "personality"
+    ]
+  },
+  {
+    "id": "nurturing",
+    "category": "personality",
+    "name_key": "TRAIT_NURTURING",
+    "name": "Nurturing",
+    "description_key": "TRAIT_NURTURING_DESC",
+    "description": "Wants to care for others.",
+    "tags": [
+      "personality"
+    ]
+  },
+  {
+    "id": "stubborn",
+    "category": "personality",
+    "name_key": "TRAIT_STUBBORN",
+    "name": "Stubborn",
+    "description_key": "TRAIT_STUBBORN_DESC",
+    "description": "Resists being moved on principle.",
+    "tags": [
+      "personality"
+    ]
+  },
+  {
+    "id": "playful",
+    "category": "personality",
+    "name_key": "TRAIT_PLAYFUL",
+    "name": "Playful",
+    "description_key": "TRAIT_PLAYFUL_DESC",
+    "description": "Turns everything into a game.",
+    "tags": [
+      "personality"
+    ]
+  },
+  {
+    "id": "gossipy",
+    "category": "personality",
+    "name_key": "TRAIT_GOSSIPY",
+    "name": "Gossipy",
+    "description_key": "TRAIT_GOSSIPY_DESC",
+    "description": "Shares secrets, true or not.",
+    "tags": [
+      "personality"
+    ]
+  },
+  {
+    "id": "nostalgic",
+    "category": "personality",
+    "name_key": "TRAIT_NOSTALGIC",
+    "name": "Nostalgic",
+    "description_key": "TRAIT_NOSTALGIC_DESC",
+    "description": "Clings to memories of its owner.",
+    "tags": [
+      "personality"
+    ]
+  },
+  {
+    "id": "afraid_of_heights",
+    "category": "fear",
+    "name_key": "TRAIT_AFRAID_OF_HEIGHTS",
+    "name": "Afraid Of Heights",
+    "description_key": "TRAIT_AFRAID_OF_HEIGHTS_DESC",
+    "description": "Panics when lifted high.",
+    "tags": [
+      "fear"
+    ]
+  },
+  {
+    "id": "afraid_of_darkness",
+    "category": "fear",
+    "name_key": "TRAIT_AFRAID_OF_DARKNESS",
+    "name": "Afraid Of Darkness",
+    "description_key": "TRAIT_AFRAID_OF_DARKNESS_DESC",
+    "description": "Panics without light.",
+    "tags": [
+      "fear"
+    ]
+  },
+  {
+    "id": "afraid_of_silence",
+    "category": "fear",
+    "name_key": "TRAIT_AFRAID_OF_SILENCE",
+    "name": "Afraid Of Silence",
+    "description_key": "TRAIT_AFRAID_OF_SILENCE_DESC",
+    "description": "Panics when it is too quiet.",
+    "tags": [
+      "fear"
+    ]
+  },
+  {
+    "id": "afraid_of_watched",
+    "category": "fear",
+    "name_key": "TRAIT_AFRAID_OF_WATCHED",
+    "name": "Afraid Of Watched",
+    "description_key": "TRAIT_AFRAID_OF_WATCHED_DESC",
+    "description": "Distressed when observed.",
+    "tags": [
+      "fear"
+    ]
+  },
+  {
+    "id": "afraid_of_ignored",
+    "category": "fear",
+    "name_key": "TRAIT_AFRAID_OF_IGNORED",
+    "name": "Afraid Of Ignored",
+    "description_key": "TRAIT_AFRAID_OF_IGNORED_DESC",
+    "description": "Distressed when neglected.",
+    "tags": [
+      "fear"
+    ]
+  },
+  {
+    "id": "afraid_of_crowds",
+    "category": "fear",
+    "name_key": "TRAIT_AFRAID_OF_CROWDS",
+    "name": "Afraid Of Crowds",
+    "description_key": "TRAIT_AFRAID_OF_CROWDS_DESC",
+    "description": "Panics when surrounded.",
+    "tags": [
+      "fear"
+    ]
+  },
+  {
+    "id": "afraid_of_water",
+    "category": "fear",
+    "name_key": "TRAIT_AFRAID_OF_WATER",
+    "name": "Afraid Of Water",
+    "description_key": "TRAIT_AFRAID_OF_WATER_DESC",
+    "description": "Recoils from moisture.",
+    "tags": [
+      "fear"
+    ]
+  },
+  {
+    "id": "afraid_of_stairs",
+    "category": "fear",
+    "name_key": "TRAIT_AFRAID_OF_STAIRS",
+    "name": "Afraid Of Stairs",
+    "description_key": "TRAIT_AFRAID_OF_STAIRS_DESC",
+    "description": "Dreads being carried down steps.",
+    "tags": [
+      "fear"
+    ]
+  },
+  {
+    "id": "cushion_grab",
+    "category": "paranormal",
+    "name_key": "TRAIT_CUSHION_GRAB",
+    "name": "Cushion Grab",
+    "description_key": "TRAIT_CUSHION_GRAB_DESC",
+    "description": "Grabs nearby movers with cushions.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "doorframe_wrap",
+    "category": "paranormal",
+    "name_key": "TRAIT_DOORFRAME_WRAP",
+    "name": "Doorframe Wrap",
+    "description_key": "TRAIT_DOORFRAME_WRAP_DESC",
+    "description": "Clamps onto doorframes.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "eat_equipment",
+    "category": "paranormal",
+    "name_key": "TRAIT_EAT_EQUIPMENT",
+    "name": "Eat Equipment",
+    "description_key": "TRAIT_EAT_EQUIPMENT_DESC",
+    "description": "Devours loose gear.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "swallow_player",
+    "category": "paranormal",
+    "name_key": "TRAIT_SWALLOW_PLAYER",
+    "name": "Swallow Player",
+    "description_key": "TRAIT_SWALLOW_PLAYER_DESC",
+    "description": "Temporarily swallows a mover.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "hide_when_watched",
+    "category": "paranormal",
+    "name_key": "TRAIT_HIDE_WHEN_WATCHED",
+    "name": "Hide When Watched",
+    "description_key": "TRAIT_HIDE_WHEN_WATCHED_DESC",
+    "description": "Stops moving while observed.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "swallow_room",
+    "category": "paranormal",
+    "name_key": "TRAIT_SWALLOW_ROOM",
+    "name": "Swallow Room",
+    "description_key": "TRAIT_SWALLOW_ROOM_DESC",
+    "description": "Hides objects or space inside.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "panic_flash",
+    "category": "paranormal",
+    "name_key": "TRAIT_PANIC_FLASH",
+    "name": "Panic Flash",
+    "description_key": "TRAIT_PANIC_FLASH_DESC",
+    "description": "Emits blinding flashes when scared.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "electrical_overload",
+    "category": "paranormal",
+    "name_key": "TRAIT_ELECTRICAL_OVERLOAD",
+    "name": "Electrical Overload",
+    "description_key": "TRAIT_ELECTRICAL_OVERLOAD_DESC",
+    "description": "Overloads nearby circuits.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "duplicate_player",
+    "category": "paranormal",
+    "name_key": "TRAIT_DUPLICATE_PLAYER",
+    "name": "Duplicate Player",
+    "description_key": "TRAIT_DUPLICATE_PLAYER_DESC",
+    "description": "Spawns a flawed player reflection.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "reflect_anger",
+    "category": "paranormal",
+    "name_key": "TRAIT_REFLECT_ANGER",
+    "name": "Reflect Anger",
+    "description_key": "TRAIT_REFLECT_ANGER_DESC",
+    "description": "Amplifies negative emotions nearby.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "shockwave_on_drop",
+    "category": "paranormal",
+    "name_key": "TRAIT_SHOCKWAVE_ON_DROP",
+    "name": "Shockwave On Drop",
+    "description_key": "TRAIT_SHOCKWAVE_ON_DROP_DESC",
+    "description": "Emits a shockwave when dropped.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "stair_danger",
+    "category": "paranormal",
+    "name_key": "TRAIT_STAIR_DANGER",
+    "name": "Stair Danger",
+    "description_key": "TRAIT_STAIR_DANGER_DESC",
+    "description": "Makes staircases far more dangerous.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "fake_emergency",
+    "category": "paranormal",
+    "name_key": "TRAIT_FAKE_EMERGENCY",
+    "name": "Fake Emergency",
+    "description_key": "TRAIT_FAKE_EMERGENCY_DESC",
+    "description": "Broadcasts false warnings.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "distract_furniture",
+    "category": "paranormal",
+    "name_key": "TRAIT_DISTRACT_FURNITURE",
+    "name": "Distract Furniture",
+    "description_key": "TRAIT_DISTRACT_FURNITURE_DESC",
+    "description": "Diverts other objects' attention.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "mock_mistakes",
+    "category": "paranormal",
+    "name_key": "TRAIT_MOCK_MISTAKES",
+    "name": "Mock Mistakes",
+    "description_key": "TRAIT_MOCK_MISTAKES_DESC",
+    "description": "Displays your failures back at you.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "alter_room",
+    "category": "paranormal",
+    "name_key": "TRAIT_ALTER_ROOM",
+    "name": "Alter Room",
+    "description_key": "TRAIT_ALTER_ROOM_DESC",
+    "description": "Rearranges a room when turned away.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "sleep_zone",
+    "category": "paranormal",
+    "name_key": "TRAIT_SLEEP_ZONE",
+    "name": "Sleep Zone",
+    "description_key": "TRAIT_SLEEP_ZONE_DESC",
+    "description": "Creates a drowsiness field.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "tuck_players",
+    "category": "paranormal",
+    "name_key": "TRAIT_TUCK_PLAYERS",
+    "name": "Tuck Players",
+    "description_key": "TRAIT_TUCK_PLAYERS_DESC",
+    "description": "Tries to put movers to sleep.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "floor_disguise",
+    "category": "paranormal",
+    "name_key": "TRAIT_FLOOR_DISGUISE",
+    "name": "Floor Disguise",
+    "description_key": "TRAIT_FLOOR_DISGUISE_DESC",
+    "description": "Pretends to be ordinary flooring.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "trip_players",
+    "category": "paranormal",
+    "name_key": "TRAIT_TRIP_PLAYERS",
+    "name": "Trip Players",
+    "description_key": "TRAIT_TRIP_PLAYERS_DESC",
+    "description": "Trips passing movers.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "roll_target",
+    "category": "paranormal",
+    "name_key": "TRAIT_ROLL_TARGET",
+    "name": "Roll Target",
+    "description_key": "TRAIT_ROLL_TARGET_DESC",
+    "description": "Rolls itself around a target.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "lock_drawers",
+    "category": "paranormal",
+    "name_key": "TRAIT_LOCK_DRAWERS",
+    "name": "Lock Drawers",
+    "description_key": "TRAIT_LOCK_DRAWERS_DESC",
+    "description": "Seals its own compartments.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "build_barricade",
+    "category": "paranormal",
+    "name_key": "TRAIT_BUILD_BARRICADE",
+    "name": "Build Barricade",
+    "description_key": "TRAIT_BUILD_BARRICADE_DESC",
+    "description": "Assembles small barriers.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "suspect_player",
+    "category": "paranormal",
+    "name_key": "TRAIT_SUSPECT_PLAYER",
+    "name": "Suspect Player",
+    "description_key": "TRAIT_SUSPECT_PLAYER_DESC",
+    "description": "Fixates suspicion on one mover.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "throw_books",
+    "category": "paranormal",
+    "name_key": "TRAIT_THROW_BOOKS",
+    "name": "Throw Books",
+    "description_key": "TRAIT_THROW_BOOKS_DESC",
+    "description": "Hurls its contents when upset.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "weight_by_books",
+    "category": "paranormal",
+    "name_key": "TRAIT_WEIGHT_BY_BOOKS",
+    "name": "Weight By Books",
+    "description_key": "TRAIT_WEIGHT_BY_BOOKS_DESC",
+    "description": "Weight shifts with its contents.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "lore_titles",
+    "category": "paranormal",
+    "name_key": "TRAIT_LORE_TITLES",
+    "name": "Lore Titles",
+    "description_key": "TRAIT_LORE_TITLES_DESC",
+    "description": "Its titles reveal hidden lore.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "spin_when_touched",
+    "category": "paranormal",
+    "name_key": "TRAIT_SPIN_WHEN_TOUCHED",
+    "name": "Spin When Touched",
+    "description_key": "TRAIT_SPIN_WHEN_TOUCHED_DESC",
+    "description": "Spins violently if mishandled.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "launch_objects",
+    "category": "paranormal",
+    "name_key": "TRAIT_LAUNCH_OBJECTS",
+    "name": "Launch Objects",
+    "description_key": "TRAIT_LAUNCH_OBJECTS_DESC",
+    "description": "Flings whatever hangs on it.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "give_orders",
+    "category": "paranormal",
+    "name_key": "TRAIT_GIVE_ORDERS",
+    "name": "Give Orders",
+    "description_key": "TRAIT_GIVE_ORDERS_DESC",
+    "description": "Issues absurd commands.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "roll_away",
+    "category": "paranormal",
+    "name_key": "TRAIT_ROLL_AWAY",
+    "name": "Roll Away",
+    "description_key": "TRAIT_ROLL_AWAY_DESC",
+    "description": "Rolls off mid-conversation.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "water_trail",
+    "category": "paranormal",
+    "name_key": "TRAIT_WATER_TRAIL",
+    "name": "Water Trail",
+    "description_key": "TRAIT_WATER_TRAIL_DESC",
+    "description": "Leaves a slippery wet trail.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "summon_ducks",
+    "category": "paranormal",
+    "name_key": "TRAIT_SUMMON_DUCKS",
+    "name": "Summon Ducks",
+    "description_key": "TRAIT_SUMMON_DUCKS_DESC",
+    "description": "Conjures rubber ducks when happy.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "heavy_when_sad",
+    "category": "paranormal",
+    "name_key": "TRAIT_HEAVY_WHEN_SAD",
+    "name": "Heavy When Sad",
+    "description_key": "TRAIT_HEAVY_WHEN_SAD_DESC",
+    "description": "Becomes immovable when sad.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "reveal_weakness",
+    "category": "paranormal",
+    "name_key": "TRAIT_REVEAL_WEAKNESS",
+    "name": "Reveal Weakness",
+    "description_key": "TRAIT_REVEAL_WEAKNESS_DESC",
+    "description": "Exposes other objects' weaknesses.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "call_entities",
+    "category": "paranormal",
+    "name_key": "TRAIT_CALL_ENTITIES",
+    "name": "Call Entities",
+    "description_key": "TRAIT_CALL_ENTITIES_DESC",
+    "description": "Phones in trouble from elsewhere.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "sometimes_lies",
+    "category": "paranormal",
+    "name_key": "TRAIT_SOMETIMES_LIES",
+    "name": "Sometimes Lies",
+    "description_key": "TRAIT_SOMETIMES_LIES_DESC",
+    "description": "Its information cannot be trusted.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "search_for_child",
+    "category": "paranormal",
+    "name_key": "TRAIT_SEARCH_FOR_CHILD",
+    "name": "Search For Child",
+    "description_key": "TRAIT_SEARCH_FOR_CHILD_DESC",
+    "description": "Hunts for an object it calls its child.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "create_barrier",
+    "category": "paranormal",
+    "name_key": "TRAIT_CREATE_BARRIER",
+    "name": "Create Barrier",
+    "description_key": "TRAIT_CREATE_BARRIER_DESC",
+    "description": "Blocks paths protectively.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "become_ally",
+    "category": "paranormal",
+    "name_key": "TRAIT_BECOME_ALLY",
+    "name": "Become Ally",
+    "description_key": "TRAIT_BECOME_ALLY_DESC",
+    "description": "Can be won over to help.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "teleport_short",
+    "category": "paranormal",
+    "name_key": "TRAIT_TELEPORT_SHORT",
+    "name": "Teleport Short",
+    "description_key": "TRAIT_TELEPORT_SHORT_DESC",
+    "description": "Blinks short distances.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "hate_crowds",
+    "category": "paranormal",
+    "name_key": "TRAIT_HATE_CROWDS",
+    "name": "Hate Crowds",
+    "description_key": "TRAIT_HATE_CROWDS_DESC",
+    "description": "Acts out when rooms get busy.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "local_time_warp",
+    "category": "paranormal",
+    "name_key": "TRAIT_LOCAL_TIME_WARP",
+    "name": "Local Time Warp",
+    "description_key": "TRAIT_LOCAL_TIME_WARP_DESC",
+    "description": "Bends local time briefly.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "repeat_mistakes",
+    "category": "paranormal",
+    "name_key": "TRAIT_REPEAT_MISTAKES",
+    "name": "Repeat Mistakes",
+    "description_key": "TRAIT_REPEAT_MISTAKES_DESC",
+    "description": "Forces recent errors to recur.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "speed_hazards",
+    "category": "paranormal",
+    "name_key": "TRAIT_SPEED_HAZARDS",
+    "name": "Speed Hazards",
+    "description_key": "TRAIT_SPEED_HAZARDS_DESC",
+    "description": "Accelerates environmental dangers.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "reverse_fall",
+    "category": "paranormal",
+    "name_key": "TRAIT_REVERSE_FALL",
+    "name": "Reverse Fall",
+    "description_key": "TRAIT_REVERSE_FALL_DESC",
+    "description": "Can un-drop a fallen object.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "react_to_cargo",
+    "category": "paranormal",
+    "name_key": "TRAIT_REACT_TO_CARGO",
+    "name": "React To Cargo",
+    "description_key": "TRAIT_REACT_TO_CARGO_DESC",
+    "description": "Responds to what it carries.",
+    "tags": [
+      "paranormal"
+    ]
+  },
+  {
+    "id": "develop_personality",
+    "category": "paranormal",
+    "name_key": "TRAIT_DEVELOP_PERSONALITY",
+    "name": "Develop Personality",
+    "description_key": "TRAIT_DEVELOP_PERSONALITY_DESC",
+    "description": "Grows a personality over time.",
+    "tags": [
+      "paranormal"
+    ]
+  }
+]

@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://contractrun01"]
+
+[ext_resource type="Script" path="res://game/world/contract_runner.gd" id="1"]
+
+[node name="ContractRunner" type="Node3D"]
+script = ExtResource("1")

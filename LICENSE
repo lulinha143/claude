@@ -1,0 +1,35 @@
+HEAVY BAGGAGE — LICENSE GUIDANCE (placeholder, requires legal review)
+=====================================================================
+
+Copyright (c) 2026 The HEAVY BAGGAGE developer(s). All rights reserved.
+
+This repository currently ships under an "all rights reserved" placeholder while
+the developer chooses a final license. This file is TEMPLATE GUIDANCE and is NOT
+legal advice — have a qualified professional review before release.
+
+Recommended options
+--------------------
+- Proprietary / commercial (typical for a paid Steam game): keep source closed
+  or "source-available" with an all-rights-reserved notice like this one.
+- If you intend to open-source the engine-side code while keeping art/audio
+  proprietary, a common split is:
+    * Code:   MIT or Apache-2.0
+    * Assets: CC BY-NC-ND 4.0 or a custom proprietary asset license
+  Put asset terms in a separate ASSETS-LICENSE file and reference it here.
+
+What is original in this repository
+-----------------------------------
+All code, the procedural meshes/materials, SVG UI, and synthesized placeholder
+audio in this repository are original works created for this project. No
+third-party marketplace assets or copyrighted material are included. See
+THIRD_PARTY_NOTICES.md for the (currently empty) third-party inventory and the
+engine attribution.
+
+Godot Engine
+------------
+Godot Engine is licensed under the MIT License, Copyright (c) 2014-present Godot
+Engine contributors. Games made with Godot are owned by their creators; you are
+not required to open-source your game. See https://godotengine.org/license .
+
+ACTION REQUIRED before commercial release: replace this file with your chosen,
+professionally reviewed license text. Tracked in docs/RELEASE_CHECKLIST.md.

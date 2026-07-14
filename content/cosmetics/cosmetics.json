@@ -1,0 +1,653 @@
+[
+  {
+    "id": "body_compact",
+    "category": "body_shape",
+    "name": "Compact Body",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "body_round",
+    "category": "body_shape",
+    "name": "Round Body",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "body_tall",
+    "category": "body_shape",
+    "name": "Tall Body",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "body_stocky",
+    "category": "body_shape",
+    "name": "Stocky Body",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "body_bean",
+    "category": "body_shape",
+    "name": "Bean Body",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "skin_peach",
+    "category": "skin_color",
+    "name": "Peach Skin",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "skin_olive",
+    "category": "skin_color",
+    "name": "Olive Skin",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "skin_umber",
+    "category": "skin_color",
+    "name": "Umber Skin",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "skin_ash",
+    "category": "skin_color",
+    "name": "Ash Skin",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "skin_mint",
+    "category": "skin_color",
+    "name": "Mint Skin",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "skin_lavender",
+    "category": "skin_color",
+    "name": "Lavender Skin",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "skin_slate",
+    "category": "skin_color",
+    "name": "Slate Skin",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "skin_copper",
+    "category": "skin_color",
+    "name": "Copper Skin",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "helmet_default",
+    "category": "helmet",
+    "name": "Default Helmet",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "helmet_dented",
+    "category": "helmet",
+    "name": "Dented Helmet",
+    "rarity": "uncommon",
+    "unlock": "default"
+  },
+  {
+    "id": "helmet_crown",
+    "category": "helmet",
+    "name": "Crown Helmet",
+    "rarity": "uncommon",
+    "unlock": "default"
+  },
+  {
+    "id": "helmet_lantern",
+    "category": "helmet",
+    "name": "Lantern Helmet",
+    "rarity": "uncommon",
+    "unlock": "default"
+  },
+  {
+    "id": "helmet_traffic",
+    "category": "helmet",
+    "name": "Traffic Helmet",
+    "rarity": "uncommon",
+    "unlock": "default"
+  },
+  {
+    "id": "helmet_bucket",
+    "category": "helmet",
+    "name": "Bucket Helmet",
+    "rarity": "uncommon",
+    "unlock": "default"
+  },
+  {
+    "id": "helmet_pith",
+    "category": "helmet",
+    "name": "Pith Helmet",
+    "rarity": "uncommon",
+    "unlock": "default"
+  },
+  {
+    "id": "helmet_chef",
+    "category": "helmet",
+    "name": "Chef Helmet",
+    "rarity": "uncommon",
+    "unlock": "default"
+  },
+  {
+    "id": "hair_none",
+    "category": "hair",
+    "name": "None Hair",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "hair_mop",
+    "category": "hair",
+    "name": "Mop Hair",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "hair_buzz",
+    "category": "hair",
+    "name": "Buzz Hair",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "hair_curls",
+    "category": "hair",
+    "name": "Curls Hair",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "hair_ponytail",
+    "category": "hair",
+    "name": "Ponytail Hair",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "hair_mohawk",
+    "category": "hair",
+    "name": "Mohawk Hair",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "hair_bun",
+    "category": "hair",
+    "name": "Bun Hair",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "hair_waves",
+    "category": "hair",
+    "name": "Waves Hair",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "eyes_default",
+    "category": "eyes",
+    "name": "Default Eyes",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "eyes_sleepy",
+    "category": "eyes",
+    "name": "Sleepy Eyes",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "eyes_wide",
+    "category": "eyes",
+    "name": "Wide Eyes",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "eyes_determined",
+    "category": "eyes",
+    "name": "Determined Eyes",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "eyes_sparkle",
+    "category": "eyes",
+    "name": "Sparkle Eyes",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "eyes_tired",
+    "category": "eyes",
+    "name": "Tired Eyes",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "eyes_star",
+    "category": "eyes",
+    "name": "Star Eyes",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "eyes_dot",
+    "category": "eyes",
+    "name": "Dot Eyes",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "mouth_default",
+    "category": "mouth",
+    "name": "Default Mouth",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "mouth_grin",
+    "category": "mouth",
+    "name": "Grin Mouth",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "mouth_frown",
+    "category": "mouth",
+    "name": "Frown Mouth",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "mouth_whistle",
+    "category": "mouth",
+    "name": "Whistle Mouth",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "mouth_gasp",
+    "category": "mouth",
+    "name": "Gasp Mouth",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "mouth_smirk",
+    "category": "mouth",
+    "name": "Smirk Mouth",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "mouth_zigzag",
+    "category": "mouth",
+    "name": "Zigzag Mouth",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "mouth_cat",
+    "category": "mouth",
+    "name": "Cat Mouth",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "uniform_default",
+    "category": "uniform",
+    "name": "Default Uniform",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "uniform_coveralls",
+    "category": "uniform",
+    "name": "Coveralls Uniform",
+    "rarity": "uncommon",
+    "unlock": "default"
+  },
+  {
+    "id": "uniform_vintage",
+    "category": "uniform",
+    "name": "Vintage Uniform",
+    "rarity": "uncommon",
+    "unlock": "default"
+  },
+  {
+    "id": "uniform_neon",
+    "category": "uniform",
+    "name": "Neon Uniform",
+    "rarity": "uncommon",
+    "unlock": "default"
+  },
+  {
+    "id": "uniform_camo",
+    "category": "uniform",
+    "name": "Camo Uniform",
+    "rarity": "uncommon",
+    "unlock": "default"
+  },
+  {
+    "id": "uniform_formal",
+    "category": "uniform",
+    "name": "Formal Uniform",
+    "rarity": "uncommon",
+    "unlock": "default"
+  },
+  {
+    "id": "uniform_retro",
+    "category": "uniform",
+    "name": "Retro Uniform",
+    "rarity": "uncommon",
+    "unlock": "default"
+  },
+  {
+    "id": "uniform_holo",
+    "category": "uniform",
+    "name": "Holo Uniform",
+    "rarity": "uncommon",
+    "unlock": "default"
+  },
+  {
+    "id": "gloves_default",
+    "category": "gloves",
+    "name": "Default Gloves",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "gloves_rubber",
+    "category": "gloves",
+    "name": "Rubber Gloves",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "gloves_leather",
+    "category": "gloves",
+    "name": "Leather Gloves",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "gloves_fingerless",
+    "category": "gloves",
+    "name": "Fingerless Gloves",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "gloves_oven",
+    "category": "gloves",
+    "name": "Oven Gloves",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "gloves_spectral",
+    "category": "gloves",
+    "name": "Spectral Gloves",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "boots_default",
+    "category": "boots",
+    "name": "Default Boots",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "boots_steel",
+    "category": "boots",
+    "name": "Steel Boots",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "boots_rubber",
+    "category": "boots",
+    "name": "Rubber Boots",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "boots_sandals",
+    "category": "boots",
+    "name": "Sandals Boots",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "boots_rain",
+    "category": "boots",
+    "name": "Rain Boots",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "backpack_none",
+    "category": "backpack",
+    "name": "None Backpack",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "backpack_toolbag",
+    "category": "backpack",
+    "name": "Toolbag Backpack",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "backpack_ghosttank",
+    "category": "backpack",
+    "name": "Ghosttank Backpack",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "backpack_cooler",
+    "category": "backpack",
+    "name": "Cooler Backpack",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "backpack_turtle",
+    "category": "backpack",
+    "name": "Turtle Backpack",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "badge_trainee",
+    "category": "badge",
+    "name": "Trainee Badge",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "badge_bronze",
+    "category": "badge",
+    "name": "Bronze Badge",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "badge_silver",
+    "category": "badge",
+    "name": "Silver Badge",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "badge_gold",
+    "category": "badge",
+    "name": "Gold Badge",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "badge_founder",
+    "category": "badge",
+    "name": "Founder Badge",
+    "rarity": "rare",
+    "unlock": "default"
+  },
+  {
+    "id": "badge_boxy",
+    "category": "badge",
+    "name": "Boxy Badge",
+    "rarity": "rare",
+    "unlock": "default"
+  },
+  {
+    "id": "pose_default",
+    "category": "victory_pose",
+    "name": "Default Pose",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "pose_bow",
+    "category": "victory_pose",
+    "name": "Bow Pose",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "pose_flex",
+    "category": "victory_pose",
+    "name": "Flex Pose",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "pose_dab",
+    "category": "victory_pose",
+    "name": "Dab Pose",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "pose_faint",
+    "category": "victory_pose",
+    "name": "Faint Pose",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "pose_salute",
+    "category": "victory_pose",
+    "name": "Salute Pose",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "panic_default",
+    "category": "panic_anim",
+    "name": "Default Panic",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "panic_flail",
+    "category": "panic_anim",
+    "name": "Flail Panic",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "panic_fetal",
+    "category": "panic_anim",
+    "name": "Fetal Panic",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "panic_spin",
+    "category": "panic_anim",
+    "name": "Spin Panic",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "panic_statue",
+    "category": "panic_anim",
+    "name": "Statue Panic",
+    "rarity": "common",
+    "unlock": "default"
+  },
+  {
+    "id": "fx_none",
+    "category": "effect",
+    "name": "None Aura",
+    "rarity": "uncommon",
+    "unlock": "paranormal"
+  },
+  {
+    "id": "fx_dust",
+    "category": "effect",
+    "name": "Dust Aura",
+    "rarity": "uncommon",
+    "unlock": "paranormal"
+  },
+  {
+    "id": "fx_sparkle",
+    "category": "effect",
+    "name": "Sparkle Aura",
+    "rarity": "rare",
+    "unlock": "paranormal"
+  },
+  {
+    "id": "fx_aura",
+    "category": "effect",
+    "name": "Aura Aura",
+    "rarity": "rare",
+    "unlock": "paranormal"
+  },
+  {
+    "id": "fx_emberglow",
+    "category": "effect",
+    "name": "Emberglow Aura",
+    "rarity": "rare",
+    "unlock": "paranormal"
+  },
+  {
+    "id": "fx_static",
+    "category": "effect",
+    "name": "Static Aura",
+    "rarity": "rare",
+    "unlock": "paranormal"
+  },
+  {
+    "id": "fx_frost",
+    "category": "effect",
+    "name": "Frost Aura",
+    "rarity": "rare",
+    "unlock": "paranormal"
+  }
+]

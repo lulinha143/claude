@@ -1,0 +1,41 @@
+# Godot 4 --------------------------------------------------------------------
+# Import cache & generated files (regenerated on open; not committed).
+.godot/
+*.import
+# Godot may generate these; keep the repo clean.
+export_presets.cfg.local
+
+# Exported builds & release archives (never commit binaries).
+/build/
+/dist/
+/exports/
+*.exe
+*.pck
+*.zip
+*.dmg
+*.app
+*.x86_64
+
+# Secrets & platform credentials (NEVER commit) ------------------------------
+steam_appid.txt
+*.pfx
+*.p12
+*.keystore
+*.cer
+*.snk
+secrets/
+*.env
+.env
+
+# Local editor / OS junk ------------------------------------------------------
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/
+
+# Local settings / saves generated at runtime (live in user://, but ignore any
+# accidental copies dropped into the repo).
+/user_saves/
+*.log

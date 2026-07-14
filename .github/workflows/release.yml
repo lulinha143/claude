@@ -1,0 +1,61 @@
+name: Release Builds
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+env:
+  GODOT_VERSION: 4.4.1
+
+# Development/release builds here are UNSIGNED. Commercial distribution requires
+# code signing (Windows Authenticode) and, for macOS, Apple notarization — see
+# docs/RELEASE_CHECKLIST.md. Signing credentials are NEVER stored in this repo.
+
+jobs:
+  export:
+    name: Export ${{ matrix.preset }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - preset: "Windows Desktop"
+            out: "build/windows/HeavyBaggage.exe"
+            artifact: "HeavyBaggage-windows"
+          - preset: "Linux"
+            out: "build/linux/HeavyBaggage.x86_64"
+            artifact: "HeavyBaggage-linux"
+          - preset: "Demo (Windows)"
+            out: "build/demo/HeavyBaggage_Demo.exe"
+            artifact: "HeavyBaggage-demo"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Godot + export templates
+        run: |
+          set -e
+          BASE="https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable"
+          curl -sL -o godot.zip "$BASE/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          unzip -o godot.zip
+          mv Godot_v${GODOT_VERSION}-stable_linux.x86_64 /usr/local/bin/godot
+          chmod +x /usr/local/bin/godot
+          curl -sL -o templates.tpz "$BASE/Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
+          mkdir -p ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
+          unzip -o templates.tpz -d templates_tmp
+          mv templates_tmp/templates/* ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable/
+
+      - name: Build cache
+        run: godot --headless --editor --quit --path . || true
+
+      - name: Export
+        run: |
+          mkdir -p "$(dirname "${{ matrix.out }}")"
+          godot --headless --path . --export-release "${{ matrix.preset }}" "${{ matrix.out }}"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: build/
+          if-no-files-found: error

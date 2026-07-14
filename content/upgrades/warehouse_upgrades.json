@@ -1,0 +1,252 @@
+[
+  {
+    "id": "equipment_storage",
+    "name": "Equipment Storage",
+    "name_key": "UPG_EQUIPMENT_STORAGE",
+    "description": "Carry more consumables per contract.",
+    "max_level": 3,
+    "base_cost": 150,
+    "cost_growth": 1.6,
+    "unlock_reputation": 60
+  },
+  {
+    "id": "vehicle_capacity",
+    "name": "Vehicle Capacity",
+    "name_key": "UPG_VEHICLE_CAPACITY",
+    "description": "Fit more large objects in the van.",
+    "max_level": 3,
+    "base_cost": 150,
+    "cost_growth": 1.6,
+    "unlock_reputation": 100
+  },
+  {
+    "id": "insurance_level",
+    "name": "Insurance Level",
+    "name_key": "UPG_INSURANCE_LEVEL",
+    "description": "Raise your payout floor on damage.",
+    "max_level": 3,
+    "base_cost": 150,
+    "cost_growth": 1.6,
+    "unlock_reputation": 100
+  },
+  {
+    "id": "research_lab",
+    "name": "Research Laboratory",
+    "name_key": "UPG_RESEARCH_LAB",
+    "description": "Unlock trait research on captured objects.",
+    "max_level": 3,
+    "base_cost": 150,
+    "cost_growth": 1.6,
+    "unlock_reputation": 80
+  },
+  {
+    "id": "therapy_room",
+    "name": "Furniture Therapy Room",
+    "name_key": "UPG_THERAPY_ROOM",
+    "description": "Object trust grows faster.",
+    "max_level": 3,
+    "base_cost": 150,
+    "cost_growth": 1.6,
+    "unlock_reputation": 80
+  },
+  {
+    "id": "employee_lounge",
+    "name": "Employee Lounge",
+    "name_key": "UPG_EMPLOYEE_LOUNGE",
+    "description": "Movers start contracts with more stamina.",
+    "max_level": 3,
+    "base_cost": 150,
+    "cost_growth": 1.6,
+    "unlock_reputation": 60
+  },
+  {
+    "id": "trophy_wall",
+    "name": "Trophy Wall",
+    "name_key": "UPG_TROPHY_WALL",
+    "description": "Display achievements; small reputation bonus.",
+    "max_level": 3,
+    "base_cost": 150,
+    "cost_growth": 1.6,
+    "unlock_reputation": 40
+  },
+  {
+    "id": "dispatch_office",
+    "name": "Dispatch Office",
+    "name_key": "UPG_DISPATCH_OFFICE",
+    "description": "See one extra contract on the board.",
+    "max_level": 3,
+    "base_cost": 150,
+    "cost_growth": 1.6,
+    "unlock_reputation": 60
+  },
+  {
+    "id": "training_area",
+    "name": "Training Area",
+    "name_key": "UPG_TRAINING_AREA",
+    "description": "Practice carrying; AI assistants improve.",
+    "max_level": 3,
+    "base_cost": 150,
+    "cost_growth": 1.6,
+    "unlock_reputation": 40
+  },
+  {
+    "id": "containment_vault",
+    "name": "Containment Vault",
+    "name_key": "UPG_CONTAINMENT_VAULT",
+    "description": "Safely store volatile objects overnight.",
+    "max_level": 3,
+    "base_cost": 150,
+    "cost_growth": 1.6,
+    "unlock_reputation": 120
+  },
+  {
+    "id": "boxy_bedroom",
+    "name": "Boxy's Bedroom",
+    "name_key": "UPG_BOXY_BEDROOM",
+    "description": "Boxy is happier; better tips and warnings.",
+    "max_level": 3,
+    "base_cost": 150,
+    "cost_growth": 1.6,
+    "unlock_reputation": 40
+  },
+  {
+    "id": "loading_dock",
+    "name": "Loading Dock",
+    "name_key": "UPG_LOADING_DOCK",
+    "description": "Van loads objects slightly faster.",
+    "max_level": 3,
+    "base_cost": 150,
+    "cost_growth": 1.6,
+    "unlock_reputation": 60
+  },
+  {
+    "id": "scanner_uplink",
+    "name": "Scanner Uplink",
+    "name_key": "UPG_SCANNER_UPLINK",
+    "description": "Reveal one hidden trait at briefing.",
+    "max_level": 3,
+    "base_cost": 150,
+    "cost_growth": 1.6,
+    "unlock_reputation": 80
+  },
+  {
+    "id": "salt_supply",
+    "name": "Salt Supply Line",
+    "name_key": "UPG_SALT_SUPPLY",
+    "description": "Cheaper consumables.",
+    "max_level": 3,
+    "base_cost": 150,
+    "cost_growth": 1.6,
+    "unlock_reputation": 60
+  },
+  {
+    "id": "night_lights",
+    "name": "Warehouse Lighting",
+    "name_key": "UPG_NIGHT_LIGHTS",
+    "description": "Fearful objects calmer in the warehouse.",
+    "max_level": 3,
+    "base_cost": 150,
+    "cost_growth": 1.6,
+    "unlock_reputation": 40
+  },
+  {
+    "id": "archive",
+    "name": "Company Archive",
+    "name_key": "UPG_ARCHIVE",
+    "description": "Read more lore and old incident reports.",
+    "max_level": 3,
+    "base_cost": 150,
+    "cost_growth": 1.6,
+    "unlock_reputation": 40
+  },
+  {
+    "id": "garage_lift",
+    "name": "Garage Lift",
+    "name_key": "UPG_GARAGE_LIFT",
+    "description": "Repair the van between contracts.",
+    "max_level": 3,
+    "base_cost": 150,
+    "cost_growth": 1.6,
+    "unlock_reputation": 80
+  },
+  {
+    "id": "break_room",
+    "name": "Break Room",
+    "name_key": "UPG_BREAK_ROOM",
+    "description": "Faster revive speed for the team.",
+    "max_level": 3,
+    "base_cost": 150,
+    "cost_growth": 1.6,
+    "unlock_reputation": 60
+  },
+  {
+    "id": "comms_room",
+    "name": "Comms Room",
+    "name_key": "UPG_COMMS_ROOM",
+    "description": "Better ping range in contracts.",
+    "max_level": 3,
+    "base_cost": 150,
+    "cost_growth": 1.6,
+    "unlock_reputation": 60
+  },
+  {
+    "id": "van_paint",
+    "name": "Van Paint Booth",
+    "name_key": "UPG_VAN_PAINT",
+    "description": "Cosmetic van colors; morale boost.",
+    "max_level": 3,
+    "base_cost": 150,
+    "cost_growth": 1.6,
+    "unlock_reputation": 40
+  },
+  {
+    "id": "emotional_library",
+    "name": "Emotional Library",
+    "name_key": "UPG_EMOTIONAL_LIBRARY",
+    "description": "Preview object likes/dislikes.",
+    "max_level": 3,
+    "base_cost": 150,
+    "cost_growth": 1.6,
+    "unlock_reputation": 80
+  },
+  {
+    "id": "insurance_office",
+    "name": "Insurance Office",
+    "name_key": "UPG_INSURANCE_OFFICE",
+    "description": "Reduce insurance penalties.",
+    "max_level": 3,
+    "base_cost": 150,
+    "cost_growth": 1.6,
+    "unlock_reputation": 100
+  },
+  {
+    "id": "recruitment",
+    "name": "Recruitment Board",
+    "name_key": "UPG_RECRUITMENT",
+    "description": "Add a third AI assistant slot.",
+    "max_level": 3,
+    "base_cost": 150,
+    "cost_growth": 1.6,
+    "unlock_reputation": 100
+  },
+  {
+    "id": "cold_storage",
+    "name": "Cold Storage",
+    "name_key": "UPG_COLD_STORAGE",
+    "description": "Keep the fridge calm longer.",
+    "max_level": 3,
+    "base_cost": 150,
+    "cost_growth": 1.6,
+    "unlock_reputation": 80
+  },
+  {
+    "id": "founders_office",
+    "name": "Founder's Office",
+    "name_key": "UPG_FOUNDERS_OFFICE",
+    "description": "Unlocks deep company secrets.",
+    "max_level": 3,
+    "base_cost": 150,
+    "cost_growth": 1.6,
+    "unlock_reputation": 140
+  }
+]

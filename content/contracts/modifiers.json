@@ -1,0 +1,450 @@
+[
+  {
+    "id": "all_clingy",
+    "name": "Separation Anxiety",
+    "description": "Every object is clingy.",
+    "effects": {
+      "force_trait": "clingy"
+    }
+  },
+  {
+    "id": "emote_weight",
+    "name": "Emotional Weight",
+    "description": "Objects grow heavier when movers emote.",
+    "effects": {
+      "emote_weight": 1.2
+    }
+  },
+  {
+    "id": "blackout",
+    "name": "Blackout",
+    "description": "No working lights in the property.",
+    "effects": {
+      "lights": 0
+    }
+  },
+  {
+    "id": "emotional_van",
+    "name": "Moody Van",
+    "description": "The van is unusually emotional.",
+    "effects": {
+      "van_mood": 1.5
+    }
+  },
+  {
+    "id": "reverse_doors",
+    "name": "Contrary Doors",
+    "description": "All doors open the wrong way.",
+    "effects": {
+      "reverse_doors": true
+    }
+  },
+  {
+    "id": "one_tool",
+    "name": "Minimalist",
+    "description": "Each mover may carry only one tool.",
+    "effects": {
+      "tool_limit": 1
+    }
+  },
+  {
+    "id": "piano_forever",
+    "name": "Encore",
+    "description": "The piano must never stop playing.",
+    "effects": {
+      "piano_must_play": true
+    }
+  },
+  {
+    "id": "rotating_rooms",
+    "name": "Slow Spin",
+    "description": "Rooms slowly rotate their contents.",
+    "effects": {
+      "room_rotation": 0.02
+    }
+  },
+  {
+    "id": "emotion_spread",
+    "name": "Contagion",
+    "description": "Emotions spread between objects.",
+    "effects": {
+      "emotion_spread": 1.0
+    }
+  },
+  {
+    "id": "storm",
+    "name": "Incoming Storm",
+    "description": "Finish before the storm arrives.",
+    "effects": {
+      "time_limit": 900
+    }
+  },
+  {
+    "id": "fragile",
+    "name": "Butterfingers Insurance",
+    "description": "Objects break far more easily.",
+    "effects": {
+      "fragility": 1.8
+    }
+  },
+  {
+    "id": "heavy",
+    "name": "Leg Day",
+    "description": "All objects are 30% heavier.",
+    "effects": {
+      "weight": 1.3
+    }
+  },
+  {
+    "id": "fast_instability",
+    "name": "Restless Property",
+    "description": "Instability rises faster.",
+    "effects": {
+      "instability_rate": 1.6
+    }
+  },
+  {
+    "id": "quiet",
+    "name": "Library Rules",
+    "description": "Noise causes double instability.",
+    "effects": {
+      "noise_mult": 2.0
+    }
+  },
+  {
+    "id": "no_scanner",
+    "name": "Gut Feeling",
+    "description": "Emotional scanner disabled.",
+    "effects": {
+      "disable": "emotional_scanner"
+    }
+  },
+  {
+    "id": "swarm",
+    "name": "Overbooked",
+    "description": "Twice as many decoy objects.",
+    "effects": {
+      "decoys": 2.0
+    }
+  },
+  {
+    "id": "slippery",
+    "name": "Freshly Waxed",
+    "description": "Floors are extra slippery.",
+    "effects": {
+      "friction": 0.5
+    }
+  },
+  {
+    "id": "night",
+    "name": "Graveyard Shift",
+    "description": "Contract takes place at 3 AM.",
+    "effects": {
+      "time_of_day": "night"
+    }
+  },
+  {
+    "id": "hidden_traits",
+    "name": "Full of Surprises",
+    "description": "Every object has an extra hidden trait.",
+    "effects": {
+      "hidden_traits": 1
+    }
+  },
+  {
+    "id": "fragile_doors",
+    "name": "Paper Doors",
+    "description": "Doors break if bumped.",
+    "effects": {
+      "door_hp": 0.3
+    }
+  },
+  {
+    "id": "tip_10",
+    "name": "Generous Client +10%",
+    "description": "Payout increased by 10%.",
+    "effects": {
+      "payout": 1.1
+    }
+  },
+  {
+    "id": "tip_20",
+    "name": "Generous Client +20%",
+    "description": "Payout increased by 20%.",
+    "effects": {
+      "payout": 1.2
+    }
+  },
+  {
+    "id": "tip_40",
+    "name": "Generous Client +40%",
+    "description": "Payout increased by 40%.",
+    "effects": {
+      "payout": 1.4
+    }
+  },
+  {
+    "id": "tip_60",
+    "name": "Generous Client +60%",
+    "description": "Payout increased by 60%.",
+    "effects": {
+      "payout": 1.6
+    }
+  },
+  {
+    "id": "stingy_10",
+    "name": "Stingy Client -10%",
+    "description": "Payout reduced by 10%.",
+    "effects": {
+      "payout": 0.9
+    }
+  },
+  {
+    "id": "stingy_25",
+    "name": "Stingy Client -25%",
+    "description": "Payout reduced by 25%.",
+    "effects": {
+      "payout": 0.75
+    }
+  },
+  {
+    "id": "stingy_50",
+    "name": "Stingy Client -50%",
+    "description": "Payout reduced by 50%.",
+    "effects": {
+      "payout": 0.5
+    }
+  },
+  {
+    "id": "targets_1",
+    "name": "Big Job x1",
+    "description": "1 target objects required.",
+    "effects": {
+      "targets": 1
+    }
+  },
+  {
+    "id": "targets_2",
+    "name": "Big Job x2",
+    "description": "2 target objects required.",
+    "effects": {
+      "targets": 2
+    }
+  },
+  {
+    "id": "targets_3",
+    "name": "Big Job x3",
+    "description": "3 target objects required.",
+    "effects": {
+      "targets": 3
+    }
+  },
+  {
+    "id": "targets_4",
+    "name": "Big Job x4",
+    "description": "4 target objects required.",
+    "effects": {
+      "targets": 4
+    }
+  },
+  {
+    "id": "targets_5",
+    "name": "Big Job x5",
+    "description": "5 target objects required.",
+    "effects": {
+      "targets": 5
+    }
+  },
+  {
+    "id": "targets_6",
+    "name": "Big Job x6",
+    "description": "6 target objects required.",
+    "effects": {
+      "targets": 6
+    }
+  },
+  {
+    "id": "insta_slow",
+    "name": "Instability: Slow",
+    "description": "Instability speed set to slow.",
+    "effects": {
+      "instability_speed": "slow"
+    }
+  },
+  {
+    "id": "insta_fast",
+    "name": "Instability: Fast",
+    "description": "Instability speed set to fast.",
+    "effects": {
+      "instability_speed": "fast"
+    }
+  },
+  {
+    "id": "insta_frantic",
+    "name": "Instability: Frantic",
+    "description": "Instability speed set to frantic.",
+    "effects": {
+      "instability_speed": "frantic"
+    }
+  },
+  {
+    "id": "theme_seating",
+    "name": "Theme: Seating",
+    "description": "Targets favor seating objects.",
+    "effects": {
+      "family_bias": "seating"
+    }
+  },
+  {
+    "id": "theme_appliance",
+    "name": "Theme: Appliance",
+    "description": "Targets favor appliance objects.",
+    "effects": {
+      "family_bias": "appliance"
+    }
+  },
+  {
+    "id": "theme_storage",
+    "name": "Theme: Storage",
+    "description": "Targets favor storage objects.",
+    "effects": {
+      "family_bias": "storage"
+    }
+  },
+  {
+    "id": "theme_lighting",
+    "name": "Theme: Lighting",
+    "description": "Targets favor lighting objects.",
+    "effects": {
+      "family_bias": "lighting"
+    }
+  },
+  {
+    "id": "theme_decor",
+    "name": "Theme: Decor",
+    "description": "Targets favor decor objects.",
+    "effects": {
+      "family_bias": "decor"
+    }
+  },
+  {
+    "id": "theme_office",
+    "name": "Theme: Office",
+    "description": "Targets favor office objects.",
+    "effects": {
+      "family_bias": "office"
+    }
+  },
+  {
+    "id": "theme_bedroom",
+    "name": "Theme: Bedroom",
+    "description": "Targets favor bedroom objects.",
+    "effects": {
+      "family_bias": "bedroom"
+    }
+  },
+  {
+    "id": "theme_bathroom",
+    "name": "Theme: Bathroom",
+    "description": "Targets favor bathroom objects.",
+    "effects": {
+      "family_bias": "bathroom"
+    }
+  },
+  {
+    "id": "mist",
+    "name": "Low Mist",
+    "description": "A calming mist reduces max stamina.",
+    "effects": {
+      "stamina": 0.8
+    }
+  },
+  {
+    "id": "echo",
+    "name": "Echo Chamber",
+    "description": "Sounds travel further, raising instability.",
+    "effects": {
+      "noise_mult": 1.5
+    }
+  },
+  {
+    "id": "greasy",
+    "name": "Greasy Grips",
+    "description": "Objects are harder to hold.",
+    "effects": {
+      "grip": 0.7
+    }
+  },
+  {
+    "id": "polite_house",
+    "name": "Polite House",
+    "description": "Objects calm faster if comforted.",
+    "effects": {
+      "calm": 1.3
+    }
+  },
+  {
+    "id": "vengeful",
+    "name": "Vengeful Property",
+    "description": "Objects remember damage across rooms.",
+    "effects": {
+      "memory": true
+    }
+  },
+  {
+    "id": "featherlight",
+    "name": "Featherlight",
+    "description": "All objects are 20% lighter.",
+    "effects": {
+      "weight": 0.8
+    }
+  },
+  {
+    "id": "double_targets",
+    "name": "Double Shift",
+    "description": "Two full target sets to deliver.",
+    "effects": {
+      "target_sets": 2
+    }
+  },
+  {
+    "id": "no_dolly",
+    "name": "No Wheels",
+    "description": "Dollies and hand trucks disabled.",
+    "effects": {
+      "disable": "wheels"
+    }
+  },
+  {
+    "id": "bright",
+    "name": "Floodlit",
+    "description": "Bright lights soothe fearful objects.",
+    "effects": {
+      "lights": 2
+    }
+  },
+  {
+    "id": "fragile_glass",
+    "name": "Glass Everywhere",
+    "description": "Fragile objects shatter on light bumps.",
+    "effects": {
+      "glass": true
+    }
+  },
+  {
+    "id": "timewarp",
+    "name": "Time Slips",
+    "description": "The clock's powers are amplified.",
+    "effects": {
+      "time_warp": 1.5
+    }
+  },
+  {
+    "id": "crowded",
+    "name": "Crowded House",
+    "description": "Rooms start full of decoys.",
+    "effects": {
+      "decoys": 1.5
+    }
+  }
+]

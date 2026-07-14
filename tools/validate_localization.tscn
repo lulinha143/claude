@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://tool_validate_localization"]
+
+[ext_resource type="Script" path="res://tools/validate_localization.gd" id="1"]
+
+[node name="Tool" type="Node"]
+script = ExtResource("1")
