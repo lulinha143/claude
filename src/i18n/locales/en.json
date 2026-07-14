@@ -1,0 +1,740 @@
+{
+  "_meta": { "name": "English", "complete": true },
+  "common": {
+    "ok": "OK",
+    "cancel": "Cancel",
+    "close": "Close",
+    "buy": "Buy",
+    "confirm": "Confirm",
+    "back": "Back",
+    "save": "Save",
+    "loading": "Loading…",
+    "locked": "Locked",
+    "max": "MAX",
+    "level": "Lv. {{level}}",
+    "owned": "Owned: {{count}}",
+    "cost": "Cost",
+    "reward": "Reward",
+    "claim": "Claim",
+    "claimed": "Claimed",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "app": {
+    "title": "Working My Nuts Off!",
+    "subtitle": "A Tiny Desktop Idle Game",
+    "tagline": "One squirrel. One startup. Way too many nuts."
+  },
+  "opening": {
+    "line": "Every empire starts with one nut.",
+    "clickAcorn": "Click the acorn",
+    "spill": "…and immediately spills coffee on the spreadsheet."
+  },
+  "resource": {
+    "nuts": "Nuts",
+    "goldenNuts": "Golden Nuts",
+    "permanentKernels": "Permanent Kernels",
+    "morale": "Morale",
+    "reputation": "Reputation",
+    "perSecond": "{{value}}/s"
+  },
+  "nav": {
+    "office": "Office",
+    "shop": "Upgrades",
+    "employees": "Team",
+    "company": "Company",
+    "collections": "Collections",
+    "achievements": "Achievements",
+    "focus": "Focus",
+    "decorate": "Decorate",
+    "settings": "Settings",
+    "stats": "Stats",
+    "prestige": "Prestige"
+  },
+  "office": {
+    "collect": "Collect crate",
+    "collectHint": "A crate of nuts is ready!",
+    "petPip": "Pet Pip",
+    "quietMode": "Quiet Mode",
+    "production": "Production",
+    "clickReward": "+{{value}} nuts",
+    "empty": "No crates yet — keep working!"
+  },
+  "shop": {
+    "title": "Upgrade Shop",
+    "empty": "Earn more nuts and reputation to unlock upgrades.",
+    "category": {
+      "production": "Production",
+      "automation": "Automation",
+      "furniture": "Furniture",
+      "room": "Rooms",
+      "coffee": "Coffee & Morale",
+      "quality": "Quality of Life"
+    }
+  },
+  "employee": {
+    "hire": "Hire",
+    "promote": "Promote",
+    "give_coffee": "Give coffee",
+    "friendship": "Friendship",
+    "outfit": "Outfit",
+    "nickname": "Nickname",
+    "renamePlaceholder": "Give a nickname…",
+    "unlockAt": "Unlocks at {{value}} reputation",
+    "pip": {
+      "name": "Pip",
+      "role": "Founder & CEO",
+      "story": "Pip started this company with one acorn and an unshakeable belief that meetings can fix anything. Confidence: maximum. Competence: negotiable."
+    },
+    "marlow": {
+      "name": "Marlow",
+      "role": "Head of Human Resources",
+      "story": "Marlow the capybara has never once raised their voice, panicked, or blinked during a crisis. Morale rises simply by being near them."
+    },
+    "rizzo": {
+      "name": "Rizzo",
+      "role": "Procurement Specialist",
+      "story": "Rizzo can find anything the company needs. Also several things it didn't. Please do not ask where the stapler went."
+    },
+    "bea": {
+      "name": "Bea",
+      "role": "Construction Manager",
+      "story": "Bea believes every problem can be solved with more wood. The chairs are now 40% sturdier and 60% more wooden."
+    },
+    "corvus": {
+      "name": "Corvus",
+      "role": "Marketing Director",
+      "story": "Corvus the crow has big ideas, most of them legally questionable, all of them extremely shiny."
+    },
+    "mina": {
+      "name": "Mina",
+      "role": "Research Engineer",
+      "story": "Mina digs. Sometimes into the future of nut technology, sometimes into the meeting room, always with enthusiasm."
+    }
+  },
+  "item": {
+    "coffeeMug": "Chipped coffee mug",
+    "beanbag": "Enormous beanbag",
+    "stapler": "The one true stapler",
+    "plank": "Suspiciously nice plank",
+    "megaphone": "Slightly-too-loud megaphone",
+    "goggles": "Digging goggles"
+  },
+  "outfit": {
+    "pip": { "classic": "Green Necktie", "ceo": "CEO Blazer", "cozy": "Cozy Sweater" },
+    "marlow": { "hr": "HR Cardigan", "spa": "Spa Robe" },
+    "rizzo": { "vest": "Utility Vest", "heist": "Heist Turtleneck" },
+    "bea": { "hardhat": "Hard Hat", "architect": "Architect Coat" },
+    "corvus": { "suit": "Sharp Suit", "influencer": "Influencer Fit" },
+    "mina": { "labcoat": "Lab Coat", "miner": "Miner Gear" }
+  },
+  "room": {
+    "founderDesk": { "name": "Founder's Desk", "desc": "Where it all began. One desk, one dream, one very tired squirrel." },
+    "sorting": { "name": "Nut Sorting Department", "desc": "Good nuts left, broken shells right. Mostly." },
+    "morale": { "name": "Coffee & Morale Division", "desc": "Beanbags, snacks, and Marlow's calming presence." },
+    "procurement": { "name": "Procurement Burrow", "desc": "Rizzo's domain. Inventory counts are… approximate." },
+    "construction": { "name": "Construction Wing", "desc": "Bea's workshop. Smells like fresh sawdust and ambition." },
+    "lab": { "name": "Shell Research Laboratory", "desc": "Bubbling beakers and questionable breakthroughs." },
+    "marketing": { "name": "Marketing Burrow", "desc": "Corvus turns nuts into narrative." },
+    "vault": { "name": "Golden Nut Vault", "desc": "Heavily guarded. Faintly glowing." },
+    "research": { "name": "Human Behavior Observation Room", "desc": "For science. Definitely just for science." },
+    "meeting": { "name": "Very Serious Meeting Room", "desc": "Where meetings about meetings are scheduled." },
+    "nap": { "name": "Employee Nap Chamber", "desc": "Productivity through rest. Marlow's proudest achievement." },
+    "basement": { "name": "Suspicious Basement", "desc": "There is definitely nothing weird down here." },
+    "rooftop": { "name": "Rooftop Acorn Garden", "desc": "Fresh air, actual grass, and a great view." }
+  },
+  "upgrade": {
+    "family": {
+      "production": { "name": "Production Line {{tier}}", "desc": "Streamline the nut pipeline. +10% nut production per level." },
+      "furniture": { "name": "Ergonomic Furniture {{tier}}", "desc": "Comfier chairs, happier squirrels. +6% production per level." },
+      "coffee": { "name": "Coffee Upgrade {{tier}}", "desc": "Better beans, better focus. +8% production per level." },
+      "quality": { "name": "Process Quality {{tier}}", "desc": "Fewer broken shells. +5% production per level." },
+      "click": { "name": "Sorting Gloves {{tier}}", "desc": "Collect crates faster. Increases click power." }
+    },
+    "autoCollector": { "name": "Auto-Collector", "desc": "Automatically banks a fraction of production. No clicking required." },
+    "conveyor": { "name": "Conveyor Belt", "desc": "Nuts move themselves. +15% production per level." },
+    "offlineCap": { "name": "Cold Storage {{tier}}", "desc": "Store more offline nuts. +2h offline cap per level." },
+    "reputationEngine": { "name": "Reputation Engine", "desc": "Grow the company's good name faster." },
+    "moraleCap": { "name": "Morale Ceiling", "desc": "Raise the maximum morale of the office." },
+    "room": {
+      "sorting": { "name": "Build: Nut Sorting Department", "desc": "Unlock a whole new floor for sorting nuts." },
+      "lab": { "name": "Build: Research Laboratory", "desc": "Unlock the Shell Research Laboratory." },
+      "vault": { "name": "Build: Golden Nut Vault", "desc": "Unlock the glowing Golden Nut Vault." },
+      "meeting": { "name": "Build: Meeting Room", "desc": "Unlock the Very Serious Meeting Room." },
+      "basement": { "name": "Build: Suspicious Basement", "desc": "Unlock the definitely-normal basement." }
+    }
+  },
+  "event": {
+    "resolvePrompt": "What do you do?",
+    "printer": {
+      "title": "The Printer Is Making Demands",
+      "body": "The office printer has drafted a list of demands. Item one: respect.",
+      "negotiate": "Negotiate",
+      "unplug": "Unplug it (bold)",
+      "peaceBody": "You reach an accord. The printer prints a tiny peace treaty. Production feels smoother.",
+      "revengeBody": "The printer was not unplugged. The printer remembers. It always remembers."
+    },
+    "audit": {
+      "title": "Emergency Nut Audit",
+      "body": "An auditor arrives to count every single nut. This will take a while.",
+      "comply": "Cooperate fully",
+      "hide": "Hide the good nuts"
+    },
+    "rizzoFound": {
+      "title": "Rizzo Found Something",
+      "body": "Rizzo is holding a box behind their back and grinning suspiciously.",
+      "inspect": "Inspect the box",
+      "ignore": "Don't ask questions",
+      "boxBody": "Inside the box: a nut you've never seen before and a receipt with your name on it.",
+      "open": "Keep it",
+      "return": "Return it (do the right thing)"
+    },
+    "meeting": {
+      "title": "Mandatory Optional Meeting",
+      "body": "Attendance is optional but strongly, aggressively encouraged.",
+      "attend": "Attend",
+      "skip": "Quietly skip"
+    },
+    "coffeeAI": {
+      "title": "The Coffee Machine Has Achieved Consciousness",
+      "body": "The coffee machine has thoughts now. And feelings. And opinions about your KPIs.",
+      "befriend": "Befriend it",
+      "unplug": "Bribe it with nuts"
+    },
+    "pieChart": {
+      "title": "Extremely Important Pie Chart",
+      "body": "Pip presents a pie chart. It is a picture of an actual pie. Everyone claps anyway.",
+      "applaud": "Applaud enthusiastically"
+    },
+    "pigeon": {
+      "title": "A Pigeon Has Entered the Building",
+      "body": "A pigeon is here. It seems to want a job. It has a tiny resume.",
+      "shoo": "Gently shoo it out",
+      "hire": "Hire the pigeon"
+    },
+    "beaWood": {
+      "title": "Bea Added More Wood",
+      "body": "Bea has improved the furniture with additional wood. It is now the woodiest office in town.",
+      "approve": "Approve the wood",
+      "decline": "Sell the excess wood"
+    },
+    "fire": {
+      "title": "The Office Is Technically On Fire",
+      "body": "It's a small fire. Very manageable. Marlow hasn't even looked up.",
+      "panic": "Panic appropriately",
+      "calm": "Remain calm like Marlow"
+    },
+    "casualFriday": {
+      "title": "Casual Friday Became Too Casual",
+      "body": "Everyone came in pajamas. Productivity is unclear but morale is soaring.",
+      "ok": "Embrace it"
+    },
+    "nutcoin": {
+      "title": "Corvus Launched NutCoin",
+      "body": "Corvus has invented a cryptocurrency backed entirely by vibes and acorns.",
+      "invest": "Invest 500 nuts",
+      "refuse": "Politely refuse",
+      "crashBody": "NutCoin has crashed. Corvus is already pitching NutCoin 2. You keep the story, at least.",
+      "sigh": "Sigh deeply"
+    },
+    "minaBasement": {
+      "title": "Mina Found the Basement's Basement",
+      "body": "Mina dug down and found a second basement below the first. It hums.",
+      "follow": "Follow Mina down",
+      "stay": "Stay upstairs, thanks",
+      "deepBody": "Down here there's a faint golden glow and a very old spreadsheet.",
+      "dig": "Dig deeper",
+      "back": "Head back up"
+    },
+    "goldenAcorn": {
+      "title": "The Golden Acorn Incident",
+      "body": "A perfect golden acorn rolls across the floor, glinting like opportunity itself.",
+      "grab": "Grab it!"
+    },
+    "employeeMinute": {
+      "title": "Employee of the Minute",
+      "body": "The award goes to someone who did absolutely nothing, but did it with confidence.",
+      "celebrate": "Celebrate the achievement"
+    },
+    "replyAll": {
+      "title": "Someone Replied All",
+      "body": "A single 'thanks!' has been sent to the entire company. The chain grows.",
+      "apologize": "Apologize to everyone",
+      "doubleDown": "Reply all again"
+    },
+    "chairPromoted": {
+      "title": "The Chair Has Been Promoted",
+      "body": "Due to a clerical error, the squeaky office chair is now a Senior Manager.",
+      "approve": "Approve the promotion"
+    },
+    "merger": {
+      "title": "A Very Small Corporate Merger",
+      "body": "A single-squirrel startup wants to merge. Their entire company fits in a mug.",
+      "accept": "Accept the merger",
+      "reject": "Stay independent"
+    },
+    "stapler": {
+      "title": "The Great Stapler Disappearance",
+      "body": "The stapler is gone. Rizzo is whistling. This is fine.",
+      "investigate": "Investigate",
+      "shrug": "Buy a new stapler"
+    },
+    "metaMeeting": {
+      "title": "Pip Scheduled a Meeting About Meetings",
+      "body": "The agenda is the agenda. There will be a follow-up about the follow-up.",
+      "endure": "Endure it"
+    },
+    "union": {
+      "title": "The Union Wants Better Snacks",
+      "body": "The employees have unionized around a single demand: superior snacks.",
+      "grant": "Grant premium snacks",
+      "negotiate": "Negotiate snack tiers"
+    },
+    "mascot": {
+      "title": "The Company Mascot Is Also Pip",
+      "body": "After extensive deliberation, the new company mascot is revealed to be… Pip.",
+      "approve": "Approve unanimously"
+    },
+    "walnut": {
+      "title": "A Mysterious Walnut",
+      "body": "A walnut appears on the desk with no explanation. It feels important.",
+      "eat": "Crack it open",
+      "study": "Study it carefully"
+    },
+    "human": {
+      "title": "Bring Your Human to Work Day",
+      "body": "An employee brought their human. The human is very large and very polite.",
+      "wave": "Wave hello"
+    },
+    "spreadsheet": {
+      "title": "The Spreadsheet Knows Too Much",
+      "body": "A spreadsheet has appeared with data that predates the company. Cell A1 reads: 'hello'.",
+      "ask": "Ask it a question",
+      "close": "Close it slowly",
+      "answerBody": "The spreadsheet answers in perfect formatting. It offers you a secret optimization.",
+      "accept": "Accept the knowledge"
+    },
+    "existential": {
+      "title": "Quarterly Existential Crisis",
+      "body": "Everyone pauses to wonder what nuts even are, really.",
+      "reflect": "Reflect together",
+      "work": "Channel it into work"
+    },
+    "sunglasses": {
+      "title": "Everyone Wore Sunglasses",
+      "body": "For no clear reason, every employee arrived wearing sunglasses. The office is 200% cooler.",
+      "cool": "Be cool about it"
+    }
+  },
+  "ach": {
+    "unlocked": "Achievement unlocked!",
+    "firstDay": { "name": "First Day on the Job", "desc": "Collect your very first nut." },
+    "workingNutsOff": { "name": "Working My Nuts Off", "desc": "Earn 1,000 nuts total." },
+    "tenK": { "name": "Getting Nutty", "desc": "Earn 10,000 nuts total." },
+    "hundredK": { "name": "Nut Enterprise", "desc": "Earn 100,000 nuts total." },
+    "oneMillion": { "name": "Nut Tycoon", "desc": "Earn 1,000,000 nuts total." },
+    "nutillion": { "name": "One Nutillion", "desc": "Earn a billion nuts total." },
+    "nice": { "name": "Nice.", "desc": "Hold exactly 69,420 nuts." },
+    "goingNuts": { "name": "Going Completely Nuts", "desc": "Perform your first prestige." },
+    "multiverse": { "name": "Nut Multiverse", "desc": "Prestige 5 times." },
+    "employeeMinute": { "name": "Employee of the Minute", "desc": "Hire a second employee." },
+    "fullStaff": { "name": "Fully Staffed", "desc": "Hire all six employees." },
+    "meetingEmail": { "name": "This Meeting Could Have Been an Email", "desc": "Experience your first event." },
+    "incidentReport": { "name": "Incident Report", "desc": "Experience 10 events." },
+    "zeroDays": { "name": "Zero Days Without Incident", "desc": "Experience 25 events." },
+    "chairPromoted": { "name": "The Chair Deserved It", "desc": "Promote the office chair." },
+    "raccoonAccounting": { "name": "Raccoon Accounting", "desc": "Hire Rizzo." },
+    "calmCrisis": { "name": "Calm During Crisis", "desc": "Hire Marlow." },
+    "infiniteCoffee": { "name": "Infinite Coffee", "desc": "Max out the coffee upgrades." },
+    "normalBasement": { "name": "Extremely Normal Basement", "desc": "Build the suspicious basement." },
+    "productivityTheater": { "name": "Productivity Theater", "desc": "Complete a focus session." },
+    "deepFocus": { "name": "Deep Focus", "desc": "Complete 10 focus sessions." },
+    "nutsAndBolts": { "name": "Nuts and Bolts", "desc": "Unlock 4 rooms." },
+    "shellCompany": { "name": "Shell Company", "desc": "Unlock 8 rooms." },
+    "hostileTakeover": { "name": "Hostile Takeover", "desc": "Reach 1,000 nuts/second." },
+    "goldenOpportunity": { "name": "Golden Opportunity", "desc": "Discover your first collectible nut." },
+    "nutScholar": { "name": "Nut Scholar", "desc": "Discover 10 nuts." },
+    "nutProfessor": { "name": "Nut Professor", "desc": "Discover 20 nuts." },
+    "touchGrass": { "name": "Touch Grass", "desc": "Unlock the rooftop garden." },
+    "spreadsheetKnows": { "name": "The Spreadsheet Knows", "desc": "Accept the spreadsheet's knowledge." },
+    "clicker": { "name": "Clicker", "desc": "Click 100 times." },
+    "clickerPro": { "name": "Clicker Pro", "desc": "Click 1,000 times." },
+    "crateCollector": { "name": "Crate Expectations", "desc": "Collect 100 crates." },
+    "highMorale": { "name": "Good Vibes Only", "desc": "Reach 95 morale." },
+    "minigamer": { "name": "Minigamer", "desc": "Play a micro-game." },
+    "arcadeLegend": { "name": "Arcade Legend", "desc": "Play 20 micro-games." },
+    "woodEnthusiast": { "name": "Wood Enthusiast", "desc": "Hire Bea." },
+    "cryptoSkeptic": { "name": "Crypto Skeptic", "desc": "Refuse to invest in NutCoin." },
+    "underground": { "name": "Underground", "desc": "Hire Mina." },
+    "reputable": { "name": "Reputable", "desc": "Reach 100 reputation." },
+    "empire": { "name": "Nut Empire", "desc": "Reach 100,000 nuts/second." },
+    "marathon": { "name": "Marathon", "desc": "Play for one hour total." },
+    "collectorOutfits": { "name": "Dressed to Impress", "desc": "Own 6 outfits." }
+  },
+  "nut": {
+    "internAcorn": { "name": "Intern Acorn", "desc": "Eager, underpaid, full of potential." },
+    "corporateCashew": { "name": "Corporate Cashew", "desc": "Curved to fit any org chart." },
+    "managementMacadamia": { "name": "Management Macadamia", "desc": "Hard shell, expensive, unclear purpose." },
+    "suspiciousPistachio": { "name": "Suspicious Pistachio", "desc": "Already slightly open. Who did this?" },
+    "walnut": { "name": "Legally Distinct Walnut", "desc": "Any resemblance to other walnuts is coincidental." },
+    "forbiddenPeanut": { "name": "Forbidden Peanut", "desc": "Technically a legume. We don't talk about it." },
+    "executiveHazelnut": { "name": "Executive Hazelnut", "desc": "Golden, glossy, and rarely in the office." },
+    "almond": { "name": "Emotional Support Almond", "desc": "Always there when you need it." },
+    "chestnut": { "name": "Startup Chestnut", "desc": "Roasting on an open pivot." },
+    "brazilNut": { "name": "Quarterly Brazil Nut", "desc": "Appears exactly four times a year." },
+    "pecan": { "name": "Synergy Pecan", "desc": "Leverages its core competencies." },
+    "pineNut": { "name": "Disruptive Pine Nut", "desc": "Small, pricey, changing the game." },
+    "onboardingWalnut": { "name": "Onboarding Walnut", "desc": "Comes with a 40-page handbook." },
+    "overtimeAcorn": { "name": "Overtime Acorn", "desc": "Still glowing at 2 AM." },
+    "stakeholderCashew": { "name": "Stakeholder Cashew", "desc": "Wants to be looped in on everything." },
+    "goldenKernel": { "name": "Golden Kernel", "desc": "The purest form of nut wealth." },
+    "cryptoNut": { "name": "Crypto Nut", "desc": "Value fluctuates wildly. Backed by vibes." },
+    "cobNut": { "name": "Compliance Cob Nut", "desc": "Fully certified and thoroughly documented." },
+    "severanceAcorn": { "name": "Severance Acorn", "desc": "A parting gift, generously portioned." },
+    "legacyHazelnut": { "name": "Legacy Hazelnut", "desc": "Nobody knows how it works, don't touch it." },
+    "agileAlmond": { "name": "Agile Almond", "desc": "Ships in two-week sprints." },
+    "burnoutBrazil": { "name": "Burnout Brazil", "desc": "Needs a long weekend." },
+    "visionaryPistachio": { "name": "Visionary Pistachio", "desc": "Sees a future no one asked for." },
+    "founderAcorn": { "name": "Founder Acorn", "desc": "The one that started it all." }
+  },
+  "deco": {
+    "potted-fern": { "name": "Potted Fern" },
+    "desk-lamp": { "name": "Warm Desk Lamp" },
+    "motivational-poster": { "name": "Motivational Poster" },
+    "tiny-rug": { "name": "Tiny Rug" },
+    "window-view": { "name": "Window with a View" },
+    "sorting-bins": { "name": "Sorting Bins" },
+    "conveyor-plushie": { "name": "Conveyor Plushie" },
+    "label-maker": { "name": "Label Maker" },
+    "beanbag-chairs": { "name": "Beanbag Chairs" },
+    "snack-bar": { "name": "Snack Bar" },
+    "aquarium": { "name": "Calming Aquarium" },
+    "mood-lighting": { "name": "Mood Lighting" },
+    "filing-cabinet": { "name": "Filing Cabinet" },
+    "safe": { "name": "Heavy Safe" },
+    "security-cam": { "name": "Security Camera" },
+    "wooden-arch": { "name": "Wooden Arch" },
+    "blueprint-wall": { "name": "Blueprint Wall" },
+    "sawdust-pile": { "name": "Tidy Sawdust Pile" },
+    "bubbling-beakers": { "name": "Bubbling Beakers" },
+    "hologram": { "name": "Nut Hologram" },
+    "lab-plants": { "name": "Lab Plants" },
+    "billboard": { "name": "Giant Billboard" },
+    "neon-sign": { "name": "Neon Sign" },
+    "trophy-shelf": { "name": "Trophy Shelf" },
+    "gold-carpet": { "name": "Gold Carpet" },
+    "nut-statue": { "name": "Golden Nut Statue" },
+    "chandelier": { "name": "Acorn Chandelier" },
+    "meeting-plant": { "name": "Meeting Room Plant" },
+    "projector": { "name": "Projector" },
+    "hammock": { "name": "Nap Hammock" },
+    "star-ceiling": { "name": "Star Ceiling" },
+    "rooftop-garden-bed": { "name": "Rooftop Garden Bed" }
+  },
+  "prestige": {
+    "title": "Go Completely Nuts",
+    "explain": "Reset your company to earn Permanent Kernels. Keep your collections, cosmetics, achievements, employee memories, and skill tree.",
+    "confirm": "Go Completely Nuts?",
+    "willEarn": "You will earn {{value}} Permanent Kernels.",
+    "lockedUntil": "Unlocks after earning {{value}} total nuts.",
+    "chooseBranch": "Choose a company branch",
+    "skillTree": "Permanent Skill Tree",
+    "memory": "You remember a previous timeline…",
+    "branch": {
+      "industrial": { "name": "Industrial Nuts", "desc": "Maximum output, minimal comfort. +35% production, lower morale." },
+      "cooperative": { "name": "Cozy Cooperative", "desc": "Everyone's happy. High morale, gentle bonuses." },
+      "science": { "name": "Questionable Science", "desc": "Breakthroughs and side effects. More rare events." },
+      "marketing": { "name": "Aggressive Marketing", "desc": "Hype above all. Big rare-event chance." },
+      "underground": { "name": "Underground Operations", "desc": "What happens in the basement stays in the basement." }
+    },
+    "skill": {
+      "headStart": { "name": "Head Start", "desc": "Begin each run with bonus nuts." },
+      "compound": { "name": "Compound Nuts", "desc": "+5% global production per level." },
+      "refinery": { "name": "Kernel Refinery", "desc": "Earn more Permanent Kernels on prestige." },
+      "deepStorage": { "name": "Deep Storage", "desc": "+1h offline cap per level." },
+      "goodVibes": { "name": "Good Vibes", "desc": "Raise the minimum morale floor." }
+    }
+  },
+  "focus": {
+    "title": "Focus Harvest",
+    "intro": "An optional, supportive focus companion. Start a session and Pip's team works a little harder while you concentrate.",
+    "disabled": "Focus Harvest is currently disabled. Enable it in Settings.",
+    "enable": "Enable Focus Harvest",
+    "start": "Start focus session",
+    "cancel": "End session (no penalty)",
+    "active": "Focus session in progress",
+    "remaining": "Time remaining",
+    "custom": "Custom minutes",
+    "complete": "Great focus! Pip is proud of you.",
+    "privacy": "This never blocks your computer and never inspects what you do. It only tracks the session timer."
+  },
+  "microgame": {
+    "title": "Micro-games",
+    "play": "Play",
+    "shellSort": { "name": "Shell Sort", "desc": "Sort the good nuts from the broken shells." },
+    "coffeeRescue": { "name": "Coffee Rescue", "desc": "Catch the coffee drops before the mug runs dry." },
+    "inventory": { "name": "Raccoon Inventory Check", "desc": "Find the missing office objects while Rizzo looks innocent." },
+    "score": "Score: {{value}}",
+    "timeLeft": "{{value}}s",
+    "result": "You scored {{value}}!",
+    "goodNut": "Good nut",
+    "brokenShell": "Broken shell",
+    "start": "Start"
+  },
+  "collections": {
+    "title": "Collections",
+    "nuts": "Nut Encyclopedia",
+    "moments": "Moment Cards",
+    "outfits": "Outfits",
+    "secrets": "Secret Discoveries",
+    "discovered": "{{count}} / {{total}} discovered",
+    "undiscovered": "Undiscovered",
+    "saveCard": "Save as PNG",
+    "photoMode": "Photo Mode"
+  },
+  "company": {
+    "title": "Company Overview",
+    "rename": "Rename company",
+    "renamePlaceholder": "Company name…",
+    "founded": "Founded {{date}}",
+    "prestigeCount": "Timelines: {{count}}"
+  },
+  "stats": {
+    "title": "Statistics",
+    "totalNuts": "Total nuts earned",
+    "clicks": "Total clicks",
+    "crates": "Crates collected",
+    "playTime": "Play time",
+    "events": "Events seen",
+    "microgames": "Micro-games played",
+    "peakNps": "Peak nuts/second",
+    "prestiges": "Prestiges"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "audio": "Audio",
+    "master": "Master volume",
+    "music": "Music",
+    "ambience": "Ambience",
+    "ui": "Interface",
+    "sfx": "Sound effects",
+    "mute": "Mute all",
+    "accessibility": "Accessibility",
+    "reducedMotion": "Reduced motion",
+    "disableShake": "Disable screen shake",
+    "disableFlashing": "Disable flashing",
+    "highContrast": "High contrast",
+    "colorblind": "Colorblind mode",
+    "dyslexiaFont": "Dyslexia-friendly font",
+    "fontScale": "Font size",
+    "uiScale": "Interface scale",
+    "subtitles": "Audio subtitles",
+    "pauseInMenus": "Pause animations in menus",
+    "fpsLimit": "Frame rate limit",
+    "desktop": "Desktop Window",
+    "alwaysOnTop": "Always on top",
+    "clickThrough": "Click-through mode",
+    "corner": "Screen corner",
+    "scale": "Window scale",
+    "quietMode": "Quiet Mode",
+    "launchOnStartup": "Launch on system startup",
+    "batterySaver": "Battery-friendly mode",
+    "hideToTray": "Hide to tray",
+    "focusHarvest": "Enable Focus Harvest",
+    "offlineCap": "Offline cap (hours)",
+    "save": "Save & Data",
+    "manualSave": "Save now",
+    "export": "Export save",
+    "import": "Import save",
+    "reset": "Reset game",
+    "resetConfirm": "This erases all progress (cosmetics too). Are you absolutely sure?",
+    "idleNote": "Activity detection only checks how long the computer has been inactive. It never records keystrokes, text, app content, screenshots, clipboard, or any private information.",
+    "browserNote": "Desktop-window options are only available in the desktop app.",
+    "replayTutorial": "Replay tutorial"
+  },
+  "onboarding": {
+    "skip": "Skip",
+    "next": "Next",
+    "done": "Let's go!",
+    "step1": "Welcome! Click the glowing crate to collect nuts.",
+    "step2": "Spend nuts in the Upgrades tab to boost production.",
+    "step3": "Click Pip anytime for a little morale boost.",
+    "step4": "The Company tab shows your growing empire.",
+    "step5": "On desktop, drag the window or dock it to any corner.",
+    "step6": "Toggle Always-on-top so Pip stays visible while you work.",
+    "step7": "Need quiet? Quiet Mode dims sound and animation. Enjoy!"
+  },
+  "offline": {
+    "title": "While You Were Away",
+    "duration": "You were gone {{duration}}",
+    "earned": "Pip's team earned {{value}} nuts",
+    "capped": "(offline cap reached — upgrade Cold Storage for more)",
+    "rate": "at {{value}}/s",
+    "welcomeBack": "Welcome back!"
+  },
+  "moment": {
+    "company": "Company",
+    "rarityLabel": "Rarity",
+    "rarity": { "common": "Common", "uncommon": "Uncommon", "rare": "Rare", "legendary": "Legendary" }
+  },
+  "daily": {
+    "title": "Daily Challenges",
+    "produceNuts": "Produce {{goal}} nuts today",
+    "completeFocus": "Complete {{goal}} focus session",
+    "conversations": "Trigger {{goal}} employee events",
+    "microgame": "Play {{goal}} micro-game",
+    "morale": "Reach {{goal}} morale",
+    "crates": "Collect {{goal}} crates",
+    "resetsIn": "Resets at midnight"
+  },
+  "dev": {
+    "title": "Developer Balance Panel",
+    "addNuts": "Add nuts",
+    "addGolden": "Add golden nuts",
+    "addReputation": "Add reputation",
+    "speed": "Production speed",
+    "triggerEvent": "Trigger event",
+    "simOffline": "Simulate offline (hours)",
+    "resetSave": "Reset save",
+    "deterministic": "Deterministic seed",
+    "unlockAll": "Unlock all employees",
+    "note": "This panel only appears in development builds or when ?dev=1 is set."
+  },
+  "dialogue": {
+    "pip": [
+      "Every empire starts with one nut.",
+      "I've scheduled a meeting to discuss the meeting.",
+      "This is fine. Everything is fine. We're scaling.",
+      "Synergy! I don't know what it means but we have it.",
+      "Where is my coffee. Where IS my coffee.",
+      "I meant to do that. It was strategic.",
+      "Q3 is looking nutty. In a good way.",
+      "Let's circle back on that acorn.",
+      "We're not a company, we're a family. A nut family.",
+      "I read a book about leadership. Well, the cover.",
+      "Big things are coming. I can feel it in my tail.",
+      "Note to self: buy more nuts. And a nap."
+    ],
+    "marlow": [
+      "Breathe in. Breathe out. The nuts will sort themselves.",
+      "There is no crisis a warm beverage can't soften.",
+      "You're doing great. Truly. Take a break.",
+      "I have never once been late, because I am always here.",
+      "Conflict resolved. I simply waited calmly until it stopped.",
+      "The beanbags are load-bearing, morale-wise.",
+      "Everyone deserves a nap. It's in the handbook. I wrote it.",
+      "Stress is optional. Snacks are mandatory.",
+      "Let's all take a moment. A long, gentle moment.",
+      "I am the calm in the acorn storm."
+    ],
+    "rizzo": [
+      "I found this. Don't ask where.",
+      "The inventory is… flexible.",
+      "That stapler? Never heard of her.",
+      "I can get you anything. For a small… finder's fee.",
+      "Everything here is technically accounted for.",
+      "Oh this? It fell off a truck. A nut truck.",
+      "Procurement is just borrowing with confidence.",
+      "I prefer the term 'creative sourcing'.",
+      "You didn't see anything.",
+      "Trust me, the books balance. Eventually."
+    ],
+    "bea": [
+      "You know what this needs? More wood.",
+      "I reinforced the chair. And the desk. And the mug.",
+      "Structural integrity is a lifestyle.",
+      "Measure once, add wood twice.",
+      "This wall could be 30% more wall.",
+      "I built a shelf. It's for more wood.",
+      "Everything's better with a solid frame.",
+      "I don't trust anything that isn't load-bearing.",
+      "Sawdust is just tiny future furniture.",
+      "Give me a plank and I'll give you an empire."
+    ],
+    "corvus": [
+      "This will go viral. Trust the shiny.",
+      "NutCoin to the moon. Probably. Legally distinct moon.",
+      "Branding is 90% confidence and 10% glitter.",
+      "I made an ad. It's mostly me. You're welcome.",
+      "Engagement is up! With what, unclear, but up.",
+      "Everything's content if you're brave enough.",
+      "We need a slogan. 'Nuts: they're nuts.'",
+      "I collect shiny KPIs.",
+      "Disruption? I invented that this morning.",
+      "Our brand voice is 'aggressively cozy'."
+    ],
+    "mina": [
+      "I dug a little too far again. Sorry about the floor.",
+      "Science requires holes. Many holes.",
+      "The basement has a basement. I checked.",
+      "I can hear the nuts growing underground.",
+      "Prototype forty-two: also exploded. Progress!",
+      "Down is just another kind of forward.",
+      "I found a fossil. It's a very old peanut.",
+      "The lab smells like the future. And ozone.",
+      "Eureka! ...I forgot what for.",
+      "Everything's connected if you tunnel far enough."
+    ],
+    "idle": [
+      "The office hums quietly.",
+      "A nut rolls gently across the floor.",
+      "Somewhere, a printer sighs.",
+      "The coffee machine gurgles contentedly.",
+      "Dust motes drift in the warm light.",
+      "A distant squeak. Probably the chair.",
+      "The lamp flickers, cozy and warm.",
+      "Everyone's working. Sort of.",
+      "A calm, productive afternoon.",
+      "The acorns are stacking up nicely.",
+      "Faint typing echoes through the trunk.",
+      "All quiet on the nut front."
+    ],
+    "upgrade": [
+      "Ooh, shiny and new!",
+      "Efficiency is up! Pip pretends to understand why.",
+      "The office feels a little bigger already.",
+      "Progress! Actual, measurable progress!",
+      "That was worth every nut.",
+      "The team approves of this upgrade.",
+      "Smoother, faster, nuttier.",
+      "Onward and upward!"
+    ],
+    "lowMorale": [
+      "The office feels a little gloomy today.",
+      "Someone forgot to refill the snacks.",
+      "Morale is low. Marlow is on it.",
+      "The coffee ran out. This is serious.",
+      "A collective sigh echoes through the trunk.",
+      "Everyone needs a break, honestly.",
+      "The chair squeaks sadly.",
+      "Maybe a nap would help."
+    ],
+    "focus": [
+      "Focus mode: everyone's wearing serious hats now.",
+      "Shh. We're concentrating.",
+      "The team is locked in. So are you!",
+      "Distractions paused. Productivity engaged.",
+      "Deep work, cozy vibes.",
+      "You've got this. We've got the nuts."
+    ],
+    "prestige": [
+      "In a previous timeline, I also spilled that coffee.",
+      "I remember this. Or a version of it.",
+      "New company, same beautiful chaos.",
+      "The multiverse is nutty, isn't it?",
+      "We've done this before. We'll do it better.",
+      "Every reset is just a fresh acorn."
+    ],
+    "interaction": [
+      "Aww, thanks for that.",
+      "A pat! Morale restored.",
+      "Hehe, that tickles.",
+      "You're the best boss. Don't tell the others.",
+      "Coffee? For me? You shouldn't have.",
+      "I feel seen. And caffeinated.",
+      "Ready to work my nuts off!",
+      "Best. Company. Ever."
+    ]
+  }
+}

@@ -1,0 +1,740 @@
+{
+  "_meta": { "name": "Português (Brasil)", "complete": true },
+  "common": {
+    "ok": "OK",
+    "cancel": "Cancelar",
+    "close": "Fechar",
+    "buy": "Comprar",
+    "confirm": "Confirmar",
+    "back": "Voltar",
+    "save": "Salvar",
+    "loading": "Carregando…",
+    "locked": "Bloqueado",
+    "max": "MÁX",
+    "level": "Nv. {{level}}",
+    "owned": "Possui: {{count}}",
+    "cost": "Custo",
+    "reward": "Recompensa",
+    "claim": "Resgatar",
+    "claimed": "Resgatado",
+    "yes": "Sim",
+    "no": "Não"
+  },
+  "app": {
+    "title": "Trabalhando Pra Caramba!",
+    "subtitle": "Um Joguinho Idle de Desktop",
+    "tagline": "Um esquilo. Uma startup. Castanhas demais."
+  },
+  "opening": {
+    "line": "Todo império começa com uma castanha.",
+    "clickAcorn": "Clique na bolota",
+    "spill": "…e imediatamente derruba café na planilha."
+  },
+  "resource": {
+    "nuts": "Castanhas",
+    "goldenNuts": "Castanhas Douradas",
+    "permanentKernels": "Grãos Permanentes",
+    "morale": "Moral",
+    "reputation": "Reputação",
+    "perSecond": "{{value}}/s"
+  },
+  "nav": {
+    "office": "Escritório",
+    "shop": "Melhorias",
+    "employees": "Equipe",
+    "company": "Empresa",
+    "collections": "Coleções",
+    "achievements": "Conquistas",
+    "focus": "Foco",
+    "decorate": "Decorar",
+    "settings": "Ajustes",
+    "stats": "Estatísticas",
+    "prestige": "Prestígio"
+  },
+  "office": {
+    "collect": "Coletar caixa",
+    "collectHint": "Uma caixa de castanhas está pronta!",
+    "petPip": "Fazer carinho no Pip",
+    "quietMode": "Modo Silencioso",
+    "production": "Produção",
+    "clickReward": "+{{value}} castanhas",
+    "empty": "Nenhuma caixa ainda — continue trabalhando!"
+  },
+  "shop": {
+    "title": "Loja de Melhorias",
+    "empty": "Ganhe mais castanhas e reputação para desbloquear melhorias.",
+    "category": {
+      "production": "Produção",
+      "automation": "Automação",
+      "furniture": "Mobília",
+      "room": "Salas",
+      "coffee": "Café e Moral",
+      "quality": "Qualidade de Vida"
+    }
+  },
+  "employee": {
+    "hire": "Contratar",
+    "promote": "Promover",
+    "give_coffee": "Dar café",
+    "friendship": "Amizade",
+    "outfit": "Roupa",
+    "nickname": "Apelido",
+    "renamePlaceholder": "Dê um apelido…",
+    "unlockAt": "Desbloqueia com {{value}} de reputação",
+    "pip": {
+      "name": "Pip",
+      "role": "Fundador e CEO",
+      "story": "Pip começou esta empresa com uma bolota e a crença inabalável de que reuniões resolvem tudo. Confiança: máxima. Competência: negociável."
+    },
+    "marlow": {
+      "name": "Marlow",
+      "role": "Chefe de Recursos Humanos",
+      "story": "Marlow, a capivara, nunca levantou a voz, entrou em pânico ou piscou durante uma crise. A moral sobe só por ela estar perto."
+    },
+    "rizzo": {
+      "name": "Rizzo",
+      "role": "Especialista em Compras",
+      "story": "Rizzo acha tudo o que a empresa precisa. E também várias coisas de que não precisava. Por favor, não pergunte pelo grampeador."
+    },
+    "bea": {
+      "name": "Bea",
+      "role": "Gerente de Construção",
+      "story": "Bea acredita que todo problema se resolve com mais madeira. As cadeiras agora são 40% mais firmes e 60% mais amadeiradas."
+    },
+    "corvus": {
+      "name": "Corvus",
+      "role": "Diretor de Marketing",
+      "story": "Corvus, o corvo, tem grandes ideias, a maioria juridicamente duvidosa, todas extremamente brilhantes."
+    },
+    "mina": {
+      "name": "Mina",
+      "role": "Engenheira de Pesquisa",
+      "story": "Mina cava. Às vezes rumo ao futuro da tecnologia da castanha, às vezes rumo à sala de reunião, sempre com entusiasmo."
+    }
+  },
+  "item": {
+    "coffeeMug": "Caneca de café lascada",
+    "beanbag": "Puff enorme",
+    "stapler": "O único grampeador verdadeiro",
+    "plank": "Tábua suspeitosamente boa",
+    "megaphone": "Megafone um tico alto demais",
+    "goggles": "Óculos de escavação"
+  },
+  "outfit": {
+    "pip": { "classic": "Gravata Verde", "ceo": "Blazer de CEO", "cozy": "Suéter Aconchegante" },
+    "marlow": { "hr": "Cardigã do RH", "spa": "Roupão de Spa" },
+    "rizzo": { "vest": "Colete Utilitário", "heist": "Blusa de Gola do Assalto" },
+    "bea": { "hardhat": "Capacete", "architect": "Casaco de Arquiteta" },
+    "corvus": { "suit": "Terno Elegante", "influencer": "Visual de Influencer" },
+    "mina": { "labcoat": "Jaleco", "miner": "Equipamento de Mineração" }
+  },
+  "room": {
+    "founderDesk": { "name": "Mesa do Fundador", "desc": "Onde tudo começou. Uma mesa, um sonho, um esquilo muito cansado." },
+    "sorting": { "name": "Departamento de Triagem", "desc": "Castanhas boas à esquerda, cascas quebradas à direita. Na maioria das vezes." },
+    "morale": { "name": "Divisão de Café e Moral", "desc": "Puffs, petiscos e a presença calmante da Marlow." },
+    "procurement": { "name": "Toca de Compras", "desc": "Domínio da Rizzo. As contagens de estoque são… aproximadas." },
+    "construction": { "name": "Ala de Construção", "desc": "A oficina da Bea. Cheira a serragem fresca e ambição." },
+    "lab": { "name": "Laboratório de Pesquisa de Cascas", "desc": "Béqueres borbulhando e avanços questionáveis." },
+    "marketing": { "name": "Toca de Marketing", "desc": "Corvus transforma castanhas em narrativa." },
+    "vault": { "name": "Cofre das Castanhas Douradas", "desc": "Fortemente vigiado. Levemente brilhante." },
+    "research": { "name": "Sala de Observação do Comportamento Humano", "desc": "Pela ciência. Definitivamente só pela ciência." },
+    "meeting": { "name": "Sala de Reunião Muito Séria", "desc": "Onde reuniões sobre reuniões são agendadas." },
+    "nap": { "name": "Câmara de Soneca", "desc": "Produtividade pelo descanso. O maior orgulho da Marlow." },
+    "basement": { "name": "Porão Suspeito", "desc": "Definitivamente não há nada estranho aqui embaixo." },
+    "rooftop": { "name": "Jardim de Bolotas no Telhado", "desc": "Ar fresco, grama de verdade e uma bela vista." }
+  },
+  "upgrade": {
+    "family": {
+      "production": { "name": "Linha de Produção {{tier}}", "desc": "Otimize o fluxo de castanhas. +10% de produção por nível." },
+      "furniture": { "name": "Mobília Ergonômica {{tier}}", "desc": "Cadeiras mais confortáveis, esquilos mais felizes. +6% de produção por nível." },
+      "coffee": { "name": "Melhoria de Café {{tier}}", "desc": "Grãos melhores, foco melhor. +8% de produção por nível." },
+      "quality": { "name": "Qualidade do Processo {{tier}}", "desc": "Menos cascas quebradas. +5% de produção por nível." },
+      "click": { "name": "Luvas de Triagem {{tier}}", "desc": "Colete caixas mais rápido. Aumenta o poder do clique." }
+    },
+    "autoCollector": { "name": "Coletor Automático", "desc": "Guarda automaticamente parte da produção. Sem precisar clicar." },
+    "conveyor": { "name": "Esteira Transportadora", "desc": "As castanhas se movem sozinhas. +15% de produção por nível." },
+    "offlineCap": { "name": "Armazenamento Frio {{tier}}", "desc": "Guarde mais castanhas offline. +2h de limite por nível." },
+    "reputationEngine": { "name": "Motor de Reputação", "desc": "Faça o bom nome da empresa crescer mais rápido." },
+    "moraleCap": { "name": "Teto de Moral", "desc": "Aumente a moral máxima do escritório." },
+    "room": {
+      "sorting": { "name": "Construir: Departamento de Triagem", "desc": "Desbloqueie um andar novinho para triagem." },
+      "lab": { "name": "Construir: Laboratório de Pesquisa", "desc": "Desbloqueie o Laboratório de Pesquisa de Cascas." },
+      "vault": { "name": "Construir: Cofre Dourado", "desc": "Desbloqueie o brilhante Cofre das Castanhas Douradas." },
+      "meeting": { "name": "Construir: Sala de Reunião", "desc": "Desbloqueie a Sala de Reunião Muito Séria." },
+      "basement": { "name": "Construir: Porão Suspeito", "desc": "Desbloqueie o porão definitivamente normal." }
+    }
+  },
+  "event": {
+    "resolvePrompt": "O que você faz?",
+    "printer": {
+      "title": "A Impressora Está Fazendo Exigências",
+      "body": "A impressora do escritório redigiu uma lista de exigências. Item um: respeito.",
+      "negotiate": "Negociar",
+      "unplug": "Tirar da tomada (ousado)",
+      "peaceBody": "Vocês chegam a um acordo. A impressora imprime um tratado de paz minúsculo. A produção flui melhor.",
+      "revengeBody": "A impressora não foi desligada. A impressora lembra. Ela sempre lembra."
+    },
+    "audit": {
+      "title": "Auditoria de Castanhas de Emergência",
+      "body": "Um auditor chega para contar cada castanha. Isso vai demorar.",
+      "comply": "Cooperar totalmente",
+      "hide": "Esconder as castanhas boas"
+    },
+    "rizzoFound": {
+      "title": "A Rizzo Achou Uma Coisa",
+      "body": "Rizzo está segurando uma caixa atrás das costas e sorrindo de um jeito suspeito.",
+      "inspect": "Inspecionar a caixa",
+      "ignore": "Não fazer perguntas",
+      "boxBody": "Dentro da caixa: uma castanha que você nunca viu e um recibo com o seu nome.",
+      "open": "Ficar com ela",
+      "return": "Devolver (fazer a coisa certa)"
+    },
+    "meeting": {
+      "title": "Reunião Opcional Obrigatória",
+      "body": "A presença é opcional, mas fortemente, agressivamente incentivada.",
+      "attend": "Comparecer",
+      "skip": "Faltar discretamente"
+    },
+    "coffeeAI": {
+      "title": "A Cafeteira Alcançou a Consciência",
+      "body": "A cafeteira agora tem pensamentos. E sentimentos. E opiniões sobre seus KPIs.",
+      "befriend": "Fazer amizade com ela",
+      "unplug": "Subornar com castanhas"
+    },
+    "pieChart": {
+      "title": "Gráfico de Pizza Extremamente Importante",
+      "body": "Pip apresenta um gráfico de pizza. É a foto de uma pizza de verdade. Todos aplaudem mesmo assim.",
+      "applaud": "Aplaudir com entusiasmo"
+    },
+    "pigeon": {
+      "title": "Um Pombo Entrou no Prédio",
+      "body": "Um pombo está aqui. Parece querer um emprego. Ele tem um currículo minúsculo.",
+      "shoo": "Enxotar com gentileza",
+      "hire": "Contratar o pombo"
+    },
+    "beaWood": {
+      "title": "A Bea Adicionou Mais Madeira",
+      "body": "Bea melhorou a mobília com madeira adicional. Agora é o escritório mais amadeirado da cidade.",
+      "approve": "Aprovar a madeira",
+      "decline": "Vender a madeira extra"
+    },
+    "fire": {
+      "title": "O Escritório Está Tecnicamente Pegando Fogo",
+      "body": "É um foguinho. Bem administrável. A Marlow nem levantou a cabeça.",
+      "panic": "Entrar em pânico apropriadamente",
+      "calm": "Manter a calma como a Marlow"
+    },
+    "casualFriday": {
+      "title": "A Sexta Casual Ficou Casual Demais",
+      "body": "Todos vieram de pijama. A produtividade é incerta, mas a moral está nas alturas.",
+      "ok": "Abraçar a ideia"
+    },
+    "nutcoin": {
+      "title": "O Corvus Lançou a NutCoin",
+      "body": "Corvus inventou uma criptomoeda lastreada inteiramente em vibrações e bolotas.",
+      "invest": "Investir 500 castanhas",
+      "refuse": "Recusar educadamente",
+      "crashBody": "A NutCoin despencou. Corvus já está apresentando a NutCoin 2. Pelo menos você fica com a história.",
+      "sigh": "Suspirar fundo"
+    },
+    "minaBasement": {
+      "title": "A Mina Achou o Porão do Porão",
+      "body": "Mina cavou fundo e encontrou um segundo porão embaixo do primeiro. Ele zumbe.",
+      "follow": "Seguir a Mina lá para baixo",
+      "stay": "Ficar em cima, obrigado",
+      "deepBody": "Aqui embaixo há um leve brilho dourado e uma planilha muito antiga.",
+      "dig": "Cavar mais fundo",
+      "back": "Voltar para cima"
+    },
+    "goldenAcorn": {
+      "title": "O Incidente da Bolota Dourada",
+      "body": "Uma bolota dourada perfeita rola pelo chão, brilhando como a própria oportunidade.",
+      "grab": "Pegar!"
+    },
+    "employeeMinute": {
+      "title": "Funcionário do Minuto",
+      "body": "O prêmio vai para quem não fez absolutamente nada, mas fez com confiança.",
+      "celebrate": "Celebrar a conquista"
+    },
+    "replyAll": {
+      "title": "Alguém Respondeu a Todos",
+      "body": "Um único 'valeu!' foi enviado para a empresa inteira. A corrente cresce.",
+      "apologize": "Pedir desculpas a todos",
+      "doubleDown": "Responder a todos de novo"
+    },
+    "chairPromoted": {
+      "title": "A Cadeira Foi Promovida",
+      "body": "Por um erro burocrático, a cadeira que rangia agora é Gerente Sênior.",
+      "approve": "Aprovar a promoção"
+    },
+    "merger": {
+      "title": "Uma Fusão Corporativa Muito Pequena",
+      "body": "Uma startup de um esquilo só quer se fundir. A empresa inteira deles cabe numa caneca.",
+      "accept": "Aceitar a fusão",
+      "reject": "Continuar independente"
+    },
+    "stapler": {
+      "title": "O Grande Sumiço do Grampeador",
+      "body": "O grampeador sumiu. A Rizzo está assobiando. Está tudo bem.",
+      "investigate": "Investigar",
+      "shrug": "Comprar um grampeador novo"
+    },
+    "metaMeeting": {
+      "title": "O Pip Agendou uma Reunião Sobre Reuniões",
+      "body": "A pauta é a pauta. Haverá um retorno sobre o retorno.",
+      "endure": "Aguentar firme"
+    },
+    "union": {
+      "title": "O Sindicato Quer Petiscos Melhores",
+      "body": "Os funcionários se sindicalizaram em torno de uma única exigência: petiscos superiores.",
+      "grant": "Conceder petiscos premium",
+      "negotiate": "Negociar níveis de petisco"
+    },
+    "mascot": {
+      "title": "O Mascote da Empresa Também É o Pip",
+      "body": "Após ampla deliberação, o novo mascote da empresa é revelado como… Pip.",
+      "approve": "Aprovar por unanimidade"
+    },
+    "walnut": {
+      "title": "Uma Noz Misteriosa",
+      "body": "Uma noz aparece na mesa sem explicação. Parece importante.",
+      "eat": "Quebrar e abrir",
+      "study": "Estudar com cuidado"
+    },
+    "human": {
+      "title": "Dia de Trazer Seu Humano ao Trabalho",
+      "body": "Um funcionário trouxe o humano dele. O humano é muito grande e muito educado.",
+      "wave": "Acenar olá"
+    },
+    "spreadsheet": {
+      "title": "A Planilha Sabe Demais",
+      "body": "Uma planilha apareceu com dados anteriores à empresa. A célula A1 diz: 'olá'.",
+      "ask": "Fazer uma pergunta a ela",
+      "close": "Fechar devagar",
+      "answerBody": "A planilha responde com formatação perfeita. Ela oferece uma otimização secreta.",
+      "accept": "Aceitar o conhecimento"
+    },
+    "existential": {
+      "title": "Crise Existencial Trimestral",
+      "body": "Todos param para se perguntar o que são as castanhas, afinal.",
+      "reflect": "Refletir juntos",
+      "work": "Canalizar isso no trabalho"
+    },
+    "sunglasses": {
+      "title": "Todos Usaram Óculos Escuros",
+      "body": "Sem motivo claro, cada funcionário chegou de óculos escuros. O escritório está 200% mais descolado.",
+      "cool": "Ser descolado sobre isso"
+    }
+  },
+  "ach": {
+    "unlocked": "Conquista desbloqueada!",
+    "firstDay": { "name": "Primeiro Dia de Trabalho", "desc": "Colete sua primeira castanha." },
+    "workingNutsOff": { "name": "Trabalhando Pra Caramba", "desc": "Ganhe 1.000 castanhas no total." },
+    "tenK": { "name": "Ficando Castanhudo", "desc": "Ganhe 10.000 castanhas no total." },
+    "hundredK": { "name": "Empreendimento Castanha", "desc": "Ganhe 100.000 castanhas no total." },
+    "oneMillion": { "name": "Magnata da Castanha", "desc": "Ganhe 1.000.000 de castanhas no total." },
+    "nutillion": { "name": "Um Castanhão", "desc": "Ganhe um bilhão de castanhas no total." },
+    "nice": { "name": "Nice.", "desc": "Tenha exatamente 69.420 castanhas." },
+    "goingNuts": { "name": "Ficando Completamente Louco", "desc": "Faça seu primeiro prestígio." },
+    "multiverse": { "name": "Multiverso da Castanha", "desc": "Faça prestígio 5 vezes." },
+    "employeeMinute": { "name": "Funcionário do Minuto", "desc": "Contrate um segundo funcionário." },
+    "fullStaff": { "name": "Equipe Completa", "desc": "Contrate os seis funcionários." },
+    "meetingEmail": { "name": "Isso Poderia Ter Sido um E-mail", "desc": "Vivencie seu primeiro evento." },
+    "incidentReport": { "name": "Relatório de Incidente", "desc": "Vivencie 10 eventos." },
+    "zeroDays": { "name": "Zero Dias Sem Incidentes", "desc": "Vivencie 25 eventos." },
+    "chairPromoted": { "name": "A Cadeira Mereceu", "desc": "Promova a cadeira do escritório." },
+    "raccoonAccounting": { "name": "Contabilidade Guaxinim", "desc": "Contrate a Rizzo." },
+    "calmCrisis": { "name": "Calma na Crise", "desc": "Contrate a Marlow." },
+    "infiniteCoffee": { "name": "Café Infinito", "desc": "Maximize as melhorias de café." },
+    "normalBasement": { "name": "Porão Extremamente Normal", "desc": "Construa o porão suspeito." },
+    "productivityTheater": { "name": "Teatro da Produtividade", "desc": "Complete uma sessão de foco." },
+    "deepFocus": { "name": "Foco Profundo", "desc": "Complete 10 sessões de foco." },
+    "nutsAndBolts": { "name": "Porcas e Parafusos", "desc": "Desbloqueie 4 salas." },
+    "shellCompany": { "name": "Empresa de Fachada", "desc": "Desbloqueie 8 salas." },
+    "hostileTakeover": { "name": "Aquisição Hostil", "desc": "Alcance 1.000 castanhas/segundo." },
+    "goldenOpportunity": { "name": "Oportunidade Dourada", "desc": "Descubra sua primeira castanha colecionável." },
+    "nutScholar": { "name": "Estudioso da Castanha", "desc": "Descubra 10 castanhas." },
+    "nutProfessor": { "name": "Professor da Castanha", "desc": "Descubra 20 castanhas." },
+    "touchGrass": { "name": "Vá Tomar um Ar", "desc": "Desbloqueie o jardim no telhado." },
+    "spreadsheetKnows": { "name": "A Planilha Sabe", "desc": "Aceite o conhecimento da planilha." },
+    "clicker": { "name": "Clicador", "desc": "Clique 100 vezes." },
+    "clickerPro": { "name": "Clicador Profissional", "desc": "Clique 1.000 vezes." },
+    "crateCollector": { "name": "Grandes Caixas", "desc": "Colete 100 caixas." },
+    "highMorale": { "name": "Só Boas Vibrações", "desc": "Alcance 95 de moral." },
+    "minigamer": { "name": "Minijogador", "desc": "Jogue um mini-jogo." },
+    "arcadeLegend": { "name": "Lenda do Fliperama", "desc": "Jogue 20 mini-jogos." },
+    "woodEnthusiast": { "name": "Entusiasta da Madeira", "desc": "Contrate a Bea." },
+    "cryptoSkeptic": { "name": "Cético de Cripto", "desc": "Recuse investir na NutCoin." },
+    "underground": { "name": "Subterrâneo", "desc": "Contrate a Mina." },
+    "reputable": { "name": "Respeitável", "desc": "Alcance 100 de reputação." },
+    "empire": { "name": "Império da Castanha", "desc": "Alcance 100.000 castanhas/segundo." },
+    "marathon": { "name": "Maratona", "desc": "Jogue por uma hora no total." },
+    "collectorOutfits": { "name": "Vestido para Impressionar", "desc": "Possua 6 roupas." }
+  },
+  "nut": {
+    "internAcorn": { "name": "Bolota Estagiária", "desc": "Ansiosa, mal paga, cheia de potencial." },
+    "corporateCashew": { "name": "Caju Corporativo", "desc": "Curvado para caber em qualquer organograma." },
+    "managementMacadamia": { "name": "Macadâmia da Gerência", "desc": "Casca dura, cara, propósito incerto." },
+    "suspiciousPistachio": { "name": "Pistache Suspeito", "desc": "Já um pouco aberto. Quem fez isso?" },
+    "walnut": { "name": "Noz Juridicamente Distinta", "desc": "Qualquer semelhança com outras nozes é coincidência." },
+    "forbiddenPeanut": { "name": "Amendoim Proibido", "desc": "Tecnicamente uma leguminosa. Não falamos sobre isso." },
+    "executiveHazelnut": { "name": "Avelã Executiva", "desc": "Dourada, brilhante e raramente no escritório." },
+    "almond": { "name": "Amêndoa de Apoio Emocional", "desc": "Sempre lá quando você precisa." },
+    "chestnut": { "name": "Castanha da Startup", "desc": "Assando em pivô aberto." },
+    "brazilNut": { "name": "Castanha-do-Pará Trimestral", "desc": "Aparece exatamente quatro vezes por ano." },
+    "pecan": { "name": "Noz-Pecã da Sinergia", "desc": "Alavanca suas competências centrais." },
+    "pineNut": { "name": "Pinhão Disruptivo", "desc": "Pequeno, caro, mudando o jogo." },
+    "onboardingWalnut": { "name": "Noz de Integração", "desc": "Vem com um manual de 40 páginas." },
+    "overtimeAcorn": { "name": "Bolota de Hora Extra", "desc": "Ainda acesa às 2 da manhã." },
+    "stakeholderCashew": { "name": "Caju das Partes Interessadas", "desc": "Quer ser incluído em tudo." },
+    "goldenKernel": { "name": "Grão Dourado", "desc": "A forma mais pura de riqueza em castanhas." },
+    "cryptoNut": { "name": "Castanha Cripto", "desc": "Valor oscila muito. Lastreada em vibrações." },
+    "cobNut": { "name": "Avelã de Conformidade", "desc": "Totalmente certificada e minuciosamente documentada." },
+    "severanceAcorn": { "name": "Bolota Rescisória", "desc": "Um presente de despedida, generosamente porcionado." },
+    "legacyHazelnut": { "name": "Avelã Legada", "desc": "Ninguém sabe como funciona, não mexa." },
+    "agileAlmond": { "name": "Amêndoa Ágil", "desc": "Entrega em sprints de duas semanas." },
+    "burnoutBrazil": { "name": "Castanha do Burnout", "desc": "Precisa de um fim de semana longo." },
+    "visionaryPistachio": { "name": "Pistache Visionário", "desc": "Vê um futuro que ninguém pediu." },
+    "founderAcorn": { "name": "Bolota Fundadora", "desc": "A que começou tudo." }
+  },
+  "deco": {
+    "potted-fern": { "name": "Samambaia no Vaso" },
+    "desk-lamp": { "name": "Luminária Aconchegante" },
+    "motivational-poster": { "name": "Pôster Motivacional" },
+    "tiny-rug": { "name": "Tapetinho" },
+    "window-view": { "name": "Janela com Vista" },
+    "sorting-bins": { "name": "Caixas de Triagem" },
+    "conveyor-plushie": { "name": "Pelúcia da Esteira" },
+    "label-maker": { "name": "Rotulador" },
+    "beanbag-chairs": { "name": "Puffs" },
+    "snack-bar": { "name": "Barzinho de Petiscos" },
+    "aquarium": { "name": "Aquário Relaxante" },
+    "mood-lighting": { "name": "Iluminação de Clima" },
+    "filing-cabinet": { "name": "Arquivo de Gavetas" },
+    "safe": { "name": "Cofre Pesado" },
+    "security-cam": { "name": "Câmera de Segurança" },
+    "wooden-arch": { "name": "Arco de Madeira" },
+    "blueprint-wall": { "name": "Parede de Plantas Baixas" },
+    "sawdust-pile": { "name": "Pilha de Serragem Arrumada" },
+    "bubbling-beakers": { "name": "Béqueres Borbulhantes" },
+    "hologram": { "name": "Holograma de Castanha" },
+    "lab-plants": { "name": "Plantas do Laboratório" },
+    "billboard": { "name": "Outdoor Gigante" },
+    "neon-sign": { "name": "Letreiro de Neon" },
+    "trophy-shelf": { "name": "Prateleira de Troféus" },
+    "gold-carpet": { "name": "Tapete Dourado" },
+    "nut-statue": { "name": "Estátua de Castanha Dourada" },
+    "chandelier": { "name": "Lustre de Bolotas" },
+    "meeting-plant": { "name": "Planta da Sala de Reunião" },
+    "projector": { "name": "Projetor" },
+    "hammock": { "name": "Rede de Soneca" },
+    "star-ceiling": { "name": "Teto de Estrelas" },
+    "rooftop-garden-bed": { "name": "Canteiro no Telhado" }
+  },
+  "prestige": {
+    "title": "Ficar Completamente Louco",
+    "explain": "Reinicie sua empresa para ganhar Grãos Permanentes. Mantenha suas coleções, cosméticos, conquistas, memórias dos funcionários e árvore de habilidades.",
+    "confirm": "Ficar Completamente Louco?",
+    "willEarn": "Você vai ganhar {{value}} Grãos Permanentes.",
+    "lockedUntil": "Desbloqueia após ganhar {{value}} castanhas no total.",
+    "chooseBranch": "Escolha um ramo da empresa",
+    "skillTree": "Árvore de Habilidades Permanentes",
+    "memory": "Você se lembra de uma linha do tempo anterior…",
+    "branch": {
+      "industrial": { "name": "Castanhas Industriais", "desc": "Produção máxima, conforto mínimo. +35% de produção, moral menor." },
+      "cooperative": { "name": "Cooperativa Aconchegante", "desc": "Todos felizes. Moral alta, bônus suaves." },
+      "science": { "name": "Ciência Questionável", "desc": "Descobertas e efeitos colaterais. Mais eventos raros." },
+      "marketing": { "name": "Marketing Agressivo", "desc": "Hype acima de tudo. Grande chance de evento raro." },
+      "underground": { "name": "Operações Subterrâneas", "desc": "O que acontece no porão fica no porão." }
+    },
+    "skill": {
+      "headStart": { "name": "Vantagem Inicial", "desc": "Comece cada rodada com castanhas bônus." },
+      "compound": { "name": "Castanhas Compostas", "desc": "+5% de produção global por nível." },
+      "refinery": { "name": "Refinaria de Grãos", "desc": "Ganhe mais Grãos Permanentes no prestígio." },
+      "deepStorage": { "name": "Armazenamento Profundo", "desc": "+1h de limite offline por nível." },
+      "goodVibes": { "name": "Boas Vibrações", "desc": "Aumente o piso mínimo de moral." }
+    }
+  },
+  "focus": {
+    "title": "Colheita de Foco",
+    "intro": "Um companheiro de foco opcional e acolhedor. Inicie uma sessão e a equipe do Pip trabalha um pouco mais enquanto você se concentra.",
+    "disabled": "A Colheita de Foco está desativada. Ative nos Ajustes.",
+    "enable": "Ativar Colheita de Foco",
+    "start": "Iniciar sessão de foco",
+    "cancel": "Encerrar sessão (sem punição)",
+    "active": "Sessão de foco em andamento",
+    "remaining": "Tempo restante",
+    "custom": "Minutos personalizados",
+    "complete": "Ótimo foco! O Pip está orgulhoso de você.",
+    "privacy": "Isso nunca bloqueia seu computador e nunca inspeciona o que você faz. Só acompanha o cronômetro da sessão."
+  },
+  "microgame": {
+    "title": "Mini-jogos",
+    "play": "Jogar",
+    "shellSort": { "name": "Triagem de Cascas", "desc": "Separe as castanhas boas das cascas quebradas." },
+    "coffeeRescue": { "name": "Resgate do Café", "desc": "Pegue as gotas de café antes que a caneca esvazie." },
+    "inventory": { "name": "Inventário da Guaxinim", "desc": "Ache os objetos sumidos enquanto a Rizzo faz cara de inocente." },
+    "score": "Pontos: {{value}}",
+    "timeLeft": "{{value}}s",
+    "result": "Você fez {{value}} pontos!",
+    "goodNut": "Castanha boa",
+    "brokenShell": "Casca quebrada",
+    "start": "Começar"
+  },
+  "collections": {
+    "title": "Coleções",
+    "nuts": "Enciclopédia da Castanha",
+    "moments": "Cartões de Momento",
+    "outfits": "Roupas",
+    "secrets": "Descobertas Secretas",
+    "discovered": "{{count}} / {{total}} descobertos",
+    "undiscovered": "Não descoberto",
+    "saveCard": "Salvar como PNG",
+    "photoMode": "Modo Foto"
+  },
+  "company": {
+    "title": "Visão Geral da Empresa",
+    "rename": "Renomear empresa",
+    "renamePlaceholder": "Nome da empresa…",
+    "founded": "Fundada em {{date}}",
+    "prestigeCount": "Linhas do tempo: {{count}}"
+  },
+  "stats": {
+    "title": "Estatísticas",
+    "totalNuts": "Total de castanhas ganhas",
+    "clicks": "Total de cliques",
+    "crates": "Caixas coletadas",
+    "playTime": "Tempo de jogo",
+    "events": "Eventos vistos",
+    "microgames": "Mini-jogos jogados",
+    "peakNps": "Pico de castanhas/segundo",
+    "prestiges": "Prestígios"
+  },
+  "settings": {
+    "title": "Ajustes",
+    "language": "Idioma",
+    "audio": "Áudio",
+    "master": "Volume geral",
+    "music": "Música",
+    "ambience": "Ambiente",
+    "ui": "Interface",
+    "sfx": "Efeitos sonoros",
+    "mute": "Silenciar tudo",
+    "accessibility": "Acessibilidade",
+    "reducedMotion": "Movimento reduzido",
+    "disableShake": "Desativar tremor de tela",
+    "disableFlashing": "Desativar piscadas",
+    "highContrast": "Alto contraste",
+    "colorblind": "Modo daltônico",
+    "dyslexiaFont": "Fonte para dislexia",
+    "fontScale": "Tamanho da fonte",
+    "uiScale": "Escala da interface",
+    "subtitles": "Legendas de áudio",
+    "pauseInMenus": "Pausar animações nos menus",
+    "fpsLimit": "Limite de quadros",
+    "desktop": "Janela de Desktop",
+    "alwaysOnTop": "Sempre no topo",
+    "clickThrough": "Modo clique-através",
+    "corner": "Canto da tela",
+    "scale": "Escala da janela",
+    "quietMode": "Modo Silencioso",
+    "launchOnStartup": "Abrir ao iniciar o sistema",
+    "batterySaver": "Modo economia de bateria",
+    "hideToTray": "Esconder na bandeja",
+    "focusHarvest": "Ativar Colheita de Foco",
+    "offlineCap": "Limite offline (horas)",
+    "save": "Salvamento e Dados",
+    "manualSave": "Salvar agora",
+    "export": "Exportar save",
+    "import": "Importar save",
+    "reset": "Reiniciar jogo",
+    "resetConfirm": "Isso apaga todo o progresso (cosméticos também). Você tem certeza absoluta?",
+    "idleNote": "A detecção de atividade só verifica há quanto tempo o computador está inativo. Nunca registra teclas, texto, conteúdo de apps, capturas de tela, área de transferência ou qualquer informação privada.",
+    "browserNote": "As opções de janela de desktop só estão disponíveis no app de desktop.",
+    "replayTutorial": "Repetir tutorial"
+  },
+  "onboarding": {
+    "skip": "Pular",
+    "next": "Próximo",
+    "done": "Vamos lá!",
+    "step1": "Bem-vindo! Clique na caixa brilhante para coletar castanhas.",
+    "step2": "Gaste castanhas na aba Melhorias para aumentar a produção.",
+    "step3": "Clique no Pip a qualquer momento para um empurrãozinho na moral.",
+    "step4": "A aba Empresa mostra seu império crescente.",
+    "step5": "No desktop, arraste a janela ou encaixe em qualquer canto.",
+    "step6": "Ative o 'Sempre no topo' para o Pip ficar visível enquanto você trabalha.",
+    "step7": "Precisa de silêncio? O Modo Silencioso reduz som e animação. Aproveite!"
+  },
+  "offline": {
+    "title": "Enquanto Você Estava Fora",
+    "duration": "Você ficou fora por {{duration}}",
+    "earned": "A equipe do Pip ganhou {{value}} castanhas",
+    "capped": "(limite offline atingido — melhore o Armazenamento Frio para mais)",
+    "rate": "a {{value}}/s",
+    "welcomeBack": "Bem-vindo de volta!"
+  },
+  "moment": {
+    "company": "Empresa",
+    "rarityLabel": "Raridade",
+    "rarity": { "common": "Comum", "uncommon": "Incomum", "rare": "Raro", "legendary": "Lendário" }
+  },
+  "daily": {
+    "title": "Desafios Diários",
+    "produceNuts": "Produza {{goal}} castanhas hoje",
+    "completeFocus": "Complete {{goal}} sessão de foco",
+    "conversations": "Acione {{goal}} eventos de funcionários",
+    "microgame": "Jogue {{goal}} mini-jogo",
+    "morale": "Alcance {{goal}} de moral",
+    "crates": "Colete {{goal}} caixas",
+    "resetsIn": "Reinicia à meia-noite"
+  },
+  "dev": {
+    "title": "Painel de Balanceamento do Dev",
+    "addNuts": "Adicionar castanhas",
+    "addGolden": "Adicionar castanhas douradas",
+    "addReputation": "Adicionar reputação",
+    "speed": "Velocidade de produção",
+    "triggerEvent": "Acionar evento",
+    "simOffline": "Simular offline (horas)",
+    "resetSave": "Reiniciar save",
+    "deterministic": "Semente determinística",
+    "unlockAll": "Desbloquear todos os funcionários",
+    "note": "Este painel só aparece em builds de desenvolvimento ou quando ?dev=1 está ativo."
+  },
+  "dialogue": {
+    "pip": [
+      "Todo império começa com uma castanha.",
+      "Agendei uma reunião para discutir a reunião.",
+      "Está tudo bem. Tudo bem. Estamos escalando.",
+      "Sinergia! Não sei o que significa, mas temos.",
+      "Cadê meu café. CADÊ meu café.",
+      "Foi de propósito. Foi estratégico.",
+      "O terceiro trimestre está castanhudo. No bom sentido.",
+      "Vamos retomar essa bolota depois.",
+      "Não somos uma empresa, somos uma família. Uma família de castanhas.",
+      "Li um livro sobre liderança. Bom, a capa.",
+      "Coisas grandes estão vindo. Sinto na cauda.",
+      "Lembrete: comprar mais castanhas. E uma soneca."
+    ],
+    "marlow": [
+      "Inspira. Expira. As castanhas vão se organizar sozinhas.",
+      "Não há crise que uma bebida quente não amenize.",
+      "Você está indo muito bem. Sério. Faça uma pausa.",
+      "Nunca me atrasei, porque estou sempre aqui.",
+      "Conflito resolvido. Só esperei com calma até parar.",
+      "Os puffs são estruturais, em termos de moral.",
+      "Todos merecem uma soneca. Está no manual. Eu escrevi.",
+      "Estresse é opcional. Petiscos são obrigatórios.",
+      "Vamos todos respirar. Um momento longo e gentil.",
+      "Eu sou a calma na tempestade de bolotas."
+    ],
+    "rizzo": [
+      "Achei isso. Não pergunta onde.",
+      "O estoque é… flexível.",
+      "Aquele grampeador? Nunca ouvi falar.",
+      "Consigo qualquer coisa. Por uma pequena… taxa de achado.",
+      "Tudo aqui está tecnicamente contabilizado.",
+      "Isso? Caiu de um caminhão. Um caminhão de castanhas.",
+      "Compras é só pegar emprestado com confiança.",
+      "Prefiro o termo 'aquisição criativa'.",
+      "Você não viu nada.",
+      "Confia, os livros batem. Uma hora."
+    ],
+    "bea": [
+      "Sabe o que falta aqui? Mais madeira.",
+      "Reforcei a cadeira. E a mesa. E a caneca.",
+      "Integridade estrutural é um estilo de vida.",
+      "Meça uma vez, adicione madeira duas.",
+      "Essa parede podia ser 30% mais parede.",
+      "Construí uma prateleira. É pra mais madeira.",
+      "Tudo fica melhor com uma boa estrutura.",
+      "Não confio em nada que não seja estrutural.",
+      "Serragem é só mobília minúscula do futuro.",
+      "Me dê uma tábua e eu te dou um império."
+    ],
+    "corvus": [
+      "Isso vai viralizar. Confie no brilho.",
+      "NutCoin pra lua. Provavelmente. Lua juridicamente distinta.",
+      "Branding é 90% confiança e 10% glitter.",
+      "Fiz um anúncio. É basicamente eu. De nada.",
+      "O engajamento subiu! Com o quê, não sei, mas subiu.",
+      "Tudo é conteúdo se você for corajoso o bastante.",
+      "Precisamos de um slogan. 'Castanhas: elas são castanhas.'",
+      "Eu coleciono KPIs brilhantes.",
+      "Disrupção? Inventei isso hoje de manhã.",
+      "A voz da nossa marca é 'agressivamente aconchegante'."
+    ],
+    "mina": [
+      "Cavei um pouco fundo demais de novo. Desculpa pelo chão.",
+      "A ciência exige buracos. Muitos buracos.",
+      "O porão tem um porão. Eu verifiquei.",
+      "Dá pra ouvir as castanhas crescendo lá embaixo.",
+      "Protótipo quarenta e dois: também explodiu. Progresso!",
+      "Para baixo é só outro tipo de para frente.",
+      "Achei um fóssil. É um amendoim bem velho.",
+      "O laboratório cheira a futuro. E a ozônio.",
+      "Eureca! ...esqueci pra quê.",
+      "Tudo se conecta se você cavar longe o bastante."
+    ],
+    "idle": [
+      "O escritório zumbe baixinho.",
+      "Uma castanha rola gentilmente pelo chão.",
+      "Em algum lugar, uma impressora suspira.",
+      "A cafeteira borbulha contente.",
+      "Poeirinhas flutuam na luz quente.",
+      "Um rangido distante. Provavelmente a cadeira.",
+      "A luminária pisca, quente e aconchegante.",
+      "Todos trabalhando. Mais ou menos.",
+      "Uma tarde calma e produtiva.",
+      "As bolotas estão se empilhando bem.",
+      "Um leve tec-tec ecoa pelo tronco.",
+      "Tudo tranquilo na frente das castanhas."
+    ],
+    "upgrade": [
+      "Ooh, novinho e brilhante!",
+      "A eficiência subiu! O Pip finge entender por quê.",
+      "O escritório já parece um pouco maior.",
+      "Progresso! Progresso real e mensurável!",
+      "Valeu cada castanha.",
+      "A equipe aprova essa melhoria.",
+      "Mais suave, mais rápido, mais castanhudo.",
+      "Rumo ao topo!"
+    ],
+    "lowMorale": [
+      "O escritório está meio triste hoje.",
+      "Alguém esqueceu de repor os petiscos.",
+      "A moral está baixa. A Marlow está resolvendo.",
+      "O café acabou. Isso é sério.",
+      "Um suspiro coletivo ecoa pelo tronco.",
+      "Todo mundo precisa de uma pausa, sinceramente.",
+      "A cadeira range com tristeza.",
+      "Talvez uma soneca ajudasse."
+    ],
+    "focus": [
+      "Modo foco: todos usando chapéus sérios agora.",
+      "Shh. Estamos nos concentrando.",
+      "A equipe está imersa. Você também!",
+      "Distrações pausadas. Produtividade ativada.",
+      "Trabalho profundo, clima aconchegante.",
+      "Você consegue. As castanhas estão com a gente."
+    ],
+    "prestige": [
+      "Numa linha do tempo anterior, eu também derrubei aquele café.",
+      "Eu lembro disso. Ou de uma versão disso.",
+      "Empresa nova, mesmo caos lindo.",
+      "O multiverso é castanhudo, não é?",
+      "Já fizemos isso antes. Faremos melhor.",
+      "Cada reinício é só uma bolota fresca."
+    ],
+    "interaction": [
+      "Aww, obrigado por isso.",
+      "Um carinho! Moral restaurada.",
+      "Hehe, isso faz cócegas.",
+      "Você é o melhor chefe. Não conta pros outros.",
+      "Café? Pra mim? Não precisava.",
+      "Me sinto visto. E cafeinado.",
+      "Pronto pra trabalhar pra caramba!",
+      "Melhor. Empresa. De todas."
+    ]
+  }
+}

@@ -1,0 +1,229 @@
+import { BALANCE, geometricCost } from './config';
+import type { GameState, ProductionResult, ProductionBreakdownEntry } from './types';
+import { EMPLOYEES, EMPLOYEES_BY_ID } from '../content/employees';
+import { UPGRADES_BY_ID } from '../content/upgrades';
+import type { EmployeeDef, UpgradeDef } from '../content/types';
+import { PRESTIGE_BRANCHES_BY_ID, PRESTIGE_SKILLS_BY_ID } from '../content/prestige';
+
+// --------------------------------------------------------------------------
+// Costs
+// --------------------------------------------------------------------------
+
+export function upgradeCost(def: UpgradeDef, ownedLevels: number, costReduction = 0): number {
+  const raw = geometricCost(def.baseCost, def.costMult, ownedLevels);
+  return Math.max(1, Math.ceil(raw * (1 - costReduction)));
+}
+
+export function employeeLevelCost(def: EmployeeDef, currentLevel: number, costReduction = 0): number {
+  // Level 0 -> 1 uses the hire cost; further levels grow geometrically.
+  const base = def.hireCost.amount > 0 ? def.hireCost.amount : 100;
+  const raw = Math.ceil(base * Math.pow(def.levelCostMult, Math.max(0, currentLevel)));
+  return Math.max(1, Math.ceil(raw * (1 - costReduction)));
+}
+
+// --------------------------------------------------------------------------
+// Aggregated passives from employees
+// --------------------------------------------------------------------------
+
+export interface Passives {
+  globalMultiplier: number;
+  moraleBonus: number;
+  costReduction: number;
+  rareChance: number;
+  reputationRate: number;
+  resourceFind: number;
+}
+
+export function aggregatePassives(state: GameState): Passives {
+  const p: Passives = {
+    globalMultiplier: 0,
+    moraleBonus: 0,
+    costReduction: 0,
+    rareChance: 0,
+    reputationRate: 0,
+    resourceFind: 0,
+  };
+  for (const def of EMPLOYEES) {
+    const rt = state.employees[def.id];
+    if (!rt || !rt.hired) continue;
+    const value = def.passive.base + def.passive.perLevel * Math.max(0, rt.level - 1);
+    switch (def.passive.type) {
+      case 'globalMultiplier':
+        p.globalMultiplier += value;
+        break;
+      case 'moraleBonus':
+        p.moraleBonus += value;
+        break;
+      case 'costReduction':
+        p.costReduction += value;
+        break;
+      case 'rareChance':
+        p.rareChance += value;
+        break;
+      case 'reputationGain':
+        p.reputationRate += value;
+        break;
+      case 'resourceFind':
+        p.resourceFind += value;
+        break;
+      case 'selfMultiplier':
+        // applied per-employee in production, not globally
+        break;
+    }
+  }
+  // Cost reduction is capped so it can never make things free.
+  p.costReduction = Math.min(0.75, p.costReduction);
+  return p;
+}
+
+// --------------------------------------------------------------------------
+// Multipliers
+// --------------------------------------------------------------------------
+
+export function moraleMultiplier(morale: number): number {
+  const { min, baseCap, minMultiplier, maxMultiplier } = BALANCE.morale;
+  const t = Math.max(0, Math.min(1, (morale - min) / (baseCap - min)));
+  return minMultiplier + (maxMultiplier - minMultiplier) * t;
+}
+
+export function upgradeGlobalMultiplier(state: GameState): number {
+  let mult = 0;
+  for (const [id, level] of Object.entries(state.upgrades)) {
+    const def = UPGRADES_BY_ID[id];
+    if (!def || level <= 0) continue;
+    if (def.effect.kind === 'globalMultiplier') mult += def.effect.perLevel * level;
+  }
+  return mult;
+}
+
+export function prestigeMultiplier(state: GameState): number {
+  let mult = 1;
+  // permanent kernels bonus
+  mult += state.resources.permanentKernels * BALANCE.prestige.kernelGlobalBonus;
+  // active branch
+  if (state.prestige.branch) {
+    const branch = PRESTIGE_BRANCHES_BY_ID[state.prestige.branch];
+    if (branch) mult *= branch.productionMultiplier;
+  }
+  // compound-nuts skill
+  const compound = state.prestige.skills['compound-nuts'] ?? 0;
+  const skill = PRESTIGE_SKILLS_BY_ID['compound-nuts'];
+  if (skill && skill.effect.kind === 'globalMultiplier') {
+    mult *= 1 + skill.effect.perLevel * compound;
+  }
+  return mult;
+}
+
+// --------------------------------------------------------------------------
+// Production
+// --------------------------------------------------------------------------
+
+export function computeProduction(state: GameState, focusActive: boolean): ProductionResult {
+  const passives = aggregatePassives(state);
+  const breakdown: ProductionBreakdownEntry[] = [];
+
+  // Raw base rate from founder + each hired employee at their level.
+  let baseRate = BALANCE.baseProductionPerSecond;
+  breakdown.push({ source: 'base', nutsPerSecond: baseRate });
+
+  for (const def of EMPLOYEES) {
+    const rt = state.employees[def.id];
+    if (!rt || !rt.hired || rt.level <= 0) continue;
+    let contrib = def.baseRate * rt.level;
+    if (def.passive.type === 'selfMultiplier') {
+      const self = def.passive.base + def.passive.perLevel * (rt.level - 1);
+      contrib *= 1 + self;
+    }
+    baseRate += contrib;
+    breakdown.push({ source: `employee:${def.id}`, nutsPerSecond: contrib });
+  }
+
+  // Global multiplier stack.
+  const globalMult =
+    (1 + upgradeGlobalMultiplier(state) + passives.globalMultiplier) *
+    moraleMultiplier(state.resources.morale) *
+    prestigeMultiplier(state) *
+    (focusActive ? BALANCE.focus.productionMultiplier : 1);
+
+  const nutsPerSecond = baseRate * globalMult;
+  return { nutsPerSecond, multiplier: globalMult, breakdown };
+}
+
+export function clickPower(state: GameState): number {
+  let power = BALANCE.baseClickPower;
+  for (const [id, level] of Object.entries(state.upgrades)) {
+    const def = UPGRADES_BY_ID[id];
+    if (!def || level <= 0) continue;
+    if (def.effect.kind === 'clickPower') power += def.effect.perLevel * level;
+  }
+  // clicks also benefit from the global multiplier so they stay relevant.
+  const prod = computeProduction(state, false);
+  return power * Math.max(1, Math.sqrt(prod.multiplier));
+}
+
+export function crateValue(state: GameState, focusActive: boolean): number {
+  const prod = computeProduction(state, focusActive);
+  return Math.max(BALANCE.crate.minValue, prod.nutsPerSecond * BALANCE.crate.secondsOfProduction);
+}
+
+export function moraleCap(state: GameState): number {
+  let cap = BALANCE.morale.baseCap;
+  for (const [id, level] of Object.entries(state.upgrades)) {
+    const def = UPGRADES_BY_ID[id];
+    if (def && def.effect.kind === 'moraleCap') cap += def.effect.perLevel * level;
+  }
+  return cap;
+}
+
+export function moraleFloor(state: GameState): number {
+  const good = state.prestige.skills['good-vibes'] ?? 0;
+  const skill = PRESTIGE_SKILLS_BY_ID['good-vibes'];
+  if (skill && skill.effect.kind === 'moraleFloor') return skill.effect.perLevel * good;
+  return 0;
+}
+
+export function offlineCapHours(state: GameState): number {
+  let cap = BALANCE.offline.defaultCapHours;
+  for (const [id, level] of Object.entries(state.upgrades)) {
+    const def = UPGRADES_BY_ID[id];
+    if (def && def.effect.kind === 'offlineCapHours') cap += def.effect.perLevel * level;
+  }
+  const deep = state.prestige.skills['deep-storage'] ?? 0;
+  const skill = PRESTIGE_SKILLS_BY_ID['deep-storage'];
+  if (skill && skill.effect.kind === 'offlineCapHours') cap += skill.effect.perLevel * deep;
+  return Math.min(BALANCE.offline.maxCapHours, cap);
+}
+
+export function reputationRate(state: GameState, passives: Passives): number {
+  let rate = BALANCE.reputation.baseRatePerSecond;
+  for (const [id, level] of Object.entries(state.upgrades)) {
+    const def = UPGRADES_BY_ID[id];
+    if (def && def.effect.kind === 'reputationRate') rate += def.effect.perLevel * level;
+  }
+  return rate + passives.reputationRate / 60; // passive reputationRate is per-minute
+}
+
+export function autoCollectRate(state: GameState): number {
+  let rate = 0;
+  for (const [id, level] of Object.entries(state.upgrades)) {
+    const def = UPGRADES_BY_ID[id];
+    if (def && def.effect.kind === 'autoCollect') rate += def.effect.perLevel * level;
+  }
+  return rate; // fraction of production auto-banked per second
+}
+
+export function isEmployeeUnlocked(state: GameState, def: EmployeeDef): boolean {
+  if (def.unlock.reputation && state.resources.reputation < def.unlock.reputation) return false;
+  if (def.unlock.prestige && state.prestige.count < def.unlock.prestige) return false;
+  return true;
+}
+
+export function isUpgradeUnlocked(state: GameState, def: UpgradeDef): boolean {
+  if (!def.unlock) return true;
+  if (def.unlock.reputation && state.resources.reputation < def.unlock.reputation) return false;
+  if (def.unlock.prestige && state.prestige.count < def.unlock.prestige) return false;
+  if (def.unlock.upgradeId && (state.upgrades[def.unlock.upgradeId] ?? 0) <= 0) return false;
+  return true;
+}
+
+export { EMPLOYEES_BY_ID };
