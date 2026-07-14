@@ -87,6 +87,12 @@ export interface EventChoice {
   effects: EventEffect[];
   /** optional next step id for multi-step chains. */
   next?: string;
+  /** optional localization keys for employee reactions shown on the result panel. */
+  reactions?: string[];
+  /** optional gating so a choice can require a resource/employee/etc. */
+  requires?: { nuts?: number; goldenNuts?: number; reputation?: number; hiredEmployee?: string };
+  /** optional localization key describing why a disabled choice is unavailable. */
+  disabledKey?: string;
 }
 
 export interface EventEffect {

@@ -21,6 +21,14 @@ import type { EventEffect, GameEventDef } from '../content/types';
 import { GAME_EVENTS, GAME_EVENTS_BY_ID } from '../content/events';
 import { evaluateAchievements } from './achievements';
 import { ensureDailyForDate } from './dailyChallenges';
+import { isRoomIdUnlocked, repairPlacements } from './rooms';
+
+export interface Consequence {
+  titleKey: string;
+  choiceLabelKey: string;
+  effects: EventEffect[];
+  reactions: string[];
+}
 
 export interface TempBoost {
   multiplier: number;
@@ -53,6 +61,8 @@ export interface CollectResult {
 export class GameEngine {
   state: GameState;
   activeEvent: ActiveEvent | null = null;
+  /** transient: the result of the most recent event choice, for the result panel. */
+  lastConsequence: Consequence | null = null;
   tempBoosts: TempBoost[] = [];
 
   private listeners = new Set<EngineListener>();
@@ -68,7 +78,12 @@ export class GameEngine {
     this.now = opts.now ?? (() => Date.now());
     const seed = opts.deterministic ? (opts.seed ?? 12345) : (opts.seed ?? (Date.now() & 0xffffffff));
     this.rng = createRng(seed);
+    // Repair any invalid employee placement data on load so no one is lost.
+    this.repairedOnLoad = repairPlacements(this.state);
   }
+
+  /** ids whose invalid placement was repaired at load (for dev-only logging). */
+  repairedOnLoad: string[] = [];
 
   // -- subscription ---------------------------------------------------------
   subscribe(listener: EngineListener): () => void {
@@ -279,6 +294,20 @@ export class GameEngine {
     this.emit();
   }
 
+  /**
+   * Assign an employee to a specific unlocked room (or null to use their
+   * department default). Returns false if the room isn't unlocked/valid so the
+   * caller can surface feedback.
+   */
+  assignEmployee(id: string, roomId: string | null): boolean {
+    const rt = this.state.employees[id];
+    if (!rt) return false;
+    if (roomId !== null && !isRoomIdUnlocked(this.state, roomId)) return false;
+    rt.room = roomId;
+    this.emit();
+    return true;
+  }
+
   giveCoffee(id: string): void {
     const rt = this.state.employees[id];
     if (!rt) return;
@@ -351,13 +380,32 @@ export class GameEngine {
 
     for (const effect of choice.effects) this.applyEffect(effect, def);
 
+    // record the decision in the company timeline (capped)
+    this.state.eventHistory.push({ eventId: def.id, choiceId: choice.id, at: this.now() });
+    if (this.state.eventHistory.length > 50) this.state.eventHistory.shift();
+
+    // build the consequence result panel (announces every change clearly)
+    this.lastConsequence = {
+      titleKey: def.titleKey,
+      choiceLabelKey: choice.labelKey,
+      effects: choice.effects,
+      reactions: choice.reactions ?? [],
+    };
+
     // advance chain or close
     if (choice.next && def.steps?.[choice.next]) {
       this.activeEvent = { def, step: choice.next };
+      // mid-chain steps don't show a standalone result panel
+      this.lastConsequence = null;
     } else {
       this.state.eventCooldowns[def.id] = this.now() + def.cooldownSeconds * 1000;
       this.activeEvent = null;
     }
+    this.emit();
+  }
+
+  clearConsequence(): void {
+    this.lastConsequence = null;
     this.emit();
   }
 
@@ -525,7 +573,9 @@ export class GameEngine {
   replaceState(next: GameState): void {
     this.state = next;
     this.activeEvent = null;
+    this.lastConsequence = null;
     this.tempBoosts = [];
+    this.repairedOnLoad = repairPlacements(this.state);
     this.emit();
   }
 

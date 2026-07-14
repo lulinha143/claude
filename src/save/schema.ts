@@ -19,6 +19,7 @@ const employeeSchema = z.object({
   friendship: z.number().min(0).max(100).catch(0),
   outfitId: z.string().nullable().catch(null),
   nickname: z.string().nullable().catch(null),
+  room: z.string().nullable().catch(null),
   x: z.number().catch(0.2),
 });
 
@@ -136,6 +137,9 @@ export const gameStateSchema = z.object({
     .object({ eventId: z.string(), step: z.number() })
     .nullable()
     .catch(null),
+  eventHistory: z
+    .array(z.object({ eventId: z.string(), choiceId: z.string(), at: z.number() }))
+    .catch([]),
 });
 
 export type ParsedGameState = z.infer<typeof gameStateSchema>;

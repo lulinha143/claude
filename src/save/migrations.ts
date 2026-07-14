@@ -29,9 +29,24 @@ const v2ToV3: Migration = (raw) => {
   };
 };
 
+// v3 -> v4: employee room assignment (`room`) + event history/timeline.
+const v3ToV4: Migration = (raw) => {
+  const employees = (raw.employees as Record<string, RawSave>) ?? {};
+  for (const rt of Object.values(employees)) {
+    if (rt && typeof rt === 'object' && !('room' in rt)) rt.room = null;
+  }
+  return {
+    ...raw,
+    employees,
+    eventHistory: Array.isArray(raw.eventHistory) ? raw.eventHistory : [],
+    version: 4,
+  };
+};
+
 const MIGRATIONS: Record<number, Migration> = {
   1: v1ToV2,
   2: v2ToV3,
+  3: v3ToV4,
 };
 
 export function migrate(raw: RawSave): RawSave {

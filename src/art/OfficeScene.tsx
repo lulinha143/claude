@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useGame } from '../state/hooks';
 import { useStore } from '../state/store';
-import { unlockedRooms, isRoomUnlocked } from '../sim/rooms';
+import { unlockedRooms, isRoomUnlocked, resolveEmployeeRoom } from '../sim/rooms';
 import { ROOMS } from '../content/rooms';
 import { EMPLOYEES_BY_ID } from '../content/employees';
 import { Critter } from './Critter';
@@ -174,7 +174,7 @@ export function OfficeScene() {
 
         {rooms.map((room) => {
           const occupants = Object.entries(state.employees).filter(
-            ([id, rt]) => rt.hired && EMPLOYEES_BY_ID[id]?.room === room.id,
+            ([id, rt]) => rt.hired && resolveEmployeeRoom(state, id) === room.id,
           );
           return (
             <div

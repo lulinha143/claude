@@ -34,6 +34,7 @@ function initialEmployees(): Record<string, EmployeeRuntimeState> {
       friendship: e.id === FOUNDER_ID ? 20 : 0,
       outfitId: e.outfits[0]?.id ?? null,
       nickname: null,
+      room: null, // resolved to their department (or Founder's Desk) at render time
       x: 0.15 + i * 0.12,
     };
   });
@@ -74,5 +75,6 @@ export function createInitialState(now = Date.now(), settings?: Partial<GameSett
     onboardingComplete: false,
     eventCooldowns: {},
     pendingChain: null,
+    eventHistory: [],
   };
 }
