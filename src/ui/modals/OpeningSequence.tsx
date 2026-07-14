@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../state/store';
+import { useGame } from '../../state/hooks';
 import { Acorn } from '../../art/Icons';
 import { Critter } from '../../art/Critter';
 import { shapeFor } from '../../art/critterShapes';
+import { OfficeBackdrop } from '../../art/OfficeBackdrop';
 
 // The cold open: Pip at the desk, one acorn rolls in, the title card appears,
 // coffee spills, the game begins. Skippable and short.
@@ -12,6 +14,7 @@ export function OpeningSequence() {
   const show = useStore((s) => s.showOpening);
   const finish = useStore((s) => s.finishOpening);
   const audio = useStore((s) => s.audio);
+  const { state } = useGame();
   const [phase, setPhase] = useState<'intro' | 'title'>('intro');
   const shape = shapeFor('pip');
 
@@ -19,6 +22,7 @@ export function OpeningSequence() {
 
   return (
     <div className="modal-backdrop opening-seq">
+      <OfficeBackdrop reducedMotion={state.settings.reducedMotion} />
       {phase === 'intro' ? (
         <div className="opening-seq__intro">
           <Critter

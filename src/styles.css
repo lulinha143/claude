@@ -1926,3 +1926,83 @@ select,
   border: 1px solid rgba(0, 0, 0, 0.4);
   z-index: 3;
 }
+
+
+/* ==========================================================================
+   Start-screen office backdrop
+   ========================================================================== */
+.opening-seq {
+  position: relative;
+  overflow: hidden;
+}
+.opening-seq .opening-seq__intro,
+.opening-seq .opening-seq__title {
+  position: relative;
+  z-index: 2;
+  background: rgba(20, 14, 8, 0.72);
+  padding: 20px 24px;
+  border-radius: var(--r-lg);
+  backdrop-filter: blur(2px);
+}
+.backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+.backdrop__trunk {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.backdrop__lamp {
+  animation: lamp-flicker 4s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+@keyframes lamp-flicker {
+  0%, 100% { opacity: 0.9; }
+  48% { opacity: 0.7; }
+  50% { opacity: 1; }
+  52% { opacity: 0.75; }
+}
+.backdrop__critters {
+  position: absolute;
+  inset: 0;
+}
+.backdrop__critter {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  opacity: 0.9;
+}
+
+/* ==========================================================================
+   Production breakdown list
+   ========================================================================== */
+.prod-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.86em;
+}
+.prod-list li {
+  display: flex;
+  justify-content: space-between;
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.prod-list__subtotal {
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+.prod-list__total {
+  font-weight: 800;
+  color: var(--gold);
+  border-bottom: none;
+  border-top: 2px solid var(--wood-light);
+  margin-top: 2px;
+  padding-top: 5px;
+}
+.prod-pos { color: var(--positive); font-weight: 700; }
+.prod-neg { color: var(--negative); font-weight: 700; }

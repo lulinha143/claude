@@ -578,6 +578,18 @@
     "timeline": "Decisões recentes",
     "timelineEmpty": "Nenhuma grande decisão ainda — os eventos aparecerão aqui."
   },
+  "prod": {
+    "title": "Detalhes da produção",
+    "base": "Base do fundador",
+    "raw": "Produção bruta",
+    "upgrades": "Melhorias",
+    "passives": "Passivas dos funcionários",
+    "morale": "Moral",
+    "prestige": "Prestígio",
+    "focus": "Modo Foco",
+    "boost": "Bônus ativo",
+    "total": "Total"
+  },
   "stats": {
     "title": "Estatísticas",
     "totalNuts": "Total de castanhas ganhas",

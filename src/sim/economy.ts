@@ -149,6 +149,50 @@ export function computeProduction(state: GameState, focusActive: boolean): Produ
   return { nutsPerSecond, multiplier: globalMult, breakdown };
 }
 
+export interface ProductionBreakdown {
+  base: number;
+  employees: { id: string; rate: number }[];
+  rawPerSecond: number;
+  /** additive fractions (0.1 = +10%) */
+  upgradeBonus: number;
+  passiveBonus: number;
+  /** multipliers (1 = no change) */
+  moraleMult: number;
+  prestigeMult: number;
+  focusMult: number;
+  total: number;
+}
+
+/**
+ * A fully itemised production breakdown so the UI can explain exactly why the
+ * nuts/second number is what it is. Mirrors computeProduction() but keeps every
+ * contribution separate. Pure and unit-tested.
+ */
+export function productionBreakdown(state: GameState, focusActive: boolean): ProductionBreakdown {
+  const passives = aggregatePassives(state);
+  const base = BALANCE.baseProductionPerSecond;
+  const employees: { id: string; rate: number }[] = [];
+  let raw = base;
+  for (const def of EMPLOYEES) {
+    const rt = state.employees[def.id];
+    if (!rt || !rt.hired || rt.level <= 0) continue;
+    let contrib = def.baseRate * rt.level;
+    if (def.passive.type === 'selfMultiplier') {
+      const self = def.passive.base + def.passive.perLevel * (rt.level - 1);
+      contrib *= 1 + self;
+    }
+    employees.push({ id: def.id, rate: contrib });
+    raw += contrib;
+  }
+  const upgradeBonus = upgradeGlobalMultiplier(state);
+  const passiveBonus = passives.globalMultiplier;
+  const moraleMult = moraleMultiplier(state.resources.morale);
+  const prestigeMult = prestigeMultiplier(state);
+  const focusMult = focusActive ? BALANCE.focus.productionMultiplier : 1;
+  const total = raw * (1 + upgradeBonus + passiveBonus) * moraleMult * prestigeMult * focusMult;
+  return { base, employees, rawPerSecond: raw, upgradeBonus, passiveBonus, moraleMult, prestigeMult, focusMult, total };
+}
+
 export function clickPower(state: GameState): number {
   let power = BALANCE.baseClickPower;
   for (const [id, level] of Object.entries(state.upgrades)) {

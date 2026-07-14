@@ -578,6 +578,18 @@
     "timeline": "Recent decisions",
     "timelineEmpty": "No big decisions yet — events will appear here."
   },
+  "prod": {
+    "title": "Production breakdown",
+    "base": "Founder's base",
+    "raw": "Raw output",
+    "upgrades": "Upgrades",
+    "passives": "Employee passives",
+    "morale": "Morale",
+    "prestige": "Prestige",
+    "focus": "Focus Mode",
+    "boost": "Active boost",
+    "total": "Total"
+  },
   "stats": {
     "title": "Statistics",
     "totalNuts": "Total nuts earned",

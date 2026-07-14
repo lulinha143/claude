@@ -4,6 +4,30 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/), and this project adheres to
 semantic versioning.
 
+## [Unreleased] — audio, breakdown & start-screen pass
+
+### Added
+
+- **Copyright-free procedural music + office ambience** (`src/audio/audio.ts`):
+  a warm, slow synthesized progression (pad chords + soft melody via a lookahead
+  scheduler) and a living ambience layer (brown-noise room tone + randomized,
+  cooldowned one-shots: typing, paper, coffee, wood creak, drip). All generated
+  at runtime — no audio files bundled (see `assets/audio/LICENSES.md`). Wired to
+  the existing Master/Music/Ambience/UI/SFX volume channels; dips in Focus Mode,
+  respects Quiet Mode & mute, and suspends when the tab/window is hidden.
+- **Production breakdown UI** (Company tab): itemises base + each employee, then
+  every multiplier (upgrades, passives, morale, prestige, Focus Mode, active
+  boosts) so players understand exactly why nuts/second changes. Backed by a
+  pure, unit-tested `productionBreakdown()`.
+- **Illustrated animated start-screen backdrop**: the opening/title screen now
+  shows the cozy tree-trunk office diorama with all employees idling, warm room
+  lights (with a gentle flicker), and the title card layered on top. Simplified
+  and reduced-motion aware.
+
+### Save compatibility
+
+- No schema change in this pass; all prior saves load unchanged.
+
 ## [Unreleased] — repair + expansion pass
 
 ### Fixed
