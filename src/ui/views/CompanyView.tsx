@@ -4,6 +4,7 @@ import { useStore } from '../../state/store';
 import { useFmt } from '../useFmt';
 import { moraleCap } from '../../sim/economy';
 import { GoldenNut } from '../../art/Icons';
+import { GAME_EVENTS_BY_ID } from '../../content/events';
 
 export function CompanyView() {
   const { t } = useTranslation();
@@ -71,6 +72,30 @@ export function CompanyView() {
           })}
         </ul>
         <p className="muted small">{t('daily.resetsIn')}</p>
+      </div>
+
+      <div className="panel">
+        <h3>{t('company.timeline')}</h3>
+        {state.eventHistory.length === 0 ? (
+          <p className="muted small">{t('company.timelineEmpty')}</p>
+        ) : (
+          <ul className="timeline">
+            {state.eventHistory
+              .slice(-8)
+              .reverse()
+              .map((h, i) => {
+                const def = GAME_EVENTS_BY_ID[h.eventId];
+                const choice = def?.choices.find((c) => c.id === h.choiceId);
+                return (
+                  <li key={`${h.at}-${i}`} className="timeline__row">
+                    <span className="timeline__title">{def ? t(def.titleKey) : h.eventId}</span>
+                    <span className="timeline__choice">{choice ? t(choice.labelKey) : h.choiceId}</span>
+                    <span className="timeline__date">{fmt.date(h.at)}</span>
+                  </li>
+                );
+              })}
+          </ul>
+        )}
       </div>
     </section>
   );
