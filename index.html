@@ -3,10 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; media-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'"
-    />
+    <!--
+      The Content-Security-Policy is injected by a Vite plugin (see vite.config.ts):
+      a strict policy for production builds, and a dev-friendly one for the dev
+      server (React Fast Refresh needs inline scripts and HMR uses a websocket).
+      The packaged Electron app additionally enforces a strict CSP via response
+      headers in electron/main.ts.
+    -->
     <title>Working My Nuts Off!</title>
   </head>
   <body>
