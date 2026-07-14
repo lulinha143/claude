@@ -2006,3 +2006,44 @@ select,
 }
 .prod-pos { color: var(--positive); font-weight: 700; }
 .prod-neg { color: var(--negative); font-weight: 700; }
+
+
+/* ==========================================================================
+   Audio settings rows (per-channel mute + volume)
+   ========================================================================== */
+.audio-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 0.9em;
+}
+.audio-row__label {
+  flex: 0 0 32%;
+}
+.audio-row input[type='range'] {
+  flex: 1;
+}
+.vol-pct {
+  flex: 0 0 36px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  font-size: 0.85em;
+}
+.mute-btn {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  background: var(--surface-sunken);
+  border: 1px solid var(--wood-light);
+  border-radius: var(--r-sm);
+  color: var(--text);
+  cursor: pointer;
+}
+.mute-btn.is-muted {
+  color: var(--negative);
+  border-color: var(--negative);
+}

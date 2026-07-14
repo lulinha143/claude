@@ -4,6 +4,7 @@ import { useGame } from '../../state/hooks';
 import { useStore } from '../../state/store';
 import { SUPPORTED_LANGUAGES, languageDisplayName } from '../../i18n';
 import type { WindowCorner, WindowSettings } from '../../platform/types';
+import { Icon } from '../../art/UiIcon';
 
 const CORNERS: WindowCorner[] = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
 const SCALES = [0.75, 1, 1.25, 1.5];
@@ -26,8 +27,23 @@ export function SettingsView() {
   const s = state.settings;
   function set(patch: Partial<typeof s>) {
     engine.updateSettings(patch);
-    audio.setVolumes(engine.state.settings.volumes);
-    audio.setFlags({ muted: engine.state.settings.masterMuted });
+    const st = engine.state.settings;
+    audio.setVolumes(st.volumes);
+    audio.setFlags({ muted: st.masterMuted });
+    audio.setChannelMutes(st.channelMuted);
+  }
+
+  function setChannelMute(ch: 'music' | 'ambience' | 'ui' | 'sfx', muted: boolean) {
+    set({ channelMuted: { ...s.channelMuted, [ch]: muted } });
+  }
+
+  function resetAudio() {
+    set({
+      masterMuted: false,
+      channelMuted: { music: false, ambience: false, ui: false, sfx: false },
+      muteWhenUnfocused: false,
+      volumes: { master: 0.85, music: 0.7, ambience: 0.75, ui: 0.8, sfx: 0.85 },
+    });
   }
 
   async function updateWin(patch: Partial<WindowSettings>) {
@@ -81,20 +97,52 @@ export function SettingsView() {
 
       <div className="panel">
         <h3>{t('settings.audio')}</h3>
+        <p className="muted small">{t('settings.audioNote')}</p>
         <Toggle label={t('settings.mute')} checked={s.masterMuted} onChange={(v) => set({ masterMuted: v })} />
-        {(['master', 'music', 'ambience', 'ui', 'sfx'] as const).map((ch) => (
-          <label key={ch} className="slider-row">
-            <span>{t(`settings.${ch}`)}</span>
+        <label className="slider-row">
+          <span>{t('settings.master')}</span>
+          <input
+            type="range"
+            min={0}
+            max={1}
+            step={0.05}
+            value={s.volumes.master}
+            onChange={(e) => set({ volumes: { ...s.volumes, master: Number(e.target.value) } })}
+          />
+          <span className="vol-pct">{Math.round(s.volumes.master * 100)}%</span>
+        </label>
+        {(['music', 'ambience', 'ui', 'sfx'] as const).map((ch) => (
+          <div key={ch} className="audio-row">
+            <button
+              className={`mute-btn ${s.channelMuted[ch] ? 'is-muted' : ''}`}
+              onClick={() => setChannelMute(ch, !s.channelMuted[ch])}
+              aria-pressed={s.channelMuted[ch]}
+              aria-label={t('settings.muteChannel', { channel: t(`settings.${ch}`) })}
+              title={t('settings.muteChannel', { channel: t(`settings.${ch}`) })}
+            >
+              <Icon name={s.channelMuted[ch] ? 'quiet' : 'sound'} size={16} />
+            </button>
+            <span className="audio-row__label">{t(`settings.${ch}`)}</span>
             <input
               type="range"
               min={0}
               max={1}
               step={0.05}
+              disabled={s.channelMuted[ch]}
               value={s.volumes[ch]}
               onChange={(e) => set({ volumes: { ...s.volumes, [ch]: Number(e.target.value) } })}
             />
-          </label>
+            <span className="vol-pct">{Math.round(s.volumes[ch] * 100)}%</span>
+          </div>
         ))}
+        <Toggle
+          label={t('settings.muteWhenUnfocused')}
+          checked={s.muteWhenUnfocused}
+          onChange={(v) => set({ muteWhenUnfocused: v })}
+        />
+        <button className="ghost-btn" onClick={resetAudio}>
+          {t('settings.resetAudio')}
+        </button>
       </div>
 
       <div className="panel">

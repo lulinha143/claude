@@ -6,7 +6,20 @@ import { CRITTER_SHAPES } from '../src/art/critterShapes';
 import { Icon, type IconName } from '../src/art/UiIcon';
 import type { CritterState } from '../src/art/animation';
 
-const SPECIES: CritterSpecies[] = ['squirrel', 'capybara', 'raccoon', 'beaver', 'crow', 'mole'];
+const SPECIES: CritterSpecies[] = [
+  'squirrel',
+  'capybara',
+  'raccoon',
+  'beaver',
+  'crow',
+  'mole',
+  'mouse',
+  'otter',
+  'hedgehog',
+  'rabbit',
+  'owl',
+  'fox',
+];
 const STATES: CritterState[] = ['idle', 'sorting', 'typing', 'celebrate', 'panic', 'sleep', 'talk', 'coffee'];
 
 describe('Critter art', () => {

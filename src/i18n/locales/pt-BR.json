@@ -127,6 +127,48 @@
       "role": "Engenheira de Pesquisa",
       "story": "Mina cava. Às vezes rumo ao futuro da tecnologia da castanha, às vezes rumo à sala de reunião, sempre com entusiasmo.",
       "goal": "Descobrir o que há embaixo do porão do porão."
+    },
+    "nixie": {
+      "name": "Nixie",
+      "fullName": "Nixie Parafuso",
+      "role": "Chefe de Automação e TI",
+      "story": "Nixie, a camundonga, pensa mais rápido do que fala e constrói máquinas com grampeadores, elásticos e pura confiança. Cerca de 80% funcionam.",
+      "goal": "Automatizar tudo, inclusive a automação."
+    },
+    "otto": {
+      "name": "Otto",
+      "fullName": "Otto Correnteza",
+      "role": "Chefe de Finanças",
+      "story": "Otto, a lontra, mantém as contas impecáveis — até algo brilhante passar boiando. Explica o orçamento lindamente e então corre atrás de um clipe.",
+      "goal": "Equilibrar as contas sem se distrair com coisas brilhantes."
+    },
+    "hazel": {
+      "name": "Hazel",
+      "fullName": "Hazel Espinho",
+      "role": "Jurídico e Conformidade",
+      "story": "Hazel, a ouriça, lê cada contrato duas vezes e secretamente adora o caos do escritório. Espinhosa por fora, encantada por dentro.",
+      "goal": "Manter a empresa no lado certo das regras, por pouco."
+    },
+    "junie": {
+      "name": "Junie",
+      "fullName": "Junie Saltitante",
+      "role": "Logística e Agendamento",
+      "story": "Junie, a coelha, está em todo lugar ao mesmo tempo e com três reuniões marcadas. As caixas andam mais rápido só porque ela já chegou.",
+      "goal": "Entregar tudo cinco minutos adiantado, para sempre."
+    },
+    "moss": {
+      "name": "Moss",
+      "fullName": "Moss Plumaluar",
+      "role": "Operações Noturnas e Observação",
+      "story": "Moss, a coruja, trabalha nas horas silenciosas, percebe o que todos deixam passar e fala em observações gentis e levemente inquietantes.",
+      "goal": "Zelar pela empresa enquanto ela dorme."
+    },
+    "fenn": {
+      "name": "Fenn",
+      "fullName": "Fenn Raposão",
+      "role": "Vendas e Relação com Clientes",
+      "story": "Fenn, a raposa, venderia uma noz de volta para a árvore de onde ela caiu. Charmoso, ambicioso e persuasivo demais.",
+      "goal": "Fechar o maior negócio de castanhas da história da empresa."
     }
   },
   "item": {
@@ -135,7 +177,13 @@
     "stapler": "O único grampeador verdadeiro",
     "plank": "Tábua suspeitosamente boa",
     "megaphone": "Megafone um tico alto demais",
-    "goggles": "Óculos de escavação"
+    "goggles": "Óculos de escavação",
+    "gadget": "Geringonça caseira",
+    "ledger": "Livro-caixa impecável",
+    "gavel": "Martelinho de juiz",
+    "clipboard": "Prancheta lotada",
+    "telescope": "Telescópio de latão",
+    "briefcase": "Maleta charmosa"
   },
   "outfit": {
     "pip": { "classic": "Gravata Verde", "ceo": "Blazer de CEO", "cozy": "Suéter Aconchegante" },
@@ -143,7 +191,13 @@
     "rizzo": { "vest": "Colete Utilitário", "heist": "Blusa de Gola do Assalto" },
     "bea": { "hardhat": "Capacete", "architect": "Casaco de Arquiteta" },
     "corvus": { "suit": "Terno Elegante", "influencer": "Visual de Influencer" },
-    "mina": { "labcoat": "Jaleco", "miner": "Equipamento de Mineração" }
+    "mina": { "labcoat": "Jaleco", "miner": "Equipamento de Mineração" },
+    "nixie": { "tech": "Colete Tech", "hazmat": "Traje Hazmat" },
+    "otto": { "suit": "Terno de Contador", "diver": "Equipamento de Mergulho" },
+    "hazel": { "robe": "Toga Jurídica", "judge": "Toga de Juíza" },
+    "junie": { "vest": "Colete de Entregas", "runner": "Kit de Corredora" },
+    "moss": { "cloak": "Manto Noturno", "scholar": "Toga de Erudita" },
+    "fenn": { "blazer": "Blazer de Vendas", "tux": "Smoking Elegante" }
   },
   "room": {
     "founderDesk": { "name": "Mesa do Fundador", "desc": "Onde tudo começou. Uma mesa, um sonho, um esquilo muito cansado." },
@@ -611,6 +665,10 @@
     "ui": "Interface",
     "sfx": "Efeitos sonoros",
     "mute": "Silenciar tudo",
+    "muteChannel": "Silenciar {{channel}}",
+    "muteWhenUnfocused": "Silenciar quando a janela não está em foco",
+    "resetAudio": "Restaurar áudio para o padrão",
+    "audioNote": "O volume geral controla tudo. Cada canal tem seu próprio volume e botão de mudo. Silenciar mantém o volume salvo, então ao reativar ele volta.",
     "accessibility": "Acessibilidade",
     "reducedMotion": "Movimento reduzido",
     "disableShake": "Desativar tremor de tela",
@@ -801,6 +859,78 @@
       "O laboratório cheira a futuro. E a ozônio.",
       "Eureca! ...esqueci pra quê.",
       "Tudo se conecta se você cavar longe o bastante."
+    ],
+    "nixie": [
+      "Consertei. E melhorei. Agora tem opinião própria.",
+      "Me dá dois grampeadores e uma tarde.",
+      "Automação é nunca fazer a parte chata duas vezes.",
+      "A máquina está bem. A máquina sempre está bem.",
+      "Ensinei um atalho pra esteira.",
+      "Noventa por cento das minhas invenções funcionam. Esta é a outra parte.",
+      "Bipe bipe! ...desculpa, força do hábito.",
+      "Pra que clicar se um robozinho clica por você?",
+      "Reprogramei a cafeteira. Ficou mais rápida. E crítica.",
+      "Eficiência é só preguiça com um plano."
+    ],
+    "otto": [
+      "Os números batem. É lindo. Enfim— ooh, que brilhante.",
+      "Estamos abaixo do orçamento! Mais ou menos. Aproximadamente.",
+      "Uma castanha economizada é uma castanha ganha.",
+      "Deixa eu te mostrar a planilha. Espera, o que foi aquilo?",
+      "Fluxo de caixa é como um rio. Um rio cheio de castanhas.",
+      "Achei um arredondamento a nosso favor. Não conta pra Hazel.",
+      "Cada bolota contabilizada. Cada uma. Provavelmente.",
+      "Diversifique! Metade castanhas, metade... mais castanhas.",
+      "Amo um livro-caixa equilibrado quase tanto quanto pedrinhas lisas.",
+      "Responsável com as contas E divertido nas festas. Combinação rara."
+    ],
+    "hazel": [
+      "Tecnicamente legal. Meu tipo favorito de legal.",
+      "Li as letrinhas miúdas. Todas. Duas vezes.",
+      "Conformidade é só o caos de terno e gravata.",
+      "Achei uma brecha. Uma brechinha aconchegante.",
+      "Relaxa, vou deixar isso defensável.",
+      "Espinhosa? Prefiro 'devidamente protegida'.",
+      "O contrato diz que podemos. Então faremos.",
+      "Secretamente eu amo como este lugar é estranho.",
+      "Responsabilidade jurídica é minha linguagem do amor.",
+      "Assine aqui. E aqui. E... sabe de uma coisa, em tudo."
+    ],
+    "junie": [
+      "Já feito! Qual o próximo? E depois desse?",
+      "Agendei a agenda. É agenda até lá no fundo.",
+      "Caixa chegando em três, dois— pronto!",
+      "Eu não sou rápida, o resto é que é lento.",
+      "Marquei duas ao mesmo tempo de novo. Três, na verdade. Adoro.",
+      "Logística é só coreografia com prancheta.",
+      "Conheço um atalho. Conheço todos os atalhos.",
+      "Prazo? Cumpri ontem.",
+      "Pula pula, vamos mover essas castanhas!",
+      "Me dá uma rota que eu tiro um minuto dela."
+    ],
+    "moss": [
+      "A noite vê tudo. Eu também.",
+      "Você ficou acordado até tarde ontem. ...Só uma observação.",
+      "As horas silenciosas são as horas honestas.",
+      "Achei algo no escuro. Vou guardar com segurança.",
+      "O escritório sonha, sabia? Baixinho.",
+      "Quem aprovou isso? ...Fui eu, na verdade.",
+      "Reparo nas coisinhas. Elas se somam.",
+      "Enquanto você dormia, as castanhas continuaram vindo.",
+      "A lua faz bem pra reputação. Confie em mim.",
+      "Shh. Escute. ...Sim. Como eu imaginava."
+    ],
+    "fenn": [
+      "Eu venderia uma noz de volta pra própria árvore.",
+      "Não é um golpe, é uma estratégia. Uma estratégia charmosa.",
+      "Todo mundo é cliente se você sorrir o bastante.",
+      "Fechei o negócio antes de terminarem o 'olá'.",
+      "Confie em mim — e você vai confiar, esse é o truque.",
+      "Reputação é moeda. Eu sou riquíssimo.",
+      "Um aperto de mão, uma piscadela, e estamos em negócio.",
+      "Não existe venda difícil, só alvo fácil.",
+      "Eu não corro atrás de clientes. Eles chegam, encantados.",
+      "Vamos fechar um negócio que você não consegue recusar."
     ],
     "idle": [
       "O escritório zumbe baixinho.",

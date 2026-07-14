@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useStore, startGameLoop, type ViewId } from './state/store';
+import { useStore, startGameLoop, getGameState, type ViewId } from './state/store';
 import { useGame } from './state/hooks';
 import { Header } from './ui/Header';
 import { NavBar } from './ui/NavBar';
@@ -68,6 +68,7 @@ export function App() {
     root.style.setProperty('--ui-scale', String(s.uiScale));
     audio.setVolumes(s.volumes);
     audio.setFlags({ muted: s.masterMuted, quiet: s.quietMode, focus: state.focus.active });
+    audio.setChannelMutes(s.channelMuted);
   }, [state.settings, state.focus.active, view, audio]);
 
   // Keep i18n in sync with the saved language on boot.
@@ -82,6 +83,11 @@ export function App() {
   useEffect(() => {
     const offQuiet = platform.onQuietMode((enabled) => setQuiet(enabled));
     const offSettings = platform.onShowSettings(() => setView('settings'));
+    // "Mute when unfocused" (desktop): suspend/resume the audio context on
+    // window focus changes when the option is enabled.
+    const offFocus = platform.onFocusChanged((focused) => {
+      if (getGameState().settings.muteWhenUnfocused) audio.setActive(focused);
+    });
     // resume audio on first user interaction (autoplay policy)
     const resume = () => {
       audio.resume();
@@ -94,6 +100,7 @@ export function App() {
     return () => {
       offQuiet();
       offSettings();
+      offFocus();
       window.removeEventListener('pointerdown', resume);
       document.removeEventListener('visibilitychange', onVisibility);
     };
