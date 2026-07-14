@@ -58,7 +58,9 @@
     "quietMode": "Modo Silencioso",
     "production": "Produção",
     "clickReward": "+{{value}} castanhas",
-    "empty": "Nenhuma caixa ainda — continue trabalhando!"
+    "empty": "Nenhuma caixa ainda — continue trabalhando!",
+    "decorate": "Decorar",
+    "decorateHint": "Toque numa decoração para mostrar ou esconder. Compre mais na aba Decorar."
   },
   "shop": {
     "title": "Loja de Melhorias",
@@ -533,6 +535,11 @@
       "key": "Chave",
       "battery": "Bateria"
     }
+  },
+  "overview": {
+    "workers": "{{count}} trabalhando aqui",
+    "comfort": "Conforto da sala +{{value}}",
+    "autoRoom": "Padrão (departamento)"
   },
   "collections": {
     "title": "Coleções",

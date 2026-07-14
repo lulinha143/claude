@@ -58,7 +58,9 @@
     "quietMode": "Quiet Mode",
     "production": "Production",
     "clickReward": "+{{value}} nuts",
-    "empty": "No crates yet — keep working!"
+    "empty": "No crates yet — keep working!",
+    "decorate": "Decorate",
+    "decorateHint": "Tap a decoration to show or hide it. Buy more in the Decorate tab."
   },
   "shop": {
     "title": "Upgrade Shop",
@@ -533,6 +535,11 @@
       "key": "Key",
       "battery": "Battery"
     }
+  },
+  "overview": {
+    "workers": "{{count}} working here",
+    "comfort": "Room comfort +{{value}}",
+    "autoRoom": "Default (department)"
   },
   "collections": {
     "title": "Collections",

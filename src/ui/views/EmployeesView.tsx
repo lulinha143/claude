@@ -4,6 +4,7 @@ import { useStore } from '../../state/store';
 import { useFmt } from '../useFmt';
 import { EMPLOYEES } from '../../content/employees';
 import { aggregatePassives, employeeLevelCost, isEmployeeUnlocked } from '../../sim/economy';
+import { unlockedRooms } from '../../sim/rooms';
 import { Critter } from '../../art/Critter';
 import { shapeFor } from '../../art/critterShapes';
 import { Acorn, GoldenNut } from '../../art/Icons';
@@ -68,6 +69,21 @@ export function EmployeesView() {
                       onBlur={(e) => engine.renameEmployee(def.id, e.target.value)}
                       aria-label={t('employee.nickname')}
                     />
+                    <label className="assign-row">
+                      <span>{t('employee.assignRoom')}</span>
+                      <select
+                        className="select"
+                        value={rt.room ?? ''}
+                        onChange={(e) => engine.assignEmployee(def.id, e.target.value || null)}
+                      >
+                        <option value="">{t('overview.autoRoom')}</option>
+                        {unlockedRooms(state).map((r) => (
+                          <option key={r.id} value={r.id}>
+                            {t(r.nameKey)}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
                     <div className="outfits">
                       {def.outfits.map((o) => {
                         const owns = state.collections.outfits.includes(o.id);

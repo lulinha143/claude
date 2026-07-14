@@ -10,6 +10,8 @@ import { CritterStateMachine, type CritterState } from './animation';
 import { shapeFor } from './critterShapes';
 import { Acorn, Crate } from './Icons';
 import { Icon } from './UiIcon';
+import { DecorationProp } from './DecorationProp';
+import { ownedDecorationsInRoom, visibleDecorationsInRoom, isDecorationHidden, roomComfort } from '../sim/decorations';
 import { pickDialogueIndex, dialogueKey } from '../sim/dialogue';
 import { createRng } from '../sim/rng';
 
@@ -68,6 +70,7 @@ export function OfficeScene() {
   const [bubble, setBubble] = useState<Bubble | null>(null);
   const [crateReady, setCrateReady] = useState(true);
   const [pop, setPop] = useState<{ x: number; y: number; text: string; id: number } | null>(null);
+  const [decorMode, setDecorMode] = useState(false);
   const rngRef = useRef(createRng(Date.now() & 0xffff));
   const now = Date.now();
 
@@ -129,7 +132,18 @@ export function OfficeScene() {
   }
 
   return (
-    <div className="office" aria-label="office diorama">
+    <div className={`office ${decorMode ? 'office--decorating' : ''}`} aria-label="office diorama">
+      <div className="office__toolbar">
+        <button
+          className={`chip-btn ${decorMode ? 'is-on' : ''}`}
+          onClick={() => setDecorMode((v) => !v)}
+          aria-pressed={decorMode}
+        >
+          <Icon name="decorate" size={14} /> {t('office.decorate')}
+        </button>
+        {decorMode ? <span className="office__toolbar-hint">{t('office.decorateHint')}</span> : null}
+      </div>
+
       {/* organic tree-trunk frame behind the floors */}
       <svg className="office__frame" viewBox="0 0 100 200" preserveAspectRatio="none" aria-hidden>
         <defs>
@@ -176,6 +190,7 @@ export function OfficeScene() {
           const occupants = Object.entries(state.employees).filter(
             ([id, rt]) => rt.hired && resolveEmployeeRoom(state, id) === room.id,
           );
+          const comfort = roomComfort(state, room.id);
           return (
             <div
               className="floor"
@@ -183,10 +198,48 @@ export function OfficeScene() {
               data-room={room.id}
               style={{ ['--dept' as string]: DEPT[room.id] ?? 'var(--dept-founder)' }}
             >
-              <div className="floor__label">{t(room.nameKey)}</div>
+              <div className="floor__header">
+                <span className="floor__label">{t(room.nameKey)}</span>
+                <span className="floor__status">
+                  {occupants.length > 0 ? (
+                    <span className="floor__stat" title={t('overview.workers', { count: occupants.length })}>
+                      <Icon name="employees" size={11} /> {occupants.length}
+                    </span>
+                  ) : null}
+                  {comfort > 0 ? (
+                    <span className="floor__stat floor__stat--comfort" title={t('overview.comfort', { value: comfort })}>
+                      <Icon name="morale" size={11} /> +{comfort}
+                    </span>
+                  ) : null}
+                </span>
+              </div>
               <div className={`floor__ambient floor__ambient--${AMBIENT[room.id] ?? 'dust'}`} aria-hidden>
                 {reducedMotion ? null : <span className="floor__dust" />}
               </div>
+              {(() => {
+                const decos = decorMode
+                  ? ownedDecorationsInRoom(state, room.id)
+                  : visibleDecorationsInRoom(state, room.id);
+                return decos.length > 0 ? (
+                  <div className="floor__decor">
+                    {decos.map((d) => (
+                      <DecorationProp
+                        key={d.id}
+                        id={d.id}
+                        reducedMotion={reducedMotion}
+                        mode={decorMode ? 'toggle' : 'interact'}
+                        dim={decorMode && isDecorationHidden(state, d.id)}
+                        title={t(`deco.${d.id}.name`)}
+                        onToggle={() => {
+                          engine.toggleDecoration(d.id);
+                          audio.play('click');
+                        }}
+                        onInteract={() => audio.play('click')}
+                      />
+                    ))}
+                  </div>
+                ) : null;
+              })()}
               <div className="floor__stage">
                 {occupants.map(([id, rt], idx) => {
                   const def = EMPLOYEES_BY_ID[id];

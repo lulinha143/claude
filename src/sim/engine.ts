@@ -550,6 +550,16 @@ export class GameEngine {
     return true;
   }
 
+  /** Show/hide an owned decoration in the office (decoration mode). Persisted. */
+  toggleDecoration(id: string): void {
+    const key = `decohide:${id}`;
+    const arr = this.state.collections.secrets;
+    const i = arr.indexOf(key);
+    if (i >= 0) arr.splice(i, 1);
+    else arr.push(key);
+    this.emit();
+  }
+
   spendResource(resource: 'nuts' | 'goldenNuts' | 'permanentKernels', amount: number): boolean {
     if (!this.canAfford(resource, amount)) return false;
     this.state.resources[resource] -= amount;
