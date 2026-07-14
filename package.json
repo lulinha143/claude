@@ -18,10 +18,17 @@
     "preview": "vite preview",
     "build:electron": "node scripts/build-electron.mjs",
     "dev:electron": "npm run build:electron && cross-env WMNO_DEV_SERVER=http://localhost:5173 electron dist-electron/main.cjs",
-    "package": "npm run build && npm run build:electron && electron-builder",
-    "package:win": "npm run build && npm run build:electron && electron-builder --win",
-    "package:linux": "npm run build && npm run build:electron && electron-builder --linux",
-    "package:mac": "npm run build && npm run build:electron && electron-builder --mac",
+    "desktop:dev": "npm run dev:electron",
+    "build:desktop": "npm run build && npm run build:electron",
+    "package": "npm run build:desktop && electron-builder",
+    "package:win": "npm run build:desktop && electron-builder --win",
+    "build:windows": "npm run build:desktop && electron-builder --win nsis",
+    "build:portable": "npm run build:desktop && electron-builder --win portable",
+    "build:steam": "npm run build:desktop && electron-builder --win dir && node scripts/build-steam.mjs",
+    "verify:steam": "node scripts/verify-steam-build.mjs",
+    "test:packaged": "node scripts/verify-steam-build.mjs",
+    "package:linux": "npm run build:desktop && electron-builder --linux",
+    "package:mac": "npm run build:desktop && electron-builder --mac",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
@@ -68,6 +75,8 @@
   "build": {
     "appId": "com.tinynuts.workingmynutsoff",
     "productName": "Working My Nuts Off!",
+    "copyright": "Copyright (c) 2026 Working My Nuts Off! contributors",
+    "publish": null,
     "directories": {
       "output": "release",
       "buildResources": "build"
@@ -79,8 +88,21 @@
     "win": {
       "target": [
         "nsis",
-        "portable"
-      ]
+        "portable",
+        "dir"
+      ],
+      "artifactName": "${productName}-${version}-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Working My Nuts Off!"
+    },
+    "portable": {
+      "artifactName": "${productName}-${version}-portable.${ext}"
     },
     "linux": {
       "target": [

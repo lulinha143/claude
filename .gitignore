@@ -33,3 +33,11 @@ npm-debug.log*
 .env.*
 !.env.example
 build/entitlements.mac.plist.local
+
+
+# Steam — never commit real build/credential files (only *.example.vdf)
+steam/app_build.vdf
+steam/depot_windows.vdf
+steam/*.vdf
+!steam/*.example.vdf
+steamcmd/

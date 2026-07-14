@@ -1,0 +1,26 @@
+// Example Steam Windows depot script for SteamPipe.
+// COPY this file to depot_windows.vdf and replace every <PLACEHOLDER>.
+// Verify field names against the current official docs:
+//   https://partner.steamgames.com/doc/sdk/uploading
+"DepotBuildConfig"
+{
+  "DepotID" "<YOUR_WINDOWS_DEPOT_ID>"
+
+  // Content root for this depot (relative to this file). This should be the
+  // Steam-ready folder produced by `npm run build:steam`.
+  "contentroot" "..\\..\\release\\steam\\windows\\"
+
+  "FileMapping"
+  {
+    // Upload everything in the content root, recursively.
+    "LocalPath" "*"
+    "DepotPath" "."
+    "recursive" "1"
+  }
+
+  // Never ship source, maps, or secrets into the depot.
+  "FileExclusion" "*.pdb"
+  "FileExclusion" "*.map"
+  "FileExclusion" "steam_appid.txt"
+  "FileExclusion" ".env"
+}
