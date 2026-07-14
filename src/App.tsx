@@ -88,10 +88,14 @@ export function App() {
       audio.startAmbience();
     };
     window.addEventListener('pointerdown', resume, { once: true });
+    // suspend audio while the tab/window is hidden (battery-friendly)
+    const onVisibility = () => audio.setActive(document.visibilityState === 'visible');
+    document.addEventListener('visibilitychange', onVisibility);
     return () => {
       offQuiet();
       offSettings();
       window.removeEventListener('pointerdown', resume);
+      document.removeEventListener('visibilitychange', onVisibility);
     };
   }, [platform, setQuiet, setView, audio]);
 

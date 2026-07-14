@@ -5,6 +5,7 @@ import { useFmt } from '../useFmt';
 import { moraleCap } from '../../sim/economy';
 import { GoldenNut } from '../../art/Icons';
 import { GAME_EVENTS_BY_ID } from '../../content/events';
+import { ProductionBreakdown } from '../ProductionBreakdown';
 
 export function CompanyView() {
   const { t } = useTranslation();
@@ -29,6 +30,8 @@ export function CompanyView() {
         <p className="muted">{t('company.founded', { date: fmt.date(state.createdAt) })}</p>
         <p className="muted">{t('company.prestigeCount', { count: state.prestige.count })}</p>
       </div>
+
+      <ProductionBreakdown />
 
       <div className="panel">
         <div className="meter">
