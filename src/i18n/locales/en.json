@@ -401,6 +401,114 @@
       "title": "Everyone Wore Sunglasses",
       "body": "For no clear reason, every employee arrived wearing sunglasses. The office is 200% cooler.",
       "cool": "Be cool about it"
+    },
+    "nixieMachine": {
+      "title": "The Keyboard Is Typing Before Anyone Touches It",
+      "body": "Nixie's latest contraption is finishing everyone's reports for them. It seems helpful. It is definitely watching.",
+      "trust": "Let it cook",
+      "unplug": "Politely unplug it",
+      "whirBody": "The machine whirs, prints a flawless quarterly report, and a tiny thank-you note.",
+      "ship": "Ship it company-wide",
+      "recall": "Recall it for safety review"
+    },
+    "ottoAudit": {
+      "title": "The Accounting Department Found a Negative Nut",
+      "body": "Otto is holding a nut that, by every measure, has negative value. The ledger is sweating.",
+      "investigate": "Investigate properly",
+      "ignore": "Round it away",
+      "frame": "Frame it on the wall"
+    },
+    "hazelLoophole": {
+      "title": "The Company Logo Is Legally Too Round",
+      "body": "Hazel found an obscure rule: the logo exceeds the maximum permitted roundness. Technically.",
+      "redesign": "Redesign the logo",
+      "fight": "Fight it in court (fun)",
+      "squares": "Make everything squares"
+    },
+    "junieSchedule": {
+      "title": "Someone Scheduled a Meeting During Nap Time",
+      "body": "Junie found a meeting booked squarely over the sacred Nap Chamber hour. Chaos brews.",
+      "protectNap": "Protect the nap",
+      "holdMeeting": "Hold the meeting anyway"
+    },
+    "mossNight": {
+      "title": "The Rooftop Wind Chime Is Predicting Market Trends",
+      "body": "Moss reports that the wind chime chimed exactly three times before every good quarter. It just chimed three times.",
+      "listen": "Listen closely",
+      "dismiss": "It's just wind",
+      "omenBody": "The chime spells out a suspiciously specific investment tip in the breeze.",
+      "invest": "Act on the omen",
+      "record": "Record it for science"
+    },
+    "fennDeal": {
+      "title": "A Client Wants a Refund in Walnuts",
+      "body": "Fenn negotiated a huge sale, but the client now demands the refund policy be paid entirely in walnuts.",
+      "refund": "Honor it graciously",
+      "upsell": "Upsell them instead",
+      "walnuts": "Pay in premium walnuts"
+    },
+    "breakRoom": {
+      "title": "The Break Room Has Declared Independence",
+      "body": "A handwritten flag now hangs over the snack table. The break room has seceded.",
+      "negotiate": "Open negotiations",
+      "annex": "Reclaim it by force (of paperwork)",
+      "treatyBody": "The break room's ambassador (a very confident squirrel) proposes a snack treaty.",
+      "sign": "Sign the Snack Accord"
+    },
+    "acornWater": {
+      "title": "Someone Replaced the Coffee with Acorn Water",
+      "body": "The coffee tastes... earthy today. Suspiciously earthy. Nobody is confessing.",
+      "drink": "Drink it anyway",
+      "replace": "Restock real coffee"
+    },
+    "staplers17": {
+      "title": "Rizzo Has Acquired Seventeen Identical Staplers",
+      "body": "There are now seventeen identical staplers in procurement. Rizzo insists this is normal and necessary.",
+      "return": "Return sixteen of them",
+      "keep": "Keep the collection"
+    },
+    "elevator": {
+      "title": "The Elevator Only Travels Sideways",
+      "body": "The elevator has decided that up and down are overrated. It now travels exclusively sideways.",
+      "fix": "Call for repairs",
+      "embrace": "Embrace the sideways life"
+    },
+    "vaultHum": {
+      "title": "The Golden Nut Vault Is Humming",
+      "body": "A low, pleasant hum is coming from the vault. The golden nuts appear to be… content.",
+      "investigate": "Investigate the hum",
+      "harmonize": "Hum along with it"
+    },
+    "fakeAward": {
+      "title": "Nominated for an Award That Does Not Exist",
+      "body": "The company has been nominated for 'Best Nut Synergy 2026.' The awarding body cannot be located.",
+      "accept": "Accept graciously",
+      "decline": "Decline politely"
+    },
+    "slogan": {
+      "title": "A Competitor Stole the Company Slogan",
+      "body": "A rival firm is now using 'Working Our Nuts Off.' The nerve. The audacity. The near-identical font.",
+      "sue": "Send a stern letter",
+      "rebrand": "Rebrand bigger and better",
+      "petty": "Steal their slogan back"
+    },
+    "namedNuts": {
+      "title": "Every Nut in Storage Has Been Assigned a Name",
+      "body": "Someone has lovingly named all 40,000 nuts in storage. Shipping them now feels… personal.",
+      "allow": "Let them keep the names",
+      "forbid": "Nuts are inventory, not friends"
+    },
+    "ghost": {
+      "title": "The Office Ghost Wants Dental Benefits",
+      "body": "The office ghost has filed HR paperwork requesting dental coverage. It does technically have teeth.",
+      "grant": "Grant the benefits",
+      "deny": "Deny the claim"
+    },
+    "coffeeLeave": {
+      "title": "The Coffee Machine Is Requesting Paid Leave",
+      "body": "The (now sentient) coffee machine has requested a well-earned vacation. It has been working overtime.",
+      "approve": "Approve its leave",
+      "deny": "Ask it to stay one more week"
     }
   },
   "ach": {
@@ -760,7 +868,13 @@
     "pipProud": "Pip pretends this was the plan all along.",
     "rizzoSuspicious": "Rizzo quietly pocketed something.",
     "teamHappy": "The team is delighted.",
-    "teamNervous": "The team exchanges nervous glances."
+    "teamNervous": "The team exchanges nervous glances.",
+    "nixieProud": "Nixie is thrilled it worked (this time).",
+    "ottoDistracted": "Otto approves, then wanders off toward something shiny.",
+    "hazelApproves": "Hazel nods — legally sound.",
+    "junieReady": "Junie already rescheduled everything around it.",
+    "mossKnowing": "Moss says nothing, but seems to have known.",
+    "fennGrin": "Fenn grins like the deal was always going to close."
   },
   "daily": {
     "title": "Daily Challenges",
