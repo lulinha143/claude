@@ -541,6 +541,23 @@
     "comfort": "Room comfort +{{value}}",
     "autoRoom": "Default (department)"
   },
+  "nextStep": {
+    "claimDaily": "A daily challenge is ready to claim!",
+    "hire": "You can afford to hire {{name}}!",
+    "upgrade": "You can afford a new upgrade.",
+    "prestige": "You're ready to Go Completely Nuts!",
+    "focus": "Try a Focus Harvest session.",
+    "decorate": "You can afford a new decoration."
+  },
+  "mood": {
+    "focused": "Focused",
+    "relaxed": "Relaxed",
+    "inspired": "Inspired",
+    "tired": "Tired",
+    "frustrated": "Frustrated",
+    "curious": "Curious",
+    "proud": "Proud"
+  },
   "collections": {
     "title": "Collections",
     "nuts": "Nut Encyclopedia",
@@ -593,6 +610,7 @@
     "uiScale": "Interface scale",
     "subtitles": "Audio subtitles",
     "pauseInMenus": "Pause animations in menus",
+    "showHints": "Show helpful hints",
     "fpsLimit": "Frame rate limit",
     "desktop": "Desktop Window",
     "alwaysOnTop": "Always on top",

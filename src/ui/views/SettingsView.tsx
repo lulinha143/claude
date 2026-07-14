@@ -106,6 +106,7 @@ export function SettingsView() {
         <Toggle label={t('settings.dyslexiaFont')} checked={s.dyslexiaFont} onChange={(v) => set({ dyslexiaFont: v })} />
         <Toggle label={t('settings.subtitles')} checked={s.subtitles} onChange={(v) => set({ subtitles: v })} />
         <Toggle label={t('settings.pauseInMenus')} checked={s.pauseAnimationsInMenus} onChange={(v) => set({ pauseAnimationsInMenus: v })} />
+        <Toggle label={t('settings.showHints')} checked={s.showHints} onChange={(v) => set({ showHints: v })} />
         <label className="slider-row">
           <span>{t('settings.colorblind')}</span>
           <select

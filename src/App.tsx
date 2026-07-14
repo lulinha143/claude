@@ -4,6 +4,7 @@ import { useStore, startGameLoop, type ViewId } from './state/store';
 import { useGame } from './state/hooks';
 import { Header } from './ui/Header';
 import { NavBar } from './ui/NavBar';
+import { RecommendedStep } from './ui/RecommendedStep';
 import { OfficeScene } from './art/OfficeScene';
 import { ShopView } from './ui/views/ShopView';
 import { EmployeesView } from './ui/views/EmployeesView';
@@ -111,6 +112,7 @@ export function App() {
     <div className="app">
       <Header />
       <NavBar />
+      <RecommendedStep />
       <main className="app__main">
         <Current />
       </main>

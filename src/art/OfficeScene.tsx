@@ -13,6 +13,7 @@ import { Icon } from './UiIcon';
 import { DecorationProp } from './DecorationProp';
 import { ownedDecorationsInRoom, visibleDecorationsInRoom, isDecorationHidden, roomComfort } from '../sim/decorations';
 import { pickDialogueIndex, dialogueKey } from '../sim/dialogue';
+import { employeeMood, MOOD_TONE } from '../sim/mood';
 import { createRng } from '../sim/rng';
 
 interface Bubble {
@@ -268,6 +269,12 @@ export function OfficeScene() {
                       aria-label={label}
                     >
                       {focusMode ? <span className="focus-hat" aria-hidden /> : null}
+                      <span
+                        className="mood-dot"
+                        style={{ background: MOOD_TONE[employeeMood(state, id)] }}
+                        title={t(`mood.${employeeMood(state, id)}`)}
+                        aria-hidden
+                      />
                       <Critter
                         species={shape.species}
                         color={def?.color ?? '#c65b3c'}

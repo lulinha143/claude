@@ -122,6 +122,8 @@ export interface GameSettings {
   fpsLimit: 30 | 60;
   focusHarvestEnabled: boolean;
   offlineCapHours: number;
+  /** show the "recommended next step" hint banner. */
+  showHints: boolean;
 }
 
 /** Serialized, persisted game state. Bump `SAVE_VERSION` when this changes. */
