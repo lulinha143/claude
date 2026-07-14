@@ -1,0 +1,553 @@
+import { BALANCE } from './config';
+import { createRng, hashStringToSeed, type Rng } from './rng';
+import type { GameState, MomentCard } from './types';
+import {
+  aggregatePassives,
+  autoCollectRate,
+  clickPower,
+  computeProduction,
+  crateValue,
+  employeeLevelCost,
+  isEmployeeUnlocked,
+  isUpgradeUnlocked,
+  moraleCap,
+  moraleFloor,
+  reputationRate,
+  upgradeCost,
+} from './economy';
+import { EMPLOYEES_BY_ID } from '../content/employees';
+import { UPGRADES_BY_ID } from '../content/upgrades';
+import type { EventEffect, GameEventDef } from '../content/types';
+import { GAME_EVENTS, GAME_EVENTS_BY_ID } from '../content/events';
+import { evaluateAchievements } from './achievements';
+import { ensureDailyForDate } from './dailyChallenges';
+
+export interface TempBoost {
+  multiplier: number;
+  endsAt: number;
+}
+
+export interface ActiveEvent {
+  def: GameEventDef;
+  step: string | null; // null = base body, otherwise a chain step id
+}
+
+export interface EngineOptions {
+  now?: () => number;
+  seed?: number;
+  deterministic?: boolean;
+}
+
+export type EngineListener = () => void;
+
+export interface CollectResult {
+  gained: number;
+  bonus: boolean;
+}
+
+/**
+ * The GameEngine owns the authoritative game state and all mutations. It is
+ * deliberately free of React/Electron/Pixi imports so it can run in unit tests
+ * and be shared by the browser demo and the desktop app.
+ */
+export class GameEngine {
+  state: GameState;
+  activeEvent: ActiveEvent | null = null;
+  tempBoosts: TempBoost[] = [];
+
+  private listeners = new Set<EngineListener>();
+  private now: () => number;
+  private rng: Rng;
+  private eventAccum = 0;
+  private saveAccum = 0;
+  private saveCallback: ((state: GameState) => void) | null = null;
+  private version = 0;
+
+  constructor(state: GameState, opts: EngineOptions = {}) {
+    this.state = state;
+    this.now = opts.now ?? (() => Date.now());
+    const seed = opts.deterministic ? (opts.seed ?? 12345) : (opts.seed ?? (Date.now() & 0xffffffff));
+    this.rng = createRng(seed);
+  }
+
+  // -- subscription ---------------------------------------------------------
+  subscribe(listener: EngineListener): () => void {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  }
+
+  onSave(cb: (state: GameState) => void): void {
+    this.saveCallback = cb;
+  }
+
+  getVersion(): number {
+    return this.version;
+  }
+
+  private emit(): void {
+    this.version += 1;
+    for (const l of this.listeners) l();
+  }
+
+  // -- derived reads --------------------------------------------------------
+  isFocusActive(): boolean {
+    return this.state.focus.active && this.now() < this.state.focus.endsAt;
+  }
+
+  productionPerSecond(): number {
+    const base = computeProduction(this.state, this.isFocusActive()).nutsPerSecond;
+    return base * this.currentBoostMultiplier();
+  }
+
+  currentBoostMultiplier(): number {
+    const t = this.now();
+    let m = 1;
+    for (const b of this.tempBoosts) if (b.endsAt > t) m *= b.multiplier;
+    return m;
+  }
+
+  clickPower(): number {
+    return clickPower(this.state) * this.currentBoostMultiplier();
+  }
+
+  crateValue(): number {
+    return crateValue(this.state, this.isFocusActive()) * this.currentBoostMultiplier();
+  }
+
+  // -- main tick ------------------------------------------------------------
+  /** Advance the simulation by `deltaSeconds`, chunked for stability. */
+  tick(deltaSeconds: number): void {
+    if (deltaSeconds <= 0 || !Number.isFinite(deltaSeconds)) return;
+    let remaining = Math.min(deltaSeconds, 60 * 60); // never process >1h in one call
+    while (remaining > 0) {
+      const step = Math.min(remaining, BALANCE.maxTickSeconds);
+      this.stepSimulation(step);
+      remaining -= step;
+    }
+    this.state.stats.playTimeSeconds += Math.min(deltaSeconds, 3600);
+    this.tickFocus();
+    this.rolloverDaily();
+
+    // prune expired boosts to avoid unbounded growth
+    const t = this.now();
+    this.tempBoosts = this.tempBoosts.filter((b) => b.endsAt > t);
+
+    // periodic autosave
+    this.saveAccum += deltaSeconds;
+    if (this.saveAccum >= BALANCE.autosaveIntervalSeconds) {
+      this.saveAccum = 0;
+      this.save();
+    }
+
+    // random events
+    this.eventAccum += deltaSeconds;
+    if (this.eventAccum >= BALANCE.eventRollIntervalSeconds) {
+      this.eventAccum = 0;
+      this.maybeRollEvent();
+    }
+
+    this.checkAchievements();
+    this.emit();
+  }
+
+  private stepSimulation(dt: number): void {
+    const prod = computeProduction(this.state, this.isFocusActive());
+    const passives = aggregatePassives(this.state);
+    const boost = this.currentBoostMultiplier();
+    const nps = prod.nutsPerSecond * boost;
+
+    // Auto-collector banks a fraction of production automatically.
+    const autoRate = autoCollectRate(this.state);
+    const gained = nps * dt * autoRate;
+    if (gained > 0) this.addNuts(gained, false);
+
+    // The rest accumulates as pending crates the player collects — but for a
+    // cozy experience without mandatory clicking, uncollected production still
+    // trickles in at reduced rate.
+    const trickle = nps * dt * (1 - autoRate) * 0.5;
+    if (trickle > 0) this.addNuts(trickle, false);
+
+    this.state.stats.highestNutsPerSecond = Math.max(this.state.stats.highestNutsPerSecond, nps);
+
+    // Morale drifts toward equilibrium influenced by passives, with a floor.
+    const cap = moraleCap(this.state);
+    const floor = Math.max(BALANCE.morale.min, moraleFloor(this.state));
+    const target = Math.min(cap, BALANCE.morale.start + passives.moraleBonus);
+    const m = this.state.resources.morale;
+    const drift = (target - m) * Math.min(1, BALANCE.morale.driftPerSecond * dt);
+    this.state.resources.morale = Math.max(floor, Math.min(cap, m + drift));
+
+    // Reputation grows slowly with company size.
+    this.state.resources.reputation += reputationRate(this.state, passives) * dt;
+  }
+
+  private addNuts(amount: number, isClick: boolean): void {
+    if (amount <= 0) return;
+    this.state.resources.nuts += amount;
+    this.state.stats.totalNutsEarned += amount;
+    if (isClick) this.state.stats.totalClicks += 1;
+    // daily challenge progress
+    this.progressDaily('produceNuts', amount);
+  }
+
+  // -- player actions -------------------------------------------------------
+  click(): number {
+    const gained = this.clickPower();
+    this.addNuts(gained, true);
+    this.emit();
+    return gained;
+  }
+
+  collectCrate(): CollectResult {
+    const passives = aggregatePassives(this.state);
+    let gained = this.crateValue();
+    let bonus = false;
+    if (this.rng.chance(passives.resourceFind)) {
+      gained *= 3;
+      bonus = true;
+    }
+    this.addNuts(gained, false);
+    this.state.stats.cratesCollected += 1;
+    this.progressDaily('collectCrates', 1);
+    this.emit();
+    return { gained, bonus };
+  }
+
+  canAfford(resource: 'nuts' | 'goldenNuts' | 'permanentKernels', amount: number): boolean {
+    return this.state.resources[resource] >= amount;
+  }
+
+  buyUpgrade(id: string): boolean {
+    const def = UPGRADES_BY_ID[id];
+    if (!def) return false;
+    if (!isUpgradeUnlocked(this.state, def)) return false;
+    const owned = this.state.upgrades[id] ?? 0;
+    if (owned >= def.maxLevel) return false;
+    const passives = aggregatePassives(this.state);
+    const reduction = def.resource === 'nuts' ? passives.costReduction : 0;
+    const cost = upgradeCost(def, owned, reduction);
+    if (!this.canAfford(def.resource, cost)) return false;
+    this.state.resources[def.resource] -= cost;
+    this.state.upgrades[id] = owned + 1;
+    this.emit();
+    return true;
+  }
+
+  hireOrLevelEmployee(id: string): boolean {
+    const def = EMPLOYEES_BY_ID[id];
+    if (!def) return false;
+    if (!isEmployeeUnlocked(this.state, def)) return false;
+    const rt = this.state.employees[id];
+    if (!rt) return false;
+    const passives = aggregatePassives(this.state);
+    const reduction = def.hireCost.resource === 'nuts' ? passives.costReduction : 0;
+    const cost = employeeLevelCost(def, rt.level, reduction);
+    if (!this.canAfford(def.hireCost.resource, cost)) return false;
+    this.state.resources[def.hireCost.resource] -= cost;
+    rt.hired = true;
+    rt.level += 1;
+    this.emit();
+    return true;
+  }
+
+  setEmployeeOutfit(id: string, outfitId: string): boolean {
+    const def = EMPLOYEES_BY_ID[id];
+    const rt = this.state.employees[id];
+    if (!def || !rt) return false;
+    const outfit = def.outfits.find((o) => o.id === outfitId);
+    if (!outfit) return false;
+    const owned = this.state.collections.outfits.includes(outfitId);
+    if (!owned) {
+      if (!this.canAfford(outfit.cost.resource, outfit.cost.amount)) return false;
+      this.state.resources[outfit.cost.resource] -= outfit.cost.amount;
+      this.state.collections.outfits.push(outfitId);
+    }
+    rt.outfitId = outfitId;
+    this.emit();
+    return true;
+  }
+
+  renameCompany(name: string): void {
+    this.state.company.name = name.slice(0, 40) || this.state.company.name;
+    this.emit();
+  }
+
+  renameEmployee(id: string, nickname: string): void {
+    const rt = this.state.employees[id];
+    if (!rt) return;
+    rt.nickname = nickname.slice(0, 24) || null;
+    this.emit();
+  }
+
+  giveCoffee(id: string): void {
+    const rt = this.state.employees[id];
+    if (!rt) return;
+    rt.friendship = Math.min(100, rt.friendship + 3);
+    this.state.resources.morale = Math.min(moraleCap(this.state), this.state.resources.morale + 2);
+    this.emit();
+  }
+
+  petPip(): void {
+    const pip = this.state.employees['pip'];
+    if (pip) pip.friendship = Math.min(100, pip.friendship + 1);
+    this.addBoost(1.05, 15);
+    this.emit();
+  }
+
+  addBoost(multiplier: number, seconds: number): void {
+    this.tempBoosts.push({ multiplier, endsAt: this.now() + seconds * 1000 });
+  }
+
+  // -- events ---------------------------------------------------------------
+  private eligibleEvents(): GameEventDef[] {
+    const t = this.now();
+    return GAME_EVENTS.filter((ev) => {
+      const cd = this.state.eventCooldowns[ev.id] ?? 0;
+      if (cd > t) return false;
+      if (ev.requires?.reputation && this.state.resources.reputation < ev.requires.reputation)
+        return false;
+      if (ev.requires?.prestige && this.state.prestige.count < ev.requires.prestige) return false;
+      if (ev.requires?.hiredEmployee && !this.state.employees[ev.requires.hiredEmployee]?.hired)
+        return false;
+      return true;
+    });
+  }
+
+  maybeRollEvent(force = false): void {
+    if (this.activeEvent) return;
+    const passives = aggregatePassives(this.state);
+    const chance = BALANCE.eventBaseChance + passives.rareChance;
+    if (!force && !this.rng.chance(chance)) return;
+    const pool = this.eligibleEvents();
+    if (pool.length === 0) return;
+    const total = pool.reduce((s, e) => s + e.weight, 0);
+    let roll = this.rng.next() * total;
+    let chosen = pool[0];
+    for (const ev of pool) {
+      roll -= ev.weight;
+      if (roll <= 0) {
+        chosen = ev;
+        break;
+      }
+    }
+    this.triggerEvent(chosen.id);
+  }
+
+  triggerEvent(id: string): void {
+    const def = GAME_EVENTS_BY_ID[id];
+    if (!def) return;
+    this.activeEvent = { def, step: null };
+    this.state.stats.eventsSeen += 1;
+    this.progressDaily('employeeConversations', def.employeeId ? 1 : 0);
+    this.emit();
+  }
+
+  resolveEventChoice(choiceId: string): void {
+    if (!this.activeEvent) return;
+    const { def, step } = this.activeEvent;
+    const choices = step && def.steps?.[step] ? def.steps[step].choices : def.choices;
+    const choice = choices.find((c) => c.id === choiceId);
+    if (!choice) return;
+
+    for (const effect of choice.effects) this.applyEffect(effect, def);
+
+    // advance chain or close
+    if (choice.next && def.steps?.[choice.next]) {
+      this.activeEvent = { def, step: choice.next };
+    } else {
+      this.state.eventCooldowns[def.id] = this.now() + def.cooldownSeconds * 1000;
+      this.activeEvent = null;
+    }
+    this.emit();
+  }
+
+  private applyEffect(effect: EventEffect, def: GameEventDef): void {
+    switch (effect.type) {
+      case 'nuts':
+        if ((effect.value ?? 0) >= 0) this.addNuts(effect.value ?? 0, false);
+        else this.state.resources.nuts = Math.max(0, this.state.resources.nuts + (effect.value ?? 0));
+        break;
+      case 'goldenNuts':
+        this.state.resources.goldenNuts = Math.max(0, this.state.resources.goldenNuts + (effect.value ?? 0));
+        break;
+      case 'morale':
+        this.state.resources.morale = Math.max(
+          0,
+          Math.min(moraleCap(this.state), this.state.resources.morale + (effect.value ?? 0)),
+        );
+        break;
+      case 'reputation':
+        this.state.resources.reputation = Math.max(0, this.state.resources.reputation + (effect.value ?? 0));
+        break;
+      case 'productionBoost':
+        this.addBoost(effect.value ?? 1.5, effect.durationSeconds ?? 60);
+        break;
+      case 'friendship': {
+        const rt = this.state.employees[effect.employeeId ?? def.employeeId ?? ''];
+        if (rt) rt.friendship = Math.min(100, rt.friendship + (effect.value ?? 5));
+        break;
+      }
+      case 'collectNut':
+        if (effect.nutId && !this.state.collections.nuts.includes(effect.nutId))
+          this.state.collections.nuts.push(effect.nutId);
+        break;
+      case 'unlockSecret':
+        if (effect.secretId && !this.state.collections.secrets.includes(effect.secretId))
+          this.state.collections.secrets.push(effect.secretId);
+        break;
+      case 'momentCard':
+        this.createMomentCard(def);
+        break;
+    }
+  }
+
+  createMomentCard(def: GameEventDef, caption?: string): MomentCard {
+    const card: MomentCard = {
+      id: `${def.id}-${this.now()}-${Math.floor(this.rng.next() * 1e6)}`,
+      eventId: def.id,
+      employeeId: def.employeeId ?? null,
+      caption: caption ?? def.bodyKey,
+      rarity: def.rarity,
+      createdAt: this.now(),
+    };
+    this.state.collections.moments.push(card);
+    if (this.state.collections.moments.length > 200) this.state.collections.moments.shift();
+    return card;
+  }
+
+  // -- daily challenges -----------------------------------------------------
+  progressDaily(type: string, amount: number): void {
+    if (amount <= 0) return;
+    for (const ch of this.state.daily.challenges) {
+      if (ch.claimed) continue;
+      if (ch.id.startsWith(type)) ch.progress = Math.min(ch.goal, ch.progress + amount);
+    }
+  }
+
+  private rolloverDaily(): void {
+    const next = ensureDailyForDate(this.state.daily, this.now());
+    if (next !== this.state.daily) this.state.daily = next;
+    // maintainMorale challenge: satisfied by simply having morale above goal
+    for (const ch of this.state.daily.challenges) {
+      if (ch.id.startsWith('maintainMorale') && !ch.claimed) {
+        if (this.state.resources.morale >= ch.goal) ch.progress = ch.goal;
+      }
+    }
+  }
+
+  claimDaily(id: string): boolean {
+    const ch = this.state.daily.challenges.find((c) => c.id === id);
+    if (!ch || ch.claimed || ch.progress < ch.goal) return false;
+    ch.claimed = true;
+    this.state.resources.goldenNuts += goldenForChallenge(id);
+    this.emit();
+    return true;
+  }
+
+  // -- focus harvest --------------------------------------------------------
+  startFocus(minutes: number): void {
+    const seconds = Math.max(60, Math.round(minutes * 60));
+    this.state.focus = {
+      active: true,
+      endsAt: this.now() + seconds * 1000,
+      durationSeconds: seconds,
+      completedSessions: this.state.focus.completedSessions,
+    };
+    this.emit();
+  }
+
+  cancelFocus(): void {
+    // Never punished: simply ends the session with no penalty.
+    this.state.focus.active = false;
+    this.state.focus.endsAt = 0;
+    this.emit();
+  }
+
+  private tickFocus(): void {
+    if (this.state.focus.active && this.now() >= this.state.focus.endsAt) {
+      this.state.focus.active = false;
+      this.state.focus.completedSessions += 1;
+      // reward proportional to duration
+      const reward = Math.max(1, Math.round(this.state.focus.durationSeconds / (25 * 60)) * 1);
+      this.state.resources.goldenNuts += reward;
+      this.addBoost(1.2, 120);
+      this.progressDaily('completeFocus', 1);
+    }
+  }
+
+  // -- microgames -----------------------------------------------------------
+  rewardMicrogame(_kind: 'shellSort' | 'coffeeRescue' | 'inventory', score: number): void {
+    this.state.stats.microgamesPlayed += 1;
+    this.progressDaily('playMicrogame', 1);
+    const boost = 1 + Math.min(0.5, score / 100);
+    this.addBoost(boost, 90);
+    this.addNuts(this.crateValue() * (1 + score / 50), false);
+    this.emit();
+  }
+
+  // -- prestige / skills / decorations --------------------------------------
+  buyDecoration(id: string): boolean {
+    // decorations are cosmetic + morale; stored as owned "secrets"-style flags
+    const key = `deco:${id}`;
+    if (this.state.collections.secrets.includes(key)) return false;
+    return this.applyDecorationPurchase(id, key);
+  }
+
+  private applyDecorationPurchase(id: string, key: string): boolean {
+    // resolved against content in the store layer to keep engine light; here
+    // we only track ownership. The store validates cost before calling.
+    void id;
+    this.state.collections.secrets.push(key);
+    this.emit();
+    return true;
+  }
+
+  spendResource(resource: 'nuts' | 'goldenNuts' | 'permanentKernels', amount: number): boolean {
+    if (!this.canAfford(resource, amount)) return false;
+    this.state.resources[resource] -= amount;
+    return true;
+  }
+
+  updateSettings(patch: Partial<GameState['settings']>): void {
+    this.state.settings = { ...this.state.settings, ...patch };
+    this.emit();
+  }
+
+  markOnboardingComplete(): void {
+    this.state.onboardingComplete = true;
+    this.emit();
+  }
+
+  addMoraleFromDecoration(amount: number): void {
+    this.state.resources.morale = Math.min(moraleCap(this.state), this.state.resources.morale + amount);
+  }
+
+  replaceState(next: GameState): void {
+    this.state = next;
+    this.activeEvent = null;
+    this.tempBoosts = [];
+    this.emit();
+  }
+
+  // -- achievements ---------------------------------------------------------
+  private checkAchievements(): void {
+    const unlocked = evaluateAchievements(this.state, this.now());
+    if (unlocked.length > 0) this.emit();
+  }
+
+  // -- persistence ----------------------------------------------------------
+  save(): void {
+    this.state.lastSaved = this.now();
+    this.saveCallback?.(this.state);
+  }
+
+  // deterministic seed helper for dev tools/tests
+  reseed(seedString: string): void {
+    this.rng = createRng(hashStringToSeed(seedString));
+  }
+}
+
+function goldenForChallenge(id: string): number {
+  // reward encoded by challenge template; kept simple and safe.
+  return id.startsWith('completeFocus') ? 2 : 1;
+}

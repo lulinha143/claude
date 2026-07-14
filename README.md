@@ -1,453 +1,166 @@
-/**
- * ============================================================================
- *  CUT GAME - Filtro de corte por timing para TikTok Effect House (APJS)
- * ============================================================================
- *
- *  Mecânica: a faca se move; toque no momento certo para cortar na zona-alvo.
- *   - Perto do centro   -> CORTE PERFEITO
- *   - Zona boa           -> BOM CORTE
- *   - Fora               -> ERROU (perde 1 vida)
- *  A partida tem "cutsPerGame" rodadas OU acaba quando as vidas zeram.
- *  No fim: ranking + "toque para jogar de novo".
- *
- *  API APJS (correções importantes desta versão):
- *   - Eventos de gesto: getGestureEmitter().on(GestureType.Tap, cb, this)
- *     e .off(...) no onDestroy (NÃO existe .subscribe).
- *   - Componentes por NOME (string): getComponent("ScreenTransform"),
- *     getComponent("Text") — não passar a classe.
- *   - Visibilidade: setEnabledInHierarchy(bool) / isEnabledInHierarchy()
- *     (NÃO existe .enabled).
- *   - Objetos 2D se movem por ScreenTransform.anchoredPosition (pixels),
- *     não por transform.localPosition.
- *   - Inicialização preguiçosa em onUpdate: campos @serializeProperty() podem
- *     estar vazios no onStart.
- * ============================================================================
- */
-
-@component()
-export class CutGame extends APJS.BasicScriptComponent {
-  // -------------------------------------------------------------------------
-  //  REFERÊNCIAS DA CENA
-  // -------------------------------------------------------------------------
-  @serializeProperty()
-  knife: APJS.SceneObject;
-
-  @serializeProperty()
-  targetZone: APJS.SceneObject;
-
-  @serializeProperty()
-  food: APJS.SceneObject;
-
-  @serializeProperty()
-  foodHalfLeft: APJS.SceneObject;
-
-  @serializeProperty()
-  foodHalfRight: APJS.SceneObject;
-
-  @serializeProperty()
-  statusText: APJS.SceneObject;
-
-  @serializeProperty()
-  scoreText: APJS.SceneObject;
-
-  @serializeProperty()
-  comboText: APJS.SceneObject;
-
-  // -------------------------------------------------------------------------
-  //  AJUSTES DE JOGO
-  // -------------------------------------------------------------------------
-  @serializeProperty()
-  startSpeed: number = 0.55;
-
-  @serializeProperty()
-  speedIncrement: number = 0.06;
-
-  @serializeProperty()
-  maxSpeed: number = 2.2;
-
-  /**
-   * Largura TOTAL do trajeto da faca (em pixels). A faca oscila metade disso
-   * para cada lado do ponto onde você a colocou. Coloque a faca no CENTRO da
-   * tela e ajuste este valor até o trajeto caber na tela.
-   */
-  @serializeProperty()
-  travelDistance: number = 240;
-
-  @serializeProperty()
-  perfectTolerance: number = 0.05;
-
-  @serializeProperty()
-  goodTolerance: number = 0.13;
-
-  @serializeProperty()
-  resolveDuration: number = 0.6;
-
-  /** Distância (pixels) que cada metade "voa" ao ser cortada. */
-  @serializeProperty()
-  splitDistance: number = 160;
-
-  /** Quantos cortes tem uma partida. */
-  @serializeProperty()
-  cutsPerGame: number = 5;
-
-  /** Vidas (erros permitidos) por partida. */
-  @serializeProperty()
-  lives: number = 3;
-
-  // -------------------------------------------------------------------------
-  //  ESTADO
-  // -------------------------------------------------------------------------
-  private readonly STATE_PLAY: number = 0;
-  private readonly STATE_RESOLVE: number = 1;
-  private readonly STATE_OVER: number = 2;
-
-  private state: number = 0;
-  private initialized: boolean = false;
-
-  private speed: number = 0.55;
-  private phase: number = 0;
-  private currentT: number = 0;
-  private targetT: number = 0.5;
-
-  private score: number = 0;
-  private best: number = 0;
-  private combo: number = 0;
-  private livesLeft: number = 3;
-  private roundsPlayed: number = 0;
-  private hits: number = 0;
-  private perfects: number = 0;
-
-  private resolveTimer: number = 0;
-
-  // Posições/tamanhos base (lidos na inicialização)
-  private knifeX: number = 0; private knifeY: number = 0;
-  private foodX: number = 0; private foodY: number = 0;
-  private targetY: number = 0;
-  private leftBaseX: number = 0; private leftBaseY: number = 0;
-  private rightBaseX: number = 0; private rightBaseY: number = 0;
-  private leftW: number = 0; private leftH: number = 0;
-  private rightW: number = 0; private rightH: number = 0;
-  private targetH: number = 0;
-
-  // Destinos da animação de corte
-  private lToX: number = 0; private lToY: number = 0;
-  private rToX: number = 0; private rToY: number = 0;
-
-  private tapCallback!: (event: APJS.IEvent) => void;
-
-  // ==========================================================================
-  //  CICLO DE VIDA
-  // ==========================================================================
-  onStart(): void {
-    this.subscribeTap();
-  }
-
-  onUpdate(deltaTime: number): void {
-    // Inicialização preguiçosa: espera as referências estarem disponíveis.
-    if (!this.initialized) {
-      if (!this.knife || !this.food || !this.statusText) return;
-      this.initializeGame();
-      this.initialized = true;
-    }
-
-    if (this.state === this.STATE_RESOLVE) {
-      this.updateResolve(deltaTime);
-      return;
-    }
-
-    if (this.state === this.STATE_PLAY) {
-      this.phase += this.speed * deltaTime;
-      this.currentT = this.triangle(this.phase);
-      this.setPos(this.knife, this.trackX(this.currentT), this.knifeY);
-    }
-    // STATE_OVER: a faca para; aguardando toque para reiniciar.
-  }
-
-  onDestroy(): void {
-    if (!this.tapCallback) return;
-    APJS.EventManager.getGestureEmitter().off(APJS.GestureType.Tap, this.tapCallback, this);
-  }
-
-  // ==========================================================================
-  //  TOQUE
-  // ==========================================================================
-  private subscribeTap(): void {
-    this.tapCallback = (_event: APJS.IEvent) => {
-      this.onTap();
-    };
-    APJS.EventManager.getGestureEmitter().on(APJS.GestureType.Tap, this.tapCallback, this);
-  }
-
-  private onTap(): void {
-    if (!this.initialized) return;
-
-    // Fim de jogo: toque reinicia.
-    if (this.state === this.STATE_OVER) {
-      this.resetGame();
-      return;
-    }
-    if (this.state !== this.STATE_PLAY) return;
-
-    const diff = Math.abs(this.currentT - this.targetT);
-
-    if (diff <= this.perfectTolerance) {
-      this.perfects += 1;
-      this.registerCut(3, "CORTE PERFEITO!");
-    } else if (diff <= this.goodTolerance) {
-      this.registerCut(1, "BOM CORTE!");
-    } else {
-      this.combo = 0;
-      this.livesLeft -= 1;
-      this.roundsPlayed += 1;
-      this.updateComboText();
-      this.setText(this.statusText, "ERROU!   Vidas: " + Math.max(0, this.livesLeft));
-      this.startResolve(false);
-    }
-  }
-
-  private registerCut(points: number, label: string): void {
-    this.combo += 1;
-    this.hits += 1;
-    const gained = points * (1 + Math.floor(this.combo / 3));
-    this.score += gained;
-    if (this.score > this.best) this.best = this.score;
-
-    this.speed = Math.min(this.maxSpeed, this.speed + this.speedIncrement);
-    this.roundsPlayed += 1;
-
-    this.setText(this.statusText, label + "   +" + gained);
-    this.updateScoreText();
-    this.updateComboText();
-    this.startResolve(true);
-  }
-
-  // ==========================================================================
-  //  FLUXO DE PARTIDA
-  // ==========================================================================
-  private initializeGame(): void {
-    const k = this.getPos(this.knife); this.knifeX = k.x; this.knifeY = k.y;
-    const f = this.getPos(this.food); this.foodX = f.x; this.foodY = f.y;
-    if (this.targetZone) {
-      this.targetY = this.getPos(this.targetZone).y;
-      this.targetH = this.getSize(this.targetZone).y;
-    }
-
-    if (this.foodHalfLeft) {
-      const p = this.getPos(this.foodHalfLeft); this.leftBaseX = p.x; this.leftBaseY = p.y;
-      const s = this.getSize(this.foodHalfLeft); this.leftW = s.x; this.leftH = s.y;
-    }
-    if (this.foodHalfRight) {
-      const p = this.getPos(this.foodHalfRight); this.rightBaseX = p.x; this.rightBaseY = p.y;
-      const s = this.getSize(this.foodHalfRight); this.rightW = s.x; this.rightH = s.y;
-    }
-
-    this.resetGame();
-  }
-
-  private resetGame(): void {
-    this.score = 0;
-    this.combo = 0;
-    this.livesLeft = this.lives;
-    this.roundsPlayed = 0;
-    this.hits = 0;
-    this.perfects = 0;
-    this.speed = this.startSpeed;
-    this.updateScoreText();
-    this.updateComboText();
-    this.newRound();
-  }
-
-  private newRound(): void {
-    this.targetT = 0.18 + Math.random() * 0.64;
-
-    if (this.targetZone) {
-      // Fica na MESMA linha horizontal da faca, e a largura vira exatamente a
-      // janela de acerto "bom" — assim o que aparece na tela é onde dá pra
-      // pontuar (nada de faixa enganosa).
-      this.setPos(this.targetZone, this.trackX(this.targetT), this.knifeY);
-      if (this.targetH > 0) {
-        const goodWidthPx = this.goodTolerance * 2 * this.travelDistance;
-        this.setSize(this.targetZone, goodWidthPx, this.targetH);
-      }
-    }
-
-    if (this.food) {
-      this.setEnabled(this.food, true);
-      this.setPos(this.food, this.foodX, this.foodY);
-    }
-    this.setEnabled(this.foodHalfLeft, false);
-    this.setEnabled(this.foodHalfRight, false);
-
-    // Começa numa fase aleatória e JÁ atualiza a posição da faca / currentT,
-    // para que um toque imediato seja avaliado corretamente.
-    this.phase = Math.random();
-    this.currentT = this.triangle(this.phase);
-    this.setPos(this.knife, this.trackX(this.currentT), this.knifeY);
-
-    this.state = this.STATE_PLAY;
-    this.setText(this.statusText, "Toque para cortar!   (" + (this.roundsPlayed + 1) + "/" + this.cutsPerGame + ")");
-  }
-
-  private startResolve(success: boolean): void {
-    this.state = this.STATE_RESOLVE;
-    this.resolveTimer = 0;
-
-    if (success && this.food && this.foodHalfLeft && this.foodHalfRight) {
-      this.setEnabled(this.food, false);
-      this.setEnabled(this.foodHalfLeft, true);
-      this.setEnabled(this.foodHalfRight, true);
-
-      // Metades começam nas SUAS posições originais (montadas) e voam pra fora.
-      this.setPos(this.foodHalfLeft, this.leftBaseX, this.leftBaseY);
-      this.setPos(this.foodHalfRight, this.rightBaseX, this.rightBaseY);
-
-      this.lToX = this.leftBaseX - this.splitDistance;
-      this.lToY = this.leftBaseY - this.splitDistance * 0.5;
-      this.rToX = this.rightBaseX + this.splitDistance;
-      this.rToY = this.rightBaseY - this.splitDistance * 0.5;
-    }
-  }
-
-  private updateResolve(deltaTime: number): void {
-    this.resolveTimer += deltaTime;
-    const t = Math.min(1, this.resolveTimer / this.resolveDuration);
-    const ease = this.easeOutCubic(t);
-
-    if (this.foodHalfLeft && this.isEnabled(this.foodHalfLeft)) {
-      this.setPos(this.foodHalfLeft, this.lerp(this.leftBaseX, this.lToX, ease), this.lerp(this.leftBaseY, this.lToY, ease));
-      this.setSize(this.foodHalfLeft, this.leftW * (1 - ease), this.leftH * (1 - ease));
-    }
-    if (this.foodHalfRight && this.isEnabled(this.foodHalfRight)) {
-      this.setPos(this.foodHalfRight, this.lerp(this.rightBaseX, this.rToX, ease), this.lerp(this.rightBaseY, this.rToY, ease));
-      this.setSize(this.foodHalfRight, this.rightW * (1 - ease), this.rightH * (1 - ease));
-    }
-
-    if (t >= 1) {
-      // Restaura o tamanho das metades para a próxima vez.
-      if (this.foodHalfLeft) this.setSize(this.foodHalfLeft, this.leftW, this.leftH);
-      if (this.foodHalfRight) this.setSize(this.foodHalfRight, this.rightW, this.rightH);
-
-      if (this.livesLeft <= 0 || this.roundsPlayed >= this.cutsPerGame) {
-        this.gameOver();
-      } else {
-        this.newRound();
-      }
-    }
-  }
-
-  private gameOver(): void {
-    this.state = this.STATE_OVER;
-    this.setEnabled(this.food, false);
-    this.setEnabled(this.foodHalfLeft, false);
-    this.setEnabled(this.foodHalfRight, false);
-    this.setText(this.statusText, this.getRank() + "\nPontos: " + this.score + "   |   Toque para jogar de novo");
-  }
-
-  private getRank(): string {
-    if (this.hits <= 0) return "Desastre na cozinha";
-    if (this.perfects >= this.cutsPerGame) return "MESTRE DO CORTE!";
-    if (this.hits >= Math.ceil(this.cutsPerGame * 0.6)) return "Cozinheiro promissor";
-    return "Aprendiz de cozinha";
-  }
-
-  // ==========================================================================
-  //  MATEMÁTICA
-  // ==========================================================================
-  private triangle(phase: number): number {
-    const p = phase - Math.floor(phase);
-    return p < 0.5 ? p * 2 : 2 - p * 2;
-  }
-
-  private easeOutCubic(t: number): number {
-    const u = 1 - t;
-    return 1 - u * u * u;
-  }
-
-  private lerp(a: number, b: number, t: number): number {
-    return a + (b - a) * t;
-  }
-
-  /**
-   * Converte t (0..1) na posição X ao longo do trajeto, CENTRADO na posição
-   * onde a faca foi colocada. t=0 -> extremo esquerdo, t=0.5 -> centro (a
-   * posição original da faca), t=1 -> extremo direito.
-   */
-  private trackX(t: number): number {
-    return this.knifeX + this.travelDistance * (t - 0.5);
-  }
-
-  // ==========================================================================
-  //  HELPERS 2D — ScreenTransform via getComponent("...") COM fallback 3D
-  // ==========================================================================
-  private getScreenTransform(obj: APJS.SceneObject): APJS.ScreenTransform | null {
-    if (!obj) return null;
-    return obj.getComponent("ScreenTransform") as APJS.ScreenTransform;
-  }
-
-  private getPos(obj: APJS.SceneObject): { x: number; y: number } {
-    if (!obj) return { x: 0, y: 0 };
-    const st = this.getScreenTransform(obj);
-    if (st) {
-      const p = st.anchoredPosition;
-      return { x: p.x, y: p.y };
-    }
-    const p = obj.transform.localPosition;
-    return { x: p.x, y: p.y };
-  }
-
-  private setPos(obj: APJS.SceneObject, x: number, y: number): void {
-    if (!obj) return;
-    const st = this.getScreenTransform(obj);
-    if (st) {
-      st.anchoredPosition = new APJS.Vector2f(x, y);
-      return;
-    }
-    const z = obj.transform.localPosition.z;
-    obj.transform.localPosition = new APJS.Vector3f(x, y, z);
-  }
-
-  private getSize(obj: APJS.SceneObject): { x: number; y: number } {
-    if (!obj) return { x: 0, y: 0 };
-    const st = this.getScreenTransform(obj);
-    if (st && st.sizeDelta) return { x: st.sizeDelta.x, y: st.sizeDelta.y };
-    return { x: 0, y: 0 };
-  }
-
-  private setSize(obj: APJS.SceneObject, w: number, h: number): void {
-    if (!obj) return;
-    const st = this.getScreenTransform(obj);
-    if (st) {
-      st.sizeDelta = new APJS.Vector2f(Math.max(0, w), Math.max(0, h));
-      return;
-    }
-    const base = this.leftW > 0 ? this.leftW : 1;
-    const f = Math.max(0, w / base);
-    obj.transform.localScale = new APJS.Vector3f(f, f, f);
-  }
-
-  private setEnabled(obj: APJS.SceneObject, on: boolean): void {
-    if (obj) obj.setEnabledInHierarchy(on);
-  }
-
-  private isEnabled(obj: APJS.SceneObject): boolean {
-    return obj ? obj.isEnabledInHierarchy() : false;
-  }
-
-  // ==========================================================================
-  //  TEXTO / HUD  — getComponent("Text")
-  // ==========================================================================
-  private setText(obj: APJS.SceneObject, value: string): void {
-    if (!obj) return;
-    const txt = obj.getComponent("Text") as APJS.Text;
-    if (txt) txt.text = value;
-  }
-
-  private updateScoreText(): void {
-    this.setText(this.scoreText, "Pontos: " + this.score + "   Recorde: " + this.best);
-  }
-
-  private updateComboText(): void {
-    if (!this.comboText) return;
-    this.setText(this.comboText, this.combo > 1 ? "Sequencia: " + this.combo : "");
-  }
-}
+# Working My Nuts Off!
+
+**A Tiny Desktop Idle Game** — _One squirrel. One startup. Way too many nuts._
+
+A cozy, humorous desktop idle game that lives in a small window in the corner of
+your screen. Inside a tree-trunk office, **Pip** the squirrel and a growing team
+of animal employees build the world's largest nut-processing company while you
+work, study, or relax.
+
+It runs three ways from one codebase:
+
+- **Web demo** — plays in any modern browser.
+- **Development mode** — hot-reloading Vite dev server.
+- **Native desktop app** — a frameless, transparent, always-on-top companion
+  packaged with Electron for Windows, Linux, and macOS.
+
+---
+
+## Quick start
+
+```bash
+npm install        # install dependencies
+npm run dev        # run the web/dev version at http://localhost:5173
+```
+
+Other commands:
+
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Vite dev server (web + renderer). |
+| `npm run build` | Production web build into `dist/` (also the GitHub Pages demo). |
+| `npm run preview` | Serve the production build locally. |
+| `npm run build:electron` | Bundle the Electron main + preload into `dist-electron/`. |
+| `npm run dev:electron` | Build the shell and launch Electron against the dev server. |
+| `npm run package` | Build everything and produce native installers via electron-builder. |
+| `npm run package:win` / `:linux` / `:mac` | Package for a specific platform. |
+| `npm run test` | Vitest unit tests (72 tests). |
+| `npm run test:e2e` | Playwright end-to-end tests. |
+| `npm run lint` / `lint:fix` | ESLint. |
+| `npm run typecheck` | TypeScript (renderer + electron). |
+| `npm run format` | Prettier. |
+| `npm run check:i18n` | Localization completeness report. |
+| `npm run validate` | typecheck → lint → i18n → test → build (the full gate). |
+
+### Try the desktop companion
+
+```bash
+npm run dev            # terminal 1: start the renderer dev server
+npm run dev:electron   # terminal 2: launch the transparent desktop window
+```
+
+### Enable the developer balance panel
+
+Run the web build with `?dev=1` (e.g. `http://localhost:5173/?dev=1`) or any dev
+build. A **DEV** button appears bottom-left with tools to add currency, trigger
+events, simulate offline time, use a deterministic seed, unlock employees, and
+reset the save.
+
+---
+
+## What's implemented (honest status)
+
+This repository is a **stable, runnable v1.0 foundation / vertical slice**. The
+opening ~30 minutes of gameplay are polished; every visible control works; there
+are no dead buttons or `TODO` placeholders in core systems.
+
+| Area | Status |
+| --- | --- |
+| Deterministic simulation core (framework-independent) | ✅ Complete, unit-tested |
+| Nuts, morale, reputation, golden nuts, permanent kernels | ✅ |
+| Clicking, crate collection, automation, trickle production | ✅ |
+| 51 upgrades across 6 categories | ✅ |
+| 6 employees with passives, outfits, friendship, nicknames, dialogue | ✅ |
+| 13 rooms / floors that unlock and stack visually | ✅ |
+| 26 random events incl. 5 multi-step chains | ✅ |
+| 41 achievements (local, with Steam adapter boundary) | ✅ |
+| 24 collectible fictional nuts | ✅ |
+| 32 decorations | ✅ |
+| Prestige ("Go Completely Nuts") with 5 branches + 5-skill tree | ✅ |
+| Focus Harvest (opt-in, supportive, never blocking) | ✅ |
+| 3 micro-games | ✅ |
+| Daily challenges (deterministic, offline, server-free) | ✅ |
+| Moment Cards → save as PNG; Photo Mode | ✅ |
+| Offline progression (clamped, tamper-safe) | ✅ |
+| Save system: Zod schema, migrations, rotating backups, recovery, export/import | ✅ |
+| Localization: **English + Brazilian Portuguese complete**, 10 draft locales | ✅ |
+| Accessibility: reduced motion, high contrast, dyslexia font, colorblind, scaling, etc. | ✅ |
+| Web Audio synthesized SFX + ambience (no copyrighted assets) | ✅ |
+| Electron shell: frameless/transparent, tray, always-on-top, click-through, corners, scale, hotkey, single-instance, strict CSP | ✅ |
+| Platform adapters with browser-safe fallbacks | ✅ |
+| Original SVG art + reusable animation state machine | ✅ |
+| CI (lint/typecheck/test/build), release, and Pages workflows | ✅ |
+
+### Documented tradeoffs & limitations
+
+- **Rendering uses inline SVG + CSS animation** behind a renderer boundary rather
+  than PixiJS. SVG art is itself a brief requirement, and this keeps the vertical
+  slice reliably buildable and hackable. The boundary (`src/art`) is designed so a
+  PixiJS/sprite renderer can be dropped in without touching gameplay. See
+  [`docs/ASSET_REPLACEMENT.md`](docs/ASSET_REPLACEMENT.md).
+- **Draft locales** (es, fr, de, it, pl, ru, ja, ko, zh-CN, zh-TW) ship translated
+  metadata + key UI strings and **fall back to English** for the rest, exactly as
+  the brief allows. Every user-facing string is a localization key — nothing is
+  hardcoded. `npm run check:i18n` reports coverage.
+- **Playwright** runs in CI (`ubuntu-latest` with `--with-deps`). Some minimal
+  sandboxes lack the system libraries Chromium needs (`libnspr4.so`, …); install
+  them via your package manager or run the e2e suite in CI.
+- **Steam** is prepared behind an adapter boundary (`src/platform/achievements.ts`,
+  [`docs/STEAM.md`](docs/STEAM.md)) and is **not required** to build or play.
+
+---
+
+## Architecture
+
+```
+electron/        Desktop main process + secure preload (context-isolated, typed IPC)
+src/
+  sim/           Deterministic simulation (no React/Electron/Pixi imports)
+  content/       Pure data: employees, upgrades, events, nuts, dialogue, …
+  save/          Zod schema, versioned migrations, robust save manager
+  platform/      Adapter boundary: browser fallback + desktop bridge + achievements
+  audio/         Web Audio synthesized SFX/ambience
+  i18n/          i18next setup + locale JSON
+  state/         Zustand store bridging the engine to React + the game loop
+  art/           Original SVG characters/scene + animation state machine
+  ui/            React views, modals, components
+tests/           Vitest unit tests + Playwright e2e
+docs/            Design, balancing, localization, Steam, release, asset docs
+.github/         CI / release / Pages workflows, issue + PR templates
+```
+
+The **simulation layer is framework-independent** and shared by the browser demo
+and the desktop app. Security: `contextIsolation` on, `nodeIntegration` off,
+`sandbox` on, strict CSP (meta tag + response header), no remote code, no `eval`,
+external navigation/window-open blocked, imported saves sanitized by schema.
+
+See [`docs/IMPLEMENTATION_PLAN.md`](docs/IMPLEMENTATION_PLAN.md) for the full plan
+and [`docs/GAME_DESIGN.md`](docs/GAME_DESIGN.md) for the design.
+
+---
+
+## Packaging native builds
+
+```bash
+npm run package:win     # NSIS installer + portable .exe  -> release/
+npm run package:linux   # AppImage                        -> release/
+npm run package:mac     # dmg                             -> release/
+```
+
+Development packages are **unsigned**. Public commercial releases must add proper
+code signing — see [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md) and
+[`docs/STEAM.md`](docs/STEAM.md). No signing secrets are needed for local or CI
+development builds.
+
+## Screenshots
+
+There is no bundled binary screenshot (to keep the repo clean). To capture the
+game: run `npm run dev`, then use **Photo Mode** (Collections → Photo Mode) to
+frame the office, or save a **Moment Card** as a PNG from the Collections tab.
+Moment Cards render entirely from game content and never capture your desktop.
+
+## License
+
+MIT — see [`LICENSE`](LICENSE). Bundled fonts fall back to safe system fonts; no
+third-party art or audio is shipped. See [`docs/STEAM.md`](docs/STEAM.md) for the
+EULA template (marked for legal review) and [`PRIVACY.md`](PRIVACY.md).
