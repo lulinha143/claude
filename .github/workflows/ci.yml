@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "**"]
+  pull_request:
+    branches: [main]
+
+env:
+  GODOT_VERSION: 4.4.1
+
+jobs:
+  validate:
+    name: Parse, test & validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Godot ${{ env.GODOT_VERSION }} (headless)
+        run: |
+          set -e
+          URL="https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          curl -sL -o godot.zip "$URL"
+          unzip -o godot.zip
+          mv Godot_v${GODOT_VERSION}-stable_linux.x86_64 /usr/local/bin/godot
+          chmod +x /usr/local/bin/godot
+          godot --headless --version
+
+      - name: Build import & global class cache
+        run: godot --headless --editor --quit --path . || true
+
+      - name: Fail on script parse errors
+        run: |
+          set -e
+          OUT=$(godot --headless --editor --quit --path . 2>&1 || true)
+          echo "$OUT"
+          if echo "$OUT" | grep -E "SCRIPT ERROR|Parse Error|does not inherit"; then
+            echo "::error::GDScript parse errors detected"; exit 1
+          fi
+
+      - name: Run unit tests
+        run: godot --headless --path . res://tools/test_runner.tscn
+
+      - name: Run integration test
+        run: godot --headless --path . res://tools/integration_contract.tscn
+
+      - name: Validate content resources
+        run: godot --headless --path . tools/validate_content.tscn
+
+      - name: Validate localization
+        run: godot --headless --path . tools/validate_localization.tscn
+
+  lint:
+    name: GDScript formatting & static checks
+    runs-on: ubuntu-latest
+    continue-on-error: true  # informational; does not gate merges yet
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install gdtoolkit
+        run: pip install "gdtoolkit==4.*"
+      - name: gdlint
+        run: gdlint game || true
+      - name: gdformat check
+        run: gdformat --check game || true

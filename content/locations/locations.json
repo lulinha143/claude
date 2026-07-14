@@ -1,0 +1,149 @@
+[
+  {
+    "id": "suburban_house",
+    "name": "Suburban Starter House",
+    "name_key": "LOC_SUBURBAN_HOUSE",
+    "description": "Ordinary architecture; the tutorial move.",
+    "danger": 1,
+    "rooms": [
+      "living_room",
+      "kitchen",
+      "hallway",
+      "bedroom",
+      "garage"
+    ],
+    "layout_variations": 3,
+    "hazards": [
+      "clutter"
+    ],
+    "performance_budget_objects": 40
+  },
+  {
+    "id": "city_apartment",
+    "name": "Narrow City Apartment",
+    "name_key": "LOC_CITY_APARTMENT",
+    "description": "Tight halls, stairs, nosy neighbors.",
+    "danger": 2,
+    "rooms": [
+      "entry",
+      "corridor",
+      "bedroom",
+      "balcony",
+      "stairwell"
+    ],
+    "layout_variations": 3,
+    "hazards": [
+      "clutter"
+    ],
+    "performance_budget_objects": 40
+  },
+  {
+    "id": "abandoned_hotel",
+    "name": "Abandoned Hotel",
+    "name_key": "LOC_ABANDONED_HOTEL",
+    "description": "Long corridors and repeating rooms.",
+    "danger": 3,
+    "rooms": [
+      "lobby",
+      "corridor",
+      "room_a",
+      "room_b",
+      "elevator"
+    ],
+    "layout_variations": 3,
+    "hazards": [
+      "clutter"
+    ],
+    "performance_budget_objects": 40
+  },
+  {
+    "id": "magician_mansion",
+    "name": "Retired Magician's Mansion",
+    "name_key": "LOC_MAGICIAN_MANSION",
+    "description": "False walls and impossible rooms.",
+    "danger": 4,
+    "rooms": [
+      "foyer",
+      "stage",
+      "mirror_hall",
+      "trapdoor_room",
+      "study"
+    ],
+    "layout_variations": 3,
+    "hazards": [
+      "clutter"
+    ],
+    "performance_budget_objects": 40
+  },
+  {
+    "id": "furniture_store",
+    "name": "Discount Furniture Store",
+    "name_key": "LOC_FURNITURE_STORE",
+    "description": "Decoys and showroom layouts.",
+    "danger": 3,
+    "rooms": [
+      "showroom",
+      "warehouse",
+      "checkout",
+      "storage"
+    ],
+    "layout_variations": 3,
+    "hazards": [
+      "clutter"
+    ],
+    "performance_budget_objects": 40
+  },
+  {
+    "id": "lakeside_cabin",
+    "name": "Flooded Lakeside Cabin",
+    "name_key": "LOC_LAKESIDE_CABIN",
+    "description": "Slippery floors and moving water.",
+    "danger": 4,
+    "rooms": [
+      "porch",
+      "main_room",
+      "dock",
+      "loft"
+    ],
+    "layout_variations": 3,
+    "hazards": [
+      "slippery"
+    ],
+    "performance_budget_objects": 40
+  },
+  {
+    "id": "corporate_office",
+    "name": "Corporate Office After Midnight",
+    "name_key": "LOC_CORPORATE_OFFICE",
+    "description": "Cubicles and an executive entity.",
+    "danger": 5,
+    "rooms": [
+      "reception",
+      "cubicles",
+      "conference",
+      "executive"
+    ],
+    "layout_variations": 3,
+    "hazards": [
+      "clutter"
+    ],
+    "performance_budget_objects": 40
+  },
+  {
+    "id": "impossible_house",
+    "name": "The Impossible House",
+    "name_key": "LOC_IMPOSSIBLE_HOUSE",
+    "description": "Architecture reacts to emotions.",
+    "danger": 6,
+    "rooms": [
+      "shifting_hall",
+      "recursive_room",
+      "the_core"
+    ],
+    "layout_variations": 3,
+    "hazards": [
+      "clutter"
+    ],
+    "performance_budget_objects": 40
+  }
+]

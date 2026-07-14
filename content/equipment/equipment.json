@@ -1,0 +1,290 @@
+[
+  {
+    "id": "basic_straps",
+    "name": "Basic Moving Straps",
+    "name_key": "EQUIP_BASIC_STRAPS",
+    "category": "tool",
+    "cost": 0,
+    "description": "Standard straps for two-person carries.",
+    "unlock_reputation": 0
+  },
+  {
+    "id": "reinforced_straps",
+    "name": "Reinforced Paranormal Straps",
+    "name_key": "EQUIP_REINFORCED_STRAPS",
+    "category": "tool",
+    "cost": 240,
+    "description": "Straps that resist supernatural tugging.",
+    "unlock_reputation": 5
+  },
+  {
+    "id": "hand_truck",
+    "name": "Hand Truck",
+    "name_key": "EQUIP_HAND_TRUCK",
+    "category": "tool",
+    "cost": 120,
+    "description": "Wheeled aid for tall single items.",
+    "unlock_reputation": 0
+  },
+  {
+    "id": "furniture_dolly",
+    "name": "Furniture Dolly",
+    "name_key": "EQUIP_FURNITURE_DOLLY",
+    "category": "tool",
+    "cost": 180,
+    "description": "Flat dolly for heavy objects.",
+    "unlock_reputation": 2
+  },
+  {
+    "id": "folding_ramp",
+    "name": "Folding Ramp",
+    "name_key": "EQUIP_FOLDING_RAMP",
+    "category": "tool",
+    "cost": 150,
+    "description": "Bridges steps and thresholds.",
+    "unlock_reputation": 2
+  },
+  {
+    "id": "emotional_scanner",
+    "name": "Emotional Scanner",
+    "name_key": "EQUIP_EMOTIONAL_SCANNER",
+    "category": "tool",
+    "cost": 0,
+    "description": "Reads an object's emotional state.",
+    "unlock_reputation": 0
+  },
+  {
+    "id": "trait_notebook",
+    "name": "Trait Notebook",
+    "name_key": "EQUIP_TRAIT_NOTEBOOK",
+    "category": "tool",
+    "cost": 60,
+    "description": "Records discovered traits.",
+    "unlock_reputation": 1
+  },
+  {
+    "id": "salt_tape",
+    "name": "Salt Tape",
+    "name_key": "EQUIP_SALT_TAPE",
+    "category": "consumable",
+    "cost": 40,
+    "description": "Temporarily seals paranormal seams.",
+    "unlock_reputation": 3
+  },
+  {
+    "id": "comfort_blanket",
+    "name": "Comfort Blanket",
+    "name_key": "EQUIP_COMFORT_BLANKET",
+    "category": "consumable",
+    "cost": 50,
+    "description": "Soothes anxious objects; revives movers.",
+    "unlock_reputation": 1
+  },
+  {
+    "id": "portable_lamp",
+    "name": "Portable Lamp",
+    "name_key": "EQUIP_PORTABLE_LAMP",
+    "category": "tool",
+    "cost": 70,
+    "description": "Portable light source.",
+    "unlock_reputation": 1
+  },
+  {
+    "id": "snack_bait",
+    "name": "Snack Bait",
+    "name_key": "EQUIP_SNACK_BAIT",
+    "category": "consumable",
+    "cost": 30,
+    "description": "Distracts hungry objects.",
+    "unlock_reputation": 1
+  },
+  {
+    "id": "applause_machine",
+    "name": "Applause Machine",
+    "name_key": "EQUIP_APPLAUSE_MACHINE",
+    "category": "tool",
+    "cost": 130,
+    "description": "Provides applause on demand.",
+    "unlock_reputation": 4
+  },
+  {
+    "id": "noise_maker",
+    "name": "Noise Maker",
+    "name_key": "EQUIP_NOISE_MAKER",
+    "category": "tool",
+    "cost": 45,
+    "description": "Creates distracting noise.",
+    "unlock_reputation": 2
+  },
+  {
+    "id": "furniture_muzzle",
+    "name": "Furniture Muzzle",
+    "name_key": "EQUIP_FURNITURE_MUZZLE",
+    "category": "tool",
+    "cost": 200,
+    "description": "Restrains biting objects.",
+    "unlock_reputation": 5
+  },
+  {
+    "id": "anti_teleport_anchor",
+    "name": "Anti-Teleport Anchor",
+    "name_key": "EQUIP_ANTI_TELEPORT_ANCHOR",
+    "category": "tool",
+    "cost": 260,
+    "description": "Pins teleporting objects.",
+    "unlock_reputation": 6
+  },
+  {
+    "id": "spectral_gloves",
+    "name": "Spectral Gloves",
+    "name_key": "EQUIP_SPECTRAL_GLOVES",
+    "category": "tool",
+    "cost": 300,
+    "description": "Grip ghostly or slippery objects.",
+    "unlock_reputation": 6
+  },
+  {
+    "id": "wakeup_bell",
+    "name": "Emergency Wake-Up Bell",
+    "name_key": "EQUIP_WAKEUP_BELL",
+    "category": "tool",
+    "cost": 90,
+    "description": "Wakes sleeping objects and movers.",
+    "unlock_reputation": 3
+  },
+  {
+    "id": "containment_box",
+    "name": "Containment Box",
+    "name_key": "EQUIP_CONTAINMENT_BOX",
+    "category": "tool",
+    "cost": 280,
+    "description": "Safely stores volatile small objects.",
+    "unlock_reputation": 7
+  },
+  {
+    "id": "doorway_padding",
+    "name": "Instant Doorway Padding",
+    "name_key": "EQUIP_DOORWAY_PADDING",
+    "category": "consumable",
+    "cost": 35,
+    "description": "Protects doorframes from damage.",
+    "unlock_reputation": 2
+  },
+  {
+    "id": "insurance_camera",
+    "name": "Insurance Camera",
+    "name_key": "EQUIP_INSURANCE_CAMERA",
+    "category": "tool",
+    "cost": 110,
+    "description": "Photographs evidence for claims.",
+    "unlock_reputation": 1
+  },
+  {
+    "id": "grip_wax",
+    "name": "Grip Wax",
+    "name_key": "EQUIP_GRIP_WAX",
+    "category": "consumable",
+    "cost": 25,
+    "description": "Improves grip briefly.",
+    "unlock_reputation": 1
+  },
+  {
+    "id": "calm_diffuser",
+    "name": "Calming Diffuser",
+    "name_key": "EQUIP_CALM_DIFFUSER",
+    "category": "consumable",
+    "cost": 55,
+    "description": "Area calming mist.",
+    "unlock_reputation": 4
+  },
+  {
+    "id": "stair_glider",
+    "name": "Stair Glider",
+    "name_key": "EQUIP_STAIR_GLIDER",
+    "category": "tool",
+    "cost": 220,
+    "description": "Eases objects down stairs.",
+    "unlock_reputation": 5
+  },
+  {
+    "id": "ward_chalk",
+    "name": "Ward Chalk",
+    "name_key": "EQUIP_WARD_CHALK",
+    "category": "consumable",
+    "cost": 30,
+    "description": "Draws temporary calming wards.",
+    "unlock_reputation": 3
+  },
+  {
+    "id": "upg_van_capacity",
+    "name": "Van Capacity +1",
+    "name_key": "EQUIP_UPG_VAN_CAPACITY",
+    "category": "upgrade",
+    "cost": 400,
+    "description": "Carry one more large object.",
+    "unlock_reputation": 3
+  },
+  {
+    "id": "upg_van_speed",
+    "name": "Van Reinforcement",
+    "name_key": "EQUIP_UPG_VAN_SPEED",
+    "category": "upgrade",
+    "cost": 350,
+    "description": "Van resists cargo emotions.",
+    "unlock_reputation": 5
+  },
+  {
+    "id": "upg_insurance_tier",
+    "name": "Insurance Tier Up",
+    "name_key": "EQUIP_UPG_INSURANCE_TIER",
+    "category": "upgrade",
+    "cost": 500,
+    "description": "Higher payout floor on damage.",
+    "unlock_reputation": 4
+  },
+  {
+    "id": "upg_scanner_range",
+    "name": "Scanner Range +",
+    "name_key": "EQUIP_UPG_SCANNER_RANGE",
+    "category": "upgrade",
+    "cost": 200,
+    "description": "Scan objects from farther away.",
+    "unlock_reputation": 2
+  },
+  {
+    "id": "upg_stamina",
+    "name": "Stamina Training",
+    "name_key": "EQUIP_UPG_STAMINA",
+    "category": "upgrade",
+    "cost": 180,
+    "description": "Movers sprint longer.",
+    "unlock_reputation": 2
+  },
+  {
+    "id": "upg_grip_strength",
+    "name": "Grip Training",
+    "name_key": "EQUIP_UPG_GRIP_STRENGTH",
+    "category": "upgrade",
+    "cost": 220,
+    "description": "Carry heavier objects solo.",
+    "unlock_reputation": 4
+  },
+  {
+    "id": "upg_research_lab",
+    "name": "Research Laboratory",
+    "name_key": "EQUIP_UPG_RESEARCH_LAB",
+    "category": "upgrade",
+    "cost": 600,
+    "description": "Unlocks trait research.",
+    "unlock_reputation": 6
+  },
+  {
+    "id": "upg_therapy_room",
+    "name": "Furniture Therapy Room",
+    "name_key": "EQUIP_UPG_THERAPY_ROOM",
+    "category": "upgrade",
+    "cost": 650,
+    "description": "Raises object trust faster.",
+    "unlock_reputation": 7
+  }
+]
