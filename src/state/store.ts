@@ -13,7 +13,7 @@ import { unlockedRooms } from '../sim/rooms';
 import { ROOMS_BY_ID } from '../content/rooms';
 import { EMPLOYEES_BY_ID } from '../content/employees';
 import { ACHIEVEMENTS_BY_ID } from '../content/achievements';
-import { notify } from '../ui/notifications';
+import { notify } from '../ui/notificationsStore';
 import i18n from '../i18n';
 
 export type ViewId =

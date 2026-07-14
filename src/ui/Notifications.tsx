@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useNotifications, type Toast } from './notifications';
+import { useNotifications, type Toast } from './notificationsStore';
 import { Icon } from '../art/UiIcon';
 
 export function Notifications() {

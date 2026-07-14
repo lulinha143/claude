@@ -6,6 +6,10 @@ import type { IconName } from '../art/UiIcon';
 // an icon, are de-duplicated within a short window, and the stack is capped so a
 // burst of changes can never flood the screen. The UI announces them politely
 // for screen readers and respects reduced motion.
+//
+// NOTE: this file is intentionally named `notificationsStore.ts` (not
+// `notifications.ts`) so it never case-collides with the `Notifications.tsx`
+// component on case-insensitive filesystems (Windows/macOS).
 
 export type ToastTone = 'positive' | 'negative' | 'neutral' | 'gold';
 
