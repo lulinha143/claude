@@ -4,6 +4,34 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/), and this project adheres to
 semantic versioning.
 
+## [Unreleased] — production polish pass
+
+### Changed / Added
+
+- **Design-token system** (`src/ui/tokens.css`): semantic colour, department
+  accents, elevation, spacing, radius, and motion tokens; high-contrast mode now
+  overrides tokens only. No more scattered hardcoded colours in new components.
+- **Character redesign:** the reusable `Critter` now renders six genuinely
+  distinct species (squirrel, capybara, raccoon, beaver, crow, mole) with bespoke
+  silhouettes, expressive blinking eyes, mood-driven mouths, eyebrows, buck
+  teeth, masks, wings, and per-species tails — plus contact shadows and
+  staggered idle timing. (Props changed from ear/tail/beak flags to `species`.)
+- **Unified icon set** (`src/art/UiIcon.tsx`): original `currentColor` line icons
+  replacing the emoji/text symbols in the header, nav, and prestige view.
+- **Office diorama redesign:** organic tree-trunk SVG frame (bark, knots, roots,
+  moss), per-department accent colours and labels, ambient room animations
+  (coffee steam, conveyor, bubbling beaker, vault glint, swaying plant, etc.),
+  and an "under construction" hint for the next unlockable room.
+- **Feedback polish:** animated (tweened) nut counter, crate glow + press
+  feedback, tabular figures so counters don't shift.
+- **Tests:** added art render tests (all species × states, all icons) and an App
+  mount smoke test.
+
+### Save compatibility
+
+- No save-schema change; `SAVE_VERSION` is unchanged and existing saves load
+  unmodified.
+
 ## [1.0.0] — 2026-07-14
 
 The initial stable foundation / vertical slice.

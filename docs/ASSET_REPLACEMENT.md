@@ -3,9 +3,19 @@
 All initial art and audio are **generated in code** so the repo ships nothing
 that needs licensing:
 
-- **Art:** original inline SVG (`src/art/`) — `Critter.tsx` (parametric animal),
-  `Icons.tsx` (acorn/crate/nut), `OfficeScene.tsx` (the diorama), animated with
-  CSS keyframes in `src/styles.css`.
+- **Design tokens:** `src/ui/tokens.css` is the single source of truth for
+  colour (semantic + department accents), elevation, spacing, radius, and
+  motion. Re-theme the whole game from here; high-contrast mode overrides only
+  the semantic tokens.
+- **Characters:** `src/art/Critter.tsx` draws six **distinct species**
+  (squirrel, capybara, raccoon, beaver, crow, mole) with bespoke geometry and
+  shared expressive faces (blink, eyebrows, mood-driven mouth). Species per
+  employee are declared in `src/art/critterShapes.ts`.
+- **UI icons:** `src/art/UiIcon.tsx` is a unified 24×24 line-icon set using
+  `currentColor` (`<Icon name="…" />`), readable at 16–24px.
+- **Illustrative props:** `src/art/Icons.tsx` (acorn/crate/nut).
+- **Office diorama:** `src/art/OfficeScene.tsx` — an organic tree-trunk frame
+  (SVG) with stacked rooms, per-department accents, and ambient animations.
 - **Audio:** synthesized at runtime via the Web Audio API (`src/audio/audio.ts`).
 
 The code is structured so professional assets can replace the generated ones

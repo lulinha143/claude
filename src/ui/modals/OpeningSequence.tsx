@@ -22,13 +22,12 @@ export function OpeningSequence() {
       {phase === 'intro' ? (
         <div className="opening-seq__intro">
           <Critter
+            species={shape.species}
             color="#c65b3c"
             accent="#3f7d4f"
             state="think"
-            earType={shape.earType}
-            hasTail
             hasGlasses
-            size={120}
+            size={124}
           />
           <p className="opening-seq__line">“{t('opening.line')}”</p>
           <button

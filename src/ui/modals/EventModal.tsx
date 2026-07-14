@@ -29,14 +29,12 @@ export function EventModal() {
         <div className="event-modal__head">
           {emp && shape ? (
             <Critter
+              species={shape.species}
               color={emp.color}
               accent={emp.accent}
               state="talk"
-              earType={shape.earType}
-              hasTail={shape.hasTail}
               hasGlasses={shape.hasGlasses}
-              hasBeak={shape.hasBeak}
-              size={64}
+              size={68}
             />
           ) : null}
           <h2>{t(def.titleKey)}</h2>

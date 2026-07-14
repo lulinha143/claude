@@ -31,14 +31,12 @@ export function EmployeesView() {
             <li key={def.id} className={`employee-card ${rt.hired ? '' : 'is-locked'}`}>
               <div className="employee-card__art">
                 <Critter
+                  species={shape.species}
                   color={def.color}
                   accent={accent}
                   state={rt.hired ? 'idle' : 'sleep'}
-                  earType={shape.earType}
-                  hasTail={shape.hasTail}
                   hasGlasses={shape.hasGlasses}
-                  hasBeak={shape.hasBeak}
-                  size={72}
+                  size={78}
                   reducedMotion={state.settings.reducedMotion}
                 />
               </div>
