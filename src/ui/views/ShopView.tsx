@@ -8,6 +8,7 @@ import type { UpgradeDef } from '../../content/types';
 import { aggregatePassives, isUpgradeUnlocked, upgradeCost } from '../../sim/economy';
 import { Acorn, GoldenNut } from '../../art/Icons';
 import { Tip, TipContent } from '../Tooltip';
+import { sparkleAt } from '../sparkle';
 
 const CATEGORIES: UpgradeDef['category'][] = [
   'production',
@@ -28,9 +29,13 @@ export function ShopView() {
   const passives = aggregatePassives(state);
   const visible = UPGRADES.filter((u) => u.category === cat && isUpgradeUnlocked(state, u));
 
-  function buy(u: UpgradeDef) {
-    if (engine.buyUpgrade(u.id)) audio.play('upgrade');
-    else audio.play('error');
+  function buy(u: UpgradeDef, e: React.MouseEvent) {
+    if (engine.buyUpgrade(u.id)) {
+      audio.play('upgrade');
+      sparkleAt(e);
+    } else {
+      audio.play('error');
+    }
   }
 
   return (
@@ -72,7 +77,7 @@ export function ShopView() {
                   />
                 }
               >
-                <button className="buy-btn" disabled={maxed || !afford} onClick={() => buy(u)}>
+                <button className="buy-btn" disabled={maxed || !afford} onClick={(e) => buy(u, e)}>
                   {maxed ? (
                     t('common.max')
                   ) : (

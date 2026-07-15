@@ -596,8 +596,14 @@ export class GameEngine {
     const target = anchorId ?? firstFreeAnchorId(this.state, roomId);
     if (!target || !anchorById(roomId, target)) return false;
     this.pushDecoHistory();
+    const prevAnchor = this.state.placements[id]; // where this piece was (if placed)
     const occupant = decorationAtAnchor(this.state, roomId, target);
-    if (occupant && occupant !== id) delete this.state.placements[occupant];
+    if (occupant && occupant !== id) {
+      // Intelligent swap: if the dragged piece already had a spot, the piece at
+      // the target moves into it; otherwise it returns to the inventory.
+      if (prevAnchor) this.state.placements[occupant] = prevAnchor;
+      else delete this.state.placements[occupant];
+    }
     this.state.placements[id] = target;
     this.emit();
     return true;

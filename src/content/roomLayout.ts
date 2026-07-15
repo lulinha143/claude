@@ -20,6 +20,8 @@ export interface DecorAnchor {
   x: number;
   y: number;
   scale: number;
+  /** 'back' = behind the critters (walls/shelves); 'front' = framing foreground. */
+  layer: 'back' | 'front';
 }
 
 export interface CharacterSlot {
@@ -29,26 +31,29 @@ export interface CharacterSlot {
   bottom: number;
 }
 
-// Default anchor set used by most rooms: two back-wall "shelf" rows plus two
-// lower corners. Auto-placement fills them in this order.
+// Default composition used by most rooms. Decorations are now large furniture
+// pieces spread across the whole room: tall wall pieces at the back, mid-wall
+// shelf pieces, and big framing pieces in the two front corners (which sit in
+// FRONT of the critters for real depth). Auto-placement fills them in this
+// order, so a freshly-bought piece lands somewhere sensible.
 const TEMPLATE_ANCHORS: DecorAnchor[] = [
-  { id: 'wall-l', x: 0.14, y: 40, scale: 0.85 },
-  { id: 'wall-r', x: 0.86, y: 40, scale: 0.85 },
-  { id: 'wall-cl', x: 0.36, y: 48, scale: 0.72 },
-  { id: 'wall-cr', x: 0.64, y: 48, scale: 0.72 },
-  { id: 'floor-l', x: 0.06, y: 2, scale: 1 },
-  { id: 'floor-r', x: 0.95, y: 2, scale: 1 },
+  { id: 'wall-l', x: 0.12, y: 52, scale: 1.25, layer: 'back' },
+  { id: 'wall-r', x: 0.88, y: 52, scale: 1.25, layer: 'back' },
+  { id: 'floor-l', x: 0.08, y: 0, scale: 1.5, layer: 'front' },
+  { id: 'floor-r', x: 0.92, y: 0, scale: 1.5, layer: 'front' },
+  { id: 'wall-cl', x: 0.33, y: 62, scale: 1.0, layer: 'back' },
+  { id: 'wall-cr', x: 0.67, y: 62, scale: 1.0, layer: 'back' },
 ];
 
 // Per-room overrides. The Founder's Desk keeps its front-right corner clear for
-// the collectible crate, so its anchors hug the left and the back wall.
+// the collectible crate, so its big pieces hug the left corner and the wall.
 const ROOM_ANCHORS: Record<string, DecorAnchor[]> = {
   'founder-desk': [
-    { id: 'wall-l', x: 0.12, y: 44, scale: 0.82 },
-    { id: 'wall-cl', x: 0.3, y: 50, scale: 0.7 },
-    { id: 'wall-c', x: 0.5, y: 52, scale: 0.68 },
-    { id: 'wall-cr', x: 0.68, y: 46, scale: 0.72 },
-    { id: 'floor-l', x: 0.05, y: 2, scale: 1 },
+    { id: 'wall-l', x: 0.12, y: 54, scale: 1.2, layer: 'back' },
+    { id: 'wall-cl', x: 0.34, y: 64, scale: 0.95, layer: 'back' },
+    { id: 'wall-c', x: 0.52, y: 66, scale: 0.9, layer: 'back' },
+    { id: 'wall-cr', x: 0.72, y: 56, scale: 1.0, layer: 'back' },
+    { id: 'floor-l', x: 0.08, y: 0, scale: 1.5, layer: 'front' },
   ],
 };
 

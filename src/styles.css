@@ -283,7 +283,7 @@ h4 {
   border: 1px solid rgba(0, 0, 0, 0.45);
   border-left: 3px solid var(--dept);
   border-radius: var(--r-sm);
-  min-height: calc(120px * var(--asset-scale));
+  min-height: calc(152px * var(--asset-scale));
   padding: 5px 8px 6px;
   box-shadow: inset 0 -8px 12px -8px rgba(0, 0, 0, 0.5);
   overflow: hidden;
@@ -318,7 +318,7 @@ h4 {
 .floor__stage {
   position: relative;
   z-index: 2;
-  height: calc(90px * var(--asset-scale));
+  height: calc(118px * var(--asset-scale));
 }
 /* --- locked / under-construction next room --- */
 .floor--locked {
@@ -2912,3 +2912,136 @@ img {
 .card__title {
   overflow-wrap: anywhere;
 }
+
+
+/* ==========================================================================
+   Room composition — depth layers, growing workbench, living decorations
+   ========================================================================== */
+
+/* Depth: wall/shelf pieces sit BEHIND the critters; framing corner pieces sit
+   in FRONT, so a decorated room reads with real foreground/background. */
+.floor__anchor--back {
+  z-index: 1;
+  filter: saturate(0.92) brightness(0.96);
+}
+.floor__anchor--front {
+  z-index: 6;
+}
+.floor__anchor--back.floor__anchor--empty,
+.floor__anchor--front.floor__anchor--empty {
+  filter: none;
+}
+
+/* The workbench that grows with the team. */
+.floor__furniture {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.96;
+}
+.floor__furniture .desk {
+  filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.28));
+  animation: desk-in 0.34s var(--ease) both;
+}
+@keyframes desk-in {
+  from { transform: translateY(8px) scale(0.85); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 0.96; }
+}
+[data-reduced-motion='true'] .floor__furniture .desk { animation: none; }
+
+/* Living decorations: gentle idle motion so a room feels alive. */
+.decor {
+  filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.3));
+}
+.decor__leaf {
+  transform-origin: bottom center;
+  animation: leaf-sway 4.5s ease-in-out infinite;
+}
+.decor--plant:nth-of-type(2n) .decor__leaf { animation-delay: -1.6s; }
+.decor__spin {
+  transform-origin: center;
+  animation: deco-twinkle 3.2s ease-in-out infinite;
+}
+.decor__bubble:nth-of-type(2) { animation-delay: -1.1s; }
+.decor.is-off {
+  filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.3)) brightness(0.72);
+}
+.decor.is-reacting {
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--gold) 75%, transparent));
+}
+@keyframes leaf-sway {
+  0%, 100% { transform: rotate(-2.5deg); }
+  50% { transform: rotate(2.5deg); }
+}
+@keyframes deco-twinkle {
+  0%, 100% { opacity: 0.45; transform: scale(0.82); }
+  50% { opacity: 1; transform: scale(1.12); }
+}
+[data-reduced-motion='true'] .decor__leaf,
+[data-reduced-motion='true'] .decor__spin,
+[data-reduced-motion='true'] .decor__bubble { animation: none; }
+
+/* ==========================================================================
+   Game feel / juice — buttons, hovers, purchases
+   ========================================================================== */
+.buy-btn,
+.chip-btn,
+.tag-btn,
+.mini-btn,
+.ghost-btn,
+.nav__item {
+  transition:
+    transform var(--dur-fast, 0.12s) var(--ease),
+    background var(--dur, 0.2s) var(--ease),
+    box-shadow var(--dur, 0.2s) var(--ease),
+    filter var(--dur, 0.2s) var(--ease);
+}
+.buy-btn:not(:disabled):hover,
+.chip-btn:not(:disabled):hover,
+.mini-btn:not(:disabled):hover {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+}
+.buy-btn:not(:disabled):active,
+.chip-btn:not(:disabled):active,
+.tag-btn:not(:disabled):active,
+.mini-btn:not(:disabled):active,
+.ghost-btn:not(:disabled):active,
+.nav__item:active {
+  transform: translateY(1px) scale(0.97);
+}
+.critter-btn {
+  transition: transform var(--dur-fast, 0.12s) var(--ease);
+}
+.critter-btn:not(.is-dragging):hover {
+  transform: translateX(-50%) translateY(-3px) scale(1.04);
+}
+
+/* sparkle burst emitted on a purchase / reward */
+.sparkle-burst {
+  position: fixed;
+  z-index: 9997;
+  pointer-events: none;
+  width: 0;
+  height: 0;
+}
+.sparkle-burst span {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--gold);
+  transform: translate(-50%, -50%);
+  animation: sparkle-fly 0.6s var(--ease) forwards;
+}
+@keyframes sparkle-fly {
+  0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0.3); }
+}
+[data-reduced-motion='true'] .sparkle-burst { display: none; }
