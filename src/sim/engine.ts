@@ -22,6 +22,16 @@ import { GAME_EVENTS, GAME_EVENTS_BY_ID } from '../content/events';
 import { evaluateAchievements } from './achievements';
 import { ensureDailyForDate } from './dailyChallenges';
 import { isRoomIdUnlocked, repairPlacements } from './rooms';
+import {
+  repairDecorations,
+  firstFreeAnchorId,
+  decorationAtAnchor,
+  isDecorationOwned,
+  isDecorationPlaced,
+  ownedDecorationsInRoom,
+} from './decorations';
+import { DECORATIONS_BY_ID } from '../content/decorations';
+import { anchorById, anchorsForRoom } from '../content/roomLayout';
 
 export interface Consequence {
   titleKey: string;
@@ -80,10 +90,17 @@ export class GameEngine {
     this.rng = createRng(seed);
     // Repair any invalid employee placement data on load so no one is lost.
     this.repairedOnLoad = repairPlacements(this.state);
+    // Normalize + migrate decoration placement (auto-places legacy purchases).
+    repairDecorations(this.state);
   }
 
   /** ids whose invalid placement was repaired at load (for dev-only logging). */
   repairedOnLoad: string[] = [];
+
+  // Session-only undo/redo history for decoration placement (snapshots of the
+  // placements map). Not persisted — a fresh session starts with clean history.
+  private decoUndo: Array<Record<string, string>> = [];
+  private decoRedo: Array<Record<string, string>> = [];
 
   // -- subscription ---------------------------------------------------------
   subscribe(listener: EngineListener): () => void {
@@ -542,22 +559,108 @@ export class GameEngine {
   }
 
   private applyDecorationPurchase(id: string, key: string): boolean {
-    // resolved against content in the store layer to keep engine light; here
-    // we only track ownership. The store validates cost before calling.
-    void id;
+    // The store validates cost before calling; here we track ownership and, for
+    // instant gratification, auto-place the new decoration into a free anchor so
+    // it appears in the office immediately.
     this.state.collections.secrets.push(key);
+    const def = DECORATIONS_BY_ID[id];
+    if (def) {
+      const free = firstFreeAnchorId(this.state, def.room);
+      if (free) this.state.placements[id] = free;
+    }
     this.emit();
     return true;
   }
 
-  /** Show/hide an owned decoration in the office (decoration mode). Persisted. */
-  toggleDecoration(id: string): void {
-    const key = `decohide:${id}`;
-    const arr = this.state.collections.secrets;
-    const i = arr.indexOf(key);
-    if (i >= 0) arr.splice(i, 1);
-    else arr.push(key);
+  // -- decoration placement -------------------------------------------------
+  private snapshotPlacements(): Record<string, string> {
+    return { ...this.state.placements };
+  }
+
+  private pushDecoHistory(): void {
+    this.decoUndo.push(this.snapshotPlacements());
+    if (this.decoUndo.length > 50) this.decoUndo.shift();
+    this.decoRedo = [];
+  }
+
+  /**
+   * Place an owned decoration at an anchor (or the first free anchor if none is
+   * given). If the target anchor is occupied by another decoration, that one is
+   * returned to the inventory so the move is always reliable.
+   */
+  placeDecoration(id: string, anchorId?: string): boolean {
+    if (!isDecorationOwned(this.state, id)) return false;
+    const def = DECORATIONS_BY_ID[id];
+    if (!def) return false;
+    const roomId = def.room;
+    const target = anchorId ?? firstFreeAnchorId(this.state, roomId);
+    if (!target || !anchorById(roomId, target)) return false;
+    this.pushDecoHistory();
+    const occupant = decorationAtAnchor(this.state, roomId, target);
+    if (occupant && occupant !== id) delete this.state.placements[occupant];
+    this.state.placements[id] = target;
     this.emit();
+    return true;
+  }
+
+  /** Move a placed decoration to a different anchor (alias of placeDecoration). */
+  moveDecoration(id: string, anchorId: string): boolean {
+    return this.placeDecoration(id, anchorId);
+  }
+
+  /** Return an owned decoration to the inventory (removed from the office). */
+  removeDecoration(id: string): boolean {
+    if (!isDecorationPlaced(this.state, id)) return false;
+    this.pushDecoHistory();
+    delete this.state.placements[id];
+    this.emit();
+    return true;
+  }
+
+  /** Reset a room to a tidy default: every owned decoration placed in order. */
+  resetRoomDecorations(roomId: string): boolean {
+    const owned = ownedDecorationsInRoom(this.state, roomId);
+    if (owned.length === 0) return false;
+    this.pushDecoHistory();
+    for (const d of owned) delete this.state.placements[d.id];
+    const anchors = anchorsForRoom(roomId);
+    owned.forEach((d, i) => {
+      if (i < anchors.length) this.state.placements[d.id] = anchors[i].id;
+    });
+    this.emit();
+    return true;
+  }
+
+  /** Toggle an owned decoration between placed (auto anchor) and inventory. */
+  toggleDecoration(id: string): void {
+    if (isDecorationPlaced(this.state, id)) this.removeDecoration(id);
+    else this.placeDecoration(id);
+  }
+
+  canUndoDecoration(): boolean {
+    return this.decoUndo.length > 0;
+  }
+
+  canRedoDecoration(): boolean {
+    return this.decoRedo.length > 0;
+  }
+
+  undoDecoration(): boolean {
+    const prev = this.decoUndo.pop();
+    if (!prev) return false;
+    this.decoRedo.push(this.snapshotPlacements());
+    this.state.placements = prev;
+    this.emit();
+    return true;
+  }
+
+  redoDecoration(): boolean {
+    const next = this.decoRedo.pop();
+    if (!next) return false;
+    this.decoUndo.push(this.snapshotPlacements());
+    this.state.placements = next;
+    this.emit();
+    return true;
   }
 
   spendResource(resource: 'nuts' | 'goldenNuts' | 'permanentKernels', amount: number): boolean {
@@ -586,6 +689,9 @@ export class GameEngine {
     this.lastConsequence = null;
     this.tempBoosts = [];
     this.repairedOnLoad = repairPlacements(this.state);
+    repairDecorations(this.state);
+    this.decoUndo = [];
+    this.decoRedo = [];
     this.emit();
   }
 

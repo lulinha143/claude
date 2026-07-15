@@ -59,8 +59,41 @@
     "production": "Produção",
     "clickReward": "+{{value}} castanhas",
     "empty": "Nenhuma caixa ainda — continue trabalhando!",
-    "decorate": "Decorar",
-    "decorateHint": "Toque numa decoração para mostrar ou esconder. Compre mais na aba Decorar."
+    "decorate": "Organizar",
+    "decorateHint": "Toque numa decoração para pegá-la e depois toque num espaço vazio para movê-la. Compre mais na aba Decorar."
+  },
+  "decorate": {
+    "searchPlaceholder": "Buscar decorações…",
+    "allRooms": "Todas as salas",
+    "allTypes": "Todos os tipos",
+    "anyResource": "Qualquer moeda",
+    "placed": "Colocada",
+    "inStorage": "Guardada",
+    "place": "Colocar",
+    "remove": "Remover",
+    "stow": "Guardar",
+    "resetRoom": "Arrumar",
+    "roomFull": "Sala cheia",
+    "roomEmpty": "Nenhuma decoração para esta sala ainda.",
+    "noResults": "Nenhuma decoração corresponde aos filtros.",
+    "undo": "Desfazer",
+    "redo": "Refazer",
+    "placeHere": "Colocar aqui",
+    "pickedHint": "Toque num espaço vazio para colocá-la, ou toque nela de novo para cancelar.",
+    "inventory": "Depósito",
+    "inventoryEmpty": "Depósito vazio",
+    "summary": "{{owned}} obtidas · {{placed}} colocadas · +{{comfort}} conforto",
+    "type": {
+      "plant": "Plantas",
+      "lamp": "Iluminação",
+      "poster": "Arte de parede",
+      "rug": "Tapetes",
+      "aquarium": "Aquários",
+      "trophy": "Troféus",
+      "cushion": "Conforto",
+      "screen": "Telas",
+      "box": "Móveis"
+    }
   },
   "shop": {
     "title": "Loja de Melhorias",

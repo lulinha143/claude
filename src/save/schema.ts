@@ -110,6 +110,7 @@ export const gameStateSchema = z.object({
   employees: z.record(employeeSchema).catch({}),
   upgrades: z.record(z.number()).catch({}),
   achievements: z.record(z.number()).catch({}),
+  placements: z.record(z.string()).catch({}),
   collections: z
     .object({
       nuts: z.array(z.string()).catch([]),

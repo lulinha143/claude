@@ -71,6 +71,7 @@ export function createInitialState(now = Date.now(), settings?: Partial<GameSett
     employees: initialEmployees(),
     upgrades: {},
     achievements: {},
+    placements: {},
     collections: { nuts: [], outfits: ['pip-classic'], logos: ['default'], moments: [], secrets: [] },
     prestige: { count: 0, branch: null, skills: {} },
     focus: { active: false, endsAt: 0, durationSeconds: 0, completedSessions: 0 },
