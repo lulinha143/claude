@@ -76,6 +76,27 @@ const settingsSchema = z
     focusHarvestEnabled: z.boolean().catch(false),
     offlineCapHours: z.number().catch(8),
     showHints: z.boolean().catch(true),
+    background: z
+      .object({
+        enabled: z.boolean().catch(true),
+        brightness: z.number().catch(1),
+        contrast: z.number().catch(1),
+        saturation: z.number().catch(1),
+        blurBehindPanels: z.boolean().catch(true),
+        quality: z.enum(['high', 'balanced', 'static']).catch('high'),
+        focal: z.enum(['center', 'top', 'bottom', 'left', 'right']).catch('center'),
+        pauseWhenHidden: z.boolean().catch(true),
+      })
+      .catch({
+        enabled: true,
+        brightness: 1,
+        contrast: 1,
+        saturation: 1,
+        blurBehindPanels: true,
+        quality: 'high',
+        focal: 'center',
+        pauseWhenHidden: true,
+      }),
   })
   .default({})
   .catch({} as never);

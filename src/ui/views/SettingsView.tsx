@@ -37,6 +37,23 @@ export function SettingsView() {
     set({ channelMuted: { ...s.channelMuted, [ch]: muted } });
   }
 
+  function setBg(patch: Partial<typeof s.background>) {
+    set({ background: { ...s.background, ...patch } });
+  }
+
+  function resetBackground() {
+    setBg({
+      enabled: true,
+      brightness: 1,
+      contrast: 1,
+      saturation: 1,
+      blurBehindPanels: true,
+      quality: 'high',
+      focal: 'center',
+      pauseWhenHidden: true,
+    });
+  }
+
   function resetAudio() {
     set({
       masterMuted: false,
@@ -183,6 +200,65 @@ export function SettingsView() {
             <option value={60}>60</option>
           </select>
         </label>
+      </div>
+
+      <div className="panel">
+        <h3>{t('settings.bg.title')}</h3>
+        <p className="muted small">{t('settings.bg.note')}</p>
+        <Toggle label={t('settings.bg.enabled')} checked={s.background.enabled} onChange={(v) => setBg({ enabled: v })} />
+        <Toggle
+          label={t('settings.bg.blurPanels')}
+          checked={s.background.blurBehindPanels}
+          onChange={(v) => setBg({ blurBehindPanels: v })}
+        />
+        <Toggle
+          label={t('settings.bg.pauseWhenHidden')}
+          checked={s.background.pauseWhenHidden}
+          onChange={(v) => setBg({ pauseWhenHidden: v })}
+        />
+        {(['brightness', 'contrast', 'saturation'] as const).map((k) => (
+          <label key={k} className="slider-row">
+            <span>{t(`settings.bg.${k}`)}</span>
+            <input
+              type="range"
+              min={0.5}
+              max={1.5}
+              step={0.05}
+              value={s.background[k]}
+              onChange={(e) => setBg({ [k]: Number(e.target.value) })}
+            />
+            <span className="vol-pct">{Math.round(s.background[k] * 100)}%</span>
+          </label>
+        ))}
+        <label className="slider-row">
+          <span>{t('settings.bg.quality')}</span>
+          <select
+            className="select"
+            value={s.background.quality}
+            onChange={(e) => setBg({ quality: e.target.value as typeof s.background.quality })}
+          >
+            <option value="high">{t('settings.bg.qHigh')}</option>
+            <option value="balanced">{t('settings.bg.qBalanced')}</option>
+            <option value="static">{t('settings.bg.qStatic')}</option>
+          </select>
+        </label>
+        <label className="slider-row">
+          <span>{t('settings.bg.focal')}</span>
+          <select
+            className="select"
+            value={s.background.focal}
+            onChange={(e) => setBg({ focal: e.target.value as typeof s.background.focal })}
+          >
+            {(['center', 'top', 'bottom', 'left', 'right'] as const).map((f) => (
+              <option key={f} value={f}>
+                {t(`settings.bg.focal_${f}`)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button className="ghost-btn" onClick={resetBackground}>
+          {t('settings.bg.reset')}
+        </button>
       </div>
 
       <div className="panel">

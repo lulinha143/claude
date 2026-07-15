@@ -2088,3 +2088,78 @@ select,
   padding: 2px 4px;
   color: #fff;
 }
+
+
+/* ==========================================================================
+   Animated Office background (the official GIF asset, shipped as MP4 loop)
+   ========================================================================== */
+.app {
+  position: relative;
+}
+/* keep the UI above the background layer */
+.header,
+.nav,
+.next-step,
+.app__main {
+  position: relative;
+  z-index: 1;
+}
+.office-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none; /* never intercept clicks */
+  opacity: 0;
+  transition: opacity 0.4s var(--ease);
+}
+.office-bg.is-visible {
+  opacity: 1;
+}
+.office-bg__media {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* fill, no black bars, no stretch */
+  object-position: 50% 50%;
+  display: block;
+}
+/* soft top/bottom scrim so counters + panels stay readable over any frame */
+.office-bg__scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(20, 14, 8, 0.5) 0%, rgba(20, 14, 8, 0) 22%),
+    linear-gradient(0deg, rgba(20, 14, 8, 0.55) 0%, rgba(20, 14, 8, 0) 30%);
+}
+[data-reduced-motion='true'] .office-bg {
+  /* poster is already static via the component; nothing animates here */
+}
+
+/* When the GIF background is on, the procedural diorama becomes a light,
+   translucent interactive layer over it (keeps crate/critters/decorations/
+   status working) rather than drawing its own opaque office. */
+.office--overgif .office__frame {
+  opacity: 0.12;
+}
+.office--overgif .office__trunk {
+  background: transparent;
+}
+.office--overgif .floor {
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.28), rgba(0, 0, 0, 0.42));
+  border-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(1px);
+}
+.office--overgif .floor::before {
+  opacity: 0.25;
+}
+
+
+/* optional soft blur behind panels/modals for readability over the animation */
+[data-bg-blur='true'] .office--overgif .floor,
+[data-bg-blur='true'] .modal {
+  backdrop-filter: blur(6px);
+}

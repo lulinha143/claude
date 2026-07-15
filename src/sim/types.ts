@@ -128,6 +128,17 @@ export interface GameSettings {
   offlineCapHours: number;
   /** show the "recommended next step" hint banner. */
   showHints: boolean;
+  /** animated Office background (the official GIF asset) settings. */
+  background: {
+    enabled: boolean;
+    brightness: number; // 0.5..1.5 (1 = unchanged)
+    contrast: number;
+    saturation: number;
+    blurBehindPanels: boolean;
+    quality: 'high' | 'balanced' | 'static';
+    focal: 'center' | 'top' | 'bottom' | 'left' | 'right';
+    pauseWhenHidden: boolean;
+  };
 }
 
 /** Serialized, persisted game state. Bump `SAVE_VERSION` when this changes. */
