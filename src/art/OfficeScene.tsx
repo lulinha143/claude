@@ -15,12 +15,12 @@ import { Icon } from './UiIcon';
 import { DecorationProp, decorKind } from './DecorationProp';
 import {
   placedDecorationsInRoom,
-  inventoryDecorationsInRoom,
   freeAnchorsInRoom,
   isDecorationPlaced,
   roomComfort,
 } from '../sim/decorations';
 import { characterSlots, anchorsForRoom } from '../content/roomLayout';
+import { DecorationTray } from '../ui/DecorationTray';
 import { pickDialogueIndex, dialogueKey } from '../sim/dialogue';
 import { employeeMood, MOOD_TONE } from '../sim/mood';
 import { createRng } from '../sim/rng';
@@ -347,14 +347,14 @@ export function OfficeScene() {
     const def = DECORATIONS_BY_ID[id];
     if (!def) return;
     const el = document.elementFromPoint(x, y);
-    const floorEl = el?.closest('.floor[data-room]') as HTMLElement | null;
-    const overRoom = floorEl?.dataset.room ?? null;
-    if (overRoom !== def.room || !floorEl) return; // dropped elsewhere — cancel
-    // Dropped on the inventory tray → stow it.
-    if (el?.closest('.floor__tray')) {
+    // Dropped on the inventory tray (bottom panel or a per-room actions bar) → stow it.
+    if (el?.closest('.deco-tray') || el?.closest('.floor__tray')) {
       if (engine.removeDecoration(id)) audio.play('click');
       return;
     }
+    const floorEl = el?.closest('.floor[data-room]') as HTMLElement | null;
+    const overRoom = floorEl?.dataset.room ?? null;
+    if (overRoom !== def.room || !floorEl) return; // dropped elsewhere — cancel
     // Otherwise place at the anchor nearest the drop point.
     const stage = floorEl.querySelector('.floor__stage') as HTMLElement | null;
     const rect = (stage ?? floorEl).getBoundingClientRect();
@@ -476,7 +476,6 @@ export function OfficeScene() {
           const slots = characterSlots(occupants.length);
           const comfort = roomComfort(state, room.id);
           const placed = placedDecorationsInRoom(state, room.id);
-          const inventory = inventoryDecorationsInRoom(state, room.id);
           const emptyAnchors = decorMode ? freeAnchorsInRoom(state, room.id) : [];
           const canDropHere = decorMode && selected !== null && selectedRoom() === room.id;
           const selectedPlacedHere =
@@ -629,49 +628,40 @@ export function OfficeScene() {
                 ) : null}
               </div>
 
-              {/* arrange-mode tray: inventory + per-room controls */}
+              {/* arrange-mode per-room actions (inventory lives in the bottom tray) */}
               {decorMode ? (
-                <div className="floor__tray" role="group" aria-label={t('decorate.inventory')}>
-                  <div className="floor__tray-items">
-                    {inventory.length === 0 ? (
-                      <span className="floor__tray-empty">{t('decorate.inventoryEmpty')}</span>
-                    ) : (
-                      inventory.map((d) => (
-                        <DecorationProp
-                          key={d.id}
-                          id={d.id}
-                          reducedMotion={reducedMotion}
-                          mode="toggle"
-                          selected={selected === d.id}
-                          title={t(`deco.${d.id}.name`)}
-                          onToggle={() => selectDeco(d.id)}
-                          onPointerDown={(e) => beginDrag(e, 'decoration', d.id)}
-                        />
-                      ))
-                    )}
-                  </div>
-                  <div className="floor__tray-actions">
-                    {selectedPlacedHere ? (
-                      <button className="mini-btn" onClick={sendSelectedToInventory}>
-                        <Icon name="close" size={12} /> {t('decorate.stow')}
-                      </button>
-                    ) : null}
-                    <button
-                      className="mini-btn"
-                      onClick={() => {
-                        if (engine.resetRoomDecorations(room.id)) audio.play('upgrade');
-                        setSelected(null);
-                      }}
-                    >
-                      <Icon name="refresh" size={12} /> {t('decorate.resetRoom')}
+                <div className="floor__tray floor__tray--actions">
+                  {selectedPlacedHere ? (
+                    <button className="mini-btn" onClick={sendSelectedToInventory}>
+                      <Icon name="close" size={12} /> {t('decorate.stow')}
                     </button>
-                  </div>
+                  ) : null}
+                  <button
+                    className="mini-btn"
+                    onClick={() => {
+                      if (engine.resetRoomDecorations(room.id)) audio.play('upgrade');
+                      setSelected(null);
+                    }}
+                  >
+                    <Icon name="refresh" size={12} /> {t('decorate.resetRoom')}
+                  </button>
                 </div>
               ) : null}
             </div>
           );
         })}
       </div>
+
+      {decorMode ? (
+        <DecorationTray
+          state={state}
+          reducedMotion={reducedMotion}
+          selected={selected}
+          onSelect={selectDeco}
+          onBeginDrag={(e, id) => beginDrag(e, 'decoration', id)}
+          dragging={drag?.kind === 'decoration'}
+        />
+      ) : null}
 
       <div className="office__floating" aria-hidden>
         <Acorn size={24} />
