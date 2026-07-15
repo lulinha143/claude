@@ -2841,3 +2841,74 @@ select,
   filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.5)) grayscale(0.4);
   opacity: 0.7;
 }
+
+
+/* ==========================================================================
+   Responsive safety net — audited across tiny, large, ultrawide & 4K windows
+   and every language. Additive rules only; nothing above is overridden in a
+   way that changes the intended look at the default size.
+   ========================================================================== */
+
+/* Flex/grid text children must be allowed to shrink so long strings (or long
+   translations) wrap instead of forcing horizontal overflow. */
+.card__body,
+.employee-card__info,
+.decocard__body,
+.toast__text,
+.floor__header,
+.daily__info,
+.moment__info,
+.micro-card {
+  min-width: 0;
+}
+
+/* The header keeps everything visible on very narrow windows by wrapping the
+   resource pills under the title rather than overflowing. */
+.header {
+  flex-wrap: wrap;
+  row-gap: 4px;
+}
+.header__resources {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+/* On large / ultrawide / 4K displays, cap the cozy app and centre it so the
+   content stays comfortably readable instead of stretching edge-to-edge. */
+#root {
+  justify-content: center;
+}
+.app {
+  max-width: 1200px;
+}
+
+/* Very narrow windows: stack the employee card so nothing gets cramped. */
+@media (max-width: 380px) {
+  .employee-card {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+  .employee-card__actions {
+    align-items: center;
+  }
+  .friendship {
+    justify-content: center;
+  }
+}
+
+/* Guarantee media/canvas previews never overflow their container. */
+.moment-modal__img,
+.decocard__preview,
+img {
+  max-width: 100%;
+}
+
+/* Long, unbroken tokens (e.g. secret ids) wrap instead of overflowing. */
+.nut-cell__name,
+.decocard__title,
+.moment__title,
+.card__title {
+  overflow-wrap: anywhere;
+}
