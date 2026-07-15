@@ -59,8 +59,41 @@
     "production": "Production",
     "clickReward": "+{{value}} nuts",
     "empty": "No crates yet — keep working!",
-    "decorate": "Decorate",
-    "decorateHint": "Tap a decoration to show or hide it. Buy more in the Decorate tab."
+    "decorate": "Arrange",
+    "decorateHint": "Tap a decoration to pick it up, then tap an empty spot to move it. Buy more in the Decorate tab."
+  },
+  "decorate": {
+    "searchPlaceholder": "Search decorations…",
+    "allRooms": "All rooms",
+    "allTypes": "All types",
+    "anyResource": "Any currency",
+    "placed": "Placed",
+    "inStorage": "In storage",
+    "place": "Place",
+    "remove": "Remove",
+    "stow": "Stow",
+    "resetRoom": "Tidy up",
+    "roomFull": "Room full",
+    "roomEmpty": "No decorations for this room yet.",
+    "noResults": "No decorations match your filters.",
+    "undo": "Undo",
+    "redo": "Redo",
+    "placeHere": "Place here",
+    "pickedHint": "Tap an empty spot to place it, or tap it again to cancel.",
+    "inventory": "Storage",
+    "inventoryEmpty": "Storage empty",
+    "summary": "{{owned}} owned · {{placed}} placed · +{{comfort}} comfort",
+    "type": {
+      "plant": "Plants",
+      "lamp": "Lighting",
+      "poster": "Wall art",
+      "rug": "Rugs",
+      "aquarium": "Aquariums",
+      "trophy": "Trophies",
+      "cushion": "Comfort",
+      "screen": "Screens",
+      "box": "Furniture"
+    }
   },
   "shop": {
     "title": "Upgrade Shop",

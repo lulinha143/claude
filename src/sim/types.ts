@@ -151,6 +151,14 @@ export interface GameState {
   employees: Record<string, EmployeeRuntimeState>;
   upgrades: Record<string, number>; // upgradeId -> owned count/level
   achievements: Record<string, number>; // achievementId -> unlock timestamp (0 = locked)
+  /**
+   * Decoration placement: decorationId -> anchorId within its room. A decoration
+   * is *owned* via `collections.secrets` (`deco:<id>`); this map records where an
+   * owned decoration is currently placed. Owned-but-absent = sitting in the
+   * inventory (not shown in the office). New optional field; older saves default
+   * to `{}` and are migrated on load (see repairDecorations).
+   */
+  placements: Record<string, string>;
   collections: {
     nuts: string[];
     outfits: string[];

@@ -5,13 +5,21 @@ import { useStore } from '../state/store';
 import { unlockedRooms, isRoomUnlocked, resolveEmployeeRoom } from '../sim/rooms';
 import { ROOMS } from '../content/rooms';
 import { EMPLOYEES_BY_ID } from '../content/employees';
+import { DECORATIONS_BY_ID } from '../content/decorations';
 import { Critter } from './Critter';
 import { CritterStateMachine, type CritterState } from './animation';
 import { shapeFor } from './critterShapes';
 import { Acorn, Crate } from './Icons';
 import { Icon } from './UiIcon';
 import { DecorationProp } from './DecorationProp';
-import { ownedDecorationsInRoom, visibleDecorationsInRoom, isDecorationHidden, roomComfort } from '../sim/decorations';
+import {
+  placedDecorationsInRoom,
+  inventoryDecorationsInRoom,
+  freeAnchorsInRoom,
+  isDecorationPlaced,
+  roomComfort,
+} from '../sim/decorations';
+import { characterSlots } from '../content/roomLayout';
 import { pickDialogueIndex, dialogueKey } from '../sim/dialogue';
 import { employeeMood, MOOD_TONE } from '../sim/mood';
 import { createRng } from '../sim/rng';
@@ -72,6 +80,8 @@ export function OfficeScene() {
   const [crateReady, setCrateReady] = useState(true);
   const [pop, setPop] = useState<{ x: number; y: number; text: string; id: number } | null>(null);
   const [decorMode, setDecorMode] = useState(false);
+  // The decoration currently picked up for arranging (its id), or null.
+  const [selected, setSelected] = useState<string | null>(null);
   const rngRef = useRef(createRng(Date.now() & 0xffff));
   const now = Date.now();
 
@@ -132,6 +142,34 @@ export function OfficeScene() {
     setTimeout(() => setPop(null), 950);
   }
 
+  // -- decoration arranging ---------------------------------------------------
+  function toggleDecorMode() {
+    setDecorMode((v) => {
+      if (v) setSelected(null); // leaving arrange mode clears the picked item
+      return !v;
+    });
+  }
+
+  function selectDeco(id: string) {
+    setSelected((prev) => (prev === id ? null : id));
+    audio.play('click');
+  }
+
+  function selectedRoom(): string | null {
+    return selected ? (DECORATIONS_BY_ID[selected]?.room ?? null) : null;
+  }
+
+  function onAnchorClick(roomId: string, anchorId: string) {
+    if (!selected || selectedRoom() !== roomId) return;
+    if (engine.moveDecoration(selected, anchorId)) audio.play('upgrade');
+    setSelected(null);
+  }
+
+  function sendSelectedToInventory() {
+    if (selected && engine.removeDecoration(selected)) audio.play('click');
+    setSelected(null);
+  }
+
   const overGif = state.settings.background.enabled;
   return (
     <div
@@ -141,12 +179,34 @@ export function OfficeScene() {
       <div className="office__toolbar">
         <button
           className={`chip-btn ${decorMode ? 'is-on' : ''}`}
-          onClick={() => setDecorMode((v) => !v)}
+          onClick={toggleDecorMode}
           aria-pressed={decorMode}
         >
           <Icon name="decorate" size={14} /> {t('office.decorate')}
         </button>
-        {decorMode ? <span className="office__toolbar-hint">{t('office.decorateHint')}</span> : null}
+        {decorMode ? (
+          <>
+            <button
+              className="chip-btn chip-btn--ghost"
+              onClick={() => engine.undoDecoration()}
+              disabled={!engine.canUndoDecoration()}
+              title={t('decorate.undo')}
+            >
+              <Icon name="undo" size={13} /> {t('decorate.undo')}
+            </button>
+            <button
+              className="chip-btn chip-btn--ghost"
+              onClick={() => engine.redoDecoration()}
+              disabled={!engine.canRedoDecoration()}
+              title={t('decorate.redo')}
+            >
+              <Icon name="redo" size={13} /> {t('decorate.redo')}
+            </button>
+            <span className="office__toolbar-hint">
+              {selected ? t('decorate.pickedHint') : t('office.decorateHint')}
+            </span>
+          </>
+        ) : null}
       </div>
 
       {/* organic tree-trunk frame behind the floors */}
@@ -195,7 +255,14 @@ export function OfficeScene() {
           const occupants = Object.entries(state.employees).filter(
             ([id, rt]) => rt.hired && resolveEmployeeRoom(state, id) === room.id,
           );
+          const slots = characterSlots(occupants.length);
           const comfort = roomComfort(state, room.id);
+          const placed = placedDecorationsInRoom(state, room.id);
+          const inventory = inventoryDecorationsInRoom(state, room.id);
+          const emptyAnchors = decorMode ? freeAnchorsInRoom(state, room.id) : [];
+          const canDropHere = decorMode && selected !== null && selectedRoom() === room.id;
+          const selectedPlacedHere =
+            selected !== null && selectedRoom() === room.id && isDecorationPlaced(state, selected);
           return (
             <div
               className="floor"
@@ -221,34 +288,50 @@ export function OfficeScene() {
               <div className={`floor__ambient floor__ambient--${AMBIENT[room.id] ?? 'dust'}`} aria-hidden>
                 {reducedMotion ? null : <span className="floor__dust" />}
               </div>
-              {(() => {
-                const decos = decorMode
-                  ? ownedDecorationsInRoom(state, room.id)
-                  : visibleDecorationsInRoom(state, room.id);
-                return decos.length > 0 ? (
-                  <div className="floor__decor">
-                    {decos.map((d) => (
-                      <DecorationProp
-                        key={d.id}
-                        id={d.id}
-                        reducedMotion={reducedMotion}
-                        mode={decorMode ? 'toggle' : 'interact'}
-                        dim={decorMode && isDecorationHidden(state, d.id)}
-                        title={t(`deco.${d.id}.name`)}
-                        onToggle={() => {
-                          engine.toggleDecoration(d.id);
-                          audio.play('click');
-                        }}
-                        onInteract={() => audio.play('click')}
-                      />
-                    ))}
+
+              <div className={`floor__stage ${canDropHere ? 'floor__stage--dropping' : ''}`}>
+                {/* placed decorations sit at their anchors */}
+                {placed.map(({ def, anchor }) => (
+                  <div
+                    key={def.id}
+                    className={`floor__anchor ${selected === def.id ? 'is-selected' : ''}`}
+                    style={{
+                      left: `${anchor.x * 100}%`,
+                      bottom: `${anchor.y}px`,
+                      ['--dscale' as string]: anchor.scale,
+                    }}
+                  >
+                    <DecorationProp
+                      id={def.id}
+                      reducedMotion={reducedMotion}
+                      mode={decorMode ? 'toggle' : 'interact'}
+                      selected={decorMode && selected === def.id}
+                      title={t(`deco.${def.id}.name`)}
+                      onToggle={() => selectDeco(def.id)}
+                      onInteract={() => audio.play('click')}
+                    />
                   </div>
-                ) : null;
-              })()}
-              <div className="floor__stage">
+                ))}
+
+                {/* empty anchor drop-targets (arrange mode only) */}
+                {emptyAnchors.map((anchor) => (
+                  <button
+                    key={`empty-${anchor.id}`}
+                    className={`floor__anchor floor__anchor--empty ${canDropHere ? 'is-active' : ''}`}
+                    style={{ left: `${anchor.x * 100}%`, bottom: `${anchor.y}px` }}
+                    onClick={() => onAnchorClick(room.id, anchor.id)}
+                    disabled={!canDropHere}
+                    aria-label={t('decorate.placeHere')}
+                    title={t('decorate.placeHere')}
+                  >
+                    <span className="floor__anchor-dot" aria-hidden />
+                  </button>
+                ))}
+
                 {occupants.map(([id, rt], idx) => {
                   const def = EMPLOYEES_BY_ID[id];
                   const shape = shapeFor(id);
+                  const slot = slots[idx] ?? { x: 0.5, bottom: 0 };
                   const inputs = {
                     hired: rt.hired,
                     producing,
@@ -267,7 +350,7 @@ export function OfficeScene() {
                     <button
                       key={id}
                       className="critter-btn"
-                      style={{ left: `${18 + idx * 26}%` }}
+                      style={{ left: `${slot.x * 100}%`, bottom: `${slot.bottom}px`, zIndex: 3 + (idx % 2) }}
                       onClick={() => onCritterClick(id)}
                       title={label}
                       aria-label={label}
@@ -298,7 +381,7 @@ export function OfficeScene() {
                     </button>
                   );
                 })}
-                {room.id === 'founder-desk' && crateReady ? (
+                {room.id === 'founder-desk' && crateReady && !decorMode ? (
                   <button className="crate-btn" onClick={onCollect} aria-label={t('office.collect')}>
                     <span className="crate-btn__glow" aria-hidden />
                     <Crate size={52} />
@@ -306,6 +389,45 @@ export function OfficeScene() {
                   </button>
                 ) : null}
               </div>
+
+              {/* arrange-mode tray: inventory + per-room controls */}
+              {decorMode ? (
+                <div className="floor__tray" role="group" aria-label={t('decorate.inventory')}>
+                  <div className="floor__tray-items">
+                    {inventory.length === 0 ? (
+                      <span className="floor__tray-empty">{t('decorate.inventoryEmpty')}</span>
+                    ) : (
+                      inventory.map((d) => (
+                        <DecorationProp
+                          key={d.id}
+                          id={d.id}
+                          reducedMotion={reducedMotion}
+                          mode="toggle"
+                          selected={selected === d.id}
+                          title={t(`deco.${d.id}.name`)}
+                          onToggle={() => selectDeco(d.id)}
+                        />
+                      ))
+                    )}
+                  </div>
+                  <div className="floor__tray-actions">
+                    {selectedPlacedHere ? (
+                      <button className="mini-btn" onClick={sendSelectedToInventory}>
+                        <Icon name="close" size={12} /> {t('decorate.stow')}
+                      </button>
+                    ) : null}
+                    <button
+                      className="mini-btn"
+                      onClick={() => {
+                        if (engine.resetRoomDecorations(room.id)) audio.play('upgrade');
+                        setSelected(null);
+                      }}
+                    >
+                      <Icon name="refresh" size={12} /> {t('decorate.resetRoom')}
+                    </button>
+                  </div>
+                </div>
+              ) : null}
             </div>
           );
         })}

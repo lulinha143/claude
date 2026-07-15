@@ -44,7 +44,10 @@ export type IconName =
   | 'lock'
   | 'hidden'
   | 'close'
-  | 'back';
+  | 'back'
+  | 'undo'
+  | 'redo'
+  | 'refresh';
 
 interface IconProps {
   name: IconName;
@@ -291,6 +294,26 @@ const PATHS: Record<IconName, JSX.Element> = {
   ),
   close: <path d="M6 6l12 12M18 6 6 18" strokeWidth="2" />,
   back: <path d="M15 5l-7 7 7 7" strokeWidth="2" />,
+  undo: (
+    <>
+      <path d="M9 7 4 12l5 5" />
+      <path d="M4 12h9a6 6 0 0 1 6 6v1" />
+    </>
+  ),
+  redo: (
+    <>
+      <path d="M15 7l5 5-5 5" />
+      <path d="M20 12h-9a6 6 0 0 0-6 6v1" />
+    </>
+  ),
+  refresh: (
+    <>
+      <path d="M20 11a8 8 0 0 0-14-4L4 9" />
+      <path d="M4 4v5h5" />
+      <path d="M4 13a8 8 0 0 0 14 4l2-2" />
+      <path d="M20 20v-5h-5" />
+    </>
+  ),
 };
 
 export function Icon({ name, size = 20, title, className }: IconProps) {
