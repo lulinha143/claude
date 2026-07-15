@@ -110,6 +110,44 @@
   /* scaling (driven by settings) */
   --font-scale: 1;
   --ui-scale: 1;
+  --asset-scale: 1;
+
+  /* --- typography system ---------------------------------------------------
+     A cozy, rounded, friendly identity. We prefer rounded geometric faces the
+     player may have installed (Baloo 2 / Quicksand / Nunito / Fredoka / SF Pro
+     Rounded) and gracefully fall back to the platform UI font — all CSP-safe
+     and offline (no external font fetches). Display face for headings & the
+     brand; a highly readable body face for everything else; tabular figures
+     for numbers so counters never jitter. */
+  --font-display: 'Baloo 2', 'Fredoka', 'Quicksand', 'Comfortaa', 'SF Pro Rounded',
+    'Segoe UI Variable Display', 'Segoe UI', system-ui, sans-serif;
+  --font-body: 'Nunito', 'Nunito Sans', 'Inter', 'SF Pro Text', 'Segoe UI', system-ui,
+    -apple-system, Roboto, sans-serif;
+  --font-num: 'Nunito', ui-rounded, 'SF Pro Rounded', 'Segoe UI', system-ui, sans-serif;
+
+  /* weights */
+  --fw-normal: 400;
+  --fw-medium: 600;
+  --fw-bold: 700;
+  --fw-heavy: 800;
+
+  /* line-heights & tracking */
+  --lh-tight: 1.15;
+  --lh-snug: 1.3;
+  --lh-normal: 1.5;
+  --tracking-tight: -0.01em;
+  --tracking-wide: 0.06em;
+
+  /* Fluid type scale. Each step scales gently with the viewport (so tiny and
+     4K windows both read well) and is multiplied by the user's --font-scale.
+     em-based components inherit from the root size set on .app. */
+  --fs-2xs: calc(clamp(9.5px, 0.55vw + 0.5vh, 11.5px) * var(--font-scale));
+  --fs-xs: calc(clamp(10.5px, 0.6vw + 0.55vh, 13px) * var(--font-scale));
+  --fs-sm: calc(clamp(12px, 0.65vw + 0.6vh, 14.5px) * var(--font-scale));
+  --fs-base: calc(clamp(13px, 0.7vw + 0.65vh, 16.5px) * var(--font-scale));
+  --fs-lg: calc(clamp(15px, 0.8vw + 0.7vh, 19px) * var(--font-scale));
+  --fs-xl: calc(clamp(18px, 1vw + 0.9vh, 24px) * var(--font-scale));
+  --fs-2xl: calc(clamp(22px, 1.4vw + 1.1vh, 32px) * var(--font-scale));
 }
 
 /* High-contrast overrides only need to touch semantic tokens. */

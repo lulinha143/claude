@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { useStore, type ViewId } from '../state/store';
 import { Icon, type IconName } from '../art/UiIcon';
+import { Tip, TipContent } from './Tooltip';
 
 const ITEMS: { id: ViewId; icon: IconName }[] = [
   { id: 'office', icon: 'rooms' },
@@ -23,15 +24,16 @@ export function NavBar() {
   return (
     <nav className="nav" aria-label="main navigation">
       {ITEMS.map(({ id, icon }) => (
-        <button
-          key={id}
-          className={`nav__item ${view === id ? 'is-active' : ''}`}
-          onClick={() => setView(id)}
-          aria-current={view === id}
-        >
-          <Icon name={icon} size={16} />
-          <span className="nav__label">{t(`nav.${id}`)}</span>
-        </button>
+        <Tip key={id} content={<TipContent title={t(`nav.${id}`)} lines={[t(`tip.nav.${id}`)]} />}>
+          <button
+            className={`nav__item ${view === id ? 'is-active' : ''}`}
+            onClick={() => setView(id)}
+            aria-current={view === id}
+          >
+            <Icon name={icon} size={16} />
+            <span className="nav__label">{t(`nav.${id}`)}</span>
+          </button>
+        </Tip>
       ))}
     </nav>
   );

@@ -13,6 +13,9 @@ export interface WindowSettings {
   launchOnStartup: boolean;
   batterySaver: boolean;
   fpsLimit: number;
+  width?: number;
+  height?: number;
+  maximized?: boolean;
 }
 
 export interface PlatformInfo {

@@ -407,7 +407,7 @@ export function OfficeScene() {
                         state={anim}
                         hasGlasses={shape.hasGlasses}
                         reducedMotion={reducedMotion}
-                        size={62}
+                        size={74}
                         title={label}
                         seed={idx + room.floor}
                       />
@@ -422,7 +422,7 @@ export function OfficeScene() {
                 {room.id === 'founder-desk' && crateReady && !decorMode ? (
                   <button className="crate-btn" onClick={onCollect} aria-label={t('office.collect')}>
                     <span className="crate-btn__glow" aria-hidden />
-                    <Crate size={52} />
+                    <Crate size={58} />
                     <span className="crate-btn__hint">{t('office.collect')}</span>
                   </button>
                 ) : null}

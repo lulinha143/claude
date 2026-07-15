@@ -23,6 +23,7 @@ import { OfflineModal } from './ui/modals/OfflineModal';
 import { Onboarding } from './ui/modals/Onboarding';
 import { OpeningSequence } from './ui/modals/OpeningSequence';
 import { Notifications } from './ui/Notifications';
+import { TooltipLayer } from './ui/Tooltip';
 import { DevPanel } from './ui/DevPanel';
 
 const VIEWS: Record<ViewId, () => JSX.Element> = {
@@ -136,6 +137,7 @@ export function App() {
       <OpeningSequence />
       <Onboarding />
       <Notifications />
+      <TooltipLayer />
       {devEnabled ? <DevPanel /> : null}
     </div>
   );
