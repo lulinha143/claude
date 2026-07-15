@@ -43,6 +43,7 @@
     "validate": "npm run typecheck && npm run lint && npm run check:i18n && npm run verify:assets && npm run test && npm run build"
   },
   "dependencies": {
+    "@fontsource/quicksand": "^5.2.10",
     "i18next": "^23.15.1",
     "i18next-browser-languagedetector": "^8.0.0",
     "react": "^18.3.1",
