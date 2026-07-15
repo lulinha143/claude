@@ -41,10 +41,25 @@ describe('decoration placement model', () => {
     expect(placedAnchorId(engine.state, 'desk-lamp')).toBe(other);
   });
 
-  it('moving onto an occupied anchor bumps the occupant to storage', () => {
+  it('swaps two placed decorations when dropped onto each other', () => {
+    const engine = new GameEngine(createInitialState(0), { deterministic: true });
+    engine.buyDecoration('potted-fern'); // anchor A
+    engine.buyDecoration('desk-lamp'); // anchor B
+    const fernAnchor = placedAnchorId(engine.state, 'potted-fern')!;
+    const lampAnchor = placedAnchorId(engine.state, 'desk-lamp')!;
+    expect(fernAnchor).not.toBe(lampAnchor);
+    expect(engine.placeDecoration('desk-lamp', fernAnchor)).toBe(true);
+    expect(placedAnchorId(engine.state, 'desk-lamp')).toBe(fernAnchor);
+    // the fern is swapped into the lamp's old spot, not sent to storage
+    expect(placedAnchorId(engine.state, 'potted-fern')).toBe(lampAnchor);
+    expect(isDecorationPlaced(engine.state, 'potted-fern')).toBe(true);
+  });
+
+  it('bumps a placed decoration to storage when an inventory piece takes its spot', () => {
     const engine = new GameEngine(createInitialState(0), { deterministic: true });
     engine.buyDecoration('potted-fern');
     engine.buyDecoration('desk-lamp');
+    engine.removeDecoration('desk-lamp'); // desk-lamp now in inventory (no anchor)
     const fernAnchor = placedAnchorId(engine.state, 'potted-fern')!;
     expect(engine.placeDecoration('desk-lamp', fernAnchor)).toBe(true);
     expect(placedAnchorId(engine.state, 'desk-lamp')).toBe(fernAnchor);

@@ -17,6 +17,7 @@ import {
 import { decorKind, DecorationProp, type DecorKind } from '../../art/DecorationProp';
 import { Icon } from '../../art/UiIcon';
 import { Acorn, GoldenNut } from '../../art/Icons';
+import { sparkleAt } from '../sparkle';
 
 type RoomFilter = 'all' | string;
 type TypeFilter = 'all' | DecorKind;
@@ -194,8 +195,11 @@ export function DecorateView() {
                     <button
                       className="buy-btn"
                       disabled={!afford}
-                      onClick={() => {
-                        if (buy(d.id)) audio.play('upgrade');
+                      onClick={(e) => {
+                        if (buy(d.id)) {
+                          audio.play('upgrade');
+                          sparkleAt(e);
+                        }
                       }}
                     >
                       {d.cost.resource === 'goldenNuts' ? <GoldenNut size={15} /> : <Acorn size={15} />}

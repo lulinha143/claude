@@ -1,10 +1,10 @@
 import { useState, type PointerEvent as ReactPointerEvent } from 'react';
 
-// Renders an owned decoration as a small, charming, INTERACTIVE prop in the
-// office. Clicking gives a short reaction (a wiggle, a lamp toggling on/off) —
-// never resources, so it can't be click-farmed. Glyphs are chosen by a coarse
-// "kind" derived from the decoration id so all 32 decorations render with a
-// recognisable silhouette without 32 bespoke drawings.
+// Renders an owned decoration as a LARGE, charming, interactive furniture piece
+// in the office. Clicking gives a reaction (a lamp/screen toggling, a wobble,
+// bubbles) — never resources, so it can't be click-farmed. Glyphs are chosen by
+// a coarse "kind" derived from the id so every decoration reads as real
+// furniture with a recognisable silhouette.
 
 export type DecorKind =
   | 'plant'
@@ -29,6 +29,9 @@ export function decorKind(id: string): DecorKind {
   return 'box';
 }
 
+// Which kinds toggle an on/off light when clicked.
+const TOGGLEABLE: DecorKind[] = ['lamp', 'screen', 'aquarium'];
+
 export function DecorationProp({
   id,
   accent = '#c98a4b',
@@ -46,31 +49,27 @@ export function DecorationProp({
   accent?: string;
   reducedMotion?: boolean;
   dim?: boolean;
-  /** highlight this prop as the currently picked-up item in arrange mode. */
   selected?: boolean;
-  /** briefly animate the prop when a nearby employee reacts to it. */
   reacting?: boolean;
   title?: string;
-  /** 'interact' = charming reaction on click; 'toggle' = pick up / select in arrange mode. */
   mode?: 'interact' | 'toggle';
   onToggle?: () => void;
   onInteract?: () => void;
-  /** enables pointer dragging in arrange mode. */
   onPointerDown?: (e: ReactPointerEvent) => void;
 }) {
   const kind = decorKind(id);
   const [wiggle, setWiggle] = useState(false);
-  const [lampOn, setLampOn] = useState(true);
+  const [on, setOn] = useState(true); // lit/active state for toggleable kinds
 
   function handleClick() {
     if (mode === 'toggle') {
       onToggle?.();
       return;
     }
-    if (kind === 'lamp') setLampOn((v) => !v);
+    if (TOGGLEABLE.includes(kind)) setOn((v) => !v);
     if (!reducedMotion) {
       setWiggle(true);
-      setTimeout(() => setWiggle(false), 360);
+      setTimeout(() => setWiggle(false), 420);
     }
     onInteract?.();
   }
@@ -80,7 +79,7 @@ export function DecorationProp({
       className={`decor decor--${kind} ${wiggle || (reacting && !reducedMotion) ? 'is-wiggle' : ''} ${
         dim ? 'is-dim' : ''
       } ${selected ? 'is-selected' : ''} ${reacting ? 'is-reacting' : ''} ${
-        kind === 'lamp' && !lampOn ? 'is-off' : ''
+        TOGGLEABLE.includes(kind) && !on ? 'is-off' : ''
       }`}
       style={{ ['--accent' as string]: accent }}
       onClick={handleClick}
@@ -89,79 +88,129 @@ export function DecorationProp({
       aria-label={title}
       type="button"
     >
-      <Glyph kind={kind} accent={accent} lampOn={lampOn} />
+      <Glyph kind={kind} accent={accent} on={on} reducedMotion={reducedMotion} />
     </button>
   );
 }
 
-function Glyph({ kind, accent, lampOn }: { kind: DecorKind; accent: string; lampOn: boolean }) {
-  // Larger base glyph so props read as real furniture next to the critters.
-  const s = { width: 32, height: 37, viewBox: '0 0 26 30', 'aria-hidden': true } as const;
-  const line = '#241a12';
+const LINE = '#241a12';
+
+function Glyph({
+  kind,
+  accent,
+  on,
+  reducedMotion,
+}: {
+  kind: DecorKind;
+  accent: string;
+  on: boolean;
+  reducedMotion: boolean;
+}) {
+  // Large furniture footprint. viewBox baseline (y=54) is the "floor".
+  const s = { width: 52, height: 60, viewBox: '0 0 48 56', 'aria-hidden': true } as const;
+  const spin = reducedMotion ? undefined : 'decor__spin';
   switch (kind) {
     case 'plant':
       return (
         <svg {...s}>
-          <path className="decor__leaf" d="M13 20 q-8 -2 -6 -13 q6 2 6 12 q0 -12 6 -14 q3 9 -6 15" fill="#3f7d4f" stroke={line} strokeWidth="1" />
-          <path d="M8 20 h10 l-1.5 8 h-7 Z" fill={accent} stroke={line} strokeWidth="1" />
+          <ellipse cx="24" cy="53" rx="13" ry="3" fill="rgba(0,0,0,0.25)" />
+          {/* leafy foliage */}
+          <path className="decor__leaf" d="M24 40 C 10 34 8 16 16 6 C 22 14 24 26 24 40 Z" fill="#3f7d4f" stroke={LINE} strokeWidth="1.2" />
+          <path className="decor__leaf" d="M24 40 C 38 34 40 16 32 6 C 26 14 24 26 24 40 Z" fill="#4f9d69" stroke={LINE} strokeWidth="1.2" />
+          <path d="M24 42 C 22 30 24 14 24 4" stroke="#2f6d47" strokeWidth="1.4" fill="none" />
+          {/* pot */}
+          <path d="M15 40 h18 l-2.5 14 h-13 Z" fill={accent} stroke={LINE} strokeWidth="1.4" />
+          <rect x="14" y="38" width="20" height="4" rx="1.5" fill={accent} stroke={LINE} strokeWidth="1.2" />
         </svg>
       );
     case 'lamp':
       return (
         <svg {...s}>
-          {lampOn ? <circle cx="13" cy="9" r="9" fill={accent} opacity="0.35" /> : null}
-          <path d="M7 6 h12 l-3 8 h-6 Z" fill={lampOn ? accent : '#5a4632'} stroke={line} strokeWidth="1.2" />
-          <path d="M13 14 v10 M8 24 h10" stroke={line} strokeWidth="2" />
+          <ellipse cx="24" cy="53" rx="11" ry="3" fill="rgba(0,0,0,0.25)" />
+          {on ? <circle cx="24" cy="14" r="15" fill={accent} opacity="0.28" /> : null}
+          <path d="M14 22 h20 l-5 -14 h-10 Z" fill={on ? accent : '#5a4632'} stroke={LINE} strokeWidth="1.4" />
+          <rect x="23" y="22" width="2.5" height="28" fill="#5a4632" stroke={LINE} strokeWidth="0.6" />
+          <path d="M17 52 h14 l-2 2 h-10 Z" fill="#4a3826" stroke={LINE} strokeWidth="1.2" />
         </svg>
       );
     case 'poster':
       return (
         <svg {...s}>
-          <rect x="4" y="4" width="18" height="22" rx="1.5" fill={accent} stroke={line} strokeWidth="1.4" />
-          <path d="M8 12 l4 4 6 -8" stroke={line} strokeWidth="1.4" fill="none" />
+          <rect x="7" y="6" width="34" height="40" rx="2" fill="#3a2c1f" stroke={LINE} strokeWidth="2" />
+          <rect x="11" y="10" width="26" height="32" rx="1" fill={accent} />
+          <circle cx="18" cy="19" r="4" fill="#ffd54a" />
+          <path d="M11 34 l8 -9 6 6 5 -6 7 8 v9 h-26 Z" fill="#3f7d4f" opacity="0.85" />
         </svg>
       );
     case 'rug':
       return (
         <svg {...s}>
-          <ellipse cx="13" cy="20" rx="11" ry="6" fill={accent} stroke={line} strokeWidth="1.4" />
-          <ellipse cx="13" cy="20" rx="6" ry="3" fill="none" stroke={line} strokeWidth="1" />
+          <ellipse cx="24" cy="46" rx="22" ry="9" fill={accent} stroke={LINE} strokeWidth="1.6" />
+          <ellipse cx="24" cy="46" rx="15" ry="6" fill="none" stroke={LINE} strokeWidth="1.2" opacity="0.6" />
+          <ellipse cx="24" cy="46" rx="8" ry="3" fill="none" stroke={LINE} strokeWidth="1" opacity="0.5" />
         </svg>
       );
     case 'aquarium':
       return (
         <svg {...s}>
-          <rect x="4" y="8" width="18" height="16" rx="2" fill="#7fb0c8" stroke={line} strokeWidth="1.4" />
-          <circle className="decor__bubble" cx="10" cy="16" r="1.5" fill="#fff" />
-          <path d="M14 16 l4 -2 v4 Z" fill={accent} />
+          <path d="M12 44 h24 v8 h-24 Z" fill="#4a3826" stroke={LINE} strokeWidth="1.4" />
+          <rect x="8" y="12" width="32" height="32" rx="3" fill={on ? '#7fb0c8' : '#3f5a66'} stroke={LINE} strokeWidth="2" />
+          <rect x="10" y="30" width="28" height="12" fill="#5a8fa8" opacity="0.5" />
+          <path d="M20 26 l6 -3 v6 Z" fill={accent} stroke={LINE} strokeWidth="0.8" />
+          <circle cx="26" cy="25" r="1" fill={LINE} />
+          {!reducedMotion ? (
+            <>
+              <circle className="decor__bubble" cx="14" cy="38" r="1.6" fill="#fff" opacity="0.8" />
+              <circle className="decor__bubble" cx="32" cy="40" r="1.2" fill="#fff" opacity="0.7" />
+            </>
+          ) : null}
         </svg>
       );
     case 'trophy':
       return (
         <svg {...s}>
-          <path d="M8 6 h10 v4 a5 5 0 0 1 -10 0 Z" fill="#ffd54a" stroke={line} strokeWidth="1.2" />
-          <path d="M13 15 v6 M9 24 h8" stroke={line} strokeWidth="2" />
+          <ellipse cx="24" cy="53" rx="10" ry="3" fill="rgba(0,0,0,0.25)" />
+          <rect x="16" y="44" width="16" height="8" rx="1.5" fill="#4a3826" stroke={LINE} strokeWidth="1.4" />
+          <path d="M14 12 h20 v6 a10 10 0 0 1 -20 0 Z" fill="#ffd54a" stroke={LINE} strokeWidth="1.6" />
+          <path d="M14 14 h-4 a4 4 0 0 0 4 6 M34 14 h4 a4 4 0 0 1 -4 6" fill="none" stroke={LINE} strokeWidth="1.4" />
+          <rect x="22" y="30" width="4" height="10" fill="#e0a43b" stroke={LINE} strokeWidth="1" />
+          <path className={spin} d="M24 4 l1.5 3 3 .4 -2.2 2.1 .6 3-2.9-1.5-2.9 1.5 .6-3-2.2-2.1 3-.4Z" fill="#fff4c0" opacity="0.9" />
         </svg>
       );
     case 'cushion':
       return (
         <svg {...s}>
-          <rect x="4" y="14" width="18" height="11" rx="5" fill={accent} stroke={line} strokeWidth="1.4" />
+          <ellipse cx="24" cy="52" rx="18" ry="4" fill="rgba(0,0,0,0.22)" />
+          <path d="M8 42 C 8 26 40 26 40 42 C 40 50 32 52 24 52 C 16 52 8 50 8 42 Z" fill={accent} stroke={LINE} strokeWidth="1.6" />
+          <path d="M14 40 q10 6 20 0" fill="none" stroke={LINE} strokeWidth="1" opacity="0.5" />
         </svg>
       );
     case 'screen':
       return (
         <svg {...s}>
-          <rect x="4" y="7" width="18" height="13" rx="2" fill="#1c150d" stroke={line} strokeWidth="1.4" />
-          <rect x="6" y="9" width="14" height="9" fill="#7fb0c8" />
-          <path d="M10 24 h6" stroke={line} strokeWidth="2" />
+          <path d="M10 48 h28 v6 h-28 Z" fill="#4a3826" stroke={LINE} strokeWidth="1.4" />
+          <rect x="8" y="12" width="32" height="24" rx="2.5" fill="#1c150d" stroke={LINE} strokeWidth="2" />
+          {on ? (
+            <>
+              <rect x="11" y="15" width="26" height="18" rx="1" fill="#7fb0c8" />
+              <path d="M12 30 l6 -6 4 3 6 -7 8 10 h-24 Z" fill="#3f7d4f" opacity="0.8" />
+              <circle cx="17" cy="20" r="2.5" fill="#ffd54a" />
+            </>
+          ) : (
+            <rect x="11" y="15" width="26" height="18" rx="1" fill="#26303a" />
+          )}
+          <rect x="22" y="36" width="4" height="8" fill="#3a2c1f" stroke={LINE} strokeWidth="0.8" />
         </svg>
       );
     default:
       return (
         <svg {...s}>
-          <rect x="5" y="10" width="16" height="15" rx="2" fill={accent} stroke={line} strokeWidth="1.4" />
-          <path d="M5 15 h16" stroke={line} strokeWidth="1" />
+          <ellipse cx="24" cy="53" rx="14" ry="3" fill="rgba(0,0,0,0.22)" />
+          <rect x="10" y="14" width="28" height="38" rx="2" fill={accent} stroke={LINE} strokeWidth="1.8" />
+          <path d="M10 27 h28 M10 40 h28" stroke={LINE} strokeWidth="1.2" opacity="0.7" />
+          <circle cx="32" cy="20.5" r="1.4" fill={LINE} />
+          <circle cx="32" cy="33.5" r="1.4" fill={LINE} />
+          <circle cx="32" cy="46" r="1.4" fill={LINE} />
         </svg>
       );
   }

@@ -25,6 +25,7 @@ import { pickDialogueIndex, dialogueKey } from '../sim/dialogue';
 import { employeeMood, MOOD_TONE } from '../sim/mood';
 import { createRng } from '../sim/rng';
 import { notify } from '../ui/notificationsStore';
+import { sparkleAt } from '../ui/sparkle';
 
 // A soft visual capacity per room — dragging a teammate into a fuller room is
 // gently refused with a suggestion, keeping each room readable and cozy.
@@ -80,6 +81,28 @@ const AMBIENT: Record<string, string> = {
   basement: 'pipe',
   rooftop: 'plant',
 };
+
+// A workbench that grows with the team: one little desk (monitor + mug) per
+// hired employee, sitting behind the critters so the room visibly fills up as
+// the workplace grows.
+function RoomFurniture({ count, tint }: { count: number; tint: string }) {
+  if (count <= 0) return null;
+  const desks = Math.min(count, 6);
+  return (
+    <div className="floor__furniture" aria-hidden>
+      {Array.from({ length: desks }).map((_, i) => (
+        <svg key={i} className="desk" width="46" height="32" viewBox="0 0 46 32">
+          <rect x="2" y="15" width="42" height="6" rx="2" fill={tint} stroke="#241a12" strokeWidth="1.4" />
+          <rect x="6" y="21" width="3.5" height="10" fill="#4a3826" />
+          <rect x="36" y="21" width="3.5" height="10" fill="#4a3826" />
+          <rect x="25" y="4" width="14" height="11" rx="1.2" fill="#1c150d" stroke="#241a12" strokeWidth="1" />
+          <rect x="27" y="6" width="10" height="7" fill="#7fb0c8" />
+          <ellipse cx="12" cy="13" rx="3.2" ry="2.4" fill="#c98a4b" stroke="#241a12" strokeWidth="0.8" />
+        </svg>
+      ))}
+    </div>
+  );
+}
 
 // Small critter rendered inside the drag ghost.
 function GhostCritter({ id, reducedMotion }: { id: string; reducedMotion: boolean }) {
@@ -207,6 +230,7 @@ export function OfficeScene() {
   function onCollect(e: React.MouseEvent) {
     const res = engine.collectCrate();
     audio.play('collect');
+    sparkleAt(e);
     const el = e.currentTarget as HTMLElement;
     const rect = el.getBoundingClientRect();
     const parent = el.offsetParent as HTMLElement | null;
@@ -493,13 +517,16 @@ export function OfficeScene() {
               </div>
 
               <div className={`floor__stage ${canDropHere ? 'floor__stage--dropping' : ''}`}>
+                {/* the workbench fills out as the team grows */}
+                <RoomFurniture count={occupants.length} tint={DEPT[room.id] ?? 'var(--dept-founder)'} />
+
                 {/* placed decorations sit at their anchors */}
                 {placed.map(({ def, anchor }) => (
                   <div
                     key={def.id}
-                    className={`floor__anchor ${selected === def.id ? 'is-selected' : ''} ${
-                      drag?.kind === 'decoration' && drag.id === def.id ? 'is-dragging' : ''
-                    }`}
+                    className={`floor__anchor floor__anchor--${anchor.layer} ${
+                      selected === def.id ? 'is-selected' : ''
+                    } ${drag?.kind === 'decoration' && drag.id === def.id ? 'is-dragging' : ''}`}
                     style={{
                       left: `${anchor.x * 100}%`,
                       bottom: `${anchor.y}px`,
@@ -524,7 +551,9 @@ export function OfficeScene() {
                 {emptyAnchors.map((anchor) => (
                   <button
                     key={`empty-${anchor.id}`}
-                    className={`floor__anchor floor__anchor--empty ${canDropHere ? 'is-active' : ''}`}
+                    className={`floor__anchor floor__anchor--${anchor.layer} floor__anchor--empty ${
+                      canDropHere ? 'is-active' : ''
+                    }`}
                     style={{ left: `${anchor.x * 100}%`, bottom: `${anchor.y}px` }}
                     onClick={() => onAnchorClick(room.id, anchor.id)}
                     disabled={!canDropHere}
