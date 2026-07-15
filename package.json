@@ -23,6 +23,7 @@
     "package": "npm run build:desktop && electron-builder",
     "package:win": "npm run build:desktop && electron-builder --win",
     "build:windows": "npm run build:desktop && electron-builder --win nsis",
+    "build:windows:folder": "npm run build:desktop && electron-builder --win dir",
     "build:portable": "npm run build:desktop && electron-builder --win portable",
     "build:steam": "npm run build:desktop && electron-builder --win dir && node scripts/build-steam.mjs",
     "verify:steam": "node scripts/verify-steam-build.mjs",
