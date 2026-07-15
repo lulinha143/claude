@@ -127,7 +127,9 @@ export function App() {
       <NavBar />
       <RecommendedStep />
       <main className="app__main">
-        <Current />
+        <div className="view-anim" key={view}>
+          <Current />
+        </div>
       </main>
       <EventModal />
       <ConsequenceModal />

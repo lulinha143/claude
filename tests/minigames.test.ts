@@ -10,6 +10,9 @@ import {
   coffeeSpawnInterval,
   coffeeComboMultiplier,
   coffeeCatchScore,
+  bugLifetime,
+  bugSpawnInterval,
+  bugScore,
   microGrade,
   INVENTORY_ITEMS,
 } from '../src/sim/minigames';
@@ -93,6 +96,21 @@ describe('Raccoon Inventory progression', () => {
   });
   it('rewards longer streaks more', () => {
     expect(inventoryScoreDelta(5)).toBeGreaterThan(inventoryScoreDelta(0));
+  });
+});
+
+describe('Bug Squash difficulty', () => {
+  it('pests stay up for less time as the game speeds up, with a floor', () => {
+    expect(bugLifetime(0)).toBeGreaterThan(bugLifetime(20));
+    expect(bugLifetime(1000)).toBeGreaterThanOrEqual(650);
+  });
+  it('pests spawn faster over time, with a floor', () => {
+    expect(bugSpawnInterval(0)).toBeGreaterThan(bugSpawnInterval(20));
+    expect(bugSpawnInterval(1000)).toBeGreaterThanOrEqual(380);
+  });
+  it('rewards longer squash streaks more, up to a cap', () => {
+    expect(bugScore(6)).toBeGreaterThan(bugScore(0));
+    expect(bugScore(999)).toBeLessThanOrEqual(8);
   });
 });
 
