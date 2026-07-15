@@ -51,6 +51,27 @@
     "stats": "Stats",
     "prestige": "Prestige"
   },
+  "tip": {
+    "nuts": { "t": "Nuts", "d": "Your main currency. Earned passively and by collecting crates. Spent on upgrades, hires and decorations." },
+    "golden": { "t": "Golden Nuts", "d": "Rare premium currency from milestones and prestige. Buys powerful upgrades and skills." },
+    "morale": { "t": "Morale", "d": "Team happiness. Higher morale boosts production; coffee, decorations and good events raise it." },
+    "reputation": { "t": "Reputation", "d": "Grows as you produce. Unlocks new rooms and new teammates." },
+    "rate": { "t": "Production", "d": "Nuts produced per second across every room right now." },
+    "quiet": { "t": "Quiet Mode", "d": "Softens audio and animation for calm, low-distraction play." },
+    "nav": {
+      "office": "Your cozy office and the team at work.",
+      "shop": "Buy upgrades to grow production and automation.",
+      "employees": "Hire, place and befriend your team.",
+      "company": "Company overview, milestones and modifiers.",
+      "collections": "Everything you've discovered so far.",
+      "achievements": "Goals to chase and their rewards.",
+      "focus": "Focus sessions and relaxing micro-games.",
+      "decorate": "Buy decorations and arrange each room.",
+      "stats": "Detailed lifetime statistics.",
+      "prestige": "Reset for permanent bonuses.",
+      "settings": "Options, audio and accessibility."
+    }
+  },
   "office": {
     "collect": "Collect crate",
     "collectHint": "A crate of nuts is ready!",

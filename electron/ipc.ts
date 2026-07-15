@@ -14,6 +14,11 @@ export interface WindowSettings {
   launchOnStartup: boolean;
   batterySaver: boolean;
   fpsLimit: number; // 30 | 60
+  /** Remembered free-resize bounds (px). Absent until the user resizes. */
+  width?: number;
+  height?: number;
+  /** Whether the window was left maximized. */
+  maximized?: boolean;
 }
 
 export const DEFAULT_WINDOW_SETTINGS: WindowSettings = {
@@ -26,6 +31,7 @@ export const DEFAULT_WINDOW_SETTINGS: WindowSettings = {
   launchOnStartup: false,
   batterySaver: false,
   fpsLimit: 60,
+  maximized: false,
 };
 
 // Channels the renderer may invoke (request/response).

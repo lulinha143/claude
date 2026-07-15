@@ -51,6 +51,27 @@
     "stats": "Estatísticas",
     "prestige": "Prestígio"
   },
+  "tip": {
+    "nuts": { "t": "Castanhas", "d": "Sua moeda principal. Ganha passivamente e ao coletar caixas. Gasta em melhorias, contratações e decorações." },
+    "golden": { "t": "Castanhas Douradas", "d": "Moeda premium rara, de marcos e prestígio. Compra melhorias e habilidades poderosas." },
+    "morale": { "t": "Moral", "d": "A felicidade da equipe. Moral alta aumenta a produção; café, decorações e bons eventos elevam." },
+    "reputation": { "t": "Reputação", "d": "Cresce conforme você produz. Desbloqueia novas salas e novos colegas." },
+    "rate": { "t": "Produção", "d": "Castanhas produzidas por segundo em todas as salas agora." },
+    "quiet": { "t": "Modo Silencioso", "d": "Suaviza som e animação para um jogo calmo e sem distração." },
+    "nav": {
+      "office": "Seu escritório aconchegante e a equipe trabalhando.",
+      "shop": "Compre melhorias para crescer produção e automação.",
+      "employees": "Contrate, posicione e faça amizade com a equipe.",
+      "company": "Visão geral da empresa, marcos e modificadores.",
+      "collections": "Tudo o que você já descobriu.",
+      "achievements": "Metas para perseguir e suas recompensas.",
+      "focus": "Sessões de foco e mini-jogos relaxantes.",
+      "decorate": "Compre decorações e organize cada sala.",
+      "stats": "Estatísticas detalhadas de toda a jornada.",
+      "prestige": "Reinicie para bônus permanentes.",
+      "settings": "Opções, áudio e acessibilidade."
+    }
+  },
   "office": {
     "collect": "Coletar caixa",
     "collectHint": "Uma caixa de castanhas está pronta!",

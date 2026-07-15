@@ -91,7 +91,8 @@ export function DecorationProp({
 }
 
 function Glyph({ kind, accent, lampOn }: { kind: DecorKind; accent: string; lampOn: boolean }) {
-  const s = { width: 26, height: 30, viewBox: '0 0 26 30', 'aria-hidden': true } as const;
+  // Larger base glyph so props read as real furniture next to the critters.
+  const s = { width: 32, height: 37, viewBox: '0 0 26 30', 'aria-hidden': true } as const;
   const line = '#241a12';
   switch (kind) {
     case 'plant':

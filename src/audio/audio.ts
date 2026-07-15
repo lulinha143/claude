@@ -29,6 +29,40 @@ interface AudioFlags {
   focus: boolean;
 }
 
+export type AudioChannel = 'music' | 'ambience' | 'ui' | 'sfx';
+export type ChannelMutes = Record<AudioChannel, boolean>;
+
+// --- pure gain math (unit-tested; no Web Audio needed) --------------------
+// Master mute is authoritative: when muted, EVERY channel returns 0. Quiet mode
+// attenuates the master. Per-channel mute or a zero slider silences just that
+// channel. Focus mode ducks music/ambience.
+export function effectiveMasterGain(volumes: AudioVolumes, flags: AudioFlags): number {
+  if (flags.muted) return 0;
+  let m = volumes.master;
+  if (flags.quiet) m *= 0.25;
+  return m;
+}
+
+export function channelGain(
+  channel: AudioChannel,
+  volumes: AudioVolumes,
+  flags: AudioFlags,
+  channelMuted: ChannelMutes,
+): number {
+  if (flags.muted) return 0; // master mute silences everything
+  if (channelMuted[channel]) return 0;
+  switch (channel) {
+    case 'music':
+      return volumes.music * 0.5 * (flags.focus ? 0.6 : 1);
+    case 'ambience':
+      return volumes.ambience * 0.62 * (flags.focus ? 0.35 : 1);
+    case 'ui':
+      return volumes.ui * 1.15;
+    case 'sfx':
+      return volumes.sfx * 1.15;
+  }
+}
+
 // A gentle, slow pentatonic-ish progression (frequencies in Hz). Four bars of
 // a sustained pad chord; a soft melody note plays on each beat. Warm and cozy,
 // never intrusive.
@@ -103,22 +137,18 @@ export class AudioManager {
   }
 
   private effectiveMaster(): number {
-    if (this.flags.muted) return 0;
-    let m = this.volumes.master;
-    if (this.flags.quiet) m *= 0.25;
-    return m;
+    return effectiveMasterGain(this.volumes, this.flags);
   }
 
   private applyGains(): void {
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
-    this.master?.gain.setTargetAtTime(this.effectiveMaster(), t, 0.08);
-    // Louder, present mix; the master limiter prevents clipping. Music dips a
-    // little in focus mode; ambience dips more. Per-channel mute forces 0.
-    const music = this.channelMuted.music ? 0 : this.volumes.music * 0.5 * (this.flags.focus ? 0.6 : 1);
-    const ambience = this.channelMuted.ambience
-      ? 0
-      : this.volumes.ambience * 0.62 * (this.flags.focus ? 0.35 : 1);
+    // Master mute drives the master node to 0, which alone silences music,
+    // ambience and every SFX (all route through it). We also zero the per-
+    // channel beds so nothing lingers.
+    this.master?.gain.setTargetAtTime(this.effectiveMaster(), t, 0.05);
+    const music = channelGain('music', this.volumes, this.flags, this.channelMuted);
+    const ambience = channelGain('ambience', this.volumes, this.flags, this.channelMuted);
     this.musicGain?.gain.setTargetAtTime(music, t, 0.4);
     this.ambienceGain?.gain.setTargetAtTime(ambience, t, 0.4);
   }
@@ -329,9 +359,9 @@ export class AudioManager {
   play(name: SfxName): void {
     if (!this.ctx || !this.master || this.flags.muted) return;
     const isUi = name === 'click' || name === 'error';
-    if (isUi ? this.channelMuted.ui : this.channelMuted.sfx) return;
-    // slightly stronger SFX presence than before (limiter guards the peaks)
-    const ch = (isUi ? this.volumes.ui : this.volumes.sfx) * 1.15;
+    // Uses the shared pure gain math so master mute / channel mute / sliders
+    // behave identically to the beds (limiter guards the peaks).
+    const ch = channelGain(isUi ? 'ui' : 'sfx', this.volumes, this.flags, this.channelMuted);
     if (ch <= 0) return;
     const now = this.ctx.currentTime;
 

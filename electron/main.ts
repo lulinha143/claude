@@ -31,7 +31,12 @@ if (!gotLock) {
 
 const BASE_WIDTH = 380;
 const BASE_HEIGHT = 460;
+const MIN_WIDTH = 320;
+const MIN_HEIGHT = 420;
+const MAX_WIDTH = 2600;
+const MAX_HEIGHT = 1800;
 const isDev = !!process.env.WMNO_DEV_SERVER;
+let saveBoundsTimer: ReturnType<typeof setTimeout> | null = null;
 
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
@@ -90,35 +95,56 @@ function cornerPosition(corner: WindowCorner): { x: number; y: number } {
   }
 }
 
-function applyWindowSettings(): void {
+function clamp(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value));
+}
+
+/**
+ * Applies window flags. When `resize` is true (an explicit scale/corner change)
+ * the window snaps back to the scaled base size and the remembered free-resize
+ * bounds are cleared; otherwise a manual resize is preserved.
+ */
+function applyWindowSettings(resize = false): void {
   if (!mainWindow) return;
-  const { width, height } = scaledSize();
-  mainWindow.setSize(width, height);
   mainWindow.setAlwaysOnTop(settings.alwaysOnTop, 'screen-saver');
   mainWindow.setIgnoreMouseEvents(settings.clickThrough, { forward: true });
-  if (settings.corner) {
-    const pos = cornerPosition(settings.corner);
-    mainWindow.setPosition(pos.x, pos.y);
+  if (resize && !mainWindow.isMaximized()) {
+    settings.width = undefined;
+    settings.height = undefined;
+    const { width, height } = scaledSize();
+    mainWindow.setSize(width, height);
+    if (settings.corner) {
+      const pos = cornerPosition(settings.corner);
+      mainWindow.setPosition(pos.x, pos.y);
+    }
   }
   saveSettings();
 }
 
 function createWindow(): void {
   loadSettings();
-  const { width, height } = scaledSize();
-  const pos = settings.corner ? cornerPosition(settings.corner) : undefined;
+  // Prefer the player's remembered free-resize bounds; otherwise fall back to
+  // the scaled base size.
+  const scaled = scaledSize();
+  const width = clamp(settings.width ?? scaled.width, MIN_WIDTH, MAX_WIDTH);
+  const height = clamp(settings.height ?? scaled.height, MIN_HEIGHT, MAX_HEIGHT);
+  const pos = settings.corner && settings.width == null ? cornerPosition(settings.corner) : undefined;
 
   mainWindow = new BrowserWindow({
     width,
     height,
+    minWidth: MIN_WIDTH,
+    minHeight: MIN_HEIGHT,
     x: pos?.x,
     y: pos?.y,
     frame: !settings.frameless,
     transparent: settings.frameless,
     backgroundColor: settings.frameless ? '#00000000' : '#2a2118',
-    resizable: false,
-    maximizable: false,
-    fullscreenable: false,
+    // A real desktop app: resizable from every edge/corner, maximizable and
+    // restorable. The renderer UI is fully responsive to whatever size results.
+    resizable: true,
+    maximizable: true,
+    fullscreenable: true,
     skipTaskbar: false,
     alwaysOnTop: settings.alwaysOnTop,
     icon: iconPath(),
@@ -134,6 +160,27 @@ function createWindow(): void {
 
   mainWindow.setAlwaysOnTop(settings.alwaysOnTop, 'screen-saver');
   mainWindow.setIgnoreMouseEvents(settings.clickThrough, { forward: true });
+  if (settings.maximized) mainWindow.maximize();
+
+  // Remember free-resize bounds + maximized state (debounced).
+  const persistBounds = () => {
+    if (!mainWindow) return;
+    if (saveBoundsTimer) clearTimeout(saveBoundsTimer);
+    saveBoundsTimer = setTimeout(() => {
+      if (!mainWindow) return;
+      settings.maximized = mainWindow.isMaximized();
+      if (!settings.maximized) {
+        const b = mainWindow.getBounds();
+        settings.width = b.width;
+        settings.height = b.height;
+      }
+      saveSettings();
+    }, 400);
+  };
+  mainWindow.on('resize', persistBounds);
+  mainWindow.on('move', persistBounds);
+  mainWindow.on('maximize', persistBounds);
+  mainWindow.on('unmaximize', persistBounds);
 
   if (isDev) {
     void mainWindow.loadURL(process.env.WMNO_DEV_SERVER as string);
@@ -208,7 +255,9 @@ function registerIpc(): void {
 
   ipcMain.handle(IPC.setWindowSettings, (_e, partial: Partial<WindowSettings>) => {
     settings = { ...settings, ...partial };
-    applyWindowSettings();
+    // Re-snap the size only when the player explicitly changes scale or corner.
+    const resize = typeof partial.scale === 'number' || 'corner' in partial;
+    applyWindowSettings(resize);
     if (typeof partial.launchOnStartup === 'boolean') {
       app.setLoginItemSettings({ openAtLogin: partial.launchOnStartup });
     }
@@ -231,13 +280,13 @@ function registerIpc(): void {
 
   ipcMain.handle(IPC.moveToCorner, (_e, corner: WindowCorner) => {
     settings.corner = corner;
-    applyWindowSettings();
+    applyWindowSettings(true);
     return settings;
   });
 
   ipcMain.handle(IPC.setScale, (_e, scale: number) => {
     settings.scale = scale;
-    applyWindowSettings();
+    applyWindowSettings(true);
     return settings;
   });
 

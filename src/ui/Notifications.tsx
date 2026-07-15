@@ -20,9 +20,17 @@ function ToastItem({ toast }: { toast: Toast }) {
     return () => clearTimeout(h);
   }, [toast.id, dismiss]);
   return (
-    <button className={`toast toast--${toast.tone}`} onClick={() => dismiss(toast.id)}>
-      <Icon name={toast.icon} size={16} />
-      <span>{toast.text}</span>
+    <button
+      className={`toast toast--${toast.tone}`}
+      onClick={() => dismiss(toast.id)}
+      title={toast.text}
+      aria-label={toast.text}
+    >
+      <span className="toast__icon">
+        <Icon name={toast.icon} size={14} />
+      </span>
+      <span className="toast__text">{toast.text}</span>
+      <span className="toast__bar" aria-hidden />
     </button>
   );
 }
