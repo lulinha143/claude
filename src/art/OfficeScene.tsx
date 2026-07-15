@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { useGame } from '../state/hooks';
 import { useStore } from '../state/store';
-import { unlockedRooms, isRoomUnlocked, resolveEmployeeRoom } from '../sim/rooms';
-import { ROOMS } from '../content/rooms';
+import { unlockedRooms, isRoomUnlocked, resolveEmployeeRoom, employeesInRoom } from '../sim/rooms';
+import { ROOMS, ROOMS_BY_ID } from '../content/rooms';
 import { EMPLOYEES_BY_ID } from '../content/employees';
 import { DECORATIONS_BY_ID } from '../content/decorations';
 import { Critter } from './Critter';
@@ -19,10 +20,26 @@ import {
   isDecorationPlaced,
   roomComfort,
 } from '../sim/decorations';
-import { characterSlots } from '../content/roomLayout';
+import { characterSlots, anchorsForRoom } from '../content/roomLayout';
 import { pickDialogueIndex, dialogueKey } from '../sim/dialogue';
 import { employeeMood, MOOD_TONE } from '../sim/mood';
 import { createRng } from '../sim/rng';
+import { notify } from '../ui/notificationsStore';
+
+// A soft visual capacity per room — dragging a teammate into a fuller room is
+// gently refused with a suggestion, keeping each room readable and cozy.
+const ROOM_CAP = 6;
+const DRAG_THRESHOLD = 7; // px before a press becomes a drag (vs a tap)
+
+interface DragState {
+  kind: 'employee' | 'decoration';
+  id: string;
+  x: number;
+  y: number;
+  room: string | null; // for decorations: the owning room; employees: null
+  overRoom: string | null;
+  valid: boolean;
+}
 
 interface Bubble {
   employeeId: string;
@@ -64,6 +81,23 @@ const AMBIENT: Record<string, string> = {
   rooftop: 'plant',
 };
 
+// Small critter rendered inside the drag ghost.
+function GhostCritter({ id, reducedMotion }: { id: string; reducedMotion: boolean }) {
+  const sh = shapeFor(id);
+  const d = EMPLOYEES_BY_ID[id];
+  return (
+    <Critter
+      species={sh.species}
+      color={d?.color ?? '#c65b3c'}
+      accent={d?.accent ?? '#3f7d4f'}
+      state="idle"
+      hasGlasses={sh.hasGlasses}
+      reducedMotion={reducedMotion}
+      size={68}
+    />
+  );
+}
+
 // Persistent per-employee state machines (kept across renders).
 const machines: Record<string, CritterStateMachine> = {};
 function machineFor(id: string): CritterStateMachine {
@@ -84,6 +118,10 @@ export function OfficeScene() {
   const [selected, setSelected] = useState<string | null>(null);
   // A decoration a nearby employee is currently reacting to (for a little wiggle).
   const [reactingDeco, setReactingDeco] = useState<string | null>(null);
+  // Live drag (employee or decoration) for the ghost + drop highlighting.
+  const [drag, setDrag] = useState<DragState | null>(null);
+  // True immediately after a real drag so the trailing click doesn't also fire.
+  const draggedRef = useRef(false);
   const rngRef = useRef(createRng(Date.now() & 0xffff));
   // Latest state, so the ambient-chatter interval always reads current data.
   const stateRef = useRef(state);
@@ -154,6 +192,7 @@ export function OfficeScene() {
   }
 
   function onCritterClick(employeeId: string) {
+    if (draggedRef.current) return; // suppress the click that follows a drag
     const def = EMPLOYEES_BY_ID[employeeId];
     if (employeeId === 'pip') {
       engine.petPip();
@@ -188,8 +227,125 @@ export function OfficeScene() {
   }
 
   function selectDeco(id: string) {
+    if (draggedRef.current) return; // suppress the click that follows a drag
     setSelected((prev) => (prev === id ? null : id));
     audio.play('click');
+  }
+
+  // -- drag & drop ------------------------------------------------------------
+  // A unified pointer-drag for critters (assign to a room) and decorations
+  // (place at the nearest anchor / stow). Distinguishes a tap (< threshold) from
+  // a drag; a real drag suppresses the trailing click via draggedRef; Escape
+  // cancels; the ghost follows the pointer.
+  function roomUnderPoint(x: number, y: number): string | null {
+    const el = document.elementFromPoint(x, y);
+    const floor = el?.closest('.floor[data-room]') as HTMLElement | null;
+    return floor?.dataset.room ?? null;
+  }
+
+  function employeeTarget(x: number, y: number, id: string): { room: string | null; valid: boolean } {
+    const room = roomUnderPoint(x, y);
+    if (!room || !ROOMS_BY_ID[room]) return { room: null, valid: false };
+    const already = resolveEmployeeRoom(stateRef.current, id) === room;
+    const full = employeesInRoom(stateRef.current, room).length >= ROOM_CAP;
+    return { room, valid: already || !full };
+  }
+
+  function decorationTarget(x: number, y: number, room: string | null): { room: string | null; valid: boolean } {
+    const over = roomUnderPoint(x, y);
+    return { room: over, valid: over != null && over === room };
+  }
+
+  function beginDrag(e: React.PointerEvent, kind: 'employee' | 'decoration', id: string) {
+    if (e.button != null && e.button !== 0) return;
+    if (kind === 'decoration' && !decorMode) return;
+    if (kind === 'employee' && decorMode) return;
+    const start = { x: e.clientX, y: e.clientY };
+    const room = kind === 'decoration' ? DECORATIONS_BY_ID[id]?.room ?? null : null;
+    let started = false;
+
+    const move = (ev: PointerEvent) => {
+      if (!started && Math.hypot(ev.clientX - start.x, ev.clientY - start.y) < DRAG_THRESHOLD) return;
+      started = true;
+      const tgt = kind === 'employee' ? employeeTarget(ev.clientX, ev.clientY, id) : decorationTarget(ev.clientX, ev.clientY, room);
+      setDrag({ kind, id, x: ev.clientX, y: ev.clientY, room, overRoom: tgt.room, valid: tgt.valid });
+    };
+    const cleanup = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      window.removeEventListener('keydown', onKey);
+    };
+    const up = (ev: PointerEvent) => {
+      cleanup();
+      if (started) {
+        if (kind === 'employee') finishEmployeeDrop(ev.clientX, ev.clientY, id);
+        else finishDecorationDrop(ev.clientX, ev.clientY, id);
+        draggedRef.current = true;
+        setTimeout(() => (draggedRef.current = false), 0);
+      }
+      setDrag(null);
+    };
+    const onKey = (ev: KeyboardEvent) => {
+      if (ev.key === 'Escape') {
+        cleanup();
+        setDrag(null);
+      }
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+    window.addEventListener('keydown', onKey);
+  }
+
+  function finishEmployeeDrop(x: number, y: number, id: string) {
+    const { room, valid } = employeeTarget(x, y, id);
+    if (!room) return; // dropped outside any room — cancel
+    if (resolveEmployeeRoom(stateRef.current, id) === room) return; // no change
+    if (!valid) {
+      // Room full: explain + suggest another unlocked room with space.
+      const suggestion = unlockedRooms(stateRef.current).find(
+        (r) => r.id !== room && employeesInRoom(stateRef.current, r.id).length < ROOM_CAP,
+      );
+      const roomName = t(ROOMS_BY_ID[room].nameKey);
+      notify(
+        'rooms',
+        suggestion
+          ? t('office.roomFullSuggest', { room: roomName, other: t(suggestion.nameKey) })
+          : t('office.roomFull', { room: roomName }),
+        'neutral',
+      );
+      audio.play('error');
+      return;
+    }
+    if (engine.assignEmployee(id, room)) audio.play('upgrade');
+  }
+
+  function finishDecorationDrop(x: number, y: number, id: string) {
+    const def = DECORATIONS_BY_ID[id];
+    if (!def) return;
+    const el = document.elementFromPoint(x, y);
+    const floorEl = el?.closest('.floor[data-room]') as HTMLElement | null;
+    const overRoom = floorEl?.dataset.room ?? null;
+    if (overRoom !== def.room || !floorEl) return; // dropped elsewhere — cancel
+    // Dropped on the inventory tray → stow it.
+    if (el?.closest('.floor__tray')) {
+      if (engine.removeDecoration(id)) audio.play('click');
+      return;
+    }
+    // Otherwise place at the anchor nearest the drop point.
+    const stage = floorEl.querySelector('.floor__stage') as HTMLElement | null;
+    const rect = (stage ?? floorEl).getBoundingClientRect();
+    const nx = Math.max(0, Math.min(1, (x - rect.left) / Math.max(1, rect.width)));
+    const anchors = anchorsForRoom(def.room);
+    let best = anchors[0];
+    let bd = Infinity;
+    for (const a of anchors) {
+      const d = Math.abs(a.x - nx);
+      if (d < bd) {
+        bd = d;
+        best = a;
+      }
+    }
+    if (best && engine.placeDecoration(id, best.id)) audio.play('upgrade');
   }
 
   function selectedRoom(): string | null {
@@ -221,6 +377,7 @@ export function OfficeScene() {
         >
           <Icon name="decorate" size={14} /> {t('office.decorate')}
         </button>
+        {!decorMode ? <span className="office__toolbar-hint">{t('office.dragHint')}</span> : null}
         {decorMode ? (
           <>
             <button
@@ -300,9 +457,18 @@ export function OfficeScene() {
           const canDropHere = decorMode && selected !== null && selectedRoom() === room.id;
           const selectedPlacedHere =
             selected !== null && selectedRoom() === room.id && isDecorationPlaced(state, selected);
+          let dropClass = '';
+          if (drag) {
+            if (drag.kind === 'employee') {
+              dropClass =
+                drag.overRoom === room.id ? (drag.valid ? 'is-drop-hover' : 'is-drop-invalid') : 'is-drop-target';
+            } else if (drag.kind === 'decoration' && drag.room === room.id) {
+              dropClass = drag.overRoom === room.id ? 'is-drop-hover' : 'is-drop-target';
+            }
+          }
           return (
             <div
-              className="floor"
+              className={`floor ${dropClass}`}
               key={room.id}
               data-room={room.id}
               style={{ ['--dept' as string]: DEPT[room.id] ?? 'var(--dept-founder)' }}
@@ -331,7 +497,9 @@ export function OfficeScene() {
                 {placed.map(({ def, anchor }) => (
                   <div
                     key={def.id}
-                    className={`floor__anchor ${selected === def.id ? 'is-selected' : ''}`}
+                    className={`floor__anchor ${selected === def.id ? 'is-selected' : ''} ${
+                      drag?.kind === 'decoration' && drag.id === def.id ? 'is-dragging' : ''
+                    }`}
                     style={{
                       left: `${anchor.x * 100}%`,
                       bottom: `${anchor.y}px`,
@@ -347,6 +515,7 @@ export function OfficeScene() {
                       title={t(`deco.${def.id}.name`)}
                       onToggle={() => selectDeco(def.id)}
                       onInteract={() => audio.play('click')}
+                      onPointerDown={decorMode ? (e) => beginDrag(e, 'decoration', def.id) : undefined}
                     />
                   </div>
                 ))}
@@ -387,8 +556,11 @@ export function OfficeScene() {
                   return (
                     <button
                       key={id}
-                      className="critter-btn"
+                      className={`critter-btn ${drag?.kind === 'employee' && drag.id === id ? 'is-dragging' : ''} ${
+                        !decorMode ? 'is-draggable' : ''
+                      }`}
                       style={{ left: `${slot.x * 100}%`, bottom: `${slot.bottom}px`, zIndex: 3 + (idx % 2) }}
+                      onPointerDown={(e) => beginDrag(e, 'employee', id)}
                       onClick={() => onCritterClick(id)}
                       title={label}
                       aria-label={label}
@@ -444,6 +616,7 @@ export function OfficeScene() {
                           selected={selected === d.id}
                           title={t(`deco.${d.id}.name`)}
                           onToggle={() => selectDeco(d.id)}
+                          onPointerDown={(e) => beginDrag(e, 'decoration', d.id)}
                         />
                       ))
                     )}
@@ -480,6 +653,23 @@ export function OfficeScene() {
           {pop.text}
         </span>
       ) : null}
+
+      {drag && typeof document !== 'undefined'
+        ? createPortal(
+            <div
+              className={`drag-ghost ${drag.valid ? 'is-ok' : 'is-no'}`}
+              style={{ left: `${drag.x}px`, top: `${drag.y}px` }}
+              aria-hidden
+            >
+              {drag.kind === 'employee' ? (
+                <GhostCritter id={drag.id} reducedMotion={reducedMotion} />
+              ) : (
+                <DecorationProp id={drag.id} reducedMotion mode="interact" title={t(`deco.${drag.id}.name`)} />
+              )}
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }

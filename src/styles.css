@@ -2785,3 +2785,59 @@ select,
   to { transform: scale(1); opacity: 1; }
 }
 [data-reduced-motion='true'] .moment-modal { animation: none; }
+
+
+/* ==========================================================================
+   Drag & drop — employees between rooms, decorations between anchors
+   ========================================================================== */
+.critter-btn.is-draggable {
+  cursor: grab;
+  touch-action: none;
+}
+.critter-btn.is-draggable:active {
+  cursor: grabbing;
+}
+.critter-btn.is-dragging {
+  opacity: 0.3;
+}
+.office--decorating .decor {
+  cursor: grab;
+  touch-action: none;
+}
+.office--decorating .decor:active {
+  cursor: grabbing;
+}
+.floor__anchor.is-dragging {
+  opacity: 0.25;
+}
+
+/* room drop-target highlighting while dragging */
+.floor.is-drop-target {
+  outline: 2px dashed color-mix(in srgb, var(--gold) 45%, transparent);
+  outline-offset: -3px;
+}
+.floor.is-drop-hover {
+  outline: 2px solid var(--positive);
+  outline-offset: -3px;
+  background:
+    linear-gradient(180deg, rgba(79, 157, 105, 0.16), rgba(0, 0, 0, 0.24)),
+    color-mix(in srgb, var(--dept) 10%, transparent);
+}
+.floor.is-drop-invalid {
+  outline: 2px solid var(--negative);
+  outline-offset: -3px;
+}
+
+/* the floating ghost that follows the pointer */
+.drag-ghost {
+  position: fixed;
+  z-index: 9998;
+  transform: translate(-50%, -62%) scale(1.05);
+  pointer-events: none;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.5));
+  opacity: 0.92;
+}
+.drag-ghost.is-no {
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.5)) grayscale(0.4);
+  opacity: 0.7;
+}
