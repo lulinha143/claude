@@ -4,7 +4,7 @@ import { createRng, hashStringToSeed, type Rng } from './rng';
 // timing/DOM; this module owns the rules so they can be unit-tested and are
 // reproducible from a seed (used by tests and the dev deterministic mode).
 
-export type MicroMode = 'shellSort' | 'coffeeRescue' | 'inventory';
+export type MicroMode = 'shellSort' | 'coffeeRescue' | 'inventory' | 'bugSquash';
 
 // --- Conveyor Sort --------------------------------------------------------
 // Items ride a conveyor: a good nut, a rare golden nut, or a broken shell. The
@@ -121,6 +121,24 @@ export function inventoryRound(seedStr: string, size = 5): InventoryRound {
 /** Score for a correct find, rewarding longer memory streaks. */
 export function inventoryScoreDelta(streak: number): number {
   return 3 + Math.min(6, streak);
+}
+
+// --- Bug Squash -----------------------------------------------------------
+// A reaction/precision "whack-a-mole": office pests pop out of a 3x3 grid of
+// burrows for a shrinking window; tap them before they duck back. Speed and
+// difficulty ramp with elapsed time; consecutive squashes build a combo.
+export const BUG_HOLES = 9;
+
+export function bugLifetime(elapsedSeconds: number): number {
+  return Math.max(650, 1500 - elapsedSeconds * 26); // ms a pest stays up
+}
+
+export function bugSpawnInterval(elapsedSeconds: number): number {
+  return Math.max(380, 900 - elapsedSeconds * 18); // ms between pests
+}
+
+export function bugScore(streak: number): number {
+  return 2 + Math.min(6, Math.floor(streak / 2));
 }
 
 // --- shared -------------------------------------------------------------

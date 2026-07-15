@@ -3045,3 +3045,248 @@ img {
   100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0.3); }
 }
 [data-reduced-motion='true'] .sparkle-burst { display: none; }
+
+
+/* ==========================================================================
+   Menu / UI redesign — cohesive indie-hit polish (headers, cards, tabs,
+   buttons, view transitions). Additive; overrides earlier base rules on
+   purpose so every menu shares one handcrafted look.
+   ========================================================================== */
+
+/* Section headers get a warm accent bar + display face. */
+.view h2 {
+  position: relative;
+  padding-left: 13px;
+  font-family: var(--font-head);
+  letter-spacing: var(--tracking-tight);
+}
+.view h2::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 12%;
+  bottom: 12%;
+  width: 4px;
+  border-radius: 3px;
+  background: linear-gradient(180deg, var(--gold), var(--amber));
+}
+
+/* Each view fades + rises in when selected, so navigation feels intentional. */
+.view-anim {
+  animation: view-in 0.26s var(--ease);
+}
+@keyframes view-in {
+  from { opacity: 0; transform: translateY(7px); }
+  to { opacity: 1; transform: none; }
+}
+[data-reduced-motion='true'] .view-anim {
+  animation: none;
+}
+
+/* Cards gain a soft gradient, depth and a gold hover accent. */
+.card {
+  background: linear-gradient(158deg, color-mix(in srgb, var(--wood) 52%, transparent), rgba(0, 0, 0, 0.3));
+  border: 1px solid var(--border-strong);
+  border-radius: 13px;
+  box-shadow: var(--shadow-sm);
+  transition:
+    transform var(--dur-fast) var(--ease),
+    border-color var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease);
+}
+.card:not(.is-maxed):hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--gold) 42%, var(--border-strong));
+  box-shadow: var(--shadow-md);
+}
+
+/* Premium tactile buttons. */
+.buy-btn {
+  background: linear-gradient(180deg, #57ab72, var(--moss));
+  border-radius: 10px;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+.buy-btn:disabled {
+  background: #45403a;
+  box-shadow: none;
+}
+.ghost-btn {
+  border-radius: 10px;
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+.ghost-btn:hover {
+  border-color: color-mix(in srgb, var(--gold) 40%, var(--wood-light));
+}
+
+/* Pill tabs with a glowing active state. */
+.tabs {
+  gap: 6px;
+}
+.tab {
+  border-radius: var(--r-pill);
+  border: 1px solid transparent;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), box-shadow var(--dur) var(--ease);
+}
+.tab:hover:not(.is-active) {
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--cream);
+}
+.tab.is-active {
+  background: linear-gradient(180deg, var(--gold), var(--amber));
+  color: #241a12;
+  box-shadow: 0 2px 9px color-mix(in srgb, var(--gold) 40%, transparent);
+}
+
+/* Nav: clearer active state with an underline pip. */
+.nav__item {
+  position: relative;
+  border-radius: 10px;
+}
+.nav__item.is-active::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 2px;
+  width: 16px;
+  height: 3px;
+  border-radius: 2px;
+  transform: translateX(-50%);
+  background: var(--gold);
+}
+
+
+/* ==========================================================================
+   Bug Squash minigame
+   ========================================================================== */
+.bugsquash {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.bugsquash__hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: var(--fw-bold);
+}
+.bugsquash__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  width: 100%;
+  max-width: 300px;
+  margin: 0 auto;
+}
+.burrow {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: grid;
+  place-items: end center;
+}
+.burrow__hole {
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  bottom: 8%;
+  height: 36%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, #201509, #3a2c1f);
+  box-shadow: inset 0 3px 7px rgba(0, 0, 0, 0.65);
+  transition: box-shadow var(--dur-fast) var(--ease);
+}
+.burrow.is-up .burrow__hole {
+  box-shadow: inset 0 3px 7px rgba(0, 0, 0, 0.65), 0 0 0 2px color-mix(in srgb, var(--gold) 45%, transparent);
+}
+.burrow .bug {
+  position: relative;
+  z-index: 2;
+  margin-bottom: 14%;
+  transform-origin: bottom center;
+  animation: bug-pop 0.16s var(--ease);
+  filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.4));
+}
+.burrow.is-hit .bug {
+  animation: bug-squash 0.22s var(--ease) forwards;
+}
+@keyframes bug-pop {
+  from { transform: translateY(70%) scale(0.5); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes bug-squash {
+  to { transform: scaleY(0.25) scaleX(1.25); opacity: 0; }
+}
+[data-reduced-motion='true'] .burrow .bug { animation: none; }
+
+
+/* ==========================================================================
+   Typography depth — distinct roles share one cozy family with clear hierarchy
+   ========================================================================== */
+/* Brand / logo */
+.header__company {
+  font-family: var(--font-head);
+  font-weight: var(--fw-heavy);
+  letter-spacing: 0.005em;
+}
+/* Titles across cards, employees, decorations, rooms, achievements, results */
+.card__title,
+.decocard__title,
+.employee-card__name,
+.employee-card__fullname,
+.floor__label,
+.micro-card strong,
+.microgame__bar strong,
+.big-number,
+.moment__title,
+.achievement-card__name,
+.stat-card__value {
+  font-family: var(--font-head);
+  letter-spacing: var(--tracking-tight);
+}
+.big-number {
+  font-weight: var(--fw-heavy);
+  font-size: var(--fs-2xl);
+}
+/* Dialogue reads warm and rounded, a touch larger for readability */
+.bubble {
+  font-family: var(--font-body);
+  font-weight: var(--fw-medium);
+  line-height: var(--lh-snug);
+}
+/* All numeric readouts share tabular figures so counters never jitter */
+.res span,
+.floor__rate,
+.big-number,
+.stat-card__value,
+.microgame__timer,
+.bugsquash__hud,
+.coffee__hud,
+.shellsort__hud {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+/* Final responsive safety: the micro-game menu + result wrap cleanly, and the
+   focus/microgame panels never force horizontal scroll on tiny windows. */
+.microgame-menu {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+}
+.micro-card {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  text-align: left;
+}
+.microgame,
+.bugsquash,
+.coffee,
+.shellsort,
+.inv {
+  max-width: 100%;
+}

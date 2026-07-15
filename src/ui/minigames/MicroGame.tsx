@@ -5,10 +5,11 @@ import { Icon } from '../../art/UiIcon';
 import { ShellSort } from './ShellSort';
 import { CoffeeRescue } from './CoffeeRescue';
 import { RaccoonInventory } from './RaccoonInventory';
+import { BugSquash } from './BugSquash';
 
 export type { MicroMode };
 
-const DURATION: Record<MicroMode, number> = { shellSort: 35, coffeeRescue: 30, inventory: 45 };
+const DURATION: Record<MicroMode, number> = { shellSort: 35, coffeeRescue: 30, inventory: 45, bugSquash: 30 };
 
 export interface MicroGameProps {
   mode: MicroMode;
@@ -103,6 +104,7 @@ export function MicroGame({ mode, seed, reducedMotion, onReward, onClose }: Micr
           {mode === 'shellSort' ? <ShellSort key={round} {...subProps} /> : null}
           {mode === 'coffeeRescue' ? <CoffeeRescue key={round} {...subProps} /> : null}
           {mode === 'inventory' ? <RaccoonInventory key={round} {...subProps} /> : null}
+          {mode === 'bugSquash' ? <BugSquash key={round} {...subProps} /> : null}
         </>
       ) : (
         <div className="microgame__result">
