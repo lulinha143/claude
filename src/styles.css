@@ -3290,3 +3290,155 @@ img {
 .inv {
   max-width: 100%;
 }
+
+
+/* ==========================================================================
+   Decoration Mode — unified bottom inventory tray
+   ========================================================================== */
+/* Keep the last room clear of the fixed bottom tray while editing. */
+.office--decorating .office__trunk {
+  padding-bottom: 150px;
+}
+/* Slim per-room actions bar (inventory now lives in the bottom tray). */
+.floor__tray--actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.deco-tray {
+  position: fixed;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  z-index: 140;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 148px;
+  padding: 8px 10px;
+  border-radius: var(--r-lg);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--wood) 92%, black), color-mix(in srgb, var(--c-bark-900) 92%, black));
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-lg);
+  animation: tray-in 0.24s var(--ease);
+}
+/* Shrink out of the way while a piece is being dragged, so rooms are visible. */
+.deco-tray.is-dragging {
+  opacity: 0.55;
+  max-height: 74px;
+}
+@keyframes tray-in {
+  from { transform: translateY(16px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+[data-reduced-motion='true'] .deco-tray { animation: none; }
+
+.deco-tray__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.deco-tray__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-head);
+  font-weight: var(--fw-heavy);
+  font-size: var(--fs-sm);
+  color: var(--gold);
+}
+.deco-tray__summary {
+  font-size: var(--fs-2xs);
+  color: var(--text-secondary);
+}
+.deco-tray__search {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: auto;
+  padding: 3px 9px;
+  border-radius: var(--r-pill);
+  background: var(--surface-sunken);
+  border: 1px solid var(--wood-light);
+  color: var(--text-secondary);
+  flex: 0 1 200px;
+  min-width: 120px;
+}
+.deco-tray__search input {
+  border: none;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: var(--fs-xs);
+  width: 100%;
+  outline: none;
+}
+.deco-tray__chips {
+  display: flex;
+  gap: 4px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.deco-tray.is-dragging .deco-tray__chips {
+  display: none;
+}
+.deco-tray__items {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 2px 0 4px;
+  scrollbar-width: thin;
+  min-height: 54px;
+  align-items: flex-end;
+}
+.deco-tray__empty {
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: var(--fs-xs);
+  align-self: center;
+}
+.deco-tray__card {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  width: 62px;
+  padding: 4px;
+  border-radius: var(--r-sm);
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+  border: 1px solid transparent;
+  cursor: grab;
+}
+.deco-tray__card.is-selected {
+  border-color: var(--gold);
+  background: color-mix(in srgb, var(--gold) 14%, transparent);
+}
+.deco-tray__card-name {
+  font-size: 0.6rem;
+  font-weight: var(--fw-bold);
+  color: var(--text);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.deco-tray__card-room {
+  font-size: 0.55rem;
+  color: var(--text-muted);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* On very small windows the tray stays usable but tighter. */
+@media (max-width: 460px) {
+  .deco-tray { max-height: 128px; }
+  .deco-tray__card { width: 54px; }
+  .office--decorating .office__trunk { padding-bottom: 132px; }
+}
