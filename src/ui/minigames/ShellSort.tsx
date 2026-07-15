@@ -17,35 +17,46 @@ export function ShellSort({ seed, reducedMotion, onScore, onEnd }: SubGameProps)
   const [combo, setCombo] = useState(0);
   const [flash, setFlash] = useState<'good' | 'bad' | null>(null);
   const scoreRef = useRef(0);
+  const comboRef = useRef(0);
+  const endedRef = useRef(false);
+  const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const current: ShellItem | undefined = items[index];
 
+  // End exactly once when the conveyor is emptied (never inside a state updater).
+  useEffect(() => {
+    if (!endedRef.current && items.length > 0 && index >= items.length) {
+      endedRef.current = true;
+      onEnd(scoreRef.current);
+    }
+  }, [index, items.length, onEnd]);
+
+  // Clean up any pending flash timer on unmount (no setState after unmount).
+  useEffect(() => () => { if (flashTimer.current) clearTimeout(flashTimer.current); }, []);
+
   const place = useCallback(
     (bin: ShellBin) => {
-      if (!current) return;
-      const correct = shellBinFor(current.kind) === bin;
-      setCombo((c) => {
-        const nextCombo = correct ? c + 1 : 0;
-        if (correct) {
-          const delta = shellScoreDelta(true, nextCombo, current.kind);
-          scoreRef.current += delta;
-          setScore(scoreRef.current);
-          onScore(scoreRef.current);
-        }
-        return nextCombo;
-      });
+      if (index >= items.length) return;
+      const item = items[index];
+      const correct = shellBinFor(item.kind) === bin;
+      const nextCombo = correct ? comboRef.current + 1 : 0;
+      comboRef.current = nextCombo;
+      setCombo(nextCombo);
+      if (correct) {
+        scoreRef.current += shellScoreDelta(true, nextCombo, item.kind);
+        setScore(scoreRef.current);
+        onScore(scoreRef.current);
+      }
       setFlash(correct ? 'good' : 'bad');
-      setTimeout(() => setFlash(null), reducedMotion ? 0 : 220);
-      setIndex((i) => {
-        const next = i + 1;
-        if (next >= items.length) onEnd(scoreRef.current);
-        return next;
-      });
+      if (flashTimer.current) clearTimeout(flashTimer.current);
+      if (!reducedMotion) flashTimer.current = setTimeout(() => setFlash(null), 220);
+      else setFlash(null);
+      setIndex(index + 1);
     },
-    [current, items.length, onEnd, onScore, reducedMotion],
+    [index, items, onScore, reducedMotion],
   );
 
-  // keyboard controls
+  // keyboard controls (1/2/3)
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === '1') place('good');
@@ -65,7 +76,7 @@ export function ShellSort({ seed, reducedMotion, onScore, onEnd }: SubGameProps)
         <span className={combo >= 3 ? 'shellsort__combo is-hot' : 'shellsort__combo'}>
           {t('microgame.combo', { value: combo })}
         </span>
-        <span>{items.length - index}</span>
+        <span>{Math.max(0, items.length - index)}</span>
       </div>
 
       <div className="shellsort__conveyor">
@@ -82,19 +93,34 @@ export function ShellSort({ seed, reducedMotion, onScore, onEnd }: SubGameProps)
       </div>
 
       <div className="shellsort__bins">
-        <button className="bin bin--good" onClick={() => place('good')} aria-label={t('microgame.binGood')}>
+        <button
+          className="bin bin--good"
+          onClick={() => place('good')}
+          disabled={!current}
+          aria-label={t('microgame.binGood')}
+        >
           <span className="bin__pattern bin__pattern--dots" aria-hidden />
           <NutDot color="#c98a4b" size={26} />
           <span className="bin__label">{t('microgame.binGood')}</span>
           <kbd>1</kbd>
         </button>
-        <button className="bin bin--golden" onClick={() => place('golden')} aria-label={t('microgame.binGolden')}>
+        <button
+          className="bin bin--golden"
+          onClick={() => place('golden')}
+          disabled={!current}
+          aria-label={t('microgame.binGolden')}
+        >
           <span className="bin__pattern bin__pattern--rays" aria-hidden />
           <GoldenNut size={26} />
           <span className="bin__label">{t('microgame.binGolden')}</span>
           <kbd>2</kbd>
         </button>
-        <button className="bin bin--shell" onClick={() => place('shell')} aria-label={t('microgame.binShell')}>
+        <button
+          className="bin bin--shell"
+          onClick={() => place('shell')}
+          disabled={!current}
+          aria-label={t('microgame.binShell')}
+        >
           <span className="bin__pattern bin__pattern--stripes" aria-hidden />
           <BrokenShell size={26} />
           <span className="bin__label">{t('microgame.binShell')}</span>

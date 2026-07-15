@@ -58,6 +58,7 @@
     "reputation": { "t": "Reputação", "d": "Cresce conforme você produz. Desbloqueia novas salas e novos colegas." },
     "rate": { "t": "Produção", "d": "Castanhas produzidas por segundo em todas as salas agora." },
     "quiet": { "t": "Modo Silencioso", "d": "Suaviza som e animação para um jogo calmo e sem distração." },
+    "friendship": "Cresce quando você conversa, dá café e mantém a equipe feliz. Mais amizade aumenta a produção.",
     "nav": {
       "office": "Seu escritório aconchegante e a equipe trabalhando.",
       "shop": "Compre melhorias para crescer produção e automação.",
@@ -789,6 +790,12 @@
     "curious": "Curioso",
     "proud": "Orgulhoso"
   },
+  "photo": {
+    "save": "Salvar foto",
+    "saved": "Salvo!",
+    "error": "Não foi possível salvar",
+    "tagline": "Mais um dia aconchegante no escritório"
+  },
   "collections": {
     "title": "Coleções",
     "nuts": "Enciclopédia da Castanha",
@@ -798,7 +805,8 @@
     "discovered": "{{count}} / {{total}} descobertos",
     "undiscovered": "Não descoberto",
     "saveCard": "Salvar como PNG",
-    "photoMode": "Modo Foto"
+    "photoMode": "Modo Foto",
+    "view": "Ver"
   },
   "company": {
     "title": "Visão Geral da Empresa",

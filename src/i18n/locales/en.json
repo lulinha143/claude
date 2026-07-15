@@ -58,6 +58,7 @@
     "reputation": { "t": "Reputation", "d": "Grows as you produce. Unlocks new rooms and new teammates." },
     "rate": { "t": "Production", "d": "Nuts produced per second across every room right now." },
     "quiet": { "t": "Quiet Mode", "d": "Softens audio and animation for calm, low-distraction play." },
+    "friendship": "Grows when you chat, gift coffee and keep them happy. Higher friendship boosts their output.",
     "nav": {
       "office": "Your cozy office and the team at work.",
       "shop": "Buy upgrades to grow production and automation.",
@@ -789,6 +790,12 @@
     "curious": "Curious",
     "proud": "Proud"
   },
+  "photo": {
+    "save": "Save snapshot",
+    "saved": "Saved!",
+    "error": "Couldn't save",
+    "tagline": "Another cozy day at the office"
+  },
   "collections": {
     "title": "Collections",
     "nuts": "Nut Encyclopedia",
@@ -798,7 +805,8 @@
     "discovered": "{{count}} / {{total}} discovered",
     "undiscovered": "Undiscovered",
     "saveCard": "Save as PNG",
-    "photoMode": "Photo Mode"
+    "photoMode": "Photo Mode",
+    "view": "View"
   },
   "company": {
     "title": "Company Overview",

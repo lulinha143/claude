@@ -83,8 +83,12 @@ export function renderMomentCard(data: MomentCardData): HTMLCanvasElement {
   return canvas;
 }
 
-export function momentCardToPng(data: MomentCardData): string {
-  return renderMomentCard(data).toDataURL('image/png');
+export function momentCardToPng(data: MomentCardData): string | null {
+  try {
+    return renderMomentCard(data).toDataURL('image/png');
+  } catch {
+    return null;
+  }
 }
 
 function clip(s: string, max: number): string {

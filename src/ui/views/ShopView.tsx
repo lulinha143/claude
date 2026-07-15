@@ -7,6 +7,7 @@ import { UPGRADES } from '../../content/upgrades';
 import type { UpgradeDef } from '../../content/types';
 import { aggregatePassives, isUpgradeUnlocked, upgradeCost } from '../../sim/economy';
 import { Acorn, GoldenNut } from '../../art/Icons';
+import { Tip, TipContent } from '../Tooltip';
 
 const CATEGORIES: UpgradeDef['category'][] = [
   'production',
@@ -59,16 +60,29 @@ export function ShopView() {
                 </div>
                 <div className="card__desc">{t(u.descriptionKey, u.nameParams)}</div>
               </div>
-              <button className="buy-btn" disabled={maxed || !afford} onClick={() => buy(u)}>
-                {maxed ? (
-                  t('common.max')
-                ) : (
-                  <>
-                    {u.resource === 'goldenNuts' ? <GoldenNut size={16} /> : <Acorn size={16} />}
-                    <span>{fmt.num(cost)}</span>
-                  </>
-                )}
-              </button>
+              <Tip
+                content={
+                  <TipContent
+                    title={t(u.nameKey, u.nameParams)}
+                    lines={[
+                      t(u.descriptionKey, u.nameParams),
+                      u.maxLevel > 1 ? (maxed ? t('common.max') : t('common.level', { level: owned })) : null,
+                      maxed ? null : `${t('common.cost')}: ${fmt.num(cost)}`,
+                    ]}
+                  />
+                }
+              >
+                <button className="buy-btn" disabled={maxed || !afford} onClick={() => buy(u)}>
+                  {maxed ? (
+                    t('common.max')
+                  ) : (
+                    <>
+                      {u.resource === 'goldenNuts' ? <GoldenNut size={16} /> : <Acorn size={16} />}
+                      <span>{fmt.num(cost)}</span>
+                    </>
+                  )}
+                </button>
+              </Tip>
             </li>
           );
         })}

@@ -11,17 +11,22 @@ import type { SubGameProps } from './MicroGame';
 interface Drop {
   id: number;
   x: number; // 0..100
-  y: number; // 0..100 (motion mode) — progress down the area
+  y: number; // 0..100 progress down the play area
   born: number;
 }
 
 const CATCH_HALF_WIDTH = 13;
 const DROP_LIFETIME = 1600; // reduced-motion tap mode
+const FLOOR_Y = 88;
 
 // Deliver coffee before it's lost. Motion mode: move the mug with the mouse or
 // arrow keys to catch falling drops. Reduced-motion mode: tap the drops before
 // they fade (no motion, no time-pressure flashing). Consecutive catches build a
 // combo multiplier; the mug's warmth meter fills as the streak grows.
+//
+// The list of drops lives in a ref (single source of truth) so the animation
+// loop can update positions AND resolve catches/misses without ever calling a
+// React state setter inside another setter's updater.
 export function CoffeeRescue({ seed, reducedMotion, timeLeft, onScore, onEnd }: SubGameProps) {
   const { t } = useTranslation();
   const [mugX, setMugX] = useState(50);
@@ -29,31 +34,47 @@ export function CoffeeRescue({ seed, reducedMotion, timeLeft, onScore, onEnd }: 
   const [score, setScore] = useState(0);
   const [streak, setStreak] = useState(0);
   const [splash, setSplash] = useState(false);
+  const dropsRef = useRef<Drop[]>([]);
   const scoreRef = useRef(0);
   const streakRef = useRef(0);
   const idRef = useRef(0);
+  const mugXRef = useRef(50);
   const areaRef = useRef<HTMLDivElement>(null);
   const startRef = useRef(Date.now());
   const rng = useRef(seedToRng(seed));
+  const splashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   void onEnd; // ending is driven by the shared shell timer
 
+  mugXRef.current = mugX;
   const elapsed = () => (Date.now() - startRef.current) / 1000;
 
-  function registerCatch() {
-    streakRef.current += 1;
-    setStreak(streakRef.current);
-    scoreRef.current += coffeeCatchScore(streakRef.current);
-    setScore(scoreRef.current);
-    onScore(scoreRef.current);
-    if (!reducedMotion) {
-      setSplash(true);
-      setTimeout(() => setSplash(false), 180);
+  function commitDrops(next: Drop[]) {
+    dropsRef.current = next;
+    setDrops(next);
+  }
+
+  function registerCatch(n = 1) {
+    for (let i = 0; i < n; i += 1) {
+      streakRef.current += 1;
+      scoreRef.current += coffeeCatchScore(streakRef.current);
+    }
+    if (n > 0) {
+      setStreak(streakRef.current);
+      setScore(scoreRef.current);
+      onScore(scoreRef.current);
+      if (!reducedMotion) {
+        setSplash(true);
+        if (splashTimer.current) clearTimeout(splashTimer.current);
+        splashTimer.current = setTimeout(() => setSplash(false), 180);
+      }
     }
   }
 
   function registerMiss() {
-    streakRef.current = 0;
-    setStreak(0);
+    if (streakRef.current !== 0) {
+      streakRef.current = 0;
+      setStreak(0);
+    }
   }
 
   // spawn drops
@@ -62,23 +83,20 @@ export function CoffeeRescue({ seed, reducedMotion, timeLeft, onScore, onEnd }: 
     let handle: ReturnType<typeof setTimeout>;
     const loop = () => {
       if (cancelled) return;
-      setDrops((prev) => [
-        ...prev,
-        { id: idRef.current++, x: 8 + rng.current() * 84, y: 0, born: Date.now() },
-      ]);
+      const drop: Drop = { id: idRef.current++, x: 8 + rng.current() * 84, y: 0, born: Date.now() };
+      commitDrops([...dropsRef.current, drop]);
       handle = setTimeout(loop, coffeeSpawnInterval(elapsed()));
     };
     handle = setTimeout(loop, 500);
     return () => {
       cancelled = true;
       clearTimeout(handle);
+      if (splashTimer.current) clearTimeout(splashTimer.current);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const mugXRef = useRef(mugX);
-  mugXRef.current = mugX;
-
-  // motion mode: animate falling + catch detection
+  // motion mode: animate falling + resolve catches/misses from the ref
   useEffect(() => {
     if (reducedMotion) return;
     let raf = 0;
@@ -87,19 +105,21 @@ export function CoffeeRescue({ seed, reducedMotion, timeLeft, onScore, onEnd }: 
       const dt = (now - last) / 1000;
       last = now;
       const speed = 100 / coffeeFallDuration(elapsed()); // % per second
-      setDrops((prev) => {
-        const next: Drop[] = [];
-        for (const d of prev) {
-          const y = d.y + speed * dt;
-          if (y >= 88) {
-            if (Math.abs(d.x - mugXRef.current) < CATCH_HALF_WIDTH) registerCatch();
-            else registerMiss();
-          } else {
-            next.push({ ...d, y });
-          }
+      const next: Drop[] = [];
+      let caught = 0;
+      let missed = 0;
+      for (const d of dropsRef.current) {
+        const y = d.y + speed * dt;
+        if (y >= FLOOR_Y) {
+          if (Math.abs(d.x - mugXRef.current) < CATCH_HALF_WIDTH) caught += 1;
+          else missed += 1;
+        } else {
+          next.push({ ...d, y });
         }
-        return next;
-      });
+      }
+      commitDrops(next);
+      if (caught > 0) registerCatch(caught);
+      if (missed > 0) registerMiss();
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
@@ -111,11 +131,12 @@ export function CoffeeRescue({ seed, reducedMotion, timeLeft, onScore, onEnd }: 
   useEffect(() => {
     if (!reducedMotion) return;
     const h = setInterval(() => {
-      setDrops((prev) => {
-        const kept = prev.filter((d) => Date.now() - d.born < DROP_LIFETIME);
-        if (kept.length < prev.length) registerMiss();
-        return kept;
-      });
+      const now = Date.now();
+      const kept = dropsRef.current.filter((d) => now - d.born < DROP_LIFETIME);
+      if (kept.length < dropsRef.current.length) {
+        commitDrops(kept);
+        registerMiss();
+      }
     }, 150);
     return () => clearInterval(h);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -144,8 +165,8 @@ export function CoffeeRescue({ seed, reducedMotion, timeLeft, onScore, onEnd }: 
   }, [reducedMotion]);
 
   function tap(d: Drop) {
-    setDrops((prev) => prev.filter((x) => x.id !== d.id));
-    registerCatch();
+    commitDrops(dropsRef.current.filter((x) => x.id !== d.id));
+    registerCatch(1);
   }
 
   const mult = coffeeComboMultiplier(streak);

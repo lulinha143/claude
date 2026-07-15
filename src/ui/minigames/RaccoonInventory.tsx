@@ -17,7 +17,11 @@ export function RaccoonInventory({ seed, reducedMotion, onScore, onEnd }: SubGam
   const [chosen, setChosen] = useState<number | null>(null);
   const scoreRef = useRef(0);
   const streakRef = useRef(0);
+  const revealTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   void onEnd; // ended by the shared shell timer
+
+  // Never let a queued auto-advance fire after the game ends / unmounts.
+  useEffect(() => () => { if (revealTimer.current) clearTimeout(revealTimer.current); }, []);
 
   const round = useMemo(
     () => inventoryRound(`${seed}-${roundNum}`, inventorySize(roundNum)),
@@ -51,7 +55,8 @@ export function RaccoonInventory({ seed, reducedMotion, onScore, onEnd }: SubGam
     }
     setPhase('reveal');
     if (!reducedMotion) {
-      setTimeout(next, 1600);
+      if (revealTimer.current) clearTimeout(revealTimer.current);
+      revealTimer.current = setTimeout(next, 1600);
     }
   }
 
