@@ -35,6 +35,7 @@ export function DecorationProp({
   reducedMotion = false,
   dim = false,
   selected = false,
+  reacting = false,
   title,
   mode = 'interact',
   onToggle,
@@ -46,6 +47,8 @@ export function DecorationProp({
   dim?: boolean;
   /** highlight this prop as the currently picked-up item in arrange mode. */
   selected?: boolean;
+  /** briefly animate the prop when a nearby employee reacts to it. */
+  reacting?: boolean;
   title?: string;
   /** 'interact' = charming reaction on click; 'toggle' = pick up / select in arrange mode. */
   mode?: 'interact' | 'toggle';
@@ -71,9 +74,11 @@ export function DecorationProp({
 
   return (
     <button
-      className={`decor decor--${kind} ${wiggle ? 'is-wiggle' : ''} ${dim ? 'is-dim' : ''} ${
-        selected ? 'is-selected' : ''
-      } ${kind === 'lamp' && !lampOn ? 'is-off' : ''}`}
+      className={`decor decor--${kind} ${wiggle || (reacting && !reducedMotion) ? 'is-wiggle' : ''} ${
+        dim ? 'is-dim' : ''
+      } ${selected ? 'is-selected' : ''} ${reacting ? 'is-reacting' : ''} ${
+        kind === 'lamp' && !lampOn ? 'is-off' : ''
+      }`}
       style={{ ['--accent' as string]: accent }}
       onClick={handleClick}
       title={title}

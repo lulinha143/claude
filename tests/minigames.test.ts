@@ -4,8 +4,12 @@ import {
   shellBinFor,
   shellScoreDelta,
   inventoryRound,
+  inventorySize,
+  inventoryScoreDelta,
   coffeeFallDuration,
   coffeeSpawnInterval,
+  coffeeComboMultiplier,
+  coffeeCatchScore,
   microGrade,
   INVENTORY_ITEMS,
 } from '../src/sim/minigames';
@@ -17,14 +21,22 @@ describe('Shell Sort logic', () => {
   it('differs across seeds', () => {
     expect(shellSequence('abc', 20)).not.toEqual(shellSequence('xyz', 20));
   });
-  it('maps kinds to the correct bin', () => {
+  it('maps all three kinds to the correct bin', () => {
     expect(shellBinFor('goodNut')).toBe('good');
+    expect(shellBinFor('goldenNut')).toBe('golden');
     expect(shellBinFor('brokenShell')).toBe('shell');
   });
-  it('rewards correct placements and grows with combo; wrong placements are neutral', () => {
+  it('produces golden nuts as a minority of the sequence', () => {
+    const seq = shellSequence('mixed', 200);
+    const golden = seq.filter((s) => s.kind === 'goldenNut').length;
+    expect(golden).toBeGreaterThan(0);
+    expect(golden).toBeLessThan(seq.length / 2);
+  });
+  it('rewards correct placements, grows with combo, and values golden higher', () => {
     expect(shellScoreDelta(false, 5)).toBe(0);
     expect(shellScoreDelta(true, 0)).toBe(2);
     expect(shellScoreDelta(true, 6)).toBeGreaterThan(shellScoreDelta(true, 0));
+    expect(shellScoreDelta(true, 0, 'goldenNut')).toBeGreaterThan(shellScoreDelta(true, 0, 'goodNut'));
   });
 });
 
@@ -36,6 +48,12 @@ describe('Coffee Rescue difficulty', () => {
   it('spawns more frequently over time but never below the floor', () => {
     expect(coffeeSpawnInterval(0)).toBeGreaterThan(coffeeSpawnInterval(20));
     expect(coffeeSpawnInterval(1000)).toBeGreaterThanOrEqual(700);
+  });
+  it('builds a combo multiplier from the catch streak', () => {
+    expect(coffeeComboMultiplier(0)).toBe(1);
+    expect(coffeeComboMultiplier(6)).toBe(2);
+    expect(coffeeComboMultiplier(12)).toBe(3);
+    expect(coffeeCatchScore(12)).toBeGreaterThan(coffeeCatchScore(0));
   });
 });
 
@@ -56,6 +74,25 @@ describe('Raccoon Inventory logic', () => {
       expect(new Set(round.items).size).toBe(5);
       for (const it of round.items) expect(INVENTORY_ITEMS).toContain(it);
     }
+  });
+});
+
+describe('Raccoon Inventory progression', () => {
+  it('grows the shelf as rounds are cleared and caps at the pool size', () => {
+    expect(inventorySize(0)).toBe(5);
+    expect(inventorySize(1)).toBe(5);
+    expect(inventorySize(2)).toBe(6);
+    expect(inventorySize(4)).toBe(7);
+    expect(inventorySize(999)).toBe(INVENTORY_ITEMS.length);
+  });
+  it('produces a valid larger round with distinct items', () => {
+    const round = inventoryRound('big', 7);
+    expect(round.items).toHaveLength(7);
+    expect(new Set(round.items).size).toBe(7);
+    expect(round.items[round.changedIndex]).toBe(round.after);
+  });
+  it('rewards longer streaks more', () => {
+    expect(inventoryScoreDelta(5)).toBeGreaterThan(inventoryScoreDelta(0));
   });
 });
 
