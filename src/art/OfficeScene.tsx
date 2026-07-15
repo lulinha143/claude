@@ -185,7 +185,7 @@ export function OfficeScene() {
           ([eid, rt]) => rt.hired && resolveEmployeeRoom(st, eid) === roomId,
         );
         const idx = occ.findIndex(([eid]) => eid === id);
-        const sx = characterSlots(occ.length)[idx]?.x ?? 0.5;
+        const sx = characterSlots(occ.length, roomId)[idx]?.x ?? 0.5;
         let best: string | null = null;
         let bestDx = 0.28; // proximity threshold in normalized floor width
         for (const p of placedDecorationsInRoom(st, roomId)) {
@@ -473,7 +473,7 @@ export function OfficeScene() {
           const occupants = Object.entries(state.employees).filter(
             ([id, rt]) => rt.hired && resolveEmployeeRoom(state, id) === room.id,
           );
-          const slots = characterSlots(occupants.length);
+          const slots = characterSlots(occupants.length, room.id);
           const comfort = roomComfort(state, room.id);
           const placed = placedDecorationsInRoom(state, room.id);
           const emptyAnchors = decorMode ? freeAnchorsInRoom(state, room.id) : [];

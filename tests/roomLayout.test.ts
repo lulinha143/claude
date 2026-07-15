@@ -37,6 +37,30 @@ describe('character slots', () => {
   });
 });
 
+describe('curated per-room slot styles', () => {
+  const ROOMS = ['founder-desk', 'sorting', 'lab', 'morale', 'meeting', 'marketing', 'vault'];
+  it('keeps every style on-screen and correctly counted', () => {
+    for (const room of ROOMS) {
+      for (const n of [1, 2, 3, 4, 6]) {
+        const slots = characterSlots(n, room);
+        expect(slots).toHaveLength(n);
+        expect(Math.min(...slots.map((s) => s.x))).toBeGreaterThanOrEqual(0.08);
+        expect(Math.max(...slots.map((s) => s.x))).toBeLessThanOrEqual(0.92);
+      }
+    }
+  });
+  it("puts the Founder's Desk focal character front-and-centre", () => {
+    expect(characterSlots(3, 'founder-desk')[0]).toEqual({ x: 0.5, bottom: 0 });
+  });
+  it('arranges labs as two facing columns', () => {
+    const xs = characterSlots(4, 'lab').map((s) => s.x);
+    expect(new Set(xs).size).toBe(2); // exactly two columns
+  });
+  it('differs from the generic cluster for a styled room', () => {
+    expect(characterSlots(4, 'lab')).not.toEqual(characterSlots(4));
+  });
+});
+
 describe('decoration anchors', () => {
   it('gives the founder desk a curated set that avoids the crate corner', () => {
     const anchors = anchorsForRoom('founder-desk');

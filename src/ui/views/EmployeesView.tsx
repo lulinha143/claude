@@ -17,9 +17,32 @@ export function EmployeesView() {
   const audio = useStore((s) => s.audio);
   const passives = aggregatePassives(state);
 
+  const hiredCount = Object.values(state.employees).filter((e) => e.hired).length;
+
+  function arrange(strategy: 'department' | 'balanced') {
+    const moved = engine.autoArrangeEmployees(strategy);
+    audio.play(moved > 0 ? 'upgrade' : 'click');
+  }
+
   return (
     <section className="view view--employees">
-      <h2>{t('nav.employees')}</h2>
+      <div className="view-head">
+        <h2>{t('nav.employees')}</h2>
+        {hiredCount > 1 ? (
+          <div className="arrange-bar" role="group" aria-label={t('employee.autoArrange')}>
+            <Tip content={<TipContent title={t('employee.byDepartment')} lines={[t('employee.byDepartmentTip')]} />}>
+              <button className="chip-btn" onClick={() => arrange('department')}>
+                {t('employee.byDepartment')}
+              </button>
+            </Tip>
+            <Tip content={<TipContent title={t('employee.spread')} lines={[t('employee.spreadTip')]} />}>
+              <button className="chip-btn" onClick={() => arrange('balanced')}>
+                {t('employee.spread')}
+              </button>
+            </Tip>
+          </div>
+        ) : null}
+      </div>
       <ul className="employee-list">
         {EMPLOYEES.map((def) => {
           const rt = state.employees[def.id];
