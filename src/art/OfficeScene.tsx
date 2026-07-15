@@ -20,6 +20,7 @@ import {
   roomComfort,
 } from '../sim/decorations';
 import { characterSlots, anchorsForRoom } from '../content/roomLayout';
+import { pickOfficeInteraction } from '../sim/officeLife';
 import { DecorationTray } from '../ui/DecorationTray';
 import { pickDialogueIndex, dialogueKey } from '../sim/dialogue';
 import { employeeMood, MOOD_TONE } from '../sim/mood';
@@ -141,6 +142,10 @@ export function OfficeScene() {
   const [selected, setSelected] = useState<string | null>(null);
   // A decoration a nearby employee is currently reacting to (for a little wiggle).
   const [reactingDeco, setReactingDeco] = useState<string | null>(null);
+  // The employee currently visiting an object (leans toward it) + the object x.
+  const [interaction, setInteraction] = useState<{ employeeId: string; targetX: number } | null>(null);
+  // Decoration ids currently reserved by an in-progress interaction.
+  const reservedRef = useRef<Set<string>>(new Set());
   // Live drag (employee or decoration) for the ghost + drop highlighting.
   const [drag, setDrag] = useState<DragState | null>(null);
   // True immediately after a real drag so the trailing click doesn't also fire.
@@ -170,40 +175,32 @@ export function OfficeScene() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Every so often a hired critter pipes up — often reacting to a decoration
-  // placed right next to them, otherwise a normal line for their department.
+  // Every so often a hired critter comes alive: often it wanders over to a
+  // nearby decoration and interacts with it (lean toward it + react bubble +
+  // the object wiggles), reserving that object so no one else grabs it;
+  // otherwise it just says a line for its department.
   function ambientChatter() {
     const st = stateRef.current;
     const hired = Object.entries(st.employees).filter(([, e]) => e.hired);
     if (hired.length === 0) return;
-    const [id] = hired[Math.floor(Math.random() * hired.length)];
 
-    if (Math.random() < 0.5) {
-      const roomId = resolveEmployeeRoom(st, id);
-      if (roomId) {
-        const occ = Object.entries(st.employees).filter(
-          ([eid, rt]) => rt.hired && resolveEmployeeRoom(st, eid) === roomId,
-        );
-        const idx = occ.findIndex(([eid]) => eid === id);
-        const sx = characterSlots(occ.length, roomId)[idx]?.x ?? 0.5;
-        let best: string | null = null;
-        let bestDx = 0.28; // proximity threshold in normalized floor width
-        for (const p of placedDecorationsInRoom(st, roomId)) {
-          const dx = Math.abs(p.anchor.x - sx);
-          if (dx < bestDx) {
-            bestDx = dx;
-            best = p.def.id;
-          }
-        }
-        if (best) {
-          setBubble({ employeeId: id, text: t(`decoReact.${decorKind(best)}`), until: Date.now() + 4200 });
-          setReactingDeco(best);
-          setTimeout(() => setReactingDeco(null), 2600);
-          return;
-        }
+    if (Math.random() < 0.6) {
+      const it = pickOfficeInteraction(st, reservedRef.current, rngRef.current);
+      if (it) {
+        reservedRef.current.add(it.decorationId);
+        setBubble({ employeeId: it.employeeId, text: t(`decoReact.${decorKind(it.decorationId)}`), until: Date.now() + 4200 });
+        setReactingDeco(it.decorationId);
+        setInteraction({ employeeId: it.employeeId, targetX: it.targetX });
+        window.setTimeout(() => {
+          setReactingDeco((cur) => (cur === it.decorationId ? null : cur));
+          setInteraction((cur) => (cur?.employeeId === it.employeeId ? null : cur));
+          reservedRef.current.delete(it.decorationId);
+        }, 2800);
+        return;
       }
     }
 
+    const [id] = hired[Math.floor(Math.random() * hired.length)];
     const def = EMPLOYEES_BY_ID[id];
     speak(id, def?.dialogueCategory ?? 'idle');
   }
@@ -567,6 +564,8 @@ export function OfficeScene() {
                   const def = EMPLOYEES_BY_ID[id];
                   const shape = shapeFor(id);
                   const slot = slots[idx] ?? { x: 0.5, bottom: 0 };
+                  const visiting = interaction?.employeeId === id;
+                  const ex = visiting ? slot.x * 0.55 + (interaction?.targetX ?? slot.x) * 0.45 : slot.x;
                   const inputs = {
                     hired: rt.hired,
                     producing,
@@ -586,8 +585,8 @@ export function OfficeScene() {
                       key={id}
                       className={`critter-btn ${drag?.kind === 'employee' && drag.id === id ? 'is-dragging' : ''} ${
                         !decorMode ? 'is-draggable' : ''
-                      }`}
-                      style={{ left: `${slot.x * 100}%`, bottom: `${slot.bottom}px`, zIndex: 3 + (idx % 2) }}
+                      } ${visiting ? 'is-visiting' : ''}`}
+                      style={{ left: `${ex * 100}%`, bottom: `${slot.bottom}px`, zIndex: visiting ? 5 : 3 + (idx % 2) }}
                       onPointerDown={(e) => beginDrag(e, 'employee', id)}
                       onClick={() => onCritterClick(id)}
                       title={label}
