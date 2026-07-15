@@ -1,0 +1,123 @@
+{
+  "name": "working-my-nuts-off",
+  "productName": "Working My Nuts Off!",
+  "version": "1.0.0",
+  "description": "A tiny cozy desktop idle game. One squirrel. One startup. Way too many nuts.",
+  "author": "Working My Nuts Off! contributors",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "main": "dist-electron/main.cjs",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "build:web": "vite build",
+    "preview": "vite preview",
+    "build:electron": "node scripts/build-electron.mjs",
+    "dev:electron": "npm run build:electron && cross-env WMNO_DEV_SERVER=http://localhost:5173 electron dist-electron/main.cjs",
+    "desktop:dev": "npm run dev:electron",
+    "build:desktop": "npm run build && npm run build:electron",
+    "package": "npm run build:desktop && electron-builder",
+    "package:win": "npm run build:desktop && electron-builder --win",
+    "build:windows": "npm run build:desktop && electron-builder --win nsis",
+    "build:windows:folder": "npm run build:desktop && electron-builder --win dir",
+    "build:portable": "npm run build:desktop && electron-builder --win portable",
+    "build:steam": "npm run build:desktop && electron-builder --win dir && node scripts/build-steam.mjs",
+    "verify:steam": "node scripts/verify-steam-build.mjs",
+    "test:packaged": "node scripts/verify-steam-build.mjs",
+    "package:linux": "npm run build:desktop && electron-builder --linux",
+    "package:mac": "npm run build:desktop && electron-builder --mac",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "lint": "eslint . --max-warnings 0",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p electron/tsconfig.json",
+    "format": "prettier --write \"**/*.{ts,tsx,js,mjs,cjs,json,css,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,mjs,cjs,json,css,md}\"",
+    "check:i18n": "tsx scripts/check-i18n.ts",
+    "verify:assets": "node scripts/verify-assets.mjs",
+    "validate": "npm run typecheck && npm run lint && npm run check:i18n && npm run verify:assets && npm run test && npm run build"
+  },
+  "dependencies": {
+    "@fontsource/quicksand": "^5.2.10",
+    "i18next": "^23.15.1",
+    "i18next-browser-languagedetector": "^8.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-i18next": "^15.0.2",
+    "zod": "^3.23.8",
+    "zustand": "^4.5.5"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.47.2",
+    "@types/node": "^20.16.10",
+    "@types/react": "^18.3.11",
+    "@types/react-dom": "^18.3.0",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "@vitejs/plugin-react": "^4.3.2",
+    "cross-env": "^7.0.3",
+    "electron": "^32.1.2",
+    "electron-builder": "^25.0.5",
+    "esbuild": "^0.24.0",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-react": "^7.37.1",
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "jsdom": "^25.0.1",
+    "prettier": "^3.3.3",
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.2",
+    "vite": "^5.4.8",
+    "vitest": "^2.1.2"
+  },
+  "build": {
+    "appId": "com.tinynuts.workingmynutsoff",
+    "productName": "Working My Nuts Off!",
+    "copyright": "Copyright (c) 2026 Working My Nuts Off! contributors",
+    "publish": null,
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable",
+        "dir"
+      ],
+      "artifactName": "${productName}-${version}-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Working My Nuts Off!"
+    },
+    "portable": {
+      "artifactName": "${productName}-${version}-portable.${ext}"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Game"
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "category": "public.app-category.games"
+    }
+  }
+}

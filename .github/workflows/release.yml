@@ -1,0 +1,48 @@
+name: Release
+
+# Builds downloadable desktop packages on tagged releases (v*). Development
+# builds are UNSIGNED — public commercial releases must add proper code signing
+# (see docs/STEAM.md and docs/RELEASE_CHECKLIST.md). No signing secrets are
+# required to run this workflow.
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  package:
+    name: Package ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Build renderer + electron
+        run: npm run build && npm run build:electron
+      - name: Package with electron-builder
+        # electron-builder auto-detects the platform target from the runner.
+        run: npx electron-builder --publish never
+        env:
+          # Intentionally NO CSC_LINK / CSC_KEY_PASSWORD here: dev builds are
+          # unsigned. Provide these as encrypted secrets for signed releases.
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wmno-${{ matrix.os }}
+          path: |
+            release/*.exe
+            release/*.AppImage
+            release/*.dmg
+            release/*.zip
+          if-no-files-found: ignore
+          retention-days: 14
