@@ -3457,3 +3457,12 @@ img {
   gap: 6px;
   flex-wrap: wrap;
 }
+
+
+/* A critter visiting a nearby decoration glides toward it (office comes alive). */
+.critter-btn {
+  transition: left 0.55s var(--ease), transform var(--dur-fast, 0.12s) var(--ease);
+}
+[data-reduced-motion='true'] .critter-btn {
+  transition: none;
+}
