@@ -82,7 +82,10 @@
     "clickReward": "+{{value}} nuts",
     "empty": "No crates yet — keep working!",
     "decorate": "Arrange",
-    "decorateHint": "Tap a decoration to pick it up, then tap an empty spot to move it. Buy more in the Decorate tab."
+    "decorateHint": "Drag a decoration to move it, or drop it on the tray to stow it. Buy more in the Decorate tab.",
+    "dragHint": "Drag a teammate onto a room to move them there.",
+    "roomFull": "{{room}} is full.",
+    "roomFullSuggest": "{{room}} is full — try {{other}} instead."
   },
   "decorate": {
     "searchPlaceholder": "Search decorations…",

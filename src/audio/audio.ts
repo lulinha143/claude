@@ -63,17 +63,38 @@ export function channelGain(
   }
 }
 
-// A gentle, slow pentatonic-ish progression (frequencies in Hz). Four bars of
-// a sustained pad chord; a soft melody note plays on each beat. Warm and cozy,
-// never intrusive.
-const CHORDS: number[][] = [
-  [130.81, 164.81, 196.0], // C major-ish
-  [110.0, 164.81, 196.0], // A minor-ish
-  [174.61, 220.0, 261.63], // F major-ish
-  [146.83, 196.0, 246.94], // G-ish
+// Cozy, evolving background score — still 100% synthesized (no samples, nothing
+// to license). Several 4-bar chord progressions rotate so the music never
+// settles into an obvious loop; a soft pad + gentle bass hold the harmony while
+// a melody wanders a pentatonic scale (a smooth random walk with occasional
+// rests), so it stays warm and never intrusive. The lookahead scheduler makes
+// every transition seamless.
+const PROGRESSIONS: number[][][] = [
+  // C  – Am – F  – G
+  [
+    [130.81, 164.81, 196.0],
+    [110.0, 164.81, 196.0],
+    [174.61, 220.0, 261.63],
+    [146.83, 196.0, 246.94],
+  ],
+  // Dm – G  – C  – F   (a brighter turn)
+  [
+    [146.83, 174.61, 220.0],
+    [196.0, 246.94, 293.66],
+    [130.81, 164.81, 196.0],
+    [174.61, 220.0, 261.63],
+  ],
+  // Am – Dm – Em – G   (a wistful turn)
+  [
+    [110.0, 130.81, 164.81],
+    [146.83, 174.61, 220.0],
+    [164.81, 196.0, 246.94],
+    [196.0, 246.94, 293.66],
+  ],
 ];
-const MELODY = [392.0, 440.0, 523.25, 440.0, 349.23, 392.0, 261.63, 293.66];
-const BEAT = 0.85; // seconds per beat (~70 bpm)
+// C major pentatonic across two octaves — always pleasant, never dissonant.
+const PENTATONIC = [261.63, 293.66, 329.63, 392.0, 440.0, 523.25, 587.33, 659.25];
+const BEAT = 0.82; // seconds per beat (~73 bpm)
 
 export class AudioManager {
   private ctx: AudioContext | null = null;
@@ -90,6 +111,7 @@ export class AudioManager {
   private ambienceTimer: ReturnType<typeof setTimeout> | null = null;
   private nextNoteTime = 0;
   private step = 0;
+  private melodyIdx = 3; // current position in the pentatonic scale (random walk)
   private started = false;
 
   /** Must be called from a user gesture (browser autoplay policy). */
@@ -229,13 +251,31 @@ export class AudioManager {
     const lookahead = 0.3;
     while (this.nextNoteTime < this.ctx.currentTime + lookahead) {
       const beat = this.step % 4;
-      const bar = Math.floor(this.step / 4) % CHORDS.length;
-      if (beat === 0) this.playPad(CHORDS[bar], this.nextNoteTime);
-      // gentle melody on beats, skipping some for space
-      if (this.step % 2 === 0) {
-        const note = MELODY[this.step % MELODY.length];
-        this.playPluck(note, this.nextNoteTime);
+      const bar = Math.floor(this.step / 4);
+      const prog = PROGRESSIONS[Math.floor(bar / 4) % PROGRESSIONS.length];
+      const chord = prog[bar % 4];
+      const t = this.nextNoteTime;
+
+      if (beat === 0) {
+        this.playPad(chord, t);
+        this.playBass(chord[0] / 2, t, 0.9);
+      } else if (beat === 2) {
+        this.playBass(chord[0] / 2, t, 0.6);
       }
+
+      // melody: a gentle random walk over the pentatonic scale, with rests for
+      // breathing room and the occasional soft off-beat note.
+      if (Math.random() < 0.72) {
+        const stepMove = Math.floor(Math.random() * 5) - 2; // -2..+2
+        this.melodyIdx = Math.max(0, Math.min(PENTATONIC.length - 1, this.melodyIdx + stepMove));
+        const offbeat = Math.random() < 0.28 ? BEAT / 2 : 0;
+        this.playPluck(PENTATONIC[this.melodyIdx], t + offbeat, 0.16);
+      }
+      // occasional airy bell to sparkle the downbeat
+      if (beat === 0 && Math.random() < 0.22) {
+        this.playPluck(PENTATONIC[PENTATONIC.length - 1] * 2, t, 0.06);
+      }
+
       this.nextNoteTime += BEAT;
       this.step += 1;
     }
@@ -257,18 +297,36 @@ export class AudioManager {
     }
   }
 
-  private playPluck(freq: number, time: number): void {
+  private playPluck(freq: number, time: number, vol = 0.18): void {
     if (!this.ctx || !this.musicGain) return;
     const osc = this.ctx.createOscillator();
     const g = this.ctx.createGain();
     osc.type = 'triangle';
     osc.frequency.value = freq;
     g.gain.setValueAtTime(0.0001, time);
-    g.gain.linearRampToValueAtTime(0.18, time + 0.02);
+    g.gain.linearRampToValueAtTime(vol, time + 0.02);
     g.gain.exponentialRampToValueAtTime(0.0001, time + 0.6);
     osc.connect(g).connect(this.musicGain);
     osc.start(time);
     osc.stop(time + 0.65);
+  }
+
+  // A soft, round bass note that underpins the harmony without muddiness.
+  private playBass(freq: number, time: number, vol = 0.9): void {
+    if (!this.ctx || !this.musicGain) return;
+    const osc = this.ctx.createOscillator();
+    const g = this.ctx.createGain();
+    const lp = this.ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = 320;
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, time);
+    g.gain.linearRampToValueAtTime(0.11 * vol, time + 0.05);
+    g.gain.exponentialRampToValueAtTime(0.0001, time + BEAT * 1.8);
+    osc.connect(g).connect(lp).connect(this.musicGain);
+    osc.start(time);
+    osc.stop(time + BEAT * 1.8 + 0.05);
   }
 
   // -- office ambience one-shots: randomized, cooldowned --------------------

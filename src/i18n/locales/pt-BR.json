@@ -82,7 +82,10 @@
     "clickReward": "+{{value}} castanhas",
     "empty": "Nenhuma caixa ainda — continue trabalhando!",
     "decorate": "Organizar",
-    "decorateHint": "Toque numa decoração para pegá-la e depois toque num espaço vazio para movê-la. Compre mais na aba Decorar."
+    "decorateHint": "Arraste uma decoração para movê-la, ou solte na bandeja para guardá-la. Compre mais na aba Decorar.",
+    "dragHint": "Arraste um colega para uma sala para movê-lo para lá.",
+    "roomFull": "{{room}} está cheia.",
+    "roomFullSuggest": "{{room}} está cheia — tente {{other}}."
   },
   "decorate": {
     "searchPlaceholder": "Buscar decorações…",

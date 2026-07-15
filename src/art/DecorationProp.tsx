@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type PointerEvent as ReactPointerEvent } from 'react';
 
 // Renders an owned decoration as a small, charming, INTERACTIVE prop in the
 // office. Clicking gives a short reaction (a wiggle, a lamp toggling on/off) —
@@ -40,6 +40,7 @@ export function DecorationProp({
   mode = 'interact',
   onToggle,
   onInteract,
+  onPointerDown,
 }: {
   id: string;
   accent?: string;
@@ -54,6 +55,8 @@ export function DecorationProp({
   mode?: 'interact' | 'toggle';
   onToggle?: () => void;
   onInteract?: () => void;
+  /** enables pointer dragging in arrange mode. */
+  onPointerDown?: (e: ReactPointerEvent) => void;
 }) {
   const kind = decorKind(id);
   const [wiggle, setWiggle] = useState(false);
@@ -81,6 +84,7 @@ export function DecorationProp({
       }`}
       style={{ ['--accent' as string]: accent }}
       onClick={handleClick}
+      onPointerDown={onPointerDown}
       title={title}
       aria-label={title}
       type="button"
