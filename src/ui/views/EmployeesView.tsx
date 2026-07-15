@@ -8,6 +8,7 @@ import { unlockedRooms } from '../../sim/rooms';
 import { Critter } from '../../art/Critter';
 import { shapeFor } from '../../art/critterShapes';
 import { Acorn, GoldenNut } from '../../art/Icons';
+import { Tip, TipContent } from '../Tooltip';
 
 export function EmployeesView() {
   const { t } = useTranslation();
@@ -53,12 +54,21 @@ export function EmployeesView() {
                   <span className="goal-label">{t('employee.goal')}</span> {t(def.goalKey)}
                 </div>
                 {rt.hired ? (
-                  <div className="friendship">
-                    <span>{t('employee.friendship')}</span>
-                    <div className="bar">
-                      <div className="bar__fill" style={{ width: `${rt.friendship}%` }} />
+                  <Tip
+                    content={
+                      <TipContent
+                        title={t('employee.friendship')}
+                        lines={[t('tip.friendship'), `${Math.round(rt.friendship)}%`]}
+                      />
+                    }
+                  >
+                    <div className="friendship">
+                      <span>{t('employee.friendship')}</span>
+                      <div className="bar">
+                        <div className="bar__fill" style={{ width: `${rt.friendship}%` }} />
+                      </div>
                     </div>
-                  </div>
+                  </Tip>
                 ) : null}
                 {rt.hired ? (
                   <div className="employee-card__controls">

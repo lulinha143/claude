@@ -1447,14 +1447,59 @@ select,
 .photo-mode {
   position: fixed;
   inset: 0;
-  background: linear-gradient(160deg, #43331f, var(--wood));
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: radial-gradient(circle at 50% 20%, #4a3826, #221a11 80%);
   padding: 16px;
   z-index: 120;
 }
-.photo-mode__close {
+.photo-mode__frame {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  border: 3px solid var(--gold);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg), inset 0 0 0 1px rgba(0, 0, 0, 0.4);
+  background: linear-gradient(160deg, #43331f, var(--wood));
+}
+.photo-mode__stage {
   position: absolute;
-  top: 12px;
-  right: 12px;
+  inset: 0;
+  overflow: hidden;
+}
+/* hide interactive chrome so the shot is clean */
+.photo-mode__stage .office__toolbar,
+.photo-mode__stage .crate-btn {
+  display: none !important;
+}
+.photo-mode__caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 24px 18px 12px;
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.55), transparent);
+  pointer-events: none;
+}
+.photo-mode__company {
+  font-family: var(--font-head);
+  font-weight: var(--fw-heavy);
+  font-size: var(--fs-xl);
+  color: var(--gold);
+}
+.photo-mode__tagline {
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+}
+.photo-mode__toolbar {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
 }
 
 /* ------- dev panel ------- */
@@ -2666,3 +2711,77 @@ select,
   to { opacity: 1; }
 }
 [data-reduced-motion='true'] .tooltip { animation: none; }
+
+
+/* ==========================================================================
+   Moment cards — clickable list rows + reopen modal
+   ========================================================================== */
+.moment__open {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: none;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
+}
+.moment__dot {
+  flex: 0 0 auto;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--wood-light);
+}
+.moment--rare .moment__dot { background: var(--rare); }
+.moment--legendary .moment__dot { background: var(--gold); }
+.moment--uncommon .moment__dot { background: var(--positive); }
+.moment__info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.moment__title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.moment-modal {
+  background: linear-gradient(160deg, #43331f, var(--wood));
+  border: 3px solid var(--wood-light);
+  border-radius: var(--r-lg);
+  padding: 14px;
+  max-width: min(560px, 92vw);
+  width: 100%;
+  box-shadow: var(--shadow-lg);
+  animation: moment-pop 0.24s var(--ease);
+}
+.moment-modal--rare { border-color: var(--rare); }
+.moment-modal--legendary { border-color: var(--gold); }
+.moment-modal--uncommon { border-color: var(--positive); }
+.moment-modal__img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--r-sm);
+}
+.moment-modal__fallback {
+  padding: 24px;
+  text-align: center;
+  color: var(--text-secondary);
+}
+.moment-modal__actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+@keyframes moment-pop {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+[data-reduced-motion='true'] .moment-modal { animation: none; }

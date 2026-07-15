@@ -24,6 +24,7 @@ import { Onboarding } from './ui/modals/Onboarding';
 import { OpeningSequence } from './ui/modals/OpeningSequence';
 import { Notifications } from './ui/Notifications';
 import { TooltipLayer } from './ui/Tooltip';
+import { PhotoMode } from './ui/PhotoMode';
 import { DevPanel } from './ui/DevPanel';
 
 const VIEWS: Record<ViewId, () => JSX.Element> = {
@@ -50,7 +51,6 @@ export function App() {
   const audio = useStore((s) => s.audio);
   const setQuiet = useStore((s) => s.setQuietMode);
   const photoMode = useStore((s) => s.photoMode);
-  const setPhotoMode = useStore((s) => s.setPhotoMode);
 
   // Start the sim loop once.
   useEffect(() => {
@@ -113,12 +113,10 @@ export function App() {
 
   if (photoMode) {
     return (
-      <div className="photo-mode">
-        <OfficeScene />
-        <button className="buy-btn photo-mode__close" onClick={() => setPhotoMode(false)}>
-          ✕
-        </button>
-      </div>
+      <>
+        <PhotoMode />
+        <TooltipLayer />
+      </>
     );
   }
 
