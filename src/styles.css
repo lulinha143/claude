@@ -3442,3 +3442,18 @@ img {
   .deco-tray__card { width: 54px; }
   .office--decorating .office__trunk { padding-bottom: 132px; }
 }
+
+
+/* View heading with an inline action bar (e.g. employee auto-arrange). */
+.view-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.arrange-bar {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}

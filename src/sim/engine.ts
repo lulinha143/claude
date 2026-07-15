@@ -21,7 +21,7 @@ import type { EventEffect, GameEventDef } from '../content/types';
 import { GAME_EVENTS, GAME_EVENTS_BY_ID } from '../content/events';
 import { evaluateAchievements } from './achievements';
 import { ensureDailyForDate } from './dailyChallenges';
-import { isRoomIdUnlocked, repairPlacements } from './rooms';
+import { isRoomIdUnlocked, repairPlacements, unlockedRooms } from './rooms';
 import {
   repairDecorations,
   firstFreeAnchorId,
@@ -323,6 +323,40 @@ export class GameEngine {
     rt.room = roomId;
     this.emit();
     return true;
+  }
+
+  /**
+   * Auto-arrange every hired employee.
+   *   'department' — send each teammate to their home department room (if
+   *                  unlocked); this is also the sensible "restore default".
+   *   'balanced'   — spread the team evenly across all unlocked rooms.
+   * Returns the number of employees actually moved.
+   */
+  autoArrangeEmployees(strategy: 'department' | 'balanced'): number {
+    const hired = Object.entries(this.state.employees).filter(([, rt]) => rt.hired);
+    let changes = 0;
+    if (strategy === 'department') {
+      for (const [id, rt] of hired) {
+        const home = EMPLOYEES_BY_ID[id]?.room ?? null;
+        if (home && isRoomIdUnlocked(this.state, home) && rt.room !== home) {
+          rt.room = home;
+          changes += 1;
+        }
+      }
+    } else {
+      const rooms = unlockedRooms(this.state).map((r) => r.id);
+      if (rooms.length > 0) {
+        hired.forEach(([, rt], i) => {
+          const target = rooms[i % rooms.length];
+          if (rt.room !== target) {
+            rt.room = target;
+            changes += 1;
+          }
+        });
+      }
+    }
+    if (changes > 0) this.emit();
+    return changes;
   }
 
   giveCoffee(id: string): void {

@@ -66,23 +66,105 @@ export function anchorById(roomId: string, anchorId: string): DecorAnchor | unde
   return anchorsForRoom(roomId).find((a) => a.id === anchorId);
 }
 
-/**
- * Positions for `count` hired employees, clustered around the centre of the
- * floor so they look like a group instead of scattered dots. Spacing tightens
- * as the crowd grows; a slight alternating depth keeps overlaps readable.
- */
-export function characterSlots(count: number): CharacterSlot[] {
-  if (count <= 0) return [];
-  if (count === 1) return [{ x: 0.5, bottom: 0 }];
+// Each room type gets a distinct composition style so a lab doesn't arrange
+// itself like the nap chamber. Styles are generated per employee count (a
+// curated feel without hand-placing every count for every room), always kept
+// centred and within [0.08, 0.92] so nobody drifts off-screen.
+type SlotStyle = 'founder' | 'pairs' | 'social' | 'row' | 'cluster';
 
+const ROOM_STYLE: Record<string, SlotStyle> = {
+  'founder-desk': 'founder',
+  sorting: 'pairs',
+  lab: 'pairs',
+  research: 'pairs',
+  construction: 'pairs',
+  procurement: 'pairs',
+  morale: 'social',
+  meeting: 'social',
+  nap: 'social',
+  rooftop: 'social',
+  marketing: 'row',
+  vault: 'row',
+  basement: 'row',
+};
+
+const clampX = (x: number) => Math.max(0.08, Math.min(0.92, x));
+
+/**
+ * Positions for `count` hired employees. When a `roomId` is given, a curated
+ * per-room composition style is used (founder focal point, facing pairs, social
+ * huddle, or a tidy row); otherwise a centred cluster. All styles keep the group
+ * readable and coworkers close together.
+ */
+export function characterSlots(count: number, roomId?: string): CharacterSlot[] {
+  if (count <= 0) return [];
+  const style: SlotStyle = (roomId && ROOM_STYLE[roomId]) || 'cluster';
+  switch (style) {
+    case 'founder':
+      return founderSlots(count);
+    case 'pairs':
+      return pairSlots(count);
+    case 'social':
+      return socialSlots(count);
+    case 'row':
+      return rowSlots(count);
+    default:
+      return clusterSlots(count);
+  }
+}
+
+function clusterSlots(count: number): CharacterSlot[] {
+  if (count === 1) return [{ x: 0.5, bottom: 0 }];
   const spacing = count <= 3 ? 0.14 : count <= 5 ? 0.115 : count <= 7 ? 0.092 : Math.max(0.05, 0.74 / (count - 1));
   const total = (count - 1) * spacing;
   const start = Math.max(0.09, 0.5 - total / 2);
+  return Array.from({ length: count }, (_, i) => ({
+    x: clampX(start + i * spacing),
+    bottom: i % 2 === 1 ? 7 : 0,
+  }));
+}
 
+// Founder's Desk: occupant 0 is the focal character front-centre; any others
+// flank symmetrically a little further back.
+function founderSlots(count: number): CharacterSlot[] {
+  const slots: CharacterSlot[] = [{ x: 0.5, bottom: 0 }];
+  for (let i = 1; i < count; i += 1) {
+    const rank = Math.ceil(i / 2);
+    const dir = i % 2 === 1 ? -1 : 1;
+    slots.push({ x: clampX(0.5 + dir * (0.16 + (rank - 1) * 0.14)), bottom: 12 });
+  }
+  return slots;
+}
+
+// Facing pairs (labs, workshops): two centred columns, each new pair stepping
+// up in depth so they read as desks facing each other.
+function pairSlots(count: number): CharacterSlot[] {
   return Array.from({ length: count }, (_, i) => {
-    const x = Math.min(0.91, start + i * spacing);
-    // gentle huddle: nudge alternating critters slightly up for depth
-    const bottom = i % 2 === 1 ? 7 : 0;
-    return { x, bottom };
+    const left = i % 2 === 0;
+    const rowIdx = Math.floor(i / 2);
+    return { x: clampX(left ? 0.38 : 0.62), bottom: Math.min(34, rowIdx * 10) };
   });
+}
+
+// Social huddle (coffee, meeting, nap, rooftop): tight cluster with lively depth
+// variance so it reads as a group hanging out together.
+function socialSlots(count: number): CharacterSlot[] {
+  if (count === 1) return [{ x: 0.5, bottom: 4 }];
+  const spacing = count <= 4 ? 0.1 : Math.max(0.055, 0.62 / (count - 1));
+  const total = (count - 1) * spacing;
+  const start = 0.5 - total / 2;
+  const depth = [0, 10, 4, 12, 2, 8];
+  return Array.from({ length: count }, (_, i) => ({
+    x: clampX(start + i * spacing),
+    bottom: depth[i % depth.length],
+  }));
+}
+
+// Tidy even row (marketing, vault, basement): balanced line across the centre.
+function rowSlots(count: number): CharacterSlot[] {
+  if (count === 1) return [{ x: 0.5, bottom: 0 }];
+  const spacing = Math.min(0.15, 0.72 / (count - 1));
+  const total = (count - 1) * spacing;
+  const start = 0.5 - total / 2;
+  return Array.from({ length: count }, (_, i) => ({ x: clampX(start + i * spacing), bottom: 0 }));
 }
