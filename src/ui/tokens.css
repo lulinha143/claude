@@ -119,17 +119,17 @@
      and offline (no external font fetches). Display face for headings & the
      brand; a highly readable body face for everything else; tabular figures
      for numbers so counters never jitter. */
-  --font-display: 'Baloo 2', 'Fredoka', 'Quicksand', 'Comfortaa', 'SF Pro Rounded',
+  --font-display: 'Quicksand', 'Baloo 2', 'Fredoka', 'Comfortaa', 'SF Pro Rounded',
     'Segoe UI Variable Display', 'Segoe UI', system-ui, sans-serif;
-  --font-body: 'Nunito', 'Nunito Sans', 'Inter', 'SF Pro Text', 'Segoe UI', system-ui,
-    -apple-system, Roboto, sans-serif;
-  --font-num: 'Nunito', ui-rounded, 'SF Pro Rounded', 'Segoe UI', system-ui, sans-serif;
+  --font-body: 'Quicksand', 'Nunito', 'Nunito Sans', 'Inter', 'SF Pro Text', 'Segoe UI',
+    system-ui, -apple-system, Roboto, sans-serif;
+  --font-num: 'Quicksand', ui-rounded, 'SF Pro Rounded', 'Segoe UI', system-ui, sans-serif;
 
-  /* weights */
+  /* weights — Quicksand ships 400/500/600/700, so headings top out at 700 */
   --fw-normal: 400;
-  --fw-medium: 600;
-  --fw-bold: 700;
-  --fw-heavy: 800;
+  --fw-medium: 500;
+  --fw-bold: 600;
+  --fw-heavy: 700;
 
   /* line-heights & tracking */
   --lh-tight: 1.15;
