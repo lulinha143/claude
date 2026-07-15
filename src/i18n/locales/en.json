@@ -95,6 +95,17 @@
       "box": "Furniture"
     }
   },
+  "decoReact": {
+    "plant": "This little plant really freshens up the place.",
+    "lamp": "Cozy lighting makes all the difference.",
+    "poster": "Love what they did with the wall.",
+    "rug": "Ooh, this rug is so soft underfoot.",
+    "aquarium": "The fish are so calming to watch.",
+    "trophy": "We earned that — makes me proud.",
+    "cushion": "Just five more minutes on this…",
+    "screen": "Numbers look good on the big screen today.",
+    "box": "Handy having this right here."
+  },
   "shop": {
     "title": "Upgrade Shop",
     "empty": "Earn more nuts and reputation to unlock upgrades.",
@@ -689,18 +700,22 @@
   "microgame": {
     "title": "Micro-games",
     "play": "Play",
-    "shellSort": { "name": "Shell Sort", "desc": "Sort the good nuts from the broken shells." },
-    "coffeeRescue": { "name": "Coffee Rescue", "desc": "Catch the coffee drops before the mug runs dry." },
-    "inventory": { "name": "Raccoon Inventory Check", "desc": "Find the missing office objects while Rizzo looks innocent." },
+    "shellSort": { "name": "Conveyor Sort", "desc": "Sort good nuts, golden nuts, and broken shells into the right bins." },
+    "coffeeRescue": { "name": "Coffee Rescue", "desc": "Catch the coffee drops and build a combo before the mug runs dry." },
+    "inventory": { "name": "Raccoon Inventory Check", "desc": "Spot the swapped object while Rizzo looks innocent — the shelf grows as you go." },
     "score": "Score: {{value}}",
     "timeLeft": "{{value}}s",
     "result": "You scored {{value}}!",
     "goodNut": "Good nut",
+    "goldenNut": "Golden nut",
     "brokenShell": "Broken shell",
     "start": "Start",
     "exit": "Exit",
     "combo": "Combo x{{value}}",
+    "multiplier": "×{{value}} bonus",
+    "streak": "Streak {{value}}",
     "binGood": "Good Nuts",
+    "binGolden": "Golden Nuts",
     "binShell": "Broken Shells",
     "rewardNote": "Reward added to your company!",
     "playAgain": "Play again",

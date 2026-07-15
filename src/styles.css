@@ -2434,3 +2434,96 @@ select,
 .decocard__badge--muted {
   color: var(--text-muted);
 }
+
+
+/* ==========================================================================
+   Minigame polish — 3-way conveyor sort, coffee combo meter, memory streaks
+   ========================================================================== */
+
+/* Conveyor Sort: golden bin, queue preview, hot combo */
+.bin--golden {
+  border-color: var(--gold);
+  background: rgba(255, 213, 74, 0.14);
+}
+.bin__pattern--rays {
+  background-image: repeating-conic-gradient(
+    from 0deg,
+    color-mix(in srgb, var(--gold) 60%, transparent) 0deg 12deg,
+    transparent 12deg 24deg
+  );
+  opacity: 0.5;
+}
+.shellsort__conveyor {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.shellsort__combo {
+  font-weight: 700;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+.shellsort__combo.is-hot {
+  color: var(--gold);
+  transform: scale(1.12);
+}
+.shellsort__queue {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  opacity: 0.55;
+}
+.shellsort__queue-item {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--surface-sunken);
+}
+
+/* Coffee Rescue: combo readout, warmth meter, catch splash */
+.coffee__mult {
+  font-weight: 800;
+  color: var(--gold);
+}
+.coffee__meter {
+  height: 6px;
+  border-radius: var(--r-pill);
+  background: var(--surface-sunken);
+  overflow: hidden;
+  margin: 4px 0 6px;
+}
+.coffee__meter-fill {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--amber), var(--gold));
+  transition: width 0.25s ease;
+}
+.coffee__mug.is-splash::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -10px;
+  width: 16px;
+  height: 16px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 213, 74, 0.7), transparent 70%);
+  animation: coffee-splash 0.2s ease-out;
+}
+@keyframes coffee-splash {
+  from { transform: translateX(-50%) scale(0.4); opacity: 0.9; }
+  to { transform: translateX(-50%) scale(1.6); opacity: 0; }
+}
+
+/* Raccoon Inventory: streak badge */
+.inv__streak {
+  font-weight: 700;
+  color: var(--gold);
+}
+
+/* A decoration a nearby employee is reacting to gets a soft glow. */
+.decor.is-reacting {
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--gold) 70%, transparent));
+}

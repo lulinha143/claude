@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { coffeeFallDuration, coffeeSpawnInterval } from '../../sim/minigames';
+import {
+  coffeeFallDuration,
+  coffeeSpawnInterval,
+  coffeeCatchScore,
+  coffeeComboMultiplier,
+} from '../../sim/minigames';
 import type { SubGameProps } from './MicroGame';
 
 interface Drop {
@@ -15,13 +20,17 @@ const DROP_LIFETIME = 1600; // reduced-motion tap mode
 
 // Deliver coffee before it's lost. Motion mode: move the mug with the mouse or
 // arrow keys to catch falling drops. Reduced-motion mode: tap the drops before
-// they fade (no motion, no time-pressure flashing).
+// they fade (no motion, no time-pressure flashing). Consecutive catches build a
+// combo multiplier; the mug's warmth meter fills as the streak grows.
 export function CoffeeRescue({ seed, reducedMotion, timeLeft, onScore, onEnd }: SubGameProps) {
   const { t } = useTranslation();
   const [mugX, setMugX] = useState(50);
   const [drops, setDrops] = useState<Drop[]>([]);
   const [score, setScore] = useState(0);
+  const [streak, setStreak] = useState(0);
+  const [splash, setSplash] = useState(false);
   const scoreRef = useRef(0);
+  const streakRef = useRef(0);
   const idRef = useRef(0);
   const areaRef = useRef<HTMLDivElement>(null);
   const startRef = useRef(Date.now());
@@ -29,6 +38,23 @@ export function CoffeeRescue({ seed, reducedMotion, timeLeft, onScore, onEnd }: 
   void onEnd; // ending is driven by the shared shell timer
 
   const elapsed = () => (Date.now() - startRef.current) / 1000;
+
+  function registerCatch() {
+    streakRef.current += 1;
+    setStreak(streakRef.current);
+    scoreRef.current += coffeeCatchScore(streakRef.current);
+    setScore(scoreRef.current);
+    onScore(scoreRef.current);
+    if (!reducedMotion) {
+      setSplash(true);
+      setTimeout(() => setSplash(false), 180);
+    }
+  }
+
+  function registerMiss() {
+    streakRef.current = 0;
+    setStreak(0);
+  }
 
   // spawn drops
   useEffect(() => {
@@ -49,6 +75,9 @@ export function CoffeeRescue({ seed, reducedMotion, timeLeft, onScore, onEnd }: 
     };
   }, []);
 
+  const mugXRef = useRef(mugX);
+  mugXRef.current = mugX;
+
   // motion mode: animate falling + catch detection
   useEffect(() => {
     if (reducedMotion) return;
@@ -63,13 +92,8 @@ export function CoffeeRescue({ seed, reducedMotion, timeLeft, onScore, onEnd }: 
         for (const d of prev) {
           const y = d.y + speed * dt;
           if (y >= 88) {
-            // reached the mug line — caught?
-            if (Math.abs(d.x - mugXRef.current) < CATCH_HALF_WIDTH) {
-              scoreRef.current += 2;
-              setScore(scoreRef.current);
-              onScore(scoreRef.current);
-            }
-            // else: lost, no harsh penalty
+            if (Math.abs(d.x - mugXRef.current) < CATCH_HALF_WIDTH) registerCatch();
+            else registerMiss();
           } else {
             next.push({ ...d, y });
           }
@@ -83,17 +107,19 @@ export function CoffeeRescue({ seed, reducedMotion, timeLeft, onScore, onEnd }: 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reducedMotion]);
 
-  // reduced-motion tap mode: expire old drops
+  // reduced-motion tap mode: expire old drops (a lapsed drop breaks the streak)
   useEffect(() => {
     if (!reducedMotion) return;
     const h = setInterval(() => {
-      setDrops((prev) => prev.filter((d) => Date.now() - d.born < DROP_LIFETIME));
+      setDrops((prev) => {
+        const kept = prev.filter((d) => Date.now() - d.born < DROP_LIFETIME);
+        if (kept.length < prev.length) registerMiss();
+        return kept;
+      });
     }, 150);
     return () => clearInterval(h);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reducedMotion]);
-
-  const mugXRef = useRef(mugX);
-  mugXRef.current = mugX;
 
   // pointer + keyboard control (motion mode)
   useEffect(() => {
@@ -119,16 +145,21 @@ export function CoffeeRescue({ seed, reducedMotion, timeLeft, onScore, onEnd }: 
 
   function tap(d: Drop) {
     setDrops((prev) => prev.filter((x) => x.id !== d.id));
-    scoreRef.current += 2;
-    setScore(scoreRef.current);
-    onScore(scoreRef.current);
+    registerCatch();
   }
+
+  const mult = coffeeComboMultiplier(streak);
+  const warmth = Math.min(100, (streak / 12) * 100);
 
   return (
     <div className="coffee">
       <div className="coffee__hud">
         <span>{t('microgame.score', { value: score })}</span>
+        {mult > 1 ? <span className="coffee__mult">{t('microgame.multiplier', { value: mult })}</span> : null}
         <span>{timeLeft}s</span>
+      </div>
+      <div className="coffee__meter" aria-hidden>
+        <span className="coffee__meter-fill" style={{ width: `${warmth}%` }} />
       </div>
       <div className="coffee__area" ref={areaRef}>
         {drops.map((d) =>
@@ -145,7 +176,7 @@ export function CoffeeRescue({ seed, reducedMotion, timeLeft, onScore, onEnd }: 
           ),
         )}
         {!reducedMotion ? (
-          <span className="coffee__mug" style={{ left: `${mugX}%` }} aria-hidden />
+          <span className={`coffee__mug ${splash ? 'is-splash' : ''}`} style={{ left: `${mugX}%` }} aria-hidden />
         ) : null}
       </div>
     </div>

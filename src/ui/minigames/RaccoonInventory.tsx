@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { inventoryRound, type InventoryItem } from '../../sim/minigames';
+import { inventoryRound, inventorySize, inventoryScoreDelta, type InventoryItem } from '../../sim/minigames';
 import type { SubGameProps } from './MicroGame';
 
 type Phase = 'memorize' | 'guess' | 'reveal';
@@ -13,11 +13,16 @@ export function RaccoonInventory({ seed, reducedMotion, onScore, onEnd }: SubGam
   const [roundNum, setRoundNum] = useState(0);
   const [phase, setPhase] = useState<Phase>('memorize');
   const [score, setScore] = useState(0);
+  const [streak, setStreak] = useState(0);
   const [chosen, setChosen] = useState<number | null>(null);
   const scoreRef = useRef(0);
+  const streakRef = useRef(0);
   void onEnd; // ended by the shared shell timer
 
-  const round = useMemo(() => inventoryRound(`${seed}-${roundNum}`, 5), [seed, roundNum]);
+  const round = useMemo(
+    () => inventoryRound(`${seed}-${roundNum}`, inventorySize(roundNum)),
+    [seed, roundNum],
+  );
   const beforeItems = useMemo(() => {
     const arr = round.items.slice();
     arr[round.changedIndex] = round.before;
@@ -35,9 +40,14 @@ export function RaccoonInventory({ seed, reducedMotion, onScore, onEnd }: SubGam
     if (phase !== 'guess') return;
     setChosen(i);
     if (i === round.changedIndex) {
-      scoreRef.current += 3;
+      streakRef.current += 1;
+      setStreak(streakRef.current);
+      scoreRef.current += inventoryScoreDelta(streakRef.current);
       setScore(scoreRef.current);
       onScore(scoreRef.current);
+    } else {
+      streakRef.current = 0;
+      setStreak(0);
     }
     setPhase('reveal');
     if (!reducedMotion) {
@@ -58,6 +68,7 @@ export function RaccoonInventory({ seed, reducedMotion, onScore, onEnd }: SubGam
     <div className="inv">
       <div className="inv__hud">
         <span>{t('microgame.score', { value: score })}</span>
+        {streak >= 2 ? <span className="inv__streak">{t('microgame.streak', { value: streak })}</span> : null}
         <span className="inv__phase">
           {phase === 'memorize' ? t('microgame.memorize') : phase === 'guess' ? t('microgame.whatChanged') : ''}
         </span>

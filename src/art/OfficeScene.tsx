@@ -11,7 +11,7 @@ import { CritterStateMachine, type CritterState } from './animation';
 import { shapeFor } from './critterShapes';
 import { Acorn, Crate } from './Icons';
 import { Icon } from './UiIcon';
-import { DecorationProp } from './DecorationProp';
+import { DecorationProp, decorKind } from './DecorationProp';
 import {
   placedDecorationsInRoom,
   inventoryDecorationsInRoom,
@@ -82,7 +82,12 @@ export function OfficeScene() {
   const [decorMode, setDecorMode] = useState(false);
   // The decoration currently picked up for arranging (its id), or null.
   const [selected, setSelected] = useState<string | null>(null);
+  // A decoration a nearby employee is currently reacting to (for a little wiggle).
+  const [reactingDeco, setReactingDeco] = useState<string | null>(null);
   const rngRef = useRef(createRng(Date.now() & 0xffff));
+  // Latest state, so the ambient-chatter interval always reads current data.
+  const stateRef = useRef(state);
+  stateRef.current = state;
   const now = Date.now();
 
   const rooms = unlockedRooms(state).slice().reverse();
@@ -99,16 +104,48 @@ export function OfficeScene() {
   }, [bubble]);
 
   useEffect(() => {
-    const h = setInterval(() => {
-      const hired = Object.entries(state.employees).filter(([, e]) => e.hired);
-      if (hired.length === 0) return;
-      const [id] = hired[Math.floor(Math.random() * hired.length)];
-      const def = EMPLOYEES_BY_ID[id];
-      speak(id, def?.dialogueCategory ?? 'idle');
-    }, 12000);
+    const h = setInterval(ambientChatter, 11000);
     return () => clearInterval(h);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Every so often a hired critter pipes up — often reacting to a decoration
+  // placed right next to them, otherwise a normal line for their department.
+  function ambientChatter() {
+    const st = stateRef.current;
+    const hired = Object.entries(st.employees).filter(([, e]) => e.hired);
+    if (hired.length === 0) return;
+    const [id] = hired[Math.floor(Math.random() * hired.length)];
+
+    if (Math.random() < 0.5) {
+      const roomId = resolveEmployeeRoom(st, id);
+      if (roomId) {
+        const occ = Object.entries(st.employees).filter(
+          ([eid, rt]) => rt.hired && resolveEmployeeRoom(st, eid) === roomId,
+        );
+        const idx = occ.findIndex(([eid]) => eid === id);
+        const sx = characterSlots(occ.length)[idx]?.x ?? 0.5;
+        let best: string | null = null;
+        let bestDx = 0.28; // proximity threshold in normalized floor width
+        for (const p of placedDecorationsInRoom(st, roomId)) {
+          const dx = Math.abs(p.anchor.x - sx);
+          if (dx < bestDx) {
+            bestDx = dx;
+            best = p.def.id;
+          }
+        }
+        if (best) {
+          setBubble({ employeeId: id, text: t(`decoReact.${decorKind(best)}`), until: Date.now() + 4200 });
+          setReactingDeco(best);
+          setTimeout(() => setReactingDeco(null), 2600);
+          return;
+        }
+      }
+    }
+
+    const def = EMPLOYEES_BY_ID[id];
+    speak(id, def?.dialogueCategory ?? 'idle');
+  }
 
   function speak(employeeId: string, category: string) {
     const idx = pickDialogueIndex(category, rngRef.current);
@@ -306,6 +343,7 @@ export function OfficeScene() {
                       reducedMotion={reducedMotion}
                       mode={decorMode ? 'toggle' : 'interact'}
                       selected={decorMode && selected === def.id}
+                      reacting={!decorMode && reactingDeco === def.id}
                       title={t(`deco.${def.id}.name`)}
                       onToggle={() => selectDeco(def.id)}
                       onInteract={() => audio.play('click')}

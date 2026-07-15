@@ -54,7 +54,7 @@
   "office": {
     "collect": "Coletar caixa",
     "collectHint": "Uma caixa de castanhas está pronta!",
-    "petPip": "Fazer carinho no Pip",
+    "petPip": "Fazer carinho no Tico",
     "quietMode": "Modo Silencioso",
     "production": "Produção",
     "clickReward": "+{{value}} castanhas",
@@ -95,6 +95,17 @@
       "box": "Móveis"
     }
   },
+  "decoReact": {
+    "plant": "Essa plantinha deixa o ambiente bem mais fresco.",
+    "lamp": "Uma luz aconchegante faz toda a diferença.",
+    "poster": "Adorei o que fizeram na parede.",
+    "rug": "Ai, esse tapete é tão macio nos pés.",
+    "aquarium": "Ficar olhando os peixinhos acalma tanto.",
+    "trophy": "A gente mereceu isso — me deixa orgulhoso.",
+    "cushion": "Só mais cinco minutinhos aqui…",
+    "screen": "Os números estão ótimos no telão hoje.",
+    "box": "Que bom ter isso bem aqui à mão."
+  },
   "shop": {
     "title": "Loja de Melhorias",
     "empty": "Ganhe mais castanhas e reputação para desbloquear melhorias.",
@@ -120,38 +131,38 @@
     "assignRoom": "Local de trabalho",
     "mood": "Humor",
     "pip": {
-      "name": "Pip",
-      "fullName": "Pip Bolotenberg",
+      "name": "Tico",
+      "fullName": "Tico Bolotenberg",
       "role": "Fundador e CEO",
-      "story": "Pip começou esta empresa com uma bolota e a crença inabalável de que reuniões resolvem tudo. Confiança: máxima. Competência: negociável.",
+      "story": "Tico começou esta empresa com uma bolota e a crença inabalável de que reuniões resolvem tudo. Confiança: máxima. Competência: negociável.",
       "goal": "Construir o maior império de castanhas do mundo (e finalmente terminar uma planilha)."
     },
     "marlow": {
-      "name": "Marlow",
-      "fullName": "Marlow Águasmansas",
+      "name": "Bento",
+      "fullName": "Bento Águasmansas",
       "role": "Chefe de Recursos Humanos",
-      "story": "Marlow, a capivara, nunca levantou a voz, entrou em pânico ou piscou durante uma crise. A moral sobe só por ela estar perto.",
+      "story": "Bento, a capivara, nunca levantou a voz, entrou em pânico ou piscou durante uma crise. A moral sobe só por ela estar perto.",
       "goal": "Garantir que absolutamente todos tirem uma boa soneca."
     },
     "rizzo": {
-      "name": "Rizzo",
-      "fullName": "Rizzo \u201cNota Fiscal\u201d Anelrabo",
+      "name": "Nino",
+      "fullName": "Nino \u201cNota Fiscal\u201d Anelrabo",
       "role": "Especialista em Compras",
-      "story": "Rizzo acha tudo o que a empresa precisa. E também várias coisas de que não precisava. Por favor, não pergunte pelo grampeador.",
+      "story": "Nino acha tudo o que a empresa precisa. E também várias coisas de que não precisava. Por favor, não pergunte pelo grampeador.",
       "goal": "Conseguir tudo por um preço suspeitosamente bom."
     },
     "bea": {
-      "name": "Bea",
-      "fullName": "Beatriz \u201cBea\u201d Madeirão",
+      "name": "Bia",
+      "fullName": "Beatriz \u201cBia\u201d Madeirão",
       "role": "Gerente de Construção",
-      "story": "Bea acredita que todo problema se resolve com mais madeira. As cadeiras agora são 40% mais firmes e 60% mais amadeiradas.",
+      "story": "Bia acredita que todo problema se resolve com mais madeira. As cadeiras agora são 40% mais firmes e 60% mais amadeiradas.",
       "goal": "Reforçar cada coisinha do prédio."
     },
     "corvus": {
-      "name": "Corvus",
-      "fullName": "Corvus Corvalho",
+      "name": "Téo",
+      "fullName": "Téo Corvalho",
       "role": "Diretor de Marketing",
-      "story": "Corvus, o corvo, tem grandes ideias, a maioria juridicamente duvidosa, todas extremamente brilhantes.",
+      "story": "Téo, o corvo, tem grandes ideias, a maioria juridicamente duvidosa, todas extremamente brilhantes.",
       "goal": "Fazer a marca de castanhas viralizar. Ética é opcional."
     },
     "mina": {
@@ -162,10 +173,10 @@
       "goal": "Descobrir o que há embaixo do porão do porão."
     },
     "nixie": {
-      "name": "Nixie",
-      "fullName": "Nixie Parafuso",
+      "name": "Nica",
+      "fullName": "Nica Parafuso",
       "role": "Chefe de Automação e TI",
-      "story": "Nixie, a camundonga, pensa mais rápido do que fala e constrói máquinas com grampeadores, elásticos e pura confiança. Cerca de 80% funcionam.",
+      "story": "Nica, a camundonga, pensa mais rápido do que fala e constrói máquinas com grampeadores, elásticos e pura confiança. Cerca de 80% funcionam.",
       "goal": "Automatizar tudo, inclusive a automação."
     },
     "otto": {
@@ -176,31 +187,31 @@
       "goal": "Equilibrar as contas sem se distrair com coisas brilhantes."
     },
     "hazel": {
-      "name": "Hazel",
-      "fullName": "Hazel Espinho",
+      "name": "Avelã",
+      "fullName": "Avelã Espinho",
       "role": "Jurídico e Conformidade",
-      "story": "Hazel, a ouriça, lê cada contrato duas vezes e secretamente adora o caos do escritório. Espinhosa por fora, encantada por dentro.",
+      "story": "Avelã, a ouriça, lê cada contrato duas vezes e secretamente adora o caos do escritório. Espinhosa por fora, encantada por dentro.",
       "goal": "Manter a empresa no lado certo das regras, por pouco."
     },
     "junie": {
-      "name": "Junie",
-      "fullName": "Junie Saltitante",
+      "name": "Juju",
+      "fullName": "Juju Saltitante",
       "role": "Logística e Agendamento",
-      "story": "Junie, a coelha, está em todo lugar ao mesmo tempo e com três reuniões marcadas. As caixas andam mais rápido só porque ela já chegou.",
+      "story": "Juju, a coelha, está em todo lugar ao mesmo tempo e com três reuniões marcadas. As caixas andam mais rápido só porque ela já chegou.",
       "goal": "Entregar tudo cinco minutos adiantado, para sempre."
     },
     "moss": {
-      "name": "Moss",
-      "fullName": "Moss Plumaluar",
+      "name": "Mocho",
+      "fullName": "Mocho Plumaluar",
       "role": "Operações Noturnas e Observação",
-      "story": "Moss, a coruja, trabalha nas horas silenciosas, percebe o que todos deixam passar e fala em observações gentis e levemente inquietantes.",
+      "story": "Mocho, a coruja, trabalha nas horas silenciosas, percebe o que todos deixam passar e fala em observações gentis e levemente inquietantes.",
       "goal": "Zelar pela empresa enquanto ela dorme."
     },
     "fenn": {
-      "name": "Fenn",
-      "fullName": "Fenn Raposão",
+      "name": "Fael",
+      "fullName": "Fael Raposão",
       "role": "Vendas e Relação com Clientes",
-      "story": "Fenn, a raposa, venderia uma noz de volta para a árvore de onde ela caiu. Charmoso, ambicioso e persuasivo demais.",
+      "story": "Fael, a raposa, venderia uma noz de volta para a árvore de onde ela caiu. Charmoso, ambicioso e persuasivo demais.",
       "goal": "Fechar o maior negócio de castanhas da história da empresa."
     }
   },
@@ -235,15 +246,15 @@
   "room": {
     "founderDesk": { "name": "Mesa do Fundador", "desc": "Onde tudo começou. Uma mesa, um sonho, um esquilo muito cansado." },
     "sorting": { "name": "Departamento de Triagem", "desc": "Castanhas boas à esquerda, cascas quebradas à direita. Na maioria das vezes." },
-    "morale": { "name": "Divisão de Café e Moral", "desc": "Puffs, petiscos e a presença calmante da Marlow." },
-    "procurement": { "name": "Toca de Compras", "desc": "Domínio da Rizzo. As contagens de estoque são… aproximadas." },
-    "construction": { "name": "Ala de Construção", "desc": "A oficina da Bea. Cheira a serragem fresca e ambição." },
+    "morale": { "name": "Divisão de Café e Moral", "desc": "Puffs, petiscos e a presença calmante da Bento." },
+    "procurement": { "name": "Toca de Compras", "desc": "Domínio da Nino. As contagens de estoque são… aproximadas." },
+    "construction": { "name": "Ala de Construção", "desc": "A oficina da Bia. Cheira a serragem fresca e ambição." },
     "lab": { "name": "Laboratório de Pesquisa de Cascas", "desc": "Béqueres borbulhando e avanços questionáveis." },
-    "marketing": { "name": "Toca de Marketing", "desc": "Corvus transforma castanhas em narrativa." },
+    "marketing": { "name": "Toca de Marketing", "desc": "Téo transforma castanhas em narrativa." },
     "vault": { "name": "Cofre das Castanhas Douradas", "desc": "Fortemente vigiado. Levemente brilhante." },
     "research": { "name": "Sala de Observação do Comportamento Humano", "desc": "Pela ciência. Definitivamente só pela ciência." },
     "meeting": { "name": "Sala de Reunião Muito Séria", "desc": "Onde reuniões sobre reuniões são agendadas." },
-    "nap": { "name": "Câmara de Soneca", "desc": "Produtividade pelo descanso. O maior orgulho da Marlow." },
+    "nap": { "name": "Câmara de Soneca", "desc": "Produtividade pelo descanso. O maior orgulho da Bento." },
     "basement": { "name": "Porão Suspeito", "desc": "Definitivamente não há nada estranho aqui embaixo." },
     "rooftop": { "name": "Jardim de Bolotas no Telhado", "desc": "Ar fresco, grama de verdade e uma bela vista." }
   },
@@ -288,8 +299,8 @@
       "hide": "Esconder as castanhas boas"
     },
     "rizzoFound": {
-      "title": "A Rizzo Achou Uma Coisa",
-      "body": "Rizzo está segurando uma caixa atrás das costas e sorrindo de um jeito suspeito.",
+      "title": "A Nino Achou Uma Coisa",
+      "body": "Nino está segurando uma caixa atrás das costas e sorrindo de um jeito suspeito.",
       "inspect": "Inspecionar a caixa",
       "ignore": "Não fazer perguntas",
       "boxBody": "Dentro da caixa: uma castanha que você nunca viu e um recibo com o seu nome.",
@@ -310,7 +321,7 @@
     },
     "pieChart": {
       "title": "Gráfico de Pizza Extremamente Importante",
-      "body": "Pip apresenta um gráfico de pizza. É a foto de uma pizza de verdade. Todos aplaudem mesmo assim.",
+      "body": "Tico apresenta um gráfico de pizza. É a foto de uma pizza de verdade. Todos aplaudem mesmo assim.",
       "applaud": "Aplaudir com entusiasmo"
     },
     "pigeon": {
@@ -320,17 +331,17 @@
       "hire": "Contratar o pombo"
     },
     "beaWood": {
-      "title": "A Bea Adicionou Mais Madeira",
-      "body": "Bea melhorou a mobília com madeira adicional. Agora é o escritório mais amadeirado da cidade.",
+      "title": "A Bia Adicionou Mais Madeira",
+      "body": "Bia melhorou a mobília com madeira adicional. Agora é o escritório mais amadeirado da cidade.",
       "approve": "Aprovar a madeira",
       "decline": "Vender a madeira extra"
     },
     "fire": {
       "title": "O Escritório Está Tecnicamente Pegando Fogo",
-      "body": "É um foguinho. Bem administrável. A Marlow nem levantou a cabeça.",
+      "body": "É um foguinho. Bem administrável. A Bento nem levantou a cabeça.",
       "evacuate": "Evacuar com calma",
-      "contain": "Pedir para a Bea conter o fogo",
-      "needBea": "Requer a Bea (Construção)",
+      "contain": "Pedir para a Bia conter o fogo",
+      "needBea": "Requer a Bia (Construção)",
       "livestream": "Transformar numa live de marketing",
       "study": "Deixar a Mina estudar o fenômeno"
     },
@@ -340,11 +351,11 @@
       "ok": "Abraçar a ideia"
     },
     "nutcoin": {
-      "title": "O Corvus Lançou a NutCoin",
-      "body": "Corvus inventou uma criptomoeda lastreada inteiramente em vibrações e bolotas.",
+      "title": "O Téo Lançou a NutCoin",
+      "body": "Téo inventou uma criptomoeda lastreada inteiramente em vibrações e bolotas.",
       "invest": "Investir 500 castanhas",
       "refuse": "Recusar educadamente",
-      "crashBody": "A NutCoin despencou. Corvus já está apresentando a NutCoin 2. Pelo menos você fica com a história.",
+      "crashBody": "A NutCoin despencou. Téo já está apresentando a NutCoin 2. Pelo menos você fica com a história.",
       "sigh": "Suspirar fundo"
     },
     "minaBasement": {
@@ -385,12 +396,12 @@
     },
     "stapler": {
       "title": "O Grande Sumiço do Grampeador",
-      "body": "O grampeador sumiu. A Rizzo está assobiando. Está tudo bem.",
+      "body": "O grampeador sumiu. A Nino está assobiando. Está tudo bem.",
       "investigate": "Investigar",
       "shrug": "Comprar um grampeador novo"
     },
     "metaMeeting": {
-      "title": "O Pip Agendou uma Reunião Sobre Reuniões",
+      "title": "O Tico Agendou uma Reunião Sobre Reuniões",
       "body": "A pauta é a pauta. Haverá um retorno sobre o retorno.",
       "endure": "Aguentar firme"
     },
@@ -401,8 +412,8 @@
       "negotiate": "Negociar níveis de petisco"
     },
     "mascot": {
-      "title": "O Mascote da Empresa Também É o Pip",
-      "body": "Após ampla deliberação, o novo mascote da empresa é revelado como… Pip.",
+      "title": "O Mascote da Empresa Também É o Tico",
+      "body": "Após ampla deliberação, o novo mascote da empresa é revelado como… Tico.",
       "approve": "Aprovar por unanimidade"
     },
     "walnut": {
@@ -437,7 +448,7 @@
     },
     "nixieMachine": {
       "title": "O Teclado Está Digitando Antes de Alguém Tocar Nele",
-      "body": "A nova geringonça da Nixie está terminando os relatórios de todo mundo. Parece útil. Definitivamente está observando.",
+      "body": "A nova geringonça da Nica está terminando os relatórios de todo mundo. Parece útil. Definitivamente está observando.",
       "trust": "Deixa rolar",
       "unplug": "Desligar educadamente",
       "whirBody": "A máquina zune, imprime um relatório trimestral impecável e um bilhetinho de agradecimento.",
@@ -453,20 +464,20 @@
     },
     "hazelLoophole": {
       "title": "O Logotipo da Empresa É Redondo Demais (Legalmente)",
-      "body": "Hazel achou uma regra obscura: o logo excede a redondeza máxima permitida. Tecnicamente.",
+      "body": "Avelã achou uma regra obscura: o logo excede a redondeza máxima permitida. Tecnicamente.",
       "redesign": "Redesenhar o logo",
       "fight": "Brigar na justiça (divertido)",
       "squares": "Deixar tudo quadrado"
     },
     "junieSchedule": {
       "title": "Marcaram uma Reunião no Horário da Soneca",
-      "body": "Junie achou uma reunião marcada bem em cima da hora sagrada da Câmara de Soneca. O caos se aproxima.",
+      "body": "Juju achou uma reunião marcada bem em cima da hora sagrada da Câmara de Soneca. O caos se aproxima.",
       "protectNap": "Proteger a soneca",
       "holdMeeting": "Fazer a reunião mesmo assim"
     },
     "mossNight": {
       "title": "O Sino de Vento do Telhado Está Prevendo o Mercado",
-      "body": "Moss relata que o sino tocou exatamente três vezes antes de cada bom trimestre. Ele acabou de tocar três vezes.",
+      "body": "Mocho relata que o sino tocou exatamente três vezes antes de cada bom trimestre. Ele acabou de tocar três vezes.",
       "listen": "Escutar com atenção",
       "dismiss": "É só o vento",
       "omenBody": "O sino soletra na brisa uma dica de investimento suspeitosamente específica.",
@@ -475,7 +486,7 @@
     },
     "fennDeal": {
       "title": "Um Cliente Quer Reembolso em Nozes",
-      "body": "Fenn fechou uma venda enorme, mas o cliente agora exige que o reembolso seja pago inteiramente em nozes.",
+      "body": "Fael fechou uma venda enorme, mas o cliente agora exige que o reembolso seja pago inteiramente em nozes.",
       "refund": "Honrar com elegância",
       "upsell": "Fazer upsell no lugar",
       "walnuts": "Pagar em nozes premium"
@@ -495,8 +506,8 @@
       "replace": "Repor café de verdade"
     },
     "staplers17": {
-      "title": "A Rizzo Adquiriu Dezessete Grampeadores Idênticos",
-      "body": "Agora há dezessete grampeadores idênticos nas compras. Rizzo insiste que isso é normal e necessário.",
+      "title": "A Nino Adquiriu Dezessete Grampeadores Idênticos",
+      "body": "Agora há dezessete grampeadores idênticos nas compras. Nino insiste que isso é normal e necessário.",
       "return": "Devolver dezesseis deles",
       "keep": "Ficar com a coleção"
     },
@@ -561,8 +572,8 @@
     "incidentReport": { "name": "Relatório de Incidente", "desc": "Vivencie 10 eventos." },
     "zeroDays": { "name": "Zero Dias Sem Incidentes", "desc": "Vivencie 25 eventos." },
     "chairPromoted": { "name": "A Cadeira Mereceu", "desc": "Promova a cadeira do escritório." },
-    "raccoonAccounting": { "name": "Contabilidade Guaxinim", "desc": "Contrate a Rizzo." },
-    "calmCrisis": { "name": "Calma na Crise", "desc": "Contrate a Marlow." },
+    "raccoonAccounting": { "name": "Contabilidade Guaxinim", "desc": "Contrate a Nino." },
+    "calmCrisis": { "name": "Calma na Crise", "desc": "Contrate a Bento." },
     "infiniteCoffee": { "name": "Café Infinito", "desc": "Maximize as melhorias de café." },
     "normalBasement": { "name": "Porão Extremamente Normal", "desc": "Construa o porão suspeito." },
     "productivityTheater": { "name": "Teatro da Produtividade", "desc": "Complete uma sessão de foco." },
@@ -581,7 +592,7 @@
     "highMorale": { "name": "Só Boas Vibrações", "desc": "Alcance 95 de moral." },
     "minigamer": { "name": "Minijogador", "desc": "Jogue um mini-jogo." },
     "arcadeLegend": { "name": "Lenda do Fliperama", "desc": "Jogue 20 mini-jogos." },
-    "woodEnthusiast": { "name": "Entusiasta da Madeira", "desc": "Contrate a Bea." },
+    "woodEnthusiast": { "name": "Entusiasta da Madeira", "desc": "Contrate a Bia." },
     "cryptoSkeptic": { "name": "Cético de Cripto", "desc": "Recuse investir na NutCoin." },
     "underground": { "name": "Subterrâneo", "desc": "Contrate a Mina." },
     "reputable": { "name": "Respeitável", "desc": "Alcance 100 de reputação." },
@@ -675,7 +686,7 @@
   },
   "focus": {
     "title": "Colheita de Foco",
-    "intro": "Um companheiro de foco opcional e acolhedor. Inicie uma sessão e a equipe do Pip trabalha um pouco mais enquanto você se concentra.",
+    "intro": "Um companheiro de foco opcional e acolhedor. Inicie uma sessão e a equipe do Tico trabalha um pouco mais enquanto você se concentra.",
     "disabled": "A Colheita de Foco está desativada. Ative nos Ajustes.",
     "enable": "Ativar Colheita de Foco",
     "start": "Iniciar sessão de foco",
@@ -683,24 +694,28 @@
     "active": "Sessão de foco em andamento",
     "remaining": "Tempo restante",
     "custom": "Minutos personalizados",
-    "complete": "Ótimo foco! O Pip está orgulhoso de você.",
+    "complete": "Ótimo foco! O Tico está orgulhoso de você.",
     "privacy": "Isso nunca bloqueia seu computador e nunca inspeciona o que você faz. Só acompanha o cronômetro da sessão."
   },
   "microgame": {
     "title": "Mini-jogos",
     "play": "Jogar",
-    "shellSort": { "name": "Triagem de Cascas", "desc": "Separe as castanhas boas das cascas quebradas." },
-    "coffeeRescue": { "name": "Resgate do Café", "desc": "Pegue as gotas de café antes que a caneca esvazie." },
-    "inventory": { "name": "Inventário da Guaxinim", "desc": "Ache os objetos sumidos enquanto a Rizzo faz cara de inocente." },
+    "shellSort": { "name": "Esteira de Triagem", "desc": "Separe castanhas boas, castanhas douradas e cascas quebradas em suas caixas." },
+    "coffeeRescue": { "name": "Resgate do Café", "desc": "Pegue as gotas de café e faça combo antes que a caneca esvazie." },
+    "inventory": { "name": "Inventário da Guaxinim", "desc": "Ache o objeto trocado enquanto a Nino faz cara de inocente — a prateleira cresce a cada rodada." },
     "score": "Pontos: {{value}}",
     "timeLeft": "{{value}}s",
     "result": "Você fez {{value}} pontos!",
     "goodNut": "Castanha boa",
+    "goldenNut": "Castanha dourada",
     "brokenShell": "Casca quebrada",
     "start": "Começar",
     "exit": "Sair",
     "combo": "Combo x{{value}}",
+    "multiplier": "×{{value}} bônus",
+    "streak": "Sequência {{value}}",
     "binGood": "Castanhas Boas",
+    "binGolden": "Castanhas Douradas",
     "binShell": "Cascas Quebradas",
     "rewardNote": "Recompensa adicionada à sua empresa!",
     "playAgain": "Jogar de novo",
@@ -871,16 +886,16 @@
     "done": "Vamos lá!",
     "step1": "Bem-vindo! Clique na caixa brilhante para coletar castanhas.",
     "step2": "Gaste castanhas na aba Melhorias para aumentar a produção.",
-    "step3": "Clique no Pip a qualquer momento para um empurrãozinho na moral.",
+    "step3": "Clique no Tico a qualquer momento para um empurrãozinho na moral.",
     "step4": "A aba Empresa mostra seu império crescente.",
     "step5": "No desktop, arraste a janela ou encaixe em qualquer canto.",
-    "step6": "Ative o 'Sempre no topo' para o Pip ficar visível enquanto você trabalha.",
+    "step6": "Ative o 'Sempre no topo' para o Tico ficar visível enquanto você trabalha.",
     "step7": "Precisa de silêncio? O Modo Silencioso reduz som e animação. Aproveite!"
   },
   "offline": {
     "title": "Enquanto Você Estava Fora",
     "duration": "Você ficou fora por {{duration}}",
-    "earned": "A equipe do Pip ganhou {{value}} castanhas",
+    "earned": "A equipe do Tico ganhou {{value}} castanhas",
     "capped": "(limite offline atingido — melhore o Armazenamento Frio para mais)",
     "rate": "a {{value}}/s",
     "welcomeBack": "Bem-vindo de volta!"
@@ -913,22 +928,22 @@
     "policy": "Política alterada"
   },
   "react": {
-    "marlowApproves": "Marlow aprovou esta decisão.",
-    "marlowCalm": "Marlow permaneceu perfeitamente calma.",
-    "beaConcerned": "Bea está preocupada com a fiação.",
-    "beaProud": "Bea reforçou algo, só por garantia.",
-    "corvusExcited": "Corvus já está filmando.",
+    "marlowApproves": "Bento aprovou esta decisão.",
+    "marlowCalm": "Bento permaneceu perfeitamente calma.",
+    "beaConcerned": "Bia está preocupada com a fiação.",
+    "beaProud": "Bia reforçou algo, só por garantia.",
+    "corvusExcited": "Téo já está filmando.",
     "minaCurious": "Mina quer estudar isso melhor.",
-    "pipProud": "Pip finge que esse era o plano o tempo todo.",
-    "rizzoSuspicious": "Rizzo discretamente guardou algo no bolso.",
+    "pipProud": "Tico finge que esse era o plano o tempo todo.",
+    "rizzoSuspicious": "Nino discretamente guardou algo no bolso.",
     "teamHappy": "A equipe está encantada.",
     "teamNervous": "A equipe troca olhares nervosos.",
-    "nixieProud": "Nixie está radiante por ter funcionado (desta vez).",
+    "nixieProud": "Nica está radiante por ter funcionado (desta vez).",
     "ottoDistracted": "Otto aprova e então se distrai com algo brilhante.",
-    "hazelApproves": "Hazel assente — juridicamente sólido.",
-    "junieReady": "Junie já reagendou tudo em volta disso.",
-    "mossKnowing": "Moss não diz nada, mas parece já saber.",
-    "fennGrin": "Fenn sorri como se o negócio já estivesse fechado."
+    "hazelApproves": "Avelã assente — juridicamente sólido.",
+    "junieReady": "Juju já reagendou tudo em volta disso.",
+    "mossKnowing": "Mocho não diz nada, mas parece já saber.",
+    "fennGrin": "Fael sorri como se o negócio já estivesse fechado."
   },
   "daily": {
     "title": "Desafios Diários",
@@ -1062,7 +1077,7 @@
       "Uma castanha economizada é uma castanha ganha.",
       "Deixa eu te mostrar a planilha. Espera, o que foi aquilo?",
       "Fluxo de caixa é como um rio. Um rio cheio de castanhas.",
-      "Achei um arredondamento a nosso favor. Não conta pra Hazel.",
+      "Achei um arredondamento a nosso favor. Não conta pra Avelã.",
       "Cada bolota contabilizada. Cada uma. Provavelmente.",
       "Diversifique! Metade castanhas, metade... mais castanhas.",
       "Amo um livro-caixa equilibrado quase tanto quanto pedrinhas lisas.",
@@ -1132,7 +1147,7 @@
     ],
     "upgrade": [
       "Ooh, novinho e brilhante!",
-      "A eficiência subiu! O Pip finge entender por quê.",
+      "A eficiência subiu! O Tico finge entender por quê.",
       "O escritório já parece um pouco maior.",
       "Progresso! Progresso real e mensurável!",
       "Valeu cada castanha.",
@@ -1143,7 +1158,7 @@
     "lowMorale": [
       "O escritório está meio triste hoje.",
       "Alguém esqueceu de repor os petiscos.",
-      "A moral está baixa. A Marlow está resolvendo.",
+      "A moral está baixa. A Bento está resolvendo.",
       "O café acabou. Isso é sério.",
       "Um suspiro coletivo ecoa pelo tronco.",
       "Todo mundo precisa de uma pausa, sinceramente.",
