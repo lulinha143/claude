@@ -6,6 +6,7 @@ import { Header } from './ui/Header';
 import { NavBar } from './ui/NavBar';
 import { RecommendedStep } from './ui/RecommendedStep';
 import { OfficeScene } from './art/OfficeScene';
+import { OfficeBackground } from './art/OfficeBackground';
 import { ShopView } from './ui/views/ShopView';
 import { EmployeesView } from './ui/views/EmployeesView';
 import { CompanyView } from './ui/views/CompanyView';
@@ -64,6 +65,7 @@ export function App() {
     root.dataset.dyslexia = String(s.dyslexiaFont);
     root.dataset.colorblind = s.colorblindMode;
     root.dataset.pauseMenus = String(s.pauseAnimationsInMenus && view !== 'office');
+    root.dataset.bgBlur = String(s.background.blurBehindPanels);
     root.style.setProperty('--font-scale', String(s.fontScale));
     root.style.setProperty('--ui-scale', String(s.uiScale));
     audio.setVolumes(s.volumes);
@@ -121,6 +123,7 @@ export function App() {
 
   return (
     <div className="app">
+      <OfficeBackground visible={view === 'office'} />
       <Header />
       <NavBar />
       <RecommendedStep />

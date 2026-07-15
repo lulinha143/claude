@@ -132,8 +132,12 @@ export function OfficeScene() {
     setTimeout(() => setPop(null), 950);
   }
 
+  const overGif = state.settings.background.enabled;
   return (
-    <div className={`office ${decorMode ? 'office--decorating' : ''}`} aria-label="office diorama">
+    <div
+      className={`office ${decorMode ? 'office--decorating' : ''} ${overGif ? 'office--overgif' : ''}`}
+      aria-label="office diorama"
+    >
       <div className="office__toolbar">
         <button
           className={`chip-btn ${decorMode ? 'is-on' : ''}`}

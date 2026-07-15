@@ -38,7 +38,8 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,mjs,cjs,json,css,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,mjs,cjs,json,css,md}\"",
     "check:i18n": "tsx scripts/check-i18n.ts",
-    "validate": "npm run typecheck && npm run lint && npm run check:i18n && npm run test && npm run build"
+    "verify:assets": "node scripts/verify-assets.mjs",
+    "validate": "npm run typecheck && npm run lint && npm run check:i18n && npm run verify:assets && npm run test && npm run build"
   },
   "dependencies": {
     "i18next": "^23.15.1",

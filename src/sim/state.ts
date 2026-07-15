@@ -26,6 +26,16 @@ export function defaultSettings(): GameSettings {
     focusHarvestEnabled: false,
     offlineCapHours: BALANCE.offline.defaultCapHours,
     showHints: true,
+    background: {
+      enabled: true,
+      brightness: 1,
+      contrast: 1,
+      saturation: 1,
+      blurBehindPanels: true,
+      quality: 'high',
+      focal: 'center',
+      pauseWhenHidden: true,
+    },
   };
 }
 
