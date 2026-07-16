@@ -14,8 +14,9 @@ import { Acorn, Crate } from './Icons';
 import { Icon } from './UiIcon';
 import { DecorationProp, decorKind } from './DecorationProp';
 import { RoomDressing } from './RoomDressing';
-import { placedDecorationsInRoom, isDecorationPlaced, roomComfort } from '../sim/decorations';
+import { placedDecorationsInRoom, isDecorationPlaced, roomComfort, placementAt } from '../sim/decorations';
 import { surfaceZ, decorationSurface } from '../sim/surfaces';
+import { evaluatePlacement } from '../sim/placement';
 import { characterSlots } from '../content/roomLayout';
 import { pickOfficeInteraction } from '../sim/officeLife';
 import { DecorationTray } from '../ui/DecorationTray';
@@ -343,6 +344,15 @@ export function OfficeScene() {
     const rect = stage.getBoundingClientRect();
     const nx = (x - rect.left) / Math.max(1, rect.width);
     const ny = (rect.bottom - y) / Math.max(1, rect.height); // 0 = floor line, 1 = top of wall
+    // Validate the *final* (clamped) position against room composition rules so
+    // we never produce a broken arrangement (overlap, stacking, covered faces).
+    const final = placementAt(id, nx, ny);
+    const check = evaluatePlacement(stateRef.current, id, final.x, final.y);
+    if (!check.ok) {
+      notify('rooms', t(check.reasonKey ?? 'decorate.reject.invalid'), 'neutral');
+      audio.play('error');
+      return;
+    }
     if (engine.moveDecoration(id, nx, ny)) audio.play('upgrade');
   }
 
