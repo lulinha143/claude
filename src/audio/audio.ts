@@ -14,6 +14,8 @@ export type SfxName =
   | 'celebrate'
   | 'prestige'
   | 'place'
+  | 'toggle'
+  | 'chime'
   | 'error';
 
 export interface AudioVolumes {
@@ -553,6 +555,16 @@ export class AudioManager {
         // A soft "set it down" — a gentle low settle plus a tiny wooden tick.
         beep(300, 0.09, 'sine', 0, 0.16, 200);
         beep(720, 0.05, 'triangle', 0.03, 0.1);
+        break;
+      case 'toggle':
+        // A small two-tone switch flick (lamp / screen / tank on-off).
+        beep(880, 0.04, 'triangle', 0, 0.16);
+        beep(560, 0.05, 'triangle', 0.03, 0.12);
+        break;
+      case 'chime':
+        // A short bright shimmer for a trophy / statue tap.
+        beep(784, 0.09, 'sine', 0, 0.18, 1046);
+        beep(1175, 0.1, 'sine', 0.05, 0.12);
         break;
       case 'error':
         beep(220, 0.12, 'sawtooth', 0, 0.2, 150);

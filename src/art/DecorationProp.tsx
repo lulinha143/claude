@@ -1,4 +1,5 @@
 import { useState, type PointerEvent as ReactPointerEvent } from 'react';
+import type { SfxName } from '../audio/audio';
 
 // Renders an owned decoration as a LARGE, charming, interactive furniture piece
 // in the office. Clicking gives a reaction (a lamp/screen toggling, a wobble,
@@ -32,6 +33,26 @@ export function decorKind(id: string): DecorKind {
 // Which kinds toggle an on/off light when clicked.
 const TOGGLEABLE: DecorKind[] = ['lamp', 'screen', 'aquarium'];
 
+// The sound each kind makes when a player pokes it. All route through the SFX
+// bus (via audio.play), so Master Mute and the SFX-volume slider apply.
+export function interactSound(kind: DecorKind): SfxName {
+  switch (kind) {
+    case 'lamp':
+    case 'screen':
+    case 'aquarium':
+      return 'toggle';
+    case 'trophy':
+      return 'chime';
+    case 'plant':
+    case 'cushion':
+      return 'footstep';
+    case 'box':
+      return 'place';
+    default:
+      return 'click';
+  }
+}
+
 export function DecorationProp({
   id,
   accent = '#c98a4b',
@@ -60,13 +81,17 @@ export function DecorationProp({
   const kind = decorKind(id);
   const [wiggle, setWiggle] = useState(false);
   const [on, setOn] = useState(true); // lit/active state for toggleable kinds
+  const [variant, setVariant] = useState(0); // poster "slogan" / emblem
 
   function handleClick() {
     if (mode === 'toggle') {
       onToggle?.();
       return;
     }
+    // Kind-specific reaction: lights/screens/tanks flick on-off; posters cycle
+    // their artwork ("change slogans"); everything gives a springy press.
     if (TOGGLEABLE.includes(kind)) setOn((v) => !v);
+    if (kind === 'poster') setVariant((v) => (v + 1) % POSTER_VARIANTS);
     if (!reducedMotion) {
       setWiggle(true);
       setTimeout(() => setWiggle(false), 420);
@@ -87,11 +112,17 @@ export function DecorationProp({
       title={title}
       aria-label={title}
       type="button"
+      data-on={TOGGLEABLE.includes(kind) ? String(on) : undefined}
+      data-variant={kind === 'poster' ? variant : undefined}
     >
-      <Glyph kind={kind} accent={accent} on={on} reducedMotion={reducedMotion} />
+      <Glyph kind={kind} accent={accent} on={on} variant={variant} reducedMotion={reducedMotion} />
     </button>
   );
 }
+
+const POSTER_VARIANTS = 3;
+// Emblem colours the poster cycles through when tapped.
+const POSTER_EMBLEMS = ['#ffd54a', '#e07a5f', '#7fb0c8'];
 
 const LINE = '#241a12';
 
@@ -99,11 +130,13 @@ function Glyph({
   kind,
   accent,
   on,
+  variant = 0,
   reducedMotion,
 }: {
   kind: DecorKind;
   accent: string;
   on: boolean;
+  variant?: number;
   reducedMotion: boolean;
 }) {
   // Large furniture footprint. viewBox baseline (y=54) is the "floor".
@@ -133,15 +166,18 @@ function Glyph({
           <path d="M17 52 h14 l-2 2 h-10 Z" fill="#4a3826" stroke={LINE} strokeWidth="1.2" />
         </svg>
       );
-    case 'poster':
+    case 'poster': {
+      // Tapping cycles the emblem colour — a little "changing slogans" beat.
+      const emblem = POSTER_EMBLEMS[variant % POSTER_EMBLEMS.length];
       return (
         <svg {...s}>
           <rect x="7" y="6" width="34" height="40" rx="2" fill="#3a2c1f" stroke={LINE} strokeWidth="2" />
           <rect x="11" y="10" width="26" height="32" rx="1" fill={accent} />
-          <circle cx="18" cy="19" r="4" fill="#ffd54a" />
+          <circle cx="18" cy="19" r="4" fill={emblem} />
           <path d="M11 34 l8 -9 6 6 5 -6 7 8 v9 h-26 Z" fill="#3f7d4f" opacity="0.85" />
         </svg>
       );
+    }
     case 'rug':
       return (
         <svg {...s}>

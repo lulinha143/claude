@@ -12,7 +12,7 @@ import { CritterStateMachine, type CritterState } from './animation';
 import { shapeFor } from './critterShapes';
 import { Acorn, Crate } from './Icons';
 import { Icon } from './UiIcon';
-import { DecorationProp, decorKind } from './DecorationProp';
+import { DecorationProp, decorKind, interactSound } from './DecorationProp';
 import { RoomDressing } from './RoomDressing';
 import { placedDecorationsInRoom, isDecorationPlaced, roomComfort, placementAt } from '../sim/decorations';
 import { surfaceZ, decorationSurface, isRug } from '../sim/surfaces';
@@ -533,7 +533,7 @@ export function OfficeScene() {
                       reacting={!decorMode && reactingDeco === def.id}
                       title={t(`deco.${def.id}.name`)}
                       onToggle={() => selectDeco(def.id)}
-                      onInteract={() => audio.play('click')}
+                      onInteract={() => audio.play(interactSound(decorKind(def.id)))}
                       onPointerDown={decorMode ? (e) => beginDrag(e, 'decoration', def.id) : undefined}
                     />
                   </div>
