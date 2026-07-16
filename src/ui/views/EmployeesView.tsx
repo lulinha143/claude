@@ -9,6 +9,7 @@ import { Critter } from '../../art/Critter';
 import { shapeFor } from '../../art/critterShapes';
 import { Acorn, GoldenNut } from '../../art/Icons';
 import { Tip, TipContent } from '../Tooltip';
+import { employeeMood, moodProductivityMultiplier, MOOD_TONE } from '../../sim/mood';
 
 export function EmployeesView() {
   const { t } = useTranslation();
@@ -95,6 +96,27 @@ export function EmployeesView() {
                 ) : null}
                 {rt.hired ? (
                   <div className="employee-card__controls">
+                    {(() => {
+                      const mood = employeeMood(state, def.id);
+                      const mm = moodProductivityMultiplier(mood);
+                      const delta = Math.round((mm - 1) * 100);
+                      const effect =
+                        delta === 0
+                          ? t('mood.effectNeutral')
+                          : t('mood.effect', { value: `${delta > 0 ? '+' : ''}${delta}` });
+                      return (
+                        <Tip content={<TipContent title={t(`mood.${mood}`)} lines={[t('tip.mood'), effect]} />}>
+                          <span className="mood-chip">
+                            <span className="mood-dot" style={{ background: MOOD_TONE[mood] }} />
+                            {t(`mood.${mood}`)}
+                            <em className={delta >= 0 ? 'prod-pos' : 'prod-neg'}>
+                              {delta > 0 ? '+' : ''}
+                              {delta}%
+                            </em>
+                          </span>
+                        </Tip>
+                      );
+                    })()}
                     <input
                       className="nickname-input"
                       placeholder={t('employee.renamePlaceholder')}

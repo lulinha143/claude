@@ -59,6 +59,7 @@
     "rate": { "t": "Produção", "d": "Castanhas produzidas por segundo em todas as salas agora." },
     "quiet": { "t": "Modo Silencioso", "d": "Suaviza som e animação para um jogo calmo e sem distração." },
     "friendship": "Cresce quando você conversa, dá café e mantém a equipe feliz. Mais amizade aumenta a produção.",
+    "mood": "Como este colega se sente agora. As emoções ajustam um pouco a produção dele, para mais ou para menos.",
     "nav": {
       "office": "Seu escritório aconchegante e a equipe trabalhando.",
       "shop": "Compre melhorias para crescer produção e automação.",
@@ -798,7 +799,9 @@
     "tired": "Cansado",
     "frustrated": "Frustrado",
     "curious": "Curioso",
-    "proud": "Orgulhoso"
+    "proud": "Orgulhoso",
+    "effect": "Produtividade {{value}}%",
+    "effectNeutral": "Produção estável e equilibrada"
   },
   "photo": {
     "save": "Salvar foto",
@@ -836,6 +839,7 @@
     "morale": "Moral",
     "prestige": "Prestígio",
     "focus": "Modo Foco",
+    "mood": "Humor da equipe",
     "boost": "Bônus ativo",
     "total": "Total"
   },

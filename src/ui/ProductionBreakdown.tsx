@@ -65,6 +65,12 @@ export function ProductionBreakdown() {
             <span className="prod-pos">{mult(b.focusMult)}</span>
           </li>
         ) : null}
+        {Math.abs(b.moodMult - 1) > 0.001 ? (
+          <li>
+            <span>{t('prod.mood')}</span>
+            <span className={b.moodMult >= 1 ? 'prod-pos' : 'prod-neg'}>{mult(b.moodMult)}</span>
+          </li>
+        ) : null}
         {boost > 1 ? (
           <li>
             <span>{t('prod.boost')}</span>

@@ -59,6 +59,7 @@
     "rate": { "t": "Production", "d": "Nuts produced per second across every room right now." },
     "quiet": { "t": "Quiet Mode", "d": "Softens audio and animation for calm, low-distraction play." },
     "friendship": "Grows when you chat, gift coffee and keep them happy. Higher friendship boosts their output.",
+    "mood": "How this teammate feels right now. Emotions gently nudge their output up or down.",
     "nav": {
       "office": "Your cozy office and the team at work.",
       "shop": "Buy upgrades to grow production and automation.",
@@ -798,7 +799,9 @@
     "tired": "Tired",
     "frustrated": "Frustrated",
     "curious": "Curious",
-    "proud": "Proud"
+    "proud": "Proud",
+    "effect": "Productivity {{value}}%",
+    "effectNeutral": "Steady, balanced output"
   },
   "photo": {
     "save": "Save snapshot",
@@ -836,6 +839,7 @@
     "morale": "Morale",
     "prestige": "Prestige",
     "focus": "Focus Mode",
+    "mood": "Team mood",
     "boost": "Active boost",
     "total": "Total"
   },

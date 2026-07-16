@@ -43,6 +43,18 @@ semantic versioning.
   `start`/`ended`), surfaced in the Dev Panel. Documented in `docs/AUDIO_SYSTEM.md`
   and covered by new headless `AudioManager` tests.
 
+- **Employee emotions now affect production** (brief §18). Each employee's derived
+  emotion (`inspired` / `focused` / `proud` / `relaxed` / `curious` / `tired` /
+  `frustrated`) applies a small, understandable productivity factor (within ±5%,
+  `curious` = neutral). A production-weighted **team mood multiplier** feeds both
+  `computeProduction()` and the itemised `productionBreakdown()` consistently, and
+  shows as a green/red **"Team mood"** line in the breakdown. The Employees tab
+  now shows a **mood chip** per employee (coloured dot + emotion + `±%` effect)
+  with an explanatory tooltip. Modest, never punishing; returns neutral when
+  nobody is working. Documented in `docs/CHARACTER_EMOTIONS.md`; covered by
+  `tests/mood.test.ts`. (Per-employee event consequences / "WHAT CHANGED" — §17 —
+  remain a separate future task.)
+
 ### Added
 
 - **Copyright-free procedural music + office ambience** (`src/audio/audio.ts`):

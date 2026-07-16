@@ -4,6 +4,27 @@ import { EMPLOYEES, EMPLOYEES_BY_ID } from '../content/employees';
 import { UPGRADES_BY_ID } from '../content/upgrades';
 import type { EmployeeDef, UpgradeDef } from '../content/types';
 import { PRESTIGE_BRANCHES_BY_ID, PRESTIGE_SKILLS_BY_ID } from '../content/prestige';
+import { teamMoodMultiplier } from './mood';
+
+/** A single employee's raw nuts/second contribution at a given level. */
+export function employeeContribution(def: EmployeeDef, level: number): number {
+  let contrib = def.baseRate * level;
+  if (def.passive.type === 'selfMultiplier') {
+    const self = def.passive.base + def.passive.perLevel * (level - 1);
+    contrib *= 1 + self;
+  }
+  return contrib;
+}
+
+/** Team-mood production multiplier, weighted by each employee's contribution. */
+export function moodMultiplier(state: GameState): number {
+  return teamMoodMultiplier(state, (id) => {
+    const def = EMPLOYEES_BY_ID[id];
+    const rt = state.employees[id];
+    if (!def || !rt || !rt.hired || rt.level <= 0) return 0;
+    return employeeContribution(def, rt.level);
+  });
+}
 
 // --------------------------------------------------------------------------
 // Costs
@@ -129,11 +150,7 @@ export function computeProduction(state: GameState, focusActive: boolean): Produ
   for (const def of EMPLOYEES) {
     const rt = state.employees[def.id];
     if (!rt || !rt.hired || rt.level <= 0) continue;
-    let contrib = def.baseRate * rt.level;
-    if (def.passive.type === 'selfMultiplier') {
-      const self = def.passive.base + def.passive.perLevel * (rt.level - 1);
-      contrib *= 1 + self;
-    }
+    const contrib = employeeContribution(def, rt.level);
     baseRate += contrib;
     breakdown.push({ source: `employee:${def.id}`, nutsPerSecond: contrib });
   }
@@ -143,6 +160,7 @@ export function computeProduction(state: GameState, focusActive: boolean): Produ
     (1 + upgradeGlobalMultiplier(state) + passives.globalMultiplier) *
     moraleMultiplier(state.resources.morale) *
     prestigeMultiplier(state) *
+    moodMultiplier(state) *
     (focusActive ? BALANCE.focus.productionMultiplier : 1);
 
   const nutsPerSecond = baseRate * globalMult;
@@ -160,6 +178,8 @@ export interface ProductionBreakdown {
   moraleMult: number;
   prestigeMult: number;
   focusMult: number;
+  /** team-mood multiplier (weighted average of employee emotions) */
+  moodMult: number;
   total: number;
 }
 
@@ -176,11 +196,7 @@ export function productionBreakdown(state: GameState, focusActive: boolean): Pro
   for (const def of EMPLOYEES) {
     const rt = state.employees[def.id];
     if (!rt || !rt.hired || rt.level <= 0) continue;
-    let contrib = def.baseRate * rt.level;
-    if (def.passive.type === 'selfMultiplier') {
-      const self = def.passive.base + def.passive.perLevel * (rt.level - 1);
-      contrib *= 1 + self;
-    }
+    const contrib = employeeContribution(def, rt.level);
     employees.push({ id: def.id, rate: contrib });
     raw += contrib;
   }
@@ -189,8 +205,21 @@ export function productionBreakdown(state: GameState, focusActive: boolean): Pro
   const moraleMult = moraleMultiplier(state.resources.morale);
   const prestigeMult = prestigeMultiplier(state);
   const focusMult = focusActive ? BALANCE.focus.productionMultiplier : 1;
-  const total = raw * (1 + upgradeBonus + passiveBonus) * moraleMult * prestigeMult * focusMult;
-  return { base, employees, rawPerSecond: raw, upgradeBonus, passiveBonus, moraleMult, prestigeMult, focusMult, total };
+  const moodMult = moodMultiplier(state);
+  const total =
+    raw * (1 + upgradeBonus + passiveBonus) * moraleMult * prestigeMult * focusMult * moodMult;
+  return {
+    base,
+    employees,
+    rawPerSecond: raw,
+    upgradeBonus,
+    passiveBonus,
+    moraleMult,
+    prestigeMult,
+    focusMult,
+    moodMult,
+    total,
+  };
 }
 
 export function clickPower(state: GameState): number {
