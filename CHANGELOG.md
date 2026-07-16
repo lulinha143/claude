@@ -19,6 +19,20 @@ semantic versioning.
   count-based achievement are mode-agnostic). Remaining games: Coffee Rescue,
   Bug Squash, Cable Untangle Desk.
 
+### Changed — office polish pass
+
+- **Removed the free-standing workstation desks** (brief §2). Desks will become
+  part of the character sprites in a future skin update; for now employees stand
+  naturally on the room floor. Deleted the `RoomFurniture` component + its
+  desk/`floor__furniture` CSS and positioning logic — no floating desk objects,
+  no workstation placement/collision code. The `characterSlots` layout + built-in
+  room dressing keep rooms feeling furnished.
+- **Restored the animated office background** (brief §3). Reduced the backdrop
+  blur (7px → 2px) and darkening, lightened the scrim, and turned the rooms into
+  **translucent light panels** (only when the animated background is enabled) so
+  the looping office is clearly visible behind the rooms again, while walls,
+  floor and the department accent stay readable.
+
 ### Added — built-in room identity
 
 - **Every room now has built-in office dressing** (brief §3/§4), so empty rooms

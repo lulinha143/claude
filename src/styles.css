@@ -532,35 +532,6 @@ h4 {
 @keyframes pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
 @keyframes drip { 0%, 70% { box-shadow: 0 2px 0 0 transparent; } 85% { box-shadow: 0 6px 0 0 var(--dept-lab); } 100% { box-shadow: 0 12px 0 0 transparent; } }
 @keyframes float-dust { 0%, 100% { transform: translateY(0); opacity: 0.2; } 50% { transform: translateY(-8px); opacity: 0.7; } }
-.desk {
-  position: absolute;
-  left: 4px;
-  bottom: 0;
-  width: 70px;
-  height: 30px;
-  background: var(--wood-light);
-  border-radius: 4px;
-}
-.desk__lamp {
-  position: absolute;
-  right: 4px;
-  top: -18px;
-  width: 8px;
-  height: 18px;
-  background: var(--amber);
-  border-radius: 4px;
-  box-shadow: 0 0 18px 6px rgba(224, 164, 59, 0.4);
-}
-.desk__monitor {
-  position: absolute;
-  left: 8px;
-  top: -16px;
-  width: 22px;
-  height: 16px;
-  background: #1c150d;
-  border: 2px solid var(--wood-light);
-  border-radius: 3px;
-}
 .critter-btn {
   position: absolute;
   bottom: 0;
@@ -2590,19 +2561,19 @@ select,
   object-fit: cover; /* fill, no black bars, no stretch */
   object-position: 50% 50%;
   display: block;
-  /* The illustrated rooms are the scene; the video is demoted to a soft, warm
-     ambient backdrop (blurred + dimmed) so the two layers no longer compete. */
-  filter: blur(7px) brightness(0.66) saturate(0.85);
-  transform: scale(1.06); /* hide blur edge bleed */
+  /* The animated office is a KEY visual: keep it clearly visible, with only a
+     light blur for text readability. Rooms sit on top as translucent panels. */
+  filter: blur(2px) brightness(0.92) saturate(1);
+  transform: scale(1.04); /* hide blur edge bleed */
 }
-/* warm wash + vignette so the ambient backdrop reads as cozy depth */
+/* light warm vignette — just enough for panel/text contrast, not a brown fog */
 .office-bg__scrim {
   position: absolute;
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(120% 90% at 50% 20%, rgba(60, 40, 22, 0) 40%, rgba(28, 18, 10, 0.55) 100%),
-    linear-gradient(180deg, rgba(40, 27, 15, 0.42) 0%, rgba(40, 27, 15, 0.16) 30%, rgba(40, 27, 15, 0.36) 100%);
+    radial-gradient(130% 100% at 50% 25%, rgba(60, 40, 22, 0) 55%, rgba(28, 18, 10, 0.32) 100%),
+    linear-gradient(180deg, rgba(40, 27, 15, 0.24) 0%, rgba(40, 27, 15, 0.05) 26%, rgba(40, 27, 15, 0.18) 100%);
 }
 [data-reduced-motion='true'] .office-bg {
   /* poster is already static via the component; nothing animates here */
@@ -2615,10 +2586,32 @@ select,
    (no dark translucent bands); only the trunk frame softens a touch so the
    cozy rooms read as the scene and the video is just warmth in the margins. */
 .office--overgif .office__frame {
-  opacity: 0.4;
+  opacity: 0.25;
 }
 .office--overgif .office__trunk {
   background: transparent;
+}
+/* With the animated office visible behind, rooms become LIGHT translucent
+   panels: you can still read the wall/floor and the dept accent, but the
+   looping office clearly shows through. */
+.office--overgif .floor {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--dept) 15%, rgba(247, 236, 212, 0.4)) 0%,
+    rgba(239, 224, 193, 0.32) 46%,
+    rgba(234, 217, 184, 0.28) calc(100% - var(--floor-h))
+  );
+  backdrop-filter: blur(1.5px) saturate(1.05);
+  box-shadow: 0 2px 7px rgba(40, 26, 12, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+.office--overgif .floor::after {
+  opacity: 0.62; /* wood floor plane lets the animation peek through */
+}
+.office--overgif .floor::before {
+  opacity: 0.5;
+}
+.office--overgif .room-dressing {
+  opacity: 0.82;
 }
 
 
@@ -3257,29 +3250,6 @@ img {
 .floor__anchor--front.floor__anchor--empty {
   filter: none;
 }
-
-/* The workbench that grows with the team. */
-.floor__furniture {
-  position: absolute;
-  left: 50%;
-  bottom: 0;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: flex-end;
-  gap: 4px;
-  z-index: 1;
-  pointer-events: none;
-  opacity: 0.96;
-}
-.floor__furniture .desk {
-  filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.28));
-  animation: desk-in 0.34s var(--ease) both;
-}
-@keyframes desk-in {
-  from { transform: translateY(8px) scale(0.85); opacity: 0; }
-  to { transform: translateY(0) scale(1); opacity: 0.96; }
-}
-[data-reduced-motion='true'] .floor__furniture .desk { animation: none; }
 
 /* Living decorations: gentle idle motion so a room feels alive. */
 .decor {
