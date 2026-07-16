@@ -62,7 +62,7 @@ test('the visible mute button silences every audio bus and persists', async ({ p
   const muted = await diag(page);
   expect(muted.flags.muted).toBe(true);
   expect(muted.masterGain).toBe(0);
-  for (const ch of ['music', 'ambience', 'ui', 'sfx']) expect(muted.buses[ch]).toBe(0);
+  for (const ch of ['music', 'ambience', 'ui', 'sfx'] as const) expect(muted.buses[ch]).toBe(0);
 
   // a sound started AFTER muting is also silent (no new source is created)
   const srcBefore = muted.activeSources;

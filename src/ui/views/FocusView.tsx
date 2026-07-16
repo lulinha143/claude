@@ -86,7 +86,7 @@ export function FocusView() {
           />
         ) : (
           <div className="microgame-menu">
-            {(['shellSort', 'coffeeRescue', 'procurement', 'bugSquash', 'cableUntangle'] as MicroMode[]).map(
+            {(['coffeeRescue', 'bugSquash', 'cableUntangle'] as MicroMode[]).map(
               (m) => (
               <button key={m} className="micro-card" onClick={() => setMicro(m)}>
                 <strong>{t(`microgame.${m}.name`)}</strong>

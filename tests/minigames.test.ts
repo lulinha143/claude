@@ -1,13 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import {
-  shellSequence,
-  shellBinFor,
-  shellScoreDelta,
-  procurementSequence,
-  procurementResolve,
-  procurementScoreDelta,
-  PROCUREMENT_DEPTS,
-  type ProcurementPackage,
   cablePuzzle,
   cablePositions,
   countCrossings,
@@ -25,32 +17,6 @@ import {
   microGrade,
 } from '../src/sim/minigames';
 
-describe('Shell Sort logic', () => {
-  it('is deterministic for a given seed', () => {
-    expect(shellSequence('abc', 10)).toEqual(shellSequence('abc', 10));
-  });
-  it('differs across seeds', () => {
-    expect(shellSequence('abc', 20)).not.toEqual(shellSequence('xyz', 20));
-  });
-  it('maps all three kinds to the correct bin', () => {
-    expect(shellBinFor('goodNut')).toBe('good');
-    expect(shellBinFor('goldenNut')).toBe('golden');
-    expect(shellBinFor('brokenShell')).toBe('shell');
-  });
-  it('produces golden nuts as a minority of the sequence', () => {
-    const seq = shellSequence('mixed', 200);
-    const golden = seq.filter((s) => s.kind === 'goldenNut').length;
-    expect(golden).toBeGreaterThan(0);
-    expect(golden).toBeLessThan(seq.length / 2);
-  });
-  it('rewards correct placements, grows with combo, and values golden higher', () => {
-    expect(shellScoreDelta(false, 5)).toBe(0);
-    expect(shellScoreDelta(true, 0)).toBe(2);
-    expect(shellScoreDelta(true, 6)).toBeGreaterThan(shellScoreDelta(true, 0));
-    expect(shellScoreDelta(true, 0, 'goldenNut')).toBeGreaterThan(shellScoreDelta(true, 0, 'goodNut'));
-  });
-});
-
 describe('Coffee Rescue difficulty', () => {
   it('drops fall faster over time but never below the floor', () => {
     expect(coffeeFallDuration(0)).toBeGreaterThan(coffeeFallDuration(20));
@@ -65,61 +31,6 @@ describe('Coffee Rescue difficulty', () => {
     expect(coffeeComboMultiplier(6)).toBe(2);
     expect(coffeeComboMultiplier(12)).toBe(3);
     expect(coffeeCatchScore(12)).toBeGreaterThan(coffeeCatchScore(0));
-  });
-});
-
-describe('Procurement Conveyor logic', () => {
-  it('is deterministic for a given seed', () => {
-    expect(procurementSequence('r1', 20)).toEqual(procurementSequence('r1', 20));
-  });
-  it('differs across seeds', () => {
-    expect(procurementSequence('r1', 30)).not.toEqual(procurementSequence('r2', 30));
-  });
-  it('produces valid parcels addressed to a known department', () => {
-    const seq = procurementSequence('mix', 60);
-    expect(seq).toHaveLength(60);
-    for (const p of seq) {
-      expect(PROCUREMENT_DEPTS).toContain(p.dept);
-      expect(typeof p.sideways).toBe('boolean');
-      expect(typeof p.fragile).toBe('boolean');
-    }
-  });
-  it('generates a mix of upright and sideways parcels', () => {
-    const seq = procurementSequence('variety', 200);
-    const sideways = seq.filter((p) => p.sideways).length;
-    expect(sideways).toBeGreaterThan(0);
-    expect(sideways).toBeLessThan(seq.length); // not all sideways
-  });
-
-  const upright: ProcurementPackage = { id: 0, dept: 'harvest', sideways: false, fragile: false };
-  const laidDown: ProcurementPackage = { id: 1, dept: 'roasting', sideways: true, fragile: false };
-
-  it('clears only on the correct department', () => {
-    expect(procurementResolve(upright, 'harvest', true)).toBe('correct');
-    expect(procurementResolve(upright, 'research', true)).toBe('wrongDept');
-  });
-  it('requires a sideways parcel to be rotated upright before it fits', () => {
-    expect(procurementResolve(laidDown, 'roasting', false)).toBe('notUpright');
-    expect(procurementResolve(laidDown, 'roasting', true)).toBe('correct');
-    // rotation check comes first, even for the wrong department
-    expect(procurementResolve(laidDown, 'harvest', false)).toBe('notUpright');
-  });
-  it('scores only correct placements, growing with combo', () => {
-    expect(procurementScoreDelta('wrongDept', 9, upright)).toBe(0);
-    expect(procurementScoreDelta('notUpright', 9, laidDown)).toBe(0);
-    expect(procurementScoreDelta('correct', 0, upright)).toBe(2);
-    expect(procurementScoreDelta('correct', 6, upright)).toBeGreaterThan(
-      procurementScoreDelta('correct', 0, upright),
-    );
-  });
-  it('rewards the extra care of fragile and rotated parcels', () => {
-    const fragile: ProcurementPackage = { id: 2, dept: 'harvest', sideways: false, fragile: true };
-    expect(procurementScoreDelta('correct', 0, fragile)).toBeGreaterThan(
-      procurementScoreDelta('correct', 0, upright),
-    );
-    expect(procurementScoreDelta('correct', 0, laidDown)).toBeGreaterThan(
-      procurementScoreDelta('correct', 0, upright),
-    );
   });
 });
 

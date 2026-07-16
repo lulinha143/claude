@@ -6,6 +6,19 @@ semantic versioning.
 
 ## [Unreleased] — audio, breakdown & start-screen pass
 
+### Removed
+
+- **Removed the two conveyor micro-games** (brief §14): **Sorting Conveyor**
+  (`shellSort` / "Conveyor Sort" / "Esteira de Triagem") and **Receiving/
+  Procurement Conveyor** (`procurement` / "Esteira de Recebimento"). Deleted
+  end-to-end — `MicroMode` union, `MicroGame` dispatch + durations, the Focus
+  menu list, `engine.rewardMicrogame` types, both component files
+  (`ShellSort.tsx`, `ProcurementConveyor.tsx`), their i18n keys (EN + pt-BR),
+  docs, and unit tests. No dead buttons remain and no save migration is required
+  (the mode id was never persisted; the `microgamesPlayed` counter and its
+  count-based achievement are mode-agnostic). Remaining games: Coffee Rescue,
+  Bug Squash, Cable Untangle Desk.
+
 ### Changed — Office diorama redesign
 
 - **Rebuilt the central Office scene into cohesive illustrated dioramas** (brief

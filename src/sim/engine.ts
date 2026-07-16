@@ -697,10 +697,7 @@ export class GameEngine {
   }
 
   // -- microgames -----------------------------------------------------------
-  rewardMicrogame(
-    _kind: 'shellSort' | 'coffeeRescue' | 'procurement' | 'bugSquash' | 'cableUntangle',
-    score: number,
-  ): void {
+  rewardMicrogame(_kind: 'coffeeRescue' | 'bugSquash' | 'cableUntangle', score: number): void {
     this.state.stats.microgamesPlayed += 1;
     this.progressDaily('playMicrogame', 1);
     const boost = 1 + Math.min(0.5, score / 100);

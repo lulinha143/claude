@@ -2,18 +2,14 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { microGrade, type MicroMode } from '../../sim/minigames';
 import { Icon } from '../../art/UiIcon';
-import { ShellSort } from './ShellSort';
 import { CoffeeRescue } from './CoffeeRescue';
-import { ProcurementConveyor } from './ProcurementConveyor';
 import { BugSquash } from './BugSquash';
 import { CableUntangle } from './CableUntangle';
 
 export type { MicroMode };
 
 const DURATION: Record<MicroMode, number> = {
-  shellSort: 35,
   coffeeRescue: 30,
-  procurement: 45,
   bugSquash: 30,
   cableUntangle: 45,
 };
@@ -108,9 +104,7 @@ export function MicroGame({ mode, seed, reducedMotion, onReward, onClose }: Micr
       {phase === 'play' ? (
         <>
           <p className="microgame__instructions">{t(`microgame.${mode}.desc`)}</p>
-          {mode === 'shellSort' ? <ShellSort key={round} {...subProps} /> : null}
           {mode === 'coffeeRescue' ? <CoffeeRescue key={round} {...subProps} /> : null}
-          {mode === 'procurement' ? <ProcurementConveyor key={round} {...subProps} /> : null}
           {mode === 'bugSquash' ? <BugSquash key={round} {...subProps} /> : null}
           {mode === 'cableUntangle' ? <CableUntangle key={round} {...subProps} /> : null}
         </>
