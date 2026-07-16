@@ -276,32 +276,54 @@ h4 {
 }
 .floor {
   --dept: var(--dept-founder);
+  --floor-h: 40px; /* height of the wood floor plane at the bottom */
   position: relative;
-  background:
-    linear-gradient(180deg, rgba(255, 244, 224, 0.08), rgba(0, 0, 0, 0.28)),
-    color-mix(in srgb, var(--dept) 10%, transparent);
-  border: 1px solid rgba(0, 0, 0, 0.45);
-  border-left: 3px solid var(--dept);
-  border-radius: var(--r-sm);
-  min-height: calc(152px * var(--asset-scale));
+  isolation: isolate;
+  /* A cozy illustrated room: warm wall with a soft department tint up top. */
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--dept) 22%, #f7ecd4) 0%,
+    color-mix(in srgb, var(--dept) 9%, #efe0c1) 42%,
+    #ead9b8 calc(100% - var(--floor-h))
+  );
+  border: 1px solid rgba(90, 63, 31, 0.35);
+  border-left: 4px solid var(--dept);
+  border-radius: var(--r-md);
+  min-height: calc(158px * var(--asset-scale));
   padding: 5px 8px 6px;
-  box-shadow: inset 0 -8px 12px -8px rgba(0, 0, 0, 0.5);
+  box-shadow:
+    0 2px 7px rgba(40, 26, 12, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45);
   overflow: hidden;
 }
-/* subtle wood-grain back wall inside each room */
+/* faint wainscot line across the back wall for a hand-drawn room feel */
 .floor::before {
   content: '';
   position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    92deg,
-    rgba(0, 0, 0, 0.05),
-    rgba(0, 0, 0, 0.05) 10px,
-    rgba(255, 255, 255, 0.02) 10px,
-    rgba(255, 255, 255, 0.02) 20px
-  );
-  opacity: 0.6;
+  left: 0;
+  right: 0;
+  bottom: var(--floor-h);
+  height: 22px;
+  background: linear-gradient(180deg, transparent, rgba(120, 86, 50, 0.08));
+  border-bottom: 1.5px solid rgba(120, 86, 50, 0.28);
   pointer-events: none;
+  z-index: 0;
+}
+/* wood-plank floor plane grounding the whole room */
+.floor::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--floor-h);
+  background:
+    repeating-linear-gradient(90deg, rgba(90, 63, 31, 0.16) 0 1px, transparent 1px 34px),
+    linear-gradient(180deg, #c79a5e 0%, #b0824a 45%, #9c6c39 100%);
+  border-top: 2px solid rgba(90, 63, 31, 0.5);
+  box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.22);
+  pointer-events: none;
+  z-index: 0;
 }
 .floor__label {
   position: relative;
@@ -309,11 +331,16 @@ h4 {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 0.66em;
-  font-weight: 700;
-  color: color-mix(in srgb, var(--dept) 55%, var(--cream));
+  font-size: 0.62em;
+  font-weight: 800;
+  color: #3a2a18;
+  background: color-mix(in srgb, var(--dept) 30%, #fff6e4);
+  border: 1px solid color-mix(in srgb, var(--dept) 45%, #b9a074);
+  border-radius: 5px;
+  padding: 2px 7px;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
+  box-shadow: 0 1px 2px rgba(40, 26, 12, 0.2);
 }
 .floor__stage {
   position: relative;
@@ -341,19 +368,21 @@ h4 {
 /* --- ambient room decorations --- */
 .floor__ambient {
   position: absolute;
-  right: 8px;
-  bottom: 6px;
+  right: 10px;
+  bottom: calc(var(--floor-h) - 10px); /* rest on the wood floor, not mid-wall */
   z-index: 1;
-  width: 26px;
-  height: 40px;
+  width: 24px;
+  height: 36px;
+  opacity: 0.8;
+  filter: saturate(0.85) drop-shadow(0 2px 2px rgba(40, 26, 12, 0.25));
   pointer-events: none;
 }
+/* The old crude coloured ambient blobs (a green sliver at the room edge, etc.)
+   are removed — room identity now comes from real furniture, decorations and
+   characters. The subtle floating dust mote is kept for a touch of life. */
 .floor__ambient::before {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  border-radius: 3px;
+  content: none;
+  display: none;
 }
 .floor__ambient--coffee::before {
   width: 12px;
@@ -471,6 +500,22 @@ h4 {
   border: none;
   cursor: pointer;
   padding: 0;
+}
+/* soft contact shadow so characters sit ON the floor, never floating */
+.critter-btn::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 1px;
+  width: calc(46px * var(--asset-scale));
+  height: calc(11px * var(--asset-scale));
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at center, rgba(40, 26, 12, 0.38), transparent 70%);
+  z-index: -1;
+  pointer-events: none;
+}
+[data-reduced-motion='true'] .critter-btn::after {
+  transition: none;
 }
 .focus-hat {
   position: absolute;
@@ -2476,15 +2521,19 @@ select,
   object-fit: cover; /* fill, no black bars, no stretch */
   object-position: 50% 50%;
   display: block;
+  /* The illustrated rooms are the scene; the video is demoted to a soft, warm
+     ambient backdrop (blurred + dimmed) so the two layers no longer compete. */
+  filter: blur(7px) brightness(0.66) saturate(0.85);
+  transform: scale(1.06); /* hide blur edge bleed */
 }
-/* soft top/bottom scrim so counters + panels stay readable over any frame */
+/* warm wash + vignette so the ambient backdrop reads as cozy depth */
 .office-bg__scrim {
   position: absolute;
   inset: 0;
   pointer-events: none;
   background:
-    linear-gradient(180deg, rgba(20, 14, 8, 0.5) 0%, rgba(20, 14, 8, 0) 22%),
-    linear-gradient(0deg, rgba(20, 14, 8, 0.55) 0%, rgba(20, 14, 8, 0) 30%);
+    radial-gradient(120% 90% at 50% 20%, rgba(60, 40, 22, 0) 40%, rgba(28, 18, 10, 0.55) 100%),
+    linear-gradient(180deg, rgba(40, 27, 15, 0.42) 0%, rgba(40, 27, 15, 0.16) 30%, rgba(40, 27, 15, 0.36) 100%);
 }
 [data-reduced-motion='true'] .office-bg {
   /* poster is already static via the component; nothing animates here */
@@ -2493,19 +2542,14 @@ select,
 /* When the GIF background is on, the procedural diorama becomes a light,
    translucent interactive layer over it (keeps crate/critters/decorations/
    status working) rather than drawing its own opaque office. */
+/* With the ambient backdrop on, rooms STAY fully opaque illustrated dioramas
+   (no dark translucent bands); only the trunk frame softens a touch so the
+   cozy rooms read as the scene and the video is just warmth in the margins. */
 .office--overgif .office__frame {
-  opacity: 0.12;
+  opacity: 0.4;
 }
 .office--overgif .office__trunk {
   background: transparent;
-}
-.office--overgif .floor {
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.28), rgba(0, 0, 0, 0.42));
-  border-color: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(1px);
-}
-.office--overgif .floor::before {
-  opacity: 0.25;
 }
 
 

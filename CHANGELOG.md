@@ -6,6 +6,24 @@ semantic versioning.
 
 ## [Unreleased] — audio, breakdown & start-screen pass
 
+### Changed — Office diorama redesign
+
+- **Rebuilt the central Office scene into cohesive illustrated dioramas** (brief
+  §2–§5). The old presentation layered flat dark translucent "room bands" over a
+  detailed pre-rendered isometric video, so two art styles competed and
+  characters looked like sprites floating on a photo. Now each room is an
+  **opaque, warm, illustrated diorama**: a department-tinted back wall, a real
+  **wood-plank floor plane** grounding the room, a subtle wainscot line, and a
+  small **pinned department plaque** label instead of a dark header bar. The
+  animated background video is demoted to a **soft, blurred, dimmed ambient
+  backdrop** (seen only in the margins) so it complements rather than fights the
+  rooms. Characters now render with **soft contact shadows** so they clearly
+  stand ON the floor. Removed the crude coloured "ambient blob" shapes (which
+  produced a stray green sliver at the room edge — the artifact called out in
+  review); room identity now comes from real furniture, decorations and
+  characters. Validated at 420–2560px and populated/empty states via the
+  Playwright visual harness (screenshots inspected). See `docs/OFFICE_DIORAMA.md`.
+
 ### Fixed
 
 - **Team (Employees) view no longer crashes on older saves.** It mapped over

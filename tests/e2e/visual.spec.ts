@@ -117,6 +117,19 @@ test('all views at desktop + compact', async ({ page }) => {
   }
 });
 
+// Scroll to the populated room (Founder's Desk sits at the bottom of the trunk)
+// so the diorama can be inspected with characters + workbench + crate present.
+test('populated room (scrolled to Founder\'s Desk)', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await seed(page, RICH_SAVE);
+  await page.goto('/');
+  await page.locator('.office').first().waitFor({ timeout: 15000 });
+  await clearModals(page);
+  await page.locator('.floor').last().scrollIntoViewIfNeeded().catch(() => {});
+  await page.waitForTimeout(500);
+  await shot(page, 'office-populated');
+});
+
 // Trigger an event choice and capture the WHAT CHANGED consequence panel.
 test('event WHAT CHANGED panel', async ({ page }) => {
   await page.setViewportSize({ width: 900, height: 760 });
