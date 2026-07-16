@@ -41,6 +41,9 @@ export const BALANCE = {
     maxCapHours: 24,
     /** offline production efficiency vs. active play. */
     efficiency: 0.6,
+    /** minimum real absence (seconds) before the welcome-back modal is shown;
+     *  shorter absences still bank their nuts silently (no interruption). */
+    minModalSeconds: 120,
   },
 
   prestige: {

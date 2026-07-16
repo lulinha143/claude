@@ -6,6 +6,24 @@ semantic versioning.
 
 ## [Unreleased] — audio, breakdown & start-screen pass
 
+### Fixed
+
+- **Team (Employees) view no longer crashes on older saves.** It mapped over
+  every employee definition and read `state.employees[id].level`; a save written
+  before an employee was added (e.g. the second-wave animals) left that entry
+  `undefined`, throwing `Cannot read properties of undefined (reading 'level')`
+  and blanking the whole app. The load path now backfills any missing employee
+  as un-hired (`repairEmployees`, run in the engine constructor). Found via a new
+  Playwright visual capture (the view rendered as a black frame) and covered by a
+  regression test. Progress is never fabricated — backfilled employees start
+  un-hired; the founder stays hired.
+- **The "While You Were Away" modal no longer interrupts trivial absences.** It
+  fired for even a 0–6 second reload; it now requires a real absence
+  (`BALANCE.offline.minModalSeconds`, default 120s) while still banking the nuts
+  silently for shorter gaps. Pure `shouldShowOfflineModal()` helper + test.
+- **Removed the ignored `frame-ancestors` directive from the `<meta>` CSP** (it
+  is only honored as an HTTP header), eliminating a console warning on every load.
+
 ### Changed
 
 - **Event choices now change specific employees' emotions, with a real "WHAT

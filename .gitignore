@@ -12,6 +12,7 @@ coverage/
 test-results/
 playwright-report/
 .playwright/
+visual-artifacts/
 
 # Editor / OS
 .DS_Store

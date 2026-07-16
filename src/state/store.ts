@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { GameEngine } from '../sim/engine';
 import { SaveManager } from '../save/saveManager';
-import { computeOffline, applyOffline, type OfflineResult } from '../sim/offline';
+import { computeOffline, applyOffline, shouldShowOfflineModal, type OfflineResult } from '../sim/offline';
 import { performPrestige, buyPrestigeSkill } from '../sim/prestige';
 import type { GameState, PrestigeBranchId } from '../sim/types';
 import { getPlatform } from '../platform/adapter';
@@ -98,7 +98,7 @@ export const useStore = create<StoreState>((set) => {
     platform,
     audio,
     devEnabled: isDevEnabled(),
-    offlineResult: bootOffline && !bootOffline.ignored && bootOffline.nutsEarned > 0 ? bootOffline : null,
+    offlineResult: shouldShowOfflineModal(bootOffline) ? bootOffline : null,
     showOnboarding: !engine.state.onboardingComplete,
     showOpening: loaded.isNew && !engine.state.onboardingComplete,
     finishOpening: () => set({ showOpening: false }),

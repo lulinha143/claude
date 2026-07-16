@@ -54,3 +54,16 @@ export function applyOffline(state: GameState, result: OfflineResult): void {
   state.resources.nuts += result.nutsEarned;
   state.stats.totalNutsEarned += result.nutsEarned;
 }
+
+/**
+ * Whether the "While You Were Away" modal is worth interrupting the player with.
+ * Trivial absences (a quick reload, alt-tab, or the dev preview) still bank their
+ * nuts via applyOffline, but should NOT pop a modal. Defaults to a 2-minute floor.
+ */
+export function shouldShowOfflineModal(
+  result: OfflineResult | null,
+  minSeconds: number = BALANCE.offline.minModalSeconds,
+): boolean {
+  if (!result || result.ignored) return false;
+  return result.nutsEarned > 0 && result.seconds >= minSeconds;
+}

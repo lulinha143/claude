@@ -16,6 +16,7 @@ import {
   upgradeCost,
 } from './economy';
 import { employeeMood, moodProductivityMultiplier } from './mood';
+import { repairEmployees } from './state';
 import { EMPLOYEES_BY_ID } from '../content/employees';
 import { UPGRADES_BY_ID } from '../content/upgrades';
 import type { EventEffect, GameEventDef } from '../content/types';
@@ -117,6 +118,9 @@ export class GameEngine {
     this.now = opts.now ?? (() => Date.now());
     const seed = opts.deterministic ? (opts.seed ?? 12345) : (opts.seed ?? (Date.now() & 0xffffffff));
     this.rng = createRng(seed);
+    // Backfill any employees added to the game since this save was written, so
+    // screens that map over all employees never read `undefined` and crash.
+    repairEmployees(this.state);
     // Repair any invalid employee placement data on load so no one is lost.
     this.repairedOnLoad = repairPlacements(this.state);
     // Normalize + migrate decoration placement (auto-places legacy purchases).

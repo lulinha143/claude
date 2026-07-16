@@ -39,21 +39,44 @@ export function defaultSettings(): GameSettings {
   };
 }
 
+function makeEmployeeState(e: (typeof EMPLOYEES)[number], i: number): EmployeeRuntimeState {
+  return {
+    hired: e.id === FOUNDER_ID,
+    level: e.id === FOUNDER_ID ? 1 : 0,
+    friendship: e.id === FOUNDER_ID ? 20 : 0,
+    outfitId: e.outfits[0]?.id ?? null,
+    nickname: null,
+    room: null, // resolved to their department (or Founder's Desk) at render time
+    x: 0.15 + i * 0.12,
+    emotion: null,
+  };
+}
+
 function initialEmployees(): Record<string, EmployeeRuntimeState> {
   const map: Record<string, EmployeeRuntimeState> = {};
   EMPLOYEES.forEach((e, i) => {
-    map[e.id] = {
-      hired: e.id === FOUNDER_ID,
-      level: e.id === FOUNDER_ID ? 1 : 0,
-      friendship: e.id === FOUNDER_ID ? 20 : 0,
-      outfitId: e.outfits[0]?.id ?? null,
-      nickname: null,
-      room: null, // resolved to their department (or Founder's Desk) at render time
-      x: 0.15 + i * 0.12,
-      emotion: null,
-    };
+    map[e.id] = makeEmployeeState(e, i);
   });
   return map;
+}
+
+/**
+ * Ensure every employee DEFINED in content has a runtime entry. This protects
+ * against saves created before an employee was added to the game (a real
+ * update scenario): without it, any screen that maps over all employees (e.g.
+ * the Team view) would read `undefined.level` and crash. Missing employees are
+ * added as un-hired. Returns the ids that were backfilled.
+ */
+export function repairEmployees(state: GameState): string[] {
+  if (!state.employees || typeof state.employees !== 'object') state.employees = {};
+  const added: string[] = [];
+  EMPLOYEES.forEach((e, i) => {
+    if (!state.employees[e.id]) {
+      state.employees[e.id] = makeEmployeeState(e, i);
+      added.push(e.id);
+    }
+  });
+  return added;
 }
 
 export function createInitialState(now = Date.now(), settings?: Partial<GameSettings>): GameState {

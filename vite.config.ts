@@ -3,8 +3,12 @@ import react from '@vitejs/plugin-react';
 
 // Strict production CSP: no inline scripts, no eval, no external connections.
 // The game makes no network requests at runtime, so 'self' is sufficient.
+// Note: `frame-ancestors` is intentionally omitted — it is ignored when a CSP is
+// delivered via a <meta> tag (it only works as an HTTP response header), so
+// including it here just emits a console warning. Framing protection is applied
+// at the hosting layer (and Electron loads over file://, which cannot be framed).
 const PROD_CSP =
-  "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; media-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'";
+  "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; media-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'none'";
 
 // Dev CSP must allow what the Vite dev server needs: React Fast Refresh injects
 // an inline module preamble (needs 'unsafe-inline'), some transforms use eval
