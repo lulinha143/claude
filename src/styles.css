@@ -1582,6 +1582,26 @@ select,
   width: 100%;
   text-align: center;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+  /* Never taller than the window: scroll inside the popup instead of forcing
+     the player to enlarge the game (brief §7). */
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+/* Optional structured layout: a modal can pin its header + action row and let
+   only the middle scroll by using .modal--framed with a .modal__scroll body. */
+.modal--framed {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.modal--framed .modal__scroll {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  min-height: 0;
+  flex: 1;
+  margin: 0 -4px;
+  padding: 0 4px;
 }
 .event-modal {
   text-align: left;

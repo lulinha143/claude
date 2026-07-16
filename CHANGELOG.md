@@ -41,6 +41,13 @@ semantic versioning.
   makes her **frustrated** and costs **-6 morale** (in addition to existing
   emotion swings), so thoughtless choices carry real weight (brief §4 Problem 2).
 
+### Changed — UX polish
+
+- **Popups never grow taller than the game window** (brief §7). Modals are capped
+  to the viewport height and scroll internally; the WHAT CHANGED result uses a
+  framed layout that pins its header and OK button while only the middle scrolls,
+  so the player never has to enlarge the window to reach a button.
+
 ### Changed — office polish pass
 
 - **Removed the free-standing workstation desks** (brief §2). Desks will become

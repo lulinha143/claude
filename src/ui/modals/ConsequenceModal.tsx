@@ -48,7 +48,12 @@ export function ConsequenceModal() {
 
   return (
     <div className="modal-backdrop">
-      <div className="modal consequence-modal" role="dialog" aria-modal aria-label={t('event.resultTitle')}>
+      <div
+        className="modal consequence-modal modal--framed"
+        role="dialog"
+        aria-modal
+        aria-label={t('event.resultTitle')}
+      >
         <div className="consequence-modal__head">
           <Icon name="notification" size={20} />
           <div>
@@ -59,6 +64,7 @@ export function ConsequenceModal() {
           </div>
         </div>
 
+        <div className="modal__scroll">
         <ul className="consequence-list">
           {nothing ? (
             <li className="consequence-line consequence-line--neutral">
@@ -126,6 +132,8 @@ export function ConsequenceModal() {
             ))}
           </div>
         ) : null}
+
+        </div>
 
         <button className="buy-btn buy-btn--big" onClick={() => engine.clearConsequence()}>
           {t('common.ok')}
