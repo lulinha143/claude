@@ -2747,15 +2747,90 @@ select,
 .floor__deco.is-dragging {
   opacity: 0.25;
 }
-.floor__deco.is-placing {
-  animation: deco-settle 0.28s var(--ease);
+/* Soft contact shadow grounds floor props (rugs excepted — they lie flat).
+   It re-renders at the new spot automatically when a piece is moved. */
+.floor__deco--floor:not(.floor__deco--rug)::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -2px;
+  width: 62%;
+  height: 7px;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.3), transparent 72%);
+  z-index: -1;
+  pointer-events: none;
 }
-@keyframes deco-settle {
-  0% { transform: translateX(-50%) translateY(-6px) scale(1.06); }
+/* Settle animation on drop — surface-specific so each keeps its base transform
+   (floor sits on the line, wall hangs, ceiling drops from the top). */
+.floor__deco--floor.is-placing {
+  animation: deco-settle-floor 0.3s var(--ease);
+}
+.floor__deco--wall.is-placing {
+  animation: deco-settle-wall 0.3s var(--ease);
+}
+.floor__deco--ceiling.is-placing {
+  animation: deco-settle-ceiling 0.3s var(--ease);
+}
+@keyframes deco-settle-floor {
+  0% { transform: translateX(-50%) translateY(-7px) scale(1.07); }
+  60% { transform: translateX(-50%) translateY(1px) scale(0.985); }
   100% { transform: translateX(-50%) translateY(0) scale(1); }
+}
+@keyframes deco-settle-wall {
+  0% { transform: translate(-50%, 50%) scale(1.09); }
+  60% { transform: translate(-50%, 50%) scale(0.98); }
+  100% { transform: translate(-50%, 50%) scale(1); }
+}
+@keyframes deco-settle-ceiling {
+  0% { transform: translate(-50%, 100%) scale(1.09); }
+  60% { transform: translate(-50%, 100%) scale(0.98); }
+  100% { transform: translate(-50%, 100%) scale(1); }
 }
 [data-reduced-motion='true'] .floor__deco.is-placing {
   animation: none;
+}
+/* No accidental text selection while dragging a piece (or a teammate). */
+.office--dragging,
+.office--dragging * {
+  user-select: none;
+  -webkit-user-select: none;
+}
+/* soft placement puff (see sparkle.ts dustPuff) */
+.dust-puff {
+  position: fixed;
+  z-index: 9997;
+  pointer-events: none;
+}
+.dust-puff__ring {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  border-radius: 50%;
+  border: 2px solid rgba(210, 196, 170, 0.7);
+  animation: dust-ring 0.5s ease-out forwards;
+}
+.dust-puff__mote {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 5px;
+  height: 5px;
+  margin: -2px 0 0 -2px;
+  border-radius: 50%;
+  background: rgba(196, 182, 156, 0.8);
+  animation: dust-mote 0.55s ease-out forwards;
+}
+@keyframes dust-ring {
+  0% { transform: scale(0.4); opacity: 0.8; }
+  100% { transform: scale(2.6); opacity: 0; }
+}
+@keyframes dust-mote {
+  0% { transform: translate(0, 0); opacity: 0.85; }
+  100% { transform: translate(var(--dx), var(--dy)); opacity: 0; }
 }
 /* while dragging a decoration in, highlight the valid surface band */
 .floor__surface-guide {
@@ -3273,6 +3348,26 @@ select,
 .drag-ghost.is-no {
   filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.5)) grayscale(0.4);
   opacity: 0.7;
+}
+/* small badge under the decoration ghost naming the surface being targeted */
+.drag-ghost__surface {
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translateX(-50%);
+  margin-top: 4px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  white-space: nowrap;
+  font-size: 0.62em;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--wood-dark, #241a10);
+  background: color-mix(in srgb, var(--gold) 88%, white);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.35);
+}
+.drag-ghost.is-no .drag-ghost__surface {
+  background: color-mix(in srgb, #d98b6a 80%, white);
 }
 
 

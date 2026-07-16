@@ -13,6 +13,7 @@ export type SfxName =
   | 'coffee'
   | 'celebrate'
   | 'prestige'
+  | 'place'
   | 'error';
 
 export interface AudioVolumes {
@@ -547,6 +548,11 @@ export class AudioManager {
         break;
       case 'prestige':
         [392, 523, 659, 784, 1046, 1318].forEach((f, i) => beep(f, 0.18, 'sine', i * 0.11, 0.28));
+        break;
+      case 'place':
+        // A soft "set it down" — a gentle low settle plus a tiny wooden tick.
+        beep(300, 0.09, 'sine', 0, 0.16, 200);
+        beep(720, 0.05, 'triangle', 0.03, 0.1);
         break;
       case 'error':
         beep(220, 0.12, 'sawtooth', 0, 0.2, 150);

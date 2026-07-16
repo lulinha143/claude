@@ -15,7 +15,7 @@ import { Icon } from './UiIcon';
 import { DecorationProp, decorKind } from './DecorationProp';
 import { RoomDressing } from './RoomDressing';
 import { placedDecorationsInRoom, isDecorationPlaced, roomComfort, placementAt } from '../sim/decorations';
-import { surfaceZ, decorationSurface } from '../sim/surfaces';
+import { surfaceZ, decorationSurface, isRug } from '../sim/surfaces';
 import { evaluatePlacement } from '../sim/placement';
 import { characterSlots } from '../content/roomLayout';
 import { pickOfficeInteraction } from '../sim/officeLife';
@@ -24,7 +24,7 @@ import { pickDialogueIndex, dialogueKey } from '../sim/dialogue';
 import { employeeMood, MOOD_TONE } from '../sim/mood';
 import { createRng } from '../sim/rng';
 import { notify } from '../ui/notificationsStore';
-import { sparkleAt } from '../ui/sparkle';
+import { sparkleAt, dustPuff } from '../ui/sparkle';
 
 // A soft visual capacity per room — dragging a teammate into a fuller room is
 // gently refused with a suggestion, keeping each room readable and cozy.
@@ -121,6 +121,8 @@ export function OfficeScene() {
   const [decorMode, setDecorMode] = useState(false);
   // The decoration currently picked up for arranging (its id), or null.
   const [selected, setSelected] = useState<string | null>(null);
+  // A decoration that was just placed, for a brief settle animation.
+  const [justPlaced, setJustPlaced] = useState<string | null>(null);
   // A decoration a nearby employee is currently reacting to (for a little wiggle).
   const [reactingDeco, setReactingDeco] = useState<string | null>(null);
   // The employee currently visiting an object (leans toward it) + the object x.
@@ -353,7 +355,15 @@ export function OfficeScene() {
       audio.play('error');
       return;
     }
-    if (engine.moveDecoration(id, nx, ny)) audio.play('upgrade');
+    if (engine.moveDecoration(id, nx, ny)) {
+      // Satisfying drop feedback: soft settle sound, a little dust puff at the
+      // drop point, and a brief settle animation on the piece itself. All of it
+      // is silent under mute and still under reduced motion.
+      audio.play('place');
+      dustPuff(x, y);
+      setJustPlaced(id);
+      window.setTimeout(() => setJustPlaced((cur) => (cur === id ? null : cur)), 320);
+    }
   }
 
   function selectedRoom(): string | null {
@@ -368,7 +378,9 @@ export function OfficeScene() {
   const overGif = state.settings.background.enabled;
   return (
     <div
-      className={`office ${decorMode ? 'office--decorating' : ''} ${overGif ? 'office--overgif' : ''}`}
+      className={`office ${decorMode ? 'office--decorating' : ''} ${overGif ? 'office--overgif' : ''} ${
+        drag ? 'office--dragging' : ''
+      }`}
       aria-label="office diorama"
     >
       <div className="office__toolbar">
@@ -503,8 +515,10 @@ export function OfficeScene() {
                     key={def.id}
                     data-deco={def.id}
                     className={`floor__deco floor__deco--${placement.surface} ${
-                      selected === def.id ? 'is-selected' : ''
-                    } ${drag?.kind === 'decoration' && drag.id === def.id ? 'is-dragging' : ''}`}
+                      isRug(def.id) ? 'floor__deco--rug' : ''
+                    } ${selected === def.id ? 'is-selected' : ''} ${
+                      drag?.kind === 'decoration' && drag.id === def.id ? 'is-dragging' : ''
+                    } ${justPlaced === def.id ? 'is-placing' : ''}`}
                     style={{
                       left: `${placement.x * 100}%`,
                       bottom: `${placement.y * 100}%`,
@@ -655,7 +669,10 @@ export function OfficeScene() {
               {drag.kind === 'employee' ? (
                 <GhostCritter id={drag.id} reducedMotion={reducedMotion} />
               ) : (
-                <DecorationProp id={drag.id} reducedMotion mode="interact" title={t(`deco.${drag.id}.name`)} />
+                <>
+                  <DecorationProp id={drag.id} reducedMotion mode="interact" title={t(`deco.${drag.id}.name`)} />
+                  <span className="drag-ghost__surface">{t(`decorate.surface.${decorationSurface(drag.id)}`)}</span>
+                </>
               )}
             </div>,
             document.body,
