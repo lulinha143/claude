@@ -846,11 +846,13 @@ export class GameEngine {
 
   updateSettings(patch: Partial<GameState['settings']>): void {
     this.state.settings = { ...this.state.settings, ...patch };
+    this.save(); // settings (language, audio, accessibility) are deliberate — persist now
     this.emit();
   }
 
   markOnboardingComplete(): void {
     this.state.onboardingComplete = true;
+    this.save(); // finishing onboarding is deliberate — don't replay it after a quick reload
     this.emit();
   }
 

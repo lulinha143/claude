@@ -1844,6 +1844,19 @@ select,
   animation: none !important;
   transition: none !important;
 }
+/* Honor the operating-system "reduce motion" preference even before the player
+   toggles the in-game setting — standard accessibility behaviour, and it keeps
+   automated interaction (and any motion-sensitive player) on stable, still
+   controls. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
 [data-high-contrast='true'] {
   --cream: #ffffff;
   --cream-dim: #e6e6e6;

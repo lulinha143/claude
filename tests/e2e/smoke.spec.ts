@@ -1,21 +1,49 @@
 import { test, expect, type Page } from '@playwright/test';
 
+// Turn on the in-game "reduced motion" setting so the app stops its looping
+// decorative animations (the bobbing acorn, the pulsing crate). Those never
+// settle, which otherwise leaves the real control perpetually "unstable" for
+// the pointer. We still click the actual rendered control — just a still one.
+// Stored under the settings key so it applies even to a brand-new game, and
+// baked into seeded saves (whose settings come from the save itself, not the
+// separate settings key).
+async function seedReducedMotion(page: Page) {
+  // Only seed when absent. addInitScript re-runs on every navigation (including
+  // page.reload()); an unconditional write would clobber whatever the app has
+  // since persisted and defeat the persistence assertions.
+  await page.addInitScript(() => {
+    try {
+      if (!localStorage.getItem('wmno.settings.v1')) {
+        localStorage.setItem('wmno.settings.v1', JSON.stringify({ reducedMotion: true }));
+      }
+    } catch {
+      /* ignore */
+    }
+  });
+}
+
 // Seeds a save so the test starts past the opening/onboarding with resources to
 // spend. The schema fills every other field with defaults, so this minimal
-// object is a valid save.
+// object is a valid save. Seeded only when absent, so a reload exercises the
+// game's OWN persisted state rather than re-injecting the starting snapshot.
 async function seedSave(page: Page, extra: Record<string, unknown> = {}) {
+  await seedReducedMotion(page);
   await page.addInitScript((data) => {
-    localStorage.setItem('wmno.save.v1', JSON.stringify(data));
+    if (!localStorage.getItem('wmno.save.v1')) {
+      localStorage.setItem('wmno.save.v1', JSON.stringify(data));
+    }
   }, {
     version: 3,
     onboardingComplete: true,
     lastSaved: Date.now(),
     resources: { nuts: 100000, goldenNuts: 5, reputation: 100, morale: 80, permanentKernels: 0 },
+    settings: { reducedMotion: true },
     ...extra,
   });
 }
 
 test('new game onboarding flow can be completed', async ({ page }) => {
+  await seedReducedMotion(page);
   await page.goto('/');
   // Opening: click the acorn, then finish the title card.
   await page.getByText('Every empire starts with one nut.').waitFor();
@@ -61,6 +89,13 @@ test('desktop-only settings are disabled in the browser demo', async ({ page }) 
   await seedSave(page);
   await page.goto('/');
   await page.getByRole('button', { name: 'Settings' }).click();
-  // The desktop window controls fieldset is disabled without window.desktop.
-  await expect(page.locator('fieldset.desktop-controls')).toBeDisabled();
+  // Without the Electron bridge the whole desktop-controls fieldset is disabled.
+  // `toBeDisabled()` on a <fieldset> is unreliable (Playwright only treats
+  // button/input/select/textarea/option/optgroup as disable-able), so assert
+  // the real user-visible outcome: the controls inside cannot be operated.
+  const fieldset = page.locator('fieldset.desktop-controls');
+  await expect(fieldset).toHaveAttribute('disabled', '');
+  await expect(fieldset.locator('input[type="checkbox"]').first()).toBeDisabled();
+  await expect(fieldset.locator('select').first()).toBeDisabled();
+  await expect(fieldset.locator('button.ghost-btn')).toBeDisabled();
 });
