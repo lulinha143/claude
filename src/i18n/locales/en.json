@@ -61,6 +61,7 @@
     "friendship": "Grows when you chat, gift coffee and keep them happy. Higher friendship boosts their output.",
     "mood": "How this teammate feels right now. Emotions gently nudge their output up or down.",
     "mute": { "d": "Instantly silence (or restore) all music, ambience and sound effects." },
+    "affinity": "How well this teammate works in their current room. Move them to a favourite room for a production bonus.",
     "nav": {
       "office": "Your cozy office and the team at work.",
       "shop": "Buy upgrades to grow production and automation.",
@@ -795,6 +796,11 @@
     "sad": "Sad",
     "effect": "Productivity {{value}}%",
     "effectNeutral": "Steady, balanced output"
+  },
+  "affinity": {
+    "favorite": "Favourite room",
+    "acceptable": "Comfortable here",
+    "disliked": "Not their room"
   },
   "photo": {
     "save": "Save snapshot",

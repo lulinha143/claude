@@ -61,6 +61,7 @@
     "friendship": "Cresce quando você conversa, dá café e mantém a equipe feliz. Mais amizade aumenta a produção.",
     "mood": "Como este colega se sente agora. As emoções ajustam um pouco a produção dele, para mais ou para menos.",
     "mute": { "d": "Silencia (ou restaura) instantaneamente toda a música, ambiência e efeitos sonoros." },
+    "affinity": "O quão bem este colega trabalha na sala atual. Leve-o para uma sala favorita para um bônus de produção.",
     "nav": {
       "office": "Seu escritório aconchegante e a equipe trabalhando.",
       "shop": "Compre melhorias para crescer produção e automação.",
@@ -795,6 +796,11 @@
     "sad": "Triste",
     "effect": "Produtividade {{value}}%",
     "effectNeutral": "Produção estável e equilibrada"
+  },
+  "affinity": {
+    "favorite": "Sala favorita",
+    "acceptable": "Confortável aqui",
+    "disliked": "Não é a sala dele"
   },
   "photo": {
     "save": "Salvar foto",

@@ -232,7 +232,17 @@ export const GAME_EVENTS: GameEventDef[] = [
     momentWorthy: true,
     choices: [
       { id: 'follow', labelKey: 'event.minaBasement.follow', effects: [], next: 'deep' },
-      { id: 'stay', labelKey: 'event.minaBasement.stay', effects: [{ type: 'nuts', value: 300 }] },
+      {
+        id: 'stay',
+        labelKey: 'event.minaBasement.stay',
+        effects: [
+          { type: 'nuts', value: 300 },
+          // Ignoring Mina's discovery has a real cost: she's frustrated for a
+          // while and morale dips (brief §4 — stronger negative consequences).
+          { type: 'emotion', employeeId: 'mina', emotion: 'frustrated', durationSeconds: 480 },
+          { type: 'morale', value: -6 },
+        ],
+      },
     ],
     steps: {
       deep: {

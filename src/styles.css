@@ -2319,6 +2319,29 @@ select,
   padding: 1px 7px;
   font-size: 0.8em;
 }
+.affinity-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  font-size: 0.82em;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  align-self: flex-start;
+}
+.affinity-chip--favorite {
+  border-color: var(--positive);
+  background: color-mix(in srgb, var(--positive) 12%, var(--surface));
+}
+.affinity-chip--disliked {
+  border-color: var(--negative);
+  background: color-mix(in srgb, var(--negative) 12%, var(--surface));
+}
+.affinity-chip em {
+  font-style: normal;
+}
 
 /* WHAT CHANGED — per-employee section */
 .consequence-team {

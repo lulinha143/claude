@@ -19,6 +19,28 @@ semantic versioning.
   count-based achievement are mode-agnostic). Remaining games: Coffee Rescue,
   Bug Squash, Cable Untangle Desk.
 
+### Added — room specialization
+
+- **Employees now perform differently per room** (brief §6). New `src/sim/affinity.ts`
+  gives each employee a **favourite** room (their home department, **+25%**),
+  **acceptable** rooms (no change), and a few **disliked** rooms that clash with
+  their role (**-15%**). Applied per-employee in `computeProduction` and the
+  production breakdown via `employeeOutput()`. The Team view shows the current
+  room's affinity as a colour-coded chip (with tooltip), and the "Work location"
+  dropdown annotates every room with its effect (e.g. "Research Lab (+25%)"), so
+  the strategy is clear **before** moving anyone. Unit-tested (`affinity.test.ts`).
+
+### Fixed — event consequences
+
+- **Events no longer affect locked (un-hired) employees** (brief §4). Emotion,
+  friendship and "WHAT CHANGED" entries are now applied/recorded only for
+  unlocked employees — `setEmployeeEmotion`, the `friendship`/`emotion` effects,
+  and the consequence snapshot/diff all skip anyone not hired. Covered by a new
+  test.
+- **Stronger negative consequences.** Ignoring Mina's basement discovery now
+  makes her **frustrated** and costs **-6 morale** (in addition to existing
+  emotion swings), so thoughtless choices carry real weight (brief §4 Problem 2).
+
 ### Changed — office polish pass
 
 - **Removed the free-standing workstation desks** (brief §2). Desks will become

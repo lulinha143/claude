@@ -4,12 +4,14 @@ import { useStore } from '../../state/store';
 import { useFmt } from '../useFmt';
 import { EMPLOYEES } from '../../content/employees';
 import { aggregatePassives, employeeLevelCost, isEmployeeUnlocked } from '../../sim/economy';
-import { unlockedRooms } from '../../sim/rooms';
+import { unlockedRooms, resolveEmployeeRoom } from '../../sim/rooms';
 import { Critter } from '../../art/Critter';
 import { shapeFor } from '../../art/critterShapes';
 import { Acorn, GoldenNut } from '../../art/Icons';
 import { Tip, TipContent } from '../Tooltip';
 import { employeeMood, moodProductivityMultiplier, MOOD_TONE } from '../../sim/mood';
+import { roomAffinity, affinityPercent } from '../../sim/affinity';
+import { ROOMS_BY_ID } from '../../content/rooms';
 
 export function EmployeesView() {
   const { t } = useTranslation();
@@ -117,6 +119,31 @@ export function EmployeesView() {
                         </Tip>
                       );
                     })()}
+                    {(() => {
+                      const room = resolveEmployeeRoom(state, def.id);
+                      const tier = roomAffinity(def.id, room);
+                      const pct = affinityPercent(def.id, room);
+                      return (
+                        <Tip
+                          content={
+                            <TipContent
+                              title={t(`affinity.${tier}`)}
+                              lines={[t('tip.affinity'), t(ROOMS_BY_ID[room]?.nameKey ?? room)]}
+                            />
+                          }
+                        >
+                          <span className={`affinity-chip affinity-chip--${tier}`}>
+                            {t(`affinity.${tier}`)}
+                            {pct !== 0 ? (
+                              <em className={pct > 0 ? 'prod-pos' : 'prod-neg'}>
+                                {pct > 0 ? '+' : ''}
+                                {pct}%
+                              </em>
+                            ) : null}
+                          </span>
+                        </Tip>
+                      );
+                    })()}
                     <input
                       className="nickname-input"
                       placeholder={t('employee.renamePlaceholder')}
@@ -132,11 +159,16 @@ export function EmployeesView() {
                         onChange={(e) => engine.assignEmployee(def.id, e.target.value || null)}
                       >
                         <option value="">{t('overview.autoRoom')}</option>
-                        {unlockedRooms(state).map((r) => (
-                          <option key={r.id} value={r.id}>
-                            {t(r.nameKey)}
-                          </option>
-                        ))}
+                        {unlockedRooms(state).map((r) => {
+                          const pct = affinityPercent(def.id, r.id);
+                          const tag = pct > 0 ? `  (+${pct}%)` : pct < 0 ? `  (${pct}%)` : '';
+                          return (
+                            <option key={r.id} value={r.id}>
+                              {t(r.nameKey)}
+                              {tag}
+                            </option>
+                          );
+                        })}
                       </select>
                     </label>
                     <div className="outfits">

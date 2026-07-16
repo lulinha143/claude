@@ -70,6 +70,21 @@ describe('event-driven individual emotions', () => {
     expect(employeeMood(e.state, 'bea', now)).not.toBe('angry');
   });
 
+  it('never applies emotions/friendship/consequences to LOCKED (un-hired) employees', () => {
+    const e = new GameEngine(createInitialState(0), { deterministic: true, now: () => 1_000_000 });
+    // bea is NOT hired here
+    expect(e.state.employees.bea.hired).toBe(false);
+    e.triggerEvent('bea-wood');
+    e.resolveEventChoice('approve'); // would set bea proud + friendship if she existed
+    expect(e.state.employees.bea.emotion ?? null).toBeNull(); // no emotion applied
+    expect(e.state.employees.bea.friendship).toBe(0); // no friendship applied
+    // and the WHAT CHANGED report contains no entry for the locked employee
+    expect(e.lastConsequence!.report.employees.find((x) => x.id === 'bea')).toBeUndefined();
+    // a direct call is also ignored for locked employees
+    e.setEmployeeEmotion('bea', 'angry');
+    expect(e.state.employees.bea.emotion ?? null).toBeNull();
+  });
+
   it('a persistent emotion (no duration) is not expired by ticking', () => {
     let now = 2_000_000;
     const e = new GameEngine(createInitialState(0), { deterministic: true, now: () => now });

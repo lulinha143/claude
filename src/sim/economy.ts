@@ -5,6 +5,14 @@ import { UPGRADES_BY_ID } from '../content/upgrades';
 import type { EmployeeDef, UpgradeDef } from '../content/types';
 import { PRESTIGE_BRANCHES_BY_ID, PRESTIGE_SKILLS_BY_ID } from '../content/prestige';
 import { teamMoodMultiplier } from './mood';
+import { affinityMultiplier } from './affinity';
+import { resolveEmployeeRoom } from './rooms';
+
+/** An employee's output = their base contribution × room-specialization bonus. */
+export function employeeOutput(state: GameState, def: EmployeeDef, level: number): number {
+  const room = resolveEmployeeRoom(state, def.id);
+  return employeeContribution(def, level) * affinityMultiplier(def.id, room);
+}
 
 /** A single employee's raw nuts/second contribution at a given level. */
 export function employeeContribution(def: EmployeeDef, level: number): number {
@@ -150,7 +158,7 @@ export function computeProduction(state: GameState, focusActive: boolean): Produ
   for (const def of EMPLOYEES) {
     const rt = state.employees[def.id];
     if (!rt || !rt.hired || rt.level <= 0) continue;
-    const contrib = employeeContribution(def, rt.level);
+    const contrib = employeeOutput(state, def, rt.level);
     baseRate += contrib;
     breakdown.push({ source: `employee:${def.id}`, nutsPerSecond: contrib });
   }
@@ -196,7 +204,7 @@ export function productionBreakdown(state: GameState, focusActive: boolean): Pro
   for (const def of EMPLOYEES) {
     const rt = state.employees[def.id];
     if (!rt || !rt.hired || rt.level <= 0) continue;
-    const contrib = employeeContribution(def, rt.level);
+    const contrib = employeeOutput(state, def, rt.level);
     employees.push({ id: def.id, rate: contrib });
     raw += contrib;
   }

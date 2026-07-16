@@ -504,10 +504,11 @@ export class GameEngine {
     this.emit();
   }
 
-  /** Set (or clear) an employee's event-driven emotion. */
+  /** Set (or clear) an employee's event-driven emotion. Only unlocked (hired)
+   *  employees have any simulation state — locked ones are ignored entirely. */
   setEmployeeEmotion(id: string, emotion: EmployeeMood, durationSeconds?: number): void {
     const rt = this.state.employees[id];
-    if (!rt) return;
+    if (!rt || !rt.hired) return;
     rt.emotion = {
       id: emotion,
       until: durationSeconds && durationSeconds > 0 ? this.now() + durationSeconds * 1000 : null,
@@ -531,6 +532,7 @@ export class GameEngine {
   } {
     const emp: Record<string, { friendship: number; mood: EmployeeMood }> = {};
     for (const [id, rt] of Object.entries(this.state.employees)) {
+      if (!rt.hired) continue; // locked employees are not part of the simulation
       emp[id] = { friendship: rt.friendship, mood: employeeMood(this.state, id, now) };
     }
     return {
@@ -551,6 +553,7 @@ export class GameEngine {
     const boost = effects.find((e) => e.type === 'productionBoost');
     const employees: EmployeeChange[] = [];
     for (const [id, rt] of Object.entries(this.state.employees)) {
+      if (!rt.hired) continue; // never report changes for locked employees
       const prev = before.emp[id];
       if (!prev) continue;
       const moodNow = employeeMood(this.state, id, now);
@@ -600,7 +603,8 @@ export class GameEngine {
         break;
       case 'friendship': {
         const rt = this.state.employees[effect.employeeId ?? def.employeeId ?? ''];
-        if (rt) rt.friendship = Math.min(100, rt.friendship + (effect.value ?? 5));
+        // Only unlocked employees participate in the simulation.
+        if (rt && rt.hired) rt.friendship = Math.min(100, rt.friendship + (effect.value ?? 5));
         break;
       }
       case 'emotion': {
