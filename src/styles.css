@@ -2704,42 +2704,68 @@ select,
 /* A decoration placed at a curated anchor inside the stage. */
 .floor__anchor {
   position: absolute;
-  z-index: 2;
-  transform: translateX(-50%) scale(var(--dscale, 1));
+  transform: translateX(-50%);
   transform-origin: bottom center;
   line-height: 0;
 }
-.floor__anchor.is-selected {
+/* A freely-placed decoration (position via inline left/bottom, z via surface). */
+.floor__deco {
+  position: absolute;
+  transform: translateX(-50%);
+  transform-origin: bottom center;
+  line-height: 0;
+  transition: filter 0.18s var(--ease);
+}
+.floor__deco--wall {
+  transform: translate(-50%, 50%); /* wall items hang from their y line */
+}
+.floor__deco--ceiling {
+  transform: translate(-50%, 100%); /* ceiling items drop from the top */
+}
+.office--decorating .floor__deco {
+  cursor: grab;
+}
+.office--decorating .floor__deco:active {
+  cursor: grabbing;
+}
+.floor__deco.is-selected {
   filter: drop-shadow(0 0 6px var(--gold));
 }
-/* empty drop-target shown while arranging */
-.floor__anchor--empty {
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: default;
-  opacity: 0.45;
+.floor__deco.is-dragging {
+  opacity: 0.25;
 }
-.floor__anchor--empty.is-active {
-  cursor: pointer;
-  opacity: 1;
+.floor__deco.is-placing {
+  animation: deco-settle 0.28s var(--ease);
 }
-.floor__anchor-dot {
-  display: block;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border: 2px dashed color-mix(in srgb, var(--dept) 70%, var(--cream));
-  background: color-mix(in srgb, var(--dept) 18%, transparent);
+@keyframes deco-settle {
+  0% { transform: translateX(-50%) translateY(-6px) scale(1.06); }
+  100% { transform: translateX(-50%) translateY(0) scale(1); }
 }
-.floor__anchor--empty.is-active .floor__anchor-dot {
-  animation: anchor-pulse 1.4s ease-in-out infinite;
-  border-style: solid;
-  border-color: var(--gold);
+[data-reduced-motion='true'] .floor__deco.is-placing {
+  animation: none;
 }
-@keyframes anchor-pulse {
-  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 213, 74, 0.4); }
-  50% { transform: scale(1.15); box-shadow: 0 0 0 5px rgba(255, 213, 74, 0); }
+/* while dragging a decoration in, highlight the valid surface band */
+.floor__surface-guide {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 0;
+  pointer-events: none;
+  border: 2px dashed color-mix(in srgb, var(--gold) 70%, transparent);
+  background: color-mix(in srgb, var(--gold) 12%, transparent);
+  border-radius: 6px;
+}
+.floor__surface-guide--floor {
+  bottom: 0;
+  height: 34%;
+}
+.floor__surface-guide--wall {
+  bottom: 44%;
+  height: 38%;
+}
+.floor__surface-guide--ceiling {
+  bottom: 84%;
+  height: 15%;
 }
 .floor__stage--dropping {
   outline: 2px dashed var(--gold);

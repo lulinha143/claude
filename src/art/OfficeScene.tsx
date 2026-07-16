@@ -14,13 +14,9 @@ import { Acorn, Crate } from './Icons';
 import { Icon } from './UiIcon';
 import { DecorationProp, decorKind } from './DecorationProp';
 import { RoomDressing } from './RoomDressing';
-import {
-  placedDecorationsInRoom,
-  freeAnchorsInRoom,
-  isDecorationPlaced,
-  roomComfort,
-} from '../sim/decorations';
-import { characterSlots, anchorsForRoom } from '../content/roomLayout';
+import { placedDecorationsInRoom, isDecorationPlaced, roomComfort } from '../sim/decorations';
+import { surfaceZ, decorationSurface } from '../sim/surfaces';
+import { characterSlots } from '../content/roomLayout';
 import { pickOfficeInteraction } from '../sim/officeLife';
 import { DecorationTray } from '../ui/DecorationTray';
 import { pickDialogueIndex, dialogueKey } from '../sim/dialogue';
@@ -335,32 +331,23 @@ export function OfficeScene() {
     }
     const floorEl = el?.closest('.floor[data-room]') as HTMLElement | null;
     const overRoom = floorEl?.dataset.room ?? null;
-    if (overRoom !== def.room || !floorEl) return; // dropped elsewhere — cancel
-    // Otherwise place at the anchor nearest the drop point.
-    const stage = floorEl.querySelector('.floor__stage') as HTMLElement | null;
-    const rect = (stage ?? floorEl).getBoundingClientRect();
-    const nx = Math.max(0, Math.min(1, (x - rect.left) / Math.max(1, rect.width)));
-    const anchors = anchorsForRoom(def.room);
-    let best = anchors[0];
-    let bd = Infinity;
-    for (const a of anchors) {
-      const d = Math.abs(a.x - nx);
-      if (d < bd) {
-        bd = d;
-        best = a;
-      }
+    if (!floorEl || overRoom !== def.room) {
+      // Decorations belong to a specific room — explain instead of silently failing.
+      notify('rooms', t('decorate.wrongRoom', { room: t(ROOMS_BY_ID[def.room].nameKey) }), 'neutral');
+      audio.play('error');
+      return;
     }
-    if (best && engine.placeDecoration(id, best.id)) audio.play('upgrade');
+    // Controlled free placement: use the exact drop point (normalized to the
+    // room stage); the engine clamps y to the decoration's surface band + bounds.
+    const stage = (floorEl.querySelector('.floor__stage') as HTMLElement | null) ?? floorEl;
+    const rect = stage.getBoundingClientRect();
+    const nx = (x - rect.left) / Math.max(1, rect.width);
+    const ny = (rect.bottom - y) / Math.max(1, rect.height); // 0 = floor line, 1 = top of wall
+    if (engine.moveDecoration(id, nx, ny)) audio.play('upgrade');
   }
 
   function selectedRoom(): string | null {
     return selected ? (DECORATIONS_BY_ID[selected]?.room ?? null) : null;
-  }
-
-  function onAnchorClick(roomId: string, anchorId: string) {
-    if (!selected || selectedRoom() !== roomId) return;
-    if (engine.moveDecoration(selected, anchorId)) audio.play('upgrade');
-    setSelected(null);
   }
 
   function sendSelectedToInventory() {
@@ -457,8 +444,7 @@ export function OfficeScene() {
           const slots = characterSlots(occupants.length, room.id);
           const comfort = roomComfort(state, room.id);
           const placed = placedDecorationsInRoom(state, room.id);
-          const emptyAnchors = decorMode ? freeAnchorsInRoom(state, room.id) : [];
-          const canDropHere = decorMode && selected !== null && selectedRoom() === room.id;
+          const canDropHere = decorMode && drag?.kind === 'decoration' && drag.overRoom === room.id;
           const selectedPlacedHere =
             selected !== null && selectedRoom() === room.id && isDecorationPlaced(state, selected);
           let dropClass = '';
@@ -500,17 +486,19 @@ export function OfficeScene() {
                 {/* built-in room identity (window, rug, department fixture) */}
                 <RoomDressing roomId={room.id} />
 
-                {/* placed decorations sit at their anchors */}
-                {placed.map(({ def, anchor }) => (
+                {/* placed decorations sit at their chosen normalized position,
+                    layered by surface (wall behind, floor grounded, ceiling above) */}
+                {placed.map(({ def, placement }) => (
                   <div
                     key={def.id}
-                    className={`floor__anchor floor__anchor--${anchor.layer} ${
+                    data-deco={def.id}
+                    className={`floor__deco floor__deco--${placement.surface} ${
                       selected === def.id ? 'is-selected' : ''
                     } ${drag?.kind === 'decoration' && drag.id === def.id ? 'is-dragging' : ''}`}
                     style={{
-                      left: `${anchor.x * 100}%`,
-                      bottom: `${anchor.y}px`,
-                      ['--dscale' as string]: anchor.scale,
+                      left: `${placement.x * 100}%`,
+                      bottom: `${placement.y * 100}%`,
+                      zIndex: surfaceZ(def.id, placement.surface),
                     }}
                   >
                     <DecorationProp
@@ -527,22 +515,13 @@ export function OfficeScene() {
                   </div>
                 ))}
 
-                {/* empty anchor drop-targets (arrange mode only) */}
-                {emptyAnchors.map((anchor) => (
-                  <button
-                    key={`empty-${anchor.id}`}
-                    className={`floor__anchor floor__anchor--${anchor.layer} floor__anchor--empty ${
-                      canDropHere ? 'is-active' : ''
-                    }`}
-                    style={{ left: `${anchor.x * 100}%`, bottom: `${anchor.y}px` }}
-                    onClick={() => onAnchorClick(room.id, anchor.id)}
-                    disabled={!canDropHere}
-                    aria-label={t('decorate.placeHere')}
-                    title={t('decorate.placeHere')}
-                  >
-                    <span className="floor__anchor-dot" aria-hidden />
-                  </button>
-                ))}
+                {/* surface guide overlay while dragging a decoration into this room */}
+                {canDropHere && drag?.kind === 'decoration' ? (
+                  <div
+                    className={`floor__surface-guide floor__surface-guide--${decorationSurface(drag.id)}`}
+                    aria-hidden
+                  />
+                ) : null}
 
                 {occupants.map(([id, rt], idx) => {
                   const def = EMPLOYEES_BY_ID[id];

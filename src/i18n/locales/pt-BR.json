@@ -102,6 +102,8 @@
     "stow": "Guardar",
     "resetRoom": "Arrumar",
     "roomFull": "Sala cheia",
+    "wrongRoom": "Isto pertence à sala {{room}} — solte lá.",
+    "dragToPlace": "Arraste até o piso ou a parede destacada.",
     "roomEmpty": "Nenhuma decoração para esta sala ainda.",
     "noResults": "Nenhuma decoração corresponde aos filtros.",
     "undo": "Desfazer",

@@ -50,10 +50,12 @@ export function pickOfficeInteraction(
     let bestDx = PROXIMITY;
     for (const p of placedDecorationsInRoom(state, roomId)) {
       if (reserved.has(p.def.id)) continue;
-      const dx = Math.abs(p.anchor.x - sx);
+      // only floor-level props are "walk-up-to-able"; wall/ceiling items aren't
+      if (p.placement.surface !== 'floor') continue;
+      const dx = Math.abs(p.placement.x - sx);
       if (dx < bestDx) {
         bestDx = dx;
-        best = { id: p.def.id, x: p.anchor.x };
+        best = { id: p.def.id, x: p.placement.x };
       }
     }
     if (best) return { employeeId: id, decorationId: best.id, roomId, targetX: best.x };

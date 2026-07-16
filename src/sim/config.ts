@@ -2,7 +2,7 @@
 // the whole economy from this one file. Formulas live in economy.ts and read
 // from here.
 
-export const SAVE_VERSION = 5;
+export const SAVE_VERSION = 6;
 
 export const BALANCE = {
   /** starting nuts for a brand new company. */

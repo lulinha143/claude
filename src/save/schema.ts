@@ -115,7 +115,17 @@ export const gameStateSchema = z.object({
   employees: z.record(employeeSchema).catch({}),
   upgrades: z.record(z.number()).catch({}),
   achievements: z.record(z.number()).catch({}),
-  placements: z.record(z.string()).catch({}),
+  placements: z
+    .record(
+      z
+        .object({
+          surface: z.enum(['floor', 'wall', 'ceiling']).catch('floor'),
+          x: z.number().catch(0.5),
+          y: z.number().catch(0.1),
+        })
+        .catch({ surface: 'floor', x: 0.5, y: 0.06 }),
+    )
+    .catch({}),
   collections: z
     .object({
       nuts: z.array(z.string()).catch([]),

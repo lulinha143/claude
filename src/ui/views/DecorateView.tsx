@@ -9,7 +9,6 @@ import { unlockedRooms } from '../../sim/rooms';
 import {
   isDecorationOwned,
   isDecorationPlaced,
-  firstFreeAnchorId,
   roomComfort,
   ownedDecorationsInRoom,
   placedDecorationsInRoom,
@@ -173,7 +172,6 @@ export function DecorateView() {
             const owned = isDecorationOwned(state, d.id);
             const placed = owned && isDecorationPlaced(state, d.id);
             const afford = state.resources[d.cost.resource] >= d.cost.amount;
-            const roomFull = owned && !placed && firstFreeAnchorId(state, d.room) === null;
             const kind = decorKind(d.id);
             return (
               <li key={d.id} className={`decocard ${owned ? 'is-owned' : ''} ${placed ? 'is-placed' : ''}`}>
@@ -226,13 +224,12 @@ export function DecorateView() {
                       </span>
                       <button
                         className="mini-btn mini-btn--primary"
-                        disabled={roomFull}
-                        title={roomFull ? t('decorate.roomFull') : t('decorate.place')}
+                        title={t('decorate.place')}
                         onClick={() => {
                           if (engine.placeDecoration(d.id)) audio.play('upgrade');
                         }}
                       >
-                        {roomFull ? t('decorate.roomFull') : t('decorate.place')}
+                        {t('decorate.place')}
                       </button>
                     </>
                   )}

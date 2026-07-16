@@ -102,6 +102,8 @@
     "stow": "Stow",
     "resetRoom": "Tidy up",
     "roomFull": "Room full",
+    "wrongRoom": "That belongs in {{room}} — drop it there.",
+    "dragToPlace": "Drag onto the highlighted floor or wall.",
     "roomEmpty": "No decorations for this room yet.",
     "noResults": "No decorations match your filters.",
     "undo": "Undo",

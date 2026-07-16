@@ -26,14 +26,14 @@ import { ensureDailyForDate } from './dailyChallenges';
 import { isRoomIdUnlocked, repairPlacements, unlockedRooms } from './rooms';
 import {
   repairDecorations,
-  firstFreeAnchorId,
-  decorationAtAnchor,
   isDecorationOwned,
   isDecorationPlaced,
   ownedDecorationsInRoom,
+  placedCountOnSurface,
+  placementAt,
 } from './decorations';
 import { DECORATIONS_BY_ID } from '../content/decorations';
-import { anchorById, anchorsForRoom } from '../content/roomLayout';
+import { decorationSurface, defaultPlacement, type DecorationPlacement } from './surfaces';
 
 /** A single employee's measured change from an event choice (WHAT CHANGED). */
 export interface EmployeeChange {
@@ -132,8 +132,8 @@ export class GameEngine {
 
   // Session-only undo/redo history for decoration placement (snapshots of the
   // placements map). Not persisted — a fresh session starts with clean history.
-  private decoUndo: Array<Record<string, string>> = [];
-  private decoRedo: Array<Record<string, string>> = [];
+  private decoUndo: Array<Record<string, DecorationPlacement>> = [];
+  private decoRedo: Array<Record<string, DecorationPlacement>> = [];
 
   // -- subscription ---------------------------------------------------------
   subscribe(listener: EngineListener): () => void {
@@ -720,20 +720,22 @@ export class GameEngine {
 
   private applyDecorationPurchase(id: string, key: string): boolean {
     // The store validates cost before calling; here we track ownership and, for
-    // instant gratification, auto-place the new decoration into a free anchor so
-    // it appears in the office immediately.
+    // instant gratification, auto-place the new decoration at a tidy default
+    // spot on its surface so it appears in the office immediately.
     this.state.collections.secrets.push(key);
     const def = DECORATIONS_BY_ID[id];
     if (def) {
-      const free = firstFreeAnchorId(this.state, def.room);
-      if (free) this.state.placements[id] = free;
+      const idx = placedCountOnSurface(this.state, def.room, decorationSurface(id));
+      this.state.placements[id] = defaultPlacement(id, idx);
     }
     this.emit();
     return true;
   }
 
-  // -- decoration placement -------------------------------------------------
-  private snapshotPlacements(): Record<string, string> {
+  // -- decoration placement (controlled free placement) ---------------------
+  private snapshotPlacements(): Record<string, DecorationPlacement> {
+    // Shallow map clone is enough: placement objects are always REPLACED (never
+    // mutated in place), so snapshots keep pointing at the old objects.
     return { ...this.state.placements };
   }
 
@@ -744,34 +746,35 @@ export class GameEngine {
   }
 
   /**
-   * Place an owned decoration at an anchor (or the first free anchor if none is
-   * given). If the target anchor is occupied by another decoration, that one is
-   * returned to the inventory so the move is always reliable.
+   * Place an owned decoration. With an explicit position the player's chosen
+   * spot is used (clamped to the decoration's surface + room bounds); otherwise
+   * a tidy default spot on its surface is chosen. Free placement — no anchors,
+   * no swapping, the player's position is respected.
    */
-  placeDecoration(id: string, anchorId?: string): boolean {
+  placeDecoration(id: string, position?: { x: number; y: number }): boolean {
     if (!isDecorationOwned(this.state, id)) return false;
     const def = DECORATIONS_BY_ID[id];
     if (!def) return false;
-    const roomId = def.room;
-    const target = anchorId ?? firstFreeAnchorId(this.state, roomId);
-    if (!target || !anchorById(roomId, target)) return false;
     this.pushDecoHistory();
-    const prevAnchor = this.state.placements[id]; // where this piece was (if placed)
-    const occupant = decorationAtAnchor(this.state, roomId, target);
-    if (occupant && occupant !== id) {
-      // Intelligent swap: if the dragged piece already had a spot, the piece at
-      // the target moves into it; otherwise it returns to the inventory.
-      if (prevAnchor) this.state.placements[occupant] = prevAnchor;
-      else delete this.state.placements[occupant];
+    if (position) {
+      this.state.placements[id] = placementAt(id, position.x, position.y);
+    } else {
+      const idx = placedCountOnSurface(this.state, def.room, decorationSurface(id));
+      this.state.placements[id] = defaultPlacement(id, idx);
     }
-    this.state.placements[id] = target;
+    this.save(); // deliberate arrangement — persist immediately so a reload keeps it
     this.emit();
     return true;
   }
 
-  /** Move a placed decoration to a different anchor (alias of placeDecoration). */
-  moveDecoration(id: string, anchorId: string): boolean {
-    return this.placeDecoration(id, anchorId);
+  /** Move a placed (or owned) decoration to a chosen normalized position. */
+  moveDecoration(id: string, x: number, y: number): boolean {
+    if (!isDecorationOwned(this.state, id)) return false;
+    this.pushDecoHistory();
+    this.state.placements[id] = placementAt(id, x, y);
+    this.save(); // deliberate arrangement — persist immediately so a reload keeps it
+    this.emit();
+    return true;
   }
 
   /** Return an owned decoration to the inventory (removed from the office). */
@@ -779,25 +782,29 @@ export class GameEngine {
     if (!isDecorationPlaced(this.state, id)) return false;
     this.pushDecoHistory();
     delete this.state.placements[id];
+    this.save(); // deliberate arrangement — persist immediately so a reload keeps it
     this.emit();
     return true;
   }
 
-  /** Reset a room to a tidy default: every owned decoration placed in order. */
+  /** Reset a room to a tidy default: every owned decoration spread on its surface. */
   resetRoomDecorations(roomId: string): boolean {
     const owned = ownedDecorationsInRoom(this.state, roomId);
     if (owned.length === 0) return false;
     this.pushDecoHistory();
-    for (const d of owned) delete this.state.placements[d.id];
-    const anchors = anchorsForRoom(roomId);
-    owned.forEach((d, i) => {
-      if (i < anchors.length) this.state.placements[d.id] = anchors[i].id;
-    });
+    const perSurface: Record<string, number> = {};
+    for (const d of owned) {
+      const surface = decorationSurface(d.id);
+      const idx = perSurface[surface] ?? 0;
+      perSurface[surface] = idx + 1;
+      this.state.placements[d.id] = defaultPlacement(d.id, idx);
+    }
+    this.save(); // deliberate arrangement — persist immediately so a reload keeps it
     this.emit();
     return true;
   }
 
-  /** Toggle an owned decoration between placed (auto anchor) and inventory. */
+  /** Toggle an owned decoration between placed (default spot) and inventory. */
   toggleDecoration(id: string): void {
     if (isDecorationPlaced(this.state, id)) this.removeDecoration(id);
     else this.placeDecoration(id);
@@ -816,6 +823,7 @@ export class GameEngine {
     if (!prev) return false;
     this.decoRedo.push(this.snapshotPlacements());
     this.state.placements = prev;
+    this.save(); // deliberate arrangement — persist immediately so a reload keeps it
     this.emit();
     return true;
   }
@@ -825,6 +833,7 @@ export class GameEngine {
     if (!next) return false;
     this.decoUndo.push(this.snapshotPlacements());
     this.state.placements = next;
+    this.save(); // deliberate arrangement — persist immediately so a reload keeps it
     this.emit();
     return true;
   }

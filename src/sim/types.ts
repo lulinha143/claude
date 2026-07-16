@@ -1,3 +1,5 @@
+import type { DecorationPlacement } from './surfaces';
+
 // Shared simulation types. These describe the persisted game state and the
 // runtime shapes the engine works with. Content *definitions* (the catalogue
 // of employees, upgrades, events…) live in `src/content` and are referenced by
@@ -183,7 +185,7 @@ export interface GameState {
    * inventory (not shown in the office). New optional field; older saves default
    * to `{}` and are migrated on load (see repairDecorations).
    */
-  placements: Record<string, string>;
+  placements: Record<string, DecorationPlacement>;
   collections: {
     nuts: string[];
     outfits: string[];

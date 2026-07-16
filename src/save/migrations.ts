@@ -1,4 +1,5 @@
 import { SAVE_VERSION } from '../sim/config';
+import { defaultPlacement } from '../sim/surfaces';
 
 // Ordered migrations that transform a raw save object from an older version up
 // to the current SAVE_VERSION. Each migration takes the previous raw object and
@@ -52,11 +53,32 @@ const v4ToV5: Migration = (raw) => {
   return { ...raw, employees, version: 5 };
 };
 
+// v5 -> v6: decoration placements changed from a single anchor id (string) to a
+// positioned object { surface, x, y } (controlled free placement). Old placed
+// decorations are preserved and given a safe, spread-out fallback position on
+// their correct surface; unplaced (inventory) decorations are untouched.
+const v5ToV6: Migration = (raw) => {
+  const old = (raw.placements as Record<string, unknown>) ?? {};
+  const next: Record<string, { surface: string; x: number; y: number }> = {};
+  let i = 0;
+  for (const [id, val] of Object.entries(old)) {
+    if (val && typeof val === 'object' && 'surface' in (val as object)) {
+      next[id] = val as { surface: string; x: number; y: number };
+      continue;
+    }
+    // legacy string anchor (or anything else) -> default placement for the id
+    next[id] = defaultPlacement(id, i);
+    i += 1;
+  }
+  return { ...raw, placements: next, version: 6 };
+};
+
 const MIGRATIONS: Record<number, Migration> = {
   1: v1ToV2,
   2: v2ToV3,
   3: v3ToV4,
   4: v4ToV5,
+  5: v5ToV6,
 };
 
 export function migrate(raw: RawSave): RawSave {
