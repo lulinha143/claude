@@ -1,6 +1,7 @@
 import { BALANCE, geometricCost } from './config';
 import type { GameState, ProductionResult, ProductionBreakdownEntry } from './types';
 import { EMPLOYEES, EMPLOYEES_BY_ID } from '../content/employees';
+import { ROOMS } from '../content/rooms';
 import { UPGRADES_BY_ID } from '../content/upgrades';
 import type { EmployeeDef, UpgradeDef } from '../content/types';
 import { PRESTIGE_BRANCHES_BY_ID, PRESTIGE_SKILLS_BY_ID } from '../content/prestige';
@@ -113,6 +114,27 @@ export function moraleMultiplier(morale: number): number {
   const { min, baseCap, minMultiplier, maxMultiplier } = BALANCE.morale;
   const t = Math.max(0, Math.min(1, (morale - min) / (baseCap - min)));
   return minMultiplier + (maxMultiplier - minMultiplier) * t;
+}
+
+/** The current morale effect on production, as a signed whole percentage. */
+export function moraleProductionBonusPct(morale: number): number {
+  return Math.round((moraleMultiplier(morale) - 1) * 100);
+}
+
+/**
+ * The next reputation threshold that unlocks a new room or teammate, or null if
+ * everything gated by reputation is already unlocked. Used to tell the player
+ * exactly what their Reputation is working toward.
+ */
+export function nextReputationUnlock(state: GameState): number | null {
+  const cur = state.resources.reputation;
+  let next: number | null = null;
+  const consider = (rep?: number) => {
+    if (typeof rep === 'number' && rep > cur) next = next === null ? rep : Math.min(next, rep);
+  };
+  for (const r of ROOMS) consider(r.unlock.reputation);
+  for (const e of EMPLOYEES) consider(e.unlock.reputation);
+  return next;
 }
 
 export function upgradeGlobalMultiplier(state: GameState): number {

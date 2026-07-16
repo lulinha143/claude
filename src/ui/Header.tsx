@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { useGame } from '../state/hooks';
 import { useStore } from '../state/store';
 import { useFmt } from './useFmt';
+import { moraleProductionBonusPct, nextReputationUnlock } from '../sim/economy';
 import { Acorn, GoldenNut } from '../art/Icons';
 import { Icon } from '../art/UiIcon';
 import { AnimatedNumber } from './AnimatedNumber';
@@ -20,18 +21,45 @@ export function Header() {
   const nps = engine.productionPerSecond();
 
   // Rich, informative tooltips for every header element.
-  const tipRate = useTooltip(<TipContent title={t('tip.rate.t')} lines={[t('tip.rate.d'), `${fmt.num(nps)}/s`]} />);
+  const tipRate = useTooltip(
+    <TipContent title={t('tip.rate.t')} lines={[t('tip.rate.d'), t('tip.current', { value: `${fmt.num(nps)}/s` })]} />,
+  );
   const tipNuts = useTooltip(
-    <TipContent title={t('tip.nuts.t')} lines={[t('tip.nuts.d'), `${fmt.num(state.resources.nuts)}`]} />,
+    <TipContent
+      title={t('tip.nuts.t')}
+      lines={[t('tip.nuts.d'), t('tip.current', { value: fmt.num(state.resources.nuts) })]}
+    />,
   );
   const tipGolden = useTooltip(
-    <TipContent title={t('tip.golden.t')} lines={[t('tip.golden.d'), `${fmt.num(state.resources.goldenNuts)}`]} />,
+    <TipContent
+      title={t('tip.golden.t')}
+      lines={[t('tip.golden.d'), t('tip.current', { value: fmt.num(state.resources.goldenNuts) })]}
+    />,
   );
+  const moraleBonus = moraleProductionBonusPct(state.resources.morale);
   const tipMorale = useTooltip(
-    <TipContent title={t('tip.morale.t')} lines={[t('tip.morale.d'), `${Math.round(state.resources.morale)}%`]} />,
+    <TipContent
+      title={t('tip.morale.t')}
+      lines={[
+        t('tip.morale.d'),
+        t('tip.morale.impact', {
+          sign: moraleBonus >= 0 ? '+' : '',
+          pct: moraleBonus,
+        }),
+        t('tip.current', { value: `${Math.round(state.resources.morale)}%` }),
+      ]}
+    />,
   );
+  const nextRep = nextReputationUnlock(state);
   const tipRep = useTooltip(
-    <TipContent title={t('tip.reputation.t')} lines={[t('tip.reputation.d'), `${fmt.num(state.resources.reputation)}`]} />,
+    <TipContent
+      title={t('tip.reputation.t')}
+      lines={[
+        t('tip.reputation.d'),
+        nextRep !== null ? t('tip.reputation.next', { value: fmt.num(nextRep) }) : t('tip.reputation.maxed'),
+        t('tip.current', { value: fmt.num(state.resources.reputation) }),
+      ]}
+    />,
   );
   const tipQuiet = useTooltip(<TipContent title={t('tip.quiet.t')} lines={[t('tip.quiet.d')]} />);
   const tipMute = useTooltip(

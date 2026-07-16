@@ -54,9 +54,9 @@
   "tip": {
     "nuts": { "t": "Castanhas", "d": "Sua moeda principal. Ganha passivamente e ao coletar caixas. Gasta em melhorias, contratações e decorações." },
     "golden": { "t": "Castanhas Douradas", "d": "Moeda premium rara, de marcos e prestígio. Compra melhorias e habilidades poderosas." },
-    "morale": { "t": "Moral", "d": "A felicidade da equipe. Moral alta aumenta a produção; café, decorações e bons eventos elevam." },
-    "reputation": { "t": "Reputação", "d": "Cresce conforme você produz. Desbloqueia novas salas e novos colegas." },
-    "rate": { "t": "Produção", "d": "Castanhas produzidas por segundo em todas as salas agora." },
+    "morale": { "t": "Moral", "d": "A felicidade da equipe. Moral alta aumenta a produção; café, decorações e bons eventos elevam.", "impact": "{{sign}}{{pct}}% de produção agora" },
+    "reputation": { "t": "Reputação", "d": "Cresce conforme você produz. Desbloqueia novas salas e novos colegas.", "next": "Próximo desbloqueio em {{value}} de reputação", "maxed": "Todas as recompensas de reputação foram desbloqueadas" },
+    "rate": { "t": "Produção", "d": "Castanhas produzidas por segundo em todas as salas agora." }, "current": "Agora: {{value}}",
     "quiet": { "t": "Modo Silencioso", "d": "Suaviza som e animação para um jogo calmo e sem distração." },
     "friendship": "Cresce quando você conversa, dá café e mantém a equipe feliz. Mais amizade aumenta a produção.",
     "mood": "Como este colega se sente agora. As emoções ajustam um pouco a produção dele, para mais ou para menos.",
