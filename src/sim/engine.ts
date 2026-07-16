@@ -357,6 +357,7 @@ export class GameEngine {
     if (roomId !== null && !isRoomIdUnlocked(this.state, roomId)) return false;
     rt.room = roomId;
     this.emit();
+    this.save(); // a room move is a deliberate action — persist it immediately
     return true;
   }
 

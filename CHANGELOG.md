@@ -26,6 +26,11 @@ semantic versioning.
 
 ### Fixed
 
+- **Employee room assignments now persist immediately.** `assignEmployee` only
+  emitted before, relying on the 20s autosave, so a room move could be lost if
+  the app closed first. It now saves right away (brief §33 "save the new
+  assignment"). Verified by a real rendered drag-and-drop E2E test that moves a
+  teammate and confirms the placement survives a reload.
 - **Team (Employees) view no longer crashes on older saves.** It mapped over
   every employee definition and read `state.employees[id].level`; a save written
   before an employee was added (e.g. the second-wave animals) left that entry
