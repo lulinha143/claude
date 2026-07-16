@@ -22,6 +22,45 @@ import {
 } from './ipc';
 
 // ---------------------------------------------------------------------------
+// Startup logging + crash safety.
+// A packaged app must never die silently. Everything below writes to
+// <userData>/startup.log AND stdout (visible with --enable-logging), and the
+// global handlers stop an unhandled error from tearing the process down before
+// we can see why.
+// ---------------------------------------------------------------------------
+function logFile(): string {
+  try {
+    return path.join(app.getPath('userData'), 'startup.log');
+  } catch {
+    return path.join(app.getPath('temp'), 'wmno-startup.log');
+  }
+}
+
+function log(msg: string): void {
+  const line = `[${new Date().toISOString()}] ${msg}\n`;
+  try {
+    fs.mkdirSync(app.getPath('userData'), { recursive: true });
+    fs.appendFileSync(logFile(), line);
+  } catch {
+    /* logging must never throw */
+  }
+  try {
+    process.stdout.write(line);
+  } catch {
+    /* ignore */
+  }
+}
+
+process.on('uncaughtException', (err) => {
+  // Handling this prevents the default Node behaviour of exiting the process,
+  // so a stray error (e.g. a bad icon) can no longer kill the app on launch.
+  log(`uncaughtException: ${err && err.stack ? err.stack : String(err)}`);
+});
+process.on('unhandledRejection', (reason) => {
+  log(`unhandledRejection: ${reason instanceof Error ? reason.stack : String(reason)}`);
+});
+
+// ---------------------------------------------------------------------------
 // Single-instance lock: a desktop pet should never run twice.
 // ---------------------------------------------------------------------------
 const gotLock = app.requestSingleInstanceLock();
@@ -130,6 +169,9 @@ function createWindow(): void {
   const height = clamp(settings.height ?? scaled.height, MIN_HEIGHT, MAX_HEIGHT);
   const pos = settings.corner && settings.width == null ? cornerPosition(settings.corner) : undefined;
 
+  // Only pass a validated NativeImage; never an undefined/invalid path.
+  const appIcon = loadIconImage('icon.png');
+
   mainWindow = new BrowserWindow({
     width,
     height,
@@ -137,6 +179,7 @@ function createWindow(): void {
     minHeight: MIN_HEIGHT,
     x: pos?.x,
     y: pos?.y,
+    show: false, // shown on ready-to-show (with a safety fallback) to avoid a white flash
     frame: !settings.frameless,
     transparent: settings.frameless,
     backgroundColor: settings.frameless ? '#00000000' : '#2a2118',
@@ -147,7 +190,7 @@ function createWindow(): void {
     fullscreenable: true,
     skipTaskbar: false,
     alwaysOnTop: settings.alwaysOnTop,
-    icon: iconPath(),
+    ...(appIcon ? { icon: appIcon } : {}),
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
@@ -156,6 +199,32 @@ function createWindow(): void {
       webSecurity: true,
       spellcheck: false,
     },
+  });
+  log(`BrowserWindow created (icon=${appIcon ? 'set' : 'default'}).`);
+
+  // Reveal the window once it is ready; a fallback timer guarantees it is never
+  // stuck hidden even if 'ready-to-show' doesn't fire (transparent windows).
+  let shown = false;
+  const reveal = () => {
+    if (shown || !mainWindow) return;
+    shown = true;
+    mainWindow.show();
+    log('mainWindow shown.');
+  };
+  mainWindow.once('ready-to-show', reveal);
+  setTimeout(reveal, 2500);
+
+  // Diagnostics for renderer / process failures.
+  mainWindow.webContents.on('did-finish-load', () => log('renderer did-finish-load.'));
+  mainWindow.webContents.on('did-fail-load', (_e, code, desc, url) => {
+    log(`did-fail-load: code=${code} desc=${desc} url=${url}`);
+    reveal(); // still show the window so the failure is visible, not a silent close
+  });
+  mainWindow.webContents.on('render-process-gone', (_e, details) => {
+    log(`render-process-gone: ${JSON.stringify(details)}`);
+  });
+  mainWindow.webContents.on('preload-error', (_e, p, err) => {
+    log(`preload-error: ${p} — ${String(err)}`);
   });
 
   mainWindow.setAlwaysOnTop(settings.alwaysOnTop, 'screen-saver');
@@ -183,9 +252,12 @@ function createWindow(): void {
   mainWindow.on('unmaximize', persistBounds);
 
   if (isDev) {
-    void mainWindow.loadURL(process.env.WMNO_DEV_SERVER as string);
+    log(`loading dev server: ${process.env.WMNO_DEV_SERVER}`);
+    void mainWindow.loadURL(process.env.WMNO_DEV_SERVER as string).catch((e) => log(`loadURL failed: ${e}`));
   } else {
-    void mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+    const indexHtml = path.join(__dirname, '../dist/index.html');
+    log(`loading renderer file: ${indexHtml} (exists=${fs.existsSync(indexHtml)})`);
+    void mainWindow.loadFile(indexHtml).catch((e) => log(`loadFile failed: ${e}`));
   }
 
   mainWindow.on('focus', () => mainWindow?.webContents.send(IPC_EVENTS.focusChanged, true));
@@ -200,9 +272,56 @@ function createWindow(): void {
   });
 }
 
-function iconPath(): string | undefined {
-  const candidate = path.join(__dirname, '../build/icon.png');
-  return fs.existsSync(candidate) ? candidate : undefined;
+// ---------------------------------------------------------------------------
+// Icon resolution — robust in BOTH development and packaged builds.
+//   • Packaged: icons are shipped via electron-builder `extraResources`, so they
+//     live next to `process.resourcesPath` (NOT inside app.asar, NOT the cwd).
+//   • Dev / bundled: fall back to the repo `build/` dir relative to __dirname.
+// We verify the file exists and is a real file, and only ever hand Electron a
+// validated, non-empty NativeImage (never undefined/null/''/a dir/SVG/URL).
+// ---------------------------------------------------------------------------
+function iconCandidates(file: string): string[] {
+  const list: string[] = [];
+  if (app.isPackaged) {
+    list.push(path.join(process.resourcesPath, file)); // extraResources -> resources/<file>
+    list.push(path.join(process.resourcesPath, 'build', file));
+    list.push(path.join(__dirname, '..', 'build', file)); // if ever packed into asar
+  } else {
+    list.push(path.join(__dirname, '..', 'build', file)); // dist-electron/../build
+    list.push(path.join(process.cwd(), 'build', file));
+  }
+  return list;
+}
+
+function resolveIconPath(file: string): string | undefined {
+  for (const p of iconCandidates(file)) {
+    try {
+      if (fs.existsSync(p) && fs.statSync(p).isFile()) return p;
+    } catch {
+      /* keep looking */
+    }
+  }
+  return undefined;
+}
+
+/** A validated, non-empty NativeImage for `file`, or null if none is usable. */
+function loadIconImage(file: string): Electron.NativeImage | null {
+  const p = resolveIconPath(file);
+  if (!p) {
+    log(`icon not found: ${file} (searched: ${iconCandidates(file).join(', ')})`);
+    return null;
+  }
+  try {
+    const img = nativeImage.createFromPath(p);
+    if (img.isEmpty()) {
+      log(`icon loaded but empty (skipping): ${p}`);
+      return null;
+    }
+    return img;
+  } catch (err) {
+    log(`icon failed to load: ${p} — ${String(err)}`);
+    return null;
+  }
 }
 
 function toggleVisibility(): void {
@@ -236,13 +355,26 @@ function buildTrayMenu(): Menu {
 }
 
 function createTray(): void {
-  const img = iconPath()
-    ? nativeImage.createFromPath(iconPath() as string)
-    : nativeImage.createEmpty();
-  tray = new Tray(img);
-  tray.setToolTip('Working My Nuts Off!');
-  tray.setContextMenu(buildTrayMenu());
-  tray.on('click', () => toggleVisibility());
+  // A tray icon MUST be a valid, non-empty image. Passing an empty NativeImage
+  // (the old behaviour when no icon file existed) triggers the
+  // "Argument must be a file path or a NativeImage" warning and, on Windows,
+  // can throw during Tray construction — which was tearing the app down on
+  // launch. If we have no usable icon we simply skip the tray.
+  const img = loadIconImage('tray.png') ?? loadIconImage('icon.png');
+  if (!img) {
+    log('No valid tray icon available — skipping tray creation (app still runs).');
+    return;
+  }
+  try {
+    tray = new Tray(img);
+    tray.setToolTip('Working My Nuts Off!');
+    tray.setContextMenu(buildTrayMenu());
+    tray.on('click', () => toggleVisibility());
+    log('Tray created.');
+  } catch (err) {
+    log(`Tray creation failed (continuing without a tray): ${String(err)}`);
+    tray = null;
+  }
 }
 
 function detectSteamDeck(): boolean {
@@ -340,18 +472,47 @@ app.on('second-instance', () => {
   }
 });
 
+// Surface GPU/renderer/utility child-process failures instead of dying quietly.
+app.on('child-process-gone', (_e, details) => log(`child-process-gone: ${JSON.stringify(details)}`));
+app.on('render-process-gone', (_e, _wc, details) => log(`render-process-gone (app): ${JSON.stringify(details)}`));
+
 app.whenReady().then(() => {
-  hardenSession();
-  registerIpc();
-  createWindow();
-  createTray();
+  log(
+    `app ready. isPackaged=${app.isPackaged} version=${app.getVersion()} ` +
+      `resourcesPath=${process.resourcesPath} __dirname=${__dirname}`,
+  );
+  try {
+    hardenSession();
+    registerIpc();
+    createWindow(); // create the window FIRST so a later failure can't leave us window-less
+    try {
+      createTray();
+    } catch (err) {
+      log(`createTray threw (continuing): ${String(err)}`);
+    }
 
-  // Global hotkey to show/hide the companion.
-  globalShortcut.register('CommandOrControl+Shift+N', () => toggleVisibility());
+    // Global hotkey to show/hide the companion (non-fatal if it fails).
+    try {
+      globalShortcut.register('CommandOrControl+Shift+N', () => toggleVisibility());
+    } catch (err) {
+      log(`globalShortcut register failed: ${String(err)}`);
+    }
 
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
-  });
+    app.on('activate', () => {
+      if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    });
+    log('startup complete.');
+  } catch (err) {
+    log(`FATAL during startup: ${err instanceof Error ? err.stack : String(err)}`);
+    // Make sure a window exists so the app doesn't vanish silently.
+    if (!mainWindow) {
+      try {
+        createWindow();
+      } catch (err2) {
+        log(`recovery createWindow failed: ${String(err2)}`);
+      }
+    }
+  }
 });
 
 app.on('window-all-closed', () => {

@@ -51,6 +51,34 @@ semantic versioning.
 
 ### Fixed
 
+- **Packaged Windows executable no longer opens and closes within a second.**
+  Root cause: the repo shipped **no icon files at all** and electron-builder had
+  **no `win.icon`**, so `iconPath()` never resolved and `createTray()` fell back
+  to `new Tray(nativeImage.createEmpty())`. An empty NativeImage triggers the
+  `electron_api_native_image.cc … "Argument must be a file path or a NativeImage"`
+  warning and, on Windows, throws during Tray construction inside the
+  `whenReady().then()` chain — an unhandled rejection that tore the process down
+  on launch. Fixes:
+  - Added real, on-brand acorn icons: `build/icon.ico` (multi-size, embedded in
+    the exe via `win.icon`), `build/icon.png` (app) and `build/tray.png` (tray),
+    shipped to the packaged app via electron-builder `extraResources`.
+  - Rewrote icon resolution to be dev/packaged-aware (`process.resourcesPath`
+    when packaged, `build/` in dev), verifying the path exists and is a real file
+    and only ever handing Electron a **validated non-empty `NativeImage`** (never
+    undefined/''/a dir/SVG/URL). The window `icon` is omitted if none is usable.
+  - `createTray()` now skips (never crashes) when no valid icon exists, wrapped
+    in try/catch.
+  - Added `uncaughtException` / `unhandledRejection` / `render-process-gone` /
+    `child-process-gone` / `did-fail-load` / `preload-error` handlers and a
+    startup log at `<userData>/startup.log` (+ stdout), so the app can never quit
+    silently on a startup error.
+  - Window is created with `show:false` and revealed on `ready-to-show` (with a
+    2.5s safety fallback); `whenReady` startup is wrapped in try/catch.
+  - Verified by running the built main **and a packaged build** headlessly under
+    Xvfb: the app stays alive and the log shows `BrowserWindow created (icon=set)`
+    → renderer `did-finish-load` → `mainWindow shown`. Packaged asar contains
+    `dist/index.html`; `resources/icon.png` + `tray.png` are present.
+
 - **The visible header speaker button is now a real Master Mute** (brief §18/§19).
   Root cause: that button was wired to **Quiet Mode**, which only attenuates the
   master to 25% — so it never actually silenced the game. It now toggles

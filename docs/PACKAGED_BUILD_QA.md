@@ -3,8 +3,26 @@
 Print this and tick every box on the **packaged** `.exe` (from
 `release\win-unpacked\`), with the dev server NOT running, before any release.
 
+## Startup diagnostics (if the app won't stay open)
+- The main process writes a **startup log** to
+  `%APPDATA%\Working My Nuts Off!\startup.log` (and to stdout with
+  `--enable-logging`). A healthy launch logs, in order:
+  `app ready … isPackaged=true` → `BrowserWindow created (icon=set)` →
+  `loading renderer file: …\app.asar\dist\index.html (exists=true)` →
+  `Tray created.` → `startup complete.` → `renderer did-finish-load.` →
+  `mainWindow shown.`
+- Icons ship via electron-builder `extraResources` to
+  `release\win-unpacked\resources\icon.png` and `tray.png`; the exe icon is
+  embedded from `build\icon.ico` (`win.icon`). A missing/invalid icon must never
+  crash — the tray is skipped and the window icon falls back to the default.
+- `uncaughtException` / `unhandledRejection` / `render-process-gone` /
+  `did-fail-load` are all logged; the app will not quit silently on a startup
+  error.
+
 ## Launch & basics
 - [ ] `Working My Nuts Off!.exe` opens with no error dialog
+- [ ] The window stays open (does NOT flash open then close within ~1s)
+- [ ] `startup.log` ends with `mainWindow shown.` and shows `icon=set`
 - [ ] No blank/white window; the office appears
 - [ ] No white flash on startup; transparent edges look clean
 - [ ] No dev server or internet connection required
