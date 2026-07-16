@@ -60,6 +60,7 @@
     "quiet": { "t": "Modo Silencioso", "d": "Suaviza som e animação para um jogo calmo e sem distração." },
     "friendship": "Cresce quando você conversa, dá café e mantém a equipe feliz. Mais amizade aumenta a produção.",
     "mood": "Como este colega se sente agora. As emoções ajustam um pouco a produção dele, para mais ou para menos.",
+    "mute": { "d": "Silencia (ou restaura) instantaneamente toda a música, ambiência e efeitos sonoros." },
     "nav": {
       "office": "Seu escritório aconchegante e a equipe trabalhando.",
       "shop": "Compre melhorias para crescer produção e automação.",
@@ -917,6 +918,8 @@
     "corner": "Canto da tela",
     "scale": "Escala da janela",
     "quietMode": "Modo Silencioso",
+    "muteAll": "Silenciar tudo",
+    "unmuteAll": "Reativar som",
     "launchOnStartup": "Abrir ao iniciar o sistema",
     "batterySaver": "Modo economia de bateria",
     "hideToTray": "Esconder na bandeja",

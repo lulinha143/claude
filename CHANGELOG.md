@@ -26,6 +26,17 @@ semantic versioning.
 
 ### Fixed
 
+- **The visible header speaker button is now a real Master Mute** (brief §18/§19).
+  Root cause: that button was wired to **Quiet Mode**, which only attenuates the
+  master to 25% — so it never actually silenced the game. It now toggles
+  `masterMuted` (authoritative: every bus hard-cut to 0, and `play()` refuses new
+  sounds), applies instantly, persists immediately, and shows a distinct
+  **muted** icon (speaker-with-slash, red) vs **unmuted** (speaker), with
+  localized "Mute all audio" / "Unmute audio" tooltip + `aria-pressed`. Quiet
+  Mode remains as a separate button. Proven by a rendered-interface E2E
+  (`tests/e2e/mute.spec.ts`): clicks the actual button, asserts every effective
+  bus reaches 0, a sound started while muted stays silent, the state persists
+  across reload, and unmute restores the buses.
 - **Employee room assignments now persist immediately.** `assignEmployee` only
   emitted before, relying on the 20s autosave, so a room move could be lost if
   the app closed first. It now saves right away (brief §33 "save the new

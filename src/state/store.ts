@@ -16,6 +16,13 @@ import { ACHIEVEMENTS_BY_ID } from '../content/achievements';
 import { notify } from '../ui/notificationsStore';
 import i18n from '../i18n';
 
+// Read-only audio diagnostics hook so end-to-end tests can verify the REAL
+// rendered mute button actually drives every audio bus to zero (not just the
+// AudioManager methods in isolation). Harmless: exposes only effective gains.
+if (typeof window !== 'undefined') {
+  (window as unknown as { __wmnoAudioDiag?: () => unknown }).__wmnoAudioDiag = () => audio.getDiagnostics();
+}
+
 export type ViewId =
   | 'office'
   | 'shop'
@@ -70,12 +77,14 @@ interface StoreState {
   finishOpening: () => void;
   photoMode: boolean;
   quietMode: boolean;
+  masterMuted: boolean;
   recovered: boolean;
 
   setView: (v: ViewId) => void;
   dismissOffline: () => void;
   setPhotoMode: (v: boolean) => void;
   setQuietMode: (v: boolean) => void;
+  toggleMute: () => void;
   finishOnboarding: () => void;
   replayOnboarding: () => void;
 
@@ -104,6 +113,7 @@ export const useStore = create<StoreState>((set) => {
     finishOpening: () => set({ showOpening: false }),
     photoMode: false,
     quietMode: engine.state.settings.quietMode,
+    masterMuted: engine.state.settings.masterMuted,
     recovered: loaded.recoveredFromBackup,
 
     setView: (v) => set({ view: v }),
@@ -113,6 +123,16 @@ export const useStore = create<StoreState>((set) => {
       engine.updateSettings({ quietMode: v });
       audio.setFlags({ quiet: v });
       set({ quietMode: v });
+    },
+    // The visible header speaker button = real Master Mute. Applies to the audio
+    // engine immediately and persists right away (a deliberate, must-survive
+    // action), so a new session restores it.
+    toggleMute: () => {
+      const v = !engine.state.settings.masterMuted;
+      engine.updateSettings({ masterMuted: v });
+      audio.setFlags({ muted: v });
+      engine.save();
+      set({ masterMuted: v });
     },
     finishOnboarding: () => {
       engine.markOnboardingComplete();

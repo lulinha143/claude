@@ -13,6 +13,8 @@ export function Header() {
   const fmt = useFmt();
   const quiet = useStore((s) => s.quietMode);
   const setQuiet = useStore((s) => s.setQuietMode);
+  const muted = useStore((s) => s.masterMuted);
+  const toggleMute = useStore((s) => s.toggleMute);
   const reduced = state.settings.reducedMotion;
   const nps = engine.productionPerSecond();
 
@@ -31,6 +33,9 @@ export function Header() {
     <TipContent title={t('tip.reputation.t')} lines={[t('tip.reputation.d'), `${fmt.num(state.resources.reputation)}`]} />,
   );
   const tipQuiet = useTooltip(<TipContent title={t('tip.quiet.t')} lines={[t('tip.quiet.d')]} />);
+  const tipMute = useTooltip(
+    <TipContent title={muted ? t('office.unmuteAll') : t('office.muteAll')} lines={[t('tip.mute.d')]} />,
+  );
 
   return (
     <header className="header">
@@ -58,13 +63,23 @@ export function Header() {
           <span className="tabular">{fmt.num(state.resources.reputation)}</span>
         </div>
         <button
+          className={`mute-toggle ${muted ? 'is-muted' : ''}`}
+          onClick={toggleMute}
+          aria-pressed={muted}
+          aria-label={muted ? t('office.unmuteAll') : t('office.muteAll')}
+          data-testid="mute-toggle"
+          {...tipMute}
+        >
+          <Icon name={muted ? 'mute' : 'sound'} size={18} />
+        </button>
+        <button
           className={`quiet-toggle ${quiet ? 'is-on' : ''}`}
           onClick={() => setQuiet(!quiet)}
           aria-pressed={quiet}
           aria-label={t('office.quietMode')}
           {...tipQuiet}
         >
-          <Icon name={quiet ? 'quiet' : 'sound'} size={18} />
+          <Icon name={quiet ? 'quiet' : 'music'} size={18} />
         </button>
       </div>
     </header>

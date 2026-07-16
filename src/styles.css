@@ -176,6 +176,29 @@ h4 {
 .quiet-toggle.is-on {
   color: var(--amber);
 }
+.mute-toggle {
+  background: rgba(0, 0, 0, 0.3);
+  border: none;
+  color: var(--cream);
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
+}
+.mute-toggle:hover {
+  background: rgba(0, 0, 0, 0.45);
+}
+.mute-toggle.is-muted {
+  color: var(--negative);
+  background: color-mix(in srgb, var(--negative) 22%, rgba(0, 0, 0, 0.3));
+}
+.mute-toggle:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
 
 /* ------- nav ------- */
 .nav {

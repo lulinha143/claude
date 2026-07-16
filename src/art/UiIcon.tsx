@@ -21,6 +21,7 @@ export type IconName =
   | 'focus'
   | 'quiet'
   | 'sound'
+  | 'mute'
   | 'music'
   | 'ambience'
   | 'sfx'
@@ -153,6 +154,13 @@ const PATHS: Record<IconName, JSX.Element> = {
     <>
       <path d="M4 9h4l5-4v14l-5-4H4Z" />
       <path d="M16 9a4 4 0 0 1 0 6" />
+      <path d="M18.5 7a7 7 0 0 1 0 10" strokeWidth="1.6" />
+    </>
+  ),
+  mute: (
+    <>
+      <path d="M4 9h4l5-4v14l-5-4H4Z" />
+      <path d="M16.5 9.5l5 5M21.5 9.5l-5 5" strokeWidth="1.8" />
     </>
   ),
   music: (
