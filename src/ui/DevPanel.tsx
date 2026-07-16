@@ -84,8 +84,12 @@ export function DevPanel() {
   const rooms = unlockedRooms(state).length;
   const now = Date.now();
   const activeCooldowns = Object.values(state.eventCooldowns).filter((c) => c > now).length;
-  const v = state.settings.volumes;
-  const m = state.settings.channelMuted;
+  // Live audio-bus diagnostics straight from the AudioManager (refreshes with
+  // the ~1 Hz FPS tick while the panel is open). Every value drops to 0 the
+  // instant Master Mute is engaged, which makes the routing verifiable at a
+  // glance.
+  const diag = audio.getDiagnostics();
+  const g2 = (n: number) => n.toFixed(2);
 
   const rows: [string, string][] = [
     [t('dev.version'), '1.0.0'],
@@ -103,12 +107,12 @@ export function DevPanel() {
     [t('dev.missingKeys'), `${i18n.language}: ${missing}`],
     [
       t('dev.audio'),
-      `M${Math.round(v.master * 100)} ` +
-        `mu${m.music ? 'x' : Math.round(v.music * 100)} ` +
-        `am${m.ambience ? 'x' : Math.round(v.ambience * 100)} ` +
-        `ui${m.ui ? 'x' : Math.round(v.ui * 100)} ` +
-        `sfx${m.sfx ? 'x' : Math.round(v.sfx * 100)}`,
+      `mst ${g2(diag.masterGain)}${diag.flags.muted ? ' (MUTED)' : ''} · ` +
+        `mus ${g2(diag.buses.music)} · am ${g2(diag.buses.ambience)} · ` +
+        `ui ${g2(diag.buses.ui)} · sfx ${g2(diag.buses.sfx)}`,
     ],
+    [t('dev.audioCtx'), `${diag.contextState}${diag.started ? ' · playing' : ''}`],
+    [t('dev.audioSources'), String(diag.activeSources)],
   ];
 
   return (

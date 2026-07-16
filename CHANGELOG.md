@@ -31,6 +31,18 @@ semantic versioning.
   (`cablePuzzle` / `segmentsCross` / `countCrossings` / `cableSolved`) are
   unit-tested.
 
+- **Centralized the audio bus graph and made Master Mute instant** (brief §13).
+  UI and SFX now flow through dedicated `uiGain` / `sfxGain` bus nodes (like the
+  music/ambience beds) instead of connecting straight to master and scaling gain
+  per-note — so channel volume and per-channel mute are enforced at the bus node.
+  Master Mute now **hard-cuts** every bus (`cancelScheduledValues` +
+  `setValueAtTime(0)`) instead of fading, so it silences anything already ringing
+  out immediately; unmuting ramps back and never erases stored volumes. Added
+  live developer diagnostics via `audio.getDiagnostics()` (AudioContext state,
+  per-bus effective gain, and a live active-source count tracked on
+  `start`/`ended`), surfaced in the Dev Panel. Documented in `docs/AUDIO_SYSTEM.md`
+  and covered by new headless `AudioManager` tests.
+
 ### Added
 
 - **Copyright-free procedural music + office ambience** (`src/audio/audio.ts`):

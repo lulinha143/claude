@@ -96,14 +96,35 @@ const PROGRESSIONS: number[][][] = [
 const PENTATONIC = [261.63, 293.66, 329.63, 392.0, 440.0, 523.25, 587.33, 659.25];
 const BEAT = 0.82; // seconds per beat (~73 bpm)
 
+export interface AudioDiagnostics {
+  /** 'none' before the context exists, else the AudioContext.state. */
+  contextState: string;
+  started: boolean;
+  flags: AudioFlags;
+  /** effective master gain (0 while muted). */
+  masterGain: number;
+  /** effective per-bus gain (0 while master- or channel-muted). */
+  buses: Record<AudioChannel, number>;
+  /** number of currently-live oscillators/sources routed through the graph. */
+  activeSources: number;
+}
+
 export class AudioManager {
   private ctx: AudioContext | null = null;
   private master: GainNode | null = null;
   private musicGain: GainNode | null = null;
   private ambienceGain: GainNode | null = null;
+  // Dedicated buses for interface + sound-effects so EVERY sound flows through a
+  // named bus node (not just per-note math): channel volume and per-channel mute
+  // are enforced at the node, and master mute at the master node silences them
+  // all at once.
+  private uiGain: GainNode | null = null;
+  private sfxGain: GainNode | null = null;
   private humSource: AudioBufferSourceNode | null = null;
   private volumes: AudioVolumes = { master: 0.8, music: 0.4, ambience: 0.5, ui: 0.8, sfx: 0.8 };
   private flags: AudioFlags = { muted: false, quiet: false, focus: false };
+  /** live count of scheduled oscillators/sources, for dev diagnostics. */
+  private activeSources = 0;
 
   private limiter: DynamicsCompressorNode | null = null;
   private channelMuted = { music: false, ambience: false, ui: false, sfx: false };
@@ -138,9 +159,39 @@ export class AudioManager {
       this.musicGain.connect(this.master);
       this.ambienceGain = this.ctx.createGain();
       this.ambienceGain.connect(this.master);
+      this.uiGain = this.ctx.createGain();
+      this.uiGain.connect(this.master);
+      this.sfxGain = this.ctx.createGain();
+      this.sfxGain.connect(this.master);
       this.applyGains();
     }
     void this.ctx?.resume();
+  }
+
+  /** Register a scheduled source so diagnostics can report live source count. */
+  private track(node: AudioScheduledSourceNode): void {
+    this.activeSources += 1;
+    node.addEventListener('ended', () => {
+      this.activeSources = Math.max(0, this.activeSources - 1);
+    });
+  }
+
+  /** Live audio-bus diagnostics for the developer panel. Works headless (no
+   *  Web Audio context) by reporting the effective gains from the pure math. */
+  getDiagnostics(): AudioDiagnostics {
+    return {
+      contextState: this.ctx?.state ?? 'none',
+      started: this.started,
+      flags: { ...this.flags },
+      masterGain: this.effectiveMaster(),
+      buses: {
+        music: channelGain('music', this.volumes, this.flags, this.channelMuted),
+        ambience: channelGain('ambience', this.volumes, this.flags, this.channelMuted),
+        ui: channelGain('ui', this.volumes, this.flags, this.channelMuted),
+        sfx: channelGain('sfx', this.volumes, this.flags, this.channelMuted),
+      },
+      activeSources: this.activeSources,
+    };
   }
 
   setVolumes(v: AudioVolumes): void {
@@ -165,14 +216,30 @@ export class AudioManager {
   private applyGains(): void {
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
-    // Master mute drives the master node to 0, which alone silences music,
-    // ambience and every SFX (all route through it). We also zero the per-
-    // channel beds so nothing lingers.
-    this.master?.gain.setTargetAtTime(this.effectiveMaster(), t, 0.05);
+    const master = this.effectiveMaster();
     const music = channelGain('music', this.volumes, this.flags, this.channelMuted);
     const ambience = channelGain('ambience', this.volumes, this.flags, this.channelMuted);
-    this.musicGain?.gain.setTargetAtTime(music, t, 0.4);
-    this.ambienceGain?.gain.setTargetAtTime(ambience, t, 0.4);
+    const ui = channelGain('ui', this.volumes, this.flags, this.channelMuted);
+    const sfx = channelGain('sfx', this.volumes, this.flags, this.channelMuted);
+
+    // Master mute must be INSTANT: hard-cut the master node to 0 immediately so
+    // any sound already ringing out is silenced the moment the button is hit.
+    // (Every bus — music, ambience, ui, sfx — routes through master, so this one
+    // node silences the entire game.) Unmuting ramps smoothly back up.
+    const setBus = (node: GainNode | null, value: number, tau: number) => {
+      if (!node) return;
+      if (this.flags.muted || value <= 0) {
+        node.gain.cancelScheduledValues(t);
+        node.gain.setValueAtTime(0, t);
+      } else {
+        node.gain.setTargetAtTime(value, t, tau);
+      }
+    };
+    setBus(this.master, master, 0.05);
+    setBus(this.musicGain, music, 0.3);
+    setBus(this.ambienceGain, ambience, 0.3);
+    setBus(this.uiGain, ui, 0.02);
+    setBus(this.sfxGain, sfx, 0.02);
   }
 
   /** Starts the music + ambience beds (idempotent). Named startAmbience for
@@ -229,6 +296,7 @@ export class AudioManager {
     const g = this.ctx.createGain();
     g.gain.value = 0.12;
     src.connect(lp).connect(g).connect(this.ambienceGain);
+    this.track(src);
     src.start();
     this.humSource = src;
   }
@@ -292,6 +360,7 @@ export class AudioManager {
       g.gain.linearRampToValueAtTime(0.12, time + 0.4);
       g.gain.linearRampToValueAtTime(0.0001, time + BEAT * 4);
       osc.connect(g).connect(this.musicGain);
+      this.track(osc);
       osc.start(time);
       osc.stop(time + BEAT * 4 + 0.05);
     }
@@ -307,6 +376,7 @@ export class AudioManager {
     g.gain.linearRampToValueAtTime(vol, time + 0.02);
     g.gain.exponentialRampToValueAtTime(0.0001, time + 0.6);
     osc.connect(g).connect(this.musicGain);
+    this.track(osc);
     osc.start(time);
     osc.stop(time + 0.65);
   }
@@ -325,6 +395,7 @@ export class AudioManager {
     g.gain.linearRampToValueAtTime(0.11 * vol, time + 0.05);
     g.gain.exponentialRampToValueAtTime(0.0001, time + BEAT * 1.8);
     osc.connect(g).connect(lp).connect(this.musicGain);
+    this.track(osc);
     osc.start(time);
     osc.stop(time + BEAT * 1.8 + 0.05);
   }
@@ -377,6 +448,7 @@ export class AudioManager {
     g.gain.linearRampToValueAtTime(0.06, time + 0.004);
     g.gain.exponentialRampToValueAtTime(0.0001, time + 0.03);
     osc.connect(g).connect(this.ambienceGain);
+    this.track(osc);
     osc.start(time);
     osc.stop(time + 0.05);
   }
@@ -392,6 +464,7 @@ export class AudioManager {
     g.gain.linearRampToValueAtTime(vol, time + 0.03);
     g.gain.exponentialRampToValueAtTime(0.0001, time + dur);
     osc.connect(g).connect(this.ambienceGain);
+    this.track(osc);
     osc.start(time);
     osc.stop(time + dur + 0.05);
   }
@@ -410,17 +483,20 @@ export class AudioManager {
     const g = this.ctx.createGain();
     g.gain.value = vol;
     src.connect(bp).connect(g).connect(this.ambienceGain);
+    this.track(src);
     src.start(time);
   }
 
   // -- SFX ------------------------------------------------------------------
   play(name: SfxName): void {
-    if (!this.ctx || !this.master || this.flags.muted) return;
     const isUi = name === 'click' || name === 'error';
-    // Uses the shared pure gain math so master mute / channel mute / sliders
-    // behave identically to the beds (limiter guards the peaks).
-    const ch = channelGain(isUi ? 'ui' : 'sfx', this.volumes, this.flags, this.channelMuted);
-    if (ch <= 0) return;
+    const bus = isUi ? this.uiGain : this.sfxGain;
+    // Master mute is checked here AND enforced at the master node; the per-note
+    // sound routes through its bus (uiGain/sfxGain), so channel volume + channel
+    // mute are applied at the bus and master mute silences it at the master.
+    if (!this.ctx || !bus || this.flags.muted) return;
+    // Skip creating nodes entirely when the channel is silent (CPU saving).
+    if (channelGain(isUi ? 'ui' : 'sfx', this.volumes, this.flags, this.channelMuted) <= 0) return;
     const now = this.ctx.currentTime;
 
     const beep = (
@@ -431,16 +507,17 @@ export class AudioManager {
       vol = 0.3,
       slideTo?: number,
     ) => {
-      if (!this.ctx || !this.master) return;
+      if (!this.ctx || !bus) return;
       const osc = this.ctx.createOscillator();
       const g = this.ctx.createGain();
       osc.type = type;
       osc.frequency.setValueAtTime(freq, now + startAt);
       if (slideTo) osc.frequency.exponentialRampToValueAtTime(slideTo, now + startAt + dur);
       g.gain.setValueAtTime(0.0001, now + startAt);
-      g.gain.exponentialRampToValueAtTime(vol * ch, now + startAt + 0.01);
+      g.gain.exponentialRampToValueAtTime(vol, now + startAt + 0.01);
       g.gain.exponentialRampToValueAtTime(0.0001, now + startAt + dur);
-      osc.connect(g).connect(this.master);
+      osc.connect(g).connect(bus);
+      this.track(osc);
       osc.start(now + startAt);
       osc.stop(now + startAt + dur + 0.02);
     };
