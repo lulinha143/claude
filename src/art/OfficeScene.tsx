@@ -13,6 +13,7 @@ import { shapeFor } from './critterShapes';
 import { Acorn, Crate } from './Icons';
 import { Icon } from './UiIcon';
 import { DecorationProp, decorKind } from './DecorationProp';
+import { RoomDressing } from './RoomDressing';
 import {
   placedDecorationsInRoom,
   freeAnchorsInRoom,
@@ -513,6 +514,9 @@ export function OfficeScene() {
               </div>
 
               <div className={`floor__stage ${canDropHere ? 'floor__stage--dropping' : ''}`}>
+                {/* built-in room identity (window, rug, department fixture) */}
+                <RoomDressing roomId={room.id} />
+
                 {/* the workbench fills out as the team grows */}
                 <RoomFurniture count={occupants.length} tint={DEPT[room.id] ?? 'var(--dept-founder)'} />
 

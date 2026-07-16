@@ -19,6 +19,18 @@ semantic versioning.
   count-based achievement are mode-agnostic). Remaining games: Coffee Rescue,
   Bug Squash, Cable Untangle Desk.
 
+### Added — built-in room identity
+
+- **Every room now has built-in office dressing** (brief §3/§4), so empty rooms
+  no longer look like blank cream rectangles. A new `RoomDressing` component
+  draws, behind the characters, a framed **wall window**, a soft
+  department-tinted **floor rug**, and one **department fixture** — a book shelf
+  (Founder), coffee counter (Morale), filing cabinet (Procurement/Vault), lab
+  bench (Lab/Research), campaign board (Marketing/Meeting), pegboard tool wall
+  (Construction), pipes (Basement), or a leafy plant (Nap/Rooftop). Pure SVG/CSS
+  in the cohesive style, tinted by the room's `--dept` accent; these do not
+  consume the player's decoration inventory. Screenshot-inspected across rooms.
+
 ### Changed — Office diorama redesign
 
 - **Rebuilt the central Office scene into cohesive illustrated dioramas** (brief
