@@ -78,11 +78,13 @@ interface StoreState {
   photoMode: boolean;
   quietMode: boolean;
   masterMuted: boolean;
+  batterySaver: boolean;
   recovered: boolean;
 
   setView: (v: ViewId) => void;
   dismissOffline: () => void;
   setPhotoMode: (v: boolean) => void;
+  setBatterySaver: (v: boolean) => void;
   setQuietMode: (v: boolean) => void;
   toggleMute: () => void;
   finishOnboarding: () => void;
@@ -114,11 +116,13 @@ export const useStore = create<StoreState>((set) => {
     photoMode: false,
     quietMode: engine.state.settings.quietMode,
     masterMuted: engine.state.settings.masterMuted,
+    batterySaver: false,
     recovered: loaded.recoveredFromBackup,
 
     setView: (v) => set({ view: v }),
     dismissOffline: () => set({ offlineResult: null }),
     setPhotoMode: (v) => set({ photoMode: v }),
+    setBatterySaver: (v) => set({ batterySaver: v }),
     setQuietMode: (v) => {
       engine.updateSettings({ quietMode: v });
       audio.setFlags({ quiet: v });

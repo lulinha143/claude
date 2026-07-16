@@ -18,12 +18,16 @@ export function SettingsView() {
   const replayOnboarding = useStore((s) => s.replayOnboarding);
   const hardReset = useStore((s) => s.hardReset);
   const importSave = useStore((s) => s.importSave);
+  const setBatterySaver = useStore((s) => s.setBatterySaver);
   const [win, setWin] = useState<WindowSettings | null>(null);
   const [confirmReset, setConfirmReset] = useState(false);
 
   useEffect(() => {
-    void platform.getWindowSettings().then(setWin);
-  }, [platform]);
+    void platform.getWindowSettings().then((w) => {
+      setWin(w);
+      setBatterySaver(!!w.batterySaver); // mirror into the store so ambient can react
+    });
+  }, [platform, setBatterySaver]);
 
   const s = state.settings;
   function set(patch: Partial<typeof s>) {
@@ -67,6 +71,7 @@ export function SettingsView() {
   async function updateWin(patch: Partial<WindowSettings>) {
     const next = await platform.setWindowSettings(patch);
     setWin(next);
+    if ('batterySaver' in patch) setBatterySaver(!!next.batterySaver);
   }
 
   function changeLanguage(lang: string) {

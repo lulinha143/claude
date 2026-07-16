@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStore, startGameLoop, getGameState, type ViewId } from './state/store';
+import { ambientState } from './art/ambient';
 import { useGame } from './state/hooks';
 import { Header } from './ui/Header';
 import { NavBar } from './ui/NavBar';
@@ -51,6 +52,7 @@ export function App() {
   const audio = useStore((s) => s.audio);
   const setQuiet = useStore((s) => s.setQuietMode);
   const photoMode = useStore((s) => s.photoMode);
+  const batterySaver = useStore((s) => s.batterySaver);
 
   // Start the sim loop once.
   useEffect(() => {
@@ -73,6 +75,20 @@ export function App() {
     audio.setFlags({ muted: s.masterMuted, quiet: s.quietMode, focus: state.focus.active });
     audio.setChannelMutes(s.channelMuted);
   }, [state.settings, state.focus.active, view, audio]);
+
+  // Throttle the office's decorative ambient life: pause it while the window is
+  // hidden/minimized, in battery-saver mode, or when reduced motion is on. The
+  // stylesheet keys off `data-ambient` to stop the cheap looping effects.
+  useEffect(() => {
+    const root = document.documentElement;
+    const reduced = state.settings.reducedMotion || state.settings.quietMode;
+    const apply = () => {
+      root.dataset.ambient = ambientState({ hidden: document.hidden, batterySaver, reducedMotion: reduced });
+    };
+    apply();
+    document.addEventListener('visibilitychange', apply);
+    return () => document.removeEventListener('visibilitychange', apply);
+  }, [batterySaver, state.settings.reducedMotion, state.settings.quietMode]);
 
   // Keep i18n in sync with the saved language on boot.
   useEffect(() => {

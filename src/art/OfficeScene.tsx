@@ -517,7 +517,13 @@ export function OfficeScene() {
                 </span>
               </div>
               <div className={`floor__ambient floor__ambient--${AMBIENT[room.id] ?? 'dust'}`} aria-hidden>
-                {reducedMotion ? null : <span className="floor__dust" />}
+                {reducedMotion ? null : (
+                  <>
+                    <span className="floor__dust" />
+                    <span className="floor__dust floor__dust--2" />
+                    <span className="floor__dust floor__dust--3" />
+                  </>
+                )}
               </div>
 
               <div className={`floor__stage ${canDropHere ? 'floor__stage--dropping' : ''}`}>

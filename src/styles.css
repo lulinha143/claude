@@ -564,6 +564,39 @@ h4 {
 @keyframes pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
 @keyframes drip { 0%, 70% { box-shadow: 0 2px 0 0 transparent; } 85% { box-shadow: 0 6px 0 0 var(--dept-lab); } 100% { box-shadow: 0 12px 0 0 transparent; } }
 @keyframes float-dust { 0%, 100% { transform: translateY(0); opacity: 0.2; } 50% { transform: translateY(-8px); opacity: 0.7; } }
+/* A couple more motes drifting in the light, staggered so the air feels alive
+   without being busy. Positions/timings differ; all pause with the rest. */
+.floor__dust--2 {
+  right: auto;
+  left: 26%;
+  top: 8px;
+  width: 2px;
+  height: 2px;
+  animation-duration: 5.6s;
+  animation-delay: 1.3s;
+  opacity: 0.4;
+}
+.floor__dust--3 {
+  right: auto;
+  left: 62%;
+  top: 5px;
+  width: 2.5px;
+  height: 2.5px;
+  animation-duration: 6.4s;
+  animation-delay: 2.6s;
+  opacity: 0.35;
+}
+/* Ambient throttle: when the window is hidden/minimized, in battery-saver mode,
+   or under reduced motion, stop the cheap looping office life to save power. */
+[data-ambient='paused'] .floor__dust,
+[data-ambient='paused'] .floor__ambient::before,
+[data-ambient='paused'] .decor__bubble,
+[data-ambient='paused'] .decor__leaf,
+[data-ambient='paused'] .decor__spin,
+[data-ambient='paused'] .critter__eyes,
+[data-ambient='paused'] .critter__shadow {
+  animation-play-state: paused !important;
+}
 .critter-btn {
   position: absolute;
   bottom: 0;
