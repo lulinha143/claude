@@ -769,7 +769,7 @@
   },
   "overview": {
     "workers": "{{count}} working here",
-    "comfort": "Room comfort +{{value}}",
+    "comfort": "Room comfort +{{value}}", "capacityTitle": "Room capacity", "capacityTip": "Teammates working here. Every room holds up to six before it's full.", "comfortTitle": "Room comfort", "comfortTip": "Bonus morale from this room's decorations.",
     "autoRoom": "Default (department)"
   },
   "nextStep": {
@@ -806,7 +806,7 @@
   },
   "window": {
     "controls": "Window controls",
-    "minimize": "Minimize",
+    "minimize": "Minimize", "minimizeTip": "Tuck the window down to the taskbar.", "maximizeTip": "Fill the screen — click again to restore.", "restoreTip": "Shrink back to the previous window size.", "closeTip": "Saves your game and window size, then quits (or hides to the tray if you enabled that).",
     "maximize": "Maximize",
     "restore": "Restore",
     "close": "Close",
@@ -920,7 +920,7 @@
     "muteAll": "Mute all audio",
     "unmuteAll": "Unmute audio",
     "launchOnStartup": "Launch on system startup",
-    "batterySaver": "Battery-friendly mode",
+    "batterySaver": "Battery-friendly mode", "hint": { "alwaysOnTop": "Keep the game window above your other apps.", "clickThrough": "Let clicks pass through the window to whatever is behind it.", "launchOnStartup": "Open the game automatically when your computer starts.", "closeToTray": "The close button hides to the system tray instead of quitting.", "batterySaver": "Ease off animation and background work to save power." },
     "hideToTray": "Hide to tray",
     "focusHarvest": "Enable Focus Harvest",
     "offlineCap": "Offline cap (hours)",

@@ -5,6 +5,7 @@ import { useStore } from '../../state/store';
 import { SUPPORTED_LANGUAGES, languageDisplayName } from '../../i18n';
 import type { WindowCorner, WindowSettings } from '../../platform/types';
 import { Icon } from '../../art/UiIcon';
+import { Tip, TipContent } from '../Tooltip';
 
 const CORNERS: WindowCorner[] = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
 const SCALES = [0.75, 1, 1.25, 1.5];
@@ -267,26 +268,31 @@ export function SettingsView() {
         <fieldset disabled={!platform.isDesktop || !win} className="desktop-controls">
           <Toggle
             label={t('settings.alwaysOnTop')}
+            hint={t('settings.hint.alwaysOnTop')}
             checked={!!win?.alwaysOnTop}
             onChange={(v) => updateWin({ alwaysOnTop: v })}
           />
           <Toggle
             label={t('settings.clickThrough')}
+            hint={t('settings.hint.clickThrough')}
             checked={!!win?.clickThrough}
             onChange={(v) => updateWin({ clickThrough: v })}
           />
           <Toggle
             label={t('settings.launchOnStartup')}
+            hint={t('settings.hint.launchOnStartup')}
             checked={!!win?.launchOnStartup}
             onChange={(v) => updateWin({ launchOnStartup: v })}
           />
           <Toggle
             label={t('window.closeToTray')}
+            hint={t('settings.hint.closeToTray')}
             checked={!!win?.closeToTray}
             onChange={(v) => updateWin({ closeToTray: v })}
           />
           <Toggle
             label={t('settings.batterySaver')}
+            hint={t('settings.hint.batterySaver')}
             checked={!!win?.batterySaver}
             onChange={(v) => updateWin({ batterySaver: v })}
           />
@@ -346,10 +352,27 @@ export function SettingsView() {
   );
 }
 
-function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
+function Toggle({
+  label,
+  checked,
+  onChange,
+  hint,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+  hint?: string;
+}) {
+  const text = hint ? (
+    <Tip content={<TipContent title={label} lines={[hint]} />}>
+      <span tabIndex={0}>{label}</span>
+    </Tip>
+  ) : (
+    <span>{label}</span>
+  );
   return (
     <label className="toggle-row">
-      <span>{label}</span>
+      {text}
       <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />
     </label>
   );

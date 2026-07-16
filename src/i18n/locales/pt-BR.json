@@ -769,7 +769,7 @@
   },
   "overview": {
     "workers": "{{count}} trabalhando aqui",
-    "comfort": "Conforto da sala +{{value}}",
+    "comfort": "Conforto da sala +{{value}}", "capacityTitle": "Capacidade da sala", "capacityTip": "Colegas trabalhando aqui. Cada sala comporta até seis antes de lotar.", "comfortTitle": "Conforto da sala", "comfortTip": "Moral extra das decorações desta sala.",
     "autoRoom": "Padrão (departamento)"
   },
   "nextStep": {
@@ -806,7 +806,7 @@
   },
   "window": {
     "controls": "Controles da janela",
-    "minimize": "Minimizar",
+    "minimize": "Minimizar", "minimizeTip": "Recolhe a janela para a barra de tarefas.", "maximizeTip": "Preenche a tela — clique de novo para restaurar.", "restoreTip": "Volta ao tamanho anterior da janela.", "closeTip": "Salva o jogo e o tamanho da janela e sai (ou esconde na bandeja, se você ativou).",
     "maximize": "Maximizar",
     "restore": "Restaurar",
     "close": "Fechar",
@@ -920,7 +920,7 @@
     "muteAll": "Silenciar tudo",
     "unmuteAll": "Reativar som",
     "launchOnStartup": "Abrir ao iniciar o sistema",
-    "batterySaver": "Modo economia de bateria",
+    "batterySaver": "Modo economia de bateria", "hint": { "alwaysOnTop": "Mantém a janela do jogo acima dos outros aplicativos.", "clickThrough": "Deixa os cliques passarem pela janela para o que estiver atrás.", "launchOnStartup": "Abre o jogo automaticamente quando o computador liga.", "closeToTray": "O botão de fechar esconde na bandeja em vez de sair.", "batterySaver": "Reduz animação e trabalho em segundo plano para poupar energia." },
     "hideToTray": "Esconder na bandeja",
     "focusHarvest": "Ativar Colheita de Foco",
     "offlineCap": "Limite offline (horas)",

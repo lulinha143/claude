@@ -20,6 +20,7 @@ import { evaluatePlacement } from '../sim/placement';
 import { characterSlots } from '../content/roomLayout';
 import { pickOfficeInteraction } from '../sim/officeLife';
 import { DecorationTray } from '../ui/DecorationTray';
+import { Tip, TipContent } from '../ui/Tooltip';
 import { pickDialogueIndex, dialogueKey } from '../sim/dialogue';
 import { employeeMood, MOOD_TONE } from '../sim/mood';
 import { createRng } from '../sim/rng';
@@ -489,14 +490,29 @@ export function OfficeScene() {
                 <span className="floor__label">{t(room.nameKey)}</span>
                 <span className="floor__status">
                   {occupants.length > 0 ? (
-                    <span className="floor__stat" title={t('overview.workers', { count: occupants.length })}>
-                      <Icon name="employees" size={11} /> {occupants.length}
-                    </span>
+                    <Tip
+                      content={
+                        <TipContent
+                          title={t('overview.capacityTitle')}
+                          lines={[t('overview.capacityTip'), `${occupants.length} / ${ROOM_CAP}`]}
+                        />
+                      }
+                    >
+                      <span className="floor__stat" tabIndex={0}>
+                        <Icon name="employees" size={11} /> {occupants.length}
+                      </span>
+                    </Tip>
                   ) : null}
                   {comfort > 0 ? (
-                    <span className="floor__stat floor__stat--comfort" title={t('overview.comfort', { value: comfort })}>
-                      <Icon name="morale" size={11} /> +{comfort}
-                    </span>
+                    <Tip
+                      content={
+                        <TipContent title={t('overview.comfortTitle')} lines={[t('overview.comfortTip'), `+${comfort}`]} />
+                      }
+                    >
+                      <span className="floor__stat floor__stat--comfort" tabIndex={0}>
+                        <Icon name="morale" size={11} /> +{comfort}
+                      </span>
+                    </Tip>
                   ) : null}
                 </span>
               </div>
