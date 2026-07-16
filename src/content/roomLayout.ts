@@ -1,28 +1,16 @@
-// Curated spatial layout for each office room. Two concerns live here:
+// Curated spatial layout for each office room.
 //
-//   1. Character slots — where hired employees stand. Instead of spreading
-//      critters evenly across the whole floor (the old `18 + idx*26%` which
-//      left them far apart and looked random), we cluster them near the centre
-//      so a room reads as a little group working together. See characterSlots.
-//
-//   2. Decoration anchors — a small set of fixed, hand-placed spots a
-//      decoration can occupy (two lower corners + a back "shelf" wall). The
-//      player places/moves decorations between these anchors, so placement is
-//      predictable and never overlaps the working critters.
+// Character slots decide WHERE hired employees stand. The one hard rule is
+// readability: no two teammates may overlap, at any employee count, in any
+// room. We guarantee this by spreading everyone horizontally with a real gap
+// (which widens the group as the room fills) and then layering a per-room
+// depth rhythm on top for personality — facing desks, a social huddle, a tidy
+// row, or a founder focal point — without ever letting bodies collide.
 //
 // Coordinates are normalized to the floor stage:
 //   x: 0..1 across the width (0 = far left, 1 = far right)
-//   y: pixels UP from the floor line (0 = standing on the floor)
-//   scale: optional size multiplier for the prop glyph
-
-export interface DecorAnchor {
-  id: string;
-  x: number;
-  y: number;
-  scale: number;
-  /** 'back' = behind the critters (walls/shelves); 'front' = framing foreground. */
-  layer: 'back' | 'front';
-}
+//   bottom: pixels UP from the floor line (0 = standing on the floor), used for
+//           gentle depth so the group reads as 3D rather than a flat line.
 
 export interface CharacterSlot {
   /** normalized 0..1 horizontal position (feeds `left: x%`). */
@@ -31,45 +19,12 @@ export interface CharacterSlot {
   bottom: number;
 }
 
-// Default composition used by most rooms. Decorations are now large furniture
-// pieces spread across the whole room: tall wall pieces at the back, mid-wall
-// shelf pieces, and big framing pieces in the two front corners (which sit in
-// FRONT of the critters for real depth). Auto-placement fills them in this
-// order, so a freshly-bought piece lands somewhere sensible.
-const TEMPLATE_ANCHORS: DecorAnchor[] = [
-  { id: 'wall-l', x: 0.12, y: 52, scale: 1.25, layer: 'back' },
-  { id: 'wall-r', x: 0.88, y: 52, scale: 1.25, layer: 'back' },
-  { id: 'floor-l', x: 0.08, y: 0, scale: 1.5, layer: 'front' },
-  { id: 'floor-r', x: 0.92, y: 0, scale: 1.5, layer: 'front' },
-  { id: 'wall-cl', x: 0.33, y: 62, scale: 1.0, layer: 'back' },
-  { id: 'wall-cr', x: 0.67, y: 62, scale: 1.0, layer: 'back' },
-];
+const MIN_X = 0.08;
+const MAX_X = 0.92;
+const clampX = (x: number) => Math.max(MIN_X, Math.min(MAX_X, x));
 
-// Per-room overrides. The Founder's Desk keeps its front-right corner clear for
-// the collectible crate, so its big pieces hug the left corner and the wall.
-const ROOM_ANCHORS: Record<string, DecorAnchor[]> = {
-  'founder-desk': [
-    { id: 'wall-l', x: 0.12, y: 54, scale: 1.2, layer: 'back' },
-    { id: 'wall-cl', x: 0.34, y: 64, scale: 0.95, layer: 'back' },
-    { id: 'wall-c', x: 0.52, y: 66, scale: 0.9, layer: 'back' },
-    { id: 'wall-cr', x: 0.72, y: 56, scale: 1.0, layer: 'back' },
-    { id: 'floor-l', x: 0.08, y: 0, scale: 1.5, layer: 'front' },
-  ],
-};
-
-/** All decoration anchors available in a room (curated override or template). */
-export function anchorsForRoom(roomId: string): DecorAnchor[] {
-  return ROOM_ANCHORS[roomId] ?? TEMPLATE_ANCHORS;
-}
-
-export function anchorById(roomId: string, anchorId: string): DecorAnchor | undefined {
-  return anchorsForRoom(roomId).find((a) => a.id === anchorId);
-}
-
-// Each room type gets a distinct composition style so a lab doesn't arrange
-// itself like the nap chamber. Styles are generated per employee count (a
-// curated feel without hand-placing every count for every room), always kept
-// centred and within [0.08, 0.92] so nobody drifts off-screen.
+// Each room type gets a distinct depth composition so a lab doesn't arrange
+// itself like the nap chamber, while sharing the same non-overlapping spread.
 type SlotStyle = 'founder' | 'pairs' | 'social' | 'row' | 'cluster';
 
 const ROOM_STYLE: Record<string, SlotStyle> = {
@@ -88,83 +43,79 @@ const ROOM_STYLE: Record<string, SlotStyle> = {
   basement: 'row',
 };
 
-const clampX = (x: number) => Math.max(0.08, Math.min(0.92, x));
+// Per-style depth (px up from the floor), cycled across occupants. The values
+// are purely cosmetic — horizontal spacing already guarantees no overlap — but
+// they give each room a recognisable silhouette.
+const DEPTH_PATTERN: Record<SlotStyle, number[]> = {
+  founder: [0, 16, 16, 22, 22, 28], // focal figure forward, others a step back
+  pairs: [0, 26, 8, 32, 14, 36], // receding facing desks
+  social: [0, 12, 4, 16, 6, 10], // lively hang-out
+  row: [0, 5, 0, 5, 0, 5], // near-flat tidy line
+  cluster: [0, 9, 3, 12, 3, 9], // gentle zig-zag
+};
 
 /**
- * Positions for `count` hired employees. When a `roomId` is given, a curated
- * per-room composition style is used (founder focal point, facing pairs, social
- * huddle, or a tidy row); otherwise a centred cluster. All styles keep the group
- * readable and coworkers close together.
+ * Evenly spread `count` horizontal positions, symmetric around the centre. The
+ * group is tight for a few teammates (a cosy huddle) and widens as the room
+ * fills, but the minimum gap never drops below what keeps critters readable at
+ * the six-per-room soft cap. Always within [MIN_X, MAX_X].
+ */
+function spreadX(count: number): number[] {
+  if (count <= 1) return [0.5];
+  const half = Math.min(0.4, 0.14 + (count - 2) * 0.06);
+  const left = 0.5 - half;
+  const step = (2 * half) / (count - 1);
+  return Array.from({ length: count }, (_, i) => clampX(left + i * step));
+}
+
+/**
+ * Positions for `count` hired employees. A `roomId` selects a curated depth
+ * style (founder focal point, facing pairs, social huddle, or a tidy row);
+ * otherwise a centred cluster. Every layout is generated per employee count and
+ * is guaranteed overlap-free and on-screen.
  */
 export function characterSlots(count: number, roomId?: string): CharacterSlot[] {
   if (count <= 0) return [];
+  if (count === 1) return [{ x: 0.5, bottom: 0 }];
   const style: SlotStyle = (roomId && ROOM_STYLE[roomId]) || 'cluster';
-  switch (style) {
-    case 'founder':
-      return founderSlots(count);
-    case 'pairs':
-      return pairSlots(count);
-    case 'social':
-      return socialSlots(count);
-    case 'row':
-      return rowSlots(count);
-    default:
-      return clusterSlots(count);
+  const depth = DEPTH_PATTERN[style];
+  const xs = spreadX(count);
+
+  if (style === 'founder') {
+    // Occupant 0 is the focal character, front-and-centre; the rest fan out
+    // symmetrically to the evenly-spread slots on either side, a step back.
+    const mid = Math.floor((count - 1) / 2);
+    const order: number[] = [mid];
+    let l = mid - 1;
+    let r = mid + 1;
+    let takeRight = true;
+    while (l >= 0 || r < count) {
+      if (takeRight && r < count) {
+        order.push(r);
+        r += 1;
+      } else if (!takeRight && l >= 0) {
+        order.push(l);
+        l -= 1;
+      } else if (r < count) {
+        order.push(r);
+        r += 1;
+      } else {
+        order.push(l);
+        l -= 1;
+      }
+      takeRight = !takeRight;
+    }
+    const slots: CharacterSlot[] = new Array(count);
+    order.forEach((slotIdx, empIdx) => {
+      // Keep the evenly-spread x (the middle slot is exactly 0.5 for odd counts,
+      // near-centre for even) so the guaranteed gap is never broken.
+      slots[empIdx] = {
+        x: xs[slotIdx],
+        bottom: empIdx === 0 ? 0 : DEPTH_PATTERN.founder[Math.min(empIdx, DEPTH_PATTERN.founder.length - 1)],
+      };
+    });
+    return slots;
   }
-}
 
-function clusterSlots(count: number): CharacterSlot[] {
-  if (count === 1) return [{ x: 0.5, bottom: 0 }];
-  const spacing = count <= 3 ? 0.14 : count <= 5 ? 0.115 : count <= 7 ? 0.092 : Math.max(0.05, 0.74 / (count - 1));
-  const total = (count - 1) * spacing;
-  const start = Math.max(0.09, 0.5 - total / 2);
-  return Array.from({ length: count }, (_, i) => ({
-    x: clampX(start + i * spacing),
-    bottom: i % 2 === 1 ? 7 : 0,
-  }));
-}
-
-// Founder's Desk: occupant 0 is the focal character front-centre; any others
-// flank symmetrically a little further back.
-function founderSlots(count: number): CharacterSlot[] {
-  const slots: CharacterSlot[] = [{ x: 0.5, bottom: 0 }];
-  for (let i = 1; i < count; i += 1) {
-    const rank = Math.ceil(i / 2);
-    const dir = i % 2 === 1 ? -1 : 1;
-    slots.push({ x: clampX(0.5 + dir * (0.16 + (rank - 1) * 0.14)), bottom: 12 });
-  }
-  return slots;
-}
-
-// Facing pairs (labs, workshops): two centred columns, each new pair stepping
-// up in depth so they read as desks facing each other.
-function pairSlots(count: number): CharacterSlot[] {
-  return Array.from({ length: count }, (_, i) => {
-    const left = i % 2 === 0;
-    const rowIdx = Math.floor(i / 2);
-    return { x: clampX(left ? 0.38 : 0.62), bottom: Math.min(34, rowIdx * 10) };
-  });
-}
-
-// Social huddle (coffee, meeting, nap, rooftop): tight cluster with lively depth
-// variance so it reads as a group hanging out together.
-function socialSlots(count: number): CharacterSlot[] {
-  if (count === 1) return [{ x: 0.5, bottom: 4 }];
-  const spacing = count <= 4 ? 0.1 : Math.max(0.055, 0.62 / (count - 1));
-  const total = (count - 1) * spacing;
-  const start = 0.5 - total / 2;
-  const depth = [0, 10, 4, 12, 2, 8];
-  return Array.from({ length: count }, (_, i) => ({
-    x: clampX(start + i * spacing),
-    bottom: depth[i % depth.length],
-  }));
-}
-
-// Tidy even row (marketing, vault, basement): balanced line across the centre.
-function rowSlots(count: number): CharacterSlot[] {
-  if (count === 1) return [{ x: 0.5, bottom: 0 }];
-  const spacing = Math.min(0.15, 0.72 / (count - 1));
-  const total = (count - 1) * spacing;
-  const start = 0.5 - total / 2;
-  return Array.from({ length: count }, (_, i) => ({ x: clampX(start + i * spacing), bottom: 0 }));
+  return xs.map((x, i) => ({ x, bottom: depth[i % depth.length] }));
 }
