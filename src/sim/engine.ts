@@ -1,6 +1,6 @@
 import { BALANCE } from './config';
 import { createRng, hashStringToSeed, type Rng } from './rng';
-import type { GameState, MomentCard } from './types';
+import type { EmployeeMood, GameState, MomentCard } from './types';
 import {
   aggregatePassives,
   autoCollectRate,
@@ -15,6 +15,7 @@ import {
   reputationRate,
   upgradeCost,
 } from './economy';
+import { employeeMood, moodProductivityMultiplier } from './mood';
 import { EMPLOYEES_BY_ID } from '../content/employees';
 import { UPGRADES_BY_ID } from '../content/upgrades';
 import type { EventEffect, GameEventDef } from '../content/types';
@@ -33,11 +34,39 @@ import {
 import { DECORATIONS_BY_ID } from '../content/decorations';
 import { anchorById, anchorsForRoom } from '../content/roomLayout';
 
+/** A single employee's measured change from an event choice (WHAT CHANGED). */
+export interface EmployeeChange {
+  id: string;
+  /** the employee's emotion after the choice (present only when it changed). */
+  emotion: EmployeeMood | null;
+  /** expiry epoch ms for a temporary emotion; null = persistent. */
+  emotionUntil: number | null;
+  /** production factor vs neutral from the new emotion (e.g. +0.05). */
+  productivityDelta: number;
+  /** friendship points gained/lost. */
+  friendshipDelta: number;
+}
+
+/** The measured, real consequences of an event choice (diffed from sim state). */
+export interface ConsequenceReport {
+  nuts: number;
+  goldenNuts: number;
+  morale: number;
+  reputation: number;
+  /** >1 when a temporary production boost was applied, else 0. */
+  boostMultiplier: number;
+  boostSeconds: number;
+  momentCreated: boolean;
+  employees: EmployeeChange[];
+}
+
 export interface Consequence {
   titleKey: string;
   choiceLabelKey: string;
   effects: EventEffect[];
   reactions: string[];
+  /** measured, itemised consequences reflecting the actual simulation change. */
+  report: ConsequenceReport;
 }
 
 export interface TempBoost {
@@ -163,6 +192,8 @@ export class GameEngine {
     // prune expired boosts to avoid unbounded growth
     const t = this.now();
     this.tempBoosts = this.tempBoosts.filter((b) => b.endsAt > t);
+    // drop expired temporary employee emotions
+    this.expireEmotions(t);
 
     // periodic autosave
     this.saveAccum += deltaSeconds;
@@ -429,7 +460,14 @@ export class GameEngine {
     const choice = choices.find((c) => c.id === choiceId);
     if (!choice) return;
 
+    // Snapshot BEFORE applying effects so the "WHAT CHANGED" panel reports the
+    // real, measured change rather than the raw effect list.
+    const now = this.now();
+    const before = this.snapshotForReport(now);
+
     for (const effect of choice.effects) this.applyEffect(effect, def);
+
+    const report = this.diffReport(before, choice.effects, now);
 
     // record the decision in the company timeline (capped)
     this.state.eventHistory.push({ eventId: def.id, choiceId: choice.id, at: this.now() });
@@ -441,6 +479,7 @@ export class GameEngine {
       choiceLabelKey: choice.labelKey,
       effects: choice.effects,
       reactions: choice.reactions ?? [],
+      report,
     };
 
     // advance chain or close
@@ -458,6 +497,79 @@ export class GameEngine {
   clearConsequence(): void {
     this.lastConsequence = null;
     this.emit();
+  }
+
+  /** Set (or clear) an employee's event-driven emotion. */
+  setEmployeeEmotion(id: string, emotion: EmployeeMood, durationSeconds?: number): void {
+    const rt = this.state.employees[id];
+    if (!rt) return;
+    rt.emotion = {
+      id: emotion,
+      until: durationSeconds && durationSeconds > 0 ? this.now() + durationSeconds * 1000 : null,
+    };
+  }
+
+  /** Drop expired temporary emotions so the save stays tidy (called each tick). */
+  private expireEmotions(now: number): void {
+    for (const rt of Object.values(this.state.employees)) {
+      if (rt.emotion && rt.emotion.until !== null && rt.emotion.until <= now) rt.emotion = null;
+    }
+  }
+
+  private snapshotForReport(now: number): {
+    nuts: number;
+    goldenNuts: number;
+    morale: number;
+    reputation: number;
+    moments: number;
+    emp: Record<string, { friendship: number; mood: EmployeeMood }>;
+  } {
+    const emp: Record<string, { friendship: number; mood: EmployeeMood }> = {};
+    for (const [id, rt] of Object.entries(this.state.employees)) {
+      emp[id] = { friendship: rt.friendship, mood: employeeMood(this.state, id, now) };
+    }
+    return {
+      nuts: this.state.resources.nuts,
+      goldenNuts: this.state.resources.goldenNuts,
+      morale: this.state.resources.morale,
+      reputation: this.state.resources.reputation,
+      moments: this.state.collections.moments.length,
+      emp,
+    };
+  }
+
+  private diffReport(
+    before: ReturnType<GameEngine['snapshotForReport']>,
+    effects: EventEffect[],
+    now: number,
+  ): ConsequenceReport {
+    const boost = effects.find((e) => e.type === 'productionBoost');
+    const employees: EmployeeChange[] = [];
+    for (const [id, rt] of Object.entries(this.state.employees)) {
+      const prev = before.emp[id];
+      if (!prev) continue;
+      const moodNow = employeeMood(this.state, id, now);
+      const friendshipDelta = Math.round(rt.friendship - prev.friendship);
+      const moodChanged = moodNow !== prev.mood;
+      if (!moodChanged && friendshipDelta === 0) continue;
+      employees.push({
+        id,
+        emotion: moodChanged ? moodNow : null,
+        emotionUntil: moodChanged ? (rt.emotion?.until ?? null) : null,
+        productivityDelta: moodChanged ? moodProductivityMultiplier(moodNow) - 1 : 0,
+        friendshipDelta,
+      });
+    }
+    return {
+      nuts: Math.round(this.state.resources.nuts - before.nuts),
+      goldenNuts: Math.round(this.state.resources.goldenNuts - before.goldenNuts),
+      morale: Math.round(this.state.resources.morale - before.morale),
+      reputation: Math.round(this.state.resources.reputation - before.reputation),
+      boostMultiplier: boost ? (boost.value ?? 1.5) : 0,
+      boostSeconds: boost ? (boost.durationSeconds ?? 60) : 0,
+      momentCreated: this.state.collections.moments.length > before.moments,
+      employees,
+    };
   }
 
   private applyEffect(effect: EventEffect, def: GameEventDef): void {
@@ -484,6 +596,11 @@ export class GameEngine {
       case 'friendship': {
         const rt = this.state.employees[effect.employeeId ?? def.employeeId ?? ''];
         if (rt) rt.friendship = Math.min(100, rt.friendship + (effect.value ?? 5));
+        break;
+      }
+      case 'emotion': {
+        const id = effect.employeeId ?? def.employeeId ?? '';
+        if (effect.emotion) this.setEmployeeEmotion(id, effect.emotion, effect.durationSeconds);
         break;
       }
       case 'collectNut':

@@ -2230,6 +2230,53 @@ select,
 .mood-chip em {
   font-style: normal;
 }
+.mood-chip--sm {
+  padding: 1px 7px;
+  font-size: 0.8em;
+}
+
+/* WHAT CHANGED — per-employee section */
+.consequence-team {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border);
+}
+.consequence-team__label {
+  font-weight: 700;
+  font-size: 0.85em;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+.consequence-team__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.consequence-emp {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  padding: 6px 8px;
+  border-radius: var(--r-sm);
+  background: var(--surface);
+}
+.consequence-emp__name {
+  font-weight: 700;
+  min-width: 0;
+}
+.consequence-emp__meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  font-size: 0.85em;
+  font-variant-numeric: tabular-nums;
+  flex-wrap: wrap;
+}
 
 
 /* ==========================================================================

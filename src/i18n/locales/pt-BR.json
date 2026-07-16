@@ -314,6 +314,7 @@
     "resolvePrompt": "O que você faz?",
     "resultTitle": "Veja o que aconteceu",
     "reactionsLabel": "A equipe reage",
+    "employeeChangesLabel": "O que mudou para a equipe",
     "noEffects": "Nada mensurável mudou — mas a história continua.",
     "printer": {
       "title": "A Impressora Está Fazendo Exigências",
@@ -800,6 +801,14 @@
     "frustrated": "Frustrado",
     "curious": "Curioso",
     "proud": "Orgulhoso",
+    "happy": "Feliz",
+    "worried": "Preocupado",
+    "angry": "Irritado",
+    "embarrassed": "Envergonhado",
+    "overcaffeinated": "Hipercafeinado",
+    "suspicious": "Desconfiado",
+    "excited": "Empolgado",
+    "sad": "Triste",
     "effect": "Produtividade {{value}}%",
     "effectNeutral": "Produção estável e equilibrada"
   },
@@ -961,7 +970,11 @@
     "friendshipNamed": "A amizade de {{name}} aumentou",
     "newNut": "Você descobriu uma nova castanha!",
     "secret": "Uma descoberta secreta foi desbloqueada",
-    "moment": "Um Cartão de Momento foi salvo"
+    "moment": "Um Cartão de Momento foi salvo",
+    "goldenLoss": "-{{value}} Castanhas Douradas",
+    "productivity": "Produtividade {{value}}%",
+    "friendshipDelta": "Amizade {{value}}",
+    "forMinutes": "por {{value}} min"
   },
   "notify": {
     "hired": "{{name}} entrou para a empresa!",

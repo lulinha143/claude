@@ -1,11 +1,35 @@
 import type { EmployeeMood, GameState } from './types';
 
-// Lightweight, derived employee mood — NOT persisted, purely for personality and
-// small flavour. It reads company morale, the employee's friendship, and whether
-// production is flowing, then picks a mood deterministically. No micromanagement:
-// mood only tints dialogue and shows a small face indicator.
-export function employeeMood(state: GameState, id: string): EmployeeMood {
+/** Every emotion the game can display, in a stable order (profiles, tests). */
+export const EMOTIONS: EmployeeMood[] = [
+  'happy',
+  'proud',
+  'relaxed',
+  'focused',
+  'inspired',
+  'curious',
+  'tired',
+  'frustrated',
+  'worried',
+  'angry',
+  'embarrassed',
+  'overcaffeinated',
+  'suspicious',
+  'excited',
+  'sad',
+];
+
+/**
+ * An employee's current emotion. An event-driven emotion (persisted in
+ * `rt.emotion`) takes priority while it is still active; otherwise the mood is
+ * derived deterministically from company conditions (morale / friendship /
+ * focus). `now` is injectable so the logic stays pure and testable.
+ */
+export function employeeMood(state: GameState, id: string, now = Date.now()): EmployeeMood {
   const rt = state.employees[id];
+  const override = rt?.emotion;
+  if (override && (override.until === null || override.until > now)) return override.id;
+
   const morale = state.resources.morale;
   const friendship = rt?.friendship ?? 0;
   const focus = state.focus.active;
@@ -24,13 +48,40 @@ export function employeeMood(state: GameState, id: string): EmployeeMood {
 // micromanagement system (brief §16/§18). A positive mood is a nudge up, a
 // low mood a nudge down; "curious" is the neutral baseline.
 export const MOOD_PRODUCTIVITY: Record<EmployeeMood, number> = {
+  excited: 1.05,
   inspired: 1.05,
   focused: 1.05,
   proud: 1.04,
+  happy: 1.04,
+  overcaffeinated: 1.03, // fast but a bit error-prone (handled in flavour, not maths)
   relaxed: 1.02,
   curious: 1.0,
+  suspicious: 0.99,
   tired: 0.97,
+  embarrassed: 0.97,
+  worried: 0.97,
+  sad: 0.96,
   frustrated: 0.95,
+  angry: 0.95,
+};
+
+/** Whether an emotion reads as positive (for colour/tone in the UI). */
+export const MOOD_POSITIVE: Record<EmployeeMood, boolean> = {
+  happy: true,
+  proud: true,
+  relaxed: true,
+  focused: true,
+  inspired: true,
+  curious: true,
+  excited: true,
+  overcaffeinated: true,
+  suspicious: false,
+  tired: false,
+  frustrated: false,
+  worried: false,
+  angry: false,
+  embarrassed: false,
+  sad: false,
 };
 
 export function moodProductivityMultiplier(mood: EmployeeMood): number {
@@ -58,11 +109,19 @@ export function teamMoodMultiplier(state: GameState, employeeWeight: (id: string
 
 /** A short emoji-free glyph character used as a tiny mood indicator dot colour. */
 export const MOOD_TONE: Record<EmployeeMood, string> = {
-  focused: '#6fa8dc',
-  relaxed: '#5a9a68',
-  inspired: '#e0a43b',
-  tired: '#9a8f80',
-  frustrated: '#c65b3c',
-  curious: '#b98ad0',
+  happy: '#5aa06a',
   proud: '#ffd54a',
+  relaxed: '#5a9a68',
+  focused: '#6fa8dc',
+  inspired: '#e0a43b',
+  curious: '#b98ad0',
+  excited: '#e8823b',
+  overcaffeinated: '#c98a3a',
+  suspicious: '#8a7fa8',
+  tired: '#9a8f80',
+  worried: '#7f93b0',
+  sad: '#6b83a0',
+  embarrassed: '#d08a86',
+  frustrated: '#c65b3c',
+  angry: '#b0473a',
 };

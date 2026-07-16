@@ -43,10 +43,20 @@ const v3ToV4: Migration = (raw) => {
   };
 };
 
+// v4 -> v5: per-employee event-driven emotions (`employee.emotion`).
+const v4ToV5: Migration = (raw) => {
+  const employees = (raw.employees as Record<string, RawSave>) ?? {};
+  for (const rt of Object.values(employees)) {
+    if (rt && typeof rt === 'object' && !('emotion' in rt)) rt.emotion = null;
+  }
+  return { ...raw, employees, version: 5 };
+};
+
 const MIGRATIONS: Record<number, Migration> = {
   1: v1ToV2,
   2: v2ToV3,
   3: v3ToV4,
+  4: v4ToV5,
 };
 
 export function migrate(raw: RawSave): RawSave {

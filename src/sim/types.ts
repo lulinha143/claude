@@ -30,16 +30,41 @@ export interface EmployeeRuntimeState {
   room: string | null;
   /** Position within the office scene, normalized 0..1 (x only for the 2D office). */
   x: number;
+  /**
+   * Event-driven emotion override (persisted). Optional so older saves default
+   * to none; the engine expires temporary emotions during the tick.
+   */
+  emotion?: EmployeeEmotion | null;
 }
 
 export type EmployeeMood =
-  | 'focused'
+  | 'happy'
+  | 'proud'
   | 'relaxed'
+  | 'focused'
   | 'inspired'
+  | 'curious'
   | 'tired'
   | 'frustrated'
-  | 'curious'
-  | 'proud';
+  | 'worried'
+  | 'angry'
+  | 'embarrassed'
+  | 'overcaffeinated'
+  | 'suspicious'
+  | 'excited'
+  | 'sad';
+
+/**
+ * A persisted, event-driven emotion override for one employee. When present and
+ * not expired it takes priority over the mood derived from company conditions.
+ * `until` is an epoch-ms expiry; `null` means the reaction is persistent until
+ * something changes it. Absent/expired → the employee falls back to the derived
+ * ambient mood.
+ */
+export interface EmployeeEmotion {
+  id: EmployeeMood;
+  until: number | null;
+}
 
 /** A compact, persisted record of a resolved event decision (company timeline). */
 export interface EventHistoryEntry {

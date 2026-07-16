@@ -66,10 +66,43 @@ breakdown total always matches the live nuts/second.
 `tests/productionBreakdown.test.ts` still confirms the breakdown total equals
 `computeProduction()` (mood is applied identically in both).
 
-## Honest scope note
+## Event-driven individual emotions (§17)
 
-This delivers §18 ("emotions affect work") with clear, tested modifiers and UI.
-It does **not** yet implement §17 (event choices changing *specific* employees'
-emotions with a per-employee "WHAT CHANGED" summary) — events still adjust global
-morale/resources via the existing consequence system. That per-employee event
-rework is a separate, larger task.
+Emotions are now **persisted per employee** (`EmployeeRuntimeState.emotion =
+{ id, until }`, save schema v5 with a v4→v5 migration defaulting to `null`) and
+can be set by **event choices**. A new `emotion` `EventEffect`
+(`{ type: 'emotion', employeeId, emotion, durationSeconds? }`) applies an emotion
+to a specific employee — temporary (`until = now + durationSeconds*1000`) or
+persistent (`until = null`). Temporary emotions are dropped during the engine
+tick (`expireEmotions`). `employeeMood()` returns an active override first, then
+falls back to the derived ambient mood.
+
+The full 15-emotion set is supported: `happy, proud, relaxed, focused, inspired,
+curious, tired, frustrated, worried, angry, embarrassed, overcaffeinated,
+suspicious, excited, sad` — each with a localized name (`mood.<id>`), a tone
+colour (`MOOD_TONE`), a positivity flag (`MOOD_POSITIVE`) and a productivity
+factor (`MOOD_PRODUCTIVITY`, ±5%).
+
+Seeded examples (brief's cases): approving Bea's request → **Bea proud**;
+declining → **Bea sad**; Mina's deep-basement dig → **Mina inspired, Bea
+worried**; investing in Corvus's coin → **Corvus excited, Marlow embarrassed**.
+
+## "WHAT CHANGED" result panel (§17)
+
+`resolveEventChoice()` snapshots state **before** applying effects and diffs it
+**after**, producing a `ConsequenceReport` of the *real, measured* change:
+currency/morale/reputation deltas, a temporary-boost line, moment-card creation,
+and a **per-employee list** — each showing the new emotion, its productivity
+`±%`, friendship delta, and remaining minutes for temporary emotions. The
+`ConsequenceModal` renders this (localized, responsive, wrap-safe, compact-mode
+friendly). Because the report is diffed from the simulation rather than read from
+the raw effect list, `tests/eventEmotions.test.ts` asserts the displayed numbers
+match the actual post-choice state.
+
+## Remaining (honest)
+
+- The consequence report is shown once; **reopening a past report from the event
+  history is not yet implemented** (individual emotions and the decision timeline
+  *are* persisted, but the full formatted report is transient).
+- Per-emotion body-pose/idle animation variants are minimal (the office shows the
+  mood dot + colour); distinct art per emotion is future work.

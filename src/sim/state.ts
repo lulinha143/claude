@@ -50,6 +50,7 @@ function initialEmployees(): Record<string, EmployeeRuntimeState> {
       nickname: null,
       room: null, // resolved to their department (or Founder's Desk) at render time
       x: 0.15 + i * 0.12,
+      emotion: null,
     };
   });
   return map;

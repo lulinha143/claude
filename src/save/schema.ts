@@ -21,6 +21,11 @@ const employeeSchema = z.object({
   nickname: z.string().nullable().catch(null),
   room: z.string().nullable().catch(null),
   x: z.number().catch(0.2),
+  emotion: z
+    .object({ id: z.string(), until: z.number().nullable().catch(null) })
+    .nullable()
+    .catch(null)
+    .optional(),
 });
 
 const momentSchema = z.object({

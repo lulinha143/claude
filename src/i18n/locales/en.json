@@ -314,6 +314,7 @@
     "resolvePrompt": "What do you do?",
     "resultTitle": "Here's what happened",
     "reactionsLabel": "The team reacts",
+    "employeeChangesLabel": "What changed for the team",
     "noEffects": "Nothing measurable changed — but the story continues.",
     "printer": {
       "title": "The Printer Is Making Demands",
@@ -800,6 +801,14 @@
     "frustrated": "Frustrated",
     "curious": "Curious",
     "proud": "Proud",
+    "happy": "Happy",
+    "worried": "Worried",
+    "angry": "Angry",
+    "embarrassed": "Embarrassed",
+    "overcaffeinated": "Overcaffeinated",
+    "suspicious": "Suspicious",
+    "excited": "Excited",
+    "sad": "Sad",
     "effect": "Productivity {{value}}%",
     "effectNeutral": "Steady, balanced output"
   },
@@ -961,7 +970,11 @@
     "friendshipNamed": "{{name}}'s friendship grew",
     "newNut": "Discovered a new nut!",
     "secret": "Unlocked a secret discovery",
-    "moment": "A Moment Card was saved"
+    "moment": "A Moment Card was saved",
+    "goldenLoss": "-{{value}} Golden Nuts",
+    "productivity": "Productivity {{value}}%",
+    "friendshipDelta": "Friendship {{value}}",
+    "forMinutes": "for {{value}} min"
   },
   "notify": {
     "hired": "{{name}} joined the company!",

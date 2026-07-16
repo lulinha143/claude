@@ -8,6 +8,23 @@ semantic versioning.
 
 ### Changed
 
+- **Event choices now change specific employees' emotions, with a real "WHAT
+  CHANGED" summary** (brief §17). Emotions are persisted per employee
+  (`employee.emotion = { id, until }`, save schema **v5** + v4→v5 migration
+  defaulting to `null`) and set by a new `emotion` event effect (temporary via
+  `durationSeconds`, or persistent); temporary ones expire on tick. The full
+  15-emotion set is supported (happy/proud/relaxed/focused/inspired/curious/
+  tired/frustrated/worried/angry/embarrassed/overcaffeinated/suspicious/excited/
+  sad), each with a localized name, tone colour, positivity flag and ±5%
+  productivity factor. Seeded examples: Bea proud/sad, Mina inspired + Bea
+  worried, Corvus excited + Marlow embarrassed. The consequence panel now diffs
+  real before/after state and lists **per-employee** emotion + productivity `±%`
+  + friendship delta + duration, alongside currency/morale/reputation deltas.
+  Covered by `tests/eventEmotions.test.ts` (report matches real sim state,
+  temporary-expiry, persistent emotions, migration). See
+  `docs/CHARACTER_EMOTIONS.md`. (Reopening a past report from event history
+  remains future work.)
+
 - **Replaced the Raccoon Inventory Check micro-game with the Procurement
   Conveyor** (brief §26). The old game was a random spot-the-swap memory test;
   the new Logistics game is physical and skill-based: parcels ride the intake

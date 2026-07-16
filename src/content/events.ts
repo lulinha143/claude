@@ -133,8 +133,8 @@ export const GAME_EVENTS: GameEventDef[] = [
     requires: { hiredEmployee: 'bea' },
     employeeId: 'bea',
     choices: [
-      { id: 'approve', labelKey: 'event.beaWood.approve', effects: [{ type: 'morale', value: 4 }, { type: 'friendship', value: 6, employeeId: 'bea' }] },
-      { id: 'decline', labelKey: 'event.beaWood.decline', effects: [{ type: 'nuts', value: 150 }] },
+      { id: 'approve', labelKey: 'event.beaWood.approve', effects: [{ type: 'morale', value: 4 }, { type: 'friendship', value: 6, employeeId: 'bea' }, { type: 'emotion', employeeId: 'bea', emotion: 'proud', durationSeconds: 600 }] },
+      { id: 'decline', labelKey: 'event.beaWood.decline', effects: [{ type: 'nuts', value: 150 }, { type: 'emotion', employeeId: 'bea', emotion: 'sad', durationSeconds: 480 }] },
     ],
   },
   {
@@ -208,7 +208,7 @@ export const GAME_EVENTS: GameEventDef[] = [
     employeeId: 'corvus',
     momentWorthy: true,
     choices: [
-      { id: 'invest', labelKey: 'event.nutcoin.invest', effects: [{ type: 'nuts', value: -500 }], next: 'crash' },
+      { id: 'invest', labelKey: 'event.nutcoin.invest', effects: [{ type: 'nuts', value: -500 }, { type: 'emotion', employeeId: 'corvus', emotion: 'excited', durationSeconds: 600 }, { type: 'emotion', employeeId: 'marlow', emotion: 'embarrassed', durationSeconds: 600 }], next: 'crash' },
       { id: 'refuse', labelKey: 'event.nutcoin.refuse', effects: [{ type: 'reputation', value: 4 }, { type: 'unlockSecret', secretId: 'nutcoin' }] },
     ],
     steps: {
@@ -238,7 +238,7 @@ export const GAME_EVENTS: GameEventDef[] = [
       deep: {
         bodyKey: 'event.minaBasement.deepBody',
         choices: [
-          { id: 'dig', labelKey: 'event.minaBasement.dig', effects: [{ type: 'goldenNuts', value: 2 }, { type: 'unlockSecret', secretId: 'basement-basement' }, { type: 'momentCard' }] },
+          { id: 'dig', labelKey: 'event.minaBasement.dig', effects: [{ type: 'goldenNuts', value: 2 }, { type: 'unlockSecret', secretId: 'basement-basement' }, { type: 'emotion', employeeId: 'mina', emotion: 'inspired', durationSeconds: 600 }, { type: 'emotion', employeeId: 'bea', emotion: 'worried', durationSeconds: 600 }, { type: 'momentCard' }] },
           { id: 'back', labelKey: 'event.minaBasement.back', effects: [{ type: 'reputation', value: 6 }] },
         ],
       },

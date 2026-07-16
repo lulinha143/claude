@@ -1,4 +1,4 @@
-import type { EventRarity, PrestigeBranchId, ResourceId } from '../sim/types';
+import type { EmployeeMood, EventRarity, PrestigeBranchId, ResourceId } from '../sim/types';
 
 // Content DEFINITIONS. Everything here is static data describing the game's
 // catalogue. Runtime/persisted progress lives in `GameState` and references
@@ -108,12 +108,15 @@ export interface EventEffect {
     | 'reputation'
     | 'productionBoost' // temporary multiplier
     | 'friendship'
+    | 'emotion' // set a specific employee's emotion (optionally temporary)
     | 'momentCard'
     | 'unlockSecret'
     | 'collectNut';
   value?: number;
   durationSeconds?: number;
   employeeId?: string;
+  /** for `emotion` effects: the emotion to apply to `employeeId`. */
+  emotion?: EmployeeMood;
   nutId?: string;
   secretId?: string;
 }
