@@ -64,8 +64,9 @@ Marketing, Underground Operations) alter bonuses, morale, and rare-event odds.
 - **Daily challenges:** deterministic, date-seeded, offline, server-free.
 - **Focus Harvest:** opt-in, supportive productivity companion; never blocks the
   computer; never punishes cancellation.
-- **Micro-games:** Shell Sort, Coffee Rescue, Raccoon Inventory Check — short,
-  optional, rewarding small boosts.
+- **Micro-games:** Conveyor Sort, Coffee Rescue, Procurement Conveyor, Bug Squash
+  — short, optional, skill-based, rewarding small boosts. See
+  [`MINIGAMES.md`](MINIGAMES.md).
 
 ## Writing style
 

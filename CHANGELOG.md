@@ -6,6 +6,20 @@ semantic versioning.
 
 ## [Unreleased] — audio, breakdown & start-screen pass
 
+### Changed
+
+- **Replaced the Raccoon Inventory Check micro-game with the Procurement
+  Conveyor** (brief §26). The old game was a random spot-the-swap memory test;
+  the new Logistics game is physical and skill-based: parcels ride the intake
+  belt and the player drags each onto the correct department chute (Harvesting /
+  Roasting / Logistics / Research), rotating the sideways ones so they fit.
+  Departments are distinguished by icon + shape/pattern + label (colour-blind
+  safe). Combos reward accurate sorting; fragile and rotated parcels grant a
+  small bonus; mistakes are gentle and never soft-lock. Full keyboard (`1`–`4`
+  route, `R` rotate) and pointer/touch drag support, Reduced-Motion aware.
+  Deterministic rules (`procurementSequence` / `procurementResolve` /
+  `procurementScoreDelta`) are unit-tested. See `docs/MINIGAMES.md`.
+
 ### Added
 
 - **Copyright-free procedural music + office ambience** (`src/audio/audio.ts`):

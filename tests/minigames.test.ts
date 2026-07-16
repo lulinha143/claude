@@ -3,9 +3,11 @@ import {
   shellSequence,
   shellBinFor,
   shellScoreDelta,
-  inventoryRound,
-  inventorySize,
-  inventoryScoreDelta,
+  procurementSequence,
+  procurementResolve,
+  procurementScoreDelta,
+  PROCUREMENT_DEPTS,
+  type ProcurementPackage,
   coffeeFallDuration,
   coffeeSpawnInterval,
   coffeeComboMultiplier,
@@ -14,7 +16,6 @@ import {
   bugSpawnInterval,
   bugScore,
   microGrade,
-  INVENTORY_ITEMS,
 } from '../src/sim/minigames';
 
 describe('Shell Sort logic', () => {
@@ -60,42 +61,58 @@ describe('Coffee Rescue difficulty', () => {
   });
 });
 
-describe('Raccoon Inventory logic', () => {
+describe('Procurement Conveyor logic', () => {
   it('is deterministic for a given seed', () => {
-    expect(inventoryRound('r1')).toEqual(inventoryRound('r1'));
+    expect(procurementSequence('r1', 20)).toEqual(procurementSequence('r1', 20));
   });
-  it('produces a valid round: changed slot differs and is in range', () => {
-    for (const seed of ['a', 'b', 'c', 'd', 'e']) {
-      const round = inventoryRound(seed, 5);
-      expect(round.items).toHaveLength(5);
-      expect(round.changedIndex).toBeGreaterThanOrEqual(0);
-      expect(round.changedIndex).toBeLessThan(5);
-      expect(round.after).not.toBe(round.before);
-      // the "after" item sits at the changed slot
-      expect(round.items[round.changedIndex]).toBe(round.after);
-      // all items come from the known pool and are distinct
-      expect(new Set(round.items).size).toBe(5);
-      for (const it of round.items) expect(INVENTORY_ITEMS).toContain(it);
+  it('differs across seeds', () => {
+    expect(procurementSequence('r1', 30)).not.toEqual(procurementSequence('r2', 30));
+  });
+  it('produces valid parcels addressed to a known department', () => {
+    const seq = procurementSequence('mix', 60);
+    expect(seq).toHaveLength(60);
+    for (const p of seq) {
+      expect(PROCUREMENT_DEPTS).toContain(p.dept);
+      expect(typeof p.sideways).toBe('boolean');
+      expect(typeof p.fragile).toBe('boolean');
     }
   });
-});
+  it('generates a mix of upright and sideways parcels', () => {
+    const seq = procurementSequence('variety', 200);
+    const sideways = seq.filter((p) => p.sideways).length;
+    expect(sideways).toBeGreaterThan(0);
+    expect(sideways).toBeLessThan(seq.length); // not all sideways
+  });
 
-describe('Raccoon Inventory progression', () => {
-  it('grows the shelf as rounds are cleared and caps at the pool size', () => {
-    expect(inventorySize(0)).toBe(5);
-    expect(inventorySize(1)).toBe(5);
-    expect(inventorySize(2)).toBe(6);
-    expect(inventorySize(4)).toBe(7);
-    expect(inventorySize(999)).toBe(INVENTORY_ITEMS.length);
+  const upright: ProcurementPackage = { id: 0, dept: 'harvest', sideways: false, fragile: false };
+  const laidDown: ProcurementPackage = { id: 1, dept: 'roasting', sideways: true, fragile: false };
+
+  it('clears only on the correct department', () => {
+    expect(procurementResolve(upright, 'harvest', true)).toBe('correct');
+    expect(procurementResolve(upright, 'research', true)).toBe('wrongDept');
   });
-  it('produces a valid larger round with distinct items', () => {
-    const round = inventoryRound('big', 7);
-    expect(round.items).toHaveLength(7);
-    expect(new Set(round.items).size).toBe(7);
-    expect(round.items[round.changedIndex]).toBe(round.after);
+  it('requires a sideways parcel to be rotated upright before it fits', () => {
+    expect(procurementResolve(laidDown, 'roasting', false)).toBe('notUpright');
+    expect(procurementResolve(laidDown, 'roasting', true)).toBe('correct');
+    // rotation check comes first, even for the wrong department
+    expect(procurementResolve(laidDown, 'harvest', false)).toBe('notUpright');
   });
-  it('rewards longer streaks more', () => {
-    expect(inventoryScoreDelta(5)).toBeGreaterThan(inventoryScoreDelta(0));
+  it('scores only correct placements, growing with combo', () => {
+    expect(procurementScoreDelta('wrongDept', 9, upright)).toBe(0);
+    expect(procurementScoreDelta('notUpright', 9, laidDown)).toBe(0);
+    expect(procurementScoreDelta('correct', 0, upright)).toBe(2);
+    expect(procurementScoreDelta('correct', 6, upright)).toBeGreaterThan(
+      procurementScoreDelta('correct', 0, upright),
+    );
+  });
+  it('rewards the extra care of fragile and rotated parcels', () => {
+    const fragile: ProcurementPackage = { id: 2, dept: 'harvest', sideways: false, fragile: true };
+    expect(procurementScoreDelta('correct', 0, fragile)).toBeGreaterThan(
+      procurementScoreDelta('correct', 0, upright),
+    );
+    expect(procurementScoreDelta('correct', 0, laidDown)).toBeGreaterThan(
+      procurementScoreDelta('correct', 0, upright),
+    );
   });
 });
 

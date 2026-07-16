@@ -10,7 +10,7 @@ describe('minigames render without throwing', () => {
   });
 
   it('mounts each mode and shows the shared shell (title + exit)', () => {
-    for (const mode of ['shellSort', 'coffeeRescue', 'inventory'] as MicroMode[]) {
+    for (const mode of ['shellSort', 'coffeeRescue', 'procurement', 'bugSquash'] as MicroMode[]) {
       const html = renderToStaticMarkup(
         <MicroGame mode={mode} seed={123} reducedMotion={false} onReward={() => {}} onClose={() => {}} />,
       );
@@ -20,7 +20,7 @@ describe('minigames render without throwing', () => {
   });
 
   it('reduced-motion variants also render', () => {
-    for (const mode of ['shellSort', 'coffeeRescue', 'inventory'] as MicroMode[]) {
+    for (const mode of ['shellSort', 'coffeeRescue', 'procurement', 'bugSquash'] as MicroMode[]) {
       const html = renderToStaticMarkup(
         <MicroGame mode={mode} seed={7} reducedMotion onReward={() => {}} onClose={() => {}} />,
       );

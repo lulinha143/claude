@@ -1,10 +1,10 @@
-import { createRng, hashStringToSeed, type Rng } from './rng';
+import { createRng, hashStringToSeed } from './rng';
 
 // Pure, deterministic logic for the micro-games. The React components own
 // timing/DOM; this module owns the rules so they can be unit-tested and are
 // reproducible from a seed (used by tests and the dev deterministic mode).
 
-export type MicroMode = 'shellSort' | 'coffeeRescue' | 'inventory' | 'bugSquash';
+export type MicroMode = 'shellSort' | 'coffeeRescue' | 'procurement' | 'bugSquash';
 
 // --- Conveyor Sort --------------------------------------------------------
 // Items ride a conveyor: a good nut, a rare golden nut, or a broken shell. The
@@ -70,57 +70,72 @@ export function coffeeCatchScore(streak: number): number {
   return 2 * coffeeComboMultiplier(streak);
 }
 
-// --- Raccoon Inventory Check ----------------------------------------------
-// A shelf of items is shown, then one is swapped; the player identifies which
-// slot changed. Rounds get bigger as the player succeeds. Deterministic seed.
-export const INVENTORY_ITEMS = [
-  'stapler',
-  'mug',
-  'clip',
-  'nut',
-  'floppy',
-  'plant',
-  'lamp',
-  'phone',
-  'key',
-  'battery',
-] as const;
-export type InventoryItem = (typeof INVENTORY_ITEMS)[number];
+// --- Procurement Conveyor -------------------------------------------------
+// Packages ride the intake conveyor and the player physically drags each one to
+// the correct department chute. Departments are told apart by ICON + SHAPE +
+// LABEL (never colour alone) for colourblind accessibility. Some packages arrive
+// on their side and must be rotated upright before they fit; fragile/priority
+// parcels reward careful, accurate handling. Fully deterministic from a seed so
+// the rules are unit-testable and reproducible in the dev deterministic mode.
+export type ProcurementDept = 'harvest' | 'roasting' | 'logistics' | 'research';
+export const PROCUREMENT_DEPTS: ProcurementDept[] = ['harvest', 'roasting', 'logistics', 'research'];
 
-/** Shelf size grows every two cleared rounds: 5,5,6,6,7,7… capped at the pool. */
-export function inventorySize(round: number): number {
-  return Math.min(INVENTORY_ITEMS.length, 5 + Math.floor(Math.max(0, round) / 2));
+export interface ProcurementPackage {
+  id: number;
+  /** the department this parcel is addressed to (shown as an icon on the box). */
+  dept: ProcurementDept;
+  /** tubes/flats arrive rotated; they must be turned upright to fit the chute. */
+  sideways: boolean;
+  /** fragile parcels are worth a small bonus for careful, correct handling. */
+  fragile: boolean;
 }
 
-export interface InventoryRound {
-  items: InventoryItem[];
-  changedIndex: number;
-  before: InventoryItem;
-  after: InventoryItem;
-}
-
-export function inventoryRound(seedStr: string, size = 5): InventoryRound {
-  const rng: Rng = createRng(hashStringToSeed(`inv:${seedStr}`));
-  const capped = Math.min(size, INVENTORY_ITEMS.length);
-  const pool = [...INVENTORY_ITEMS];
-  // draw `size` distinct items
-  const items: InventoryItem[] = [];
-  while (items.length < capped && pool.length > 0) {
-    items.push(pool.splice(rng.int(0, pool.length), 1)[0]);
+export function procurementSequence(seedStr: string, count: number): ProcurementPackage[] {
+  const rng = createRng(hashStringToSeed(`proc:${seedStr}`));
+  const out: ProcurementPackage[] = [];
+  for (let i = 0; i < count; i += 1) {
+    out.push({
+      id: i,
+      dept: PROCUREMENT_DEPTS[rng.int(0, PROCUREMENT_DEPTS.length)],
+      sideways: rng.next() < 0.32,
+      fragile: rng.next() < 0.22,
+    });
   }
-  const changedIndex = rng.int(0, items.length);
-  const before = items[changedIndex];
-  // pick a replacement not already on the shelf and different from `before`
-  const candidates = INVENTORY_ITEMS.filter((it) => !items.includes(it));
-  const after = candidates.length > 0 ? candidates[rng.int(0, candidates.length)] : before;
-  const changedItems = items.slice();
-  changedItems[changedIndex] = after;
-  return { items: changedItems, changedIndex, before, after };
+  return out;
 }
 
-/** Score for a correct find, rewarding longer memory streaks. */
-export function inventoryScoreDelta(streak: number): number {
-  return 3 + Math.min(6, streak);
+export type ProcurementResult = 'correct' | 'wrongDept' | 'notUpright';
+
+/**
+ * Resolve dropping a package onto a department chute. A parcel only clears when
+ * it is sent to the right department AND (if it arrived sideways) has already
+ * been rotated upright — otherwise it simply "doesn't fit" and can be retried,
+ * so the player is never soft-locked and mistakes are gentle.
+ */
+export function procurementResolve(
+  pkg: ProcurementPackage,
+  dept: ProcurementDept,
+  upright: boolean,
+): ProcurementResult {
+  if (pkg.sideways && !upright) return 'notUpright';
+  return pkg.dept === dept ? 'correct' : 'wrongDept';
+}
+
+/**
+ * Gentle scoring: only a correct placement scores, scaling with the current
+ * combo; fragile and rotated parcels add a small bonus for the extra care and
+ * skill. Wrong placements score nothing (never negative).
+ */
+export function procurementScoreDelta(
+  result: ProcurementResult,
+  combo: number,
+  pkg: ProcurementPackage,
+): number {
+  if (result !== 'correct') return 0;
+  let base = 2;
+  if (pkg.fragile) base += 2;
+  if (pkg.sideways) base += 1;
+  return base + Math.floor(Math.max(0, combo) / 3);
 }
 
 // --- Bug Squash -----------------------------------------------------------
