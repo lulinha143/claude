@@ -802,6 +802,14 @@
     "acceptable": "Confortável aqui",
     "disliked": "Não é a sala dele"
   },
+  "window": {
+    "controls": "Controles da janela",
+    "minimize": "Minimizar",
+    "maximize": "Maximizar",
+    "restore": "Restaurar",
+    "close": "Fechar",
+    "closeToTray": "Botão Fechar minimiza para a bandeja"
+  },
   "photo": {
     "save": "Salvar foto",
     "saved": "Salvo!",

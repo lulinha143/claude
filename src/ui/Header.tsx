@@ -6,6 +6,7 @@ import { Acorn, GoldenNut } from '../art/Icons';
 import { Icon } from '../art/UiIcon';
 import { AnimatedNumber } from './AnimatedNumber';
 import { useTooltip, TipContent } from './Tooltip';
+import { WindowControls } from './WindowControls';
 
 export function Header() {
   const { t } = useTranslation();
@@ -81,6 +82,7 @@ export function Header() {
         >
           <Icon name={quiet ? 'quiet' : 'music'} size={18} />
         </button>
+        <WindowControls />
       </div>
     </header>
   );

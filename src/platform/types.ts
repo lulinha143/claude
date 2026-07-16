@@ -13,6 +13,7 @@ export interface WindowSettings {
   launchOnStartup: boolean;
   batterySaver: boolean;
   fpsLimit: number;
+  closeToTray: boolean;
   width?: number;
   height?: number;
   maximized?: boolean;
@@ -35,6 +36,10 @@ export interface DesktopBridge {
   setScale(scale: number): Promise<WindowSettings>;
   hideToTray(): Promise<void>;
   show(): Promise<void>;
+  minimize(): Promise<void>;
+  toggleMaximize(): Promise<boolean>;
+  isMaximized(): Promise<boolean>;
+  closeWindow(): Promise<void>;
   quit(): Promise<void>;
   getIdleSeconds(): Promise<number>;
   getPlatformInfo(): Promise<PlatformInfo>;
@@ -42,6 +47,7 @@ export interface DesktopBridge {
   onQuietMode(cb: (enabled: boolean) => void): () => void;
   onFocusChanged(cb: (focused: boolean) => void): () => void;
   onShowSettings(cb: () => void): () => void;
+  onMaximizeChanged(cb: (maximized: boolean) => void): () => void;
 }
 
 declare global {

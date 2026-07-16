@@ -121,8 +121,40 @@ h4 {
   -webkit-app-region: drag; /* draggable desktop window area */
 }
 .header button,
-.header input {
-  -webkit-app-region: no-drag;
+.header input,
+.header button,
+.header .res,
+.window-controls {
+  -webkit-app-region: no-drag; /* clickable on the draggable title bar */
+}
+.window-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 2px;
+}
+.wc-btn {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--cream);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+.wc-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+.wc-btn:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+.wc-btn--close:hover {
+  background: var(--negative);
+  color: #fff;
 }
 .header__title {
   display: flex;

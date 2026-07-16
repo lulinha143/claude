@@ -248,8 +248,14 @@ function createWindow(): void {
   };
   mainWindow.on('resize', persistBounds);
   mainWindow.on('move', persistBounds);
-  mainWindow.on('maximize', persistBounds);
-  mainWindow.on('unmaximize', persistBounds);
+  mainWindow.on('maximize', () => {
+    persistBounds();
+    mainWindow?.webContents.send(IPC_EVENTS.maximizeChanged, true);
+  });
+  mainWindow.on('unmaximize', () => {
+    persistBounds();
+    mainWindow?.webContents.send(IPC_EVENTS.maximizeChanged, false);
+  });
 
   if (isDev) {
     log(`loading dev server: ${process.env.WMNO_DEV_SERVER}`);
@@ -424,7 +430,29 @@ function registerIpc(): void {
 
   ipcMain.handle(IPC.hideToTray, () => mainWindow?.hide());
   ipcMain.handle(IPC.show, () => mainWindow?.show());
-  ipcMain.handle(IPC.quit, () => app.quit());
+  ipcMain.handle(IPC.minimize, () => mainWindow?.minimize());
+  ipcMain.handle(IPC.toggleMaximize, () => {
+    if (!mainWindow) return false;
+    if (mainWindow.isMaximized()) mainWindow.unmaximize();
+    else mainWindow.maximize();
+    return mainWindow.isMaximized();
+  });
+  ipcMain.handle(IPC.isMaximized, () => mainWindow?.isMaximized() ?? false);
+  // The Close button: save window state, then either hide to tray (only if the
+  // player opted in) or quit for real. Game progress is persisted by the
+  // renderer before it calls this.
+  ipcMain.handle(IPC.closeWindow, () => {
+    saveSettings();
+    if (settings.closeToTray && tray) {
+      mainWindow?.hide();
+    } else {
+      app.quit();
+    }
+  });
+  ipcMain.handle(IPC.quit, () => {
+    saveSettings();
+    app.quit();
+  });
 
   ipcMain.handle(IPC.getIdleSeconds, () => {
     // Only the number of seconds the whole system has been idle. This never

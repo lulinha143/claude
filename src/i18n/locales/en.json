@@ -802,6 +802,14 @@
     "acceptable": "Comfortable here",
     "disliked": "Not their room"
   },
+  "window": {
+    "controls": "Window controls",
+    "minimize": "Minimize",
+    "maximize": "Maximize",
+    "restore": "Restore",
+    "close": "Close",
+    "closeToTray": "Close button minimizes to tray"
+  },
   "photo": {
     "save": "Save snapshot",
     "saved": "Saved!",

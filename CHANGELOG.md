@@ -41,6 +41,18 @@ semantic versioning.
   makes her **frustrated** and costs **-6 morale** (in addition to existing
   emotion swings), so thoughtless choices carry real weight (brief §4 Problem 2).
 
+### Added — desktop window controls
+
+- **Custom Minimize / Maximize-Restore / Close controls** in the header title bar
+  (brief §1), shown only in the Electron build. New IPC channels (`minimize`,
+  `toggleMaximize`, `isMaximized`, `closeWindow`) + a `maximize-changed` event so
+  the button reflects the real state. **Close** flushes the game save (renderer)
+  and window position/size (main), then quits — it only minimizes to tray if the
+  player enables the new **"Close button minimizes to tray"** toggle in Settings
+  (default off, per brief). Header stays a drag region with buttons/resources
+  marked `no-drag`. Verified the app still boots cleanly headless (startup log:
+  window created → renderer loaded → shown).
+
 ### Changed — UX polish
 
 - **Popups never grow taller than the game window** (brief §7). Modals are capped

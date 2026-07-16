@@ -281,6 +281,11 @@ export function SettingsView() {
             onChange={(v) => updateWin({ launchOnStartup: v })}
           />
           <Toggle
+            label={t('window.closeToTray')}
+            checked={!!win?.closeToTray}
+            onChange={(v) => updateWin({ closeToTray: v })}
+          />
+          <Toggle
             label={t('settings.batterySaver')}
             checked={!!win?.batterySaver}
             onChange={(v) => updateWin({ batterySaver: v })}

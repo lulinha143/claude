@@ -22,6 +22,9 @@ export type IconName =
   | 'quiet'
   | 'sound'
   | 'mute'
+  | 'minimize'
+  | 'maximize'
+  | 'restore'
   | 'music'
   | 'ambience'
   | 'sfx'
@@ -161,6 +164,14 @@ const PATHS: Record<IconName, JSX.Element> = {
     <>
       <path d="M4 9h4l5-4v14l-5-4H4Z" />
       <path d="M16.5 9.5l5 5M21.5 9.5l-5 5" strokeWidth="1.8" />
+    </>
+  ),
+  minimize: <path d="M5 12h14" strokeWidth="2" />,
+  maximize: <rect x="5" y="5" width="14" height="14" rx="1.5" strokeWidth="2" />,
+  restore: (
+    <>
+      <rect x="7" y="7" width="12" height="12" rx="1.5" strokeWidth="2" />
+      <path d="M5 15V6a1 1 0 0 1 1-1h9" strokeWidth="1.6" />
     </>
   ),
   music: (

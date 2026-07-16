@@ -14,6 +14,8 @@ export interface WindowSettings {
   launchOnStartup: boolean;
   batterySaver: boolean;
   fpsLimit: number; // 30 | 60
+  /** When true, the Close button hides to tray instead of quitting. */
+  closeToTray: boolean;
   /** Remembered free-resize bounds (px). Absent until the user resizes. */
   width?: number;
   height?: number;
@@ -31,6 +33,7 @@ export const DEFAULT_WINDOW_SETTINGS: WindowSettings = {
   launchOnStartup: false,
   batterySaver: false,
   fpsLimit: 60,
+  closeToTray: false,
   maximized: false,
 };
 
@@ -44,6 +47,10 @@ export const IPC = {
   setScale: 'window:set-scale',
   hideToTray: 'window:hide-to-tray',
   show: 'window:show',
+  minimize: 'window:minimize',
+  toggleMaximize: 'window:toggle-maximize',
+  isMaximized: 'window:is-maximized',
+  closeWindow: 'window:close',
   quit: 'app:quit',
   getPlatformInfo: 'platform:info',
   getIdleSeconds: 'system:idle-seconds',
@@ -55,6 +62,7 @@ export const IPC_EVENTS = {
   quietMode: 'event:quiet-mode',
   focusChanged: 'event:focus-changed',
   showSettings: 'event:show-settings',
+  maximizeChanged: 'event:maximize-changed',
 } as const;
 
 export interface PlatformInfo {

@@ -25,6 +25,10 @@ const api = {
   setScale: (scale: number): Promise<WindowSettings> => ipcRenderer.invoke(IPC.setScale, scale),
   hideToTray: (): Promise<void> => ipcRenderer.invoke(IPC.hideToTray),
   show: (): Promise<void> => ipcRenderer.invoke(IPC.show),
+  minimize: (): Promise<void> => ipcRenderer.invoke(IPC.minimize),
+  toggleMaximize: (): Promise<boolean> => ipcRenderer.invoke(IPC.toggleMaximize),
+  isMaximized: (): Promise<boolean> => ipcRenderer.invoke(IPC.isMaximized),
+  closeWindow: (): Promise<void> => ipcRenderer.invoke(IPC.closeWindow),
   quit: (): Promise<void> => ipcRenderer.invoke(IPC.quit),
   getIdleSeconds: (): Promise<number> => ipcRenderer.invoke(IPC.getIdleSeconds),
   getPlatformInfo: (): Promise<PlatformInfo> => ipcRenderer.invoke(IPC.getPlatformInfo),
@@ -36,6 +40,8 @@ const api = {
   onFocusChanged: (cb: (focused: boolean) => void) =>
     subscribe(IPC_EVENTS.focusChanged, (args) => cb(Boolean(args[0]))),
   onShowSettings: (cb: () => void) => subscribe(IPC_EVENTS.showSettings, () => cb()),
+  onMaximizeChanged: (cb: (maximized: boolean) => void) =>
+    subscribe(IPC_EVENTS.maximizeChanged, (args) => cb(Boolean(args[0]))),
 };
 
 function subscribe(channel: string, listener: (args: unknown[]) => void): () => void {

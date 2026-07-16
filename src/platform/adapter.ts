@@ -14,6 +14,7 @@ const BROWSER_DEFAULTS: WindowSettings = {
   launchOnStartup: false,
   batterySaver: false,
   fpsLimit: 60,
+  closeToTray: false,
 };
 
 export interface PlatformAdapter {
@@ -26,6 +27,10 @@ export interface PlatformAdapter {
   setScale(scale: number): Promise<WindowSettings>;
   hideToTray(): Promise<void>;
   show(): Promise<void>;
+  minimize(): Promise<void>;
+  toggleMaximize(): Promise<boolean>;
+  isMaximized(): Promise<boolean>;
+  closeWindow(): Promise<void>;
   quit(): Promise<void>;
   getIdleSeconds(): Promise<number>;
   getPlatformInfo(): Promise<PlatformInfo>;
@@ -33,6 +38,7 @@ export interface PlatformAdapter {
   onQuietMode(cb: (enabled: boolean) => void): () => void;
   onFocusChanged(cb: (focused: boolean) => void): () => void;
   onShowSettings(cb: () => void): () => void;
+  onMaximizeChanged(cb: (maximized: boolean) => void): () => void;
 }
 
 class DesktopAdapter implements PlatformAdapter {
@@ -62,6 +68,18 @@ class DesktopAdapter implements PlatformAdapter {
   show() {
     return this.bridge.show();
   }
+  minimize() {
+    return this.bridge.minimize();
+  }
+  toggleMaximize() {
+    return this.bridge.toggleMaximize();
+  }
+  isMaximized() {
+    return this.bridge.isMaximized();
+  }
+  closeWindow() {
+    return this.bridge.closeWindow();
+  }
   quit() {
     return this.bridge.quit();
   }
@@ -82,6 +100,9 @@ class DesktopAdapter implements PlatformAdapter {
   }
   onShowSettings(cb: () => void) {
     return this.bridge.onShowSettings(cb);
+  }
+  onMaximizeChanged(cb: (m: boolean) => void) {
+    return this.bridge.onMaximizeChanged(cb);
   }
 }
 
@@ -118,6 +139,18 @@ class BrowserAdapter implements PlatformAdapter {
   async show() {
     /* not available in the browser */
   }
+  async minimize() {
+    /* not available in the browser */
+  }
+  async toggleMaximize() {
+    return false;
+  }
+  async isMaximized() {
+    return false;
+  }
+  async closeWindow() {
+    /* the browser tab can't close itself */
+  }
   async quit() {
     /* the browser tab can't quit itself */
   }
@@ -140,6 +173,9 @@ class BrowserAdapter implements PlatformAdapter {
     return () => document.removeEventListener('visibilitychange', handler);
   }
   onShowSettings() {
+    return () => {};
+  }
+  onMaximizeChanged() {
     return () => {};
   }
 }
