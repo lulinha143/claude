@@ -1328,6 +1328,74 @@ select,
   filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.4));
 }
 
+/* --- Cable Untangle Desk --- */
+.cable__hud {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 6px;
+}
+.cable__crossings { color: var(--amber); transition: color 0.2s ease; }
+.cable__crossings.is-clear { color: var(--positive); }
+.cable__board {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  max-height: 60vh;
+  margin: 0 auto;
+  border-radius: var(--r-md);
+  background: radial-gradient(circle at 50% 40%, rgba(255, 244, 224, 0.08), rgba(0, 0, 0, 0.28));
+  border: 2px solid var(--wood-light);
+  overflow: hidden;
+  touch-action: none;
+}
+.cable__board.is-solved { box-shadow: inset 0 0 0 3px var(--positive); }
+.cable__wires {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.cable__wire {
+  stroke: var(--accent);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+.cable:not(.is-reduced) .cable__wire { transition: none; }
+.cable__node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  padding: 3px;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  background: var(--surface);
+  cursor: grab;
+  touch-action: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+.cable__node:hover { border-color: var(--accent); }
+.cable__node:active { cursor: grabbing; }
+.cable__node.is-active { border-color: var(--gold); }
+.cable__node:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.cable__cleared {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 1.4em;
+  color: var(--positive);
+  background: rgba(0, 0, 0, 0.28);
+  pointer-events: none;
+}
+.cable__hint { text-align: center; margin: 6px 0 0; min-height: 1.2em; }
+
 /* ------- prestige ------- */
 .branch-grid {
   display: grid;
@@ -3362,7 +3430,8 @@ img {
 .bugsquash,
 .coffee,
 .shellsort,
-.proc {
+.proc,
+.cable {
   max-width: 100%;
 }
 

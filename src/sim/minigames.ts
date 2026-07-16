@@ -4,7 +4,7 @@ import { createRng, hashStringToSeed } from './rng';
 // timing/DOM; this module owns the rules so they can be unit-tested and are
 // reproducible from a seed (used by tests and the dev deterministic mode).
 
-export type MicroMode = 'shellSort' | 'coffeeRescue' | 'procurement' | 'bugSquash';
+export type MicroMode = 'shellSort' | 'coffeeRescue' | 'procurement' | 'bugSquash' | 'cableUntangle';
 
 // --- Conveyor Sort --------------------------------------------------------
 // Items ride a conveyor: a good nut, a rare golden nut, or a broken shell. The
@@ -154,6 +154,110 @@ export function bugSpawnInterval(elapsedSeconds: number): number {
 
 export function bugScore(streak: number): number {
   return 2 + Math.min(6, Math.floor(streak / 2));
+}
+
+// --- Cable Untangle Desk --------------------------------------------------
+// A messy workstation: computers (nodes) are wired together by cables (edges)
+// that start out crossed. The player drags each computer until NO two cables
+// cross. The graph is always a single loop (a Hamiltonian cycle), which is
+// guaranteed to be untangle-able into a convex ring — so every puzzle is
+// solvable and can never soft-lock. Positions are normalised 0..1 so the board
+// scales to any window size; all rules are pure and unit-tested.
+export interface CablePoint {
+  id: number;
+  x: number;
+  y: number;
+}
+export interface CableEdge {
+  a: number;
+  b: number;
+}
+export interface CablePuzzle {
+  points: CablePoint[];
+  edges: CableEdge[];
+}
+
+/** Orientation of the ordered triplet (p, q, r): >0 ccw, <0 cw, 0 collinear. */
+function orient(px: number, py: number, qx: number, qy: number, rx: number, ry: number): number {
+  return (qx - px) * (ry - py) - (qy - py) * (rx - px);
+}
+
+/**
+ * True only for a *proper* crossing of segments (p1,p2) and (p3,p4). Segments
+ * that merely touch at a shared endpoint (adjacent cables) do NOT count, and
+ * neither do collinear/degenerate touches — only a genuine X-crossing.
+ */
+export function segmentsCross(
+  p1: { x: number; y: number },
+  p2: { x: number; y: number },
+  p3: { x: number; y: number },
+  p4: { x: number; y: number },
+): boolean {
+  const d1 = orient(p3.x, p3.y, p4.x, p4.y, p1.x, p1.y);
+  const d2 = orient(p3.x, p3.y, p4.x, p4.y, p2.x, p2.y);
+  const d3 = orient(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y);
+  const d4 = orient(p1.x, p1.y, p2.x, p2.y, p4.x, p4.y);
+  return ((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) && ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0));
+}
+
+/** Count the pairs of non-adjacent cables that cross at the given positions. */
+export function countCrossings(edges: CableEdge[], pos: Record<number, { x: number; y: number }>): number {
+  let n = 0;
+  for (let i = 0; i < edges.length; i += 1) {
+    for (let j = i + 1; j < edges.length; j += 1) {
+      const e1 = edges[i];
+      const e2 = edges[j];
+      // adjacent cables share a computer — a shared endpoint is never a crossing
+      if (e1.a === e2.a || e1.a === e2.b || e1.b === e2.a || e1.b === e2.b) continue;
+      if (segmentsCross(pos[e1.a], pos[e1.b], pos[e2.a], pos[e2.b])) n += 1;
+    }
+  }
+  return n;
+}
+
+export function cableSolved(edges: CableEdge[], pos: Record<number, { x: number; y: number }>): boolean {
+  return countCrossings(edges, pos) === 0;
+}
+
+export function cablePositions(points: CablePoint[]): Record<number, { x: number; y: number }> {
+  const out: Record<number, { x: number; y: number }> = {};
+  for (const p of points) out[p.id] = { x: p.x, y: p.y };
+  return out;
+}
+
+/**
+ * Build a solvable, initially-tangled cable puzzle: a loop of `nodeCount`
+ * computers scattered at deterministic random positions, guaranteeing at least
+ * one crossing so there is always something to fix.
+ */
+export function cablePuzzle(seedStr: string, nodeCount: number): CablePuzzle {
+  const n = Math.max(4, nodeCount);
+  const rng = createRng(hashStringToSeed(`cable:${seedStr}`));
+  const scatter = (): CablePoint[] =>
+    Array.from({ length: n }, (_, id) => ({
+      id,
+      // keep a margin off the edges so nodes never sit on the board border
+      x: 0.1 + rng.next() * 0.8,
+      y: 0.1 + rng.next() * 0.8,
+    }));
+  const edges: CableEdge[] = Array.from({ length: n }, (_, i) => ({ a: i, b: (i + 1) % n }));
+
+  let points = scatter();
+  // ensure the puzzle actually starts tangled (retry a bounded number of times)
+  for (let tries = 0; tries < 12 && countCrossings(edges, cablePositions(points)) === 0; tries += 1) {
+    points = scatter();
+  }
+  return { points, edges };
+}
+
+/** Nodes for the Nth solved puzzle: starts at 5 and grows, capped for clarity. */
+export function cableNodeCount(solved: number): number {
+  return Math.min(9, 5 + Math.max(0, solved));
+}
+
+/** Reward for clearing a board of the given size; bigger tangles are worth more. */
+export function cableSolveScore(nodeCount: number): number {
+  return 3 + Math.max(0, nodeCount - 4);
 }
 
 // --- shared -------------------------------------------------------------

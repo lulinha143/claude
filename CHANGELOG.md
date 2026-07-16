@@ -20,6 +20,17 @@ semantic versioning.
   Deterministic rules (`procurementSequence` / `procurementResolve` /
   `procurementScoreDelta`) are unit-tested. See `docs/MINIGAMES.md`.
 
+- **Added a second new minigame, Cable Untangle Desk** (brief §27 "Cable Untangle
+  Desk"; IT / Maintenance). A messy workstation's computers are wired into a
+  single loop of cables that start crossed; the player drags each computer until
+  no cables cross. The loop is always a Hamiltonian cycle, so every board is
+  guaranteed solvable and can never soft-lock. Bigger tangles score more and load
+  a larger board until the timer ends. Live crossing count (non-colour feedback),
+  pointer/touch drag plus keyboard (Tab + arrow-key nudge, focus ring), Reduced
+  Motion aware, and a fully window-scalable board. Deterministic rules
+  (`cablePuzzle` / `segmentsCross` / `countCrossings` / `cableSolved`) are
+  unit-tested.
+
 ### Added
 
 - **Copyright-free procedural music + office ambience** (`src/audio/audio.ts`):

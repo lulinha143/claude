@@ -31,6 +31,7 @@ again" flow, and the once-only reward.
 | `coffeeRescue`| `CoffeeRescue`           | 30s      | Kitchen    | Catch timing + combo streak       |
 | `procurement` | `ProcurementConveyor`    | 45s      | Logistics  | Drag / rotate / route parcels     |
 | `bugSquash`   | `BugSquash`              | 30s      | Maintenance| Reaction precision                |
+| `cableUntangle`| `CableUntangle`         | 45s      | IT / Maint.| Spatial: drag nodes to un-cross   |
 
 ## Procurement Conveyor (replaces Raccoon Inventory Check)
 
@@ -73,3 +74,33 @@ correct **department chute**.
 **Tests:** `tests/minigames.test.ts` (determinism, valid parcels, rotation gate,
 gentle/growing scoring, fragile/rotated bonus) and `tests/minigame-render.test.tsx`
 (mounts every mode, including reduced-motion, without throwing).
+
+## Cable Untangle Desk
+
+A new skill-based **spatial** game (IT / Maintenance). A messy workstation's
+computers are wired into a single loop of cables that start **crossed**; the
+player drags each computer until **no two cables cross**.
+
+- The graph is always a **Hamiltonian cycle**, which is mathematically
+  guaranteed to be untangle-able into a convex ring — so **every board is
+  solvable and can never soft-lock**.
+- Clearing a board scores points (bigger tangles are worth more) and loads a
+  larger, messier board; the shared countdown ends the run.
+- The live **crossing count** is shown as text (non-colour feedback).
+- **Controls:** drag a computer (pointer/touch), or Tab to a computer and nudge
+  it with the arrow keys. Nodes are focusable buttons with `aria-label`s and a
+  visible focus ring. **Reduced Motion** removes transitions.
+- Positions are normalised `0..1`, so the square board scales to any window
+  size.
+
+**Rules (`src/sim/minigames.ts`):**
+
+- `cablePuzzle(seed, nodeCount)` → deterministic loop, retried until it starts
+  tangled.
+- `segmentsCross(...)` → proper X-crossing only (shared endpoints excluded).
+- `countCrossings(edges, positions)` / `cableSolved(...)` → win when `0`.
+- `cableNodeCount(solved)` (5→9) and `cableSolveScore(nodeCount)`.
+
+**Tests:** `tests/minigames.test.ts` covers crossing detection (X vs parallel vs
+shared endpoint), a convex ring scoring `0` crossings vs a tangled bow-tie,
+deterministic solvable-and-tangled generation, and board growth/scoring.

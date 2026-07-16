@@ -743,6 +743,16 @@
       "dept": { "harvest": "Colheita", "roasting": "Torrefação", "logistics": "Logística", "research": "Pesquisa" }
     },
     "bugSquash": { "name": "Caça-Insetos", "desc": "Toque nas pragas do escritório assim que aparecerem — patas rápidas fazem combo!" },
+    "cableUntangle": {
+      "name": "Mesa de Cabos Embolados",
+      "desc": "Arraste cada computador até que nenhum cabo da estação se cruze.",
+      "crossings": "Cruzamentos: {{value}}",
+      "board": "Mesa {{value}}",
+      "computer": "Computador {{value}}",
+      "cleared": "Desembolado!",
+      "hint": "Arraste os computadores para que nenhum cabo se cruze.",
+      "doneHint": "Ótimo! Carregando a próxima mesa…"
+    },
     "bug": "Esmague a praga!",
     "burrow": "Toca vazia",
     "score": "Pontos: {{value}}",

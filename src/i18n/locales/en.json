@@ -743,6 +743,16 @@
       "dept": { "harvest": "Harvesting", "roasting": "Roasting", "logistics": "Logistics", "research": "Research" }
     },
     "bugSquash": { "name": "Bug Squash", "desc": "Tap the office pests the instant they pop up — quick paws build a combo!" },
+    "cableUntangle": {
+      "name": "Cable Untangle Desk",
+      "desc": "Drag each computer until none of the workstation cables cross.",
+      "crossings": "Crossings: {{value}}",
+      "board": "Desk {{value}}",
+      "computer": "Computer {{value}}",
+      "cleared": "Untangled!",
+      "hint": "Drag the computers so no cables cross.",
+      "doneHint": "Neat! Loading the next desk…"
+    },
     "bug": "Squash the pest!",
     "burrow": "Empty burrow",
     "score": "Score: {{value}}",

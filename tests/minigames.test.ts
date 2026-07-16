@@ -8,6 +8,13 @@ import {
   procurementScoreDelta,
   PROCUREMENT_DEPTS,
   type ProcurementPackage,
+  cablePuzzle,
+  cablePositions,
+  countCrossings,
+  cableSolved,
+  segmentsCross,
+  cableNodeCount,
+  cableSolveScore,
   coffeeFallDuration,
   coffeeSpawnInterval,
   coffeeComboMultiplier,
@@ -128,6 +135,66 @@ describe('Bug Squash difficulty', () => {
   it('rewards longer squash streaks more, up to a cap', () => {
     expect(bugScore(6)).toBeGreaterThan(bugScore(0));
     expect(bugScore(999)).toBeLessThanOrEqual(8);
+  });
+});
+
+describe('Cable Untangle logic', () => {
+  it('detects a proper segment crossing but not a shared endpoint or a miss', () => {
+    // an X crossing
+    expect(
+      segmentsCross({ x: 0, y: 0 }, { x: 1, y: 1 }, { x: 0, y: 1 }, { x: 1, y: 0 }),
+    ).toBe(true);
+    // parallel, no crossing
+    expect(
+      segmentsCross({ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 1 }),
+    ).toBe(false);
+    // shared endpoint (adjacent cables) is not a crossing
+    expect(
+      segmentsCross({ x: 0, y: 0 }, { x: 1, y: 1 }, { x: 0, y: 0 }, { x: 1, y: 0 }),
+    ).toBe(false);
+  });
+
+  it('counts zero crossings for a convex ring layout', () => {
+    // 4 nodes at square corners, wired as a loop 0-1-2-3-0 → no crossings
+    const edges = [
+      { a: 0, b: 1 },
+      { a: 1, b: 2 },
+      { a: 2, b: 3 },
+      { a: 3, b: 0 },
+    ];
+    const convex = { 0: { x: 0, y: 0 }, 1: { x: 1, y: 0 }, 2: { x: 1, y: 1 }, 3: { x: 0, y: 1 } };
+    expect(countCrossings(edges, convex)).toBe(0);
+    expect(cableSolved(edges, convex)).toBe(true);
+    // swapping two adjacent-in-space nodes creates a bow-tie with one crossing
+    const tangled = { 0: { x: 0, y: 0 }, 1: { x: 1, y: 1 }, 2: { x: 1, y: 0 }, 3: { x: 0, y: 1 } };
+    expect(countCrossings(edges, tangled)).toBeGreaterThan(0);
+    expect(cableSolved(edges, tangled)).toBe(false);
+  });
+
+  it('generates a deterministic, solvable, initially-tangled loop', () => {
+    const a = cablePuzzle('seed-1', 6);
+    const b = cablePuzzle('seed-1', 6);
+    expect(a).toEqual(b); // deterministic
+    expect(a.points).toHaveLength(6);
+    // edges form a single closed loop
+    expect(a.edges).toHaveLength(6);
+    expect(a.edges).toEqual([
+      { a: 0, b: 1 },
+      { a: 1, b: 2 },
+      { a: 2, b: 3 },
+      { a: 3, b: 4 },
+      { a: 4, b: 5 },
+      { a: 5, b: 0 },
+    ]);
+    // starts tangled (there is something to solve)
+    expect(countCrossings(a.edges, cablePositions(a.points))).toBeGreaterThan(0);
+  });
+
+  it('grows the board and rewards bigger tangles more', () => {
+    expect(cableNodeCount(0)).toBe(5);
+    expect(cableNodeCount(3)).toBe(8);
+    expect(cableNodeCount(99)).toBe(9); // capped
+    expect(cableSolveScore(8)).toBeGreaterThan(cableSolveScore(5));
   });
 });
 
