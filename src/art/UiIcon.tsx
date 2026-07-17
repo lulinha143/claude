@@ -6,6 +6,7 @@
 
 export type IconName =
   | 'nut'
+  | 'paw'
   | 'golden'
   | 'kernel'
   | 'morale'
@@ -69,6 +70,15 @@ const PATHS: Record<IconName, JSX.Element> = {
       <path d="M6 9c0 6 3 10 6 10s6-4 6-10" />
     </>
   ),
+  paw: (
+    <>
+      <path d="M7.5 14.5c1.2-2.4 7.8-2.4 9 0 1.4 2.8-.8 5.3-4.5 5.3s-5.9-2.5-4.5-5.3Z" />
+      <circle cx="6" cy="10" r="2" />
+      <circle cx="10" cy="6.8" r="2" />
+      <circle cx="14.5" cy="6.8" r="2" />
+      <circle cx="18" cy="10" r="2" />
+    </>
+  ),
   golden: (
     <>
       <path d="M5 9c2-3 12-3 14 0-1 2-3 3-7 3s-6-1-7-3Z" />
@@ -98,7 +108,10 @@ const PATHS: Record<IconName, JSX.Element> = {
   automation: (
     <>
       <circle cx="12" cy="12" r="3" />
-      <path d="M12 3v3M12 18v3M3 12h3M18 12h3M6 6l2 2M16 16l2 2M18 6l-2 2M8 16l-2 2" strokeWidth="1.5" />
+      <path
+        d="M12 3v3M12 18v3M3 12h3M18 12h3M6 6l2 2M16 16l2 2M18 6l-2 2M8 16l-2 2"
+        strokeWidth="1.5"
+      />
     </>
   ),
   employees: (
@@ -247,7 +260,10 @@ const PATHS: Record<IconName, JSX.Element> = {
   settings: (
     <>
       <circle cx="12" cy="12" r="3" />
-      <path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2" strokeWidth="1.5" />
+      <path
+        d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"
+        strokeWidth="1.5"
+      />
     </>
   ),
   accessibility: (

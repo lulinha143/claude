@@ -22,7 +22,10 @@ export function Header() {
 
   // Rich, informative tooltips for every header element.
   const tipRate = useTooltip(
-    <TipContent title={t('tip.rate.t')} lines={[t('tip.rate.d'), t('tip.current', { value: `${fmt.num(nps)}/s` })]} />,
+    <TipContent
+      title={t('tip.rate.t')}
+      lines={[t('tip.rate.d'), t('tip.current', { value: `${fmt.num(nps)}/s` })]}
+    />,
   );
   const tipNuts = useTooltip(
     <TipContent
@@ -56,25 +59,38 @@ export function Header() {
       title={t('tip.reputation.t')}
       lines={[
         t('tip.reputation.d'),
-        nextRep !== null ? t('tip.reputation.next', { value: fmt.num(nextRep) }) : t('tip.reputation.maxed'),
+        nextRep !== null
+          ? t('tip.reputation.next', { value: fmt.num(nextRep) })
+          : t('tip.reputation.maxed'),
         t('tip.current', { value: fmt.num(state.resources.reputation) }),
       ]}
     />,
   );
   const tipMute = useTooltip(
-    <TipContent title={muted ? t('office.restoreAll') : t('office.muteAll')} lines={[t('tip.mute.d')]} />,
+    <TipContent
+      title={muted ? t('office.restoreAll') : t('office.muteAll')}
+      lines={[t('tip.mute.d')]}
+    />,
   );
   const tipMusic = useTooltip(
-    <TipContent title={musicMuted ? t('office.restoreMusic') : t('office.muteMusic')} lines={[t('tip.music.d')]} />,
+    <TipContent
+      title={musicMuted ? t('office.restoreMusic') : t('office.muteMusic')}
+      lines={[t('tip.music.d')]}
+    />,
   );
 
   return (
     <header className="header">
-      <div className="header__title">
-        <span className="header__company">{state.company.name}</span>
-        <span className="header__rate" {...tipRate}>
-          <Icon name="production" size={12} /> {fmt.num(nps)}/s
+      <div className="header__brand">
+        <span className="header__brand-mark" aria-hidden="true">
+          <Icon name="paw" size={17} />
         </span>
+        <div className="header__title">
+          <span className="header__company">{state.company.name}</span>
+          <span className="header__rate" {...tipRate}>
+            <Icon name="production" size={12} /> {fmt.num(nps)}/s
+          </span>
+        </div>
       </div>
       <div className="header__resources">
         <div className="res res--nuts" {...tipNuts}>

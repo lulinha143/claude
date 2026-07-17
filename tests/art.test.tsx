@@ -20,7 +20,16 @@ const SPECIES: CritterSpecies[] = [
   'owl',
   'fox',
 ];
-const STATES: CritterState[] = ['idle', 'sorting', 'typing', 'celebrate', 'panic', 'sleep', 'talk', 'coffee'];
+const STATES: CritterState[] = [
+  'idle',
+  'sorting',
+  'typing',
+  'celebrate',
+  'panic',
+  'sleep',
+  'talk',
+  'coffee',
+];
 
 describe('Critter art', () => {
   it('renders a valid, labelled SVG for every species without throwing', () => {
@@ -49,7 +58,13 @@ describe('Critter art', () => {
 
   it('reduced motion pins the state to idle and omits blink timing', () => {
     const html = renderToStaticMarkup(
-      <Critter species="squirrel" color="#c65b3c" accent="#3f7d4f" state="celebrate" reducedMotion />,
+      <Critter
+        species="squirrel"
+        color="#c65b3c"
+        accent="#3f7d4f"
+        state="celebrate"
+        reducedMotion
+      />,
     );
     expect(html).toContain('critter--idle');
     expect(html).not.toContain('--blink-delay');
@@ -58,7 +73,13 @@ describe('Critter art', () => {
   it('every configured employee species is renderable', () => {
     for (const shape of Object.values(CRITTER_SHAPES)) {
       const html = renderToStaticMarkup(
-        <Critter species={shape.species} color="#4a3f35" accent="#ffb14e" state="idle" hasGlasses={shape.hasGlasses} />,
+        <Critter
+          species={shape.species}
+          color="#4a3f35"
+          accent="#ffb14e"
+          state="idle"
+          hasGlasses={shape.hasGlasses}
+        />,
       );
       expect(html).toContain('<svg');
     }
@@ -67,12 +88,47 @@ describe('Critter art', () => {
 
 describe('UI icons', () => {
   const NAMES: IconName[] = [
-    'nut', 'golden', 'kernel', 'morale', 'reputation', 'production', 'automation',
-    'employees', 'rooms', 'shop', 'decorate', 'company', 'coffee', 'focus', 'quiet',
-    'sound', 'music', 'ambience', 'sfx', 'save', 'import', 'export', 'achievements',
-    'stats', 'encyclopedia', 'prestige', 'settings', 'accessibility', 'photo', 'moment',
-    'daily', 'minigame', 'notification', 'warning', 'success', 'error', 'lock', 'hidden',
-    'close', 'back',
+    'nut',
+    'paw',
+    'golden',
+    'kernel',
+    'morale',
+    'reputation',
+    'production',
+    'automation',
+    'employees',
+    'rooms',
+    'shop',
+    'decorate',
+    'company',
+    'coffee',
+    'focus',
+    'quiet',
+    'sound',
+    'music',
+    'ambience',
+    'sfx',
+    'save',
+    'import',
+    'export',
+    'achievements',
+    'stats',
+    'encyclopedia',
+    'prestige',
+    'settings',
+    'accessibility',
+    'photo',
+    'moment',
+    'daily',
+    'minigame',
+    'notification',
+    'warning',
+    'success',
+    'error',
+    'lock',
+    'hidden',
+    'close',
+    'back',
   ];
 
   it('renders every named icon as an svg using currentColor', () => {

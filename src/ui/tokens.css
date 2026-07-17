@@ -21,6 +21,11 @@
   --c-cream-200: #f0e2c8;
   --c-cream-300: #d8c4a8;
   --c-cream-400: #a89577;
+  --c-paper-100: #fff1cf;
+  --c-paper-200: #f3ddb1;
+  --c-paper-300: #d9b982;
+  --c-ink-800: #332619;
+  --c-brass-500: #bd8733;
 
   --c-moss-600: #2f6b40;
   --c-moss-500: #3f7d4f;
@@ -106,14 +111,32 @@
   --corner-panel: 6px;
 
   /* shared UI identity surfaces and interaction states */
+  --paper: var(--c-paper-100);
+  --paper-muted: var(--c-paper-200);
+  --paper-edge: var(--c-paper-300);
+  --ink: var(--c-ink-800);
+  --stationery-rule: rgba(128, 87, 40, 0.2);
+  --stationery-stitch: color-mix(in srgb, var(--c-cream-300) 42%, transparent);
+  --brand-mark: var(--c-amber-400);
   --panel-surface: color-mix(in srgb, var(--c-bark-700) 94%, var(--c-wood-500));
   --panel-surface-raised: color-mix(in srgb, var(--c-bark-600) 90%, var(--c-wood-400));
+  --panel-texture:
+    repeating-linear-gradient(0deg, rgba(255, 244, 224, 0.022) 0 1px, transparent 1px 19px),
+    linear-gradient(145deg, rgba(255, 244, 224, 0.045), transparent 42%);
   --chrome-surface: color-mix(in srgb, var(--c-bark-900) 88%, transparent);
+  --chrome-texture:
+    linear-gradient(100deg, rgba(255, 244, 224, 0.04), transparent 26%),
+    repeating-linear-gradient(90deg, rgba(255, 244, 224, 0.016) 0 1px, transparent 1px 32px);
+  --control-surface: color-mix(in srgb, var(--c-bark-600) 86%, var(--c-wood-400));
+  --control-edge: color-mix(in srgb, var(--c-bark-900) 82%, black);
+  --control-highlight: rgba(255, 244, 224, 0.13);
   --control-hover: color-mix(in srgb, var(--primary) 32%, var(--panel-surface-raised));
   --control-pressed: color-mix(in srgb, var(--primary) 46%, var(--c-bark-900));
   --control-disabled: #40372e;
   --accent-rule: var(--c-amber-500);
   --shadow-form: 2px 3px 0 rgba(18, 12, 7, 0.45);
+  --shadow-stationery: 3px 4px 0 rgba(18, 12, 7, 0.4);
+  --shadow-control: 0 3px 0 var(--control-edge), inset 0 1px 0 var(--control-highlight);
   --shadow-pressed: inset 0 2px 0 rgba(0, 0, 0, 0.28);
 
   /* motion */
@@ -229,4 +252,19 @@
   --primary: #2fbf5f;
   --accent: #ffd54a;
   --interactive-hover: rgba(255, 255, 255, 0.2);
+  --paper: #ffffff;
+  --paper-muted: #ffffff;
+  --paper-edge: #ffffff;
+  --ink: #000000;
+  --stationery-rule: #000000;
+  --stationery-stitch: #ffffff;
+  --brand-mark: #ffd54a;
+  --panel-surface: #000000;
+  --panel-surface-raised: #141414;
+  --panel-texture: none;
+  --chrome-surface: #000000;
+  --chrome-texture: none;
+  --control-surface: #000000;
+  --control-edge: #ffffff;
+  --control-highlight: transparent;
 }
