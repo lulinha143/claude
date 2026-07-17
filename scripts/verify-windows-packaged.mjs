@@ -19,24 +19,35 @@ import path from 'node:path';
 const isWin = process.platform === 'win32';
 const npm = isWin ? 'npm.cmd' : 'npm';
 
-function run(cmd, args) {
-  console.log(`\n> ${cmd} ${args.join(' ')}`);
-  const r = spawnSync(cmd, args, { stdio: 'inherit', shell: isWin });
+// npm lives on PATH (no spaces); it needs the shell on Windows only to resolve
+// the .cmd shim.
+function runNpm(args) {
+  console.log(`\n> npm ${args.join(' ')}`);
+  const r = spawnSync(npm, args, { stdio: 'inherit', shell: isWin });
+  return r.status ?? 1;
+}
+
+// process.execPath can contain spaces (e.g. C:\Program Files\nodejs\node.exe).
+// NEVER run it through a shell — spawnSync with shell:false passes it as argv[0]
+// verbatim, so the space can't break the command.
+function runNode(scriptPath) {
+  console.log(`\n> node ${scriptPath}`);
+  const r = spawnSync(process.execPath, [scriptPath], { stdio: 'inherit', shell: false });
   return r.status ?? 1;
 }
 
 // 1. Build the packaged app.
 if (isWin) {
   // build:windows:folder completes fully on Windows (no wine needed).
-  run(npm, ['run', 'build:windows:folder']);
+  runNpm(['run', 'build:windows:folder']);
 } else {
   // Linux fallback: build the desktop bundle + an unpacked linux dir.
-  run(npm, ['run', 'build:desktop']);
-  run('npx', ['electron-builder', '--linux', 'dir']);
+  runNpm(['run', 'build:desktop']);
+  runNpm(['exec', '--', 'electron-builder', '--linux', 'dir']);
 }
 
 // 2. Verify the unpacked renderer files.
-if (run(process.execPath, ['scripts/verify-packaged-renderer.mjs']) !== 0) {
+if (runNode('scripts/verify-packaged-renderer.mjs') !== 0) {
   console.error('verify:windows:packaged FAILED at renderer file verification.');
   process.exit(1);
 }
