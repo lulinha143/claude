@@ -48,3 +48,121 @@ for (const [label, w, h] of [
     await page.screenshot({ path: `visual-artifacts/nav-${label}.png` });
   });
 }
+
+
+
+test('localized nav tooltips stay inside every viewport and respect hover plus focus', async ({
+  page,
+}) => {
+  await page.addInitScript((save) => {
+    localStorage.setItem(
+      'wmno.save.v1',
+      JSON.stringify({ ...save, settings: { ...save.settings, language: 'pt-BR' } }),
+    );
+    localStorage.setItem('wmno.lang', 'pt-BR');
+  }, SAVE);
+  await page.setViewportSize({ width: 1100, height: 780 });
+  await boot(page);
+
+  const nav = page.getByRole('navigation', { name: 'Navegação principal' });
+  const items = nav.locator('.nav__item');
+  const tip = page.locator('body > .tooltip[role="tooltip"]');
+  const assertInsideViewport = async (width: number, height: number) => {
+    const box = await tip.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.x).toBeGreaterThanOrEqual(7);
+    expect(box!.y).toBeGreaterThanOrEqual(7);
+    expect(box!.x + box!.width).toBeLessThanOrEqual(width - 7);
+    expect(box!.y + box!.height).toBeLessThanOrEqual(height - 7);
+  };
+
+  for (const [width, height] of [
+    [1100, 780],
+    [760, 720],
+    [360, 560],
+  ] as const) {
+    await page.setViewportSize({ width, height });
+
+    await items.first().hover();
+    await expect(tip).toBeVisible();
+    await expect(tip.locator('.tooltip__title')).toHaveText('Escritório');
+    await expect(tip).toContainText('Seu escritório aconchegante');
+    await assertInsideViewport(width, height);
+
+    await items.last().hover();
+    await expect(tip.locator('.tooltip__title')).toHaveText('Ajustes');
+    await expect(tip).toContainText('áudio e acessibilidade');
+    await assertInsideViewport(width, height);
+    if (width === 360) {
+      await page.screenshot({ path: 'visual-artifacts/nav-tooltip-pt-compact.png' });
+    }
+
+    if (width <= 760) {
+      await expect(items.first().locator('.nav__label')).toBeHidden();
+      await expect(items.first()).toHaveAttribute('aria-label', 'Escritório');
+    }
+  }
+
+  const office = items.first();
+  const settings = items.last();
+
+  // Focus keeps its stable description even when another control is hovered;
+  // once focus leaves, the still-hovered control takes ownership.
+  await office.focus();
+  await settings.hover();
+  await expect(tip.locator('.tooltip__title')).toHaveText('Escritório');
+  await expect(tip).toHaveAttribute('id', (await office.getAttribute('aria-describedby'))!);
+  await office.evaluate((element) => (element as HTMLElement).blur());
+  await expect(tip.locator('.tooltip__title')).toHaveText('Ajustes');
+  await page.mouse.move(2, 558);
+
+  await settings.focus();
+  await settings.hover();
+  await page.mouse.move(2, 558);
+  await expect(settings).toBeFocused();
+  await expect(tip).toBeVisible(); // mouse left, keyboard focus still owns the tip
+
+  await settings.hover();
+  await settings.focus();
+  await settings.evaluate((element) => (element as HTMLElement).blur());
+  await expect(tip).toBeVisible(); // focus left, pointer hover still owns the tip
+  await page.mouse.move(2, 558);
+  await expect(tip).toHaveCount(0);
+
+  // A focused edge item remains described and is remeasured after live resize.
+  await settings.focus();
+  await expect(tip).toBeVisible();
+  await page.setViewportSize({ width: 320, height: 520 });
+  await expect(tip.locator('.tooltip__title')).toHaveText('Ajustes');
+  await assertInsideViewport(320, 520);
+  const describedBy = await settings.getAttribute('aria-describedby');
+  expect(describedBy).toBeTruthy();
+  await expect(tip).toHaveAttribute('id', describedBy!);
+
+  await page.keyboard.press('Escape');
+  await expect(tip).toHaveCount(0);
+
+  // The same nav tooltip flips below a top-edge trigger and above a bottom-edge
+  // trigger; both branches remain fully clamped inside the live viewport.
+  await nav.evaluate((element) => {
+    const html = element as HTMLElement;
+    html.style.position = 'fixed';
+    html.style.inset = '0 0 auto 0';
+    html.style.zIndex = '20';
+  });
+  await office.hover();
+  await expect(tip).toHaveAttribute('data-side', 'below');
+  await assertInsideViewport(320, 520);
+  await nav.evaluate((element) => {
+    const html = element as HTMLElement;
+    html.style.inset = 'auto 0 0 0';
+    window.dispatchEvent(new Event('resize'));
+  });
+  await office.focus();
+  await expect(tip).toHaveAttribute('data-side', 'above');
+  await assertInsideViewport(320, 520);
+  await nav.evaluate((element) => (element as HTMLElement).removeAttribute('style'));
+  await office.evaluate((element) => (element as HTMLElement).blur());
+  await page.mouse.move(2, 260);
+  await expect(tip).toHaveCount(0);
+});

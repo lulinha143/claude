@@ -39,6 +39,7 @@
     "perSecond": "{{value}}/s"
   },
   "nav": {
+    "mainNavigation": "Navegação principal",
     "office": "Escritório",
     "shop": "Melhorias",
     "employees": "Equipe",

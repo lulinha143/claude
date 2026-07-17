@@ -39,6 +39,7 @@
     "perSecond": "{{value}}/s"
   },
   "nav": {
+    "mainNavigation": "Main navigation",
     "office": "Office",
     "shop": "Upgrades",
     "employees": "Team",

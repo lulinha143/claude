@@ -3393,7 +3393,11 @@ select,
 .tooltip {
   position: fixed;
   z-index: 9999;
-  max-width: min(260px, 80vw);
+  box-sizing: border-box;
+  width: max-content;
+  max-width: min(260px, calc(100vw - 16px));
+  max-height: calc(100vh - 16px);
+  overflow: hidden;
   padding: 7px 10px;
   border-radius: var(--r-sm);
   background: color-mix(in srgb, var(--c-bark-900) 94%, black);
@@ -3402,14 +3406,13 @@ select,
   color: var(--text);
   font-size: var(--fs-2xs);
   line-height: var(--lh-snug);
+  overflow-wrap: anywhere;
   pointer-events: none;
   animation: tooltip-in 0.12s var(--ease);
 }
-.tooltip--above {
-  transform: translate(-50%, -100%);
-}
+.tooltip--above,
 .tooltip--below {
-  transform: translate(-50%, 0);
+  transform: none;
 }
 .tooltip__body {
   display: flex;

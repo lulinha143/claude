@@ -22,13 +22,23 @@ export function NavBar() {
   const view = useStore((s) => s.view);
   const setView = useStore((s) => s.setView);
   return (
-    <nav className="nav" aria-label="main navigation">
+    <nav className="nav" aria-label={t('nav.mainNavigation')}>
       {ITEMS.map(({ id, icon }) => (
-        <Tip key={id} content={<TipContent title={t(`nav.${id}`)} lines={[t(`tip.nav.${id}`)]} />}>
+        <Tip
+          key={id}
+          content={
+            <TipContent
+              title={t(`nav.${id}`)}
+              lines={[t(`tip.nav.${id}`)]}
+              titleAriaHidden
+            />
+          }
+        >
           <button
             className={`nav__item ${view === id ? 'is-active' : ''}`}
             onClick={() => setView(id)}
-            aria-current={view === id}
+            aria-label={t(`nav.${id}`)}
+            aria-current={view === id ? 'page' : undefined}
           >
             <Icon name={icon} size={16} />
             <span className="nav__label">{t(`nav.${id}`)}</span>
