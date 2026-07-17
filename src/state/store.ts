@@ -133,6 +133,11 @@ export const useStore = create<StoreState>((set) => {
     // action), so a new session restores it.
     toggleMute: () => {
       const v = !engine.state.settings.masterMuted;
+      // Ensure the audio context exists + gains are (re)applied on THIS click.
+      // The mute button may be the player's first interaction; relying only on
+      // the separate first-gesture resume listener is fragile in the packaged
+      // Electron build, so resume here too (no-op once the context is live).
+      audio.resume();
       engine.updateSettings({ masterMuted: v });
       audio.setFlags({ muted: v });
       engine.save();

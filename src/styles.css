@@ -121,11 +121,16 @@ h4 {
   -webkit-app-region: drag; /* draggable desktop window area */
 }
 .header button,
+.header button *,
 .header input,
-.header button,
 .header .res,
-.window-controls {
-  -webkit-app-region: no-drag; /* clickable on the draggable title bar */
+.window-controls,
+.window-controls * {
+  /* Clickable on the draggable title bar. On Windows/Electron the *hit target*
+     (often a nested SVG icon or span) must itself be no-drag, or the window-drag
+     handler swallows the click — which is why the visible Mute button could
+     appear dead in the packaged build. Carve out the whole subtree. */
+  -webkit-app-region: no-drag;
 }
 .window-controls {
   display: inline-flex;

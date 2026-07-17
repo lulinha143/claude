@@ -72,6 +72,18 @@ test('the visible mute button silences every audio bus and persists', async ({ p
   expect(afterClick.masterGain).toBe(0);
   expect(afterClick.activeSources).toBeLessThanOrEqual(srcBefore);
 
+  // opening a minigame while muted stays silent too
+  await page.getByRole('button', { name: /Focus|Foco/i }).click().catch(() => {});
+  await page.waitForTimeout(150);
+  await page.locator('.micro-card').first().click().catch(() => {});
+  await page.waitForTimeout(300);
+  const inGame = await diag(page);
+  expect(inGame.masterGain).toBe(0);
+  for (const ch of ['music', 'ambience', 'ui', 'sfx'] as const) expect(inGame.buses[ch]).toBe(0);
+  // back out to the office for the reload check
+  await page.getByRole('button', { name: /Office|Escritório/i }).click().catch(() => {});
+  await page.waitForTimeout(150);
+
   // persisted to the save
   const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('wmno.save.v1') || '{}'));
   expect(saved.settings.masterMuted).toBe(true);
