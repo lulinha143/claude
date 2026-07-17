@@ -30,6 +30,31 @@ release\win-unpacked\Working My Nuts Off!.exe
 Double-click that `.exe` to launch. (There is no installer with the `dir`
 target; the whole runnable app lives in `release\win-unpacked\`.)
 
+### If the window never appears (renderer/GPU crash) — run these in order
+
+The app now self-heals: if the renderer process dies on launch it relaunches
+once with hardware acceleration off and writes a `gpu-safe-mode` marker. To
+diagnose manually:
+
+```powershell
+npm run build:desktop
+
+:: 1. Can Chromium open ANY window at all? (plain data: window, no app)
+npx electron . --minimal-window-test
+::    Expect the log to reach: MINIMAL WINDOW DOM READY / DID FINISH LOAD / SUCCESS
+
+:: 2. Dev app, normal:            npx electron .
+:: 3. Dev app, GPU disabled:      npm run electron:safe
+:: 4. Packaged, normal:           release\win-unpacked\Working My Nuts Off!.exe
+:: 5. Packaged, GPU disabled:     npm run start:windows:safe
+```
+
+- If **GPU-disabled** opens the game but normal does not → it's the GPU/driver;
+  the persistent safe-mode marker will keep it working. Re-enable acceleration
+  later with `--force-gpu` (or `set WMNO_FORCE_GPU=1`).
+- The startup log records `electron`/`chrome` versions, `GPU feature status`,
+  `render-process-gone reason/exitCode`, and `winDestroyed` at each step.
+
 ### Automated packaged-startup check (recommended first)
 
 ```powershell
