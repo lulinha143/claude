@@ -105,37 +105,32 @@ if (gpuSafeMode) {
   app.commandLine.appendSwitch('disable-gpu-compositing');
 }
 
-// Startup state used by the GPU auto-fallback + recovery flow.
+// Startup state used by the recovery flow.
 let startupSucceeded = false;
-let gpuFallbackTriggered = false;
 
 /**
- * If the renderer process dies DURING startup (before it ever finishes loading),
- * assume a GPU/renderer crash: persist the safe-mode marker and relaunch once
- * with hardware acceleration off. Bounded to a single retry (never loops): if we
- * are already in safe mode, or already relaunched, we fall through to the
- * recovery window instead.
+ * DISABLED during diagnosis (directive #5). The old behaviour — auto-write the
+ * safe-mode marker, app.relaunch() + app.exit() on a startup renderer crash —
+ * could turn an ordinary load error into an immediate teardown, and combined
+ * with the single-instance lock could get the relaunched instance denied and
+ * killed. Safe mode remains a MANUAL flag only (--disable-gpu-safe-mode /
+ * WMNO_DISABLE_GPU / a hand-created gpu-safe-mode marker). We NEVER
+ * auto-relaunch, auto-exit, or auto-write the marker anymore.
  */
 function maybeGpuFallback(reason: string): boolean {
-  if (startupSucceeded || gpuSafeMode || gpuFallbackTriggered) return false;
-  gpuFallbackTriggered = true;
-  try {
-    fs.mkdirSync(app.getPath('userData'), { recursive: true });
-    fs.writeFileSync(gpuFlagPath(), `auto-enabled after startup renderer crash: ${reason}\n`);
-  } catch {
-    /* ignore */
-  }
-  log(`STARTUP renderer crash (${reason}) — enabling GPU safe mode and relaunching once.`);
-  app.relaunch();
-  app.exit(0);
-  return true;
+  log(`renderer trouble during startup (${reason}) — GPU auto-relaunch is DISABLED; not restarting.`);
+  return false;
 }
 
 // ---------------------------------------------------------------------------
-// Single-instance lock: a desktop pet should never run twice.
+// Single-instance lock: a desktop pet should never run twice. Logged loudly so
+// we can tell if a lingering (tray/relaunched/crashed) instance is denying the
+// lock and quitting THIS process during startup.
 // ---------------------------------------------------------------------------
 const gotLock = app.requestSingleInstanceLock();
+log(`requestSingleInstanceLock -> ${gotLock} (pid=${process.pid})`);
 if (!gotLock) {
+  log('single-instance lock DENIED — another instance holds it — quitting this process.');
   app.quit();
 }
 
@@ -521,7 +516,7 @@ function createWindow(): void {
     log(`webContents destroyed. startupSucceeded=${startupSucceeded}`);
     // The window can outlive a destroyed webContents (seen on Windows). If this
     // happened before a successful load, surface the recovery window.
-    if (!startupSucceeded && !gpuFallbackTriggered) {
+    if (!startupSucceeded) {
       showStartupError('Renderer webContents was destroyed before load finished.', 'about:blank');
     }
   });
@@ -926,8 +921,6 @@ app.on('before-quit', () => log('app before-quit.'));
 
 app.on('window-all-closed', () => {
   log(`window-all-closed (tray=${tray ? 'present' : 'none'} startupSucceeded=${startupSucceeded}).`);
-  // During a GPU auto-fallback relaunch, let the relaunch happen — don't quit.
-  if (gpuFallbackTriggered) return;
   // If startup failed (renderer crashed before load), a recovery window is being
   // shown — don't quit out from under it. errorPageShown means recovery is up.
   if (!startupSucceeded && errorPageShown) {
