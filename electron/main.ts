@@ -12,7 +12,6 @@ import {
 } from 'electron';
 import path from 'node:path';
 import fs from 'node:fs';
-import { pathToFileURL } from 'node:url';
 import {
   IPC,
   IPC_EVENTS,
@@ -165,74 +164,134 @@ function applyWindowSettings(resize = false): void {
 let errorPageShown = false;
 
 /**
- * Resolve the renderer's index.html. `__dirname` is `<root|app.asar>/dist-electron`
- * in BOTH the packaged app and an unpacked `electron dist-electron/main.cjs`
- * launch, so `../dist/index.html` is correct for both (the packaged log
- * confirmed exists=true here). `app.getAppPath()` is only a fallback: it is the
- * asar root when packaged, but points at `dist-electron` for an unpacked launch,
- * so it must not be the primary source.
+ * Resolve the renderer's index.html.
+ *
+ * Packaged: load from `resources/app.asar.unpacked/dist` — NOT from inside
+ * app.asar. Node can `require()` from the asar (the main process runs), but
+ * Chromium's `file://` navigation into asar content fails with ERR_FAILED on
+ * the real Windows build. electron-builder `asarUnpack: ["dist/**"]` writes the
+ * whole renderer to disk so it (and every relative asset) loads as a plain
+ * file, which is exactly the non-asar `file://` case that already works.
+ *
+ * Dev / unpacked launch: `__dirname` is `<root>/dist-electron`, so
+ * `../dist/index.html` is correct.
  */
 function resolveRendererPath(): string {
-  const primary = path.join(__dirname, '..', 'dist', 'index.html');
-  if (fs.existsSync(primary)) return primary;
-  return path.join(app.getAppPath(), 'dist', 'index.html');
+  const candidates = app.isPackaged
+    ? [
+        path.join(process.resourcesPath, 'app.asar.unpacked', 'dist', 'index.html'),
+        path.join(__dirname, '..', 'dist', 'index.html'),
+        path.join(app.getAppPath(), 'dist', 'index.html'),
+      ]
+    : [path.join(__dirname, '..', 'dist', 'index.html')];
+  for (const c of candidates) {
+    if (fs.existsSync(c)) return c;
+  }
+  return candidates[0];
 }
 
 /**
- * Load the renderer via a correctly normalized file URL. The real packaged bug
- * was NOT the path (index.html existed) but `loadFile` producing a malformed
- * `file:///C:\...\ (1)\...index.html` — backslashes + an unencoded space and
- * parentheses — which Chromium rejects with ERR_FAILED (-2). `pathToFileURL`
- * yields a valid `file:///C:/.../%20(1)/.../index.html`, fixing installs whose
- * path contains spaces or special characters (e.g. a `... (1)` download folder).
+ * Load the renderer from a real filesystem path via `loadFile` (which builds a
+ * correctly-encoded file URL itself). We load from app.asar.unpacked, never
+ * from inside app.asar, so Chromium's file:// loader isn't reading through the
+ * archive.
  */
 function loadRenderer(): void {
-  if (!mainWindow) return;
-  const rendererPath = resolveRendererPath();
-  const exists = fs.existsSync(rendererPath);
-  const rendererUrl = pathToFileURL(rendererPath).href;
-  log(
-    `loading renderer: __dirname=${__dirname} appPath=${app.getAppPath()} ` +
-      `rendererPath=${rendererPath} exists=${exists} url=${rendererUrl}`,
-  );
-  if (!exists) {
-    showStartupError('Renderer index.html not found in the packaged app.', rendererUrl);
+  if (!mainWindow || mainWindow.isDestroyed()) {
+    log('loadRenderer: window missing/destroyed — aborting.');
     return;
   }
-  mainWindow.loadURL(rendererUrl).catch((e) => {
-    log(`loadURL(renderer) rejected: ${String(e)}`);
-    showStartupError(String(e), rendererUrl);
-  });
+  // Test hook: force the recovery path so the error window can be verified.
+  if (process.env.WMNO_FORCE_RENDERER_FAIL) {
+    log('WMNO_FORCE_RENDERER_FAIL set — simulating a renderer load failure.');
+    showStartupError('Simulated renderer failure (WMNO_FORCE_RENDERER_FAIL).', 'file:///nonexistent/index.html');
+    return;
+  }
+  const rendererPath = resolveRendererPath();
+  const exists = fs.existsSync(rendererPath);
+  const unpacked = rendererPath.includes('app.asar.unpacked');
+  log(
+    `loading renderer: isPackaged=${app.isPackaged} unpacked=${unpacked} ` +
+      `resourcesPath=${process.resourcesPath} __dirname=${__dirname} ` +
+      `rendererPath=${rendererPath} exists=${exists} winDestroyed=${mainWindow.isDestroyed()}`,
+  );
+  if (!exists) {
+    showStartupError('Renderer index.html not found in the packaged app.', rendererPath);
+    return;
+  }
+  mainWindow
+    .loadFile(rendererPath)
+    .then(() => log('loadFile resolved.'))
+    .catch((e) => {
+      log(`loadFile rejected: ${String(e)} winDestroyed=${mainWindow ? mainWindow.isDestroyed() : 'null'}`);
+      showStartupError(String(e), rendererPath);
+    });
 }
 
 /**
- * Never fail silently: if the renderer can't load, show the window with a
- * readable error page (failed path + description) and keep the log intact so
- * the player can report it. Purely inline HTML — no scripts, no external
- * assets — so it renders even under a strict CSP / file:// origin.
+ * A minimal, self-contained recovery window that does not depend on the game
+ * bundle. Framed (so it always has a native close button), immediately visible,
+ * opaque. Used when the real window is gone or the renderer failed to load.
  */
-function showStartupError(description: string, failedUrl: string): void {
-  if (!mainWindow || errorPageShown) return;
-  errorPageShown = true;
-  const logPath = logFile();
-  const html = `<!doctype html><html><head><meta charset="utf-8">
+function createRecoveryWindow(): BrowserWindow {
+  const win = new BrowserWindow({
+    width: 640,
+    height: 480,
+    show: true,
+    frame: true,
+    transparent: false,
+    backgroundColor: '#2a2118',
+    title: 'Working My Nuts Off! — startup error',
+    webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true },
+  });
+  win.on('closed', () => {
+    if (mainWindow === win) mainWindow = null;
+  });
+  log('recovery window created.');
+  return win;
+}
+
+/**
+ * Never fail silently and NEVER touch a destroyed window. If the main window is
+ * gone (a prior crash), spin up a fresh recovery window; otherwise reuse the
+ * existing one. Shows a readable inline page (no game bundle, no external
+ * assets) with the failed path + log location. Fully wrapped so it cannot throw
+ * an unhandled rejection.
+ */
+function showStartupError(description: string, failedPath: string): void {
+  try {
+    if (!mainWindow || mainWindow.isDestroyed()) {
+      log('showStartupError: main window is gone — creating a recovery window.');
+      mainWindow = createRecoveryWindow();
+      errorPageShown = false; // the fresh window still needs to show the page
+    }
+    if (errorPageShown) return;
+    errorPageShown = true;
+    const logPath = logFile();
+    const html = `<!doctype html><html><head><meta charset="utf-8">
 <title>Working My Nuts Off! — startup error</title></head>
 <body style="margin:0;font-family:Segoe UI,system-ui,sans-serif;background:#2a2118;color:#f4ecdd;padding:28px;line-height:1.5">
 <h1 style="margin:0 0 12px;font-size:20px">The game couldn't open its window</h1>
-<p style="margin:0 0 16px;opacity:.85">The app started, but the game screen failed to load. Please share the details below so it can be fixed.</p>
+<p style="margin:0 0 16px;opacity:.85">The app started, but the game screen failed to load. Please share the details below so it can be fixed. This window stays open — you can close it any time.</p>
 <div style="background:#1c150d;border:1px solid #4a3a24;border-radius:8px;padding:14px;font-family:Consolas,monospace;font-size:12px;white-space:pre-wrap;word-break:break-all">
 <b>Error:</b> ${escapeHtml(description)}
-<b>Failed to load:</b> ${escapeHtml(failedUrl)}
+<b>Failed to load:</b> ${escapeHtml(failedPath)}
 <b>App path:</b> ${escapeHtml(app.getAppPath())}
 <b>Resources:</b> ${escapeHtml(process.resourcesPath)}
 <b>Version:</b> ${escapeHtml(app.getVersion())}
 <b>Log file:</b> ${escapeHtml(logPath)}
 </div>
-<p style="margin:16px 0 0;opacity:.7;font-size:12px">A full log was written to the file above.</p>
+<p style="margin:18px 0 0"><button onclick="window.close()" style="font:inherit;padding:8px 18px;border-radius:8px;border:1px solid #6f5a36;background:#3a2c1c;color:#f4ecdd;cursor:pointer">Exit</button></p>
+<p style="margin:14px 0 0;opacity:.7;font-size:12px">A full log was written to the file above.</p>
 </body></html>`;
-  const dataUrl = `data:text/html;charset=utf-8,${encodeURIComponent(html)}`;
-  mainWindow.loadURL(dataUrl).catch((e) => log(`error page load failed: ${String(e)}`));
-  if (!mainWindow.isVisible()) mainWindow.show();
+    const dataUrl = `data:text/html;charset=utf-8,${encodeURIComponent(html)}`;
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      void mainWindow.loadURL(dataUrl).catch((e) => log(`error page load failed: ${String(e)}`));
+      if (!mainWindow.isVisible()) mainWindow.show();
+    }
+  } catch (err) {
+    log(`showStartupError failed (non-fatal): ${err instanceof Error ? err.stack : String(err)}`);
+  }
 }
 
 function escapeHtml(s: string): string {
@@ -302,36 +361,68 @@ function createWindow(): void {
   log(`BrowserWindow created (icon=${appIcon ? 'set' : 'default'}).`);
 
   // Reveal the window once it is ready; a fallback timer guarantees it is never
-  // stuck hidden even if 'ready-to-show' doesn't fire (transparent windows).
+  // stuck hidden even if 'ready-to-show' doesn't fire.
   let shown = false;
   const reveal = () => {
-    if (shown || !mainWindow) return;
+    if (shown || !mainWindow || mainWindow.isDestroyed()) return;
     shown = true;
     mainWindow.show();
     log('mainWindow shown.');
   };
-  mainWindow.once('ready-to-show', reveal);
-  setTimeout(reveal, 2500);
-
-  // Diagnostics for renderer / process failures — verbose on purpose so a
-  // packaged-only startup problem is fully explained in startup.log.
-  const wc = mainWindow.webContents;
-  wc.on('did-start-loading', () => log('renderer did-start-loading.'));
-  wc.on('dom-ready', () => log(`renderer dom-ready (url=${wc.getURL()}).`));
-  wc.on('did-finish-load', () => log(`renderer did-finish-load (url=${wc.getURL()}).`));
-  wc.on('did-fail-load', (_e, code, desc, url, isMainFrame) => {
-    log(`did-fail-load: errorCode=${code} errorDescription=${desc} validatedURL=${url} isMainFrame=${isMainFrame}`);
-    // Only the main document failing is fatal to the UI; a sub-resource miss
-    // (e.g. an optional asset) must not replace the whole game with an error.
-    if (isMainFrame && code !== -3 /* ERR_ABORTED (a normal redirect/replacement) */) {
-      showStartupError(`${desc} (${code})`, url);
+  // The tray is created ONLY after a successful renderer load (below), never
+  // during a failed startup, so close-to-tray / hidden-window behaviour can
+  // never hide or kill the app before the game is on screen.
+  let trayCreated = false;
+  const createTrayOnce = () => {
+    if (trayCreated) return;
+    trayCreated = true;
+    try {
+      createTray();
+    } catch (err) {
+      log(`createTray threw (continuing): ${String(err)}`);
     }
-    reveal(); // never leave the window hidden on failure
+  };
+  mainWindow.once('ready-to-show', reveal);
+  setTimeout(reveal, 2500); // fallback reveal only — NOT tray
+
+  // Verbose lifecycle logging so any packaged-only startup problem is fully
+  // explained in startup.log. `winDestroyed` pinpoints if/when the window dies.
+  const wc = mainWindow.webContents;
+  const winDestroyed = () => (mainWindow ? String(mainWindow.isDestroyed()) : 'null');
+  wc.on('did-start-loading', () => log(`renderer did-start-loading. winDestroyed=${winDestroyed()}`));
+  wc.on('dom-ready', () => log(`renderer dom-ready (url=${wc.getURL()}).`));
+  wc.on('did-finish-load', () => {
+    log(`renderer did-finish-load (url=${wc.getURL()}).`);
+    reveal();
+    if (!errorPageShown) {
+      // The real game loaded — now it is safe to enable the tray.
+      createTrayOnce();
+      log('STARTUP SUCCESS: renderer loaded and window shown.');
+    }
+  });
+  wc.on('did-fail-load', (_e, code, desc, url, isMainFrame) => {
+    log(
+      `did-fail-load: errorCode=${code} errorDescription=${desc} validatedURL=${url} ` +
+        `isMainFrame=${isMainFrame} winDestroyed=${winDestroyed()}`,
+    );
+    // Only the main document failing is fatal to the UI; a sub-resource miss
+    // must not replace the whole game with an error. ERR_ABORTED (-3) is a
+    // normal replacement (e.g. loading the error page itself).
+    if (isMainFrame && code !== -3) {
+      showStartupError(`${desc} (${code})`, url);
+    } else {
+      reveal();
+    }
   });
   wc.on('render-process-gone', (_e, details) => {
-    log(`render-process-gone: ${JSON.stringify(details)}`);
-    reveal();
+    log(`render-process-gone: ${JSON.stringify(details)} winDestroyed=${winDestroyed()}`);
   });
+  // `render-view-deleted` isn't in the current Electron type defs; register it
+  // via a loosely-typed handle purely for diagnostics.
+  (wc as unknown as { on: (e: string, cb: () => void) => void }).on('render-view-deleted', () =>
+    log(`render-view-deleted. winDestroyed=${winDestroyed()}`),
+  );
+  wc.on('destroyed', () => log('webContents destroyed.'));
   wc.on('preload-error', (_e, p, err) => log(`preload-error: ${p} — ${String(err)}`));
   // Surface renderer console errors/warnings into the startup log.
   wc.on('console-message', (_e, level, message, line, sourceId) => {
@@ -382,12 +473,16 @@ function createWindow(): void {
   mainWindow.on('blur', () => mainWindow?.webContents.send(IPC_EVENTS.focusChanged, false));
 
   mainWindow.on('close', () => {
+    log('window close event.');
     saveSettings();
   });
 
   mainWindow.on('closed', () => {
+    log('window closed event.');
     mainWindow = null;
   });
+
+  mainWindow.on('hide', () => log('window hide event.'));
 }
 
 // ---------------------------------------------------------------------------
@@ -583,8 +678,15 @@ function registerIpc(): void {
 }
 
 function hardenSession(): void {
-  // Belt-and-suspenders CSP on top of the meta tag in index.html.
+  // Belt-and-suspenders CSP header — ONLY for http(s) responses (the web build).
+  // The packaged app loads over file:// and carries its CSP in the index.html
+  // <meta> tag; intercepting file:// response headers here was breaking the
+  // renderer load (ERR_FAILED), so local schemes are left completely untouched.
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    if (!/^https?:\/\//i.test(details.url)) {
+      callback({}); // file:// / data: — do not touch, use the original response
+      return;
+    }
     callback({
       responseHeaders: {
         ...details.responseHeaders,
@@ -630,11 +732,10 @@ app.whenReady().then(() => {
     hardenSession();
     registerIpc();
     createWindow(); // create the window FIRST so a later failure can't leave us window-less
-    try {
-      createTray();
-    } catch (err) {
-      log(`createTray threw (continuing): ${String(err)}`);
-    }
+    // NOTE: the tray is intentionally NOT created here. It is created only once
+    // the renderer has successfully loaded (did-finish-load in createWindow), so
+    // close-to-tray / hidden-window behaviour can never interfere with startup
+    // or hide a failed launch.
 
     // Global hotkey to show/hide the companion (non-fatal if it fails).
     try {
@@ -660,11 +761,15 @@ app.whenReady().then(() => {
   }
 });
 
+app.on('before-quit', () => log('app before-quit.'));
+
 app.on('window-all-closed', () => {
+  log(`window-all-closed (tray=${tray ? 'present' : 'none'}).`);
   // Tray keeps the app alive; only quit explicitly.
   if (process.platform !== 'darwin' && !tray) app.quit();
 });
 
 app.on('will-quit', () => {
+  log('app will-quit.');
   globalShortcut.unregisterAll();
 });

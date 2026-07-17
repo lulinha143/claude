@@ -36,6 +36,10 @@
     "smoke:mute": "node scripts/electron-mute-smoke.mjs",
     "smoke:window": "node scripts/electron-window-smoke.mjs",
     "smoke:spacedpath": "node scripts/electron-spacedpath-smoke.mjs",
+    "smoke:packaged": "node scripts/electron-packaged-smoke.mjs",
+    "smoke:recovery": "node scripts/electron-recovery-smoke.mjs",
+    "verify:packaged": "node scripts/verify-packaged-renderer.mjs",
+    "verify:windows:packaged": "node scripts/verify-windows-packaged.mjs",
     "lint": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p electron/tsconfig.json",
@@ -90,6 +94,10 @@
     "files": [
       "dist/**/*",
       "dist-electron/**/*"
+    ],
+    "asar": true,
+    "asarUnpack": [
+      "dist/**"
     ],
     "extraResources": [
       {

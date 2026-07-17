@@ -30,6 +30,32 @@ release\win-unpacked\Working My Nuts Off!.exe
 Double-click that `.exe` to launch. (There is no installer with the `dir`
 target; the whole runnable app lives in `release\win-unpacked\`.)
 
+### Automated packaged-startup check (recommended first)
+
+```powershell
+npm run verify:windows:packaged
+```
+
+This builds the unpacked app, verifies the renderer files are present, launches
+the real `.exe`, and only passes once the game actually renders (it waits for
+the `STARTUP SUCCESS` marker and fails on `ERR_FAILED` or `Object has been
+destroyed`). You can also run the file check alone with `npm run verify:packaged`.
+
+### Why the renderer is unpacked
+
+The renderer is shipped **outside** `app.asar` (electron-builder
+`asarUnpack: ["dist/**"]`) because Chromium's `file://` navigation into asar
+content fails with `ERR_FAILED` on Windows. Confirm these exist after building:
+
+```
+release\win-unpacked\resources\app.asar.unpacked\dist\index.html
+release\win-unpacked\resources\app.asar.unpacked\dist\assets\   (JS + CSS + fonts)
+release\win-unpacked\resources\app.asar.unpacked\dist\backgrounds\   (animated office)
+```
+
+The app loads `resources\app.asar.unpacked\dist\index.html` via `loadFile`, and
+every relative `./assets/...` path resolves next to it.
+
 Other targets, if you want them:
 
 | Command | Output |
