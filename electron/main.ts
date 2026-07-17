@@ -12,6 +12,7 @@ import {
 } from 'electron';
 import path from 'node:path';
 import fs from 'node:fs';
+import { pathToFileURL } from 'node:url';
 import {
   IPC,
   IPC_EVENTS,
@@ -160,6 +161,97 @@ function applyWindowSettings(resize = false): void {
   saveSettings();
 }
 
+// Guards the error page against loading itself in a loop if it, too, fails.
+let errorPageShown = false;
+
+/**
+ * Resolve the renderer's index.html. `__dirname` is `<root|app.asar>/dist-electron`
+ * in BOTH the packaged app and an unpacked `electron dist-electron/main.cjs`
+ * launch, so `../dist/index.html` is correct for both (the packaged log
+ * confirmed exists=true here). `app.getAppPath()` is only a fallback: it is the
+ * asar root when packaged, but points at `dist-electron` for an unpacked launch,
+ * so it must not be the primary source.
+ */
+function resolveRendererPath(): string {
+  const primary = path.join(__dirname, '..', 'dist', 'index.html');
+  if (fs.existsSync(primary)) return primary;
+  return path.join(app.getAppPath(), 'dist', 'index.html');
+}
+
+/**
+ * Load the renderer via a correctly normalized file URL. The real packaged bug
+ * was NOT the path (index.html existed) but `loadFile` producing a malformed
+ * `file:///C:\...\ (1)\...index.html` — backslashes + an unencoded space and
+ * parentheses — which Chromium rejects with ERR_FAILED (-2). `pathToFileURL`
+ * yields a valid `file:///C:/.../%20(1)/.../index.html`, fixing installs whose
+ * path contains spaces or special characters (e.g. a `... (1)` download folder).
+ */
+function loadRenderer(): void {
+  if (!mainWindow) return;
+  const rendererPath = resolveRendererPath();
+  const exists = fs.existsSync(rendererPath);
+  const rendererUrl = pathToFileURL(rendererPath).href;
+  log(
+    `loading renderer: __dirname=${__dirname} appPath=${app.getAppPath()} ` +
+      `rendererPath=${rendererPath} exists=${exists} url=${rendererUrl}`,
+  );
+  if (!exists) {
+    showStartupError('Renderer index.html not found in the packaged app.', rendererUrl);
+    return;
+  }
+  mainWindow.loadURL(rendererUrl).catch((e) => {
+    log(`loadURL(renderer) rejected: ${String(e)}`);
+    showStartupError(String(e), rendererUrl);
+  });
+}
+
+/**
+ * Never fail silently: if the renderer can't load, show the window with a
+ * readable error page (failed path + description) and keep the log intact so
+ * the player can report it. Purely inline HTML — no scripts, no external
+ * assets — so it renders even under a strict CSP / file:// origin.
+ */
+function showStartupError(description: string, failedUrl: string): void {
+  if (!mainWindow || errorPageShown) return;
+  errorPageShown = true;
+  const logPath = logFile();
+  const html = `<!doctype html><html><head><meta charset="utf-8">
+<title>Working My Nuts Off! — startup error</title></head>
+<body style="margin:0;font-family:Segoe UI,system-ui,sans-serif;background:#2a2118;color:#f4ecdd;padding:28px;line-height:1.5">
+<h1 style="margin:0 0 12px;font-size:20px">The game couldn't open its window</h1>
+<p style="margin:0 0 16px;opacity:.85">The app started, but the game screen failed to load. Please share the details below so it can be fixed.</p>
+<div style="background:#1c150d;border:1px solid #4a3a24;border-radius:8px;padding:14px;font-family:Consolas,monospace;font-size:12px;white-space:pre-wrap;word-break:break-all">
+<b>Error:</b> ${escapeHtml(description)}
+<b>Failed to load:</b> ${escapeHtml(failedUrl)}
+<b>App path:</b> ${escapeHtml(app.getAppPath())}
+<b>Resources:</b> ${escapeHtml(process.resourcesPath)}
+<b>Version:</b> ${escapeHtml(app.getVersion())}
+<b>Log file:</b> ${escapeHtml(logPath)}
+</div>
+<p style="margin:16px 0 0;opacity:.7;font-size:12px">A full log was written to the file above.</p>
+</body></html>`;
+  const dataUrl = `data:text/html;charset=utf-8,${encodeURIComponent(html)}`;
+  mainWindow.loadURL(dataUrl).catch((e) => log(`error page load failed: ${String(e)}`));
+  if (!mainWindow.isVisible()) mainWindow.show();
+}
+
+function escapeHtml(s: string): string {
+  return s.replace(/[&<>"']/g, (c) => {
+    switch (c) {
+      case '&':
+        return '&amp;';
+      case '<':
+        return '&lt;';
+      case '>':
+        return '&gt;';
+      case '"':
+        return '&quot;';
+      default:
+        return '&#39;';
+    }
+  });
+}
+
 function createWindow(): void {
   loadSettings();
   // Prefer the player's remembered free-resize bounds; otherwise fall back to
@@ -221,17 +313,29 @@ function createWindow(): void {
   mainWindow.once('ready-to-show', reveal);
   setTimeout(reveal, 2500);
 
-  // Diagnostics for renderer / process failures.
-  mainWindow.webContents.on('did-finish-load', () => log('renderer did-finish-load.'));
-  mainWindow.webContents.on('did-fail-load', (_e, code, desc, url) => {
-    log(`did-fail-load: code=${code} desc=${desc} url=${url}`);
-    reveal(); // still show the window so the failure is visible, not a silent close
+  // Diagnostics for renderer / process failures — verbose on purpose so a
+  // packaged-only startup problem is fully explained in startup.log.
+  const wc = mainWindow.webContents;
+  wc.on('did-start-loading', () => log('renderer did-start-loading.'));
+  wc.on('dom-ready', () => log(`renderer dom-ready (url=${wc.getURL()}).`));
+  wc.on('did-finish-load', () => log(`renderer did-finish-load (url=${wc.getURL()}).`));
+  wc.on('did-fail-load', (_e, code, desc, url, isMainFrame) => {
+    log(`did-fail-load: errorCode=${code} errorDescription=${desc} validatedURL=${url} isMainFrame=${isMainFrame}`);
+    // Only the main document failing is fatal to the UI; a sub-resource miss
+    // (e.g. an optional asset) must not replace the whole game with an error.
+    if (isMainFrame && code !== -3 /* ERR_ABORTED (a normal redirect/replacement) */) {
+      showStartupError(`${desc} (${code})`, url);
+    }
+    reveal(); // never leave the window hidden on failure
   });
-  mainWindow.webContents.on('render-process-gone', (_e, details) => {
+  wc.on('render-process-gone', (_e, details) => {
     log(`render-process-gone: ${JSON.stringify(details)}`);
+    reveal();
   });
-  mainWindow.webContents.on('preload-error', (_e, p, err) => {
-    log(`preload-error: ${p} — ${String(err)}`);
+  wc.on('preload-error', (_e, p, err) => log(`preload-error: ${p} — ${String(err)}`));
+  // Surface renderer console errors/warnings into the startup log.
+  wc.on('console-message', (_e, level, message, line, sourceId) => {
+    if (level >= 2) log(`renderer console [${level}] ${message} (${sourceId}:${line})`);
   });
 
   mainWindow.setAlwaysOnTop(settings.alwaysOnTop, 'screen-saver');
@@ -266,11 +370,12 @@ function createWindow(): void {
 
   if (isDev) {
     log(`loading dev server: ${process.env.WMNO_DEV_SERVER}`);
-    void mainWindow.loadURL(process.env.WMNO_DEV_SERVER as string).catch((e) => log(`loadURL failed: ${e}`));
+    void mainWindow.loadURL(process.env.WMNO_DEV_SERVER as string).catch((e) => {
+      log(`loadURL(dev) failed: ${String(e)}`);
+      showStartupError(String(e), process.env.WMNO_DEV_SERVER as string);
+    });
   } else {
-    const indexHtml = path.join(__dirname, '../dist/index.html');
-    log(`loading renderer file: ${indexHtml} (exists=${fs.existsSync(indexHtml)})`);
-    void mainWindow.loadFile(indexHtml).catch((e) => log(`loadFile failed: ${e}`));
+    loadRenderer();
   }
 
   mainWindow.on('focus', () => mainWindow?.webContents.send(IPC_EVENTS.focusChanged, true));
@@ -495,6 +600,11 @@ function hardenSession(): void {
     contents.setWindowOpenHandler(() => ({ action: 'deny' }));
     contents.on('will-navigate', (event, url) => {
       if (isDev && url.startsWith(process.env.WMNO_DEV_SERVER as string)) return;
+      // In the packaged app the renderer is served from file:// (and the inline
+      // startup-error page from data:). Allow the app to navigate within itself;
+      // only block navigations that would take the window to an external site.
+      if (!isDev && (url.startsWith('file://') || url.startsWith('data:'))) return;
+      log(`blocked navigation to: ${url}`);
       event.preventDefault();
     });
   });

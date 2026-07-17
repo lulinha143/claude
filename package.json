@@ -35,6 +35,7 @@
     "test:e2e": "playwright test",
     "smoke:mute": "node scripts/electron-mute-smoke.mjs",
     "smoke:window": "node scripts/electron-window-smoke.mjs",
+    "smoke:spacedpath": "node scripts/electron-spacedpath-smoke.mjs",
     "lint": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p electron/tsconfig.json",
