@@ -253,11 +253,13 @@ h4 {
 /* ------- nav ------- */
 .nav {
   display: flex;
-  gap: 2px;
+  flex-wrap: wrap; /* tabs wrap to a new row — never a horizontal scroll strip */
+  justify-content: center;
+  align-items: center;
+  gap: 3px 4px;
   padding: 6px;
-  overflow-x: auto;
   background: rgba(0, 0, 0, 0.15);
-  scrollbar-width: thin;
+  overflow: visible; /* removes the draggable/sliding nav scrollbar entirely */
 }
 .nav__item {
   flex: 0 0 auto;
@@ -289,10 +291,15 @@ h4 {
 .nav__item.is-active .ui-icon {
   opacity: 1;
 }
-/* In very small desktop widths, collapse nav labels to icons only. */
-@media (max-width: 340px) {
+/* At companion-window widths, collapse nav labels to icons only so all 11 tabs
+   fit on a single row without wrapping or a horizontal scroll strip. Tooltips
+   still name each tab on hover/focus. */
+@media (max-width: 760px) {
   .nav__label {
     display: none;
+  }
+  .nav__item {
+    padding: 7px 9px;
   }
 }
 
