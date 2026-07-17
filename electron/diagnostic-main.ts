@@ -18,6 +18,11 @@ import path from 'node:path';
 import fs from 'node:fs';
 import { pathToFileURL } from 'node:url';
 
+// Isolated app name -> isolated userData + single-instance lock namespace, so
+// the staged diagnostics can never steal or block the real game's lock (even
+// the stage-i single-instance test runs in its own namespace).
+app.setName('wmno-diagnostic');
+
 const STAGES = 'abcdefghijklmn';
 const stageArg = (process.argv.find((a) => a.startsWith('--stage=')) ?? '--stage=a').split('=')[1].toLowerCase();
 const stageIdx = Math.max(0, STAGES.indexOf(stageArg));

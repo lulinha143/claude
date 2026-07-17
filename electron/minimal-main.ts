@@ -9,6 +9,10 @@
 // project's top-level startup code is conclusively responsible.
 import { app, BrowserWindow } from 'electron';
 
+// Isolated app name -> isolated userData + single-instance lock namespace, so
+// this diagnostic can never steal or block the real game's lock.
+app.setName('wmno-minimal-test');
+
 let win: BrowserWindow | null = null;
 
 app.whenReady().then(async () => {

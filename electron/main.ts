@@ -812,11 +812,13 @@ function hardenSession(): void {
   });
 }
 
+// A second launch pings the instance that holds the lock — restore + surface
+// the existing window instead of starting another game process/window.
 app.on('second-instance', () => {
-  if (mainWindow) {
-    if (!mainWindow.isVisible()) mainWindow.show();
-    mainWindow.focus();
-  }
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  if (mainWindow.isMinimized()) mainWindow.restore();
+  if (!mainWindow.isVisible()) mainWindow.show();
+  mainWindow.focus();
 });
 
 // Surface GPU/renderer/utility child-process failures instead of dying quietly.
@@ -866,7 +868,11 @@ function runMinimalWindowTest(): void {
     .catch((e) => log(`MINIMAL WINDOW loadURL rejected: ${String(e)}`));
 }
 
-app.whenReady().then(() => {
+/**
+ * All real application startup. Called exactly ONCE, and ONLY after winning the
+ * single-instance lock (see the gated registration below).
+ */
+async function initializeApplication(): Promise<void> {
   log(
     `app ready. isPackaged=${app.isPackaged} version=${app.getVersion()} electron=${process.versions.electron} ` +
       `chrome=${process.versions.chrome} gpuSafeMode=${gpuSafeMode} hwAccelDisabled=${gpuSafeMode} ` +
@@ -915,7 +921,17 @@ app.whenReady().then(() => {
       }
     }
   }
-});
+}
+
+// Real startup runs ONLY for the instance that won the single-instance lock
+// (checked at the very top). A denied second instance already called app.quit()
+// and must NOT register whenReady, create a window/tray/recovery, initialise
+// IPC, load the renderer, or run any async startup.
+if (gotLock) {
+  void app.whenReady().then(initializeApplication).catch((e) => log(`whenReady failed: ${String(e)}`));
+} else {
+  log('lock not held — skipping whenReady/startup registration entirely.');
+}
 
 app.on('before-quit', () => log('app before-quit.'));
 
