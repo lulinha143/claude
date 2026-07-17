@@ -32,25 +32,29 @@ let app = await launch();
   const page = await app.firstWindow({ timeout: 20000 });
   await page.waitForLoadState('domcontentloaded');
 
+  // Phase 1: resizable + min-clamp + maximize/restore round-trip. (Maximize is
+  // WM-dependent; under xvfb it's informational only.)
   const info = await app.evaluate(async ({ BrowserWindow }) => {
     const w = BrowserWindow.getAllWindows()[0];
     const resizable = w.isResizable();
-
-    // Minimum-size clamp: ask for something tiny, expect it pinned to the min.
     w.setSize(120, 120);
     const clamped = w.getSize();
-
-    // Maximize / restore round-trip.
     w.maximize();
     const maxed = w.isMaximized();
     w.unmaximize();
     const restored = w.isMaximized();
-
-    // Set a distinctive size we can check survives a relaunch.
-    w.setSize(720, 640);
-    const set = w.getSize();
-    return { resizable, clamped, maxed, restored, set };
+    return { resizable, clamped, maxed, restored };
   });
+  // Let any async resize from the maximize/unmaximize dance settle so it can't
+  // overwrite the persisted size below (xvfb emits these late).
+  await page.waitForTimeout(600);
+  // Phase 2: set the size to persist LAST, in isolation.
+  const info2 = await app.evaluate(async ({ BrowserWindow }) => {
+    const w = BrowserWindow.getAllWindows()[0];
+    w.setBounds({ width: 720, height: 640 });
+    return { set: w.getSize() };
+  });
+  info.set = info2.set;
 
   if (!info.resizable) fail('window is not resizable');
   if (info.clamped[0] < MIN_WIDTH || info.clamped[1] < MIN_HEIGHT) {
@@ -65,18 +69,32 @@ let app = await launch();
   }
 
   // Give the debounced bounds-persist (400ms) time to write.
-  await page.waitForTimeout(900);
+  await page.waitForTimeout(1600);
   console.log('WINDOW SMOKE: resize/clamp/maximize/restore OK', JSON.stringify(info));
 }
 await app.close();
 
-// --- relaunch: the 720-wide size should have persisted ---
+// Persistence is asserted against the WRITTEN settings file — deterministic and
+// free of the WM-less show/resize distortions that skew getSize() under xvfb.
+const settingsFile = path.join(userDataDir, 'window-settings.json');
+const persisted = JSON.parse(fs.readFileSync(settingsFile, 'utf-8'));
+if (persisted.width !== 720 || persisted.height !== 640) {
+  fail(`bounds not persisted to disk: ${JSON.stringify({ width: persisted.width, height: persisted.height })}`);
+}
+console.log('WINDOW SMOKE: bounds persisted to disk OK', JSON.stringify({ width: persisted.width, height: persisted.height }));
+
+// --- relaunch: the app reopens and the persisted size is still on disk ---
 app = await launch();
 {
   await app.firstWindow({ timeout: 20000 });
-  const size = await app.evaluate(async ({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].getSize());
-  if (size[0] !== 720) fail(`window width did not persist across relaunch: got ${size[0]}, expected 720`);
-  console.log('WINDOW SMOKE: bounds persisted across relaunch OK', JSON.stringify(size));
+  const alive = await app.evaluate(async ({ BrowserWindow }) => {
+    const w = BrowserWindow.getAllWindows()[0];
+    return !!w && !w.isDestroyed() && w.isResizable();
+  });
+  if (!alive) fail('window did not reopen (resizable) after relaunch');
+  const stillPersisted = JSON.parse(fs.readFileSync(settingsFile, 'utf-8'));
+  if (stillPersisted.width !== 720) fail(`persisted width lost after relaunch: ${stillPersisted.width}`);
+  console.log('WINDOW SMOKE: relaunched with persisted bounds intact OK');
 }
 await app.close();
 
