@@ -30,7 +30,40 @@ release\win-unpacked\Working My Nuts Off!.exe
 Double-click that `.exe` to launch. (There is no installer with the `dir`
 target; the whole runnable app lives in `release\win-unpacked\`.)
 
-### If the window never appears (renderer/GPU crash) — run these in order
+### If the window never appears — run the isolated + staged bisection (in order)
+
+Everything below imports NOTHING from the real `main.ts`, so the first one that
+fails pinpoints the cause. Watch each console for `dom-ready` / `did-finish-load`
+(good) vs `render-view-deleted` / `webContents destroyed` / `ERR_FAILED` (bad).
+
+```powershell
+npm run build:desktop
+
+:: Truly isolated entrypoint — should behave exactly like your bare test:
+npm run electron:minimal-isolated      :: expect ISOLATED MINIMAL SUCCESS
+
+:: Staged bisect — each adds ONE thing on top of the previous:
+npm run electron:stage-a   :: data: URL, plain window
+npm run electron:stage-b   :: local HTML file
+npm run electron:stage-c   :: real dist/index.html, no preload, sandbox:false
+npm run electron:stage-d   :: + preload
+npm run electron:stage-e   :: + PRODUCTION webPreferences (sandbox:true, webSecurity)
+npm run electron:stage-f   :: + frameless window
+npm run electron:stage-g   :: + saved window bounds
+npm run electron:stage-h   :: + IPC handlers
+npm run electron:stage-i   :: + single-instance lock
+npm run electron:stage-j   :: + navigation guards
+npm run electron:stage-k   :: + CSP / webRequest
+npm run electron:stage-l   :: + Tray
+npm run electron:stage-m   :: + GPU self-heal (logs only)
+```
+
+Tell me the FIRST stage that fails — that's the culprit. (Top hypothesis:
+**stage-e**, i.e. `sandbox: true`, since your working bare/isolated test uses
+`sandbox: false`.) A per-stage log is also written to
+`%APPDATA%\Working My Nuts Off!\diagnostic.log`.
+
+### GPU / safe-mode fallbacks (manual only now — no auto-relaunch)
 
 The app now self-heals: if the renderer process dies on launch it relaunches
 once with hardware acceleration off and writes a `gpu-safe-mode` marker. To
