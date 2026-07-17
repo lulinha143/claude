@@ -2,18 +2,18 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 // Two-font identity, bundled locally via Fontsource (both SIL Open Font License
 // 1.1 — free for commercial use, embedding and redistribution; no online fetch):
-//   Fredoka     — chunky rounded DISPLAY face: brand, titles, buttons, HUD.
-//   Nunito Sans — highly readable BODY face: descriptions, tooltips, numbers.
-// The 'latin' subset Fontsource bundles includes Latin-1 accents, so Portuguese
-// (á ã ç ê õ …) renders correctly. See docs/FONTS.md for attribution.
-import '@fontsource/fredoka/400.css';
-import '@fontsource/fredoka/500.css';
-import '@fontsource/fredoka/600.css';
-import '@fontsource/fredoka/700.css';
-import '@fontsource/nunito-sans/400.css';
-import '@fontsource/nunito-sans/600.css';
-import '@fontsource/nunito-sans/700.css';
-import '@fontsource/nunito-sans/800.css';
+//   DynaPuff — hand-lettered DISPLAY face: brand, titles, events, key actions.
+//   Nunito   — highly readable BODY face: descriptions, compact labels, numbers.
+// Latin subsets include Latin-1 accents, so Portuguese (á ã ç ê õ …) renders
+// correctly without shipping unrelated scripts. See docs/FONTS.md.
+import '@fontsource/dynapuff/latin-400.css';
+import '@fontsource/dynapuff/latin-500.css';
+import '@fontsource/dynapuff/latin-600.css';
+import '@fontsource/dynapuff/latin-700.css';
+import '@fontsource/nunito/latin-400.css';
+import '@fontsource/nunito/latin-600.css';
+import '@fontsource/nunito/latin-700.css';
+import '@fontsource/nunito/latin-800.css';
 import { initI18n } from './i18n';
 import { App } from './App';
 import { getGameState } from './state/store';

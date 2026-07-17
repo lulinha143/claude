@@ -1,4 +1,5 @@
 import type { MomentCard } from '../sim/types';
+import { canvasFont } from './fontStacks';
 
 // Renders a shareable Moment Card to a canvas and returns a PNG data URL. The
 // card intentionally contains ONLY game content (event art placeholder, caption,
@@ -59,25 +60,27 @@ export function renderMomentCard(data: MomentCardData): HTMLCanvasElement {
 
   // title
   ctx.fillStyle = '#fff4e0';
-  ctx.font = 'bold 30px system-ui, sans-serif';
+  ctx.font = canvasFont(700, 30, 'display');
   ctx.textAlign = 'center';
   ctx.fillText(clip(data.title, 34), w / 2, 250);
 
   // caption
   ctx.fillStyle = '#d8c4a8';
-  ctx.font = '18px system-ui, sans-serif';
+  ctx.font = canvasFont(400, 18, 'body');
   wrapText(ctx, data.caption, w / 2, 284, w - 80, 24);
 
   // footer: company / date / rarity
   ctx.fillStyle = rarity;
-  ctx.font = 'bold 16px system-ui, sans-serif';
+  ctx.font = canvasFont(700, 16, 'body');
   ctx.textAlign = 'left';
   ctx.fillText(data.rarityLabel, 36, h - 30);
   ctx.textAlign = 'center';
   ctx.fillStyle = '#fff4e0';
+  ctx.font = canvasFont(700, 16, 'display');
   ctx.fillText(data.companyName, w / 2, h - 30);
   ctx.textAlign = 'right';
   ctx.fillStyle = '#a89577';
+  ctx.font = canvasFont(600, 16, 'body');
   ctx.fillText(data.dateLabel, w - 36, h - 30);
 
   return canvas;

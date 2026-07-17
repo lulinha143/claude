@@ -128,25 +128,26 @@
   --asset-scale: 1;
 
   /* --- typography system ---------------------------------------------------
-     A handcrafted, cozy-office identity built from two bundled faces:
-     Fredoka (chunky rounded DISPLAY — brand, titles, buttons, HUD) and
-     Nunito Sans (readable BODY — descriptions, tooltips, numbers). Both are
-     loaded offline via Fontsource (no external fetch). Numbers use the body
-     face with tabular figures so counters never jitter. Quicksand is gone as
-     the primary identity. */
-  --font-display: 'Fredoka', 'Baloo 2', 'Comfortaa', 'SF Pro Rounded', 'Segoe UI Variable Display',
-    'Segoe UI', system-ui, sans-serif;
-  --font-body: 'Nunito Sans', 'Nunito', 'Inter', 'SF Pro Text', 'Segoe UI', system-ui, -apple-system,
-    Roboto, sans-serif;
-  --font-numeric: 'Nunito Sans', 'Inter', ui-rounded, 'Segoe UI', system-ui, sans-serif;
-  /* Legacy alias retained so existing components migrate without churn. */
+     DynaPuff supplies the handmade animal-office voice for prominent display
+     roles; Nunito keeps body copy, tiny controls and numeric data calm and
+     readable. Both faces are bundled as Latin subsets for offline use and
+     Portuguese accents. Canvas exports mirror these stacks in fontStacks.ts. */
+  --font-logo:
+    'DynaPuff', 'Cooper Black', 'Arial Rounded MT Bold', 'Segoe UI', system-ui, sans-serif;
+  --font-display: 'DynaPuff', 'Arial Rounded MT Bold', 'Segoe UI', system-ui, sans-serif;
+  --font-body: 'Nunito', 'Avenir Next', 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+  --font-numeric: 'Nunito', ui-rounded, 'Segoe UI', system-ui, sans-serif;
+  --font-compact: var(--font-body);
+  /* Compatibility aliases for existing component rules. */
   --font-num: var(--font-numeric);
 
-  /* weights — Fredoka ships 300–700; Nunito Sans covers 400/600/700/800 */
+  /* weights — DynaPuff covers 400–700; Nunito covers 400/600/700/800 */
   --fw-normal: 400;
   --fw-medium: 500;
   --fw-bold: 600;
   --fw-heavy: 700;
+  --fw-body-strong: 700;
+  --fw-numeric: 700;
 
   /* line-heights & tracking */
   --lh-tight: 1.15;
@@ -155,9 +156,8 @@
   --tracking-tight: -0.01em;
   --tracking-wide: 0.06em;
 
-  /* Fluid type scale. Each step scales gently with the viewport (so tiny and
-     4K windows both read well) and is multiplied by the user's --font-scale.
-     em-based components inherit from the root size set on .app. */
+  /* Fluid type scale. Each step scales gently with the viewport and with the
+     player's font-size preference. */
   --fs-2xs: calc(clamp(9.5px, 0.55vw + 0.5vh, 11.5px) * var(--font-scale));
   --fs-xs: calc(clamp(10.5px, 0.6vw + 0.55vh, 13px) * var(--font-scale));
   --fs-sm: calc(clamp(12px, 0.65vw + 0.6vh, 14.5px) * var(--font-scale));
@@ -166,15 +166,51 @@
   --fs-xl: calc(clamp(18px, 1vw + 0.9vh, 24px) * var(--font-scale));
   --fs-2xl: calc(clamp(22px, 1.4vw + 1.1vh, 32px) * var(--font-scale));
 
-  /* Semantic aliases keep component typography readable at a glance while the
-     fluid scale above remains the single sizing implementation. */
+  /* Semantic role tokens. Tiny labels deliberately stay in Nunito: DynaPuff's
+     lively shapes become crowded below normal control sizes. */
+  --type-caption-family: var(--font-compact);
+  --type-caption-size: var(--fs-2xs);
+  --type-caption-weight: var(--fw-body-strong);
+  --type-caption-line: var(--lh-snug);
+  --type-small-family: var(--font-compact);
+  --type-small-size: var(--fs-xs);
+  --type-small-weight: var(--fw-body-strong);
+  --type-small-line: var(--lh-snug);
+  --type-body-family: var(--font-body);
+  --type-body-size: var(--fs-base);
+  --type-body-weight: var(--fw-normal);
+  --type-body-line: var(--lh-normal);
+  --type-button-family: var(--font-display);
+  --type-button-size: var(--fs-sm);
+  --type-button-weight: var(--fw-bold);
+  --type-button-line: var(--lh-snug);
+  --type-section-family: var(--font-display);
+  --type-section-size: var(--fs-lg);
+  --type-section-weight: var(--fw-heavy);
+  --type-section-line: var(--lh-tight);
+  --type-panel-family: var(--font-display);
+  --type-panel-size: var(--fs-xl);
+  --type-panel-weight: var(--fw-heavy);
+  --type-panel-line: var(--lh-tight);
+  --type-event-family: var(--font-display);
+  --type-event-size: var(--fs-lg);
+  --type-event-weight: var(--fw-bold);
+  --type-event-line: var(--lh-snug);
+  --type-hero-family: var(--font-logo);
+  --type-hero-size: calc(clamp(28px, 2vw + 1.4vh, 44px) * var(--font-scale));
+  --type-hero-weight: var(--fw-heavy);
+  --type-hero-line: 1.08;
+  --type-numeric-family: var(--font-numeric);
+  --type-numeric-weight: var(--fw-numeric);
+
+  /* Size aliases retained for component readability. */
   --text-xs: var(--fs-xs);
   --text-sm: var(--fs-sm);
   --text-base: var(--fs-base);
   --text-lg: var(--fs-lg);
   --text-xl: var(--fs-xl);
   --text-title: var(--fs-2xl);
-  --text-hero: calc(clamp(28px, 2vw + 1.4vh, 44px) * var(--font-scale));
+  --text-hero: var(--type-hero-size);
 }
 
 /* High-contrast overrides only need to touch semantic tokens. */

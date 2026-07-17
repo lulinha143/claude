@@ -4,6 +4,8 @@
 // only game content (company name, cozy office illustration, current stats,
 // date) — never a capture of the user's desktop.
 
+import { canvasFont } from './fontStacks';
+
 export interface OfficePhotoData {
   companyName: string;
   tagline: string;
@@ -12,9 +14,6 @@ export interface OfficePhotoData {
   critterColors: string[];
   brand: string;
 }
-
-const DISPLAY_FONT = "'Fredoka', 'Segoe UI', system-ui, sans-serif";
-const BODY_FONT = "'Nunito Sans', 'Segoe UI', system-ui, sans-serif";
 
 export function renderOfficePhoto(data: OfficePhotoData): HTMLCanvasElement {
   const w = 900;
@@ -41,10 +40,10 @@ export function renderOfficePhoto(data: OfficePhotoData): HTMLCanvasElement {
   // title
   ctx.fillStyle = '#fff4e0';
   ctx.textAlign = 'center';
-  ctx.font = `700 42px ${DISPLAY_FONT}`;
+  ctx.font = canvasFont(700, 42, 'display');
   ctx.fillText(clip(data.companyName, 26), w / 2, 78);
   ctx.fillStyle = '#d8c4a8';
-  ctx.font = `600 20px ${BODY_FONT}`;
+  ctx.font = canvasFont(600, 20, 'body');
   ctx.fillText(clip(data.tagline, 46), w / 2, 108);
 
   // cozy office illustration: a rounded tree trunk with lit windows + critters
@@ -62,10 +61,10 @@ export function renderOfficePhoto(data: OfficePhotoData): HTMLCanvasElement {
     ctx.fill();
     ctx.fillStyle = '#a89577';
     ctx.textAlign = 'center';
-    ctx.font = `700 15px ${BODY_FONT}`;
+    ctx.font = canvasFont(700, 15, 'body');
     ctx.fillText(s.label, x + chipW / 2, chipY + 21);
     ctx.fillStyle = '#fff4e0';
-    ctx.font = `700 22px ${DISPLAY_FONT}`;
+    ctx.font = canvasFont(700, 22, 'numeric');
     ctx.fillText(clip(s.value, 12), x + chipW / 2, chipY + 45);
     x += chipW + gap;
   }
@@ -73,11 +72,11 @@ export function renderOfficePhoto(data: OfficePhotoData): HTMLCanvasElement {
   // footer
   ctx.fillStyle = '#ffd54a';
   ctx.textAlign = 'left';
-  ctx.font = `700 18px ${DISPLAY_FONT}`;
+  ctx.font = canvasFont(700, 18, 'display');
   ctx.fillText(data.brand, 40, h - 34);
   ctx.fillStyle = '#a89577';
   ctx.textAlign = 'right';
-  ctx.font = `600 16px ${BODY_FONT}`;
+  ctx.font = canvasFont(600, 16, 'body');
   ctx.fillText(data.dateLabel, w - 40, h - 34);
 
   return canvas;
@@ -167,7 +166,14 @@ function drawCritter(ctx: CanvasRenderingContext2D, x: number, y: number, color:
   ctx.restore();
 }
 
-function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number): void {
+function roundRect(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number,
+): void {
   const radius = Math.min(r, w / 2, h / 2);
   ctx.beginPath();
   ctx.moveTo(x + radius, y);
