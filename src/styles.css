@@ -1239,71 +1239,6 @@ select,
   to { transform: scale(1); }
 }
 
-/* --- Shell Sort --- */
-.shellsort {
-  border-radius: var(--r-md);
-  transition: background var(--dur) var(--ease);
-}
-.shellsort.is-flash-good { background: rgba(79, 157, 105, 0.18); }
-.shellsort.is-flash-bad { background: rgba(176, 71, 58, 0.16); }
-.shellsort__hud {
-  display: flex;
-  justify-content: space-between;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  margin-bottom: 6px;
-}
-.shellsort__item {
-  height: 90px;
-  display: grid;
-  place-items: center;
-}
-.shellsort__token {
-  animation: pop-in 0.18s var(--ease);
-}
-.shellsort__bins {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-.bin {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 12px 8px;
-  border-radius: var(--r-md);
-  border: 2px solid var(--border);
-  cursor: pointer;
-  color: var(--text);
-  overflow: hidden;
-}
-.bin--good { border-color: var(--positive); background: rgba(79, 157, 105, 0.12); }
-.bin--shell { border-color: var(--wood-light); background: rgba(169, 116, 59, 0.12); }
-.bin:hover { filter: brightness(1.1); }
-.bin:active { transform: scale(0.97); }
-.bin__label { font-weight: 700; font-size: 0.85em; }
-.bin__pattern {
-  position: absolute;
-  inset: 0;
-  opacity: 0.12;
-  pointer-events: none;
-}
-.bin__pattern--dots {
-  background-image: radial-gradient(currentColor 2px, transparent 2px);
-  background-size: 12px 12px;
-}
-.bin__pattern--stripes {
-  background-image: repeating-linear-gradient(45deg, currentColor 0 3px, transparent 3px 8px);
-}
-.bin kbd {
-  font-size: 0.7em;
-  background: var(--surface-sunken);
-  border-radius: 4px;
-  padding: 1px 5px;
-}
-
 /* --- Coffee Rescue --- */
 .coffee__hud {
   display: flex;
@@ -1358,125 +1293,6 @@ select,
   border-radius: 0 8px 8px 0;
 }
 
-/* --- Procurement Conveyor --- */
-.proc__hud {
-  display: flex;
-  justify-content: space-between;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  margin-bottom: 6px;
-}
-.proc__combo { transition: color 0.2s ease, transform 0.2s ease; }
-.proc__combo.is-hot { color: var(--gold); transform: scale(1.12); }
-.proc__belt {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  padding: 10px 8px 12px;
-  border-radius: var(--r-md);
-  background: linear-gradient(180deg, rgba(255, 244, 224, 0.06), rgba(0, 0, 0, 0.28));
-  border-bottom: 5px solid var(--wood-light);
-  /* moving belt texture (paused for reduced motion) */
-  background-image: repeating-linear-gradient(
-    90deg,
-    rgba(0, 0, 0, 0.16) 0 14px,
-    transparent 14px 28px
-  );
-  background-size: 28px 100%;
-  animation: proc-belt 1.6s linear infinite;
-}
-.proc.is-reduced .proc__belt { animation: none; }
-@keyframes proc-belt {
-  from { background-position: 0 0; }
-  to { background-position: 28px 0; }
-}
-.proc__queue {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  opacity: 0.55;
-  min-height: 28px;
-}
-.proc__queue-item {
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-}
-.proc__stage {
-  height: 96px;
-  display: grid;
-  place-items: center;
-}
-.proc__parcel {
-  background: none;
-  border: none;
-  padding: 6px;
-  cursor: grab;
-  touch-action: none;
-  border-radius: var(--r-md);
-}
-.proc__parcel:active { cursor: grabbing; }
-.proc__parcel.is-dragging { opacity: 0.3; }
-.proc:not(.is-reduced) .proc__parcel.is-nudge { animation: proc-nudge 0.5s ease; }
-@keyframes proc-nudge {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-6px) rotate(-4deg); }
-  75% { transform: translateX(6px) rotate(4deg); }
-}
-.proc__box {
-  position: relative;
-  display: inline-grid;
-  place-items: center;
-  transition: transform 0.22s var(--ease);
-}
-.proc.is-reduced .proc__box { transition: none; }
-.proc__box-icon {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  pointer-events: none;
-}
-.proc__fragile {
-  position: absolute;
-  top: -4px;
-  right: -4px;
-}
-.proc__rotate {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-}
-.proc__hint { text-align: center; margin: 6px 0; min-height: 1.2em; }
-.proc__chutes {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-}
-.bin--harvest { border-color: var(--positive); background: rgba(79, 157, 105, 0.12); }
-.bin--roasting { border-color: var(--amber); background: rgba(217, 132, 54, 0.12); }
-.bin--logistics { border-color: var(--accent); background: rgba(111, 127, 176, 0.14); }
-.bin--research { border-color: #8f78c0; background: rgba(143, 120, 192, 0.14); }
-.bin.is-hover { filter: brightness(1.18); transform: scale(1.03); border-style: dashed; }
-.bin.is-good { border-color: var(--positive); background: rgba(79, 157, 105, 0.28); }
-.bin.is-bad { border-color: var(--negative); background: rgba(176, 71, 58, 0.24); }
-.bin.is-nofit { border-color: var(--gold); background: rgba(255, 213, 74, 0.2); }
-.bin__pattern--grid {
-  background-image:
-    linear-gradient(currentColor 1px, transparent 1px),
-    linear-gradient(90deg, currentColor 1px, transparent 1px);
-  background-size: 10px 10px;
-}
-.proc__ghost {
-  position: fixed;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-  z-index: 9998;
-  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.4));
-}
 
 /* --- Cable Untangle Desk --- */
 .cable__hud {
@@ -3116,50 +2932,8 @@ select,
 
 
 /* ==========================================================================
-   Minigame polish — 3-way conveyor sort, coffee combo meter, memory streaks
+   Minigame polish — coffee combo meter, memory streaks
    ========================================================================== */
-
-/* Conveyor Sort: golden bin, queue preview, hot combo */
-.bin--golden {
-  border-color: var(--gold);
-  background: rgba(255, 213, 74, 0.14);
-}
-.bin__pattern--rays {
-  background-image: repeating-conic-gradient(
-    from 0deg,
-    color-mix(in srgb, var(--gold) 60%, transparent) 0deg 12deg,
-    transparent 12deg 24deg
-  );
-  opacity: 0.5;
-}
-.shellsort__conveyor {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-}
-.shellsort__combo {
-  font-weight: 700;
-  transition: color 0.2s ease, transform 0.2s ease;
-}
-.shellsort__combo.is-hot {
-  color: var(--gold);
-  transform: scale(1.12);
-}
-.shellsort__queue {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  opacity: 0.55;
-}
-.shellsort__queue-item {
-  display: grid;
-  place-items: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background: var(--surface-sunken);
-}
 
 /* Coffee Rescue: combo readout, warmth meter, catch splash */
 .coffee__mult {
@@ -3195,8 +2969,6 @@ select,
   from { transform: translateX(-50%) scale(0.4); opacity: 0.9; }
   to { transform: translateX(-50%) scale(1.6); opacity: 0; }
 }
-
-/* Procurement Conveyor: hovered chute cue is handled inline via .bin.is-hover */
 
 /* A decoration a nearby employee is reacting to gets a soft glow. */
 .decor.is-reacting {
@@ -3801,8 +3573,7 @@ img {
 .stat-card__value,
 .microgame__timer,
 .bugsquash__hud,
-.coffee__hud,
-.shellsort__hud {
+.coffee__hud {
   font-variant-numeric: tabular-nums;
   font-feature-settings: 'tnum' 1;
 }
@@ -3824,8 +3595,6 @@ img {
 .microgame,
 .bugsquash,
 .coffee,
-.shellsort,
-.proc,
 .cable {
   max-width: 100%;
 }
