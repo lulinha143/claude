@@ -46,6 +46,33 @@ describe('prestige', () => {
     expect(next.achievements['first-day']).toBe(123);
   });
 
+  it('preserves stable decoration identity, placement, and interaction state', () => {
+    const s = createInitialState(0);
+    s.stats.totalNutsEarned = BALANCE.prestige.unlockAtTotalNuts;
+    s.collections.secrets.push('deco:potted-fern');
+    s.placements['potted-fern'] = { surface: 'floor', x: 0.72, y: 0.08 };
+    s.decorationInstances.push({
+      instanceId: 'stable-fern',
+      decorationId: 'potted-fern',
+      roomId: 'founder-desk',
+      surfaceType: 'floor',
+      normalizedX: 0.72,
+      normalizedY: 0.08,
+      depth: 2,
+      variantId: 'blue-pot',
+      flipped: true,
+      rotation: 4,
+      interactionState: { watered: true },
+    });
+
+    const next = performPrestige(s, 'cooperative', 1000);
+    expect(next.decorationInstances).toEqual(s.decorationInstances);
+    expect(next.placements).toEqual(s.placements);
+    expect(next.decorationInstances).not.toBe(s.decorationInstances);
+    expect(next.decorationInstances[0].interactionState).not.toBe(s.decorationInstances[0].interactionState);
+    expect(next.placements['potted-fern']).not.toBe(s.placements['potted-fern']);
+  });
+
   it('head-start skill grants starting nuts on prestige', () => {
     const s = createInitialState(0);
     s.stats.totalNutsEarned = 4_000_000;

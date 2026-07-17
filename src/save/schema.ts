@@ -44,6 +44,20 @@ const dailyChallengeSchema = z.object({
   claimed: z.boolean().catch(false),
 });
 
+const decorationInstanceSchema = z.object({
+  instanceId: z.string().min(1),
+  decorationId: z.string().min(1),
+  roomId: z.string().nullable().catch(null),
+  surfaceType: z.enum(['floor', 'wall', 'table', 'ceiling', 'shelf']).catch('floor'),
+  normalizedX: z.number().min(0).max(1).catch(0.5),
+  normalizedY: z.number().min(0).max(1).catch(0.1),
+  depth: z.number().finite().catch(0),
+  variantId: z.string().optional().catch(undefined),
+  flipped: z.boolean().optional().catch(undefined),
+  rotation: z.number().finite().optional().catch(undefined),
+  interactionState: z.record(z.unknown()).optional().catch(undefined),
+}).passthrough();
+
 const settingsSchema = z
   .object({
     language: z.string().catch('en'),
@@ -126,6 +140,15 @@ export const gameStateSchema = z.object({
         .catch({ surface: 'floor', x: 0.5, y: 0.06 }),
     )
     .catch({}),
+  decorationInstances: z
+    .array(z.unknown())
+    .catch([])
+    .transform((items) =>
+      items.flatMap((item) => {
+        const parsed = decorationInstanceSchema.safeParse(item);
+        return parsed.success ? [parsed.data] : [];
+      }),
+    ),
   collections: z
     .object({
       nuts: z.array(z.string()).catch([]),

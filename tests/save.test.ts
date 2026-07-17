@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { SaveManager, type KeyValueStore } from '../src/save/saveManager';
 import { createInitialState } from '../src/sim/state';
+import { GameEngine } from '../src/sim/engine';
 import { migrate } from '../src/save/migrations';
 import { SAVE_VERSION } from '../src/sim/config';
 
@@ -91,6 +92,49 @@ describe('save system', () => {
     const sm = new SaveManager(new MemStore());
     expect(sm.importSave('not json').ok).toBe(false);
   });
+
+  it('salvages valid decoration instances when one imported entry is malformed', () => {
+    const store = new MemStore();
+    const raw = createInitialState(0) as unknown as Record<string, unknown>;
+    raw.collections = {
+      ...(raw.collections as Record<string, unknown>),
+      secrets: ['deco:potted-fern', 'deco:desk-lamp'],
+    };
+    raw.decorationInstances = [
+      {
+        instanceId: 'stable-fern',
+        decorationId: 'potted-fern',
+        roomId: null,
+        surfaceType: 'floor',
+        normalizedX: 0.4,
+        normalizedY: 0.1,
+        depth: 2,
+        variantId: 42,
+        flipped: 'yes',
+        rotation: 'sideways',
+        interactionState: 'corrupt',
+      },
+      { decorationId: 'desk-lamp' },
+    ];
+    store.setItem('wmno.save.v1', JSON.stringify(raw));
+    const loaded = new SaveManager(store).load(0);
+    expect(loaded.corrupted).toBe(false);
+    expect(loaded.state.decorationInstances).toHaveLength(1);
+    expect(loaded.state.decorationInstances[0].instanceId).toBe('stable-fern');
+    expect(loaded.state.decorationInstances[0]).toMatchObject({
+      roomId: null,
+      variantId: undefined,
+      flipped: undefined,
+      rotation: undefined,
+      interactionState: undefined,
+    });
+
+    const engine = new GameEngine(loaded.state, { deterministic: true });
+    expect(engine.state.decorationInstances.find((item) => item.decorationId === 'potted-fern')?.instanceId).toBe(
+      'stable-fern',
+    );
+    expect(engine.state.decorationInstances.find((item) => item.decorationId === 'desk-lamp')).toBeTruthy();
+  });
 });
 
 describe('migrations', () => {
@@ -100,6 +144,94 @@ describe('migrations', () => {
     expect(migrated.version).toBe(SAVE_VERSION);
     expect((migrated.collections as Record<string, unknown>).secrets).toEqual([]);
     expect((migrated.prestige as Record<string, unknown>).skills).toEqual({});
+  });
+
+  it('migrates v6 decoration placements into stable instances without losing inventory state', () => {
+    const v6 = {
+      version: 6,
+      placements: {
+        'potted-fern': { surface: 'floor', x: 0.72, y: 0.08 },
+      },
+      collections: {
+        secrets: ['deco:potted-fern', 'deco:desk-lamp'],
+      },
+    };
+    const migrated = migrate(v6) as {
+      version: number;
+      decorationInstances: Array<Record<string, unknown>>;
+      placements: Record<string, unknown>;
+    };
+    expect(migrated.version).toBe(SAVE_VERSION);
+    expect(migrated.placements['potted-fern']).toEqual(v6.placements['potted-fern']);
+    const fern = migrated.decorationInstances.find((item) => item.decorationId === 'potted-fern');
+    const lamp = migrated.decorationInstances.find((item) => item.decorationId === 'desk-lamp');
+    expect(fern).toMatchObject({
+      instanceId: 'deco-potted-fern-1',
+      roomId: 'founder-desk',
+      surfaceType: 'floor',
+      normalizedX: 0.72,
+      normalizedY: 0.08,
+    });
+    expect(lamp).toMatchObject({ instanceId: 'deco-desk-lamp-1', roomId: null });
+  });
+
+  it('normalizes percentage-like legacy coordinates during decoration migration', () => {
+    const migrated = migrate({
+      version: 6,
+      placements: { 'potted-fern': { surface: 'floor', x: 75, y: 10 } },
+      collections: { secrets: ['deco:potted-fern'] },
+    }) as { decorationInstances: Array<{ normalizedX: number; normalizedY: number }> };
+    expect(migrated.decorationInstances[0].normalizedX).toBe(0.75);
+    expect(migrated.decorationInstances[0].normalizedY).toBe(0.1);
+  });
+
+  it('fills missing instances in a partial v6 development save without replacing stable ids', () => {
+    const migrated = migrate({
+      version: 6,
+      placements: {},
+      collections: { secrets: ['deco:potted-fern', 'deco:desk-lamp'] },
+      decorationInstances: [
+        {
+          instanceId: 'kept-instance-id',
+          decorationId: 'potted-fern',
+          roomId: null,
+          surfaceType: 'floor',
+          normalizedX: 0.3,
+          normalizedY: 0.1,
+          depth: 2,
+        },
+      ],
+    }) as { decorationInstances: Array<Record<string, unknown>> };
+    expect(migrated.decorationInstances).toHaveLength(2);
+    expect(migrated.decorationInstances[0].instanceId).toBe('kept-instance-id');
+    expect(migrated.decorationInstances[1]).toMatchObject({
+      instanceId: 'deco-desk-lamp-1',
+      decorationId: 'desk-lamp',
+      roomId: null,
+    });
+  });
+
+  it('preserves v6 inventory state through parsing and engine construction', () => {
+    const store = new MemStore();
+    const v6 = createInitialState(0) as unknown as Record<string, unknown>;
+    v6.version = 6;
+    v6.placements = { 'potted-fern': { surface: 'floor', x: 0.7, y: 0.08 } };
+    v6.collections = {
+      ...(v6.collections as Record<string, unknown>),
+      secrets: ['deco:potted-fern', 'deco:desk-lamp'],
+    };
+    delete v6.decorationInstances;
+    store.setItem('wmno.save.v1', JSON.stringify(v6));
+    const loaded = new SaveManager(store).load(0);
+    const engine = new GameEngine(loaded.state, { deterministic: true });
+    expect(engine.state.decorationInstances.find((item) => item.decorationId === 'potted-fern')).toMatchObject({
+      roomId: 'founder-desk',
+      normalizedX: 0.7,
+    });
+    expect(engine.state.decorationInstances.find((item) => item.decorationId === 'desk-lamp')).toMatchObject({
+      roomId: null,
+    });
+    expect(engine.state.placements['desk-lamp']).toBeUndefined();
   });
 
   it('leaves a current-version save unchanged in version', () => {

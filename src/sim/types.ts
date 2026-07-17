@@ -168,6 +168,24 @@ export interface GameSettings {
   };
 }
 
+/** Stable persisted decoration instance. Coordinates are normalized to its destination surface. */
+export type DecorationSurfaceType = 'floor' | 'wall' | 'table' | 'ceiling' | 'shelf';
+
+export interface DecorationInstance {
+  instanceId: string;
+  decorationId: string;
+  /** null means the owned item is currently in inventory. */
+  roomId: string | null;
+  surfaceType: DecorationSurfaceType;
+  normalizedX: number;
+  normalizedY: number;
+  depth: number;
+  variantId?: string;
+  flipped?: boolean;
+  rotation?: number;
+  interactionState?: Record<string, unknown>;
+}
+
 /** Serialized, persisted game state. Bump `SAVE_VERSION` when this changes. */
 export interface GameState {
   version: number;
@@ -179,13 +197,13 @@ export interface GameState {
   upgrades: Record<string, number>; // upgradeId -> owned count/level
   achievements: Record<string, number>; // achievementId -> unlock timestamp (0 = locked)
   /**
-   * Decoration placement: decorationId -> anchorId within its room. A decoration
-   * is *owned* via `collections.secrets` (`deco:<id>`); this map records where an
-   * owned decoration is currently placed. Owned-but-absent = sitting in the
-   * inventory (not shown in the office). New optional field; older saves default
-   * to `{}` and are migrated on load (see repairDecorations).
+   * Compatibility projection for current renderers: decorationId -> normalized
+   * surface position. The v7 `decorationInstances` array is authoritative for
+   * identity, room assignment, inventory state, variants, and interactions.
    */
   placements: Record<string, DecorationPlacement>;
+  /** Stable source model. One instance exists for each currently owned catalogue item. */
+  decorationInstances: DecorationInstance[];
   collections: {
     nuts: string[];
     outfits: string[];

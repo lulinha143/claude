@@ -1,5 +1,6 @@
 import { SAVE_VERSION } from '../sim/config';
-import { defaultPlacement } from '../sim/surfaces';
+import { defaultPlacement, decorationSurface, surfaceZ, type DecorationSurface } from '../sim/surfaces';
+import { DECORATIONS_BY_ID } from '../content/decorations';
 
 // Ordered migrations that transform a raw save object from an older version up
 // to the current SAVE_VERSION. Each migration takes the previous raw object and
@@ -73,12 +74,90 @@ const v5ToV6: Migration = (raw) => {
   return { ...raw, placements: next, version: 6 };
 };
 
+const isRawSave = (value: unknown): value is RawSave =>
+  Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+
+// v6 -> v7: introduce stable decoration instances while preserving the v6
+// placement map as a compatibility projection. Every owned decoration gets one
+// deterministic instance; stowed items retain the same instance with roomId null.
+const v6ToV7: Migration = (raw) => {
+  const placements = isRawSave(raw.placements) ? raw.placements : {};
+  const collections = isRawSave(raw.collections) ? raw.collections : {};
+  const secrets = Array.isArray(collections.secrets) ? collections.secrets : [];
+  const interactionStates = isRawSave(raw.decorationInteractionStates)
+    ? raw.decorationInteractionStates
+    : {};
+  const clamp = (value: unknown, fallback: number) => {
+    const number = typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+    // Some pre-v6 development saves used percentages rather than normalized values.
+    return Math.max(0, Math.min(1, number > 1 ? number / 100 : number));
+  };
+  const validSurface = (value: unknown, decorationId: string): DecorationSurface =>
+    value === 'floor' || value === 'wall' || value === 'ceiling'
+      ? value
+      : decorationSurface(decorationId);
+
+  // Preserve valid partial development instances and fill only what is absent.
+  // Runtime repair performs the deeper invariant audit after schema parsing.
+  const decorationInstances = Array.isArray(raw.decorationInstances)
+    ? raw.decorationInstances
+        .filter(
+          (instance): instance is RawSave =>
+            isRawSave(instance) &&
+            typeof instance.instanceId === 'string' &&
+            typeof instance.decorationId === 'string',
+        )
+        .map((instance) => ({ ...instance }))
+    : [];
+  const represented = new Set(
+    decorationInstances.map((instance) => instance.decorationId as string),
+  );
+  const usedIds = new Set(decorationInstances.map((instance) => instance.instanceId as string));
+
+  const ownedIds = secrets
+    .filter((secret): secret is string => typeof secret === 'string' && secret.startsWith('deco:'))
+    .map((secret) => secret.slice(5))
+    .filter((id, index, ids) => Boolean(DECORATIONS_BY_ID[id]) && ids.indexOf(id) === index);
+
+  for (const decorationId of ownedIds) {
+    if (represented.has(decorationId)) continue;
+    const def = DECORATIONS_BY_ID[decorationId];
+    const rawPlacement = placements[decorationId];
+    const placement = isRawSave(rawPlacement) ? rawPlacement : null;
+    const fallback = defaultPlacement(decorationId);
+    const surface = validSurface(placement?.surface, decorationId);
+    let instanceId = `deco-${decorationId}-1`;
+    let suffix = 2;
+    while (usedIds.has(instanceId)) {
+      instanceId = `deco-${decorationId}-${suffix}`;
+      suffix += 1;
+    }
+    usedIds.add(instanceId);
+    decorationInstances.push({
+      instanceId,
+      decorationId,
+      roomId: placement ? def.room : null,
+      surfaceType: surface,
+      normalizedX: clamp(placement?.x, fallback.x),
+      normalizedY: clamp(placement?.y, fallback.y),
+      depth: surfaceZ(decorationId, surface),
+      flipped: false,
+      rotation: 0,
+      interactionState: isRawSave(interactionStates[decorationId])
+        ? interactionStates[decorationId]
+        : {},
+    });
+  }
+  return { ...raw, decorationInstances, version: 7 };
+};
+
 const MIGRATIONS: Record<number, Migration> = {
   1: v1ToV2,
   2: v2ToV3,
   3: v3ToV4,
   4: v4ToV5,
   5: v5ToV6,
+  6: v6ToV7,
 };
 
 export function migrate(raw: RawSave): RawSave {

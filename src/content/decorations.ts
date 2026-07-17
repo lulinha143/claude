@@ -1,4 +1,8 @@
 import type { DecorationDef } from './types';
+import { ROOMS } from './rooms';
+import { decorationSurface } from '../sim/surfaces';
+
+const ORDINARY_ROOMS = ROOMS.map((room) => room.id);
 
 // 30 cosmetic decorations. Each grants a small morale bonus and belongs to a
 // room. Purchased with nuts (common) or golden nuts (premium).
@@ -9,7 +13,16 @@ function deco(
   resource: 'nuts' | 'goldenNuts',
   amount: number,
 ): DecorationDef {
-  return { id, nameKey: `deco.${id}.name`, cost: { resource, amount }, moraleBonus: morale, room };
+  return {
+    id,
+    nameKey: `deco.${id}.name`,
+    cost: { resource, amount },
+    moraleBonus: morale,
+    room,
+    compatibleRooms: [...ORDINARY_ROOMS],
+    compatibleSurfaces: [decorationSurface(id)],
+    isStructural: false,
+  };
 }
 
 export const DECORATIONS: DecorationDef[] = [

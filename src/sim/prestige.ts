@@ -47,6 +47,16 @@ export function performPrestige(state: GameState, branch: PrestigeBranchId, now:
     moments: [...state.collections.moments],
     secrets: [...state.collections.secrets],
   };
+  // Decorations are cosmetics/permanent collection items. Preserve stable
+  // identity and all instance metadata; clone nested mutable records so the
+  // prestige result never aliases the pre-prestige state.
+  fresh.decorationInstances = state.decorationInstances.map((instance) => ({
+    ...instance,
+    interactionState: instance.interactionState ? { ...instance.interactionState } : undefined,
+  }));
+  fresh.placements = Object.fromEntries(
+    Object.entries(state.placements).map(([id, placement]) => [id, { ...placement }]),
+  );
   fresh.company.name = state.company.name;
   fresh.stats = { ...state.stats, prestiges: state.stats.prestiges + 1 };
   fresh.focus.completedSessions = state.focus.completedSessions;

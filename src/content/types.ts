@@ -1,4 +1,4 @@
-import type { EmployeeMood, EventRarity, PrestigeBranchId, ResourceId } from '../sim/types';
+import type { DecorationSurfaceType, EmployeeMood, EventRarity, PrestigeBranchId, ResourceId } from '../sim/types';
 
 // Content DEFINITIONS. Everything here is static data describing the game's
 // catalogue. Runtime/persisted progress lives in `GameState` and references
@@ -172,7 +172,11 @@ export interface DecorationDef {
   nameKey: string;
   cost: { resource: ResourceId; amount: number };
   moraleBonus: number;
+  /** Legacy/default room used only for initial placement and old-save inference. */
   room: string;
+  compatibleRooms: string[];
+  compatibleSurfaces: DecorationSurfaceType[];
+  isStructural: boolean;
 }
 
 export interface PrestigeSkillDef {

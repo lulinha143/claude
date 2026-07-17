@@ -26,6 +26,9 @@ import { ensureDailyForDate } from './dailyChallenges';
 import { isRoomIdUnlocked, repairPlacements, unlockedRooms } from './rooms';
 import {
   repairDecorations,
+  repairDecorationInstances,
+  syncDecorationInstanceFromPlacement,
+  syncDecorationInstancesFromPlacements,
   isDecorationOwned,
   isDecorationPlaced,
   ownedDecorationsInRoom,
@@ -123,8 +126,11 @@ export class GameEngine {
     repairEmployees(this.state);
     // Repair any invalid employee placement data on load so no one is lost.
     this.repairedOnLoad = repairPlacements(this.state);
-    // Normalize + migrate decoration placement (auto-places legacy purchases).
+    // Repair the source instance model before its legacy placement projection,
+    // then mirror any coordinate clamping back into the instances.
+    repairDecorationInstances(this.state);
     repairDecorations(this.state);
+    syncDecorationInstancesFromPlacements(this.state);
   }
 
   /** ids whose invalid placement was repaired at load (for dev-only logging). */
@@ -727,6 +733,7 @@ export class GameEngine {
     if (def) {
       const idx = placedCountOnSurface(this.state, def.room, decorationSurface(id));
       this.state.placements[id] = defaultPlacement(id, idx);
+      syncDecorationInstanceFromPlacement(this.state, id);
     }
     this.emit();
     return true;
@@ -762,6 +769,7 @@ export class GameEngine {
       const idx = placedCountOnSurface(this.state, def.room, decorationSurface(id));
       this.state.placements[id] = defaultPlacement(id, idx);
     }
+    syncDecorationInstanceFromPlacement(this.state, id);
     this.save(); // deliberate arrangement — persist immediately so a reload keeps it
     this.emit();
     return true;
@@ -772,6 +780,7 @@ export class GameEngine {
     if (!isDecorationOwned(this.state, id)) return false;
     this.pushDecoHistory();
     this.state.placements[id] = placementAt(id, x, y);
+    syncDecorationInstanceFromPlacement(this.state, id);
     this.save(); // deliberate arrangement — persist immediately so a reload keeps it
     this.emit();
     return true;
@@ -782,6 +791,7 @@ export class GameEngine {
     if (!isDecorationPlaced(this.state, id)) return false;
     this.pushDecoHistory();
     delete this.state.placements[id];
+    syncDecorationInstanceFromPlacement(this.state, id);
     this.save(); // deliberate arrangement — persist immediately so a reload keeps it
     this.emit();
     return true;
@@ -798,6 +808,7 @@ export class GameEngine {
       const idx = perSurface[surface] ?? 0;
       perSurface[surface] = idx + 1;
       this.state.placements[d.id] = defaultPlacement(d.id, idx);
+      syncDecorationInstanceFromPlacement(this.state, d.id);
     }
     this.save(); // deliberate arrangement — persist immediately so a reload keeps it
     this.emit();
@@ -823,6 +834,7 @@ export class GameEngine {
     if (!prev) return false;
     this.decoRedo.push(this.snapshotPlacements());
     this.state.placements = prev;
+    syncDecorationInstancesFromPlacements(this.state);
     this.save(); // deliberate arrangement — persist immediately so a reload keeps it
     this.emit();
     return true;
@@ -833,6 +845,7 @@ export class GameEngine {
     if (!next) return false;
     this.decoUndo.push(this.snapshotPlacements());
     this.state.placements = next;
+    syncDecorationInstancesFromPlacements(this.state);
     this.save(); // deliberate arrangement — persist immediately so a reload keeps it
     this.emit();
     return true;
@@ -866,7 +879,9 @@ export class GameEngine {
     this.lastConsequence = null;
     this.tempBoosts = [];
     this.repairedOnLoad = repairPlacements(this.state);
+    repairDecorationInstances(this.state);
     repairDecorations(this.state);
+    syncDecorationInstancesFromPlacements(this.state);
     this.decoUndo = [];
     this.decoRedo = [];
     this.emit();

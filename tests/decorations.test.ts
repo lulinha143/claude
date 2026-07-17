@@ -9,9 +9,11 @@ import {
   inventoryDecorationsInRoom,
   roomComfort,
   repairDecorations,
+  repairDecorationInstances,
+  auditDecorationState,
 } from '../src/sim/decorations';
 import { decorationSurface, SURFACE_BANDS } from '../src/sim/surfaces';
-import { DECORATIONS_BY_ID } from '../src/content/decorations';
+import { DECORATIONS, DECORATIONS_BY_ID } from '../src/content/decorations';
 
 const ROOM = 'founder-desk';
 
@@ -89,6 +91,7 @@ describe('decoration surfaces + free placement', () => {
     expect(placedDecorationsInRoom(engine.state, ROOM).length).toBe(0);
     expect(engine.resetRoomDecorations(ROOM)).toBe(true);
     expect(placedDecorationsInRoom(engine.state, ROOM).length).toBe(2);
+    expect(engine.state.decorationInstances.every((instance) => instance.roomId === ROOM)).toBe(true);
   });
 
   it('supports undo and redo of placement changes', () => {
@@ -101,6 +104,32 @@ describe('decoration surfaces + free placement', () => {
     expect(placedPlacement(engine.state, 'potted-fern')!.x).toBeCloseTo(before.x, 5);
     expect(engine.redoDecoration()).toBe(true);
     expect(placedPlacement(engine.state, 'potted-fern')!.x).toBeCloseTo(0.8, 5);
+  });
+
+  it('keeps a stable instance id while moving to inventory and placing again', () => {
+    const engine = new GameEngine(createInitialState(0), { deterministic: true });
+    engine.buyDecoration('potted-fern');
+    const originalId = engine.state.decorationInstances[0].instanceId;
+    engine.moveDecoration('potted-fern', 0.8, 0.2);
+    expect(engine.state.decorationInstances[0]).toMatchObject({
+      instanceId: originalId,
+      roomId: ROOM,
+      normalizedX: 0.8,
+    });
+    engine.removeDecoration('potted-fern');
+    expect(engine.state.decorationInstances[0].roomId).toBeNull();
+    engine.placeDecoration('potted-fern');
+    expect(engine.state.decorationInstances[0].instanceId).toBe(originalId);
+    expect(engine.state.decorationInstances[0].roomId).toBe(ROOM);
+  });
+
+  it('marks every existing decoration ordinary and cross-room compatible', () => {
+    for (const def of DECORATIONS) {
+      expect(def.isStructural, def.id).toBe(false);
+      expect(def.compatibleRooms.length, def.id).toBeGreaterThan(1);
+      expect(def.compatibleRooms, def.id).toContain(def.room);
+      expect(def.compatibleSurfaces.length, def.id).toBeGreaterThan(0);
+    }
   });
 
   it('persists arrangement changes immediately (survives a quick reload)', () => {
@@ -156,5 +185,78 @@ describe('decoration migration + repair', () => {
     expect(p.surface).toBe('wall');
     expect(p.x).toBeLessThanOrEqual(0.96);
     expect(p.y).toBeGreaterThanOrEqual(SURFACE_BANDS.wall.min);
+  });
+
+  it('audits and deterministically repairs ownership, identity, and projection conflicts', () => {
+    const s = createInitialState(0);
+    s.collections.secrets.push('deco:potted-fern', 'deco:potted-fern');
+    s.placements['potted-fern'] = { surface: 'floor', x: 0.5, y: 0.06 };
+    s.decorationInstances = [
+      {
+        instanceId: 'duplicate-id',
+        decorationId: 'potted-fern',
+        roomId: 'not-a-room',
+        surfaceType: 'wall',
+        normalizedX: 4,
+        normalizedY: -2,
+        depth: Number.NaN,
+      },
+      {
+        instanceId: 'duplicate-id',
+        decorationId: 'potted-fern',
+        roomId: ROOM,
+        surfaceType: 'floor',
+        normalizedX: 0.4,
+        normalizedY: 0.1,
+        depth: 2,
+      },
+    ];
+
+    const before = new Set(auditDecorationState(s).map((issue) => issue.code));
+    for (const code of [
+      'duplicate-ownership',
+      'duplicate-instance-id',
+      'duplicate-decoration-instance',
+      'invalid-instance-room',
+      'incompatible-instance-surface',
+      'invalid-instance-coordinates',
+      'invalid-instance-depth',
+    ] as const) {
+      expect(before).toContain(code);
+    }
+
+    expect(repairDecorationInstances(s)).toContain('potted-fern');
+    expect(s.collections.secrets.filter((item) => item === 'deco:potted-fern')).toHaveLength(1);
+    expect(s.decorationInstances).toHaveLength(1);
+    expect(s.decorationInstances[0]).toMatchObject({
+      instanceId: 'duplicate-id',
+      decorationId: 'potted-fern',
+      roomId: null,
+      surfaceType: 'floor',
+      normalizedX: 0.96,
+      normalizedY: SURFACE_BANDS.floor.min,
+    });
+    expect(s.placements['potted-fern']).toBeUndefined();
+    expect(auditDecorationState(s)).toEqual([]);
+  });
+
+  it('recovers ownership from a valid orphan instance instead of deleting the purchase', () => {
+    const s = createInitialState(0);
+    s.decorationInstances = [
+      {
+        instanceId: 'deco-desk-lamp-1',
+        decorationId: 'desk-lamp',
+        roomId: null,
+        surfaceType: 'floor',
+        normalizedX: 0.5,
+        normalizedY: 0.06,
+        depth: 2,
+      },
+    ];
+    expect(auditDecorationState(s).map((issue) => issue.code)).toContain('unowned-instance');
+    repairDecorationInstances(s);
+    expect(isDecorationOwned(s, 'desk-lamp')).toBe(true);
+    expect(s.decorationInstances[0].instanceId).toBe('deco-desk-lamp-1');
+    expect(auditDecorationState(s)).toEqual([]);
   });
 });
