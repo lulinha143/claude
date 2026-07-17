@@ -61,11 +61,16 @@ h4 {
   letter-spacing: var(--tracking-tight);
   overflow-wrap: break-word;
 }
-button,
 input,
 select,
 textarea {
-  font-family: inherit;
+  font-family: var(--font-body);
+}
+/* Buttons wear the display face (Fredoka) at medium weight for personality,
+   while body copy, inputs and numbers stay on the readable body face. */
+button {
+  font-family: var(--font-head);
+  font-weight: var(--fw-medium);
 }
 /* text should always wrap rather than overflow its container */
 p,
