@@ -19,16 +19,21 @@ const common = {
   logLevel: 'info',
 };
 
-await build({
-  ...common,
-  entryPoints: { main: 'electron/main.ts' },
-  outfile: `${outdir}/main.cjs`,
-});
+import { existsSync } from 'node:fs';
 
-await build({
-  ...common,
-  entryPoints: { preload: 'electron/preload.ts' },
-  outfile: `${outdir}/preload.cjs`,
-});
+// main + preload are always built. The diagnostic entrypoints (isolated minimal
+// + staged bisection) are built too when present, so they can be launched
+// independently for Windows startup debugging.
+const entries = [
+  ['electron/main.ts', `${outdir}/main.cjs`],
+  ['electron/preload.ts', `${outdir}/preload.cjs`],
+  ['electron/minimal-main.ts', `${outdir}/minimal-main.cjs`],
+  ['electron/diagnostic-main.ts', `${outdir}/diagnostic-main.cjs`],
+];
 
-console.info('Electron main + preload bundled to', outdir);
+for (const [entry, outfile] of entries) {
+  if (!existsSync(entry)) continue;
+  await build({ ...common, entryPoints: [entry], outfile });
+}
+
+console.info('Electron entrypoints bundled to', outdir);
