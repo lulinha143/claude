@@ -9,6 +9,7 @@ import { unlockedRooms } from '../../sim/rooms';
 import {
   isDecorationOwned,
   isDecorationPlaced,
+  decorationRoom,
   roomComfort,
   ownedDecorationsInRoom,
   placedDecorationsInRoom,
@@ -17,6 +18,7 @@ import { decorKind, DecorationProp, type DecorKind } from '../../art/DecorationP
 import { Icon } from '../../art/UiIcon';
 import { Acorn, GoldenNut } from '../../art/Icons';
 import { sparkleAt } from '../sparkle';
+import { MoveDecorationModal } from '../modals/MoveDecorationModal';
 
 type RoomFilter = 'all' | string;
 type TypeFilter = 'all' | DecorKind;
@@ -33,6 +35,7 @@ export function DecorateView() {
   const [type, setType] = useState<TypeFilter>('all');
   const [resource, setResource] = useState<ResourceFilter>('all');
   const [query, setQuery] = useState('');
+  const [movingId, setMovingId] = useState<string | null>(null);
 
   // Decoration rooms that are actually unlocked (so the selector only offers
   // places the player can decorate).
@@ -56,7 +59,9 @@ export function DecorateView() {
 
   const q = query.trim().toLowerCase();
   const filtered = available.filter((d) => {
-    if (room !== 'all' && d.room !== room) return false;
+    const owned = isDecorationOwned(state, d.id);
+    const assignedRoom = owned ? decorationRoom(state, d.id) : null;
+    if (room !== 'all' && (assignedRoom ?? d.room) !== room) return false;
     if (type !== 'all' && decorKind(d.id) !== type) return false;
     if (resource !== 'all' && d.cost.resource !== resource) return false;
     if (q && !t(`deco.${d.id}.name`).toLowerCase().includes(q)) return false;
@@ -171,6 +176,7 @@ export function DecorateView() {
           {filtered.map((d) => {
             const owned = isDecorationOwned(state, d.id);
             const placed = owned && isDecorationPlaced(state, d.id);
+            const currentRoom = owned ? decorationRoom(state, d.id) : null;
             const afford = state.resources[d.cost.resource] >= d.cost.amount;
             const kind = decorKind(d.id);
             return (
@@ -181,7 +187,9 @@ export function DecorateView() {
                 <div className="decocard__body">
                   <div className="decocard__title">{t(`deco.${d.id}.name`)}</div>
                   <div className="decocard__meta">
-                    <span className="pill">{t(ROOMS_BY_ID[d.room].nameKey)}</span>
+                    <span className="pill">
+                      {currentRoom ? t(ROOMS_BY_ID[currentRoom].nameKey) : owned ? t('decorate.inStorage') : t(ROOMS_BY_ID[d.room].nameKey)}
+                    </span>
                     <span className="pill pill--soft">{t(`decorate.type.${kind}`)}</span>
                   </div>
                   <div className="decocard__comfort">
@@ -208,6 +216,9 @@ export function DecorateView() {
                       <span className="decocard__badge">
                         <Icon name="success" size={12} /> {t('decorate.placed')}
                       </span>
+                      <button className="mini-btn mini-btn--primary" onClick={() => setMovingId(d.id)}>
+                        <Icon name="rooms" size={12} /> {t('decorate.moveTo')}
+                      </button>
                       <button
                         className="mini-btn"
                         onClick={() => {
@@ -224,12 +235,10 @@ export function DecorateView() {
                       </span>
                       <button
                         className="mini-btn mini-btn--primary"
-                        title={t('decorate.place')}
-                        onClick={() => {
-                          if (engine.placeDecoration(d.id)) audio.play('upgrade');
-                        }}
+                        title={t('decorate.moveTo')}
+                        onClick={() => setMovingId(d.id)}
                       >
-                        {t('decorate.place')}
+                        <Icon name="rooms" size={12} /> {t('decorate.moveTo')}
                       </button>
                     </>
                   )}
@@ -239,6 +248,20 @@ export function DecorateView() {
           })}
         </ul>
       )}
+      {movingId ? (
+        <MoveDecorationModal
+          state={state}
+          decorationId={movingId}
+          onMove={(roomId) => {
+            const moved = roomId === null
+              ? engine.removeDecoration(movingId)
+              : engine.placeDecorationInRoom(movingId, roomId);
+            if (moved) audio.play(roomId === null ? 'click' : 'place');
+            return moved;
+          }}
+          onDismiss={() => setMovingId(null)}
+        />
+      ) : null}
     </section>
   );
 }

@@ -81,9 +81,19 @@ const STACK_DIST = 0.03;
  * Decide whether placing (or moving) decoration `id` to a final, already-clamped
  * position is a legal, readable composition. Returns a reason key when not.
  */
-export function evaluatePlacement(state: GameState, id: string, x: number, y: number): PlacementCheck {
+export function evaluatePlacement(
+  state: GameState,
+  id: string,
+  x: number,
+  y: number,
+  roomId?: string,
+): PlacementCheck {
   const def = DECORATIONS_BY_ID[id];
   if (!def) return { ok: false, reasonKey: 'decorate.reject.invalid' };
+  const destinationRoom = roomId ?? def.room;
+  if (!def.compatibleRooms.includes(destinationRoom)) {
+    return { ok: false, reasonKey: 'decorate.reject.incompatibleRoom' };
+  }
   const surface = decorationSurface(id);
 
   // Rugs lie flat on the floor under everything else — they never block.
@@ -96,7 +106,7 @@ export function evaluatePlacement(state: GameState, id: string, x: number, y: nu
   if (box.x0 < -0.02 || box.x1 > 1.02) return { ok: false, reasonKey: 'decorate.reject.moveInside' };
 
   // No severe overlap with another object on the same surface.
-  for (const other of placedDecorationsInRoom(state, def.room)) {
+  for (const other of placedDecorationsInRoom(state, destinationRoom)) {
     if (other.def.id === id) continue;
     if (other.placement.surface !== surface) continue;
     if (isRug(other.def.id)) continue;
@@ -109,8 +119,8 @@ export function evaluatePlacement(state: GameState, id: string, x: number, y: nu
 
   // A large floor object must not sit on top of a teammate (covering the face).
   if (surface === 'floor' && (fp.w >= 0.18 || fp.h >= 0.2)) {
-    const occupants = employeesInRoom(state, def.room);
-    const slots = characterSlots(occupants.length, def.room);
+    const occupants = employeesInRoom(state, destinationRoom);
+    const slots = characterSlots(occupants.length, destinationRoom);
     for (const slot of slots) {
       if (Math.abs(slot.x - x) < fp.w / 2 + 0.03) {
         return { ok: false, reasonKey: 'decorate.reject.coversTeammate' };

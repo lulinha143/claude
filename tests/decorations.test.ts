@@ -4,6 +4,7 @@ import { GameEngine } from '../src/sim/engine';
 import {
   isDecorationOwned,
   isDecorationPlaced,
+  decorationRoom,
   placedPlacement,
   placedDecorationsInRoom,
   inventoryDecorationsInRoom,
@@ -13,7 +14,8 @@ import {
   auditDecorationState,
 } from '../src/sim/decorations';
 import { decorationSurface, SURFACE_BANDS } from '../src/sim/surfaces';
-import { DECORATIONS, DECORATIONS_BY_ID } from '../src/content/decorations';
+import { DECORATIONS, DECORATIONS_BY_ID, auditDecorationCatalog } from '../src/content/decorations';
+import { ROOMS } from '../src/content/rooms';
 
 const ROOM = 'founder-desk';
 
@@ -104,6 +106,96 @@ describe('decoration surfaces + free placement', () => {
     expect(placedPlacement(engine.state, 'potted-fern')!.x).toBeCloseTo(before.x, 5);
     expect(engine.redoDecoration()).toBe(true);
     expect(placedPlacement(engine.state, 'potted-fern')!.x).toBeCloseTo(0.8, 5);
+  });
+
+  it('moves across unlocked rooms with stable identity and room-aware undo/redo', () => {
+    const engine = new GameEngine(createInitialState(0), { deterministic: true });
+    engine.state.resources.reputation = 10; // unlock Morale Corner
+    engine.buyDecoration('potted-fern');
+    const instanceId = engine.state.decorationInstances[0].instanceId;
+
+    expect(engine.moveDecorationToRoom('potted-fern', 'morale', 0.72, 0.08)).toBe(true);
+    expect(decorationRoom(engine.state, 'potted-fern')).toBe('morale');
+    expect(placedDecorationsInRoom(engine.state, ROOM)).toHaveLength(0);
+    expect(placedDecorationsInRoom(engine.state, 'morale').map((item) => item.def.id)).toContain('potted-fern');
+    expect(roomComfort(engine.state, ROOM)).toBe(0);
+    expect(roomComfort(engine.state, 'morale')).toBe(DECORATIONS_BY_ID['potted-fern'].moraleBonus);
+    expect(engine.state.decorationInstances[0].instanceId).toBe(instanceId);
+
+    expect(engine.undoDecoration()).toBe(true);
+    expect(decorationRoom(engine.state, 'potted-fern')).toBe(ROOM);
+    expect(engine.redoDecoration()).toBe(true);
+    expect(decorationRoom(engine.state, 'potted-fern')).toBe('morale');
+    expect(engine.state.decorationInstances[0].instanceId).toBe(instanceId);
+  });
+
+  it('rejects locked or incompatible room moves without changing arrangement', () => {
+    const engine = new GameEngine(createInitialState(0), { deterministic: true });
+    engine.buyDecoration('potted-fern');
+    const before = structuredClone(engine.state.decorationInstances[0]);
+    const beforePlacement = structuredClone(engine.state.placements['potted-fern']);
+    expect(engine.moveDecorationToRoom('potted-fern', 'lab', 0.5, 0.1)).toBe(false);
+    expect(engine.moveDecorationToRoom('potted-fern', 'not-a-room', 0.5, 0.1)).toBe(false);
+    expect(decorationRoom(engine.state, 'potted-fern')).toBe(ROOM);
+    expect(engine.state.decorationInstances[0]).toEqual(before);
+    expect(engine.state.placements['potted-fern']).toEqual(beforePlacement);
+  });
+
+  it('moves every ordinary decoration to every compatible room without losing metadata', () => {
+    for (const def of DECORATIONS.filter((item) => !item.isStructural)) {
+      const state = createInitialState(0);
+      state.resources.reputation = Number.MAX_SAFE_INTEGER;
+      for (const room of ROOMS) {
+        if (room.unlock.upgradeId) state.upgrades[room.unlock.upgradeId] = 1;
+      }
+      const engine = new GameEngine(state, { deterministic: true });
+      expect(engine.buyDecoration(def.id), def.id).toBe(true);
+      const instance = engine.state.decorationInstances.find((item) => item.decorationId === def.id)!;
+      instance.interactionState = { visits: 3, active: true };
+      instance.variantId = 'test-variant';
+      const stableId = instance.instanceId;
+
+      for (const roomId of def.compatibleRooms) {
+        expect(engine.moveDecorationToRoom(def.id, roomId, 0.73, 0.51), `${def.id} -> ${roomId}`).toBe(true);
+        expect(instance).toMatchObject({
+          instanceId: stableId,
+          roomId,
+          surfaceType: decorationSurface(def.id),
+          interactionState: { visits: 3, active: true },
+          variantId: 'test-variant',
+        });
+      }
+    }
+  });
+
+  it('audits ordinary decorations for unexplained hard-coded room locks', () => {
+    expect(auditDecorationCatalog()).toEqual([]);
+    const allRooms = new Set(ROOMS.map((room) => room.id));
+    for (const def of DECORATIONS.filter((item) => !item.isStructural)) {
+      expect(new Set(def.compatibleRooms), def.id).toEqual(allRooms);
+    }
+  });
+
+  it('preserves interaction state through room transfer, undo, storage, and re-placement', () => {
+    const state = createInitialState(0);
+    state.resources.reputation = 10;
+    const engine = new GameEngine(state, { deterministic: true });
+    engine.buyDecoration('potted-fern');
+    const instance = engine.state.decorationInstances[0];
+    instance.interactionState = { watered: true, reactions: 4 };
+
+    engine.moveDecorationToRoom('potted-fern', 'morale', 0.7, 0.08);
+    expect(instance.interactionState).toEqual({ watered: true, reactions: 4 });
+    engine.undoDecoration();
+    expect(instance.interactionState).toEqual({ watered: true, reactions: 4 });
+    engine.redoDecoration();
+    expect(decorationRoom(engine.state, 'potted-fern')).toBe('morale');
+    engine.removeDecoration('potted-fern');
+    expect(instance.roomId).toBeNull();
+    expect(instance.interactionState).toEqual({ watered: true, reactions: 4 });
+    engine.placeDecorationInRoom('potted-fern', 'morale');
+    expect(instance.roomId).toBe('morale');
+    expect(instance.interactionState).toEqual({ watered: true, reactions: 4 });
   });
 
   it('keeps a stable instance id while moving to inventory and placing again', () => {

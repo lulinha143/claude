@@ -84,6 +84,17 @@ describe('decoration composition rules', () => {
     expect(evaluatePlacement(engine.state, 'aquarium', 0.14, 0.06).ok).toBe(true);
   });
 
+  it('validates collisions and teammates in the explicit destination room', () => {
+    const engine = new GameEngine(createInitialState(0), { deterministic: true });
+    engine.state.resources.reputation = 10;
+    engine.buyDecoration('potted-fern');
+    engine.buyDecoration('desk-lamp');
+    engine.moveDecorationToRoom('desk-lamp', 'morale', 0.5, 0.06);
+    const check = evaluatePlacement(engine.state, 'potted-fern', 0.5, 0.06, 'morale');
+    expect(check.ok).toBe(false);
+    expect(check.reasonKey).toBe('decorate.reject.stacked');
+  });
+
   it('gives every large decoration a bigger footprint than a small one', () => {
     expect(footprint('safe').w).toBeGreaterThan(footprint('desk-lamp').w);
     expect(footprint('billboard').w).toBeGreaterThan(footprint('motivational-poster').w);

@@ -4192,3 +4192,70 @@ textarea {
   .employee-card { box-shadow: 1px 2px 0 rgba(18, 12, 7, 0.38); }
   .toast { max-width: min(300px, 88vw); }
 }
+
+
+/* Cross-room decoration destination chooser (keyboard/touch drag alternative). */
+.move-decoration-popup {
+  width: min(520px, calc(100vw - 24px));
+}
+.move-decoration-popup .popup__header p {
+  margin: 4px 0 0;
+  color: var(--text-secondary);
+  font-size: var(--fs-sm);
+}
+.move-decoration__rooms {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+}
+.move-decoration__room {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 4px 8px;
+  min-height: 52px;
+  padding: 9px 10px;
+  border: var(--border-width-control) solid var(--border-strong);
+  border-radius: var(--r-sm);
+  background: var(--surface-raised);
+  color: var(--text);
+  text-align: left;
+  box-shadow: var(--shadow-contact);
+  cursor: pointer;
+}
+.move-decoration__room:hover:not(:disabled),
+.move-decoration__room:focus-visible {
+  border-color: var(--gold);
+  background: color-mix(in srgb, var(--gold) 12%, var(--surface-raised));
+}
+.move-decoration__room:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+.move-decoration__room.is-current {
+  border-color: var(--positive);
+  background: color-mix(in srgb, var(--positive) 10%, var(--surface-raised));
+}
+.move-decoration__room:disabled {
+  cursor: default;
+  opacity: 0.72;
+}
+.move-decoration__room small {
+  grid-column: 2;
+  color: var(--text-muted);
+}
+.move-decoration__room--storage {
+  border-style: dashed;
+}
+.deco-tray__move {
+  flex: 0 0 auto;
+}
+@media (max-width: 460px) {
+  .move-decoration__rooms {
+    grid-template-columns: 1fr;
+  }
+  .move-decoration__room {
+    min-height: 46px;
+  }
+}

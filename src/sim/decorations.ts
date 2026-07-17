@@ -39,9 +39,28 @@ export function isDecorationPlaced(state: GameState, id: string): boolean {
   return placedPlacement(state, id) !== null;
 }
 
-/** Every decoration the player owns that belongs to this room. */
+export function decorationInstance(state: GameState, id: string): DecorationInstance | null {
+  return state.decorationInstances?.find((instance) => instance.decorationId === id) ?? null;
+}
+
+/** Current destination room, or null while the owned item is in storage. */
+export function decorationRoom(state: GameState, id: string): string | null {
+  const instance = decorationInstance(state, id);
+  if (instance) return instance.roomId;
+  return placedPlacement(state, id) ? (DECORATIONS_BY_ID[id]?.room ?? null) : null;
+}
+
+/**
+ * Owned items associated with a room. Placed items follow their instance room;
+ * stowed legacy items remain grouped under their catalogue default so Tidy can
+ * retain its existing restore-from-storage behavior.
+ */
 export function ownedDecorationsInRoom(state: GameState, roomId: string): DecorationDef[] {
-  return DECORATIONS.filter((d) => d.room === roomId && isDecorationOwned(state, d.id));
+  return DECORATIONS.filter((def) => {
+    if (!isDecorationOwned(state, def.id)) return false;
+    const currentRoom = decorationRoom(state, def.id);
+    return currentRoom === roomId || (currentRoom === null && def.room === roomId);
+  });
 }
 
 export interface PlacedDecoration {
@@ -49,19 +68,22 @@ export interface PlacedDecoration {
   placement: DecorationPlacement;
 }
 
-/** Owned + placed decorations in a room, each with its resolved placement. */
+/** Owned + placed decorations in their authoritative instance room. */
 export function placedDecorationsInRoom(state: GameState, roomId: string): PlacedDecoration[] {
   const out: PlacedDecoration[] = [];
-  for (const def of ownedDecorationsInRoom(state, roomId)) {
+  for (const def of DECORATIONS) {
+    if (!isDecorationOwned(state, def.id) || decorationRoom(state, def.id) !== roomId) continue;
     const placement = placedPlacement(state, def.id);
     if (placement) out.push({ def, placement });
   }
   return out;
 }
 
-/** Owned decorations sitting in the inventory (not placed) for a room. */
+/** Stowed owned items whose catalogue default is this room (legacy grouping). */
 export function inventoryDecorationsInRoom(state: GameState, roomId: string): DecorationDef[] {
-  return ownedDecorationsInRoom(state, roomId).filter((d) => !isDecorationPlaced(state, d.id));
+  return DECORATIONS.filter(
+    (def) => def.room === roomId && isDecorationOwned(state, def.id) && decorationRoom(state, def.id) === null,
+  );
 }
 
 /** Placed decorations, as plain defs (kept for morale/comfort + compatibility). */

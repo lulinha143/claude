@@ -1,6 +1,6 @@
 import { BALANCE } from './config';
 import { createRng, hashStringToSeed, type Rng } from './rng';
-import type { EmployeeMood, GameState, MomentCard } from './types';
+import type { DecorationInstance, EmployeeMood, GameState, MomentCard } from './types';
 import {
   aggregatePassives,
   autoCollectRate,
@@ -31,12 +31,13 @@ import {
   syncDecorationInstancesFromPlacements,
   isDecorationOwned,
   isDecorationPlaced,
+  decorationRoom,
   ownedDecorationsInRoom,
   placedCountOnSurface,
   placementAt,
 } from './decorations';
 import { DECORATIONS_BY_ID } from '../content/decorations';
-import { decorationSurface, defaultPlacement, type DecorationPlacement } from './surfaces';
+import { decorationSurface, defaultPlacement } from './surfaces';
 
 /** A single employee's measured change from an event choice (WHAT CHANGED). */
 export interface EmployeeChange {
@@ -96,6 +97,13 @@ export interface CollectResult {
   bonus: boolean;
 }
 
+type DecorationArrangement = Array<
+  Pick<
+    DecorationInstance,
+    'instanceId' | 'roomId' | 'surfaceType' | 'normalizedX' | 'normalizedY' | 'depth'
+  >
+>;
+
 /**
  * The GameEngine owns the authoritative game state and all mutations. It is
  * deliberately free of React/Electron/Pixi imports so it can run in unit tests
@@ -136,10 +144,11 @@ export class GameEngine {
   /** ids whose invalid placement was repaired at load (for dev-only logging). */
   repairedOnLoad: string[] = [];
 
-  // Session-only undo/redo history for decoration placement (snapshots of the
-  // placements map). Not persisted — a fresh session starts with clean history.
-  private decoUndo: Array<Record<string, DecorationPlacement>> = [];
-  private decoRedo: Array<Record<string, DecorationPlacement>> = [];
+  // Session-only undo/redo history for authoritative decoration arrangement.
+  // Identity and cosmetic metadata remain untouched while room, surface,
+  // position, and depth move together.
+  private decoUndo: DecorationArrangement[] = [];
+  private decoRedo: DecorationArrangement[] = [];
 
   // -- subscription ---------------------------------------------------------
   subscribe(listener: EngineListener): () => void {
@@ -740,82 +749,120 @@ export class GameEngine {
   }
 
   // -- decoration placement (controlled free placement) ---------------------
-  private snapshotPlacements(): Record<string, DecorationPlacement> {
-    // Shallow map clone is enough: placement objects are always REPLACED (never
-    // mutated in place), so snapshots keep pointing at the old objects.
-    return { ...this.state.placements };
+  private snapshotDecorationArrangement(): DecorationArrangement {
+    return this.state.decorationInstances.map((instance) => ({
+      instanceId: instance.instanceId,
+      roomId: instance.roomId,
+      surfaceType: instance.surfaceType,
+      normalizedX: instance.normalizedX,
+      normalizedY: instance.normalizedY,
+      depth: instance.depth,
+    }));
+  }
+
+  private restoreDecorationArrangement(arrangement: DecorationArrangement): void {
+    const saved = new Map(arrangement.map((item) => [item.instanceId, item]));
+    for (const instance of this.state.decorationInstances) {
+      const previous = saved.get(instance.instanceId);
+      if (!previous) continue;
+      Object.assign(instance, previous);
+    }
+    repairDecorationInstances(this.state);
   }
 
   private pushDecoHistory(): void {
-    this.decoUndo.push(this.snapshotPlacements());
+    this.decoUndo.push(this.snapshotDecorationArrangement());
     if (this.decoUndo.length > 50) this.decoUndo.shift();
     this.decoRedo = [];
   }
 
-  /**
-   * Place an owned decoration. With an explicit position the player's chosen
-   * spot is used (clamped to the decoration's surface + room bounds); otherwise
-   * a tidy default spot on its surface is chosen. Free placement — no anchors,
-   * no swapping, the player's position is respected.
-   */
+  canMoveDecorationToRoom(id: string, roomId: string): boolean {
+    const def = DECORATIONS_BY_ID[id];
+    return Boolean(
+      def &&
+      isDecorationOwned(this.state, id) &&
+      def.compatibleRooms.includes(roomId) &&
+      isRoomIdUnlocked(this.state, roomId),
+    );
+  }
+
+  private applyDecorationPlacement(id: string, roomId: string, x: number, y: number): boolean {
+    if (!this.canMoveDecorationToRoom(id, roomId)) return false;
+    const placement = placementAt(id, x, y);
+    this.state.placements[id] = placement;
+    const instance = syncDecorationInstanceFromPlacement(this.state, id);
+    if (!instance) return false;
+    instance.roomId = roomId;
+    return true;
+  }
+
+  /** Place a stored item in an unlocked compatible room. */
+  placeDecorationInRoom(id: string, roomId: string, position?: { x: number; y: number }): boolean {
+    if (!this.canMoveDecorationToRoom(id, roomId)) return false;
+    const surface = decorationSurface(id);
+    const fallback = defaultPlacement(id, placedCountOnSurface(this.state, roomId, surface));
+    this.pushDecoHistory();
+    if (!this.applyDecorationPlacement(id, roomId, position?.x ?? fallback.x, position?.y ?? fallback.y)) return false;
+    this.save();
+    this.emit();
+    return true;
+  }
+
+  /** Backward-compatible placement in the current room, or catalogue default from storage. */
   placeDecoration(id: string, position?: { x: number; y: number }): boolean {
-    if (!isDecorationOwned(this.state, id)) return false;
     const def = DECORATIONS_BY_ID[id];
     if (!def) return false;
+    return this.placeDecorationInRoom(id, decorationRoom(this.state, id) ?? def.room, position);
+  }
+
+  /** Move a decoration across rooms while preserving its stable instance id. */
+  moveDecorationToRoom(id: string, roomId: string, x: number, y: number): boolean {
+    if (!this.canMoveDecorationToRoom(id, roomId)) return false;
     this.pushDecoHistory();
-    if (position) {
-      this.state.placements[id] = placementAt(id, position.x, position.y);
-    } else {
-      const idx = placedCountOnSurface(this.state, def.room, decorationSurface(id));
-      this.state.placements[id] = defaultPlacement(id, idx);
-    }
-    syncDecorationInstanceFromPlacement(this.state, id);
-    this.save(); // deliberate arrangement — persist immediately so a reload keeps it
+    if (!this.applyDecorationPlacement(id, roomId, x, y)) return false;
+    this.save();
     this.emit();
     return true;
   }
 
-  /** Move a placed (or owned) decoration to a chosen normalized position. */
+  /** Move within the current room (legacy API retained for existing callers). */
   moveDecoration(id: string, x: number, y: number): boolean {
-    if (!isDecorationOwned(this.state, id)) return false;
-    this.pushDecoHistory();
-    this.state.placements[id] = placementAt(id, x, y);
-    syncDecorationInstanceFromPlacement(this.state, id);
-    this.save(); // deliberate arrangement — persist immediately so a reload keeps it
-    this.emit();
-    return true;
+    const def = DECORATIONS_BY_ID[id];
+    if (!def || !isDecorationOwned(this.state, id)) return false;
+    return this.moveDecorationToRoom(id, decorationRoom(this.state, id) ?? def.room, x, y);
   }
 
-  /** Return an owned decoration to the inventory (removed from the office). */
+  /** Return an owned decoration to storage. */
   removeDecoration(id: string): boolean {
     if (!isDecorationPlaced(this.state, id)) return false;
     this.pushDecoHistory();
     delete this.state.placements[id];
     syncDecorationInstanceFromPlacement(this.state, id);
-    this.save(); // deliberate arrangement — persist immediately so a reload keeps it
+    this.save();
     this.emit();
     return true;
   }
 
-  /** Reset a room to a tidy default: every owned decoration spread on its surface. */
+  /** Reset a room to a tidy default while retaining each instance identity. */
   resetRoomDecorations(roomId: string): boolean {
     const owned = ownedDecorationsInRoom(this.state, roomId);
-    if (owned.length === 0) return false;
+    if (owned.length === 0 || !isRoomIdUnlocked(this.state, roomId)) return false;
     this.pushDecoHistory();
     const perSurface: Record<string, number> = {};
-    for (const d of owned) {
-      const surface = decorationSurface(d.id);
+    for (const def of owned) {
+      if (!def.compatibleRooms.includes(roomId)) continue;
+      const surface = decorationSurface(def.id);
       const idx = perSurface[surface] ?? 0;
       perSurface[surface] = idx + 1;
-      this.state.placements[d.id] = defaultPlacement(d.id, idx);
-      syncDecorationInstanceFromPlacement(this.state, d.id);
+      const placement = defaultPlacement(def.id, idx);
+      this.applyDecorationPlacement(def.id, roomId, placement.x, placement.y);
     }
-    this.save(); // deliberate arrangement — persist immediately so a reload keeps it
+    this.save();
     this.emit();
     return true;
   }
 
-  /** Toggle an owned decoration between placed (default spot) and inventory. */
+  /** Toggle an owned decoration between placed (default spot) and storage. */
   toggleDecoration(id: string): void {
     if (isDecorationPlaced(this.state, id)) this.removeDecoration(id);
     else this.placeDecoration(id);
@@ -830,12 +877,11 @@ export class GameEngine {
   }
 
   undoDecoration(): boolean {
-    const prev = this.decoUndo.pop();
-    if (!prev) return false;
-    this.decoRedo.push(this.snapshotPlacements());
-    this.state.placements = prev;
-    syncDecorationInstancesFromPlacements(this.state);
-    this.save(); // deliberate arrangement — persist immediately so a reload keeps it
+    const previous = this.decoUndo.pop();
+    if (!previous) return false;
+    this.decoRedo.push(this.snapshotDecorationArrangement());
+    this.restoreDecorationArrangement(previous);
+    this.save();
     this.emit();
     return true;
   }
@@ -843,10 +889,9 @@ export class GameEngine {
   redoDecoration(): boolean {
     const next = this.decoRedo.pop();
     if (!next) return false;
-    this.decoUndo.push(this.snapshotPlacements());
-    this.state.placements = next;
-    syncDecorationInstancesFromPlacements(this.state);
-    this.save(); // deliberate arrangement — persist immediately so a reload keeps it
+    this.decoUndo.push(this.snapshotDecorationArrangement());
+    this.restoreDecorationArrangement(next);
+    this.save();
     this.emit();
     return true;
   }

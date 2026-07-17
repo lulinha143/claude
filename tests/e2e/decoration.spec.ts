@@ -205,4 +205,46 @@ test.describe('decoration free-placement', () => {
     expect(Math.abs(reloaded.left - moved.left)).toBeLessThan(2);
     expect(Math.abs(reloaded.bottom - moved.bottom)).toBeLessThan(2);
   });
+
+  test('dragging highlights compatible rooms and moves the instance across floors', async ({ page }) => {
+    const source = page.locator('.floor[data-room="founder-desk"] [data-deco="potted-fern"]');
+    const destination = page.locator('.floor[data-room="morale"] .floor__stage');
+    await expect(source).toBeVisible();
+    await expect(destination).toBeVisible();
+    const sourceBox = (await source.boundingBox())!;
+    const destinationBox = (await destination.boundingBox())!;
+    const sx = sourceBox.x + sourceBox.width / 2;
+    const sy = sourceBox.y + sourceBox.height / 2;
+    const tx = destinationBox.x + destinationBox.width * 0.75;
+    const ty = destinationBox.y + destinationBox.height * 0.9;
+
+    await page.mouse.move(sx, sy);
+    await page.mouse.down();
+    await page.mouse.move(sx + 12, sy + 4, { steps: 3 });
+    await expect(page.locator('.floor[data-room="morale"]')).toHaveClass(/is-drop-target/);
+    await page.mouse.move(tx, ty, { steps: 10 });
+    await expect(page.locator('.floor[data-room="morale"]')).toHaveClass(/is-drop-hover/);
+    await page.mouse.up();
+
+    await expect(page.locator('.floor[data-room="founder-desk"] [data-deco="potted-fern"]')).toHaveCount(0);
+    await expect(page.locator('.floor[data-room="morale"] [data-deco="potted-fern"]')).toBeVisible();
+  });
+
+  test('Move To dialog supports keyboard dismissal and touch-friendly room choice', async ({ page }) => {
+    const decoration = page.locator('.floor[data-room="founder-desk"] [data-deco="potted-fern"] .decor');
+    await decoration.click();
+    const moveButton = page.getByRole('button', { name: 'Move To…' }).first();
+    await moveButton.focus();
+    await page.keyboard.press('Enter');
+    const dialog = page.getByRole('dialog', { name: /Move Potted Fern/i });
+    await expect(dialog).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(dialog).toHaveCount(0);
+    await expect(moveButton).toBeFocused();
+
+    await moveButton.click();
+    await page.getByRole('button', { name: /Move to Morale/i }).click();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(page.locator('.floor[data-room="morale"] [data-deco="potted-fern"]')).toBeVisible();
+  });
 });

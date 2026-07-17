@@ -63,3 +63,34 @@ export const DECORATIONS: DecorationDef[] = [
 export const DECORATIONS_BY_ID: Record<string, DecorationDef> = Object.fromEntries(
   DECORATIONS.map((d) => [d.id, d]),
 );
+
+export interface DecorationCatalogIssue {
+  decorationId: string;
+  code: 'ordinary-room-lock' | 'unknown-compatible-room' | 'missing-default-room' | 'missing-compatible-surface';
+  roomId?: string;
+}
+
+/** Static content audit: ordinary props must be portable without unexplained room locks. */
+export function auditDecorationCatalog(): DecorationCatalogIssue[] {
+  const roomIds = new Set(ROOMS.map((room) => room.id));
+  const issues: DecorationCatalogIssue[] = [];
+  for (const def of DECORATIONS) {
+    if (!def.compatibleRooms.includes(def.room)) {
+      issues.push({ decorationId: def.id, code: 'missing-default-room', roomId: def.room });
+    }
+    for (const roomId of def.compatibleRooms) {
+      if (!roomIds.has(roomId)) issues.push({ decorationId: def.id, code: 'unknown-compatible-room', roomId });
+    }
+    if (!def.isStructural) {
+      for (const roomId of roomIds) {
+        if (!def.compatibleRooms.includes(roomId)) {
+          issues.push({ decorationId: def.id, code: 'ordinary-room-lock', roomId });
+        }
+      }
+    }
+    if (def.compatibleSurfaces.length === 0) {
+      issues.push({ decorationId: def.id, code: 'missing-compatible-surface' });
+    }
+  }
+  return issues;
+}

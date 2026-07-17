@@ -14,12 +14,19 @@ import { Acorn, Crate } from './Icons';
 import { Icon } from './UiIcon';
 import { DecorationProp, decorKind, interactSound } from './DecorationProp';
 import { RoomDressing } from './RoomDressing';
-import { placedDecorationsInRoom, isDecorationPlaced, roomComfort, placementAt } from '../sim/decorations';
+import {
+  placedDecorationsInRoom,
+  isDecorationPlaced,
+  decorationRoom,
+  roomComfort,
+  placementAt,
+} from '../sim/decorations';
 import { surfaceZ, decorationSurface, isRug } from '../sim/surfaces';
 import { evaluatePlacement } from '../sim/placement';
 import { characterSlots } from '../content/roomLayout';
 import { pickOfficeInteraction } from '../sim/officeLife';
 import { DecorationTray } from '../ui/DecorationTray';
+import { MoveDecorationModal } from '../ui/modals/MoveDecorationModal';
 import { Tip, TipContent } from '../ui/Tooltip';
 import { pickDialogueIndex, dialogueKey } from '../sim/dialogue';
 import { employeeMood, MOOD_TONE } from '../sim/mood';
@@ -122,6 +129,7 @@ export function OfficeScene() {
   const [decorMode, setDecorMode] = useState(false);
   // The decoration currently picked up for arranging (its id), or null.
   const [selected, setSelected] = useState<string | null>(null);
+  const [moveDialog, setMoveDialog] = useState<string | null>(null);
   // A decoration that was just placed, for a brief settle animation.
   const [justPlaced, setJustPlaced] = useState<string | null>(null);
   // A decoration a nearby employee is currently reacting to (for a little wiggle).
@@ -256,31 +264,61 @@ export function OfficeScene() {
     return { room, valid: already || !full };
   }
 
-  function decorationTarget(x: number, y: number, room: string | null): { room: string | null; valid: boolean } {
-    const over = roomUnderPoint(x, y);
-    return { room: over, valid: over != null && over === room };
+  function decorationTarget(x: number, y: number, id: string): { room: string | null; valid: boolean } {
+    const room = roomUnderPoint(x, y);
+    const def = DECORATIONS_BY_ID[id];
+    if (!room || !def) return { room, valid: false };
+    return {
+      room,
+      valid: def.compatibleRooms.includes(room) && isRoomUnlocked(stateRef.current, ROOMS_BY_ID[room]),
+    };
   }
 
   function beginDrag(e: React.PointerEvent, kind: 'employee' | 'decoration', id: string) {
     if (e.button != null && e.button !== 0) return;
     if (kind === 'decoration' && !decorMode) return;
     if (kind === 'employee' && decorMode) return;
+    const source = e.currentTarget as HTMLElement;
+    const pointerId = e.pointerId;
     const start = { x: e.clientX, y: e.clientY };
-    const room = kind === 'decoration' ? DECORATIONS_BY_ID[id]?.room ?? null : null;
+    const room = kind === 'decoration' ? decorationRoom(stateRef.current, id) : null;
     let started = false;
 
+    // Explicit capture keeps the stream alive while crossing stacked room
+    // containers or leaving the source element. The visual itself is rendered
+    // through a document.body portal, so no room overflow can clip it.
+    try {
+      source.setPointerCapture(pointerId);
+    } catch {
+      // Synthetic/legacy pointer implementations may not support capture; the
+      // window listeners below remain a safe fallback.
+    }
+
     const move = (ev: PointerEvent) => {
+      if (ev.pointerId !== pointerId) return;
       if (!started && Math.hypot(ev.clientX - start.x, ev.clientY - start.y) < DRAG_THRESHOLD) return;
       started = true;
-      const tgt = kind === 'employee' ? employeeTarget(ev.clientX, ev.clientY, id) : decorationTarget(ev.clientX, ev.clientY, room);
+      const tgt = kind === 'employee' ? employeeTarget(ev.clientX, ev.clientY, id) : decorationTarget(ev.clientX, ev.clientY, id);
       setDrag({ kind, id, x: ev.clientX, y: ev.clientY, room, overRoom: tgt.room, valid: tgt.valid });
     };
     const cleanup = () => {
       window.removeEventListener('pointermove', move);
       window.removeEventListener('pointerup', up);
+      window.removeEventListener('pointercancel', cancel);
       window.removeEventListener('keydown', onKey);
+      try {
+        if (source.hasPointerCapture(pointerId)) source.releasePointerCapture(pointerId);
+      } catch {
+        // Source may have unmounted during a state transition.
+      }
+    };
+    const cancel = (ev: PointerEvent) => {
+      if (ev.pointerId !== pointerId) return;
+      cleanup();
+      setDrag(null);
     };
     const up = (ev: PointerEvent) => {
+      if (ev.pointerId !== pointerId) return;
       cleanup();
       if (started) {
         if (kind === 'employee') finishEmployeeDrop(ev.clientX, ev.clientY, id);
@@ -298,6 +336,7 @@ export function OfficeScene() {
     };
     window.addEventListener('pointermove', move);
     window.addEventListener('pointerup', up);
+    window.addEventListener('pointercancel', cancel);
     window.addEventListener('keydown', onKey);
   }
 
@@ -335,9 +374,9 @@ export function OfficeScene() {
     }
     const floorEl = el?.closest('.floor[data-room]') as HTMLElement | null;
     const overRoom = floorEl?.dataset.room ?? null;
-    if (!floorEl || overRoom !== def.room) {
-      // Decorations belong to a specific room — explain instead of silently failing.
-      notify('rooms', t('decorate.wrongRoom', { room: t(ROOMS_BY_ID[def.room].nameKey) }), 'neutral');
+    if (!floorEl || !overRoom) return; // outside a room or tray: cancel without changing state
+    if (!def.compatibleRooms.includes(overRoom) || !engine.canMoveDecorationToRoom(id, overRoom)) {
+      notify('rooms', t('decorate.reject.incompatibleRoom'), 'neutral');
       audio.play('error');
       return;
     }
@@ -350,13 +389,13 @@ export function OfficeScene() {
     // Validate the *final* (clamped) position against room composition rules so
     // we never produce a broken arrangement (overlap, stacking, covered faces).
     const final = placementAt(id, nx, ny);
-    const check = evaluatePlacement(stateRef.current, id, final.x, final.y);
+    const check = evaluatePlacement(stateRef.current, id, final.x, final.y, overRoom);
     if (!check.ok) {
       notify('rooms', t(check.reasonKey ?? 'decorate.reject.invalid'), 'neutral');
       audio.play('error');
       return;
     }
-    if (engine.moveDecoration(id, nx, ny)) {
+    if (engine.moveDecorationToRoom(id, overRoom, nx, ny)) {
       // Satisfying drop feedback: soft settle sound, a little dust puff at the
       // drop point, and a brief settle animation on the piece itself. All of it
       // is silent under mute and still under reduced motion.
@@ -368,7 +407,19 @@ export function OfficeScene() {
   }
 
   function selectedRoom(): string | null {
-    return selected ? (DECORATIONS_BY_ID[selected]?.room ?? null) : null;
+    return selected ? decorationRoom(state, selected) : null;
+  }
+
+  function moveDecorationFromDialog(roomId: string | null): boolean {
+    if (!moveDialog) return false;
+    const moved = roomId === null
+      ? engine.removeDecoration(moveDialog)
+      : engine.placeDecorationInRoom(moveDialog, roomId);
+    if (moved) {
+      audio.play(roomId === null ? 'click' : 'place');
+      setSelected(null);
+    }
+    return moved;
   }
 
   function sendSelectedToInventory() {
@@ -475,8 +526,13 @@ export function OfficeScene() {
             if (drag.kind === 'employee') {
               dropClass =
                 drag.overRoom === room.id ? (drag.valid ? 'is-drop-hover' : 'is-drop-invalid') : 'is-drop-target';
-            } else if (drag.kind === 'decoration' && drag.room === room.id) {
-              dropClass = drag.overRoom === room.id ? 'is-drop-hover' : 'is-drop-target';
+            } else if (drag.kind === 'decoration') {
+              const compatible = DECORATIONS_BY_ID[drag.id]?.compatibleRooms.includes(room.id) ?? false;
+              if (drag.overRoom === room.id) {
+                dropClass = drag.valid ? 'is-drop-hover' : 'is-drop-invalid';
+              } else if (compatible) {
+                dropClass = 'is-drop-target';
+              }
             }
           }
           return (
@@ -640,9 +696,14 @@ export function OfficeScene() {
               {decorMode ? (
                 <div className="floor__tray floor__tray--actions">
                   {selectedPlacedHere ? (
-                    <button className="mini-btn" onClick={sendSelectedToInventory}>
-                      <Icon name="close" size={12} /> {t('decorate.stow')}
-                    </button>
+                    <>
+                      <button className="mini-btn mini-btn--primary" onClick={() => setMoveDialog(selected)}>
+                        <Icon name="rooms" size={12} /> {t('decorate.moveTo')}
+                      </button>
+                      <button className="mini-btn" onClick={sendSelectedToInventory}>
+                        <Icon name="close" size={12} /> {t('decorate.stow')}
+                      </button>
+                    </>
                   ) : null}
                   <button
                     className="mini-btn"
@@ -667,7 +728,20 @@ export function OfficeScene() {
           selected={selected}
           onSelect={selectDeco}
           onBeginDrag={(e, id) => beginDrag(e, 'decoration', id)}
+          onRequestMove={(id) => {
+            setSelected(id);
+            setMoveDialog(id);
+          }}
           dragging={drag?.kind === 'decoration'}
+        />
+      ) : null}
+
+      {moveDialog ? (
+        <MoveDecorationModal
+          state={state}
+          decorationId={moveDialog}
+          onMove={moveDecorationFromDialog}
+          onDismiss={() => setMoveDialog(null)}
         />
       ) : null}
 

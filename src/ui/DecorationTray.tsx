@@ -2,7 +2,6 @@ import { useMemo, useState, type PointerEvent as ReactPointerEvent } from 'react
 import { useTranslation } from 'react-i18next';
 import type { GameState } from '../sim/types';
 import { DECORATIONS } from '../content/decorations';
-import { ROOMS_BY_ID } from '../content/rooms';
 import { isDecorationOwned, isDecorationPlaced, placedDecorationsInRoom } from '../sim/decorations';
 import { unlockedRooms } from '../sim/rooms';
 import { decorKind, DecorationProp, type DecorKind } from '../art/DecorationProp';
@@ -20,6 +19,7 @@ export function DecorationTray({
   selected,
   onSelect,
   onBeginDrag,
+  onRequestMove,
   dragging,
 }: {
   state: GameState;
@@ -27,6 +27,7 @@ export function DecorationTray({
   selected: string | null;
   onSelect: (id: string) => void;
   onBeginDrag: (e: ReactPointerEvent, id: string) => void;
+  onRequestMove: (id: string) => void;
   /** true while a drag is in progress, so the tray can shrink out of the way */
   dragging: boolean;
 }) {
@@ -34,12 +35,10 @@ export function DecorationTray({
   const [kind, setKind] = useState<'all' | DecorKind>('all');
   const [query, setQuery] = useState('');
 
-  const roomIds = useMemo(() => new Set(unlockedRooms(state).map((r) => r.id)), [state]);
-
   // Owned decorations, split into placed (count) vs available-to-place.
   const owned = useMemo(
-    () => DECORATIONS.filter((d) => roomIds.has(d.room) && isDecorationOwned(state, d.id)),
-    [state, roomIds],
+    () => DECORATIONS.filter((decoration) => isDecorationOwned(state, decoration.id)),
+    [state],
   );
   const placedCount = useMemo(
     () => unlockedRooms(state).reduce((n, r) => n + placedDecorationsInRoom(state, r.id).length, 0),
@@ -69,6 +68,11 @@ export function DecorationTray({
         <span className="deco-tray__summary">
           {t('decorate.summary', { owned: owned.length, placed: placedCount, comfort: 0 }).split('·').slice(0, 2).join('·')}
         </span>
+        {selected && !isDecorationPlaced(state, selected) ? (
+          <button className="mini-btn mini-btn--primary deco-tray__move" onClick={() => onRequestMove(selected)}>
+            <Icon name="rooms" size={12} /> {t('decorate.moveTo')}
+          </button>
+        ) : null}
         <label className="deco-tray__search">
           <Icon name="shop" size={13} />
           <input
@@ -110,7 +114,7 @@ export function DecorationTray({
                 onPointerDown={(e) => onBeginDrag(e, d.id)}
               />
               <span className="deco-tray__card-name">{t(`deco.${d.id}.name`)}</span>
-              <span className="deco-tray__card-room">{t(ROOMS_BY_ID[d.room].nameKey)}</span>
+              <span className="deco-tray__card-room">{t('decorate.inventory')}</span>
             </div>
           ))
         )}

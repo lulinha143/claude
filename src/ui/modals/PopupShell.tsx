@@ -45,6 +45,8 @@ export function PopupShell({
   closeOnBackdrop = false,
 }: PopupShellProps) {
   const popupRef = useRef<HTMLDivElement>(null);
+  const dismissRef = useRef(onDismiss);
+  dismissRef.current = onDismiss;
 
   useEffect(() => {
     const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -54,9 +56,9 @@ export function PopupShell({
 
     function onKeyDown(event: KeyboardEvent) {
       if (!popupRef.current) return;
-      if (event.key === 'Escape' && onDismiss) {
+      if (event.key === 'Escape' && dismissRef.current) {
         event.preventDefault();
-        onDismiss();
+        dismissRef.current();
         return;
       }
       if (event.key !== 'Tab') return;
@@ -84,7 +86,7 @@ export function PopupShell({
       document.removeEventListener('keydown', onKeyDown);
       previousFocus?.focus();
     };
-  }, [onDismiss]);
+  }, []);
 
   const urgent = variant === 'warning' || variant === 'critical';
   return (
