@@ -61,6 +61,77 @@ process.on('unhandledRejection', (reason) => {
 });
 
 // ---------------------------------------------------------------------------
+// GPU / hardware-acceleration safe mode. MUST run before app.whenReady().
+// A crashing GPU/renderer process (common with older Electron on some Windows
+// GPU drivers) tears the renderer down before it can load — the exact
+// did-start-loading -> render-view-deleted -> webContents destroyed -> ERR_FAILED
+// sequence seen on Windows. Safe mode disables hardware acceleration.
+// Sources (any one enables it):
+//   • --disable-gpu-safe-mode CLI flag
+//   • WMNO_DISABLE_GPU=1 env var
+//   • a persisted <userData>/gpu-safe-mode marker (auto-written after a startup
+//     renderer crash, so the app self-heals on the next launch)
+// --force-gpu / WMNO_FORCE_GPU=1 clears the marker and forces acceleration on.
+// ---------------------------------------------------------------------------
+function gpuFlagPath(): string {
+  try {
+    return path.join(app.getPath('userData'), 'gpu-safe-mode');
+  } catch {
+    return path.join(app.getPath('temp'), 'wmno-gpu-safe-mode');
+  }
+}
+const forceGpu = process.argv.includes('--force-gpu') || process.env.WMNO_FORCE_GPU === '1';
+if (forceGpu) {
+  try {
+    fs.rmSync(gpuFlagPath(), { force: true });
+  } catch {
+    /* ignore */
+  }
+}
+const gpuSafeMode =
+  !forceGpu &&
+  (process.argv.includes('--disable-gpu-safe-mode') ||
+    process.env.WMNO_DISABLE_GPU === '1' ||
+    (() => {
+      try {
+        return fs.existsSync(gpuFlagPath());
+      } catch {
+        return false;
+      }
+    })());
+if (gpuSafeMode) {
+  app.disableHardwareAcceleration();
+  app.commandLine.appendSwitch('disable-gpu');
+  app.commandLine.appendSwitch('disable-gpu-compositing');
+}
+
+// Startup state used by the GPU auto-fallback + recovery flow.
+let startupSucceeded = false;
+let gpuFallbackTriggered = false;
+
+/**
+ * If the renderer process dies DURING startup (before it ever finishes loading),
+ * assume a GPU/renderer crash: persist the safe-mode marker and relaunch once
+ * with hardware acceleration off. Bounded to a single retry (never loops): if we
+ * are already in safe mode, or already relaunched, we fall through to the
+ * recovery window instead.
+ */
+function maybeGpuFallback(reason: string): boolean {
+  if (startupSucceeded || gpuSafeMode || gpuFallbackTriggered) return false;
+  gpuFallbackTriggered = true;
+  try {
+    fs.mkdirSync(app.getPath('userData'), { recursive: true });
+    fs.writeFileSync(gpuFlagPath(), `auto-enabled after startup renderer crash: ${reason}\n`);
+  } catch {
+    /* ignore */
+  }
+  log(`STARTUP renderer crash (${reason}) — enabling GPU safe mode and relaunching once.`);
+  app.relaunch();
+  app.exit(0);
+  return true;
+}
+
+// ---------------------------------------------------------------------------
 // Single-instance lock: a desktop pet should never run twice.
 // ---------------------------------------------------------------------------
 const gotLock = app.requestSingleInstanceLock();
@@ -260,8 +331,20 @@ function createRecoveryWindow(): BrowserWindow {
  */
 function showStartupError(description: string, failedPath: string): void {
   try {
-    if (!mainWindow || mainWindow.isDestroyed()) {
-      log('showStartupError: main window is gone — creating a recovery window.');
+    // The Windows crash proved a window can survive with a DESTROYED
+    // webContents (mainWindow.isDestroyed()===false but
+    // mainWindow.webContents.isDestroyed()===true). Loading into that dead
+    // webContents throws "Object has been destroyed", so treat it as unusable
+    // and build a brand-new recovery window instead of reusing it.
+    let wcDead = false;
+    try {
+      wcDead = !mainWindow || mainWindow.webContents.isDestroyed();
+    } catch {
+      wcDead = true;
+    }
+    const unusable = !mainWindow || mainWindow.isDestroyed() || wcDead;
+    if (unusable) {
+      log('showStartupError: main window/webContents unusable — creating a fresh recovery window.');
       mainWindow = createRecoveryWindow();
       errorPageShown = false; // the fresh window still needs to show the page
     }
@@ -395,6 +478,7 @@ function createWindow(): void {
     log(`renderer did-finish-load (url=${wc.getURL()}).`);
     reveal();
     if (!errorPageShown) {
+      startupSucceeded = true; // renderer is alive — disable the GPU auto-fallback
       // The real game loaded — now it is safe to enable the tray.
       createTrayOnce();
       log('STARTUP SUCCESS: renderer loaded and window shown.');
@@ -409,20 +493,38 @@ function createWindow(): void {
     // must not replace the whole game with an error. ERR_ABORTED (-3) is a
     // normal replacement (e.g. loading the error page itself).
     if (isMainFrame && code !== -3) {
+      // A renderer that dies before ever loading is almost always a GPU/renderer
+      // process crash — try one relaunch with hardware acceleration off before
+      // giving up to the recovery window.
+      if (maybeGpuFallback(`did-fail-load ${code}`)) return;
       showStartupError(`${desc} (${code})`, url);
     } else {
       reveal();
     }
   });
   wc.on('render-process-gone', (_e, details) => {
-    log(`render-process-gone: ${JSON.stringify(details)} winDestroyed=${winDestroyed()}`);
+    log(
+      `render-process-gone: reason=${details.reason} exitCode=${details.exitCode} ` +
+        `winDestroyed=${winDestroyed()}`,
+    );
+    if (maybeGpuFallback(`render-process-gone ${details.reason}`)) return;
+    if (!startupSucceeded) showStartupError(`Renderer process gone: ${details.reason}`, wc.getURL());
   });
+  wc.on('unresponsive', () => log('renderer unresponsive.'));
+  wc.on('responsive', () => log('renderer responsive.'));
   // `render-view-deleted` isn't in the current Electron type defs; register it
   // via a loosely-typed handle purely for diagnostics.
   (wc as unknown as { on: (e: string, cb: () => void) => void }).on('render-view-deleted', () =>
-    log(`render-view-deleted. winDestroyed=${winDestroyed()}`),
+    log(`render-view-deleted. winDestroyed=${winDestroyed()} startupSucceeded=${startupSucceeded}`),
   );
-  wc.on('destroyed', () => log('webContents destroyed.'));
+  wc.on('destroyed', () => {
+    log(`webContents destroyed. startupSucceeded=${startupSucceeded}`);
+    // The window can outlive a destroyed webContents (seen on Windows). If this
+    // happened before a successful load, surface the recovery window.
+    if (!startupSucceeded && !gpuFallbackTriggered) {
+      showStartupError('Renderer webContents was destroyed before load finished.', 'about:blank');
+    }
+  });
   wc.on('preload-error', (_e, p, err) => log(`preload-error: ${p} — ${String(err)}`));
   // Surface renderer console errors/warnings into the startup log.
   wc.on('console-message', (_e, level, message, line, sourceId) => {
@@ -472,6 +574,7 @@ function createWindow(): void {
   mainWindow.on('focus', () => mainWindow?.webContents.send(IPC_EVENTS.focusChanged, true));
   mainWindow.on('blur', () => mainWindow?.webContents.send(IPC_EVENTS.focusChanged, false));
 
+  const thisWindow = mainWindow;
   mainWindow.on('close', () => {
     log('window close event.');
     saveSettings();
@@ -479,7 +582,9 @@ function createWindow(): void {
 
   mainWindow.on('closed', () => {
     log('window closed event.');
-    mainWindow = null;
+    // Only clear the reference if a newer window (e.g. a recovery window) hasn't
+    // already taken its place.
+    if (mainWindow === thisWindow) mainWindow = null;
   });
 
   mainWindow.on('hide', () => log('window hide event.'));
@@ -720,14 +825,70 @@ app.on('second-instance', () => {
 });
 
 // Surface GPU/renderer/utility child-process failures instead of dying quietly.
-app.on('child-process-gone', (_e, details) => log(`child-process-gone: ${JSON.stringify(details)}`));
-app.on('render-process-gone', (_e, _wc, details) => log(`render-process-gone (app): ${JSON.stringify(details)}`));
+app.on('child-process-gone', (_e, details) =>
+  log(
+    `child-process-gone: type=${details.type} reason=${details.reason} ` +
+      `exitCode=${details.exitCode} name=${details.name ?? ''} serviceName=${details.serviceName ?? ''}`,
+  ),
+);
+app.on('render-process-gone', (_e, _wc, details) =>
+  log(`render-process-gone (app): reason=${details.reason} exitCode=${details.exitCode}`),
+);
+app.on('gpu-info-update', () => {
+  try {
+    log(`gpu-info-update: featureStatus=${JSON.stringify(app.getGPUFeatureStatus())}`);
+  } catch {
+    /* ignore */
+  }
+});
+
+/**
+ * A completely isolated Chromium-liveness probe (`--minimal-window-test`): a
+ * plain framed window loading an inline data: page — no preload, tray, custom
+ * frame, CSP, guards, protocols, icon or renderer files. If THIS won't show, the
+ * problem is the GPU/renderer process itself, not our app.
+ */
+function runMinimalWindowTest(): void {
+  log(`MINIMAL WINDOW TEST starting. gpuSafeMode=${gpuSafeMode}`);
+  const testWindow = new BrowserWindow({
+    width: 800,
+    height: 600,
+    show: true,
+    frame: true,
+    transparent: false,
+    backgroundColor: '#ffffff',
+    webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true },
+  });
+  const twc = testWindow.webContents;
+  twc.on('dom-ready', () => log('MINIMAL WINDOW DOM READY'));
+  twc.on('did-finish-load', () => log('MINIMAL WINDOW DID FINISH LOAD'));
+  twc.on('did-fail-load', (_e, code, desc) => log(`MINIMAL WINDOW did-fail-load: ${desc} (${code})`));
+  twc.on('render-process-gone', (_e, d) => log(`MINIMAL WINDOW render-process-gone: ${JSON.stringify(d)}`));
+  testWindow.once('ready-to-show', () => testWindow.show());
+  void testWindow
+    .loadURL('data:text/html,<html><body><h1>Electron renderer alive</h1></body></html>')
+    .then(() => log('MINIMAL WINDOW SUCCESS'))
+    .catch((e) => log(`MINIMAL WINDOW loadURL rejected: ${String(e)}`));
+}
 
 app.whenReady().then(() => {
   log(
-    `app ready. isPackaged=${app.isPackaged} version=${app.getVersion()} ` +
+    `app ready. isPackaged=${app.isPackaged} version=${app.getVersion()} electron=${process.versions.electron} ` +
+      `chrome=${process.versions.chrome} gpuSafeMode=${gpuSafeMode} hwAccelDisabled=${gpuSafeMode} ` +
       `resourcesPath=${process.resourcesPath} __dirname=${__dirname}`,
   );
+  try {
+    log(`GPU feature status: ${JSON.stringify(app.getGPUFeatureStatus())}`);
+  } catch (err) {
+    log(`getGPUFeatureStatus failed: ${String(err)}`);
+  }
+
+  // Isolated Chromium liveness probe — skips the entire app.
+  if (process.argv.includes('--minimal-window-test')) {
+    runMinimalWindowTest();
+    return;
+  }
+
   try {
     hardenSession();
     registerIpc();
@@ -764,7 +925,15 @@ app.whenReady().then(() => {
 app.on('before-quit', () => log('app before-quit.'));
 
 app.on('window-all-closed', () => {
-  log(`window-all-closed (tray=${tray ? 'present' : 'none'}).`);
+  log(`window-all-closed (tray=${tray ? 'present' : 'none'} startupSucceeded=${startupSucceeded}).`);
+  // During a GPU auto-fallback relaunch, let the relaunch happen — don't quit.
+  if (gpuFallbackTriggered) return;
+  // If startup failed (renderer crashed before load), a recovery window is being
+  // shown — don't quit out from under it. errorPageShown means recovery is up.
+  if (!startupSucceeded && errorPageShown) {
+    log('window-all-closed: holding open for the recovery window.');
+    return;
+  }
   // Tray keeps the app alive; only quit explicitly.
   if (process.platform !== 'darwin' && !tray) app.quit();
 });
