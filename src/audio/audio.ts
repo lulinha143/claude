@@ -231,11 +231,15 @@ export class AudioManager {
     // node silences the entire game.) Unmuting ramps smoothly back up.
     const setBus = (node: GainNode | null, value: number, tau: number) => {
       if (!node) return;
-      if (this.flags.muted || value <= 0) {
+      if (this.flags.muted) {
+        // Master mute is INSTANT: hard-cut so anything ringing out is silenced
+        // the moment the button is hit.
         node.gain.cancelScheduledValues(t);
         node.gain.setValueAtTime(0, t);
       } else {
-        node.gain.setTargetAtTime(value, t, tau);
+        // Everything else — including a channel mute (value 0), e.g. the Music
+        // toggle — ramps smoothly, giving music a short fade instead of a cut.
+        node.gain.setTargetAtTime(Math.max(0, value), t, tau);
       }
     };
     setBus(this.master, master, 0.05);

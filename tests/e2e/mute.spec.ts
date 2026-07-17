@@ -102,3 +102,51 @@ test('the visible mute button silences every audio bus and persists', async ({ p
   expect(restored.masterGain).toBeGreaterThan(0);
   expect(restored.buses.music).toBeGreaterThan(0);
 });
+
+test('the music toggle mutes only music/ambience; SFX + UI keep playing; persists', async ({ page }) => {
+  await boot(page);
+  const music = page.getByTestId('music-toggle');
+  await expect(music).toBeVisible();
+
+  // Start: music audible.
+  const before = await diag(page);
+  expect(before.buses.music).toBeGreaterThan(0);
+
+  // Toggle music off — ONLY music + ambience go silent; SFX/UI + master stay up.
+  await music.click();
+  await expect(music).toHaveAttribute('aria-pressed', 'true');
+  await expect(music).toHaveClass(/is-muted/);
+  const musicOff = await diag(page);
+  expect(musicOff.flags.muted).toBe(false); // NOT master muted
+  expect(musicOff.masterGain).toBeGreaterThan(0);
+  expect(musicOff.buses.music).toBe(0);
+  expect(musicOff.buses.ambience).toBe(0);
+  expect(musicOff.buses.ui).toBeGreaterThan(0);
+  expect(musicOff.buses.sfx).toBeGreaterThan(0);
+
+  // Persisted to the save.
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('wmno.save.v1') || '{}'));
+  expect(saved.settings.channelMuted.music).toBe(true);
+
+  // Survives a reload.
+  await page.reload();
+  await page.locator('.office').first().waitFor({ timeout: 15000 });
+  await page.mouse.click(550, 400);
+  await expect(page.getByTestId('music-toggle')).toHaveAttribute('aria-pressed', 'true');
+  expect((await diag(page)).buses.music).toBe(0);
+
+  // Master mute overrides everything; lifting it leaves music still muted.
+  await page.getByTestId('mute-toggle').click();
+  const allMuted = await diag(page);
+  expect(allMuted.masterGain).toBe(0);
+  for (const ch of ['music', 'ambience', 'ui', 'sfx'] as const) expect(allMuted.buses[ch]).toBe(0);
+  await page.getByTestId('mute-toggle').click();
+  const afterUnmaster = await diag(page);
+  expect(afterUnmaster.masterGain).toBeGreaterThan(0);
+  expect(afterUnmaster.buses.music).toBe(0); // music toggle still on
+  expect(afterUnmaster.buses.sfx).toBeGreaterThan(0);
+
+  // Restore music.
+  await page.getByTestId('music-toggle').click();
+  expect((await diag(page)).buses.music).toBeGreaterThan(0);
+});

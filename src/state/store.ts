@@ -78,6 +78,7 @@ interface StoreState {
   photoMode: boolean;
   quietMode: boolean;
   masterMuted: boolean;
+  musicMuted: boolean;
   batterySaver: boolean;
   recovered: boolean;
 
@@ -87,6 +88,7 @@ interface StoreState {
   setBatterySaver: (v: boolean) => void;
   setQuietMode: (v: boolean) => void;
   toggleMute: () => void;
+  toggleMusic: () => void;
   finishOnboarding: () => void;
   replayOnboarding: () => void;
 
@@ -116,6 +118,7 @@ export const useStore = create<StoreState>((set) => {
     photoMode: false,
     quietMode: engine.state.settings.quietMode,
     masterMuted: engine.state.settings.masterMuted,
+    musicMuted: !!engine.state.settings.channelMuted?.music,
     batterySaver: false,
     recovered: loaded.recoveredFromBackup,
 
@@ -142,6 +145,19 @@ export const useStore = create<StoreState>((set) => {
       audio.setFlags({ muted: v });
       engine.save();
       set({ masterMuted: v });
+    },
+    // The second header button = Music toggle. Mutes ONLY the background music +
+    // ambience beds (SFX, interface, minigame and event sounds keep playing).
+    // Master mute overrides this; when master mute is lifted, music resumes only
+    // if the Music toggle is still on. State persists across sessions.
+    toggleMusic: () => {
+      const v = !engine.state.settings.channelMuted?.music;
+      audio.resume();
+      const channelMuted = { ...engine.state.settings.channelMuted, music: v, ambience: v };
+      engine.updateSettings({ channelMuted });
+      audio.setChannelMutes({ music: v, ambience: v });
+      engine.save();
+      set({ musicMuted: v });
     },
     finishOnboarding: () => {
       engine.markOnboardingComplete();

@@ -60,7 +60,7 @@
     "quiet": { "t": "Modo Silencioso", "d": "Suaviza som e animação para um jogo calmo e sem distração." },
     "friendship": "Cresce quando você conversa, dá café e mantém a equipe feliz. Mais amizade aumenta a produção.",
     "mood": "Como este colega se sente agora. As emoções ajustam um pouco a produção dele, para mais ou para menos.",
-    "mute": { "d": "Silencia (ou restaura) instantaneamente toda a música, ambiência e efeitos sonoros." },
+    "mute": { "d": "Silencia (ou restaura) instantaneamente toda a música, ambiência e efeitos sonoros." }, "music": { "d": "Silencia apenas a música de fundo. Efeitos, interface e sons de eventos continuam tocando." },
     "affinity": "O quão bem este colega trabalha na sala atual. Leve-o para uma sala favorita para um bônus de produção.",
     "nav": {
       "office": "Seu escritório aconchegante e a equipe trabalhando.",
@@ -918,7 +918,7 @@
     "scale": "Escala da janela",
     "quietMode": "Modo Silencioso",
     "muteAll": "Silenciar tudo",
-    "unmuteAll": "Reativar som",
+    "unmuteAll": "Reativar som", "restoreAll": "Reativar todo o som", "muteMusic": "Silenciar música", "restoreMusic": "Reativar música",
     "launchOnStartup": "Abrir ao iniciar o sistema",
     "batterySaver": "Modo economia de bateria", "hint": { "alwaysOnTop": "Mantém a janela do jogo acima dos outros aplicativos.", "clickThrough": "Deixa os cliques passarem pela janela para o que estiver atrás.", "launchOnStartup": "Abre o jogo automaticamente quando o computador liga.", "closeToTray": "O botão de fechar esconde na bandeja em vez de sair.", "batterySaver": "Reduz animação e trabalho em segundo plano para poupar energia." },
     "hideToTray": "Esconder na bandeja",

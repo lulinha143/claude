@@ -60,7 +60,7 @@
     "quiet": { "t": "Quiet Mode", "d": "Softens audio and animation for calm, low-distraction play." },
     "friendship": "Grows when you chat, gift coffee and keep them happy. Higher friendship boosts their output.",
     "mood": "How this teammate feels right now. Emotions gently nudge their output up or down.",
-    "mute": { "d": "Instantly silence (or restore) all music, ambience and sound effects." },
+    "mute": { "d": "Instantly silence (or restore) all music, ambience and sound effects." }, "music": { "d": "Mute only the background music. Sound effects, interface and event sounds keep playing." },
     "affinity": "How well this teammate works in their current room. Move them to a favourite room for a production bonus.",
     "nav": {
       "office": "Your cozy office and the team at work.",
@@ -918,7 +918,7 @@
     "scale": "Window scale",
     "quietMode": "Quiet Mode",
     "muteAll": "Mute all audio",
-    "unmuteAll": "Unmute audio",
+    "unmuteAll": "Unmute audio", "restoreAll": "Restore all audio", "muteMusic": "Mute music", "restoreMusic": "Restore music",
     "launchOnStartup": "Launch on system startup",
     "batterySaver": "Battery-friendly mode", "hint": { "alwaysOnTop": "Keep the game window above your other apps.", "clickThrough": "Let clicks pass through the window to whatever is behind it.", "launchOnStartup": "Open the game automatically when your computer starts.", "closeToTray": "The close button hides to the system tray instead of quitting.", "batterySaver": "Ease off animation and background work to save power." },
     "hideToTray": "Hide to tray",
