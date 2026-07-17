@@ -4052,3 +4052,143 @@ img {
 }
 [data-reduced-motion='true'] .popup-backdrop,
 [data-reduced-motion='true'] .popup { animation: none; }
+
+
+/* ==========================================================================
+   Shared UI identity — compact office forms, ledgers, stamps and receipts
+   ========================================================================== */
+.header {
+  background: var(--chrome-surface);
+  border-bottom: var(--border-strong-width) solid var(--border-strong);
+}
+.nav {
+  background: color-mix(in srgb, var(--chrome-surface) 88%, transparent);
+  border-bottom: var(--border-thin) solid color-mix(in srgb, var(--accent-rule) 35%, transparent);
+}
+.nav__item,
+.res,
+.quiet-toggle,
+.mute-toggle {
+  border-radius: var(--corner-control);
+}
+.nav__item.is-active {
+  box-shadow: inset 0 -3px 0 var(--accent-rule);
+}
+.res {
+  border: var(--border-thin) solid color-mix(in srgb, var(--c-cream-300) 22%, transparent);
+}
+.panel,
+.card,
+.employee-card,
+.micro-card,
+.branch,
+.ach,
+.nut-cell,
+.deco-card,
+.deco-detail,
+.settings-section {
+  background: var(--panel-surface);
+  border: var(--border-thin) solid var(--border-strong);
+  border-radius: var(--corner-panel);
+  box-shadow: var(--shadow-form);
+}
+.panel,
+.settings-section {
+  border-left: var(--border-strong-width) solid var(--accent-rule);
+}
+.pill,
+.outfit-chip,
+.chip-btn,
+.tag-btn,
+.decocard__badge {
+  border-radius: var(--corner-control);
+}
+.pill {
+  border: 1px solid color-mix(in srgb, var(--accent-rule) 38%, var(--border-strong));
+  background: var(--panel-surface-raised);
+}
+button,
+.buy-btn,
+.ghost-btn,
+.danger-btn,
+.preset-btn,
+.tab,
+.mini-btn {
+  border-radius: var(--corner-control);
+}
+button:not(:disabled):active,
+.buy-btn:not(:disabled):active,
+.ghost-btn:not(:disabled):active,
+.mini-btn:not(:disabled):active {
+  transform: translateY(1px);
+  box-shadow: var(--shadow-pressed);
+}
+button:disabled,
+.buy-btn:disabled,
+.mini-btn:disabled {
+  background: var(--control-disabled);
+  color: var(--text-disabled);
+  border-color: color-mix(in srgb, var(--text-disabled) 30%, transparent);
+  box-shadow: none;
+}
+.ghost-btn:hover:not(:disabled),
+.tab:hover:not(:disabled),
+.mini-btn:hover:not(:disabled) {
+  background: var(--control-hover);
+}
+.floor__label {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  text-transform: none;
+  letter-spacing: 0;
+  border-radius: 3px;
+  box-shadow: 1px 2px 0 rgba(40, 26, 12, 0.22);
+}
+.toast {
+  border-radius: 3px;
+  border: 1px solid #17100a;
+  border-left: 4px solid var(--text-muted);
+  background:
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0 1px, transparent 1px 18px),
+    color-mix(in srgb, var(--c-bark-800) 96%, black);
+  box-shadow: 3px 4px 0 rgba(0, 0, 0, 0.38);
+}
+.toast__icon {
+  border-radius: 3px;
+  border: 1px solid currentColor;
+  background: transparent;
+}
+.toast--positive { border-left-color: var(--positive); }
+.toast--negative { border-left-color: var(--negative); }
+.toast--gold { border-left-color: var(--gold); }
+.toast__bar { height: 2px; }
+.view h2 {
+  position: relative;
+  padding-left: 12px;
+}
+.view h2::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.12em;
+  bottom: 0.12em;
+  width: 3px;
+  background: var(--accent-rule);
+}
+.stats-table th {
+  border-bottom: 2px solid color-mix(in srgb, var(--accent-rule) 45%, transparent);
+}
+input,
+select,
+.select,
+textarea {
+  border-radius: var(--corner-control);
+  border-width: var(--border-thin);
+}
+@media (max-width: 760px) {
+  .header { padding-inline: 8px; }
+  .panel,
+  .card,
+  .employee-card { box-shadow: 1px 2px 0 rgba(18, 12, 7, 0.38); }
+  .toast { max-width: min(300px, 88vw); }
+}
