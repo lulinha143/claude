@@ -27,6 +27,10 @@ import { Notifications } from './ui/Notifications';
 import { TooltipLayer } from './ui/Tooltip';
 import { PhotoMode } from './ui/PhotoMode';
 import { DevPanel } from './ui/DevPanel';
+import {
+  cancelTransientInteractions,
+  restoreTransientInteractionFocus,
+} from './ui/interactionLifecycle';
 
 const VIEWS: Record<ViewId, () => JSX.Element> = {
   office: OfficeScene,
@@ -90,7 +94,11 @@ export function App() {
     const root = document.documentElement;
     const reduced = state.settings.reducedMotion || state.settings.quietMode;
     const apply = () => {
-      root.dataset.ambient = ambientState({ hidden: document.hidden, batterySaver, reducedMotion: reduced });
+      root.dataset.ambient = ambientState({
+        hidden: document.hidden,
+        batterySaver,
+        reducedMotion: reduced,
+      });
     };
     apply();
     document.addEventListener('visibilitychange', apply);
@@ -112,6 +120,8 @@ export function App() {
     // "Mute when unfocused" (desktop): suspend/resume the audio context on
     // window focus changes when the option is enabled.
     const offFocus = platform.onFocusChanged((focused) => {
+      cancelTransientInteractions(focused ? 'platform-focus' : 'platform-blur');
+      if (focused) window.requestAnimationFrame(restoreTransientInteractionFocus);
       if (getGameState().settings.muteWhenUnfocused) audio.setActive(focused);
     });
     // resume audio on first user interaction (autoplay policy)

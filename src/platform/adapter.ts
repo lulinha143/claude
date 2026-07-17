@@ -168,9 +168,17 @@ class BrowserAdapter implements PlatformAdapter {
     return () => {};
   }
   onFocusChanged(cb: (f: boolean) => void) {
-    const handler = () => cb(document.visibilityState === 'visible');
-    document.addEventListener('visibilitychange', handler);
-    return () => document.removeEventListener('visibilitychange', handler);
+    const onFocus = () => cb(document.visibilityState === 'visible');
+    const onBlur = () => cb(false);
+    const onVisibility = () => cb(document.visibilityState === 'visible' && document.hasFocus());
+    window.addEventListener('focus', onFocus);
+    window.addEventListener('blur', onBlur);
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      window.removeEventListener('blur', onBlur);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
   }
   onShowSettings() {
     return () => {};

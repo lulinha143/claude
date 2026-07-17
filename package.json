@@ -51,6 +51,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "smoke:mute": "node scripts/electron-mute-smoke.mjs",
+    "smoke:focus": "node scripts/electron-focus-smoke.mjs",
     "smoke:window": "node scripts/electron-window-smoke.mjs",
     "smoke:spacedpath": "node scripts/electron-spacedpath-smoke.mjs",
     "smoke:packaged": "node scripts/electron-packaged-smoke.mjs",

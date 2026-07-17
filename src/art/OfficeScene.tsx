@@ -33,6 +33,7 @@ import { employeeMood, MOOD_TONE } from '../sim/mood';
 import { createRng } from '../sim/rng';
 import { notify } from '../ui/notificationsStore';
 import { sparkleAt, dustPuff } from '../ui/sparkle';
+import { INTERACTION_CANCEL_EVENT, INTERACTION_FOCUS_EVENT } from '../ui/interactionLifecycle';
 
 // A soft visual capacity per room — dragging a teammate into a fuller room is
 // gently refused with a suggestion, keeping each room readable and cozy.
@@ -47,6 +48,11 @@ interface DragState {
   room: string | null; // for decorations: the owning room; employees: null
   overRoom: string | null;
   valid: boolean;
+}
+
+interface CancelDragOptions {
+  restoreOnFocus?: boolean;
+  awaitRelease?: boolean;
 }
 
 interface Bubble {
@@ -135,11 +141,22 @@ export function OfficeScene() {
   // A decoration a nearby employee is currently reacting to (for a little wiggle).
   const [reactingDeco, setReactingDeco] = useState<string | null>(null);
   // The employee currently visiting an object (leans toward it) + the object x.
-  const [interaction, setInteraction] = useState<{ employeeId: string; targetX: number } | null>(null);
+  const [interaction, setInteraction] = useState<{ employeeId: string; targetX: number } | null>(
+    null,
+  );
   // Decoration ids currently reserved by an in-progress interaction.
   const reservedRef = useRef<Set<string>>(new Set());
   // Live drag (employee or decoration) for the ghost + drop highlighting.
   const [drag, setDrag] = useState<DragState | null>(null);
+  // Exactly one pointer session may own capture/listeners at a time. Keeping its
+  // cancel function in a ref lets blur, visibility, IPC focus and unmount all
+  // tear it down even when the OS swallowed pointerup/pointercancel.
+  const cancelActiveDragRef = useRef<((options?: CancelDragOptions) => void) | null>(null);
+  // A cancelled pointer stream may deliver its swallowed pointerup/click only
+  // after the window returns. Keep click suppression armed until that release
+  // arrives (or a fresh pointerdown proves the stale stream is over).
+  const pendingReleaseCleanupsRef = useRef<Map<number, () => void>>(new Map());
+  const pendingFocusRestoreRef = useRef<HTMLElement | null>(null);
   // True immediately after a real drag so the trailing click doesn't also fire.
   const draggedRef = useRef(false);
   const rngRef = useRef(createRng(Date.now() & 0xffff));
@@ -150,7 +167,9 @@ export function OfficeScene() {
 
   const rooms = unlockedRooms(state).slice().reverse();
   // the next room the player can work toward (for an "under construction" hint)
-  const nextLocked = ROOMS.filter((r) => !isRoomUnlocked(state, r)).sort((a, b) => a.floor - b.floor)[0];
+  const nextLocked = ROOMS.filter((r) => !isRoomUnlocked(state, r)).sort(
+    (a, b) => a.floor - b.floor,
+  )[0];
   const producing = engine.productionPerSecond() > 0;
   const focusMode = engine.isFocusActive();
   const lowMorale = state.resources.morale < 35;
@@ -160,6 +179,49 @@ export function OfficeScene() {
     const h = setTimeout(() => setBubble(null), Math.max(0, bubble.until - Date.now()));
     return () => clearTimeout(h);
   }, [bubble]);
+
+  useEffect(() => {
+    const pendingReleaseCleanups = pendingReleaseCleanupsRef.current;
+    const restorePendingFocus = () => {
+      const preferred = pendingFocusRestoreRef.current;
+      if (!preferred) return;
+      pendingFocusRestoreRef.current = null;
+      const fallback = document.querySelector<HTMLElement>('.office__toolbar button, .nav__item');
+      const target =
+        preferred.isConnected && !preferred.hasAttribute('disabled') ? preferred : fallback;
+      target?.focus({ preventScroll: true });
+    };
+    const cancelForBlur = () =>
+      cancelActiveDragRef.current?.({ restoreOnFocus: true, awaitRelease: true });
+    const cancelForFocus = () => {
+      // Focus can return without a renderer blur event on some window managers.
+      // A second idempotent cancellation guarantees no capture/portal survives.
+      cancelActiveDragRef.current?.({ restoreOnFocus: true, awaitRelease: true });
+      restorePendingFocus();
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === 'hidden') cancelForBlur();
+      else cancelForFocus();
+    };
+
+    window.addEventListener('blur', cancelForBlur);
+    window.addEventListener('focus', cancelForFocus);
+    window.addEventListener(INTERACTION_CANCEL_EVENT, cancelForBlur);
+    window.addEventListener(INTERACTION_FOCUS_EVENT, cancelForFocus);
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      window.removeEventListener('blur', cancelForBlur);
+      window.removeEventListener('focus', cancelForFocus);
+      window.removeEventListener(INTERACTION_CANCEL_EVENT, cancelForBlur);
+      window.removeEventListener(INTERACTION_FOCUS_EVENT, cancelForFocus);
+      document.removeEventListener('visibilitychange', onVisibility);
+      cancelActiveDragRef.current?.({ awaitRelease: false });
+      cancelActiveDragRef.current = null;
+      pendingReleaseCleanups.forEach((clear) => clear());
+      pendingReleaseCleanups.clear();
+      pendingFocusRestoreRef.current = null;
+    };
+  }, []);
 
   useEffect(() => {
     const h = setInterval(ambientChatter, 11000);
@@ -180,7 +242,11 @@ export function OfficeScene() {
       const it = pickOfficeInteraction(st, reservedRef.current, rngRef.current);
       if (it) {
         reservedRef.current.add(it.decorationId);
-        setBubble({ employeeId: it.employeeId, text: t(`decoReact.${decorKind(it.decorationId)}`), until: Date.now() + 4200 });
+        setBubble({
+          employeeId: it.employeeId,
+          text: t(`decoReact.${decorKind(it.decorationId)}`),
+          until: Date.now() + 4200,
+        });
         setReactingDeco(it.decorationId);
         setInteraction({ employeeId: it.employeeId, targetX: it.targetX });
         window.setTimeout(() => {
@@ -223,7 +289,9 @@ export function OfficeScene() {
     const el = e.currentTarget as HTMLElement;
     const rect = el.getBoundingClientRect();
     const parent = el.offsetParent as HTMLElement | null;
-    const px = parent ? rect.left - parent.getBoundingClientRect().left + rect.width / 2 : rect.left;
+    const px = parent
+      ? rect.left - parent.getBoundingClientRect().left + rect.width / 2
+      : rect.left;
     const py = parent ? rect.top - parent.getBoundingClientRect().top : rect.top;
     setPop({ x: px, y: py, text: `+${Math.round(res.gained)}`, id: Date.now() });
     setCrateReady(false);
@@ -256,7 +324,11 @@ export function OfficeScene() {
     return floor?.dataset.room ?? null;
   }
 
-  function employeeTarget(x: number, y: number, id: string): { room: string | null; valid: boolean } {
+  function employeeTarget(
+    x: number,
+    y: number,
+    id: string,
+  ): { room: string | null; valid: boolean } {
     const room = roomUnderPoint(x, y);
     if (!room || !ROOMS_BY_ID[room]) return { room: null, valid: false };
     const already = resolveEmployeeRoom(stateRef.current, id) === room;
@@ -264,80 +336,179 @@ export function OfficeScene() {
     return { room, valid: already || !full };
   }
 
-  function decorationTarget(x: number, y: number, id: string): { room: string | null; valid: boolean } {
+  function decorationTarget(
+    x: number,
+    y: number,
+    id: string,
+  ): { room: string | null; valid: boolean } {
     const room = roomUnderPoint(x, y);
     const def = DECORATIONS_BY_ID[id];
     if (!room || !def) return { room, valid: false };
     return {
       room,
-      valid: def.compatibleRooms.includes(room) && isRoomUnlocked(stateRef.current, ROOMS_BY_ID[room]),
+      valid:
+        def.compatibleRooms.includes(room) && isRoomUnlocked(stateRef.current, ROOMS_BY_ID[room]),
     };
+  }
+
+  function armCancelledPointerRelease(pointerId: number) {
+    pendingReleaseCleanupsRef.current.get(pointerId)?.();
+    let finished = false;
+    let releaseFinished = false;
+
+    const clear = () => {
+      if (finished) return;
+      finished = true;
+      window.removeEventListener('pointerup', release, true);
+      window.removeEventListener('pointercancel', release, true);
+      window.removeEventListener('click', suppressClick, true);
+      if (pendingReleaseCleanupsRef.current.get(pointerId) === clear) {
+        pendingReleaseCleanupsRef.current.delete(pointerId);
+      }
+    };
+    const suppressClick = (event: MouseEvent) => {
+      // Chromium emits pointer-originated clicks as PointerEvents. Match the
+      // cancelled pointer only, so a different touch/pen/mouse can keep using
+      // the office even if the OS swallowed this stream's release forever.
+      if (!(event instanceof PointerEvent) || event.pointerId !== pointerId) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      clear();
+    };
+    const release = (event: PointerEvent) => {
+      if (event.pointerId !== pointerId) return;
+      window.removeEventListener('pointerup', release, true);
+      window.removeEventListener('pointercancel', release, true);
+      if (event.type === 'pointercancel') {
+        clear();
+        return;
+      }
+      if (releaseFinished) return;
+      releaseFinished = true;
+      // A native click follows pointerup before the next timer task. Keep the
+      // pointer-specific capture guard for that click, then retire it if the
+      // browser correctly suppresses the click itself.
+      window.setTimeout(clear, 0);
+    };
+
+    window.addEventListener('pointerup', release, true);
+    window.addEventListener('pointercancel', release, true);
+    window.addEventListener('click', suppressClick, true);
+    pendingReleaseCleanupsRef.current.set(pointerId, clear);
   }
 
   function beginDrag(e: React.PointerEvent, kind: 'employee' | 'decoration', id: string) {
     if (e.button != null && e.button !== 0) return;
     if (kind === 'decoration' && !decorMode) return;
     if (kind === 'employee' && decorMode) return;
+
+    // A second press must never strand the first pointer session.
+    cancelActiveDragRef.current?.();
+    pendingFocusRestoreRef.current = null;
+
     const source = e.currentTarget as HTMLElement;
     const pointerId = e.pointerId;
+    // Pointer ids may be reused after an OS-swallowed release. A fresh press
+    // with the same id proves that stale stream is over without disturbing
+    // guards for other simultaneously active touch/pen pointers.
+    pendingReleaseCleanupsRef.current.get(pointerId)?.();
     const start = { x: e.clientX, y: e.clientY };
     const room = kind === 'decoration' ? decorationRoom(stateRef.current, id) : null;
     let started = false;
+    let cleaned = false;
 
-    // Explicit capture keeps the stream alive while crossing stacked room
-    // containers or leaving the source element. The visual itself is rendered
-    // through a document.body portal, so no room overflow can clip it.
-    try {
-      source.setPointerCapture(pointerId);
-    } catch {
-      // Synthetic/legacy pointer implementations may not support capture; the
-      // window listeners below remain a safe fallback.
+    function move(ev: PointerEvent) {
+      if (ev.pointerId !== pointerId) return;
+      if (!started && Math.hypot(ev.clientX - start.x, ev.clientY - start.y) < DRAG_THRESHOLD)
+        return;
+      started = true;
+      const tgt =
+        kind === 'employee'
+          ? employeeTarget(ev.clientX, ev.clientY, id)
+          : decorationTarget(ev.clientX, ev.clientY, id);
+      setDrag({
+        kind,
+        id,
+        x: ev.clientX,
+        y: ev.clientY,
+        room,
+        overRoom: tgt.room,
+        valid: tgt.valid,
+      });
     }
 
-    const move = (ev: PointerEvent) => {
-      if (ev.pointerId !== pointerId) return;
-      if (!started && Math.hypot(ev.clientX - start.x, ev.clientY - start.y) < DRAG_THRESHOLD) return;
-      started = true;
-      const tgt = kind === 'employee' ? employeeTarget(ev.clientX, ev.clientY, id) : decorationTarget(ev.clientX, ev.clientY, id);
-      setDrag({ kind, id, x: ev.clientX, y: ev.clientY, room, overRoom: tgt.room, valid: tgt.valid });
-    };
-    const cleanup = () => {
+    function cleanup() {
+      if (cleaned) return;
+      cleaned = true;
       window.removeEventListener('pointermove', move);
       window.removeEventListener('pointerup', up);
-      window.removeEventListener('pointercancel', cancel);
+      window.removeEventListener('pointercancel', cancelPointer);
       window.removeEventListener('keydown', onKey);
+      source.removeEventListener('lostpointercapture', lostCapture);
+      if (cancelActiveDragRef.current === cancelSession) cancelActiveDragRef.current = null;
       try {
         if (source.hasPointerCapture(pointerId)) source.releasePointerCapture(pointerId);
       } catch {
-        // Source may have unmounted during a state transition.
+        // Source may have unmounted during a room, popup, or focus transition.
       }
-    };
-    const cancel = (ev: PointerEvent) => {
-      if (ev.pointerId !== pointerId) return;
+    }
+
+    function cancelSession({
+      restoreOnFocus = false,
+      awaitRelease = true,
+    }: CancelDragOptions = {}) {
+      if (cleaned) return;
+      // Cancellation never calls an engine mutation: the last committed room,
+      // surface, interaction state and position remain authoritative.
+      pendingFocusRestoreRef.current = restoreOnFocus ? source : null;
       cleanup();
+      if (awaitRelease) armCancelledPointerRelease(pointerId);
+      draggedRef.current = false;
       setDrag(null);
-    };
-    const up = (ev: PointerEvent) => {
+    }
+
+    function cancelPointer(ev: PointerEvent) {
+      if (ev.pointerId === pointerId) cancelSession({ awaitRelease: false });
+    }
+
+    function lostCapture(ev: PointerEvent) {
+      if (ev.pointerId === pointerId) cancelSession();
+    }
+
+    function up(ev: PointerEvent) {
       if (ev.pointerId !== pointerId) return;
       cleanup();
       if (started) {
         if (kind === 'employee') finishEmployeeDrop(ev.clientX, ev.clientY, id);
         else finishDecorationDrop(ev.clientX, ev.clientY, id);
         draggedRef.current = true;
-        setTimeout(() => (draggedRef.current = false), 0);
+        setTimeout(() => {
+          draggedRef.current = false;
+        }, 0);
       }
       setDrag(null);
-    };
-    const onKey = (ev: KeyboardEvent) => {
-      if (ev.key === 'Escape') {
-        cleanup();
-        setDrag(null);
-      }
-    };
+    }
+
+    function onKey(ev: KeyboardEvent) {
+      if (ev.key === 'Escape') cancelSession();
+    }
+
     window.addEventListener('pointermove', move);
     window.addEventListener('pointerup', up);
-    window.addEventListener('pointercancel', cancel);
+    window.addEventListener('pointercancel', cancelPointer);
     window.addEventListener('keydown', onKey);
+    source.addEventListener('lostpointercapture', lostCapture);
+    cancelActiveDragRef.current = cancelSession;
+
+    // Explicit capture keeps the stream alive while crossing stacked room
+    // containers. If capture is lost for any reason, lostCapture rolls back the
+    // provisional renderer state and removes the portal ghost.
+    try {
+      source.setPointerCapture(pointerId);
+    } catch {
+      // Synthetic/legacy implementations may not support capture; the window
+      // listeners remain the fallback and blur/visibility still cancel safely.
+    }
   }
 
   function finishEmployeeDrop(x: number, y: number, id: string) {
@@ -412,9 +583,10 @@ export function OfficeScene() {
 
   function moveDecorationFromDialog(roomId: string | null): boolean {
     if (!moveDialog) return false;
-    const moved = roomId === null
-      ? engine.removeDecoration(moveDialog)
-      : engine.placeDecorationInRoom(moveDialog, roomId);
+    const moved =
+      roomId === null
+        ? engine.removeDecoration(moveDialog)
+        : engine.placeDecorationInRoom(moveDialog, roomId);
     if (moved) {
       audio.play(roomId === null ? 'click' : 'place');
       setSelected(null);
@@ -486,15 +658,40 @@ export function OfficeScene() {
           strokeWidth="1.5"
         />
         {/* bark grooves */}
-        <path d="M16 20 C 12 70, 14 120, 12 180" stroke="#33261a" strokeWidth="1.4" fill="none" opacity="0.6" />
-        <path d="M84 20 C 88 70, 86 120, 88 180" stroke="#33261a" strokeWidth="1.4" fill="none" opacity="0.6" />
+        <path
+          d="M16 20 C 12 70, 14 120, 12 180"
+          stroke="#33261a"
+          strokeWidth="1.4"
+          fill="none"
+          opacity="0.6"
+        />
+        <path
+          d="M84 20 C 88 70, 86 120, 88 180"
+          stroke="#33261a"
+          strokeWidth="1.4"
+          fill="none"
+          opacity="0.6"
+        />
         {/* knots */}
         <ellipse cx="14" cy="60" rx="3" ry="5" fill="#2a2016" opacity="0.7" />
         <ellipse cx="87" cy="110" rx="3" ry="5" fill="#2a2016" opacity="0.7" />
         {/* roots at the base */}
-        <path d="M14 196 c -6 -2 -8 -8 -12 -6 M86 196 c 6 -2 8 -8 12 -6" stroke="#241a12" strokeWidth="3" fill="none" strokeLinecap="round" />
+        <path
+          d="M14 196 c -6 -2 -8 -8 -12 -6 M86 196 c 6 -2 8 -8 12 -6"
+          stroke="#241a12"
+          strokeWidth="3"
+          fill="none"
+          strokeLinecap="round"
+        />
         {/* moss */}
-        <path d="M6 150 q4 6 10 4 M94 40 q-5 6 -10 3" stroke="#3f7d4f" strokeWidth="3" fill="none" opacity="0.5" strokeLinecap="round" />
+        <path
+          d="M6 150 q4 6 10 4 M94 40 q-5 6 -10 3"
+          stroke="#3f7d4f"
+          strokeWidth="3"
+          fill="none"
+          opacity="0.5"
+          strokeLinecap="round"
+        />
       </svg>
 
       <div className="office__trunk">
@@ -525,9 +722,14 @@ export function OfficeScene() {
           if (drag) {
             if (drag.kind === 'employee') {
               dropClass =
-                drag.overRoom === room.id ? (drag.valid ? 'is-drop-hover' : 'is-drop-invalid') : 'is-drop-target';
+                drag.overRoom === room.id
+                  ? drag.valid
+                    ? 'is-drop-hover'
+                    : 'is-drop-invalid'
+                  : 'is-drop-target';
             } else if (drag.kind === 'decoration') {
-              const compatible = DECORATIONS_BY_ID[drag.id]?.compatibleRooms.includes(room.id) ?? false;
+              const compatible =
+                DECORATIONS_BY_ID[drag.id]?.compatibleRooms.includes(room.id) ?? false;
               if (drag.overRoom === room.id) {
                 dropClass = drag.valid ? 'is-drop-hover' : 'is-drop-invalid';
               } else if (compatible) {
@@ -562,7 +764,10 @@ export function OfficeScene() {
                   {comfort > 0 ? (
                     <Tip
                       content={
-                        <TipContent title={t('overview.comfortTitle')} lines={[t('overview.comfortTip'), `+${comfort}`]} />
+                        <TipContent
+                          title={t('overview.comfortTitle')}
+                          lines={[t('overview.comfortTip'), `+${comfort}`]}
+                        />
                       }
                     >
                       <span className="floor__stat floor__stat--comfort" tabIndex={0}>
@@ -572,7 +777,10 @@ export function OfficeScene() {
                   ) : null}
                 </span>
               </div>
-              <div className={`floor__ambient floor__ambient--${AMBIENT[room.id] ?? 'dust'}`} aria-hidden>
+              <div
+                className={`floor__ambient floor__ambient--${AMBIENT[room.id] ?? 'dust'}`}
+                aria-hidden
+              >
                 {reducedMotion ? null : (
                   <>
                     <span className="floor__dust" />
@@ -612,7 +820,9 @@ export function OfficeScene() {
                       title={t(`deco.${def.id}.name`)}
                       onToggle={() => selectDeco(def.id)}
                       onInteract={() => audio.play(interactSound(decorKind(def.id)))}
-                      onPointerDown={decorMode ? (e) => beginDrag(e, 'decoration', def.id) : undefined}
+                      onPointerDown={
+                        decorMode ? (e) => beginDrag(e, 'decoration', def.id) : undefined
+                      }
                     />
                   </div>
                 ))}
@@ -630,7 +840,9 @@ export function OfficeScene() {
                   const shape = shapeFor(id);
                   const slot = slots[idx] ?? { x: 0.5, bottom: 0 };
                   const visiting = interaction?.employeeId === id;
-                  const ex = visiting ? slot.x * 0.55 + (interaction?.targetX ?? slot.x) * 0.45 : slot.x;
+                  const ex = visiting
+                    ? slot.x * 0.55 + (interaction?.targetX ?? slot.x) * 0.45
+                    : slot.x;
                   const inputs = {
                     hired: rt.hired,
                     producing,
@@ -643,7 +855,9 @@ export function OfficeScene() {
                   };
                   const anim: CritterState = machineFor(id).update(inputs, now);
                   const accent =
-                    def?.outfits.find((o) => o.id === rt.outfitId)?.accent ?? def?.accent ?? '#3f7d4f';
+                    def?.outfits.find((o) => o.id === rt.outfitId)?.accent ??
+                    def?.accent ??
+                    '#3f7d4f';
                   const label = rt.nickname ?? t(def?.nameKey ?? id);
                   return (
                     <button
@@ -651,7 +865,11 @@ export function OfficeScene() {
                       className={`critter-btn ${drag?.kind === 'employee' && drag.id === id ? 'is-dragging' : ''} ${
                         !decorMode ? 'is-draggable' : ''
                       } ${visiting ? 'is-visiting' : ''}`}
-                      style={{ left: `${ex * 100}%`, bottom: `${slot.bottom}px`, zIndex: visiting ? 5 : 3 + (idx % 2) }}
+                      style={{
+                        left: `${ex * 100}%`,
+                        bottom: `${slot.bottom}px`,
+                        zIndex: visiting ? 5 : 3 + (idx % 2),
+                      }}
                       onPointerDown={(e) => beginDrag(e, 'employee', id)}
                       onClick={() => onCritterClick(id)}
                       title={label}
@@ -684,7 +902,11 @@ export function OfficeScene() {
                   );
                 })}
                 {room.id === 'founder-desk' && crateReady && !decorMode ? (
-                  <button className="crate-btn" onClick={onCollect} aria-label={t('office.collect')}>
+                  <button
+                    className="crate-btn"
+                    onClick={onCollect}
+                    aria-label={t('office.collect')}
+                  >
                     <span className="crate-btn__glow" aria-hidden />
                     <Crate size={58} />
                     <span className="crate-btn__hint">{t('office.collect')}</span>
@@ -697,7 +919,10 @@ export function OfficeScene() {
                 <div className="floor__tray floor__tray--actions">
                   {selectedPlacedHere ? (
                     <>
-                      <button className="mini-btn mini-btn--primary" onClick={() => setMoveDialog(selected)}>
+                      <button
+                        className="mini-btn mini-btn--primary"
+                        onClick={() => setMoveDialog(selected)}
+                      >
                         <Icon name="rooms" size={12} /> {t('decorate.moveTo')}
                       </button>
                       <button className="mini-btn" onClick={sendSelectedToInventory}>
@@ -766,8 +991,15 @@ export function OfficeScene() {
                 <GhostCritter id={drag.id} reducedMotion={reducedMotion} />
               ) : (
                 <>
-                  <DecorationProp id={drag.id} reducedMotion mode="interact" title={t(`deco.${drag.id}.name`)} />
-                  <span className="drag-ghost__surface">{t(`decorate.surface.${decorationSurface(drag.id)}`)}</span>
+                  <DecorationProp
+                    id={drag.id}
+                    reducedMotion
+                    mode="interact"
+                    title={t(`deco.${drag.id}.name`)}
+                  />
+                  <span className="drag-ghost__surface">
+                    {t(`decorate.surface.${decorationSurface(drag.id)}`)}
+                  </span>
                 </>
               )}
             </div>,

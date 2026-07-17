@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { INTERACTION_FOCUS_EVENT } from '../interactionLifecycle';
 
 export type PopupVariant =
   | 'standard'
@@ -49,7 +50,8 @@ export function PopupShell({
   dismissRef.current = onDismiss;
 
   useEffect(() => {
-    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const previousFocus =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const popup = popupRef.current;
     const first = popup?.querySelector<HTMLElement>(FOCUSABLE);
     (first ?? popup)?.focus();
@@ -81,10 +83,29 @@ export function PopupShell({
       }
     }
 
+    function restorePopupFocus() {
+      window.requestAnimationFrame(() => {
+        const activePopup = popupRef.current;
+        if (!activePopup || activePopup.contains(document.activeElement)) return;
+        const firstFocusable = activePopup.querySelector<HTMLElement>(FOCUSABLE);
+        (firstFocusable ?? activePopup).focus({ preventScroll: true });
+      });
+    }
+
+    function onVisibility() {
+      if (document.visibilityState === 'visible') restorePopupFocus();
+    }
+
     document.addEventListener('keydown', onKeyDown);
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('focus', restorePopupFocus);
+    window.addEventListener(INTERACTION_FOCUS_EVENT, restorePopupFocus);
     return () => {
       document.removeEventListener('keydown', onKeyDown);
-      previousFocus?.focus();
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('focus', restorePopupFocus);
+      window.removeEventListener(INTERACTION_FOCUS_EVENT, restorePopupFocus);
+      previousFocus?.focus({ preventScroll: true });
     };
   }, []);
 
@@ -120,15 +141,19 @@ export function usePopupExit() {
   const [closing, setClosing] = useState(false);
   const timer = useRef<number | null>(null);
 
-  useEffect(() => () => {
-    if (timer.current !== null) window.clearTimeout(timer.current);
-  }, []);
+  useEffect(
+    () => () => {
+      if (timer.current !== null) window.clearTimeout(timer.current);
+    },
+    [],
+  );
 
   const exitThen = useCallback((action: () => void) => {
     if (timer.current !== null) return;
     setClosing(true);
-    const reduced = document.documentElement.dataset.reducedMotion === 'true'
-      || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const reduced =
+      document.documentElement.dataset.reducedMotion === 'true' ||
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     timer.current = window.setTimeout(action, reduced ? 0 : 130);
   }, []);
 
