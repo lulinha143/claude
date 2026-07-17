@@ -109,6 +109,19 @@ h4 {
   transform-origin: bottom right;
 }
 
+/* In the frameless desktop shell the window is opaque and the app fills it
+   edge-to-edge, so the native Windows resize border lines up exactly with the
+   visible edge (no transparent margin, no rounded gap, no soft outer shadow to
+   pad the hit area). The browser demo keeps the floating rounded card. */
+[data-desktop='true'] #root {
+  padding: 0;
+}
+[data-desktop='true'] .app {
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
 /* ------- header ------- */
 .header {
   display: flex;

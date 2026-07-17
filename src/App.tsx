@@ -59,6 +59,13 @@ export function App() {
     startGameLoop();
   }, []);
 
+  // Mark the desktop (frameless) shell so the app can fill the window edge-to-
+  // edge — no rounded margin/shadow gap — which keeps the native OS resize
+  // border exactly at the visible edge. In the browser we keep the framed card.
+  useEffect(() => {
+    document.documentElement.dataset.desktop = String(platform.isDesktop);
+  }, [platform]);
+
   // Apply accessibility + audio settings to the document root reactively.
   useEffect(() => {
     const s = state.settings;

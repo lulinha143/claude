@@ -181,8 +181,15 @@ function createWindow(): void {
     y: pos?.y,
     show: false, // shown on ready-to-show (with a safety fallback) to avoid a white flash
     frame: !settings.frameless,
-    transparent: settings.frameless,
-    backgroundColor: settings.frameless ? '#00000000' : '#2a2118',
+    // Opaque, NOT transparent. A transparent frameless window on Windows has
+    // unreliable native resizing and its visible edge sits inside a transparent
+    // margin, so the OS resize grip never lines up with the border the player
+    // sees. An opaque frameless window keeps the standard Windows resize frame
+    // (WS_THICKFRAME) right at the visible edge — precise from every side and
+    // corner — while our custom title bar still handles dragging + controls.
+    // (Windows 11 rounds the corners of opaque frameless windows for us.)
+    transparent: false,
+    backgroundColor: '#2a2118',
     // A real desktop app: resizable from every edge/corner, maximizable and
     // restorable. The renderer UI is fully responsive to whatever size results.
     resizable: true,
