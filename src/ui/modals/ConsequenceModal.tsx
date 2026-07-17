@@ -4,6 +4,7 @@ import { useFmt } from '../useFmt';
 import { Icon, type IconName } from '../../art/UiIcon';
 import { EMPLOYEES_BY_ID } from '../../content/employees';
 import { MOOD_TONE, MOOD_POSITIVE } from '../../sim/mood';
+import { PopupShell, usePopupExit } from './PopupShell';
 
 type Tone = 'positive' | 'negative' | 'neutral';
 interface Line {
@@ -21,7 +22,9 @@ export function ConsequenceModal() {
   const { engine } = useGame();
   const fmt = useFmt();
   const c = engine.lastConsequence;
+  const { closing, exitThen } = usePopupExit();
   if (!c) return null;
+  const close = () => exitThen(() => engine.clearConsequence());
 
   const r = c.report;
   const lines: Line[] = [];
@@ -47,13 +50,18 @@ export function ConsequenceModal() {
   const nothing = lines.length === 0 && r.employees.length === 0;
 
   return (
-    <div className="modal-backdrop">
-      <div
-        className="modal consequence-modal modal--framed"
-        role="dialog"
-        aria-modal
-        aria-label={t('event.resultTitle')}
-      >
+    <PopupShell
+      variant="reward"
+      className="consequence-modal"
+      ariaLabel={t('event.resultTitle')}
+      closing={closing}
+      onDismiss={close}
+      actions={(
+        <button className="buy-btn buy-btn--big" disabled={closing} onClick={close}>
+          {t('common.ok')}
+        </button>
+      )}
+    >
         <div className="consequence-modal__head">
           <Icon name="notification" size={20} />
           <div>
@@ -135,10 +143,6 @@ export function ConsequenceModal() {
 
         </div>
 
-        <button className="buy-btn buy-btn--big" onClick={() => engine.clearConsequence()}>
-          {t('common.ok')}
-        </button>
-      </div>
-    </div>
+    </PopupShell>
   );
 }
