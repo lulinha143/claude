@@ -72,6 +72,29 @@ button {
   font-family: var(--font-head);
   font-weight: var(--fw-medium);
 }
+/* Named game/UI landmarks use the display face even when their markup is not
+   a heading. Descriptive copy and tooltips continue to inherit Nunito Sans. */
+.header__company,
+.floor__label,
+.card__title,
+.employee-card__name,
+.ach__name,
+.nut-cell__name,
+.moment__title,
+.microgame__grade,
+.title-card,
+.photo-mode__company {
+  font-family: var(--font-head);
+}
+.card__desc,
+.employee-card__story,
+.ach__desc,
+.nut-cell__desc,
+.event-modal__body,
+.microgame__instructions,
+.tooltip {
+  font-family: var(--font-body);
+}
 /* text should always wrap rather than overflow its container */
 p,
 span,

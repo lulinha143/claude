@@ -5,7 +5,7 @@ import { createRoot } from 'react-dom/client';
 //   Fredoka     — chunky rounded DISPLAY face: brand, titles, buttons, HUD.
 //   Nunito Sans — highly readable BODY face: descriptions, tooltips, numbers.
 // The 'latin' subset Fontsource bundles includes Latin-1 accents, so Portuguese
-// (á ã ç ê õ …) renders correctly. See docs/CREDITS for attribution.
+// (á ã ç ê õ …) renders correctly. See docs/FONTS.md for attribution.
 import '@fontsource/fredoka/400.css';
 import '@fontsource/fredoka/500.css';
 import '@fontsource/fredoka/600.css';

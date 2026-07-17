@@ -123,7 +123,9 @@
     'Segoe UI', system-ui, sans-serif;
   --font-body: 'Nunito Sans', 'Nunito', 'Inter', 'SF Pro Text', 'Segoe UI', system-ui, -apple-system,
     Roboto, sans-serif;
-  --font-num: 'Nunito Sans', 'Inter', ui-rounded, 'Segoe UI', system-ui, sans-serif;
+  --font-numeric: 'Nunito Sans', 'Inter', ui-rounded, 'Segoe UI', system-ui, sans-serif;
+  /* Legacy alias retained so existing components migrate without churn. */
+  --font-num: var(--font-numeric);
 
   /* weights — Fredoka ships 300–700; Nunito Sans covers 400/600/700/800 */
   --fw-normal: 400;
@@ -148,6 +150,16 @@
   --fs-lg: calc(clamp(15px, 0.8vw + 0.7vh, 19px) * var(--font-scale));
   --fs-xl: calc(clamp(18px, 1vw + 0.9vh, 24px) * var(--font-scale));
   --fs-2xl: calc(clamp(22px, 1.4vw + 1.1vh, 32px) * var(--font-scale));
+
+  /* Semantic aliases keep component typography readable at a glance while the
+     fluid scale above remains the single sizing implementation. */
+  --text-xs: var(--fs-xs);
+  --text-sm: var(--fs-sm);
+  --text-base: var(--fs-base);
+  --text-lg: var(--fs-lg);
+  --text-xl: var(--fs-xl);
+  --text-title: var(--fs-2xl);
+  --text-hero: calc(clamp(28px, 2vw + 1.4vh, 44px) * var(--font-scale));
 }
 
 /* High-contrast overrides only need to touch semantic tokens. */

@@ -13,8 +13,8 @@ export interface OfficePhotoData {
   brand: string;
 }
 
-const DISPLAY_FONT = "'Baloo 2', 'Quicksand', 'Segoe UI', system-ui, sans-serif";
-const BODY_FONT = "'Nunito', 'Segoe UI', system-ui, sans-serif";
+const DISPLAY_FONT = "'Fredoka', 'Segoe UI', system-ui, sans-serif";
+const BODY_FONT = "'Nunito Sans', 'Segoe UI', system-ui, sans-serif";
 
 export function renderOfficePhoto(data: OfficePhotoData): HTMLCanvasElement {
   const w = 900;
@@ -41,7 +41,7 @@ export function renderOfficePhoto(data: OfficePhotoData): HTMLCanvasElement {
   // title
   ctx.fillStyle = '#fff4e0';
   ctx.textAlign = 'center';
-  ctx.font = `800 42px ${DISPLAY_FONT}`;
+  ctx.font = `700 42px ${DISPLAY_FONT}`;
   ctx.fillText(clip(data.companyName, 26), w / 2, 78);
   ctx.fillStyle = '#d8c4a8';
   ctx.font = `600 20px ${BODY_FONT}`;
@@ -65,7 +65,7 @@ export function renderOfficePhoto(data: OfficePhotoData): HTMLCanvasElement {
     ctx.font = `700 15px ${BODY_FONT}`;
     ctx.fillText(s.label, x + chipW / 2, chipY + 21);
     ctx.fillStyle = '#fff4e0';
-    ctx.font = `800 22px ${DISPLAY_FONT}`;
+    ctx.font = `700 22px ${DISPLAY_FONT}`;
     ctx.fillText(clip(s.value, 12), x + chipW / 2, chipY + 45);
     x += chipW + gap;
   }
@@ -73,7 +73,7 @@ export function renderOfficePhoto(data: OfficePhotoData): HTMLCanvasElement {
   // footer
   ctx.fillStyle = '#ffd54a';
   ctx.textAlign = 'left';
-  ctx.font = `800 18px ${DISPLAY_FONT}`;
+  ctx.font = `700 18px ${DISPLAY_FONT}`;
   ctx.fillText(data.brand, 40, h - 34);
   ctx.fillStyle = '#a89577';
   ctx.textAlign = 'right';
