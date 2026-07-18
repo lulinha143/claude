@@ -24,7 +24,7 @@ const RICH_SAVE = {
   },
 };
 
-async function boot(page: Page) {
+async function boot(page: Page, path = '/') {
   // Seed only if absent so the app's own saves survive a reload (this init
   // script re-runs on every navigation, including reload).
   await page.addInitScript((d) => {
@@ -32,7 +32,7 @@ async function boot(page: Page) {
       localStorage.setItem('wmno.save.v1', JSON.stringify(d));
   }, RICH_SAVE);
   await page.setViewportSize({ width: 1280, height: 800 });
-  await page.goto('/');
+  await page.goto(path);
   await page.locator('.office').first().waitFor({ timeout: 15000 });
   for (let i = 0; i < 4; i += 1) {
     const ok = page.locator('.modal .buy-btn').first();
@@ -364,4 +364,62 @@ test('blur, focus, lost pointer streams, popups, and arrange mode never leave in
     return friendship;
   });
   expect(pipFriendshipAfter).toBe(pipFriendshipBefore);
+});
+
+test('event choices recover across chain steps, focus return, and repeated popups', async ({
+  page,
+}) => {
+  await boot(page, '/?dev=1');
+  await page.locator('.dev-fab').click();
+  await page.getByRole('button', { name: /Actions/i }).click();
+  const eventPicker = page.locator('.dev-panel select');
+
+  await eventPicker.selectOption('printer-demands');
+  const negotiate = page.locator('.event-choice[data-option-id="negotiate"]');
+  await expect(negotiate).toBeVisible();
+  await expect(negotiate).toBeEnabled();
+
+  // Two activations in the same turn still resolve exactly once.
+  await negotiate.evaluate((button: HTMLButtonElement) => {
+    button.click();
+    button.click();
+  });
+
+  // Refocus during the 130 ms exit window, while every action is temporarily
+  // disabled. The next chain step must move focus off the dialog container and
+  // onto its first newly enabled choice.
+  await page.evaluate(() => {
+    window.dispatchEvent(new Event('blur'));
+    window.dispatchEvent(new Event('focus'));
+  });
+  const chainedChoice = page.locator(
+    '.event-choice[data-event-id="printer-demands"][data-event-step="peace"]',
+  );
+  await expect(chainedChoice).toBeVisible();
+  await expect(chainedChoice).toBeEnabled();
+  await expect(chainedChoice).toBeFocused();
+  await chainedChoice.click();
+
+  const resultAction = page.locator('.consequence-modal .popup__actions button');
+  await expect(resultAction).toBeVisible();
+  await expect(resultAction).toBeEnabled();
+  await resultAction.click();
+  await expect(page.locator('.popup-backdrop')).toHaveCount(0);
+
+  // ConsequenceModal also remains mounted between events; its reused action
+  // must not retain the previous popup's closing lock.
+  await eventPicker.selectOption('casual-friday');
+  const secondChoice = page.locator(
+    '.event-choice[data-event-id="casual-friday"][data-option-id="ok"]',
+  );
+  await expect(secondChoice).toBeEnabled();
+  await secondChoice.click();
+  await expect(resultAction).toBeVisible();
+  await expect(resultAction).toBeEnabled();
+  await resultAction.click();
+  await expect(page.locator('.popup-backdrop')).toHaveCount(0);
+
+  // The developer panel below the modal remains clickable, proving no stale
+  // backdrop survived the second close.
+  await expect(eventPicker).toBeEnabled();
 });

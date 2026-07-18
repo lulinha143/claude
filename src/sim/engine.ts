@@ -82,6 +82,13 @@ export interface TempBoost {
 export interface ActiveEvent {
   def: GameEventDef;
   step: string | null; // null = base body, otherwise a chain step id
+  /** Monotonic identity used to reject delayed input from an older popup. */
+  instanceId: number;
+}
+
+export interface EventChoiceContext {
+  eventInstanceId: number;
+  step: string | null;
 }
 
 export interface EngineOptions {
@@ -123,6 +130,8 @@ export class GameEngine {
   private saveAccum = 0;
   private saveCallback: ((state: GameState) => void) | null = null;
   private version = 0;
+  private nextEventInstanceId = 1;
+  private resolvingEventInstanceId: number | null = null;
 
   constructor(state: GameState, opts: EngineOptions = {}) {
     this.state = state;
@@ -464,54 +473,70 @@ export class GameEngine {
     this.triggerEvent(chosen.id);
   }
 
-  triggerEvent(id: string): void {
+  triggerEvent(id: string): boolean {
     const def = GAME_EVENTS_BY_ID[id];
-    if (!def) return;
-    this.activeEvent = { def, step: null };
+    if (!def || this.activeEvent) return false;
+    this.activeEvent = { def, step: null, instanceId: this.nextEventInstanceId++ };
     this.state.stats.eventsSeen += 1;
     this.progressDaily('employeeConversations', def.employeeId ? 1 : 0);
     this.emit();
+    return true;
   }
 
-  resolveEventChoice(choiceId: string): void {
-    if (!this.activeEvent) return;
-    const { def, step } = this.activeEvent;
+  resolveEventChoice(choiceId: string, context?: EventChoiceContext): boolean {
+    const active = this.activeEvent;
+    if (!active) return false;
+    if (
+      context &&
+      (context.eventInstanceId !== active.instanceId || context.step !== active.step)
+    ) {
+      return false;
+    }
+    if (this.resolvingEventInstanceId === active.instanceId) return false;
+
+    const { def, step } = active;
     const choices = step && def.steps?.[step] ? def.steps[step].choices : def.choices;
     const choice = choices.find((c) => c.id === choiceId);
-    if (!choice) return;
+    if (!choice) return false;
 
-    // Snapshot BEFORE applying effects so the "WHAT CHANGED" panel reports the
-    // real, measured change rather than the raw effect list.
-    const now = this.now();
-    const before = this.snapshotForReport(now);
+    this.resolvingEventInstanceId = active.instanceId;
+    try {
+      // Snapshot BEFORE applying effects so the "WHAT CHANGED" panel reports the
+      // real, measured change rather than the raw effect list.
+      const now = this.now();
+      const before = this.snapshotForReport(now);
 
-    for (const effect of choice.effects) this.applyEffect(effect, def);
+      for (const effect of choice.effects) this.applyEffect(effect, def);
 
-    const report = this.diffReport(before, choice.effects, now);
+      const report = this.diffReport(before, choice.effects, now);
 
-    // record the decision in the company timeline (capped)
-    this.state.eventHistory.push({ eventId: def.id, choiceId: choice.id, at: this.now() });
-    if (this.state.eventHistory.length > 50) this.state.eventHistory.shift();
+      // record the decision in the company timeline (capped)
+      this.state.eventHistory.push({ eventId: def.id, choiceId: choice.id, at: this.now() });
+      if (this.state.eventHistory.length > 50) this.state.eventHistory.shift();
 
-    // build the consequence result panel (announces every change clearly)
-    this.lastConsequence = {
-      titleKey: def.titleKey,
-      choiceLabelKey: choice.labelKey,
-      effects: choice.effects,
-      reactions: choice.reactions ?? [],
-      report,
-    };
+      // build the consequence result panel (announces every change clearly)
+      this.lastConsequence = {
+        titleKey: def.titleKey,
+        choiceLabelKey: choice.labelKey,
+        effects: choice.effects,
+        reactions: choice.reactions ?? [],
+        report,
+      };
 
-    // advance chain or close
-    if (choice.next && def.steps?.[choice.next]) {
-      this.activeEvent = { def, step: choice.next };
-      // mid-chain steps don't show a standalone result panel
-      this.lastConsequence = null;
-    } else {
-      this.state.eventCooldowns[def.id] = this.now() + def.cooldownSeconds * 1000;
-      this.activeEvent = null;
+      // advance chain or close
+      if (choice.next && def.steps?.[choice.next]) {
+        this.activeEvent = { def, step: choice.next, instanceId: active.instanceId };
+        // mid-chain steps don't show a standalone result panel
+        this.lastConsequence = null;
+      } else {
+        this.state.eventCooldowns[def.id] = this.now() + def.cooldownSeconds * 1000;
+        this.activeEvent = null;
+      }
+      this.emit();
+      return true;
+    } finally {
+      this.resolvingEventInstanceId = null;
     }
-    this.emit();
   }
 
   clearConsequence(): void {
@@ -922,6 +947,7 @@ export class GameEngine {
     this.state = next;
     this.activeEvent = null;
     this.lastConsequence = null;
+    this.resolvingEventInstanceId = null;
     this.tempBoosts = [];
     this.repairedOnLoad = repairPlacements(this.state);
     repairDecorationInstances(this.state);

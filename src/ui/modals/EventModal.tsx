@@ -74,8 +74,22 @@ export function EventModal() {
             <button
               key={choice.id}
               className="event-choice"
+              data-event-id={def.id}
+              data-event-instance={active.instanceId}
+              data-event-step={step ?? 'root'}
+              data-option-id={choice.id}
               disabled={!enabled || closing}
-              onClick={() => enabled && exitThen(() => engine.resolveEventChoice(choice.id))}
+              onClick={() => {
+                if (!enabled) return;
+                const eventInstanceId = active.instanceId;
+                const expectedStep = step;
+                exitThen(() =>
+                  engine.resolveEventChoice(choice.id, {
+                    eventInstanceId,
+                    step: expectedStep,
+                  }),
+                );
+              }}
             >
               <span>{t(choice.labelKey)}</span>
               {!enabled && choice.disabledKey ? (

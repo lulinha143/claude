@@ -40,12 +40,39 @@ const app = await electron.launch({
 
 async function desktopBlurFocus() {
   await app.evaluate(async ({ BrowserWindow }) => {
-    const window = BrowserWindow.getAllWindows()[0];
-    window.blur();
-    window.emit('blur');
-    await new Promise((resolve) => setTimeout(resolve, 80));
-    window.focus();
-    window.emit('focus');
+    const mainWindow = BrowserWindow.getAllWindows()[0];
+    const waitFor = (event) =>
+      new Promise((resolve, reject) => {
+        const timeout = setTimeout(
+          () => reject(new Error(`Electron window did not emit ${event}`)),
+          3_000,
+        );
+        mainWindow.once(event, () => {
+          clearTimeout(timeout);
+          resolve(undefined);
+        });
+      });
+
+    // Focus a real second native window instead of manually emitting lifecycle
+    // events. This exercises Chromium -> BrowserWindow -> preload IPC -> React.
+    const otherWindow = new BrowserWindow({
+      width: 160,
+      height: 100,
+      show: false,
+      webPreferences: { sandbox: true },
+    });
+    await otherWindow.loadURL('data:text/html,<title>Focus peer</title>');
+    const blurred = waitFor('blur');
+    otherWindow.show();
+    otherWindow.focus();
+    await blurred;
+    if (mainWindow.isFocused()) throw new Error('main Electron window did not lose focus');
+
+    const focused = waitFor('focus');
+    otherWindow.destroy();
+    mainWindow.show();
+    mainWindow.focus();
+    await focused;
   });
 }
 
@@ -145,8 +172,41 @@ try {
     throw new Error('an invisible interaction overlay survived Electron refocus');
   }
   await arrange.click();
+
+  // Exercise the same lifecycle with a real event popup in the packaged-style
+  // Electron renderer. The query flag only reveals existing development tools;
+  // event input still travels through the production engine and popup code.
+  const devUrl = new URL(page.url());
+  devUrl.searchParams.set('dev', '1');
+  await page.goto(devUrl.toString());
+  await page.locator('.office').waitFor({ timeout: 20_000 });
+  await page.locator('.dev-fab').click();
+  await page.getByRole('button', { name: /Actions/i }).click();
+  const eventPicker = page.locator('.dev-panel select');
+  await eventPicker.selectOption('printer-demands');
+  const negotiate = page.locator('.event-choice[data-option-id="negotiate"]');
+  await negotiate.waitFor({ state: 'visible' });
+  if (!(await negotiate.isEnabled())) throw new Error('initial event choice is disabled');
+  await negotiate.click();
+
+  const chainedChoice = page.locator(
+    '.event-choice[data-event-id="printer-demands"][data-event-step="peace"]',
+  );
+  await chainedChoice.waitFor({ state: 'visible' });
+  await desktopBlurFocus();
+  if (!(await chainedChoice.isEnabled()))
+    throw new Error('event choice became disabled after Electron refocus');
+  if (!(await chainedChoice.evaluate((element) => element === document.activeElement)))
+    throw new Error('event popup focus trap did not recover after Electron refocus');
+  await chainedChoice.click();
+  const resultAction = page.locator('.consequence-modal .popup__actions button');
+  await resultAction.waitFor({ state: 'visible' });
+  if (!(await resultAction.isEnabled())) throw new Error('event consequence action is disabled');
+  await resultAction.click();
+  await page.locator('.popup-backdrop').waitFor({ state: 'detached' });
+
   console.log(
-    'FOCUS SMOKE OK: drag, popup, and organization input recovered after Electron blur/focus',
+    'FOCUS SMOKE OK: drag, popup, organization, and event input recovered after Electron blur/focus',
   );
 } finally {
   await app.close();

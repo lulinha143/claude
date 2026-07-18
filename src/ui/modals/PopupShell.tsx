@@ -46,6 +46,7 @@ export function PopupShell({
   closeOnBackdrop = false,
 }: PopupShellProps) {
   const popupRef = useRef<HTMLDivElement>(null);
+  const wasClosingRef = useRef(closing);
   const dismissRef = useRef(onDismiss);
   dismissRef.current = onDismiss;
 
@@ -109,6 +110,21 @@ export function PopupShell({
     };
   }, []);
 
+  // A window can regain focus while the exit animation has every action
+  // disabled, which intentionally focuses the dialog itself. If that exit
+  // advances a chained popup, move focus to its newly enabled first action.
+  useEffect(() => {
+    const finishedClosing = wasClosingRef.current && !closing;
+    wasClosingRef.current = closing;
+    if (!finishedClosing) return;
+    const frame = window.requestAnimationFrame(() => {
+      const popup = popupRef.current;
+      const first = popup?.querySelector<HTMLElement>(FOCUSABLE);
+      (first ?? popup)?.focus({ preventScroll: true });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [closing]);
+
   const urgent = variant === 'warning' || variant === 'critical';
   return (
     <div
@@ -149,12 +165,24 @@ export function usePopupExit() {
   );
 
   const exitThen = useCallback((action: () => void) => {
+    // The timer is also the single-flight lock: a rapid second activation must
+    // not apply the same action twice while the exit animation is playing.
     if (timer.current !== null) return;
     setClosing(true);
     const reduced =
       document.documentElement.dataset.reducedMotion === 'true' ||
       window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    timer.current = window.setTimeout(action, reduced ? 0 : 130);
+    timer.current = window.setTimeout(() => {
+      // Event and consequence modal components remain mounted while returning
+      // null. Release both pieces of state before they are reused for a chain
+      // step or a later popup; otherwise every future action stays disabled.
+      timer.current = null;
+      try {
+        action();
+      } finally {
+        setClosing(false);
+      }
+    }, reduced ? 0 : 130);
   }, []);
 
   return { closing, exitThen };

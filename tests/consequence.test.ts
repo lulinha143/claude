@@ -42,6 +42,52 @@ describe('event consequences + history', () => {
     expect(engine.state.eventHistory).toHaveLength(2);
   });
 
+  it('rejects delayed duplicate input after a chained event advances', () => {
+    const t = { v: 0 };
+    const engine = engineAt(t);
+    expect(engine.triggerEvent('printer-demands')).toBe(true);
+    const active = engine.activeEvent!;
+    const context = { eventInstanceId: active.instanceId, step: active.step };
+
+    expect(engine.resolveEventChoice('negotiate', context)).toBe(true);
+    expect(engine.activeEvent?.step).toBe('peace');
+    // "ok" exists in the new step, so only the stale root-step context keeps
+    // this delayed activation from incorrectly resolving it.
+    expect(engine.resolveEventChoice('ok', context)).toBe(false);
+    expect(engine.activeEvent?.step).toBe('peace');
+    expect(engine.state.eventHistory).toHaveLength(1);
+  });
+
+  it('does not overwrite an open event or accept input from an older instance', () => {
+    const t = { v: 0 };
+    const engine = engineAt(t);
+    expect(engine.triggerEvent('casual-friday')).toBe(true);
+    expect(engine.triggerEvent('printer-demands')).toBe(false);
+    const first = engine.activeEvent!;
+    const staleContext = { eventInstanceId: first.instanceId, step: first.step };
+
+    expect(engine.resolveEventChoice('ok', staleContext)).toBe(true);
+    expect(engine.state.eventHistory).toHaveLength(1);
+    expect(engine.triggerEvent('casual-friday')).toBe(true);
+    const current = engine.activeEvent!;
+    const moraleBeforeStaleInput = engine.state.resources.morale;
+
+    // The same event, step, and choice are active again. Instance identity is
+    // therefore the only thing preventing a delayed old click from applying.
+    expect(engine.resolveEventChoice('ok', staleContext)).toBe(false);
+    expect(engine.state.resources.morale).toBe(moraleBeforeStaleInput);
+    expect(engine.state.eventHistory).toHaveLength(1);
+    expect(engine.activeEvent?.instanceId).toBe(current.instanceId);
+
+    expect(
+      engine.resolveEventChoice('ok', {
+        eventInstanceId: current.instanceId,
+        step: current.step,
+      }),
+    ).toBe(true);
+    expect(engine.state.eventHistory).toHaveLength(2);
+  });
+
   it('the expanded fire event exposes four strategic choices with reactions', () => {
     const t = { v: 0 };
     const engine = engineAt(t);
