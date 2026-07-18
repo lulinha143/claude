@@ -1,7 +1,19 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { GameEngine } from '../src/sim/engine';
 import { createInitialState } from '../src/sim/state';
-import { GAME_EVENTS, GAME_EVENTS_BY_ID } from '../src/content/events';
+import {
+  AUTHORED_GAME_EVENTS,
+  EVENT_CONTENT_REPAIRS,
+  GAME_EVENTS,
+  GAME_EVENTS_BY_ID,
+} from '../src/content/events';
+import type { GameEventDef } from '../src/content/types';
+import { EMPLOYEES_BY_ID } from '../src/content/employees';
+import {
+  evaluateEventChoice,
+  eventChoicesForState,
+  reportEventChoiceRepairs,
+} from '../src/sim/eventChoices';
 
 function engineAt(t: { v: number }) {
   const state = createInitialState(t.v);
@@ -25,6 +37,145 @@ describe('random events', () => {
         for (const c of step.choices) expect(typeof c.labelKey).toBe('string');
       }
     }
+  });
+
+  it('audits every event location for two displayed choices and an actionable path', () => {
+    const state = createInitialState(0);
+    // Audit the hostile case: no employee is owned and no spendable resource is
+    // available. A normal event must still expose a deterministic safe path.
+    for (const employee of Object.values(state.employees)) employee.hired = false;
+    state.resources.nuts = 0;
+    state.resources.goldenNuts = 0;
+    state.resources.reputation = 0;
+
+    for (const event of AUTHORED_GAME_EVENTS) {
+      const locations: Array<[string | null, GameEventDef['choices']]> = [
+        [null, event.choices],
+        ...Object.entries(event.steps ?? {}).map(
+          ([stepId, step]) => [stepId, step.choices] as [string, GameEventDef['choices']],
+        ),
+      ];
+      for (const [step, authoredChoices] of locations) {
+        expect(
+          authoredChoices.length,
+          `${event.id}:${step ?? 'root'} has fewer than two displayed choices`,
+        ).toBeGreaterThanOrEqual(2);
+        expect(new Set(authoredChoices.map((choice) => choice.id)).size).toBe(
+          authoredChoices.length,
+        );
+        for (const choice of authoredChoices) {
+          const employeeId = choice.requires?.hiredEmployee;
+          if (employeeId) {
+            expect(
+              EMPLOYEES_BY_ID[employeeId],
+              `${event.id}:${choice.id} references unknown employee ${employeeId}`,
+            ).toBeTruthy();
+          }
+        }
+        expect(
+          authoredChoices.some((choice) => evaluateEventChoice(state, choice).enabled),
+          `${event.id}:${step ?? 'root'} can disable every authored choice`,
+        ).toBe(true);
+        const choiceSet = eventChoicesForState(state, event, step);
+        expect(choiceSet.choices.length).toBeGreaterThanOrEqual(2);
+        expect(choiceSet.choices.some((choice) => choice.enabled)).toBe(true);
+      }
+    }
+
+    // Runtime normalization remains a safety net, but authored content must be
+    // clean so CI fails instead of silently accepting a new one-option event.
+    expect(EVENT_CONTENT_REPAIRS).toEqual([]);
+  });
+
+  it('repairs empty and all-unavailable malformed content deterministically', () => {
+    const state = createInitialState(0);
+    state.resources.nuts = 0;
+    const malformed: GameEventDef = {
+      id: 'malformed-test',
+      titleKey: 'event.audit.title',
+      bodyKey: 'event.audit.body',
+      rarity: 'common',
+      weight: 1,
+      cooldownSeconds: 1,
+      choices: [],
+    };
+    const empty = eventChoicesForState(state, malformed, null);
+    expect(empty.choices.map(({ choice }) => choice.id)).toEqual([
+      'fallback-postpone',
+      'fallback-decline',
+    ]);
+    expect(empty.choices.every((choice) => choice.enabled)).toBe(true);
+    expect(empty.repairs).toContain('fewer-than-two');
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    reportEventChoiceRepairs(malformed, null, empty.repairs);
+    expect(error).toHaveBeenCalledWith(
+      '[events] repaired invalid choice content',
+      expect.objectContaining({ eventId: 'malformed-test', step: 'root' }),
+    );
+    error.mockRestore();
+
+    malformed.choices = [
+      {
+        id: 'expensive-a',
+        labelKey: 'event.audit.comply',
+        requires: { nuts: 500 },
+        effects: [{ type: 'reputation', value: 1 }],
+      },
+      {
+        id: 'expensive-b',
+        labelKey: 'event.audit.hide',
+        requires: { nuts: 600 },
+        effects: [{ type: 'morale', value: 1 }],
+      },
+    ];
+    const unavailable = eventChoicesForState(state, malformed, null);
+    expect(unavailable.choices).toHaveLength(3);
+    expect(unavailable.choices.filter((choice) => choice.enabled)).toHaveLength(1);
+    expect(unavailable.choices.at(-1)?.choice.id).toBe('fallback-decline');
+    expect(unavailable.repairs).toContain('no-actionable-choice');
+    state.resources.nuts = 1_000;
+    const afterResourcesChange = eventChoicesForState(state, malformed, null);
+    expect(afterResourcesChange.choices.some(({ choice }) => choice.id === 'fallback-decline')).toBe(
+      true,
+    );
+    state.resources.nuts = 0;
+
+    malformed.choices = [
+      {
+        id: 'duplicate',
+        labelKey: 'event.audit.comply',
+        effects: [{ type: 'morale', value: 1 }],
+      },
+      {
+        id: 'duplicate',
+        labelKey: 'event.audit.hide',
+        effects: [{ type: 'reputation', value: 1 }],
+      },
+    ];
+    const deduplicated = eventChoicesForState(state, malformed, null);
+    expect(deduplicated.choices.map(({ choice }) => choice.id)).toEqual([
+      'duplicate',
+      'fallback-decline',
+    ]);
+    expect(deduplicated.repairs).toContain('duplicate-choice-id');
+    expect(deduplicated.repairs).toContain('fewer-than-two');
+  });
+
+  it('enforces choice eligibility in the engine rather than trusting the UI', () => {
+    const t = { v: 0 };
+    const engine = engineAt(t);
+    engine.triggerEvent('technically-on-fire');
+    const active = engine.activeEvent!;
+    const historyBefore = engine.state.eventHistory.length;
+
+    expect(
+      engine.resolveEventChoice('contain', {
+        eventInstanceId: active.instanceId,
+        step: active.step,
+      }),
+    ).toBe(false);
+    expect(engine.activeEvent?.instanceId).toBe(active.instanceId);
+    expect(engine.state.eventHistory).toHaveLength(historyBefore);
   });
 
   it('includes the six new employee story events (gated on their employee)', () => {

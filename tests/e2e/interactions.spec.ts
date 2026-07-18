@@ -13,7 +13,6 @@ const RICH_SAVE = {
     pip: { hired: true, level: 6, friendship: 70, room: 'founder-desk', x: 0.2 },
     marlow: { hired: true, level: 4, friendship: 55, room: 'founder-desk', x: 0.4 },
     rizzo: { hired: true, level: 3, friendship: 45, room: 'founder-desk', x: 0.6 },
-    bea: { hired: true, level: 3, friendship: 40, room: 'founder-desk', x: 0.8 },
   },
   collections: {
     nuts: [],
@@ -370,6 +369,54 @@ test('event choices recover across chain steps, focus return, and repeated popup
   page,
 }) => {
   await boot(page, '/?dev=1');
+
+  // The migrated v3 fixture must retain usable event input after ordinary view
+  // changes and a complete decoration-drag/popup lifecycle.
+  await page.locator('.nav__item[aria-label="Settings"]').click();
+  await page.locator('.nav__item[aria-label="Office"]').click();
+  const arrange = page.locator('.office__toolbar .chip-btn').first();
+  await arrange.click();
+  const trayDecoration = page.locator('.deco-tray__card .decor').first();
+  await trayDecoration.evaluate((element) => {
+    const box = element.getBoundingClientRect();
+    const pointer = {
+      pointerId: 91,
+      pointerType: 'touch',
+      isPrimary: true,
+      button: 0,
+      clientX: box.left + box.width / 2,
+      clientY: box.top + box.height / 2,
+      bubbles: true,
+    };
+    element.dispatchEvent(new PointerEvent('pointerdown', { ...pointer, buttons: 1 }));
+    window.dispatchEvent(
+      new PointerEvent('pointermove', {
+        ...pointer,
+        buttons: 1,
+        clientX: pointer.clientX + 20,
+        clientY: pointer.clientY - 12,
+      }),
+    );
+  });
+  await expect(page.locator('.drag-ghost')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await page.evaluate(() => {
+    window.dispatchEvent(
+      new PointerEvent('pointerup', {
+        pointerId: 91,
+        pointerType: 'touch',
+        isPrimary: true,
+        buttons: 0,
+        bubbles: true,
+      }),
+    );
+  });
+  await trayDecoration.click();
+  await page.locator('.deco-tray__move').click();
+  await page.locator('.move-decoration-popup .popup__actions .mini-btn').click();
+  await expect(page.locator('.move-decoration-popup')).toHaveCount(0);
+  await arrange.click();
+
   await page.locator('.dev-fab').click();
   await page.getByRole('button', { name: /Actions/i }).click();
   const eventPicker = page.locator('.dev-panel select');
@@ -393,11 +440,15 @@ test('event choices recover across chain steps, focus return, and repeated popup
     window.dispatchEvent(new Event('focus'));
   });
   const chainedChoice = page.locator(
-    '.event-choice[data-event-id="printer-demands"][data-event-step="peace"]',
+    '.event-choice[data-event-id="printer-demands"][data-event-step="peace"][data-option-id="ok"]',
   );
   await expect(chainedChoice).toBeVisible();
-  await expect(chainedChoice).toBeEnabled();
+  await expect(chainedChoice).toHaveAttribute('aria-disabled', 'false');
   await expect(chainedChoice).toBeFocused();
+  await expect(page.locator('.event-choice-debug')).toHaveAttribute(
+    'data-event-history-count',
+    '1',
+  );
   await chainedChoice.click();
 
   const resultAction = page.locator('.consequence-modal .popup__actions button');
@@ -419,7 +470,57 @@ test('event choices recover across chain steps, focus return, and repeated popup
   await resultAction.click();
   await expect(page.locator('.popup-backdrop')).toHaveCount(0);
 
+  // An authored one-option event is normalized to two meaningful paths.
+  await eventPicker.selectOption('pie-chart');
+  const pieChoices = page.locator('.event-choice[data-event-id="pie-chart"]');
+  await expect(pieChoices).toHaveCount(2);
+  const fallbackChoice = page.locator(
+    '.event-choice[data-event-id="pie-chart"][data-option-id="fallback-decline"]',
+  );
+  await expect(fallbackChoice).toBeEnabled();
+  await fallbackChoice.click();
+  await expect(resultAction).toBeEnabled();
+  await resultAction.click();
+  await expect(page.locator('.popup-backdrop')).toHaveCount(0);
+
+  // An intentionally unavailable option stays readable and explains the exact
+  // missing employee while other actionable choices remain usable.
+  await eventPicker.selectOption('technically-on-fire');
+  await page.setViewportSize({ width: 900, height: 600 });
+  const contain = page.locator(
+    '.event-choice[data-event-id="technically-on-fire"][data-option-id="contain"]',
+  );
+  await expect(contain).toHaveAttribute('aria-disabled', 'true');
+  await contain.focus();
+  await expect(contain).toBeFocused();
+  await expect(contain.locator('.event-choice__req')).toContainText(/Requires unlocked employee/i);
+  await expect(contain).toHaveAttribute('data-disabled-reasons', 'hiredEmployee');
+  const fireChoices = page.locator('.event-choice[data-event-id="technically-on-fire"]');
+  expect(await fireChoices.count()).toBeGreaterThanOrEqual(2);
+  expect(
+    await fireChoices.evaluateAll(
+      (choices) =>
+        choices.filter((choice) => choice.getAttribute('aria-disabled') !== 'true').length,
+    ),
+  ).toBeGreaterThanOrEqual(1);
+  await expect(page.locator('.event-choice-debug')).toContainText('technically-on-fire');
+  await expect(page.locator('.event-choice-debug')).toContainText('hiredEmployee');
+  await page.evaluate(() => {
+    window.dispatchEvent(new Event('blur'));
+    window.dispatchEvent(new Event('focus'));
+  });
+  const actionableFireChoice = page
+    .locator(
+      '.event-choice[data-event-id="technically-on-fire"][aria-disabled="false"]',
+    )
+    .first();
+  await expect(actionableFireChoice).toBeEnabled();
+  await actionableFireChoice.click();
+  await expect(resultAction).toBeEnabled();
+  await resultAction.click();
+  await expect(page.locator('.popup-backdrop')).toHaveCount(0);
+
   // The developer panel below the modal remains clickable, proving no stale
-  // backdrop survived the second close.
+  // backdrop survived every repair and close path.
   await expect(eventPicker).toBeEnabled();
 });

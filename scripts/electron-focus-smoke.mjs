@@ -190,7 +190,7 @@ try {
   await negotiate.click();
 
   const chainedChoice = page.locator(
-    '.event-choice[data-event-id="printer-demands"][data-event-step="peace"]',
+    '.event-choice[data-event-id="printer-demands"][data-event-step="peace"][data-option-id="ok"]',
   );
   await chainedChoice.waitFor({ state: 'visible' });
   await desktopBlurFocus();

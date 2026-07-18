@@ -327,6 +327,18 @@
     "reactionsLabel": "A equipe reage",
     "employeeChangesLabel": "O que mudou para a equipe",
     "noEffects": "Nada mensurável mudou — mas a história continua.",
+    "fallback": {
+      "decline": "Recusar educadamente",
+      "postpone": "Adiar e comprar petiscos para a equipe",
+      "declineReaction": "A papelada suspira, mas o escritório continua funcionando.",
+      "postponeReaction": "A equipe aceita petiscos como uma prorrogação juridicamente válida."
+    },
+    "requirement": {
+      "nuts": "Requer {{value}} castanhas",
+      "goldenNuts": "Requer {{value}} castanhas douradas",
+      "reputation": "Requer {{value}} de reputação",
+      "employee": "Requer o funcionário desbloqueado {{employee}}"
+    },
     "printer": {
       "title": "A Impressora Está Fazendo Exigências",
       "body": "A impressora do escritório redigiu uma lista de exigências. Item um: respeito.",

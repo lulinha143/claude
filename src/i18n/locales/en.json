@@ -327,6 +327,18 @@
     "reactionsLabel": "The team reacts",
     "employeeChangesLabel": "What changed for the team",
     "noEffects": "Nothing measurable changed — but the story continues.",
+    "fallback": {
+      "decline": "Decline politely",
+      "postpone": "Postpone it and buy the team snacks",
+      "declineReaction": "The paperwork sighs, but the office remains operational.",
+      "postponeReaction": "The team accepts snacks as a legally binding extension."
+    },
+    "requirement": {
+      "nuts": "Requires {{value}} nuts",
+      "goldenNuts": "Requires {{value}} golden nuts",
+      "reputation": "Requires {{value}} reputation",
+      "employee": "Requires unlocked employee {{employee}}"
+    },
     "printer": {
       "title": "The Printer Is Making Demands",
       "body": "The office printer has drafted a list of demands. Item one: respect.",

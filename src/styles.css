@@ -4576,15 +4576,16 @@ img {
   cursor: pointer;
   text-align: left;
 }
-.event-choice:hover:not(:disabled) {
+.event-choice:hover:not(:disabled):not([aria-disabled='true']) {
   background: var(--primary-hover);
   transform: translateY(-1px);
 }
-.event-choice:active:not(:disabled) {
+.event-choice:active:not(:disabled):not([aria-disabled='true']) {
   transform: translateY(1px);
   box-shadow: none;
 }
-.event-choice:disabled {
+.event-choice:disabled,
+.event-choice[aria-disabled='true'] {
   color: #766c5d;
   background: #d2c4a7;
   border-color: #a99a7d;
@@ -4594,7 +4595,34 @@ img {
 .event-choice__req {
   font-family: var(--font-body);
   font-size: var(--text-xs);
-  opacity: 0.8;
+  opacity: 0.9;
+}
+.event-choice--fallback {
+  border-style: dashed;
+}
+.event-choice-debug {
+  margin-top: 10px;
+  padding: 7px 9px;
+  border: 1px dashed var(--popup-edge);
+  border-radius: 4px;
+  color: var(--popup-ink);
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+}
+.event-choice-debug summary {
+  cursor: pointer;
+  font-weight: 800;
+}
+.event-choice-debug pre {
+  max-height: 180px;
+  margin: 7px 0 0;
+  padding: 7px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--popup-ink);
+  background: color-mix(in srgb, var(--popup-paper) 78%, white);
+  border-radius: 3px;
 }
 .consequence-modal {
   text-align: left;

@@ -1,9 +1,40 @@
-import type { GameEventDef } from './types';
+import type { EventChoice, GameEventDef } from './types';
 
-// Data-driven random events. 26 events; five (rizzo-found, corvus-nutcoin,
-// mina-basement, printer-demands, spreadsheet) include multi-step chains via
-// `steps` + `choice.next`. Every string is a localization key.
-export const GAME_EVENTS: GameEventDef[] = [
+export type EventFallbackKind = 'decline' | 'postpone';
+
+/** Safe, localized paths used to repair malformed event content deterministically. */
+export function createEventFallbackChoice(kind: EventFallbackKind): EventChoice {
+  return kind === 'decline'
+    ? {
+        id: 'fallback-decline',
+        labelKey: 'event.fallback.decline',
+        effects: [
+          { type: 'reputation', value: 1 },
+          { type: 'morale', value: -1 },
+        ],
+        reactions: ['event.fallback.declineReaction'],
+      }
+    : {
+        id: 'fallback-postpone',
+        labelKey: 'event.fallback.postpone',
+        effects: [
+          { type: 'nuts', value: -10 },
+          { type: 'morale', value: 2 },
+        ],
+        reactions: ['event.fallback.postponeReaction'],
+      };
+}
+
+export interface EventContentRepair {
+  eventId: string;
+  step: string | null;
+  reason: 'fewer-than-two' | 'duplicate-choice-id';
+  originalChoiceCount: number;
+}
+
+// Data-driven random events. Every string is a localization key. The exported
+// collection is normalized below so authored mistakes can never trap a player.
+export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
   {
     id: 'printer-demands',
     titleKey: 'event.printer.title',
@@ -20,11 +51,17 @@ export const GAME_EVENTS: GameEventDef[] = [
     steps: {
       peace: {
         bodyKey: 'event.printer.peaceBody',
-        choices: [{ id: 'ok', labelKey: 'common.ok', effects: [{ type: 'productionBoost', value: 1.2, durationSeconds: 120 }] }],
+        choices: [
+          { id: 'ok', labelKey: 'common.ok', effects: [{ type: 'productionBoost', value: 1.2, durationSeconds: 120 }] },
+          createEventFallbackChoice('decline'),
+        ],
       },
       revenge: {
         bodyKey: 'event.printer.revengeBody',
-        choices: [{ id: 'ok', labelKey: 'common.ok', effects: [{ type: 'morale', value: -3 }, { type: 'momentCard' }] }],
+        choices: [
+          { id: 'ok', labelKey: 'common.ok', effects: [{ type: 'morale', value: -3 }, { type: 'momentCard' }] },
+          createEventFallbackChoice('decline'),
+        ],
       },
     },
   },
@@ -109,6 +146,7 @@ export const GAME_EVENTS: GameEventDef[] = [
     employeeId: 'pip',
     choices: [
       { id: 'applaud', labelKey: 'event.pieChart.applaud', effects: [{ type: 'friendship', value: 5, employeeId: 'pip' }, { type: 'morale', value: 3 }] },
+      createEventFallbackChoice('decline'),
     ],
   },
   {
@@ -195,7 +233,10 @@ export const GAME_EVENTS: GameEventDef[] = [
     rarity: 'common',
     weight: 7,
     cooldownSeconds: 500,
-    choices: [{ id: 'ok', labelKey: 'common.ok', effects: [{ type: 'morale', value: 5 }] }],
+    choices: [
+      { id: 'ok', labelKey: 'common.ok', effects: [{ type: 'morale', value: 5 }] },
+      createEventFallbackChoice('decline'),
+    ],
   },
   {
     id: 'corvus-nutcoin',
@@ -216,6 +257,7 @@ export const GAME_EVENTS: GameEventDef[] = [
         bodyKey: 'event.nutcoin.crashBody',
         choices: [
           { id: 'sigh', labelKey: 'event.nutcoin.sigh', effects: [{ type: 'morale', value: -3 }, { type: 'unlockSecret', secretId: 'nutcoin' }, { type: 'momentCard' }] },
+          createEventFallbackChoice('decline'),
         ],
       },
     },
@@ -264,6 +306,7 @@ export const GAME_EVENTS: GameEventDef[] = [
     momentWorthy: true,
     choices: [
       { id: 'grab', labelKey: 'event.goldenAcorn.grab', effects: [{ type: 'goldenNuts', value: 3 }, { type: 'collectNut', nutId: 'executive-hazelnut' }, { type: 'momentCard' }] },
+      createEventFallbackChoice('decline'),
     ],
   },
   {
@@ -273,7 +316,10 @@ export const GAME_EVENTS: GameEventDef[] = [
     rarity: 'common',
     weight: 8,
     cooldownSeconds: 400,
-    choices: [{ id: 'celebrate', labelKey: 'event.employeeMinute.celebrate', effects: [{ type: 'morale', value: 4 }, { type: 'friendship', value: 4 }] }],
+    choices: [
+      { id: 'celebrate', labelKey: 'event.employeeMinute.celebrate', effects: [{ type: 'morale', value: 4 }, { type: 'friendship', value: 4 }] },
+      createEventFallbackChoice('decline'),
+    ],
   },
   {
     id: 'reply-all',
@@ -302,6 +348,7 @@ export const GAME_EVENTS: GameEventDef[] = [
         effects: [{ type: 'unlockSecret', secretId: 'chair' }, { type: 'morale', value: 5 }, { type: 'momentCard' }],
         reactions: ['react.teamHappy', 'react.pipProud'],
       },
+      createEventFallbackChoice('decline'),
     ],
   },
   {
@@ -337,7 +384,10 @@ export const GAME_EVENTS: GameEventDef[] = [
     weight: 6,
     cooldownSeconds: 500,
     employeeId: 'pip',
-    choices: [{ id: 'endure', labelKey: 'event.metaMeeting.endure', effects: [{ type: 'morale', value: -2 }, { type: 'productionBoost', value: 1.1, durationSeconds: 60 }] }],
+    choices: [
+      { id: 'endure', labelKey: 'event.metaMeeting.endure', effects: [{ type: 'morale', value: -2 }, { type: 'productionBoost', value: 1.1, durationSeconds: 60 }] },
+      createEventFallbackChoice('decline'),
+    ],
   },
   {
     id: 'union-snacks',
@@ -360,7 +410,10 @@ export const GAME_EVENTS: GameEventDef[] = [
     cooldownSeconds: 700,
     employeeId: 'pip',
     momentWorthy: true,
-    choices: [{ id: 'approve', labelKey: 'event.mascot.approve', effects: [{ type: 'reputation', value: 3 }, { type: 'momentCard' }] }],
+    choices: [
+      { id: 'approve', labelKey: 'event.mascot.approve', effects: [{ type: 'reputation', value: 3 }, { type: 'momentCard' }] },
+      createEventFallbackChoice('decline'),
+    ],
   },
   {
     id: 'mysterious-walnut',
@@ -382,7 +435,10 @@ export const GAME_EVENTS: GameEventDef[] = [
     weight: 4,
     cooldownSeconds: 800,
     momentWorthy: true,
-    choices: [{ id: 'wave', labelKey: 'event.human.wave', effects: [{ type: 'morale', value: 6 }, { type: 'momentCard' }] }],
+    choices: [
+      { id: 'wave', labelKey: 'event.human.wave', effects: [{ type: 'morale', value: 6 }, { type: 'momentCard' }] },
+      createEventFallbackChoice('decline'),
+    ],
   },
   {
     id: 'spreadsheet',
@@ -401,6 +457,7 @@ export const GAME_EVENTS: GameEventDef[] = [
         bodyKey: 'event.spreadsheet.answerBody',
         choices: [
           { id: 'accept', labelKey: 'event.spreadsheet.accept', effects: [{ type: 'unlockSecret', secretId: 'spreadsheet' }, { type: 'goldenNuts', value: 1 }, { type: 'momentCard' }] },
+          createEventFallbackChoice('decline'),
         ],
       },
     },
@@ -425,7 +482,10 @@ export const GAME_EVENTS: GameEventDef[] = [
     weight: 2,
     cooldownSeconds: 1500,
     momentWorthy: true,
-    choices: [{ id: 'cool', labelKey: 'event.sunglasses.cool', effects: [{ type: 'morale', value: 8 }, { type: 'momentCard' }] }],
+    choices: [
+      { id: 'cool', labelKey: 'event.sunglasses.cool', effects: [{ type: 'morale', value: 8 }, { type: 'momentCard' }] },
+      createEventFallbackChoice('decline'),
+    ],
   },
 
   // ======================================================================
@@ -655,6 +715,7 @@ export const GAME_EVENTS: GameEventDef[] = [
             effects: [{ type: 'morale', value: 8 }, { type: 'unlockSecret', secretId: 'break-room-nation' }, { type: 'momentCard' }],
             reactions: ['react.marlowApproves', 'react.hazelApproves'],
           },
+          createEventFallbackChoice('decline'),
         ],
       },
     },
@@ -775,6 +836,56 @@ export const GAME_EVENTS: GameEventDef[] = [
     ],
   },
 ];
+
+export const EVENT_CONTENT_REPAIRS: EventContentRepair[] = [];
+
+function ensureMinimumChoices(
+  eventId: string,
+  step: string | null,
+  choices: readonly EventChoice[],
+): EventChoice[] {
+  const repaired = choices.filter(
+    (choice, index) => choices.findIndex((candidate) => candidate.id === choice.id) === index,
+  );
+  if (repaired.length !== choices.length) {
+    EVENT_CONTENT_REPAIRS.push({
+      eventId,
+      step,
+      reason: 'duplicate-choice-id',
+      originalChoiceCount: choices.length,
+    });
+  }
+  if (repaired.length >= 2) return repaired;
+  EVENT_CONTENT_REPAIRS.push({
+    eventId,
+    step,
+    reason: 'fewer-than-two',
+    originalChoiceCount: choices.length,
+  });
+  const fallbackKinds: readonly EventFallbackKind[] = ['decline', 'postpone'];
+  for (const kind of fallbackKinds) {
+    if (repaired.length >= 2) break;
+    const fallback = createEventFallbackChoice(kind);
+    if (!repaired.some((choice) => choice.id === fallback.id)) repaired.push(fallback);
+  }
+  return repaired;
+}
+
+export const GAME_EVENTS: GameEventDef[] = AUTHORED_GAME_EVENTS.map((event) => ({
+  ...event,
+  choices: ensureMinimumChoices(event.id, null, event.choices),
+  steps: event.steps
+    ? Object.fromEntries(
+        Object.entries(event.steps).map(([stepId, step]) => [
+          stepId,
+          {
+            ...step,
+            choices: ensureMinimumChoices(event.id, stepId, step.choices),
+          },
+        ]),
+      )
+    : undefined,
+}));
 
 export const GAME_EVENTS_BY_ID: Record<string, GameEventDef> = Object.fromEntries(
   GAME_EVENTS.map((e) => [e.id, e]),

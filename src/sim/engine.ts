@@ -21,6 +21,7 @@ import { EMPLOYEES_BY_ID } from '../content/employees';
 import { UPGRADES_BY_ID } from '../content/upgrades';
 import type { EventEffect, GameEventDef } from '../content/types';
 import { GAME_EVENTS, GAME_EVENTS_BY_ID } from '../content/events';
+import { eventChoicesForState } from './eventChoices';
 import { evaluateAchievements } from './achievements';
 import { ensureDailyForDate } from './dailyChallenges';
 import { isRoomIdUnlocked, repairPlacements, unlockedRooms } from './rooms';
@@ -495,9 +496,10 @@ export class GameEngine {
     if (this.resolvingEventInstanceId === active.instanceId) return false;
 
     const { def, step } = active;
-    const choices = step && def.steps?.[step] ? def.steps[step].choices : def.choices;
-    const choice = choices.find((c) => c.id === choiceId);
-    if (!choice) return false;
+    const choiceSet = eventChoicesForState(this.state, def, step);
+    const evaluatedChoice = choiceSet.choices.find((entry) => entry.choice.id === choiceId);
+    if (!evaluatedChoice?.enabled) return false;
+    const choice = evaluatedChoice.choice;
 
     this.resolvingEventInstanceId = active.instanceId;
     try {
