@@ -1,8 +1,8 @@
 import { test, expect, type Page } from '@playwright/test';
 
-// Regression guard for the "sliding bar": the nav strip must NEVER produce a
-// horizontal scrollbar (its tabs wrap / collapse to icons instead). Content
-// panels may still scroll vertically where genuinely needed.
+// Responsive navigation regression: all localized labels remain readable while
+// the tabs wrap into rows, and neither the nav nor the document may become a
+// horizontal scrolling strip.
 
 const SAVE = {
   version: 6,
@@ -16,7 +16,8 @@ const SAVE = {
 
 async function boot(page: Page) {
   await page.addInitScript((d) => {
-    if (!localStorage.getItem('wmno.save.v1')) localStorage.setItem('wmno.save.v1', JSON.stringify(d));
+    if (!localStorage.getItem('wmno.save.v1'))
+      localStorage.setItem('wmno.save.v1', JSON.stringify(d));
   }, SAVE);
   await page.goto('/');
   await page.locator('.office').first().waitFor({ timeout: 15000 });
@@ -28,9 +29,13 @@ async function boot(page: Page) {
 }
 
 for (const [label, w, h] of [
-  ['compact', 420, 640],
-  ['medium', 760, 720],
-  ['normal', 1100, 780],
+  ['320x520', 320, 520],
+  ['360x600', 360, 600],
+  ['400x700', 400, 700],
+  ['480x720', 480, 720],
+  ['640x720', 640, 720],
+  ['800x700', 800, 700],
+  ['1280x800', 1280, 800],
 ] as const) {
   test(`nav has no horizontal sliding bar at ${label}`, async ({ page }) => {
     await page.setViewportSize({ width: w, height: h });
@@ -49,8 +54,6 @@ for (const [label, w, h] of [
   });
 }
 
-
-
 test('localized nav tooltips stay inside every viewport and respect hover plus focus', async ({
   page,
 }) => {
@@ -61,7 +64,7 @@ test('localized nav tooltips stay inside every viewport and respect hover plus f
     );
     localStorage.setItem('wmno.lang', 'pt-BR');
   }, SAVE);
-  await page.setViewportSize({ width: 1100, height: 780 });
+  await page.setViewportSize({ width: 1280, height: 800 });
   await boot(page);
 
   const nav = page.getByRole('navigation', { name: 'Navegação principal' });
@@ -77,9 +80,13 @@ test('localized nav tooltips stay inside every viewport and respect hover plus f
   };
 
   for (const [width, height] of [
-    [1100, 780],
-    [760, 720],
-    [360, 560],
+    [320, 520],
+    [360, 600],
+    [400, 700],
+    [480, 720],
+    [640, 720],
+    [800, 700],
+    [1280, 800],
   ] as const) {
     await page.setViewportSize({ width, height });
 
@@ -97,8 +104,18 @@ test('localized nav tooltips stay inside every viewport and respect hover plus f
       await page.screenshot({ path: 'visual-artifacts/nav-tooltip-pt-compact.png' });
     }
 
-    if (width <= 760) {
-      await expect(items.first().locator('.nav__label')).toBeHidden();
+    const labels = items.locator('.nav__label');
+    await expect(labels).toHaveCount(11);
+    await expect(labels.first()).toBeVisible();
+    if (width <= 800) {
+      const rowCount = await items.evaluateAll((elements) => {
+        const rows = new Set(
+          elements.map((element) => Math.round(element.getBoundingClientRect().top)),
+        );
+        return rows.size;
+      });
+      expect(rowCount).toBeGreaterThan(1);
+      await expect(items.first()).toHaveCSS('white-space', 'normal');
       await expect(items.first()).toHaveAttribute('aria-label', 'Escritório');
     }
   }

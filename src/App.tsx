@@ -80,6 +80,8 @@ export function App() {
     root.dataset.colorblind = s.colorblindMode;
     root.dataset.pauseMenus = String(s.pauseAnimationsInMenus && view !== 'office');
     root.dataset.bgBlur = String(s.background.blurBehindPanels);
+    root.dataset.uiScale =
+      s.uiScale >= 1.5 ? '150' : s.uiScale >= 1.25 ? '125' : s.uiScale <= 0.75 ? '75' : '100';
     root.style.setProperty('--font-scale', String(s.fontScale));
     root.style.setProperty('--ui-scale', String(s.uiScale));
     audio.setVolumes(s.volumes);

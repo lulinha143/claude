@@ -990,7 +990,9 @@
     "roomUnlocked": "Nova sala: {{name}}",
     "assigned": "{{name}} foi para {{room}}",
     "decoration": "Decoração posicionada",
-    "policy": "Política alterada"
+    "policy": "Política alterada",
+    "additionalUpdates_one": "+{{count}} atualização adicional",
+    "additionalUpdates_other": "+{{count}} atualizações adicionais"
   },
   "react": {
     "marlowApproves": "Bento aprovou esta decisão.",

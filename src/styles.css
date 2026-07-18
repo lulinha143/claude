@@ -46,7 +46,10 @@
 html,
 body {
   margin: 0;
+  width: 100%;
+  max-width: 100%;
   height: 100%;
+  overflow: hidden;
   /* transparent so the frameless desktop window shows only the rounded app */
   background: transparent;
   font-family: var(--type-body-family);
@@ -169,24 +172,32 @@ h4 {
 }
 
 #root {
+  width: 100%;
+  max-width: 100%;
   height: 100vh;
+  height: 100dvh;
+  min-width: 0;
+  min-height: 0;
   display: flex;
+  overflow: hidden;
   padding: 8px;
 }
 
 .app {
-  flex: 1;
+  flex: 0 0 auto;
+  width: min(calc(100% / var(--ui-scale)), calc(1200px / var(--ui-scale)));
+  height: calc(100% / var(--ui-scale));
+  min-width: 0;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  min-height: 0;
   background: linear-gradient(160deg, #43331f, var(--wood));
   border: 2px solid #1c150d;
   border-radius: var(--radius);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
   overflow: hidden;
   font-size: var(--fs-base);
-  transform: scale(var(--ui-scale));
-  transform-origin: bottom right;
+  zoom: var(--ui-scale);
 }
 
 /* In the frameless desktop shell the window is opaque and the app fills it
@@ -377,15 +388,30 @@ h4 {
 .nav__item.is-active .ui-icon {
   opacity: 1;
 }
-/* At companion-window widths, collapse nav labels to icons only so all 11 tabs
-   fit on a single row without wrapping or a horizontal scroll strip. Tooltips
-   still name each tab on hover/focus. */
-@media (max-width: 760px) {
-  .nav__label {
-    display: none;
+/* At companion-window widths, navigation becomes an explicit wrapped grid.
+   Every localized label remains visible: icons support recognition, but never
+   replace readable text or require a tooltip to identify a destination. */
+@media (max-width: 800px) {
+  .nav {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
   }
   .nav__item {
-    padding: 7px 9px;
+    width: 100%;
+    min-width: 0;
+    min-height: 40px;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    padding: 4px 5px;
+    white-space: normal;
+    text-align: center;
+    line-height: var(--lh-tight);
+  }
+  .nav__label {
+    display: block;
+    max-width: 100%;
+    overflow-wrap: anywhere;
   }
 }
 
@@ -2152,10 +2178,15 @@ select,
   bottom: 10px;
   z-index: 200;
   display: flex;
-  flex-direction: column-reverse; /* newest nearest the corner, stack upward */
+  flex-direction: column;
   gap: 5px;
-  max-width: min(260px, 72vw);
+  width: min(280px, calc(100vw - 20px));
+  max-height: min(220px, 30dvh);
+  overflow: hidden;
   pointer-events: none;
+}
+.toasts.is-empty {
+  display: none;
 }
 .toast {
   pointer-events: auto;
@@ -2163,6 +2194,8 @@ select,
   display: flex;
   align-items: center;
   gap: 6px;
+  width: 100%;
+  min-width: 0;
   text-align: left;
   padding: 5px 10px 6px;
   border-radius: var(--r-pill);
@@ -2175,11 +2208,11 @@ select,
   box-shadow: var(--shadow-sm);
   cursor: pointer;
   overflow: hidden;
-  max-width: 100%;
   opacity: 0.97;
   animation: toast-in 0.26s var(--ease);
 }
-.toast:hover {
+.toast:hover,
+.toast:focus-visible {
   opacity: 1;
 }
 .toast__icon {
@@ -2195,9 +2228,43 @@ select,
 .toast__text {
   flex: 1 1 auto;
   min-width: 0;
+  display: -webkit-box;
+  overflow: hidden;
+  white-space: normal;
+  text-overflow: clip;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+.toast--routine .toast__text {
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+}
+.toast__count {
+  flex: 0 0 auto;
+  min-width: 21px;
+  padding: 1px 5px;
+  border-radius: var(--r-pill);
+  background: var(--surface-sunken);
+  color: var(--text-secondary);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.toast-summary {
+  align-self: flex-end;
+  max-width: 100%;
+  padding: 3px 9px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--r-pill);
+  background: color-mix(in srgb, var(--wood) 92%, black);
+  color: var(--text-secondary);
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-snug);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  pointer-events: none;
 }
 .toast__bar {
   position: absolute;
@@ -2207,7 +2274,10 @@ select,
   width: 100%;
   background: var(--text-muted);
   transform-origin: left center;
-  animation: toast-bar 4.2s linear forwards;
+  animation: toast-bar var(--toast-duration, 4200ms) linear forwards;
+}
+.toast.is-paused .toast__bar {
+  animation-play-state: paused;
 }
 .toast--positive {
   color: var(--positive);
@@ -2665,7 +2735,7 @@ select,
    Start-screen office backdrop
    ========================================================================== */
 .opening-seq {
-  position: relative;
+  position: fixed;
   overflow: hidden;
 }
 .opening-seq .opening-seq__intro,
@@ -3650,7 +3720,7 @@ select,
   justify-content: center;
 }
 .app {
-  max-width: 1200px;
+  max-width: none;
 }
 
 /* Very narrow windows: stack the employee card so nothing gets cramped. */
@@ -4848,7 +4918,6 @@ textarea {
   }
 }
 
-
 /* ==========================================================================
    Animal-office identity — paw-stamped stationery and tactile desk controls
    ========================================================================== */
@@ -4896,8 +4965,7 @@ textarea {
   height: 28px;
   color: var(--ink);
   background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.32), transparent 46%),
-    var(--paper-muted);
+    linear-gradient(145deg, rgba(255, 255, 255, 0.32), transparent 46%), var(--paper-muted);
   border: 1px solid var(--paper-edge);
   border-radius: 45% 55% 47% 53%;
   box-shadow: 2px 2px 0 rgba(12, 8, 4, 0.42);
@@ -4947,7 +5015,8 @@ textarea {
 
 .nav {
   position: relative;
-  background: var(--chrome-texture), color-mix(in srgb, var(--chrome-surface) 92%, var(--c-wood-500));
+  background:
+    var(--chrome-texture), color-mix(in srgb, var(--chrome-surface) 92%, var(--c-wood-500));
   box-shadow: inset 0 -1px 0 rgba(255, 244, 224, 0.045);
 }
 .nav__item {
@@ -5050,14 +5119,11 @@ textarea {
   text-shadow: 0 1px 0 rgba(0, 0, 0, 0.26);
 }
 .buy-btn {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.12), transparent 45%),
-    var(--primary);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), transparent 45%), var(--primary);
 }
 .buy-btn:hover:not(:disabled) {
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.16), transparent 45%),
-    var(--primary-hover);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16), transparent 45%), var(--primary-hover);
 }
 .ghost-btn,
 .chip-btn,
@@ -5066,8 +5132,7 @@ textarea {
 .tab,
 .outfit-chip {
   background:
-    linear-gradient(180deg, rgba(255, 244, 224, 0.075), transparent 48%),
-    var(--control-surface);
+    linear-gradient(180deg, rgba(255, 244, 224, 0.075), transparent 48%), var(--control-surface);
   border: 1px solid color-mix(in srgb, var(--paper-edge) 28%, var(--control-edge));
   box-shadow:
     0 2px 0 var(--control-edge),
@@ -5080,8 +5145,7 @@ textarea {
 .tab:hover:not(:disabled),
 .outfit-chip:hover:not(:disabled) {
   background:
-    linear-gradient(180deg, rgba(255, 244, 224, 0.11), transparent 48%),
-    var(--control-hover);
+    linear-gradient(180deg, rgba(255, 244, 224, 0.11), transparent 48%), var(--control-hover);
 }
 .tab.is-active,
 .tag-btn.is-on,
@@ -5135,8 +5199,7 @@ select,
 .select,
 textarea {
   background:
-    linear-gradient(180deg, rgba(255, 244, 224, 0.025), transparent),
-    var(--surface-sunken);
+    linear-gradient(180deg, rgba(255, 244, 224, 0.025), transparent), var(--surface-sunken);
   border-color: color-mix(in srgb, var(--paper-edge) 30%, var(--wood-light));
   box-shadow: inset 0 2px 0 rgba(0, 0, 0, 0.18);
 }
@@ -5221,5 +5284,336 @@ textarea {
   }
   .view h2::after {
     transform: rotate(9deg) scale(0.88);
+  }
+}
+
+/* ==========================================================================
+   Extreme responsive shell — native minimum, short, square and tall windows
+   ========================================================================== */
+.app__main,
+.view-anim,
+.view,
+.office,
+.office__trunk,
+.floor,
+.floor__stage,
+.header__resources,
+.next-step,
+.deco-tray,
+.deco-tray__head {
+  min-width: 0;
+  max-width: 100%;
+}
+.app__main {
+  overflow-x: hidden;
+}
+.view-anim,
+.view {
+  width: 100%;
+}
+.office__toolbar {
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+.office__toolbar-hint {
+  flex: 1 1 180px;
+  min-width: 0;
+  line-height: var(--lh-snug);
+}
+.floor__header,
+.floor__status {
+  min-width: 0;
+  flex-wrap: wrap;
+}
+.floor__label {
+  min-width: 0;
+  max-width: 100%;
+}
+.next-step span {
+  min-width: 0;
+}
+
+/* Compact notification cards are bounded by both count (in React) and area.
+   The fixed container hugs visible content and never owns pointer events; only
+   the rendered toast button can receive them. */
+@media (max-width: 800px) {
+  .toasts {
+    right: 8px;
+    bottom: 8px;
+    width: min(260px, calc(100vw - 16px));
+    max-height: min(116px, 20dvh);
+  }
+  .toast {
+    padding: 5px 8px 6px;
+  }
+  body:has(.deco-tray) .toasts {
+    bottom: min(162px, 30dvh);
+    width: min(240px, calc(100vw - 16px));
+  }
+}
+@media (max-width: 520px), (max-height: 520px) {
+  .toasts {
+    max-height: min(92px, 18dvh);
+  }
+  .toast {
+    align-items: flex-start;
+    padding: 4px 7px 6px;
+  }
+  .toast--routine .toast__text {
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+  }
+  .toast--important .toast__text {
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+  body:has(.deco-tray) .toasts {
+    bottom: min(184px, 38dvh);
+  }
+
+  .nav {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 3px;
+    padding: 4px 5px 5px;
+  }
+  .nav__item {
+    min-width: 0;
+    min-height: 42px;
+    padding: 4px 3px;
+  }
+  .nav__label {
+    display: block;
+    font-size: 0.9em;
+  }
+  .next-step {
+    min-height: 30px;
+    gap: 5px;
+    margin-bottom: 2px;
+    padding: 4px 8px;
+    line-height: var(--lh-snug);
+  }
+  .app__main {
+    padding: 8px;
+  }
+  .office__trunk {
+    gap: 6px;
+    padding: 10px;
+  }
+  .office__toolbar {
+    gap: 5px;
+    padding: 2px 2px 5px;
+  }
+}
+
+/* The custom Electron controls share the first header row with the brand;
+   resources form one predictable six-cell row below. This keeps every native
+   control reachable at the enforced 320px minimum without a horizontal strip. */
+@media (max-width: 520px) {
+  .header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 4px 6px;
+    padding: 6px 8px;
+  }
+  .header__brand {
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+  }
+  .window-controls {
+    grid-column: 2;
+    grid-row: 1;
+    margin: 0;
+  }
+  .wc-btn {
+    width: 28px;
+    height: 28px;
+  }
+  .header__resources {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    align-items: center;
+    gap: 4px;
+    width: 100%;
+  }
+  .res {
+    min-width: 0;
+    min-height: 28px;
+    justify-content: center;
+    gap: 2px;
+    padding: 3px 4px;
+    overflow: hidden;
+  }
+  .res svg {
+    width: 14px;
+    height: 14px;
+    flex: 0 0 auto;
+  }
+  .res > span,
+  .res > div {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .mute-toggle,
+  .music-toggle {
+    width: 100%;
+    min-width: 28px;
+    height: 28px;
+  }
+  .deco-tray {
+    left: 6px;
+    right: 6px;
+    bottom: 6px;
+    gap: 4px;
+    max-height: min(170px, 34dvh);
+    padding: 6px 7px;
+    overflow: hidden;
+  }
+  .deco-tray__head {
+    gap: 4px 6px;
+  }
+  .deco-tray__title {
+    font-size: var(--fs-xs);
+  }
+  .deco-tray__search {
+    flex: 1 1 100%;
+    min-width: 0;
+    margin-left: 0;
+  }
+  .deco-tray__items {
+    min-width: 0;
+    min-height: 48px;
+  }
+  .office--decorating .office__trunk {
+    padding-bottom: min(174px, 35dvh);
+  }
+}
+
+@media (max-width: 340px) {
+  .header {
+    padding: 5px 6px;
+  }
+  .header__brand-mark {
+    width: 23px;
+    height: 23px;
+  }
+  .header__company {
+    font-size: 0.9em;
+  }
+  .header__rate {
+    font-size: 0.68em;
+  }
+  .header__resources {
+    gap: 3px;
+  }
+  .res {
+    padding-inline: 2px;
+    font-size: 0.78em;
+  }
+  .nav__item {
+    padding-inline: 2px;
+  }
+  .app__main {
+    padding: 6px;
+  }
+  .office__trunk {
+    padding-inline: 7px;
+  }
+}
+
+/* UI scaling must never reduce the renderer's logical layout below Electron's
+   320×420 minimum. At undersized physical bounds, keep the enlarged font scale
+   but defer whole-shell zoom until there is enough room for a 320×420 canvas. */
+@media (max-width: 415px), (max-height: 540px) {
+  [data-ui-scale='125'] .app {
+    width: 100%;
+    height: 100%;
+    zoom: 1;
+  }
+}
+@media (max-width: 495px), (max-height: 645px) {
+  [data-ui-scale='150'] .app {
+    width: 100%;
+    height: 100%;
+    zoom: 1;
+  }
+}
+
+/* Wide-but-short companion strips tighten chrome while keeping the localized
+   labels visible; the flex navigation wraps to additional readable rows. */
+@media (max-height: 520px) and (min-width: 521px) {
+  .header {
+    padding-block: 5px;
+  }
+  .nav {
+    padding-block: 3px 4px;
+  }
+  .nav__item {
+    min-height: 28px;
+    padding-block: 4px;
+  }
+  .app__main {
+    padding-block: 7px;
+  }
+}
+
+@media (max-width: 520px) {
+  .view--settings .panel {
+    min-width: 0;
+    padding: 9px;
+    margin-bottom: 9px;
+  }
+  .view--settings .select,
+  .view--settings input[type='range'] {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .view--settings .slider-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 4px 8px;
+    align-items: center;
+  }
+  .view--settings .slider-row > span:first-child {
+    grid-column: 1 / -1;
+  }
+  .view--settings .slider-row > input[type='range'] {
+    grid-column: 1;
+    width: 100%;
+    max-width: none;
+  }
+  .view--settings .slider-row > .select {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+  .view--settings .audio-row {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr) 34px;
+    gap: 3px 6px;
+    align-items: center;
+  }
+  .view--settings .audio-row .mute-btn {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+  }
+  .view--settings .audio-row__label {
+    grid-column: 2 / -1;
+    grid-row: 1;
+    min-width: 0;
+  }
+  .view--settings .audio-row input[type='range'] {
+    grid-column: 2;
+    grid-row: 2;
+    width: 100%;
+  }
+  .view--settings .audio-row .vol-pct {
+    grid-column: 3;
+    grid-row: 2;
   }
 }

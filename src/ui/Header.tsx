@@ -129,8 +129,8 @@ export function Header() {
         >
           <Icon name={musicMuted ? 'music-off' : 'music'} size={18} />
         </button>
-        <WindowControls />
       </div>
+      <WindowControls />
     </header>
   );
 }

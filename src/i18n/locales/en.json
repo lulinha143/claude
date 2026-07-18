@@ -990,7 +990,9 @@
     "roomUnlocked": "New room: {{name}}",
     "assigned": "{{name}} moved to {{room}}",
     "decoration": "Decoration placed",
-    "policy": "Policy changed"
+    "policy": "Policy changed",
+    "additionalUpdates_one": "+{{count}} additional update",
+    "additionalUpdates_other": "+{{count}} additional updates"
   },
   "react": {
     "marlowApproves": "Marlow approved of this decision.",
