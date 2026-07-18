@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Locator, type Page } from '@playwright/test';
 
 const SAVE = {
   version: 6,
@@ -115,21 +115,37 @@ async function expectShellContained(page: Page) {
   }
 }
 
-async function expectNavigationReadable(page: Page, shouldWrap: boolean) {
-  const navItems = page.locator('.nav__item');
-  const navLabels = navItems.locator('.nav__label');
-  await expect(navItems).toHaveCount(11);
-  await expect(navLabels).toHaveCount(11);
-  for (const label of await navLabels.all()) await expect(label).toBeVisible();
+async function expectNavigationReadable(page: Page, width: number) {
+  const nav = page.locator('.nav');
+  const destinations = nav.locator('.nav__destination');
+  const visibleControls = nav.locator('.nav__item:visible');
+  await expect(destinations).toHaveCount(11);
+  await expect(visibleControls).toHaveCount(width <= 600 ? 6 : 11);
 
-  const rowCount = await navItems.evaluateAll((elements) => {
+  for (const control of await visibleControls.all()) {
+    await expect(control.locator('.nav__label:visible')).toHaveCount(1);
+    await expect(control.locator('.nav__label:visible')).not.toHaveText('');
+  }
+
+  const rowCount = await visibleControls.evaluateAll((elements) => {
     const rows = new Set(
       elements.map((element) => Math.round(element.getBoundingClientRect().top)),
     );
     return rows.size;
   });
-  expect(rowCount).toBeGreaterThanOrEqual(shouldWrap ? 2 : 1);
-  const navOverflow = await page.locator('.nav').evaluate((element) => ({
+  expect(rowCount).toBeLessThanOrEqual(2);
+  expect(rowCount).toBe(width <= 600 || width > 1000 ? 1 : 2);
+
+  const morePanel = nav.locator('.nav__more-panel');
+  if (width <= 600) {
+    await expect(nav.locator('.nav__more-toggle')).toBeVisible();
+    await expect(morePanel).not.toBeVisible();
+  } else {
+    await expect(nav.locator('.nav__more-toggle')).not.toBeVisible();
+    await expect(morePanel).toBeVisible();
+  }
+
+  const navOverflow = await nav.evaluate((element) => ({
     pixels: element.scrollWidth - element.clientWidth,
     style: getComputedStyle(element).overflowX,
   }));
@@ -138,12 +154,20 @@ async function expectNavigationReadable(page: Page, shouldWrap: boolean) {
   expect(navOverflow.style).not.toBe('scroll');
 }
 
+async function openDestination(page: Page, destination: Locator) {
+  if (!(await destination.isVisible())) {
+    await page.locator('.nav__more-toggle').click();
+    await expect(page.locator('.nav__more-panel')).toBeVisible();
+  }
+  await destination.click();
+}
+
 for (const { label, width, height } of VIEWPORTS) {
   test(`responsive acceptance at ${label}`, async ({ page }) => {
     await page.setViewportSize({ width, height });
     await boot(page);
     await expectShellContained(page);
-    await expectNavigationReadable(page, width <= 800);
+    await expectNavigationReadable(page, width);
 
     const mainBox = await page.locator('.app__main').boundingBox();
     expect(mainBox).not.toBeNull();
@@ -173,10 +197,12 @@ test('every primary view remains contained and vertically scrollable at 320x520'
   await boot(page);
   await clearNotifications(page);
 
-  const navItems = page.locator('.nav__item');
-  for (let index = 0; index < (await navItems.count()); index += 1) {
-    await navItems.nth(index).click();
+  const destinations = page.locator('.nav__destination');
+  await expect(destinations).toHaveCount(11);
+  for (const destination of await destinations.all()) {
+    await openDestination(page, destination);
     await expect(page.locator('.view-anim')).toBeVisible();
+    await expect(page.locator('.nav__more-panel')).not.toBeVisible();
     await expectShellContained(page);
     const main = page.locator('.app__main');
     await main.evaluate((element) => {
@@ -235,7 +261,7 @@ test('compact notification queue handles 1, 2, 4, and 8 updates without blocking
   await expect(page.locator('.toast__text')).not.toHaveText(firstQueuedText ?? '');
 
   const stats = page.getByRole('button', { name: 'Estatísticas' });
-  await stats.click();
+  await openDestination(page, stats);
   await expect(stats).toHaveAttribute('aria-current', 'page');
 
   const office = page.getByRole('button', { name: 'Escritório' });
@@ -354,7 +380,7 @@ test('150% interface scale reflows at the specified 320x520 viewport', async ({ 
   });
   await clearNotifications(page);
   await expectShellContained(page);
-  await expectNavigationReadable(page, true);
+  await expectNavigationReadable(page, 320);
   const appBox = await page.locator('.app').boundingBox();
   expect(appBox).not.toBeNull();
   expect(appBox!.x).toBeGreaterThanOrEqual(7);

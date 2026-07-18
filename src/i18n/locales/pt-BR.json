@@ -50,7 +50,24 @@
     "decorate": "Decorar",
     "settings": "Ajustes",
     "stats": "Estatísticas",
-    "prestige": "Prestígio"
+    "prestige": "Prestígio",
+    "more": "Mais",
+    "moreCurrent": "Mais, destino atual: {{destination}}",
+    "moreDestinations": "Mais destinos",
+    "short": {
+      "office": "Escrit.",
+      "shop": "Melhor.",
+      "employees": "Equipe",
+      "company": "Empresa",
+      "collections": "Coleções",
+      "achievements": "Conq.",
+      "focus": "Foco",
+      "decorate": "Decorar",
+      "settings": "Ajustes",
+      "stats": "Estat.",
+      "prestige": "Prestígio",
+      "more": "Mais"
+    }
   },
   "tip": {
     "nuts": { "t": "Castanhas", "d": "Sua moeda principal. Ganha passivamente e ao coletar caixas. Gasta em melhorias, contratações e decorações." },
@@ -74,7 +91,8 @@
       "decorate": "Compre decorações e organize cada sala.",
       "stats": "Estatísticas detalhadas de toda a jornada.",
       "prestige": "Reinicie para bônus permanentes.",
-      "settings": "Opções, áudio e acessibilidade."
+      "settings": "Opções, áudio e acessibilidade.",
+      "more": "Abra todos os outros destinos da empresa."
     }
   },
   "office": {

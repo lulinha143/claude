@@ -53,6 +53,7 @@ export type IconName =
   | 'back'
   | 'undo'
   | 'redo'
+  | 'menu'
   | 'refresh';
 
 interface IconProps {
@@ -348,6 +349,13 @@ const PATHS: Record<IconName, JSX.Element> = {
     <>
       <path d="M15 7l5 5-5 5" />
       <path d="M20 12h-9a6 6 0 0 0-6 6v1" />
+    </>
+  ),
+  menu: (
+    <>
+      <circle cx="6" cy="12" r="1.2" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none" />
+      <circle cx="18" cy="12" r="1.2" fill="currentColor" stroke="none" />
     </>
   ),
   refresh: (

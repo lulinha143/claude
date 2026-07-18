@@ -347,39 +347,53 @@ h4 {
 
 /* ------- nav ------- */
 .nav {
+  position: relative;
+  z-index: 50;
   display: flex;
-  flex-wrap: wrap; /* tabs wrap to a new row — never a horizontal scroll strip */
+  flex-wrap: nowrap;
   justify-content: center;
   align-items: center;
-  gap: 3px 4px;
+  gap: 3px;
   padding: 6px;
   background: rgba(0, 0, 0, 0.15);
-  overflow: visible; /* removes the draggable/sliding nav scrollbar entirely */
+  overflow: visible;
+}
+.nav__primary,
+.nav__more-panel {
+  display: contents;
 }
 .nav__item {
   flex: 0 0 auto;
+  min-width: 0;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  justify-content: center;
+  gap: 4px;
   background: transparent;
   border: none;
   color: var(--text-secondary);
-  padding: 6px 10px;
+  padding: 6px 7px;
   border-radius: var(--r-sm);
   cursor: pointer;
-  font-size: 0.82em;
+  font-size: 0.78em;
   font-weight: 600;
+  line-height: var(--lh-tight);
   white-space: nowrap;
   transition:
     background var(--dur) var(--ease),
     color var(--dur) var(--ease);
 }
 .nav__item .ui-icon {
+  flex: 0 0 auto;
   opacity: 0.85;
 }
 .nav__item:hover {
   background: var(--interactive-hover);
   color: var(--text);
+}
+.nav__item:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
 }
 .nav__item.is-active {
   background: var(--primary);
@@ -388,30 +402,102 @@ h4 {
 .nav__item.is-active .ui-icon {
   opacity: 1;
 }
-/* At companion-window widths, navigation becomes an explicit wrapped grid.
-   Every localized label remains visible: icons support recognition, but never
-   replace readable text or require a tooltip to identify a destination. */
-@media (max-width: 800px) {
+.nav__label--short,
+.nav__more-toggle {
+  display: none;
+}
+
+/* Medium windows keep every destination permanently visible in no more than
+   two rows. Short translated labels protect the grid without becoming icons-only. */
+@media (min-width: 601px) and (max-width: 1000px) {
   .nav {
     display: grid;
     grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 3px 4px;
   }
   .nav__item {
     width: 100%;
-    min-width: 0;
-    min-height: 40px;
-    flex-direction: column;
-    justify-content: center;
+    min-height: 38px;
+    padding: 5px 4px;
+    font-size: 0.78em;
+  }
+  .nav__label--full {
+    display: none;
+  }
+  .nav__label--short {
+    display: inline;
+  }
+}
+
+/* Compact windows reserve one permanent row for the five core destinations
+   and a localized More control. Remaining destinations share one DOM location
+   and open as an overlaid grid instead of consuming permanent vertical space. */
+@media (max-width: 600px) {
+  .nav {
+    display: block;
+    padding: 5px;
+  }
+  .nav__primary {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 2px;
-    padding: 4px 5px;
+  }
+  .nav__primary .nav__item {
+    width: 100%;
+    min-height: 43px;
+    flex-direction: column;
+    gap: 2px;
+    padding: 4px 2px;
+    font-size: 0.7em;
+    text-align: center;
+  }
+  .nav__primary .nav__label--full {
+    display: none;
+  }
+  .nav__primary .nav__label--short,
+  .nav__more-toggle {
+    display: inline-flex;
+  }
+  .nav__more-toggle {
+    width: 100%;
+  }
+  .nav__more-panel {
+    position: absolute;
+    z-index: 40;
+    top: calc(100% + 4px);
+    right: 6px;
+    left: 6px;
+    display: none;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
+    padding: 6px;
+    background: color-mix(in srgb, var(--panel-surface) 96%, transparent);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-lg);
+  }
+  .nav__more-panel.is-open {
+    display: grid;
+  }
+  .nav__more-panel .nav__item {
+    width: 100%;
+    min-height: 44px;
+    padding: 6px 5px;
     white-space: normal;
     text-align: center;
-    line-height: var(--lh-tight);
-  }
-  .nav__label {
-    display: block;
-    max-width: 100%;
     overflow-wrap: anywhere;
+  }
+  .nav__more-panel .nav__label--full {
+    display: inline;
+  }
+  .nav__more-panel .nav__label--short {
+    display: none;
+  }
+}
+
+@media (max-width: 359px) {
+  .nav__more-panel {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -2911,9 +2997,9 @@ select,
 .app {
   position: relative;
 }
-/* keep the UI above the background layer */
+/* keep the UI above the background layer; navigation has its own higher
+   stacking level so its compact More panel can overlay the main content */
 .header,
-.nav,
 .next-step,
 .app__main {
   position: relative;

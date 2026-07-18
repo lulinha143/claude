@@ -50,7 +50,24 @@
     "decorate": "Decorate",
     "settings": "Settings",
     "stats": "Stats",
-    "prestige": "Prestige"
+    "prestige": "Prestige",
+    "more": "More",
+    "moreCurrent": "More, current destination: {{destination}}",
+    "moreDestinations": "More destinations",
+    "short": {
+      "office": "Office",
+      "shop": "Upgrade",
+      "employees": "Team",
+      "company": "Company",
+      "collections": "Collect.",
+      "achievements": "Goals",
+      "focus": "Focus",
+      "decorate": "Decorate",
+      "settings": "Settings",
+      "stats": "Stats",
+      "prestige": "Prestige",
+      "more": "More"
+    }
   },
   "tip": {
     "nuts": { "t": "Nuts", "d": "Your main currency. Earned passively and by collecting crates. Spent on upgrades, hires and decorations." },
@@ -74,7 +91,8 @@
       "decorate": "Buy decorations and arrange each room.",
       "stats": "Detailed lifetime statistics.",
       "prestige": "Reset for permanent bonuses.",
-      "settings": "Options, audio and accessibility."
+      "settings": "Options, audio and accessibility.",
+      "more": "Open every other company destination."
     }
   },
   "office": {
