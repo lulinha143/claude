@@ -1,4 +1,11 @@
-import type { DecorationSurfaceType, EmployeeMood, EventRarity, PrestigeBranchId, ResourceId } from '../sim/types';
+import type {
+  DecorationSurfaceType,
+  EmployeeMood,
+  EventRarity,
+  PrestigeBranchId,
+  ResourceId,
+} from '../sim/types';
+import type { PlacementRegionKind } from '../sim/placementRegions';
 
 // Content DEFINITIONS. Everything here is static data describing the game's
 // catalogue. Runtime/persisted progress lives in `GameState` and references
@@ -175,7 +182,15 @@ export interface DecorationDef {
   /** Legacy/default room used only for initial placement and old-save inference. */
   room: string;
   compatibleRooms: string[];
+  /** Legacy serialized support types retained for save compatibility. */
   compatibleSurfaces: DecorationSurfaceType[];
+  /** Explicit semantic supports used by the normalized room-region model. */
+  defaultRegionKind: PlacementRegionKind;
+  compatibleRegionKinds: PlacementRegionKind[];
+  /** Physical supports allowed by semantic regions; independent of the legacy projection. */
+  compatibleRegionSurfaces: DecorationSurfaceType[];
+  /** Optional room-region tags required when using a room-specific support. */
+  compatibleSpecialTags?: string[];
   isStructural: boolean;
 }
 
