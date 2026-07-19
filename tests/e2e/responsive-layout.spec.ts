@@ -121,30 +121,25 @@ async function expectShellContained(page: Page) {
 
 async function expectNavigationReadable(page: Page, _width: number) {
   const nav = page.locator('.nav');
-  const destinations = nav.locator('.nav__destination');
-  const permanentControls = nav.locator('.nav__primary .nav__item:visible');
+  const destinations = nav.locator('.nav__destination:visible');
   await expect(destinations).toHaveCount(11);
-  await expect(permanentControls).toHaveCount(6);
+  await expect(nav.locator('.nav__more-toggle, .nav__more-panel')).toHaveCount(0);
 
-  for (const control of await permanentControls.all()) {
+  for (const control of await destinations.all()) {
     await expect(control.locator('.nav__panel-label, .nav__label')).toHaveCount(0);
     const box = await control.boundingBox();
     expect(box).not.toBeNull();
-    expect(box!.width).toBeGreaterThanOrEqual(34);
-    expect(box!.width).toBeLessThanOrEqual(42);
+    expect(box!.width).toBeGreaterThanOrEqual(27);
+    expect(box!.width).toBeLessThanOrEqual(35);
   }
 
-  const rowCount = await permanentControls.evaluateAll((elements) => {
+  const rowCount = await destinations.evaluateAll((elements) => {
     const rows = new Set(
       elements.map((element) => Math.round(element.getBoundingClientRect().top)),
     );
     return rows.size;
   });
   expect(rowCount).toBe(1);
-
-  const morePanel = nav.locator('.nav__more-panel');
-  await expect(nav.locator('.nav__more-toggle')).toBeVisible();
-  await expect(morePanel).not.toBeVisible();
 
   const navOverflow = await nav.evaluate((element) => ({
     pixels: element.scrollWidth - element.clientWidth,
@@ -155,11 +150,7 @@ async function expectNavigationReadable(page: Page, _width: number) {
   expect(navOverflow.style).not.toBe('scroll');
 }
 
-async function openDestination(page: Page, destination: Locator) {
-  if (!(await destination.isVisible())) {
-    await page.locator('.nav__more-toggle').click();
-    await expect(page.locator('.nav__more-panel')).toBeVisible();
-  }
+async function openDestination(_page: Page, destination: Locator) {
   await destination.click();
 }
 
@@ -203,7 +194,7 @@ test('every primary view remains contained and vertically scrollable at 320x520'
   for (const destination of await destinations.all()) {
     await openDestination(page, destination);
     await expect(page.locator('.view-anim')).toBeVisible();
-    await expect(page.locator('.nav__more-panel')).not.toBeVisible();
+    await expect(page.locator('.nav__destination:visible')).toHaveCount(11);
     await expectShellContained(page);
     const main = page.locator('.app__main');
     await main.evaluate((element) => {
@@ -373,7 +364,7 @@ test('important compact warning remains readable while hover pauses ordinary dis
   await page.mouse.move(2, 2);
 });
 
-test('150% interface scale reflows at the specified 320x520 viewport', async ({ page }) => {
+test('150% interface scale keeps every destination visible at 320x520', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 520 });
   await boot(page, {
     ...SAVE,
@@ -388,22 +379,11 @@ test('150% interface scale reflows at the specified 320x520 viewport', async ({ 
   expect(appBox!.x + appBox!.width).toBeLessThanOrEqual(313);
   expect(appBox!.y).toBeGreaterThanOrEqual(7);
   expect(appBox!.y + appBox!.height).toBeLessThanOrEqual(513);
-
-  const more = page.locator('.nav__more-toggle');
-  const morePanel = page.locator('.nav__more-panel');
-  await more.click();
-  await expect(morePanel).toBeVisible();
-  await expect(morePanel.locator('.nav__destination:visible')).toHaveCount(6);
-  const panelBox = await morePanel.boundingBox();
-  expect(panelBox).not.toBeNull();
-  expect(panelBox!.x).toBeGreaterThanOrEqual(5);
-  expect(panelBox!.x + panelBox!.width).toBeLessThanOrEqual(315);
-  expect(panelBox!.y).toBeGreaterThanOrEqual(5);
-  expect(panelBox!.y + panelBox!.height).toBeLessThanOrEqual(515);
+  await expect(page.locator('.nav__destination:visible')).toHaveCount(11);
   await page.screenshot({ path: 'visual-artifacts/responsive-320x520-scale-150.png' });
 });
 
-test('150% interface scale keeps More contained while zoom is active', async ({ page }) => {
+test('150% active zoom keeps every destination directly visible', async ({ page }) => {
   await page.setViewportSize({ width: 520, height: 720 });
   await boot(page, {
     ...SAVE,
@@ -411,23 +391,12 @@ test('150% interface scale keeps More contained while zoom is active', async ({ 
   });
   await clearNotifications(page);
   await expect(page.locator('.app')).toHaveCSS('zoom', '1.5');
+  await expectNavigationReadable(page, 520);
   const pageOverflow = await page.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
   );
   expect(pageOverflow).toBeLessThanOrEqual(2);
-
-  const more = page.locator('.nav__more-toggle');
-  const morePanel = page.locator('.nav__more-panel');
-  await more.click();
-  await expect(morePanel).toBeVisible();
-  await expect(morePanel.locator('.nav__destination:visible')).toHaveCount(6);
-  const panelBox = await morePanel.boundingBox();
-  expect(panelBox).not.toBeNull();
-  expect(panelBox!.x).toBeGreaterThanOrEqual(5);
-  expect(panelBox!.x + panelBox!.width).toBeLessThanOrEqual(515);
-  expect(panelBox!.y).toBeGreaterThanOrEqual(5);
-  expect(panelBox!.y + panelBox!.height).toBeLessThanOrEqual(715);
   await page.screenshot({
-    path: 'visual-artifacts/responsive-520x720-scale-150-more.png',
+    path: 'visual-artifacts/responsive-520x720-scale-150-icons.png',
   });
 });

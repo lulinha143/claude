@@ -372,11 +372,7 @@ test('event choices recover across chain steps, focus return, and repeated popup
 
   // The migrated v3 fixture must retain usable event input after ordinary view
   // changes and a complete decoration-drag/popup lifecycle.
-  const more = page.locator('.nav__more-toggle');
-  await more.click();
-  await expect(page.locator('.nav__more-panel')).toBeVisible();
   await page.locator('.nav__item[aria-label="Settings"]').click();
-  await expect(page.locator('.nav__more-panel')).not.toBeVisible();
   await page.locator('.nav__item[aria-label="Office"]').click();
   const arrange = page.locator('.office__toolbar .chip-btn').first();
   await arrange.click();

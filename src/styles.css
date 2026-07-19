@@ -345,14 +345,14 @@ h4 {
   outline-offset: 2px;
 }
 
-/* ------- compact icon-only navigation ------- */
+/* ------- compact all-destination icon navigation ------- */
 .nav {
   position: relative;
   z-index: 50;
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 48px;
+  min-height: 42px;
   padding: 4px 6px;
   background: rgba(0, 0, 0, 0.15);
   overflow: visible;
@@ -361,18 +361,18 @@ h4 {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 2px;
+  min-width: 0;
 }
 .nav__item {
   position: relative;
-  flex: 0 0 40px;
-  width: 40px;
-  height: 40px;
-  min-width: 40px;
+  flex: 0 0 33px;
+  width: 33px;
+  height: 33px;
+  min-width: 33px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
   padding: 0;
   background: color-mix(in srgb, var(--panel-surface) 38%, transparent);
   border: 1px solid transparent;
@@ -389,6 +389,8 @@ h4 {
     color var(--dur-fast) var(--ease);
 }
 .nav__item .ui-icon {
+  width: 19px;
+  height: 19px;
   flex: 0 0 auto;
   opacity: 0.88;
   filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.28));
@@ -405,7 +407,7 @@ h4 {
 }
 .nav__item:focus-visible {
   outline: 2px solid var(--gold);
-  outline-offset: 2px;
+  outline-offset: 1px;
   z-index: 1;
 }
 .nav__item:disabled {
@@ -425,9 +427,9 @@ h4 {
   content: '';
   position: absolute;
   left: 50%;
-  bottom: 2px;
-  width: 8px;
-  height: 4px;
+  bottom: 1px;
+  width: 7px;
+  height: 3px;
   transform: translateX(-50%);
   border-radius: 60% 60% 45% 45%;
   background: currentColor;
@@ -437,64 +439,75 @@ h4 {
 .nav__item.is-active .ui-icon {
   opacity: 1;
 }
-.nav__more-toggle {
-  display: inline-flex;
-}
-.nav__more-panel {
-  position: absolute;
-  z-index: 40;
-  top: calc(100% + 4px);
-  left: 50%;
-  width: min(382px, calc(100% - 12px));
-  display: none;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 5px;
-  padding: 7px;
-  transform: translateX(-50%);
-  background: color-mix(in srgb, var(--panel-surface) 97%, transparent);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--r-md);
-  box-shadow: var(--shadow-lg);
-}
-.nav__more-panel.is-open {
-  display: grid;
-}
-.nav__more-panel .nav__item {
-  width: 100%;
-  min-width: 0;
-  height: auto;
-  min-height: 42px;
-  flex-basis: auto;
-  justify-content: flex-start;
-  padding: 5px 8px;
-  text-align: left;
-}
-.nav__panel-label {
-  min-width: 0;
-  overflow: hidden;
-  color: inherit;
-  font-size: var(--fs-2xs);
-  font-weight: var(--fw-bold);
-  line-height: var(--lh-tight);
-  text-overflow: ellipsis;
-  white-space: nowrap;
+
+@media (max-width: 399px) {
+  .nav {
+    padding-inline: 5px;
+  }
+  .nav__primary {
+    gap: 1px;
+  }
+  .nav__item {
+    flex-basis: 30px;
+    width: 30px;
+    min-width: 30px;
+    height: 30px;
+  }
+  .nav__item .ui-icon {
+    width: 18px;
+    height: 18px;
+  }
 }
 
 @media (max-width: 359px) {
   .nav {
+    min-height: 38px;
     padding-inline: 4px;
   }
   .nav__primary {
-    gap: 3px;
+    gap: 0;
   }
   .nav__item {
-    flex-basis: 38px;
-    width: 38px;
-    min-width: 38px;
-    height: 38px;
+    flex-basis: 27px;
+    width: 27px;
+    min-width: 27px;
+    height: 29px;
   }
-  .nav__more-panel {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .nav__item .ui-icon {
+    width: 17px;
+    height: 17px;
+  }
+}
+
+[data-ui-scale='125'] .nav__primary,
+[data-ui-scale='150'] .nav__primary {
+  gap: 1px;
+}
+[data-ui-scale='125'] .nav__item {
+  flex-basis: 29px;
+  width: 29px;
+  min-width: 29px;
+  height: 30px;
+}
+[data-ui-scale='150'] .nav__item {
+  flex-basis: 18px;
+  width: 18px;
+  min-width: 18px;
+  height: 22px;
+}
+[data-ui-scale='125'] .nav__item .ui-icon {
+  width: 17px;
+  height: 17px;
+}
+[data-ui-scale='150'] .nav__item .ui-icon {
+  width: 15px;
+  height: 15px;
+}
+
+@media (max-width: 359px) {
+  [data-ui-scale='125'] .nav__primary,
+  [data-ui-scale='150'] .nav__primary {
+    gap: 0;
   }
 }
 
@@ -5680,6 +5693,16 @@ textarea {
     width: 100%;
     height: 100%;
     zoom: 1;
+  }
+  [data-ui-scale='150'] .nav__item {
+    flex-basis: 27px;
+    width: 27px;
+    min-width: 27px;
+    height: 29px;
+  }
+  [data-ui-scale='150'] .nav__item .ui-icon {
+    width: 17px;
+    height: 17px;
   }
 }
 
