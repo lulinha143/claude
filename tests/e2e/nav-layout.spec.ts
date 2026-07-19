@@ -1,7 +1,7 @@
 import { test, expect, type Locator, type Page } from '@playwright/test';
 
 const SAVE = {
-  version: 6,
+  version: 7,
   onboardingComplete: true,
   lastSaved: Date.now(),
   resources: {
@@ -13,16 +13,21 @@ const SAVE = {
   },
   employees: { pip: { hired: true, level: 6, room: 'founder-desk', x: 0.4 } },
   collections: { nuts: [], outfits: [], logos: [], moments: [], secrets: [] },
+  decorationInstances: [],
   settings: { reducedMotion: true },
 };
 
 const VIEWPORTS = [
+  { label: '320x420', width: 320, height: 420 },
   { label: '320x520', width: 320, height: 520 },
   { label: '360x600', width: 360, height: 600 },
+  { label: '380x460', width: 380, height: 460 },
   { label: '400x700', width: 400, height: 700 },
   { label: '480x720', width: 480, height: 720 },
+  { label: '520x520', width: 520, height: 520 },
   { label: '640x720', width: 640, height: 720 },
   { label: '800x700', width: 800, height: 700 },
+  { label: '900x420', width: 900, height: 420 },
   { label: '1280x800', width: 1280, height: 800 },
 ] as const;
 
@@ -57,38 +62,61 @@ async function visibleRowCount(items: Locator) {
   });
 }
 
+async function expectInsideViewport(locator: Locator, width: number, height: number) {
+  const box = await locator.boundingBox();
+  expect(box).not.toBeNull();
+  expect(box!.x).toBeGreaterThanOrEqual(5);
+  expect(box!.y).toBeGreaterThanOrEqual(5);
+  expect(box!.x + box!.width).toBeLessThanOrEqual(width - 5);
+  expect(box!.y + box!.height).toBeLessThanOrEqual(height - 5);
+}
+
 for (const { label, width, height } of VIEWPORTS) {
-  test(`hybrid navigation stays compact and contained at ${label}`, async ({ page }) => {
+  test(`icon-only navigation stays compact and contained at ${label}`, async ({ page }) => {
     await page.setViewportSize({ width, height });
     await boot(page);
 
     const nav = page.locator('.nav');
     const destinations = nav.locator('.nav__destination');
-    const permanentControls = nav.locator('.nav__item:visible');
+    const permanentControls = nav.locator('.nav__primary .nav__item:visible');
     const more = nav.locator('.nav__more-toggle');
-    const secondary = nav.locator('.nav__more-panel');
+    const panel = nav.locator('.nav__more-panel');
 
     await expect(nav).toBeVisible();
     await expect(destinations).toHaveCount(11);
-    await expect(permanentControls).toHaveCount(width <= 600 ? 6 : 11);
-    expect(await visibleRowCount(permanentControls)).toBeLessThanOrEqual(2);
-
-    if (width <= 600) {
-      expect(await visibleRowCount(permanentControls)).toBe(1);
-      await expect(more).toBeVisible();
-      await expect(more).toHaveAttribute('aria-expanded', 'false');
-      await expect(secondary).not.toBeVisible();
-    } else {
-      await expect(more).not.toBeVisible();
-      await expect(secondary).toBeVisible();
-      expect(await visibleRowCount(permanentControls)).toBe(width <= 1000 ? 2 : 1);
-    }
+    await expect(permanentControls).toHaveCount(6);
+    expect(await visibleRowCount(permanentControls)).toBe(1);
+    await expect(more).toBeVisible();
+    await expect(more).toHaveAttribute('aria-expanded', 'false');
+    await expect(panel).not.toBeVisible();
 
     for (const control of await permanentControls.all()) {
-      const visibleLabels = control.locator('.nav__label:visible');
-      await expect(visibleLabels).toHaveCount(1);
-      await expect(visibleLabels).not.toHaveText('');
+      await expect(control.locator('.nav__panel-label, .nav__label')).toHaveCount(0);
+      const box = await control.boundingBox();
+      expect(box).not.toBeNull();
+      expect(box!.width).toBeGreaterThanOrEqual(34);
+      expect(box!.width).toBeLessThanOrEqual(42);
+      expect(box!.height).toBeGreaterThanOrEqual(34);
+      expect(box!.height).toBeLessThanOrEqual(42);
+      const iconBox = await control.locator('.ui-icon').boundingBox();
+      expect(iconBox).not.toBeNull();
+      expect(iconBox!.width).toBeGreaterThanOrEqual(18);
+      expect(iconBox!.width).toBeLessThanOrEqual(24);
     }
+
+    const active = nav.locator('.nav__primary .nav__item[aria-current="page"]');
+    await expect(active).toHaveCount(1);
+    const activeTreatment = await active.evaluate((element) => {
+      const style = getComputedStyle(element);
+      const marker = getComputedStyle(element, '::after');
+      return {
+        border: style.borderTopColor,
+        shadow: style.boxShadow,
+        markerWidth: marker.width,
+      };
+    });
+    expect(activeTreatment.shadow).not.toBe('none');
+    expect(activeTreatment.markerWidth).toBe('8px');
 
     const overflow = await nav.evaluate((element) => ({
       pixels: element.scrollWidth - element.clientWidth,
@@ -100,13 +128,20 @@ for (const { label, width, height } of VIEWPORTS) {
     expect(overflow.style).not.toBe('scroll');
     expect(overflow.style).not.toBe('auto');
 
-    await page.screenshot({ path: `visual-artifacts/nav-${label}.png` });
+    await page.screenshot({ path: `visual-artifacts/nav-icons-${label}.png` });
+
+    await more.click();
+    await expect(panel).toBeVisible();
+    await expect(panel.locator('.nav__destination:visible')).toHaveCount(6);
+    await expect(panel.locator('.nav__panel-label:visible')).toHaveCount(6);
+    await expectInsideViewport(panel, width, height);
+    await page.screenshot({ path: `visual-artifacts/nav-more-${label}.png` });
+    await page.keyboard.press('Escape');
+    await expect(panel).not.toBeVisible();
   });
 }
 
-test('compact More menu is localized, keyboard accessible, stateful, and dismissible', async ({
-  page,
-}) => {
+test('More menu is localized, keyboard accessible, stateful, and dismissible', async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 600 });
   await boot(page, 'pt-BR');
 
@@ -114,20 +149,21 @@ test('compact More menu is localized, keyboard accessible, stateful, and dismiss
   const more = nav.getByRole('button', { name: 'Mais' });
   const panel = nav.getByRole('group', { name: 'Mais destinos' });
   const company = nav.getByRole('button', { name: 'Empresa' });
-  const stats = nav.getByRole('button', { name: 'Estatísticas' });
+  const stats = nav.getByRole('button', { name: 'Estatísticas', exact: true });
 
-  await more.click();
+  await more.focus();
+  await page.keyboard.press('Enter');
   await expect(more).toHaveAttribute('aria-expanded', 'true');
   await expect(panel).toBeVisible();
   await expect(panel.locator('.nav__destination:visible')).toHaveCount(6);
   await expect(company).toBeFocused();
-  await expect(panel.getByRole('button')).toHaveText([
-    /Empresa/,
-    /Coleções/,
-    /Conquistas/,
-    /Estatísticas/,
-    /Prestígio/,
-    /Ajustes/,
+  await expect(panel.locator('.nav__panel-label')).toHaveText([
+    'Empresa',
+    'Coleções',
+    'Conquistas',
+    'Estatísticas',
+    'Prestígio',
+    'Ajustes',
   ]);
 
   await stats.focus();
@@ -140,23 +176,29 @@ test('compact More menu is localized, keyboard accessible, stateful, and dismiss
 
   await more.click();
   await expect(company).toBeFocused();
+  await expect(more).not.toHaveAttribute('aria-current', 'page');
+  await expect(stats).toHaveAttribute('aria-current', 'page');
   await page.keyboard.press('Escape');
   await expect(panel).not.toBeVisible();
   await expect(more).toBeFocused();
 
   await more.click();
-  await page.locator('.app__main').click({ position: { x: 4, y: 4 } });
+  const mainBox = await page.locator('.app__main').boundingBox();
+  expect(mainBox).not.toBeNull();
+  await page.mouse.click(mainBox!.x + 4, mainBox!.y + mainBox!.height - 4);
   await expect(panel).not.toBeVisible();
 
   await more.click();
   await expect(company).toBeFocused();
-  await page.setViewportSize({ width: 640, height: 720 });
-  await expect(more).not.toBeVisible();
+  await page.evaluate(() => window.dispatchEvent(new Event('blur')));
+  await expect(panel).not.toBeVisible();
+  await page.evaluate(() => window.dispatchEvent(new Event('focus')));
+  await expect(more).toBeFocused();
+  await more.click();
   await expect(panel).toBeVisible();
-  await expect(nav.locator('.nav__item:visible')).toHaveCount(11);
 });
 
-test('full Portuguese tooltips describe short and More-panel labels at every viewport', async ({
+test('localized hover/focus tooltips use one body portal, flip, and recover after blur', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
@@ -164,58 +206,50 @@ test('full Portuguese tooltips describe short and More-panel labels at every vie
 
   const nav = page.getByRole('navigation', { name: 'Navegação principal' });
   const tip = page.locator('body > .tooltip[role="tooltip"]');
-  const assertInsideViewport = async (width: number, height: number) => {
-    const box = await tip.boundingBox();
-    expect(box).not.toBeNull();
-    expect(box!.x).toBeGreaterThanOrEqual(7);
-    expect(box!.y).toBeGreaterThanOrEqual(7);
-    expect(box!.x + box!.width).toBeLessThanOrEqual(width - 7);
-    expect(box!.y + box!.height).toBeLessThanOrEqual(height - 7);
-  };
 
   for (const { width, height } of VIEWPORTS) {
     await page.setViewportSize({ width, height });
     const office = nav.getByRole('button', { name: 'Escritório' });
+    const more = nav.getByRole('button', { name: /^Mais(?:,|$)/ });
 
     await office.hover();
+    await expect(tip).toHaveCount(1);
     await expect(tip).toBeVisible();
     await expect(tip.locator('.tooltip__title')).toHaveText('Escritório');
     await expect(tip).toContainText('Seu escritório aconchegante');
-    await assertInsideViewport(width, height);
+    await expectInsideViewport(tip, width, height);
+    await expect(office).toHaveAttribute('aria-label', 'Escritório');
+    await expect(office).toHaveAttribute('aria-describedby', /.+/);
+    await expect(office.locator('.nav__panel-label, .nav__label')).toHaveCount(0);
 
     await page.mouse.move(2, Math.floor(height / 2));
-    await office.evaluate((element) => (element as HTMLElement).blur());
+    await expect(tip).toHaveCount(0);
 
-    if (width <= 600) {
-      const more = nav.getByRole('button', { name: /^Mais(?:,|$)/ });
-      await more.focus();
-      await expect(tip.locator('.tooltip__title')).toHaveText('Mais');
-      await expect(tip).toContainText('todos os outros destinos');
-      await assertInsideViewport(width, height);
-      await more.click();
-    }
+    await more.focus();
+    await expect(tip).toBeVisible();
+    await expect(tip.locator('.tooltip__title')).toHaveText('Mais');
+    await expect(tip).toContainText('todos os outros destinos');
+    await expectInsideViewport(tip, width, height);
+    await more.click();
 
     const settings = nav.getByRole('button', { name: 'Ajustes' });
     await settings.focus();
     await expect(tip).toBeVisible();
     await expect(tip.locator('.tooltip__title')).toHaveText('Ajustes');
     await expect(tip).toContainText('áudio e acessibilidade');
-    await assertInsideViewport(width, height);
+    await expectInsideViewport(tip, width, height);
     await expect(settings).toHaveAttribute('aria-label', 'Ajustes');
+    await expect(settings.locator('.nav__panel-label')).toHaveText('Ajustes');
 
-    const visibleOfficeLabel = office.locator('.nav__label:visible');
-    await expect(visibleOfficeLabel).toHaveText(width <= 1000 ? 'Escrit.' : 'Escritório');
-    if (width <= 600) await expect(settings.locator('.nav__label:visible')).toHaveText('Ajustes');
+    await page.evaluate(() => window.dispatchEvent(new Event('blur')));
+    await expect(tip).toHaveCount(0);
+    await expect(nav.locator('.nav__more-panel')).not.toBeVisible();
 
-    if (width === 360) {
-      await page.screenshot({ path: 'visual-artifacts/nav-tooltip-pt-compact.png' });
-    }
-
-    await settings.evaluate((element) => (element as HTMLElement).blur());
+    await office.focus();
+    await expect(tip).toBeVisible();
+    await expect(tip.locator('.tooltip__title')).toHaveText('Escritório');
     await page.keyboard.press('Escape');
-    await nav
-      .locator('.nav__more-toggle')
-      .evaluate((element) => (element as HTMLElement).blur());
-    await page.mouse.move(2, Math.floor(height / 2));
+    await expect(tip).toHaveCount(0);
+    await office.evaluate((element) => (element as HTMLElement).blur());
   }
 });

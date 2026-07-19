@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useStore, type ViewId } from '../state/store';
 import { Icon, type IconName } from '../art/UiIcon';
 import { Tip, TipContent } from './Tooltip';
+import { INTERACTION_CANCEL_EVENT, INTERACTION_FOCUS_EVENT } from './interactionLifecycle';
 
 interface NavItem {
   id: ViewId;
@@ -34,7 +35,7 @@ function NavDestination({
 }: {
   item: NavItem;
   active: boolean;
-  onSelect: (id: ViewId, restoreMoreFocus: boolean) => void;
+  onSelect: (id: ViewId) => void;
   location: 'primary' | 'secondary';
 }) {
   const { t } = useTranslation();
@@ -52,17 +53,16 @@ function NavDestination({
         type="button"
         className={`nav__item nav__destination nav__destination--${location} ${active ? 'is-active' : ''}`.trim()}
         data-view={item.id}
-        onClick={(event) =>
-          onSelect(item.id, location === 'secondary' && event.detail === 0)
-        }
+        onClick={() => onSelect(item.id)}
         aria-label={t(`nav.${item.id}`)}
         aria-current={active ? 'page' : undefined}
       >
-        <Icon name={item.icon} size={16} />
-        <span className="nav__label nav__label--full">{t(`nav.${item.id}`)}</span>
-        <span className="nav__label nav__label--short" aria-hidden="true">
-          {t(`nav.short.${item.id}`)}
-        </span>
+        <Icon name={item.icon} size={21} />
+        {location === 'secondary' ? (
+          <span className="nav__panel-label" aria-hidden="true">
+            {t(`nav.${item.id}`)}
+          </span>
+        ) : null}
       </button>
     </Tip>
   );
@@ -76,37 +76,74 @@ export function NavBar() {
   const navRef = useRef<HTMLElement>(null);
   const moreButtonRef = useRef<HTMLButtonElement>(null);
   const morePanelRef = useRef<HTMLDivElement>(null);
+  const restoreMoreFocusRef = useRef(false);
   const secondaryActive = SECONDARY_ITEMS.some((item) => item.id === view);
+
+  useEffect(() => {
+    const restoreMoreFocus = () => {
+      if (!restoreMoreFocusRef.current) return;
+      restoreMoreFocusRef.current = false;
+      window.requestAnimationFrame(() =>
+        moreButtonRef.current?.focus({ preventScroll: true }),
+      );
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') restoreMoreFocus();
+    };
+
+    window.addEventListener('focus', restoreMoreFocus);
+    window.addEventListener(INTERACTION_FOCUS_EVENT, restoreMoreFocus);
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      window.removeEventListener('focus', restoreMoreFocus);
+      window.removeEventListener(INTERACTION_FOCUS_EVENT, restoreMoreFocus);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, []);
 
   useEffect(() => {
     if (!moreOpen) return;
     morePanelRef.current?.querySelector<HTMLButtonElement>('.nav__destination')?.focus();
 
+    const closeTransient = () => {
+      restoreMoreFocusRef.current = false;
+      setMoreOpen(false);
+    };
+    const closeForFocusLoss = () => {
+      restoreMoreFocusRef.current =
+        morePanelRef.current?.contains(document.activeElement) ?? false;
+      setMoreOpen(false);
+    };
     const onPointerDown = (event: PointerEvent) => {
-      if (!navRef.current?.contains(event.target as Node)) setMoreOpen(false);
+      if (!navRef.current?.contains(event.target as Node)) closeTransient();
     };
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
       event.preventDefault();
-      setMoreOpen(false);
+      closeTransient();
       moreButtonRef.current?.focus();
     };
-    const wideQuery = window.matchMedia('(min-width: 601px)');
-    const onWide = () => {
-      if (wideQuery.matches) setMoreOpen(false);
+    const onVisibility = () => {
+      if (document.visibilityState === 'hidden') closeForFocusLoss();
     };
+
     document.addEventListener('pointerdown', onPointerDown);
     document.addEventListener('keydown', onKeyDown);
-    wideQuery.addEventListener('change', onWide);
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('blur', closeForFocusLoss);
+    window.addEventListener(INTERACTION_CANCEL_EVENT, closeForFocusLoss);
     return () => {
       document.removeEventListener('pointerdown', onPointerDown);
       document.removeEventListener('keydown', onKeyDown);
-      wideQuery.removeEventListener('change', onWide);
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('blur', closeForFocusLoss);
+      window.removeEventListener(INTERACTION_CANCEL_EVENT, closeForFocusLoss);
     };
   }, [moreOpen]);
 
-  const select = (id: ViewId, restoreMoreFocus: boolean) => {
-    const selectedFromOpenMore = moreOpen && restoreMoreFocus;
+  const select = (id: ViewId) => {
+    const selectedFromOpenMore = moreOpen;
+    restoreMoreFocusRef.current = false;
     setView(id);
     setMoreOpen(false);
     if (selectedFromOpenMore) {
@@ -128,11 +165,7 @@ export function NavBar() {
         ))}
         <Tip
           content={
-            <TipContent
-              title={t('nav.more')}
-              lines={[t('tip.nav.more')]}
-              titleAriaHidden
-            />
+            <TipContent title={t('nav.more')} lines={[t('tip.nav.more')]} titleAriaHidden />
           }
         >
           <button
@@ -146,14 +179,13 @@ export function NavBar() {
             }
             aria-expanded={moreOpen}
             aria-controls="nav-more-destinations"
-            aria-current={secondaryActive ? 'page' : undefined}
-            onClick={() => setMoreOpen((open) => !open)}
+            aria-current={secondaryActive && !moreOpen ? 'page' : undefined}
+            onClick={() => {
+              restoreMoreFocusRef.current = false;
+              setMoreOpen((open) => !open);
+            }}
           >
-            <Icon name="menu" size={16} />
-            <span className="nav__label nav__label--full">{t('nav.more')}</span>
-            <span className="nav__label nav__label--short" aria-hidden="true">
-              {t('nav.short.more')}
-            </span>
+            <Icon name="menu" size={21} />
           </button>
         </Tip>
       </div>

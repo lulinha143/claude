@@ -353,9 +353,11 @@ const PATHS: Record<IconName, JSX.Element> = {
   ),
   menu: (
     <>
-      <circle cx="6" cy="12" r="1.2" fill="currentColor" stroke="none" />
-      <circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none" />
-      <circle cx="18" cy="12" r="1.2" fill="currentColor" stroke="none" />
+      <rect x="4" y="4" width="6" height="6" rx="1.2" />
+      <rect x="14" y="4" width="6" height="6" rx="1.2" />
+      <rect x="4" y="14" width="6" height="6" rx="1.2" />
+      <rect x="14" y="14" width="6" height="6" rx="1.2" />
+      <path d="M6.5 7h1M16.5 7h1M6.5 17h1M16.5 17h1" strokeWidth="1.2" />
     </>
   ),
   refresh: (

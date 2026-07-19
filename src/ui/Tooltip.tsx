@@ -12,6 +12,7 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { create } from 'zustand';
+import { INTERACTION_CANCEL_EVENT, INTERACTION_FOCUS_EVENT } from './interactionLifecycle';
 
 // Lightweight, non-invasive tooltip system. One fixed layer renders through a
 // body portal, so tooltips escape every clipped/scaled app container. Hover and
@@ -139,11 +140,31 @@ export function TooltipLayer() {
   const focused = useTip((state) => state.focused);
   const hideHovered = useTip((state) => state.hideHovered);
   const hideFocused = useTip((state) => state.hideFocused);
+  const hideAll = useTip((state) => state.hideAll);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState<TooltipPosition | null>(null);
   // Keyboard focus owns the accessible description until it leaves. Pointer
   // hover can take over afterward without replacing the focused control's ID.
   const active = focused ?? hovered;
+
+  // Native/Electron focus transitions do not consistently blur the focused
+  // element. Clear transient tooltip ownership explicitly so no portal remains
+  // stuck over the game after app switching; the next hover/focus works fresh.
+  useEffect(() => {
+    const onVisibility = () => {
+      if (document.visibilityState === 'hidden') hideAll();
+    };
+    window.addEventListener('blur', hideAll);
+    window.addEventListener(INTERACTION_CANCEL_EVENT, hideAll);
+    window.addEventListener(INTERACTION_FOCUS_EVENT, hideAll);
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      window.removeEventListener('blur', hideAll);
+      window.removeEventListener(INTERACTION_CANCEL_EVENT, hideAll);
+      window.removeEventListener(INTERACTION_FOCUS_EVENT, hideAll);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, [hideAll]);
 
   useEffect(() => {
     if (!active) {

@@ -25,12 +25,16 @@ const SAVE = {
 };
 
 const VIEWPORTS = [
+  { label: '320x420', width: 320, height: 420 },
   { label: '320x520', width: 320, height: 520 },
   { label: '360x600', width: 360, height: 600 },
+  { label: '380x460', width: 380, height: 460 },
   { label: '400x700', width: 400, height: 700 },
   { label: '480x720', width: 480, height: 720 },
+  { label: '520x520', width: 520, height: 520 },
   { label: '640x720', width: 640, height: 720 },
   { label: '800x700', width: 800, height: 700 },
+  { label: '900x420', width: 900, height: 420 },
   { label: '1280x800', width: 1280, height: 800 },
 ] as const;
 
@@ -115,35 +119,32 @@ async function expectShellContained(page: Page) {
   }
 }
 
-async function expectNavigationReadable(page: Page, width: number) {
+async function expectNavigationReadable(page: Page, _width: number) {
   const nav = page.locator('.nav');
   const destinations = nav.locator('.nav__destination');
-  const visibleControls = nav.locator('.nav__item:visible');
+  const permanentControls = nav.locator('.nav__primary .nav__item:visible');
   await expect(destinations).toHaveCount(11);
-  await expect(visibleControls).toHaveCount(width <= 600 ? 6 : 11);
+  await expect(permanentControls).toHaveCount(6);
 
-  for (const control of await visibleControls.all()) {
-    await expect(control.locator('.nav__label:visible')).toHaveCount(1);
-    await expect(control.locator('.nav__label:visible')).not.toHaveText('');
+  for (const control of await permanentControls.all()) {
+    await expect(control.locator('.nav__panel-label, .nav__label')).toHaveCount(0);
+    const box = await control.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.width).toBeGreaterThanOrEqual(34);
+    expect(box!.width).toBeLessThanOrEqual(42);
   }
 
-  const rowCount = await visibleControls.evaluateAll((elements) => {
+  const rowCount = await permanentControls.evaluateAll((elements) => {
     const rows = new Set(
       elements.map((element) => Math.round(element.getBoundingClientRect().top)),
     );
     return rows.size;
   });
-  expect(rowCount).toBeLessThanOrEqual(2);
-  expect(rowCount).toBe(width <= 600 || width > 1000 ? 1 : 2);
+  expect(rowCount).toBe(1);
 
   const morePanel = nav.locator('.nav__more-panel');
-  if (width <= 600) {
-    await expect(nav.locator('.nav__more-toggle')).toBeVisible();
-    await expect(morePanel).not.toBeVisible();
-  } else {
-    await expect(nav.locator('.nav__more-toggle')).not.toBeVisible();
-    await expect(morePanel).toBeVisible();
-  }
+  await expect(nav.locator('.nav__more-toggle')).toBeVisible();
+  await expect(morePanel).not.toBeVisible();
 
   const navOverflow = await nav.evaluate((element) => ({
     pixels: element.scrollWidth - element.clientWidth,
@@ -387,5 +388,46 @@ test('150% interface scale reflows at the specified 320x520 viewport', async ({ 
   expect(appBox!.x + appBox!.width).toBeLessThanOrEqual(313);
   expect(appBox!.y).toBeGreaterThanOrEqual(7);
   expect(appBox!.y + appBox!.height).toBeLessThanOrEqual(513);
+
+  const more = page.locator('.nav__more-toggle');
+  const morePanel = page.locator('.nav__more-panel');
+  await more.click();
+  await expect(morePanel).toBeVisible();
+  await expect(morePanel.locator('.nav__destination:visible')).toHaveCount(6);
+  const panelBox = await morePanel.boundingBox();
+  expect(panelBox).not.toBeNull();
+  expect(panelBox!.x).toBeGreaterThanOrEqual(5);
+  expect(panelBox!.x + panelBox!.width).toBeLessThanOrEqual(315);
+  expect(panelBox!.y).toBeGreaterThanOrEqual(5);
+  expect(panelBox!.y + panelBox!.height).toBeLessThanOrEqual(515);
   await page.screenshot({ path: 'visual-artifacts/responsive-320x520-scale-150.png' });
+});
+
+test('150% interface scale keeps More contained while zoom is active', async ({ page }) => {
+  await page.setViewportSize({ width: 520, height: 720 });
+  await boot(page, {
+    ...SAVE,
+    settings: { ...SAVE.settings, uiScale: 1.5, fontScale: 1.5 },
+  });
+  await clearNotifications(page);
+  await expect(page.locator('.app')).toHaveCSS('zoom', '1.5');
+  const pageOverflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  );
+  expect(pageOverflow).toBeLessThanOrEqual(2);
+
+  const more = page.locator('.nav__more-toggle');
+  const morePanel = page.locator('.nav__more-panel');
+  await more.click();
+  await expect(morePanel).toBeVisible();
+  await expect(morePanel.locator('.nav__destination:visible')).toHaveCount(6);
+  const panelBox = await morePanel.boundingBox();
+  expect(panelBox).not.toBeNull();
+  expect(panelBox!.x).toBeGreaterThanOrEqual(5);
+  expect(panelBox!.x + panelBox!.width).toBeLessThanOrEqual(515);
+  expect(panelBox!.y).toBeGreaterThanOrEqual(5);
+  expect(panelBox!.y + panelBox!.height).toBeLessThanOrEqual(715);
+  await page.screenshot({
+    path: 'visual-artifacts/responsive-520x720-scale-150-more.png',
+  });
 });
