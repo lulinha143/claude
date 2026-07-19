@@ -17,7 +17,7 @@ const DIR = 'visual-artifacts';
 // flagged stowed (decohide) so it starts in the inventory tray, letting us test
 // the tray -> scene placement path; the rest auto-place at tidy defaults.
 const SAVE = {
-  version: 6,
+  version: 7,
   onboardingComplete: true,
   lastSaved: Date.now(),
   company: { name: 'Nutty Co.' },
@@ -26,6 +26,19 @@ const SAVE = {
     pip: { hired: true, level: 6, friendship: 70, room: 'founder-desk', x: 0.2 },
     marlow: { hired: true, level: 4, friendship: 55, room: 'founder-desk', x: 0.6 },
   },
+  placements: {
+    'potted-fern': { surface: 'floor', x: 0.2, y: 0.1 },
+    'tiny-rug': { surface: 'floor', x: 0.5, y: 0.14 },
+    'motivational-poster': { surface: 'wall', x: 0.32, y: 0.62 },
+    'window-view': { surface: 'wall', x: 0.7, y: 0.62 },
+  },
+  decorationInstances: [
+    { instanceId: 'deco-potted-fern-1', decorationId: 'potted-fern', roomId: 'founder-desk', surfaceType: 'floor', normalizedX: 0.2, normalizedY: 0.1, depth: 3, interactionState: {} },
+    { instanceId: 'deco-tiny-rug-1', decorationId: 'tiny-rug', roomId: 'founder-desk', surfaceType: 'floor', normalizedX: 0.5, normalizedY: 0.14, depth: 0, interactionState: {} },
+    { instanceId: 'deco-motivational-poster-1', decorationId: 'motivational-poster', roomId: 'founder-desk', surfaceType: 'wall', normalizedX: 0.32, normalizedY: 0.62, depth: 1, interactionState: {} },
+    { instanceId: 'deco-window-view-1', decorationId: 'window-view', roomId: 'founder-desk', surfaceType: 'wall', normalizedX: 0.7, normalizedY: 0.62, depth: 1, interactionState: {} },
+    { instanceId: 'deco-desk-lamp-1', decorationId: 'desk-lamp', roomId: null, surfaceType: 'floor', normalizedX: 0.5, normalizedY: 0.06, depth: 2, interactionState: {} },
+  ],
   collections: {
     nuts: [],
     outfits: [],
@@ -72,17 +85,25 @@ async function enterDecorateMode(page: Page) {
 
 // Drag from a source element's centre to an absolute (x, y) in the viewport,
 // dispatching enough pointer moves to cross the 7px drag threshold.
-async function dragFromElementTo(page: Page, source: ReturnType<Page['locator']>, x: number, y: number) {
+async function dragFromElementTo(
+  page: Page,
+  source: ReturnType<Page['locator']>,
+  x: number,
+  y: number,
+  anchorRatio?: number,
+) {
   const box = await source.boundingBox();
   if (!box) throw new Error('drag source has no bounding box');
   const sx = box.x + box.width / 2;
   const sy = box.y + box.height / 2;
+  const targetX = anchorRatio === undefined ? x : x + (sx - (box.x + box.width / 2));
+  const targetY = anchorRatio === undefined ? y : y + (sy - (box.y + box.height * anchorRatio));
   await page.mouse.move(sx, sy);
   await page.mouse.down();
   // several small steps so hypot() exceeds DRAG_THRESHOLD and target updates
   await page.mouse.move(sx + 10, sy + 4, { steps: 3 });
-  await page.mouse.move((sx + x) / 2, (sy + y) / 2, { steps: 6 });
-  await page.mouse.move(x, y, { steps: 8 });
+  await page.mouse.move((sx + targetX) / 2, (sy + targetY) / 2, { steps: 6 });
+  await page.mouse.move(targetX, targetY, { steps: 8 });
   await page.waitForTimeout(60);
   await page.mouse.up();
   await page.waitForTimeout(200);
@@ -119,7 +140,7 @@ test.describe('decoration free-placement', () => {
     // Drop near the far side of the floor band (low in the stage = floor line).
     const targetX = box.x + box.width * 0.82;
     const targetY = box.y + box.height * 0.9;
-    await dragFromElementTo(page, deco, targetX, targetY);
+    await dragFromElementTo(page, deco, targetX, targetY, 54 / 56);
 
     const after = styleNumbers((await deco.getAttribute('style')) ?? '');
     await page.screenshot({ path: `${DIR}/deco-02-floor-after.png` });
@@ -136,8 +157,8 @@ test.describe('decoration free-placement', () => {
     const before = styleNumbers((await deco.getAttribute('style')) ?? '');
 
     const box = (await stage.boundingBox())!;
-    // Aim high in the stage (wall band) on the opposite horizontal side.
-    const targetX = box.x + box.width * (before.left > 50 ? 0.2 : 0.8);
+    // Aim high in the stage (wall band), clear of the larger window frame.
+    const targetX = box.x + box.width * 0.5;
     const targetY = box.y + box.height * 0.3;
     await dragFromElementTo(page, deco, targetX, targetY);
 
@@ -154,7 +175,7 @@ test.describe('decoration free-placement', () => {
   test('place a decoration from the inventory tray onto the floor', async ({ page }) => {
     const stage = page.locator('.floor[data-room="founder-desk"] .floor__stage');
     // desk-lamp starts stowed → it should be a card in the tray.
-    const card = page.locator('.deco-tray__card').first();
+    const card = page.locator('.deco-tray__card .decor').first();
     await expect(card).toBeVisible();
     await page.screenshot({ path: `${DIR}/deco-04-tray.png` });
 
@@ -171,7 +192,7 @@ test.describe('decoration free-placement', () => {
     const deco = page.locator('.floor[data-room="founder-desk"] .floor__deco--floor').first();
     const before = styleNumbers((await deco.getAttribute('style')) ?? '');
     // Drop on the toolbar at the very top — not over the owning room.
-    await dragFromElementTo(page, deco, 200, 10);
+    await dragFromElementTo(page, deco, 200, 10, 54 / 56);
     const after = styleNumbers((await deco.getAttribute('style')) ?? '');
     // Unchanged (rejected drop): still on floor, same coordinates.
     expect(Math.abs(after.left - before.left)).toBeLessThan(1);
@@ -185,7 +206,7 @@ test.describe('decoration free-placement', () => {
     const deco = page.locator('.floor[data-room="founder-desk"] [data-deco="potted-fern"]');
     const before = styleNumbers((await deco.getAttribute('style')) ?? '');
     const box = (await stage.boundingBox())!;
-    await dragFromElementTo(page, deco, box.x + box.width * 0.78, box.y + box.height * 0.9);
+    await dragFromElementTo(page, deco, box.x + box.width * 0.78, box.y + box.height * 0.9, 54 / 56);
     const moved = styleNumbers((await deco.getAttribute('style')) ?? '');
     // Sanity: the drag actually moved it before we test persistence.
     expect(Math.abs(moved.left - before.left)).toBeGreaterThan(8);
@@ -215,8 +236,10 @@ test.describe('decoration free-placement', () => {
     const destinationBox = (await destination.boundingBox())!;
     const sx = sourceBox.x + sourceBox.width / 2;
     const sy = sourceBox.y + sourceBox.height / 2;
-    const tx = destinationBox.x + destinationBox.width * 0.75;
-    const ty = destinationBox.y + destinationBox.height * 0.9;
+    const desiredAnchorX = destinationBox.x + destinationBox.width * 0.75;
+    const desiredAnchorY = destinationBox.y + destinationBox.height * 0.9;
+    const tx = desiredAnchorX + (sx - (sourceBox.x + sourceBox.width / 2));
+    const ty = desiredAnchorY + (sy - (sourceBox.y + sourceBox.height * (54 / 56)));
 
     await page.mouse.move(sx, sy);
     await page.mouse.down();
@@ -243,7 +266,7 @@ test.describe('decoration free-placement', () => {
     await expect(moveButton).toBeFocused();
 
     await moveButton.click();
-    await page.getByRole('button', { name: /Move to Morale/i }).click();
+    await page.getByRole('button', { name: /Move to Coffee & Morale Division/i }).click();
     await expect(page.getByRole('dialog')).toHaveCount(0);
     await expect(page.locator('.floor[data-room="morale"] [data-deco="potted-fern"]')).toBeVisible();
   });

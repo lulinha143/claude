@@ -222,7 +222,9 @@ export function syncDecorationInstanceFromPlacement(state: GameState, decoration
     instance.surfaceType = placement.surface;
     instance.normalizedX = placement.x;
     instance.normalizedY = placement.y;
-    instance.depth = surfaceZ(decorationId, placement.surface);
+    // Existing v7 instances carry authoritative semantic depth. Placement is a
+    // legacy compatibility projection and has no depth field, so syncing it
+    // must never flatten a valid front/back ordering during load or repair.
   } else {
     instance.roomId = null;
   }

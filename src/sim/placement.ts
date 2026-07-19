@@ -7,6 +7,14 @@
 // A decoration occupies a bounding box `w` wide and `h` tall around that point.
 
 import type { GameState } from './types';
+import {
+  clampPointToValidRegion,
+  pointOnRegion,
+  projectPointToRegion,
+  regionContainsPoint,
+  type NormalizedPoint,
+  type PlacementRegion,
+} from './placementRegions';
 import { DECORATIONS_BY_ID } from '../content/decorations';
 import { decorationSurface, isRug } from './surfaces';
 import { placedDecorationsInRoom } from './decorations';
@@ -129,4 +137,182 @@ export function evaluatePlacement(
   }
 
   return { ok: true };
+}
+
+
+
+export interface RegionPlacementCheck extends PlacementCheck {
+  region: PlacementRegion;
+  point: NormalizedPoint;
+  /** Region-local coordinates, useful for perspective depth and diagnostics. */
+  u: number;
+  v: number;
+  depth: number;
+  /** Normalized footprint projected onto the support plane. */
+  planeFootprint: { width: number; depth: number };
+}
+
+/**
+ * The support-plane footprint differs from the visible upright bounding box:
+ * standing objects contact the floor through a shallow base, while rugs use
+ * their complete flat footprint. Keeping this pure makes live preview and drop
+ * validation use exactly the same geometry.
+ */
+export function decorationPlaneFootprint(
+  id: string,
+  region: Pick<PlacementRegion, 'kind'>,
+): { width: number; depth: number } {
+  const visible = footprint(id);
+  if (region.kind === 'rug-plane' || isRug(id)) {
+    return { width: visible.w, depth: Math.max(visible.h, 0.06) };
+  }
+  return {
+    width: visible.w,
+    depth: Math.max(0.025, Math.min(0.065, visible.h * 0.2)),
+  };
+}
+
+function footprintSamples(
+  point: NormalizedPoint,
+  size: { width: number; depth: number },
+): NormalizedPoint[] {
+  const halfWidth = size.width / 2;
+  const halfDepth = size.depth / 2;
+  return [
+    point,
+    { x: point.x - halfWidth, y: point.y - halfDepth },
+    { x: point.x, y: point.y - halfDepth },
+    { x: point.x + halfWidth, y: point.y - halfDepth },
+    { x: point.x - halfWidth, y: point.y },
+    { x: point.x + halfWidth, y: point.y },
+    { x: point.x - halfWidth, y: point.y + halfDepth },
+    { x: point.x, y: point.y + halfDepth },
+    { x: point.x + halfWidth, y: point.y + halfDepth },
+  ];
+}
+
+export function decorationFootprintFitsRegion(
+  id: string,
+  region: PlacementRegion,
+  point: NormalizedPoint,
+): boolean {
+  const size = decorationPlaneFootprint(id, region);
+  return footprintSamples(point, size).every((sample) => regionContainsPoint(region, sample));
+}
+
+/**
+ * Find the nearest anchor whose complete visible support footprint remains in
+ * the authored region. Direct placements retain full precision; only an
+ * outside/edge pointer uses the deterministic region-local search fallback.
+ */
+export function clampDecorationToRegion(
+  id: string,
+  region: PlacementRegion,
+  point: NormalizedPoint,
+): { point: NormalizedPoint; u: number; v: number } | null {
+  const direct = clampPointToValidRegion(region, point);
+  if (!direct) return null;
+  if (decorationFootprintFitsRegion(id, region, direct.point)) return direct;
+
+  let nearest: { point: NormalizedPoint; u: number; v: number; distance: number } | null = null;
+  const steps = 28;
+  for (let row = 0; row <= steps; row += 1) {
+    for (let column = 0; column <= steps; column += 1) {
+      const u = column / steps;
+      const v = row / steps;
+      const candidate = pointOnRegion(region, u, v);
+      if (!decorationFootprintFitsRegion(id, region, candidate)) continue;
+      const distance = (candidate.x - point.x) ** 2 + (candidate.y - point.y) ** 2;
+      if (!nearest || distance < nearest.distance) nearest = { point: candidate, u, v, distance };
+    }
+  }
+  return nearest ? { point: nearest.point, u: nearest.u, v: nearest.v } : null;
+}
+
+function depthAt(region: PlacementRegion, v: number): number {
+  if (region.depth.min === region.depth.max) return region.depth.default;
+  // Region v grows from the near/bottom edge toward the far/top edge. Higher
+  // z-index values must belong to nearer props so they paint over back-row
+  // props and, where appropriate, employees.
+  return Math.round(region.depth.max - (region.depth.max - region.depth.min) * v);
+}
+
+/**
+ * Shared live-preview/drop transaction check for one semantic support region.
+ * The returned point is always constrained; `ok` additionally records whether
+ * the raw pointer footprint was legal and collision-free.
+ */
+export function evaluateRegionPlacement(
+  state: GameState,
+  id: string,
+  roomId: string,
+  region: PlacementRegion,
+  rawPoint: NormalizedPoint,
+): RegionPlacementCheck | null {
+  const def = DECORATIONS_BY_ID[id];
+  if (
+    !def ||
+    region.roomId !== roomId ||
+    !def.compatibleRooms.includes(roomId) ||
+    !def.compatibleRegionKinds.includes(region.kind) ||
+    !def.compatibleRegionSurfaces.includes(region.surfaceType)
+  ) {
+    return null;
+  }
+
+  const constrained = clampDecorationToRegion(id, region, rawPoint);
+  if (!constrained) return null;
+  const rawProjection = projectPointToRegion(region, rawPoint);
+  const rawFits = rawProjection.inside && decorationFootprintFitsRegion(id, region, rawPoint);
+  const occupants = placedDecorationsInRoom(state, roomId).filter(
+    (other) => other.def.id !== id && other.def.defaultRegionKind === region.kind,
+  );
+  const capacityReached =
+    region.capacity !== undefined && occupants.length >= region.capacity;
+  const collision = capacityReached
+    ? { ok: false, reasonKey: 'decorate.reject.occupied' }
+    : evaluatePlacement(state, id, constrained.point.x, constrained.point.y, roomId);
+  return {
+    region,
+    point: constrained.point,
+    u: constrained.u,
+    v: constrained.v,
+    depth: depthAt(region, constrained.v),
+    planeFootprint: decorationPlaneFootprint(id, region),
+    ok: rawFits && collision.ok,
+    reasonKey: rawFits ? collision.reasonKey : 'decorate.reject.moveInside',
+  };
+}
+
+
+/**
+ * Deterministically find a legal support point for non-pointer placement flows
+ * such as purchase fallback, Move To, and room reset. Pointer drags still use
+ * evaluateRegionPlacement directly so an invalid release never auto-teleports.
+ */
+export function findValidRegionPlacement(
+  state: GameState,
+  id: string,
+  roomId: string,
+  region: PlacementRegion,
+  desired: NormalizedPoint,
+): RegionPlacementCheck | null {
+  const constrained = clampDecorationToRegion(id, region, desired);
+  if (constrained) {
+    const direct = evaluateRegionPlacement(state, id, roomId, region, constrained.point);
+    if (direct?.ok) return direct;
+  }
+
+  const steps = 12;
+  let nearest: { check: RegionPlacementCheck; distance: number } | null = null;
+  for (let row = 0; row <= steps; row += 1) {
+    for (let column = 0; column <= steps; column += 1) {
+      const point = pointOnRegion(region, column / steps, row / steps);
+      const check = evaluateRegionPlacement(state, id, roomId, region, point);
+      if (!check?.ok) continue;
+      const distance = (check.point.x - desired.x) ** 2 + (check.point.y - desired.y) ** 2;
+      if (!nearest || distance < nearest.distance) nearest = { check, distance };
+    }
+  }
+  return nearest?.check ?? null;
 }

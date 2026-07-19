@@ -18,11 +18,14 @@ import {
   placedDecorationsInRoom,
   isDecorationPlaced,
   decorationRoom,
+  decorationInstance,
   roomComfort,
   placementAt,
 } from '../sim/decorations';
 import { surfaceZ, decorationSurface, isRug } from '../sim/surfaces';
-import { evaluatePlacement } from '../sim/placement';
+import { evaluatePlacement, evaluateRegionPlacement } from '../sim/placement';
+import { compatibleRegionsForProfile, placementRegionById } from '../content/roomSurfaces';
+import type { PlacementAnchorMode, PlacementRegionKind } from '../sim/placementRegions';
 import { characterSlots } from '../content/roomLayout';
 import { pickOfficeInteraction } from '../sim/officeLife';
 import { DecorationTray } from '../ui/DecorationTray';
@@ -40,14 +43,29 @@ import { INTERACTION_CANCEL_EVENT, INTERACTION_FOCUS_EVENT } from '../ui/interac
 const ROOM_CAP = 6;
 const DRAG_THRESHOLD = 7; // px before a press becomes a drag (vs a tap)
 
+interface DecorationDragPreview {
+  roomId: string;
+  regionId: string;
+  regionKind: PlacementRegionKind;
+  anchorMode: PlacementAnchorMode;
+  point: { x: number; y: number };
+  clientX: number;
+  clientY: number;
+  depth: number;
+  planeFootprint: { width: number; depth: number };
+  valid: boolean;
+  reasonKey?: string;
+}
+
 interface DragState {
   kind: 'employee' | 'decoration';
   id: string;
   x: number;
   y: number;
-  room: string | null; // for decorations: the owning room; employees: null
+  room: string | null; // for decorations: the source room; employees: null
   overRoom: string | null;
   valid: boolean;
+  preview?: DecorationDragPreview;
 }
 
 interface CancelDragOptions {
@@ -114,6 +132,45 @@ function GhostCritter({ id, reducedMotion }: { id: string; reducedMotion: boolea
       reducedMotion={reducedMotion}
       size={68}
     />
+  );
+}
+
+// The handcrafted prop SVGs use a 56-unit viewBox. Standing items touch their
+// support at y=54; rugs visually center on their ellipse at y=46.
+const STANDING_BASELINE_RATIO = 54 / 56;
+const RUG_CENTER_RATIO = 46 / 56;
+
+function RegionGuide({ preview }: { preview: DecorationDragPreview }) {
+  const region = placementRegionById(preview.regionId);
+  if (!region) return null;
+  const polygon = [
+    region.plane.bottomLeft,
+    region.plane.bottomRight,
+    region.plane.topRight,
+    region.plane.topLeft,
+  ]
+    .map((point) => `${point.x * 100},${(1 - point.y) * 100}`)
+    .join(' ');
+  return (
+    <svg
+      className={`floor__surface-guide floor__surface-guide--${region.surfaceType} floor__region-guide ${
+        preview.valid ? 'is-valid' : 'is-invalid'
+      }`}
+      viewBox="0 0 100 100"
+      preserveAspectRatio="none"
+      data-region={region.id}
+      data-region-kind={region.kind}
+      aria-hidden
+    >
+      <polygon className="floor__region-plane" points={polygon} />
+      <ellipse
+        className="floor__region-footprint"
+        cx={preview.point.x * 100}
+        cy={(1 - preview.point.y) * 100}
+        rx={(preview.planeFootprint.width * 100) / 2}
+        ry={(preview.planeFootprint.depth * 100) / 2}
+      />
+    </svg>
   );
 }
 
@@ -336,19 +393,55 @@ export function OfficeScene() {
     return { room, valid: already || !full };
   }
 
+  function semanticFloorKind(id: string): 'floor' | 'rug-plane' | null {
+    const kind = DECORATIONS_BY_ID[id]?.defaultRegionKind;
+    return kind === 'floor' || kind === 'rug-plane' ? kind : null;
+  }
+
   function decorationTarget(
     x: number,
     y: number,
     id: string,
-  ): { room: string | null; valid: boolean } {
+    grabOffset = { x: 0, y: 0 },
+  ): { room: string | null; valid: boolean; preview?: DecorationDragPreview } {
     const room = roomUnderPoint(x, y);
     const def = DECORATIONS_BY_ID[id];
     if (!room || !def) return { room, valid: false };
-    return {
-      room,
-      valid:
-        def.compatibleRooms.includes(room) && isRoomUnlocked(stateRef.current, ROOMS_BY_ID[room]),
+    const roomValid =
+      def.compatibleRooms.includes(room) && isRoomUnlocked(stateRef.current, ROOMS_BY_ID[room]);
+    const regionKind = semanticFloorKind(id);
+    if (!roomValid || !regionKind) return { room, valid: roomValid };
+
+    const floorElement = document.querySelector<HTMLElement>(`.floor[data-room="${room}"]`);
+    const stage = floorElement?.querySelector<HTMLElement>('.floor__stage');
+    const region = compatibleRegionsForProfile(room, def).find(
+      (candidate) => candidate.kind === regionKind,
+    );
+    if (!stage || !region) return { room, valid: false };
+
+    const rect = stage.getBoundingClientRect();
+    const anchorClientX = x - grabOffset.x;
+    const anchorClientY = y - grabOffset.y;
+    const rawPoint = {
+      x: (anchorClientX - rect.left) / Math.max(1, rect.width),
+      y: (rect.bottom - anchorClientY) / Math.max(1, rect.height),
     };
+    const check = evaluateRegionPlacement(stateRef.current, id, room, region, rawPoint);
+    if (!check) return { room, valid: false };
+    const preview: DecorationDragPreview = {
+      roomId: room,
+      regionId: region.id,
+      regionKind: region.kind,
+      anchorMode: region.anchorMode,
+      point: check.point,
+      clientX: rect.left + check.point.x * rect.width,
+      clientY: rect.bottom - check.point.y * rect.height,
+      depth: check.depth,
+      planeFootprint: check.planeFootprint,
+      valid: check.ok,
+      reasonKey: check.reasonKey,
+    };
+    return { room, valid: preview.valid, preview };
   }
 
   function armCancelledPointerRelease(pointerId: number) {
@@ -414,6 +507,16 @@ export function OfficeScene() {
     pendingReleaseCleanupsRef.current.get(pointerId)?.();
     const start = { x: e.clientX, y: e.clientY };
     const room = kind === 'decoration' ? decorationRoom(stateRef.current, id) : null;
+    const sourceRect = source.getBoundingClientRect();
+    const anchorRatio = isRug(id) ? RUG_CENTER_RATIO : STANDING_BASELINE_RATIO;
+    const grabOffset =
+      kind === 'decoration'
+        ? {
+            x: start.x - (sourceRect.left + sourceRect.width / 2),
+            y: start.y - (sourceRect.top + sourceRect.height * anchorRatio),
+          }
+        : { x: 0, y: 0 };
+    let lastPreview: DecorationDragPreview | undefined;
     let started = false;
     let cleaned = false;
 
@@ -422,18 +525,40 @@ export function OfficeScene() {
       if (!started && Math.hypot(ev.clientX - start.x, ev.clientY - start.y) < DRAG_THRESHOLD)
         return;
       started = true;
-      const tgt =
-        kind === 'employee'
-          ? employeeTarget(ev.clientX, ev.clientY, id)
-          : decorationTarget(ev.clientX, ev.clientY, id);
+      if (kind === 'employee') {
+        const target = employeeTarget(ev.clientX, ev.clientY, id);
+        setDrag({
+          kind,
+          id,
+          x: ev.clientX,
+          y: ev.clientY,
+          room,
+          overRoom: target.room,
+          valid: target.valid,
+        });
+        return;
+      }
+
+      const target = decorationTarget(ev.clientX, ev.clientY, id, grabOffset);
+      if (target.preview) lastPreview = target.preview;
+      const preview = target.preview
+        ? target.preview
+        : lastPreview
+          ? {
+              ...lastPreview,
+              valid: false,
+              reasonKey: 'decorate.reject.moveInside',
+            }
+          : undefined;
       setDrag({
         kind,
         id,
-        x: ev.clientX,
-        y: ev.clientY,
+        x: preview?.clientX ?? ev.clientX,
+        y: preview?.clientY ?? ev.clientY,
         room,
-        overRoom: tgt.room,
-        valid: tgt.valid,
+        overRoom: target.room,
+        valid: Boolean(preview ? preview.valid && target.room === preview.roomId : target.valid),
+        preview,
       });
     }
 
@@ -477,10 +602,14 @@ export function OfficeScene() {
 
     function up(ev: PointerEvent) {
       if (ev.pointerId !== pointerId) return;
+      const decorationDrop =
+        kind === 'decoration'
+          ? decorationTarget(ev.clientX, ev.clientY, id, grabOffset)
+          : undefined;
       cleanup();
       if (started) {
         if (kind === 'employee') finishEmployeeDrop(ev.clientX, ev.clientY, id);
-        else finishDecorationDrop(ev.clientX, ev.clientY, id);
+        else finishDecorationDrop(ev.clientX, ev.clientY, id, decorationDrop);
         draggedRef.current = true;
         setTimeout(() => {
           draggedRef.current = false;
@@ -534,7 +663,12 @@ export function OfficeScene() {
     if (engine.assignEmployee(id, room)) audio.play('upgrade');
   }
 
-  function finishDecorationDrop(x: number, y: number, id: string) {
+  function finishDecorationDrop(
+    x: number,
+    y: number,
+    id: string,
+    target?: ReturnType<typeof decorationTarget>,
+  ) {
     const def = DECORATIONS_BY_ID[id];
     if (!def) return;
     const el = document.elementFromPoint(x, y);
@@ -543,6 +677,35 @@ export function OfficeScene() {
       if (engine.removeDecoration(id)) audio.play('click');
       return;
     }
+
+    // Floor props and rugs use the exact normalized semantic-region candidate
+    // already shown during live preview. No state mutates until this valid drop.
+    if (semanticFloorKind(id)) {
+      const preview = target?.preview;
+      if (!preview || !target?.valid || preview.roomId !== target.room) {
+        if (target?.room) {
+          notify('rooms', t(preview?.reasonKey ?? 'decorate.reject.invalid'), 'neutral');
+          audio.play('error');
+        }
+        return;
+      }
+      if (
+        engine.moveDecorationToRoom(
+          id,
+          preview.roomId,
+          preview.point.x,
+          preview.point.y,
+          preview.depth,
+        )
+      ) {
+        audio.play('place');
+        dustPuff(preview.clientX, preview.clientY);
+        setJustPlaced(id);
+        window.setTimeout(() => setJustPlaced((current) => (current === id ? null : current)), 320);
+      }
+      return;
+    }
+
     const floorEl = el?.closest('.floor[data-room]') as HTMLElement | null;
     const overRoom = floorEl?.dataset.room ?? null;
     if (!floorEl || !overRoom) return; // outside a room or tray: cancel without changing state
@@ -551,14 +714,12 @@ export function OfficeScene() {
       audio.play('error');
       return;
     }
-    // Controlled free placement: use the exact drop point (normalized to the
-    // room stage); the engine clamps y to the decoration's surface band + bounds.
+    // Legacy wall/ceiling placement remains intact until their semantic bands,
+    // rails, tables, and shelves are integrated in the next focused stage.
     const stage = (floorEl.querySelector('.floor__stage') as HTMLElement | null) ?? floorEl;
     const rect = stage.getBoundingClientRect();
     const nx = (x - rect.left) / Math.max(1, rect.width);
     const ny = (rect.bottom - y) / Math.max(1, rect.height); // 0 = floor line, 1 = top of wall
-    // Validate the *final* (clamped) position against room composition rules so
-    // we never produce a broken arrangement (overlap, stacking, covered faces).
     const final = placementAt(id, nx, ny);
     const check = evaluatePlacement(stateRef.current, id, final.x, final.y, overRoom);
     if (!check.ok) {
@@ -567,13 +728,10 @@ export function OfficeScene() {
       return;
     }
     if (engine.moveDecorationToRoom(id, overRoom, nx, ny)) {
-      // Satisfying drop feedback: soft settle sound, a little dust puff at the
-      // drop point, and a brief settle animation on the piece itself. All of it
-      // is silent under mute and still under reduced motion.
       audio.play('place');
       dustPuff(x, y);
       setJustPlaced(id);
-      window.setTimeout(() => setJustPlaced((cur) => (cur === id ? null : cur)), 320);
+      window.setTimeout(() => setJustPlaced((current) => (current === id ? null : current)), 320);
     }
   }
 
@@ -800,6 +958,12 @@ export function OfficeScene() {
                   <div
                     key={def.id}
                     data-deco={def.id}
+                    data-region={
+                      semanticFloorKind(def.id)
+                        ? `${room.id}:${semanticFloorKind(def.id)}:main`
+                        : undefined
+                    }
+                    data-region-kind={semanticFloorKind(def.id) ?? undefined}
                     className={`floor__deco floor__deco--${placement.surface} ${
                       isRug(def.id) ? 'floor__deco--rug' : ''
                     } ${selected === def.id ? 'is-selected' : ''} ${
@@ -808,7 +972,9 @@ export function OfficeScene() {
                     style={{
                       left: `${placement.x * 100}%`,
                       bottom: `${placement.y * 100}%`,
-                      zIndex: surfaceZ(def.id, placement.surface),
+                      zIndex:
+                        decorationInstance(state, def.id)?.depth ??
+                        surfaceZ(def.id, placement.surface),
                     }}
                   >
                     <DecorationProp
@@ -827,8 +993,10 @@ export function OfficeScene() {
                   </div>
                 ))}
 
-                {/* surface guide overlay while dragging a decoration into this room */}
-                {canDropHere && drag?.kind === 'decoration' ? (
+                {/* semantic region + live footprint/collision preview */}
+                {drag?.kind === 'decoration' && drag.preview?.roomId === room.id ? (
+                  <RegionGuide preview={drag.preview} />
+                ) : canDropHere ? (
                   <div
                     className={`floor__surface-guide floor__surface-guide--${decorationSurface(drag.id)}`}
                     aria-hidden
@@ -983,8 +1151,19 @@ export function OfficeScene() {
       {drag && typeof document !== 'undefined'
         ? createPortal(
             <div
-              className={`drag-ghost ${drag.valid ? 'is-ok' : 'is-no'}`}
+              className={`drag-ghost ${drag.valid ? 'is-ok' : 'is-no'} ${
+                drag.kind === 'decoration'
+                  ? isRug(drag.id)
+                    ? 'drag-ghost--rug-anchor'
+                    : drag.preview
+                      ? 'drag-ghost--base-anchor'
+                      : 'drag-ghost--pointer-anchor'
+                  : 'drag-ghost--pointer-anchor'
+              }`}
               style={{ left: `${drag.x}px`, top: `${drag.y}px` }}
+              data-region={drag.preview?.regionId}
+              data-region-kind={drag.preview?.regionKind}
+              data-valid={drag.valid}
               aria-hidden
             >
               {drag.kind === 'employee' ? (
@@ -998,7 +1177,9 @@ export function OfficeScene() {
                     title={t(`deco.${drag.id}.name`)}
                   />
                   <span className="drag-ghost__surface">
-                    {t(`decorate.surface.${decorationSurface(drag.id)}`)}
+                    {drag.preview?.regionKind === 'rug-plane'
+                      ? t('decorate.surface.rug')
+                      : t(`decorate.surface.${decorationSurface(drag.id)}`)}
                   </span>
                 </>
               )}

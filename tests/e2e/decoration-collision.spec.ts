@@ -8,7 +8,7 @@ import { test, expect, type Page } from '@playwright/test';
 const DIR = 'visual-artifacts';
 
 const SAVE = {
-  version: 6,
+  version: 7,
   onboardingComplete: true,
   lastSaved: Date.now(),
   company: { name: 'Nutty Co.' },
@@ -20,6 +20,28 @@ const SAVE = {
     rizzo: { hired: true, level: 3, friendship: 45, room: 'morale', x: 0.4 },
     bea: { hired: true, level: 3, friendship: 40, room: 'morale', x: 0.6 },
   },
+  placements: {
+    'potted-fern': { surface: 'floor', x: 0.18, y: 0.1 },
+    'desk-lamp': { surface: 'floor', x: 0.34, y: 0.1 },
+    'motivational-poster': { surface: 'wall', x: 0.3, y: 0.62 },
+    'window-view': { surface: 'wall', x: 0.7, y: 0.62 },
+    'tiny-rug': { surface: 'floor', x: 0.5, y: 0.14 },
+    aquarium: { surface: 'floor', x: 0.14, y: 0.1 },
+    'beanbag-chairs': { surface: 'floor', x: 0.34, y: 0.1 },
+    'snack-bar': { surface: 'floor', x: 0.82, y: 0.1 },
+    'mood-lighting': { surface: 'wall', x: 0.5, y: 0.62 },
+  },
+  decorationInstances: [
+    { instanceId: 'deco-potted-fern-1', decorationId: 'potted-fern', roomId: 'founder-desk', surfaceType: 'floor', normalizedX: 0.18, normalizedY: 0.1, depth: 3, interactionState: {} },
+    { instanceId: 'deco-desk-lamp-1', decorationId: 'desk-lamp', roomId: 'founder-desk', surfaceType: 'floor', normalizedX: 0.34, normalizedY: 0.1, depth: 3, interactionState: {} },
+    { instanceId: 'deco-motivational-poster-1', decorationId: 'motivational-poster', roomId: 'founder-desk', surfaceType: 'wall', normalizedX: 0.3, normalizedY: 0.62, depth: 1, interactionState: {} },
+    { instanceId: 'deco-window-view-1', decorationId: 'window-view', roomId: 'founder-desk', surfaceType: 'wall', normalizedX: 0.7, normalizedY: 0.62, depth: 1, interactionState: {} },
+    { instanceId: 'deco-tiny-rug-1', decorationId: 'tiny-rug', roomId: 'founder-desk', surfaceType: 'floor', normalizedX: 0.5, normalizedY: 0.14, depth: 0, interactionState: {} },
+    { instanceId: 'deco-aquarium-1', decorationId: 'aquarium', roomId: 'morale', surfaceType: 'floor', normalizedX: 0.14, normalizedY: 0.1, depth: 3, interactionState: {} },
+    { instanceId: 'deco-beanbag-chairs-1', decorationId: 'beanbag-chairs', roomId: 'morale', surfaceType: 'floor', normalizedX: 0.34, normalizedY: 0.1, depth: 3, interactionState: {} },
+    { instanceId: 'deco-snack-bar-1', decorationId: 'snack-bar', roomId: 'morale', surfaceType: 'floor', normalizedX: 0.82, normalizedY: 0.1, depth: 3, interactionState: {} },
+    { instanceId: 'deco-mood-lighting-1', decorationId: 'mood-lighting', roomId: 'morale', surfaceType: 'wall', normalizedX: 0.5, normalizedY: 0.62, depth: 1, interactionState: {} },
+  ],
   collections: {
     nuts: [],
     outfits: [],
@@ -76,16 +98,26 @@ function styleNumbers(style: string) {
   return { left: left ? parseFloat(left) : NaN, bottom: bottom ? parseFloat(bottom) : NaN };
 }
 
-async function dragTo(page: Page, source: ReturnType<Page['locator']>, x: number, y: number) {
+async function dragTo(
+  page: Page,
+  source: ReturnType<Page['locator']>,
+  anchorX: number,
+  anchorY: number,
+) {
   const box = await source.boundingBox();
   if (!box) throw new Error('no bounding box');
   const sx = box.x + box.width / 2;
   const sy = box.y + box.height / 2;
+  // Tests specify the desired visible support point. The product preserves the
+  // original centre grab offset, so convert that support point back to the
+  // pointer coordinate that puts the SVG's y=54/56 baseline there.
+  const targetX = anchorX + (sx - (box.x + box.width / 2));
+  const targetY = anchorY + (sy - (box.y + box.height * (54 / 56)));
   await page.mouse.move(sx, sy);
   await page.mouse.down();
   await page.mouse.move(sx + 8, sy + 4, { steps: 3 });
-  await page.mouse.move((sx + x) / 2, (sy + y) / 2, { steps: 6 });
-  await page.mouse.move(x, y, { steps: 8 });
+  await page.mouse.move((sx + targetX) / 2, (sy + targetY) / 2, { steps: 6 });
+  await page.mouse.move(targetX, targetY, { steps: 8 });
   await page.waitForTimeout(60);
   await page.mouse.up();
   await page.waitForTimeout(200);
@@ -114,7 +146,12 @@ test.describe('decoration composition protection', () => {
 
     // Drop the fern right on the lamp's anchor (bottom-centre) to force a
     // stacked/severe overlap, not just a glancing corner.
-    await dragTo(page, fern, lampBox.x + lampBox.width / 2, lampBox.y + lampBox.height - 3);
+    await dragTo(
+      page,
+      fern,
+      lampBox.x + lampBox.width / 2,
+      lampBox.y + lampBox.height * (54 / 56),
+    );
 
     // A localized rejection toast appears and the fern hasn't moved. (Other
     // toasts — e.g. achievement unlocks from the seeded save — may coexist, so
