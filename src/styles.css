@@ -5778,3 +5778,176 @@ textarea {
     grid-row: 2;
   }
 }
+
+
+/* ==========================================================================
+   Premium tactile language — shared game feel across every screen
+   ========================================================================== */
+:is(
+    .buy-btn,
+    .ghost-btn,
+    .preset-btn,
+    .event-choice,
+    .micro-card,
+    .branch,
+    .chip-btn,
+    .tag-btn,
+    .mini-btn,
+    .tab,
+    .outfit-chip,
+    .moment__open
+  ) {
+  transform-origin: 50% 80%;
+  transition:
+    transform var(--dur-fast) var(--ease-settle),
+    box-shadow var(--dur-fast) var(--ease),
+    background-color var(--dur) var(--ease),
+    border-color var(--dur) var(--ease),
+    color var(--dur) var(--ease),
+    filter var(--dur) var(--ease);
+}
+:is(.buy-btn, .preset-btn, .event-choice, .micro-card, .branch):hover:not(:disabled) {
+  transform: translateY(-2px) rotate(-0.15deg);
+  box-shadow: var(--shadow-control-hover);
+  filter: saturate(1.06) brightness(1.035);
+}
+:is(.buy-btn, .preset-btn, .event-choice, .micro-card, .branch):active:not(:disabled) {
+  transform: translateY(2px) scale(0.985);
+  box-shadow: var(--shadow-pressed);
+  transition-duration: var(--dur-instant);
+}
+:is(.ghost-btn, .chip-btn, .tag-btn, .mini-btn, .tab, .outfit-chip):hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+}
+:is(.ghost-btn, .chip-btn, .tag-btn, .mini-btn, .tab, .outfit-chip):active:not(:disabled) {
+  transform: translateY(1px) scale(0.98);
+  box-shadow: var(--shadow-pressed);
+  transition-duration: var(--dur-instant);
+}
+button:focus-visible,
+[role='button']:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 3px;
+  filter: drop-shadow(0 0 4px var(--material-warm-glow));
+}
+button:disabled,
+[aria-disabled='true'] {
+  filter: saturate(0.35);
+}
+
+.panel,
+.card,
+.employee-card,
+.micro-card,
+.branch,
+.ach,
+.nut-cell {
+  border-color: color-mix(in srgb, var(--paper-edge) 24%, var(--border-strong));
+  box-shadow:
+    var(--shadow-form),
+    inset 0 1px 0 rgba(255, 244, 224, 0.055);
+}
+.panel {
+  background:
+    var(--panel-texture),
+    linear-gradient(150deg, var(--panel-surface-raised), var(--panel-surface));
+}
+.view-anim {
+  transform-origin: 50% 12%;
+  animation: view-settle var(--dur-slow) var(--ease-settle) both;
+}
+@keyframes view-settle {
+  from {
+    opacity: 0;
+    transform: translateY(7px) scale(0.992);
+  }
+  72% {
+    opacity: 1;
+    transform: translateY(-1px) scale(1.001);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.tooltip {
+  transform-origin: 50% 100%;
+  animation: premium-tooltip-in var(--dur) var(--ease-settle) both;
+}
+.tooltip--below {
+  transform-origin: 50% 0;
+}
+@keyframes premium-tooltip-in {
+  from {
+    opacity: 0;
+    transform: translateY(3px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.popup-backdrop {
+  backdrop-filter: blur(2px) saturate(0.86);
+}
+.popup {
+  box-shadow:
+    6px 8px 0 rgba(27, 18, 9, 0.38),
+    0 18px 44px rgba(18, 12, 7, 0.28),
+    inset 0 1px 0 var(--material-paper-highlight);
+}
+.popup__clip {
+  filter: drop-shadow(1px 2px 1px rgba(18, 12, 7, 0.28));
+}
+.popup__folder-tab,
+.popup__tape {
+  transition: transform var(--dur-slow) var(--ease-settle);
+}
+.popup:hover .popup__folder-tab {
+  transform: translateY(-1px) rotate(-0.25deg);
+}
+.popup:hover .popup__tape {
+  transform: translateX(-50%) rotate(-1deg) scaleX(1.015);
+}
+
+.toast {
+  transform-origin: 100% 100%;
+  animation: premium-toast-in var(--dur-slow) var(--ease-settle) both;
+}
+@keyframes premium-toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(14px) rotate(0.8deg) scale(0.96);
+  }
+  72% {
+    opacity: 1;
+    transform: translateX(-2px) rotate(-0.2deg) scale(1.005);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+::-webkit-scrollbar-track {
+  background: color-mix(in srgb, var(--surface-sunken) 74%, transparent);
+  border-radius: var(--r-pill);
+}
+::-webkit-scrollbar-thumb {
+  background:
+    linear-gradient(90deg, rgba(255, 244, 224, 0.08), transparent),
+    var(--control-surface);
+  border: 1px solid var(--control-edge);
+  border-radius: var(--r-pill);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--control-hover);
+}
+
+[data-reduced-motion='true'] :is(.view-anim, .tooltip, .toast),
+[data-ambient='paused'] :is(.view-anim, .tooltip, .toast) {
+  animation: none;
+}

@@ -137,13 +137,20 @@
   --shadow-form: 2px 3px 0 rgba(18, 12, 7, 0.45);
   --shadow-stationery: 3px 4px 0 rgba(18, 12, 7, 0.4);
   --shadow-control: 0 3px 0 var(--control-edge), inset 0 1px 0 var(--control-highlight);
+  --shadow-control-hover: 0 5px 0 var(--control-edge), 0 7px 12px rgba(18, 12, 7, 0.2), inset 0 1px 0 var(--control-highlight);
   --shadow-pressed: inset 0 2px 0 rgba(0, 0, 0, 0.28);
+  --outline-handmade: color-mix(in srgb, var(--c-bark-900) 84%, black);
+  --material-paper-highlight: rgba(255, 255, 255, 0.38);
+  --material-warm-glow: color-mix(in srgb, var(--gold) 24%, transparent);
 
-  /* motion */
-  --dur-fast: 0.08s;
-  --dur: 0.15s;
-  --dur-slow: 0.3s;
+  /* motion — one tactile rhythm shared by controls, stationery and rewards */
+  --dur-instant: 0.06s;
+  --dur-fast: 0.1s;
+  --dur: 0.18s;
+  --dur-slow: 0.34s;
   --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-pop: cubic-bezier(0.18, 0.89, 0.32, 1.28);
+  --ease-settle: cubic-bezier(0.34, 1.32, 0.64, 1);
 
   /* scaling (driven by settings) */
   --font-scale: 1;
