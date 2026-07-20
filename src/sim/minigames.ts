@@ -98,6 +98,41 @@ export function segmentsCross(
   return ((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) && ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0));
 }
 
+const CABLE_EPSILON = 1e-7;
+const MIN_PLUG_DISTANCE = 0.085;
+
+function pointOnSegment(
+  point: { x: number; y: number },
+  start: { x: number; y: number },
+  end: { x: number; y: number },
+): boolean {
+  if (Math.abs(orient(start.x, start.y, end.x, end.y, point.x, point.y)) > CABLE_EPSILON) {
+    return false;
+  }
+  return (
+    point.x >= Math.min(start.x, end.x) - CABLE_EPSILON &&
+    point.x <= Math.max(start.x, end.x) + CABLE_EPSILON &&
+    point.y >= Math.min(start.y, end.y) - CABLE_EPSILON &&
+    point.y <= Math.max(start.y, end.y) + CABLE_EPSILON
+  );
+}
+
+/** Visible conflict between non-adjacent cables, including touching/overlap. */
+export function cableSegmentsConflict(
+  p1: { x: number; y: number },
+  p2: { x: number; y: number },
+  p3: { x: number; y: number },
+  p4: { x: number; y: number },
+): boolean {
+  return (
+    segmentsCross(p1, p2, p3, p4) ||
+    pointOnSegment(p1, p3, p4) ||
+    pointOnSegment(p2, p3, p4) ||
+    pointOnSegment(p3, p1, p2) ||
+    pointOnSegment(p4, p1, p2)
+  );
+}
+
 /** Count the pairs of non-adjacent cables that cross at the given positions. */
 export function countCrossings(edges: CableEdge[], pos: Record<number, { x: number; y: number }>): number {
   let n = 0;
@@ -113,8 +148,53 @@ export function countCrossings(edges: CableEdge[], pos: Record<number, { x: numb
   return n;
 }
 
+/** Count every visible cable conflict and overlapping pair of plugs. */
+export function countCableConflicts(
+  edges: CableEdge[],
+  pos: Record<number, { x: number; y: number }>,
+): number {
+  let conflicts = 0;
+  for (let i = 0; i < edges.length; i += 1) {
+    for (let j = i + 1; j < edges.length; j += 1) {
+      const e1 = edges[i];
+      const e2 = edges[j];
+      const shared =
+        e1.a === e2.a || e1.a === e2.b
+          ? e1.a
+          : e1.b === e2.a || e1.b === e2.b
+            ? e1.b
+            : null;
+      if (shared != null) {
+        const other1 = e1.a === shared ? e1.b : e1.a;
+        const other2 = e2.a === shared ? e2.b : e2.a;
+        const centre = pos[shared];
+        const first = pos[other1];
+        const second = pos[other2];
+        const overlap =
+          Math.abs(orient(centre.x, centre.y, first.x, first.y, second.x, second.y)) <= CABLE_EPSILON &&
+          (first.x - centre.x) * (second.x - centre.x) +
+            (first.y - centre.y) * (second.y - centre.y) >
+            CABLE_EPSILON;
+        if (overlap) conflicts += 1;
+        continue;
+      }
+      if (cableSegmentsConflict(pos[e1.a], pos[e1.b], pos[e2.a], pos[e2.b])) conflicts += 1;
+    }
+  }
+
+  const ids = Object.keys(pos).map(Number);
+  for (let i = 0; i < ids.length; i += 1) {
+    for (let j = i + 1; j < ids.length; j += 1) {
+      if (Math.hypot(pos[ids[i]].x - pos[ids[j]].x, pos[ids[i]].y - pos[ids[j]].y) < MIN_PLUG_DISTANCE) {
+        conflicts += 1;
+      }
+    }
+  }
+  return conflicts;
+}
+
 export function cableSolved(edges: CableEdge[], pos: Record<number, { x: number; y: number }>): boolean {
-  return countCrossings(edges, pos) === 0;
+  return countCableConflicts(edges, pos) === 0;
 }
 
 export function cablePositions(points: CablePoint[]): Record<number, { x: number; y: number }> {
@@ -238,9 +318,9 @@ export function cablePuzzle(seedStr: string, nodeCount: number): CablePuzzle {
   };
 }
 
-/** Nodes for the Nth solved puzzle: starts at 5 and grows, capped for clarity. */
+/** Nodes for the Nth solved puzzle: starts at 5 and caps at 7 for clarity. */
 export function cableNodeCount(solved: number): number {
-  return Math.min(9, 5 + Math.max(0, solved));
+  return Math.min(7, 5 + Math.max(0, solved));
 }
 
 /** Reward for clearing a board of the given size; bigger tangles are worth more. */

@@ -82,7 +82,7 @@ test.describe.serial('premium minigame presentation', () => {
     const areaBox = await game.locator('.coffee__area').boundingBox();
     if (dropBox && areaBox) {
       await page.mouse.move(dropBox.x + dropBox.width / 2, areaBox.y + areaBox.height - 22);
-      await page.waitForTimeout(1_500);
+      await expect(game.locator('.microgame__score b')).not.toHaveText('0', { timeout: 4_000 });
     }
     await page.screenshot({ path: 'visual-artifacts/minigame-coffee-play-1280x800.png' });
     await game.locator('.microgame__exit').click();
@@ -109,63 +109,126 @@ test.describe.serial('premium minigame presentation', () => {
     await page.screenshot({ path: 'visual-artifacts/minigame-bug-result-1280x800.png' });
   });
 
-  test('organizes the authored Cable desk with matching plugs and ports', async ({ page }) => {
+  test('untangles the Cable desk with robust pointer movement and one clear rule', async ({ page }) => {
     await boot(page);
     const game = await openGame(page, 'Cable Untangle Desk');
     await page.screenshot({ path: 'visual-artifacts/minigame-cable-intro-1280x800.png' });
     await startGame(page);
-    await expect(game.locator('.cable__board')).toBeVisible();
+    const board = game.locator('.cable__board');
+    const plugs = game.locator('.cable__node');
+    await expect(board).toBeVisible();
     await expect(game.locator('.cable__strand-body')).toHaveCount(5);
-    await expect(game.locator('.cable__port')).toHaveCount(5);
+    await expect(plugs).toHaveCount(5);
+    await expect(game.locator('.cable__port, .cable__desk-art, .cable__tag, .cable__node-label')).toHaveCount(0);
+    await expect(game.locator('.cable__crossings')).not.toContainText('0');
     await page.screenshot({ path: 'visual-artifacts/minigame-cable-tangled-1280x800.png' });
 
-    const plugs = game.locator('.cable__node');
-    const ports = game.locator('.cable__port');
+    // A press/release completed in the same turn must never strand active drag
+    // state, which was the source of the intermittent stuck-cable regression.
     const firstPlug = await plugs.nth(0).boundingBox();
-    const ownPort = await ports.nth(0).boundingBox();
     expect(firstPlug).not.toBeNull();
-    expect(ownPort).not.toBeNull();
     await page.mouse.move(firstPlug!.x + firstPlug!.width / 2, firstPlug!.y + firstPlug!.height / 2);
     await page.mouse.down();
-    await page.mouse.move(ownPort!.x + ownPort!.width / 2, ownPort!.y + ownPort!.height / 2, { steps: 12 });
     await page.mouse.up();
-    await expect(plugs.nth(0)).toHaveAttribute('aria-pressed', 'true');
-    await expect(game.locator('.cable__port.is-connected')).toHaveCount(1);
+    await expect(game.locator('.cable__node.is-active')).toHaveCount(0);
 
-    // Rejecting an already-connected plug at the wrong port must restore its
-    // original connection instead of silently rolling back only its position.
-    const snappedPlug = await plugs.nth(0).boundingBox();
-    const wrongPort = await ports.nth(1).boundingBox();
-    await page.mouse.move(snappedPlug!.x + snappedPlug!.width / 2, snappedPlug!.y + snappedPlug!.height / 2);
+    // An interrupted native pointer sequence restores the original position.
+    const beforeCancel = await plugs.nth(0).boundingBox();
+    const beforeCancelPosition = await plugs.nth(0).evaluate((element) => ({
+      left: (element as HTMLElement).style.left,
+      top: (element as HTMLElement).style.top,
+    }));
+    await page.mouse.move(beforeCancel!.x + beforeCancel!.width / 2, beforeCancel!.y + beforeCancel!.height / 2);
     await page.mouse.down();
-    await page.mouse.move(wrongPort!.x + wrongPort!.width / 2, wrongPort!.y + wrongPort!.height / 2, { steps: 12 });
+    await page.mouse.move(beforeCancel!.x + 90, beforeCancel!.y + 70, { steps: 4 });
+    await plugs.nth(0).dispatchEvent('pointercancel', { pointerId: 1, pointerType: 'mouse', isPrimary: true });
     await page.mouse.up();
-    await expect(plugs.nth(0)).toHaveAttribute('aria-pressed', 'true');
-    await expect(game.locator('.cable__port.is-connected')).toHaveCount(1);
-    await expect(plugs.nth(0)).toHaveClass(/is-rejected/);
-    await game.locator('.microgame__pause').click();
-    await expect(plugs.nth(0)).not.toHaveClass(/is-rejected/);
-    await game.locator('.microgame__paused .buy-btn').click();
+    await expect(game.locator('.cable__node.is-active')).toHaveCount(0);
+    await expect
+      .poll(() =>
+        plugs.nth(0).evaluate((element) => ({
+          left: (element as HTMLElement).style.left,
+          top: (element as HTMLElement).style.top,
+        })),
+      )
+      .toEqual(beforeCancelPosition);
 
-    for (let index = 1; index < 5; index += 1) {
-      await plugs.nth(index).focus();
-      await page.keyboard.press('Enter');
+    const boardBox = await board.boundingBox();
+    expect(boardBox).not.toBeNull();
+    const currentZero = await plugs.nth(0).boundingBox();
+    const mirrored = (currentZero!.x + currentZero!.width / 2) > boardBox!.x + boardBox!.width / 2;
+    const target = (x: number, y: number) => ({
+      x: boardBox!.x + (mirrored ? 1 - x : x) * boardBox!.width,
+      y: boardBox!.y + y * boardBox!.height,
+    });
+    const dragPlug = async (id: number, x: number, y: number) => {
+      const box = await plugs.nth(id).boundingBox();
+      expect(box).not.toBeNull();
+      await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2);
+      await page.mouse.down();
+      const destination = target(x, y);
+      await page.mouse.move(destination.x, destination.y, { steps: 8 });
+      await page.mouse.up();
       await expect(game.locator('.cable__node.is-active')).toHaveCount(0);
-    }
+    };
+
+    // Use the open centre as a spare space, then place the loop in perimeter
+    // order. Completion matches the visible straight crossings and overlaps.
+    await dragPlug(1, 0.5, 0.5);
+    await dragPlug(3, 0.84, 0.72);
+    await dragPlug(4, 0.5, 0.88);
+    await dragPlug(2, 0.82, 0.2);
+    await dragPlug(1, 0.5, 0.11);
+    await expect(game.locator('.cable__crossings')).toContainText('0');
     await expect(game.locator('.cable__cleared')).toBeVisible();
-    await expect(game.locator('.cable__port.is-connected')).toHaveCount(5);
-    await page.waitForTimeout(750);
+    await expect(game.locator('.cable__cleared')).toContainText('All cables clear!');
     await page.screenshot({ path: 'visual-artifacts/minigame-cable-complete-1280x800.png' });
     await game.locator('.microgame__pause').click();
     await page.waitForTimeout(1_600);
     await expect(game.locator('.cable__cleared')).toBeVisible();
   });
 
-  test('shared minigame cabinet stays contained at compact size', async ({ page }) => {
+  test('every minigame stays readable and pointer-playable at compact size', async ({ page }) => {
     await boot(page, { width: 390, height: 700 });
-    const game = await openGame(page, 'Cable Untangle Desk');
+
+    let game = await openGame(page, 'Coffee Rescue');
+    await startGame(page);
+    const area = await game.locator('.coffee__area').boundingBox();
+    const drop = game.locator('.coffee__drop').first();
+    await expect(drop).toBeVisible({ timeout: 3_000 });
+    const dropBox = await drop.boundingBox();
+    expect(area).not.toBeNull();
+    expect(dropBox).not.toBeNull();
+    await page.mouse.move(dropBox!.x + dropBox!.width / 2, area!.y + area!.height - 18);
+    await expect(game.locator('.microgame__score b')).not.toHaveText('0', { timeout: 4_000 });
+    await page.screenshot({ path: 'visual-artifacts/minigame-coffee-play-390x700.png' });
+    await game.locator('.microgame__exit').click();
+    await game.getByRole('button', { name: /back to office/i }).click();
+
+    game = await openGame(page, 'Bug Squash');
+    await startGame(page);
+    const activeBug = game.locator('.burrow.is-up');
+    await expect(activeBug).toBeVisible({ timeout: 3_000 });
+    await activeBug.click();
+    await expect(game.locator('.microgame__score b')).not.toHaveText('0');
+    await page.screenshot({ path: 'visual-artifacts/minigame-bug-hit-390x700.png' });
+    await game.locator('.microgame__exit').click();
+    await game.getByRole('button', { name: /back to office/i }).click();
+
+    game = await openGame(page, 'Cable Untangle Desk');
     await page.screenshot({ path: 'visual-artifacts/minigame-cable-intro-390x700.png' });
     await startGame(page);
+    const cableBoard = game.locator('.cable__board');
+    const cablePlug = game.locator('.cable__node').first();
+    const cablePlugBox = await cablePlug.boundingBox();
+    expect(cablePlugBox).not.toBeNull();
+    await page.mouse.move(cablePlugBox!.x + cablePlugBox!.width / 2, cablePlugBox!.y + cablePlugBox!.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(cablePlugBox!.x + 35, cablePlugBox!.y + 55, { steps: 4 });
+    await page.mouse.up();
+    await expect(game.locator('.cable__node.is-active')).toHaveCount(0);
+    await expect(cableBoard).toBeVisible();
+
     const bounds = await game.boundingBox();
     expect(bounds).not.toBeNull();
     expect(bounds!.x).toBeGreaterThanOrEqual(0);

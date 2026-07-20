@@ -45,14 +45,30 @@ async function seedSave(page: Page, extra: Record<string, unknown> = {}) {
 test('new game onboarding flow can be completed', async ({ page }) => {
   await seedReducedMotion(page);
   await page.goto('/');
-  // Opening: click the acorn, then finish the title card.
+  // Opening: claim the founding acorn, then enter the illustrated field guide.
   await page.getByText('Every empire starts with one nut.').waitFor();
-  await page.locator('.acorn-cta').click();
-  await page.getByRole('button', { name: /Let's go!/i }).click();
-  // Onboarding appears — skip it.
-  await page.getByRole('button', { name: 'Skip' }).click();
-  // Office is visible.
+  await page.getByRole('button', { name: 'Claim the first acorn' }).click();
+  await page.getByRole('button', { name: 'Start the company' }).click();
+
+  // Read every authored page and finish normally rather than bypassing the
+  // first-run experience this smoke test is intended to protect.
+  await expect(page.getByRole('heading', { name: 'Your first crate' })).toBeVisible();
+  for (const heading of [
+    'Turn nuts into momentum',
+    'Know your tiny team',
+    'Watch the company grow',
+    'Make the office yours',
+  ]) {
+    await page.getByRole('button', { name: 'Next page' }).click();
+    await expect(page.getByRole('heading', { name: heading })).toBeVisible();
+  }
+  await page.getByRole('button', { name: 'Open the office' }).click();
+
+  // Office is visible and first-run completion persisted.
   await expect(page.locator('.office')).toBeVisible();
+  await page.reload();
+  await expect(page.locator('.office')).toBeVisible();
+  await expect(page.locator('.opening-seq')).toHaveCount(0);
 });
 
 test('collect, purchase an upgrade, settings, language, persistence', async ({ page }) => {

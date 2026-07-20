@@ -3,6 +3,7 @@ import {
   cablePuzzle,
   cablePositions,
   countCrossings,
+  countCableConflicts,
   cableSolved,
   segmentsCross,
   cableNodeCount,
@@ -82,6 +83,37 @@ describe('Cable Untangle logic', () => {
     expect(cableSolved(edges, tangled)).toBe(false);
   });
 
+  it('rejects collapsed plugs and collinear or overlapping cable layouts', () => {
+    const edges = Array.from({ length: 5 }, (_, id) => ({ a: id, b: (id + 1) % 5 }));
+    const collapsed = Object.fromEntries(
+      Array.from({ length: 5 }, (_, id) => [id, { x: 0.5, y: 0.5 }]),
+    );
+    expect(countCrossings(edges, collapsed)).toBe(0);
+    expect(countCableConflicts(edges, collapsed)).toBeGreaterThan(0);
+    expect(cableSolved(edges, collapsed)).toBe(false);
+
+    const collinear = {
+      0: { x: 0.1, y: 0.5 },
+      1: { x: 0.3, y: 0.5 },
+      2: { x: 0.5, y: 0.5 },
+      3: { x: 0.7, y: 0.5 },
+      4: { x: 0.9, y: 0.5 },
+    };
+    expect(countCrossings(edges, collinear)).toBe(0);
+    expect(countCableConflicts(edges, collinear)).toBeGreaterThan(0);
+    expect(cableSolved(edges, collinear)).toBe(false);
+
+    const overlappingPlugs = {
+      0: { x: 0.2, y: 0.2 },
+      1: { x: 0.8, y: 0.2 },
+      2: { x: 0.8, y: 0.8 },
+      3: { x: 0.2, y: 0.8 },
+      4: { x: 0.2, y: 0.2 },
+    };
+    expect(countCableConflicts(edges, overlappingPlugs)).toBeGreaterThan(0);
+    expect(cableSolved(edges, overlappingPlugs)).toBe(false);
+  });
+
   it.each([
     { nodes: 5, levelId: 'starter-star', difficulty: 'easy' },
     { nodes: 6, levelId: 'meeting-loop', difficulty: 'medium' },
@@ -105,6 +137,7 @@ describe('Cable Untangle logic', () => {
       );
       expect(countCrossings(a.edges, cablePositions(a.points))).toBeGreaterThan(0);
       expect(countCrossings(a.edges, cablePositions(a.solution))).toBe(0);
+      expect(countCableConflicts(a.edges, cablePositions(a.solution))).toBe(0);
       expect(cableSolved(a.edges, cablePositions(a.solution))).toBe(true);
     },
   );
@@ -114,11 +147,11 @@ describe('Cable Untangle logic', () => {
     expect(cablePuzzle('large', 200).points).toHaveLength(9);
   });
 
-  it('grows the board and rewards bigger tangles more', () => {
+  it('grows gently and caps the board at seven nodes for readability', () => {
     expect(cableNodeCount(0)).toBe(5);
-    expect(cableNodeCount(3)).toBe(8);
-    expect(cableNodeCount(99)).toBe(9); // capped
-    expect(cableSolveScore(8)).toBeGreaterThan(cableSolveScore(5));
+    expect(cableNodeCount(3)).toBe(7);
+    expect(cableNodeCount(99)).toBe(7); // clarity cap
+    expect(cableSolveScore(7)).toBeGreaterThan(cableSolveScore(5));
   });
 });
 

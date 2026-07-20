@@ -194,14 +194,21 @@ export function CoffeeRescue({ seed, reducedMotion, paused, timeLeft, onScore, o
       const r = el.getBoundingClientRect();
       setMugX(Math.max(6, Math.min(94, ((e.clientX - r.left) / r.width) * 100)));
     };
+    const onPointerDown = (e: PointerEvent) => {
+      if (!e.isPrimary || (e.pointerType === 'mouse' && e.button !== 0)) return;
+      e.preventDefault();
+      onMove(e);
+    };
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'ArrowLeft') setMugX((x) => Math.max(6, x - 6));
       if (e.key === 'ArrowRight') setMugX((x) => Math.min(94, x + 6));
     };
     const el = areaRef.current;
+    el?.addEventListener('pointerdown', onPointerDown);
     el?.addEventListener('pointermove', onMove);
     window.addEventListener('keydown', onKey);
     return () => {
+      el?.removeEventListener('pointerdown', onPointerDown);
       el?.removeEventListener('pointermove', onMove);
       window.removeEventListener('keydown', onKey);
     };

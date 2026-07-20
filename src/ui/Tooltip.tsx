@@ -143,9 +143,16 @@ export function TooltipLayer() {
   const hideAll = useTip((state) => state.hideAll);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState<TooltipPosition | null>(null);
-  // Keyboard focus owns the accessible description until it leaves. Pointer
-  // hover can take over afterward without replacing the focused control's ID.
-  const active = focused ?? hovered;
+  // The latest real interaction owns the visual tooltip. A new pointer hover
+  // therefore overrides stale focus after a click, while a later keyboard
+  // focus can still replace a hover left behind under an unmoved pointer.
+  const active =
+    hovered && focused
+      ? hovered.order >= focused.order
+        ? hovered
+        : focused
+      : hovered ?? focused;
+  const inactive = active === hovered ? focused : hovered;
 
   // Native/Electron focus transitions do not consistently blur the focused
   // element. Clear transient tooltip ownership explicitly so no portal remains
@@ -251,20 +258,27 @@ export function TooltipLayer() {
 
   const side = position?.side ?? 'above';
   return createPortal(
-    <div
-      ref={tooltipRef}
-      id={active.id}
-      className={`tooltip tooltip--${side}`}
-      style={{
-        left: `${position?.left ?? 0}px`,
-        top: `${position?.top ?? 0}px`,
-        visibility: position ? 'visible' : 'hidden',
-      }}
-      role="tooltip"
-      data-side={side}
-    >
-      {active.content}
-    </div>,
+    <>
+      {inactive && inactive.id !== active.id ? (
+        <span id={inactive.id} hidden>
+          {inactive.content}
+        </span>
+      ) : null}
+      <div
+        ref={tooltipRef}
+        id={active.id}
+        className={`tooltip tooltip--${side}`}
+        style={{
+          left: `${position?.left ?? 0}px`,
+          top: `${position?.top ?? 0}px`,
+          visibility: position ? 'visible' : 'hidden',
+        }}
+        role="tooltip"
+        data-side={side}
+      >
+        {active.content}
+      </div>
+    </>,
     document.body,
   );
 }

@@ -143,6 +143,27 @@ test('every localized destination is directly keyboard reachable', async ({ page
   }
 });
 
+test('hovered navigation labels override a previously clicked destination', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await boot(page);
+
+  const nav = page.getByRole('navigation', { name: 'Main navigation' });
+  const settings = nav.getByRole('button', { name: 'Settings', exact: true });
+  const office = nav.getByRole('button', { name: 'Office', exact: true });
+  const tip = page.locator('body > .tooltip[role="tooltip"]');
+
+  await settings.click();
+  await expect(settings).toBeFocused();
+  const settingsDescriptionId = await settings.getAttribute('aria-describedby');
+  expect(settingsDescriptionId).not.toBeNull();
+
+  await office.hover();
+  await expect(tip.locator('.tooltip__title')).toHaveText('Office');
+  await expect(tip).toContainText('cozy office');
+  await expect(page.locator(`[id="${settingsDescriptionId}"]`)).toHaveCount(1);
+  await expect(page.locator('body > .tooltip[role="tooltip"]')).toHaveCount(1);
+});
+
 test('localized hover and focus tooltips stay in the body portal and recover after blur', async ({
   page,
 }) => {
