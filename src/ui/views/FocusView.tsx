@@ -4,7 +4,7 @@ import { useGame } from '../../state/hooks';
 import { useStore } from '../../state/store';
 import { BALANCE } from '../../sim/config';
 import { formatClock } from '../../sim/format';
-import { MicroGame, type MicroMode } from '../minigames/MicroGame';
+import { MicroGame, MicroGameEmblem, type MicroMode } from '../minigames/MicroGame';
 
 export function FocusView() {
   const { t } = useTranslation();
@@ -24,10 +24,10 @@ export function FocusView() {
   const remaining = Math.max(0, Math.floor((state.focus.endsAt - Date.now()) / 1000));
 
   return (
-    <section className="view view--focus">
-      <h2>{t('focus.title')}</h2>
+    <section className={`view view--focus ${micro ? 'view--focus-game' : ''}`}>
+      {!micro ? <h2>{t('focus.title')}</h2> : null}
 
-      {!state.settings.focusHarvestEnabled ? (
+      {!micro && (!state.settings.focusHarvestEnabled ? (
         <div className="panel">
           <p>{t('focus.disabled')}</p>
           <button className="buy-btn" onClick={() => engine.updateSettings({ focusHarvestEnabled: true })}>
@@ -69,10 +69,10 @@ export function FocusView() {
           )}
           <p className="muted small">{t('focus.privacy')}</p>
         </div>
-      )}
+      ))}
 
       <div className="panel">
-        <h3>{t('microgame.title')}</h3>
+        {!micro ? <h3>{t('microgame.title')}</h3> : null}
         {micro ? (
           <MicroGame
             mode={micro}
@@ -88,9 +88,17 @@ export function FocusView() {
           <div className="microgame-menu">
             {(['coffeeRescue', 'bugSquash', 'cableUntangle'] as MicroMode[]).map(
               (m) => (
-              <button key={m} className="micro-card" onClick={() => setMicro(m)}>
-                <strong>{t(`microgame.${m}.name`)}</strong>
-                <span>{t(`microgame.${m}.desc`)}</span>
+              <button key={m} className={`micro-card micro-card--${m}`} onClick={() => setMicro(m)}>
+                <span className="micro-card__art" aria-hidden="true">
+                  <MicroGameEmblem mode={m} compact />
+                </span>
+                <span className="micro-card__copy">
+                  <strong>{t(`microgame.${m}.name`)}</strong>
+                  <span>{t(`microgame.${m}.desc`)}</span>
+                </span>
+                <span className="micro-card__play" aria-hidden="true">
+                  {t('microgame.play')} ›
+                </span>
               </button>
             ))}
           </div>

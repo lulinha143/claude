@@ -1,4 +1,4 @@
-import { createRng, hashStringToSeed } from './rng';
+import { hashStringToSeed } from './rng';
 
 // Pure, deterministic logic for the micro-games. The React components own
 // timing/DOM; this module owns the rules so they can be unit-tested and are
@@ -64,9 +64,15 @@ export interface CableEdge {
   a: number;
   b: number;
 }
+export type CableDifficulty = 'easy' | 'medium' | 'hard';
+
 export interface CablePuzzle {
   points: CablePoint[];
   edges: CableEdge[];
+  /** Authored, crossing-free matching-port locations. */
+  solution: CablePoint[];
+  difficulty: CableDifficulty;
+  levelId: string;
 }
 
 /** Orientation of the ordered triplet (p, q, r): >0 ccw, <0 cw, 0 collinear. */
@@ -117,29 +123,119 @@ export function cablePositions(points: CablePoint[]): Record<number, { x: number
   return out;
 }
 
+interface AuthoredCableLevel {
+  id: string;
+  difficulty: CableDifficulty;
+  slots: readonly { x: number; y: number }[];
+  /** Node ids arranged around the desk perimeter in their tangled order. */
+  tangledOrder: readonly number[];
+}
+
+// Hand-authored desk layouts. Every solution puts cable ids in perimeter order,
+// while each opening order creates a deliberate readable tangle. Mirroring from
+// the seed adds variety without surrendering solvability or visual composition.
+const AUTHORED_CABLE_LEVELS: readonly AuthoredCableLevel[] = [
+  {
+    id: 'starter-star',
+    difficulty: 'easy',
+    slots: [
+      { x: 0.18, y: 0.2 },
+      { x: 0.5, y: 0.11 },
+      { x: 0.82, y: 0.2 },
+      { x: 0.84, y: 0.72 },
+      { x: 0.5, y: 0.88 },
+    ],
+    tangledOrder: [0, 2, 4, 1, 3],
+  },
+  {
+    id: 'meeting-loop',
+    difficulty: 'medium',
+    slots: [
+      { x: 0.16, y: 0.22 },
+      { x: 0.48, y: 0.1 },
+      { x: 0.82, y: 0.2 },
+      { x: 0.86, y: 0.7 },
+      { x: 0.53, y: 0.89 },
+      { x: 0.14, y: 0.7 },
+    ],
+    tangledOrder: [0, 3, 1, 4, 2, 5],
+  },
+  {
+    id: 'support-heptagon',
+    difficulty: 'medium',
+    slots: [
+      { x: 0.14, y: 0.3 },
+      { x: 0.3, y: 0.12 },
+      { x: 0.65, y: 0.1 },
+      { x: 0.86, y: 0.32 },
+      { x: 0.82, y: 0.7 },
+      { x: 0.52, y: 0.89 },
+      { x: 0.16, y: 0.72 },
+    ],
+    tangledOrder: [0, 3, 6, 2, 5, 1, 4],
+  },
+  {
+    id: 'server-octagon',
+    difficulty: 'hard',
+    slots: [
+      { x: 0.14, y: 0.28 },
+      { x: 0.29, y: 0.11 },
+      { x: 0.66, y: 0.1 },
+      { x: 0.86, y: 0.28 },
+      { x: 0.86, y: 0.7 },
+      { x: 0.66, y: 0.89 },
+      { x: 0.3, y: 0.9 },
+      { x: 0.13, y: 0.7 },
+    ],
+    tangledOrder: [0, 4, 1, 5, 2, 6, 3, 7],
+  },
+  {
+    id: 'launch-day',
+    difficulty: 'hard',
+    slots: [
+      { x: 0.12, y: 0.32 },
+      { x: 0.24, y: 0.13 },
+      { x: 0.51, y: 0.08 },
+      { x: 0.78, y: 0.14 },
+      { x: 0.89, y: 0.37 },
+      { x: 0.83, y: 0.7 },
+      { x: 0.61, y: 0.9 },
+      { x: 0.32, y: 0.89 },
+      { x: 0.12, y: 0.68 },
+    ],
+    tangledOrder: [0, 4, 8, 3, 7, 2, 6, 1, 5],
+  },
+] as const;
+
 /**
- * Build a solvable, initially-tangled cable puzzle: a loop of `nodeCount`
- * computers scattered at deterministic random positions, guaranteeing at least
- * one crossing so there is always something to fix.
+ * Select a handcrafted, guaranteed-solvable cable desk. The seed only mirrors
+ * the authored composition, so difficulty and crossing guarantees never rely
+ * on lucky random scatter.
  */
 export function cablePuzzle(seedStr: string, nodeCount: number): CablePuzzle {
-  const n = Math.max(4, nodeCount);
-  const rng = createRng(hashStringToSeed(`cable:${seedStr}`));
-  const scatter = (): CablePoint[] =>
-    Array.from({ length: n }, (_, id) => ({
-      id,
-      // keep a margin off the edges so nodes never sit on the board border
-      x: 0.1 + rng.next() * 0.8,
-      y: 0.1 + rng.next() * 0.8,
-    }));
-  const edges: CableEdge[] = Array.from({ length: n }, (_, i) => ({ a: i, b: (i + 1) % n }));
-
-  let points = scatter();
-  // ensure the puzzle actually starts tangled (retry a bounded number of times)
-  for (let tries = 0; tries < 12 && countCrossings(edges, cablePositions(points)) === 0; tries += 1) {
-    points = scatter();
-  }
-  return { points, edges };
+  const n = Math.max(5, Math.min(9, nodeCount));
+  const level = AUTHORED_CABLE_LEVELS[n - 5];
+  const mirrored = hashStringToSeed(`cable:${seedStr}:${level.id}`) % 2 === 1;
+  const mapPoint = (point: { x: number; y: number }) => ({
+    x: mirrored ? 1 - point.x : point.x,
+    y: point.y,
+  });
+  const solution = level.slots.map((slot, id) => ({ id, ...mapPoint(slot) }));
+  const points = level.tangledOrder.map((id, slotIndex) => ({
+    id,
+    ...mapPoint(level.slots[slotIndex]),
+  }));
+  const edges: CableEdge[] = Array.from({ length: n }, (_, index) => ({
+    a: index,
+    b: (index + 1) % n,
+  }));
+  return {
+    points: points.sort((a, b) => a.id - b.id),
+    edges,
+    solution,
+    difficulty: level.difficulty,
+    levelId: level.id,
+  };
 }
 
 /** Nodes for the Nth solved puzzle: starts at 5 and grows, capped for clarity. */

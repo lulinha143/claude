@@ -82,23 +82,36 @@ describe('Cable Untangle logic', () => {
     expect(cableSolved(edges, tangled)).toBe(false);
   });
 
-  it('generates a deterministic, solvable, initially-tangled loop', () => {
-    const a = cablePuzzle('seed-1', 6);
-    const b = cablePuzzle('seed-1', 6);
-    expect(a).toEqual(b); // deterministic
-    expect(a.points).toHaveLength(6);
-    // edges form a single closed loop
-    expect(a.edges).toHaveLength(6);
-    expect(a.edges).toEqual([
-      { a: 0, b: 1 },
-      { a: 1, b: 2 },
-      { a: 2, b: 3 },
-      { a: 3, b: 4 },
-      { a: 4, b: 5 },
-      { a: 5, b: 0 },
-    ]);
-    // starts tangled (there is something to solve)
-    expect(countCrossings(a.edges, cablePositions(a.points))).toBeGreaterThan(0);
+  it.each([
+    { nodes: 5, levelId: 'starter-star', difficulty: 'easy' },
+    { nodes: 6, levelId: 'meeting-loop', difficulty: 'medium' },
+    { nodes: 7, levelId: 'support-heptagon', difficulty: 'medium' },
+    { nodes: 8, levelId: 'server-octagon', difficulty: 'hard' },
+    { nodes: 9, levelId: 'launch-day', difficulty: 'hard' },
+  ] as const)(
+    'authors a deterministic, initially tangled, solvable $nodes-node $levelId desk',
+    ({ nodes, levelId, difficulty }) => {
+      const a = cablePuzzle('seed-1', nodes);
+      const b = cablePuzzle('seed-1', nodes);
+      expect(a).toEqual(b);
+      expect(a).toMatchObject({ levelId, difficulty });
+      expect(a.points).toHaveLength(nodes);
+      expect(a.solution).toHaveLength(nodes);
+      expect(a.edges).toHaveLength(nodes);
+      expect(a.points.map((point) => point.id)).toEqual(Array.from({ length: nodes }, (_, id) => id));
+      expect(a.solution.map((point) => point.id)).toEqual(Array.from({ length: nodes }, (_, id) => id));
+      expect(a.edges).toEqual(
+        Array.from({ length: nodes }, (_, id) => ({ a: id, b: (id + 1) % nodes })),
+      );
+      expect(countCrossings(a.edges, cablePositions(a.points))).toBeGreaterThan(0);
+      expect(countCrossings(a.edges, cablePositions(a.solution))).toBe(0);
+      expect(cableSolved(a.edges, cablePositions(a.solution))).toBe(true);
+    },
+  );
+
+  it('clamps authored board sizes to the supported five-to-nine node range', () => {
+    expect(cablePuzzle('small', -20).points).toHaveLength(5);
+    expect(cablePuzzle('large', 200).points).toHaveLength(9);
   });
 
   it('grows the board and rewards bigger tangles more', () => {

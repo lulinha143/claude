@@ -16,7 +16,13 @@ export type SfxName =
   | 'place'
   | 'toggle'
   | 'chime'
-  | 'error';
+  | 'error'
+  | 'cableMove'
+  | 'cableSnap'
+  | 'cableReject'
+  | 'coffeeCatch'
+  | 'bugHit'
+  | 'reward';
 
 export interface AudioVolumes {
   master: number;
@@ -529,6 +535,29 @@ export class AudioManager {
       osc.stop(now + startAt + dur + 0.02);
     };
 
+    const texture = (dur: number, cutoff: number, vol: number, startAt = 0) => {
+      if (!this.ctx || !bus) return;
+      const length = Math.max(1, Math.floor(this.ctx.sampleRate * dur));
+      const buffer = this.ctx.createBuffer(1, length, this.ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let index = 0; index < length; index += 1) {
+        const envelope = Math.pow(1 - index / length, 1.8);
+        data[index] = (Math.random() * 2 - 1) * envelope;
+      }
+      const source = this.ctx.createBufferSource();
+      source.buffer = buffer;
+      const filter = this.ctx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.value = cutoff;
+      filter.Q.value = 1.4;
+      const gain = this.ctx.createGain();
+      gain.gain.setValueAtTime(Math.max(0.0001, vol), now + startAt);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + startAt + dur);
+      source.connect(filter).connect(gain).connect(bus);
+      this.track(source);
+      source.start(now + startAt);
+    };
+
     switch (name) {
       case 'click':
         beep(660, 0.06, 'triangle', 0, 0.25);
@@ -572,6 +601,39 @@ export class AudioManager {
         break;
       case 'error':
         beep(220, 0.12, 'sawtooth', 0, 0.2, 150);
+        break;
+      case 'cableMove':
+        // Soft rubber/plastic movement: low flex plus a tiny braided scrape.
+        beep(145, 0.08, 'sine', 0, 0.1, 115);
+        texture(0.07, 1150, 0.045, 0.01);
+        break;
+      case 'cableSnap':
+        // Connector shell click, metal contact, then a warm powered-on ping.
+        texture(0.045, 2100, 0.11);
+        beep(420, 0.07, 'triangle', 0, 0.18, 560);
+        beep(840, 0.13, 'sine', 0.055, 0.13, 1120);
+        break;
+      case 'cableReject':
+        texture(0.08, 760, 0.07);
+        beep(210, 0.09, 'triangle', 0, 0.16, 165);
+        beep(175, 0.08, 'triangle', 0.07, 0.12, 145);
+        break;
+      case 'coffeeCatch':
+        // Ceramic tick, liquid plop and a tiny success sparkle.
+        texture(0.08, 540, 0.07);
+        beep(330, 0.11, 'sine', 0, 0.13, 245);
+        beep(760, 0.08, 'triangle', 0.045, 0.12, 940);
+        break;
+      case 'bugHit':
+        // Paper desk slap with a deliberately cartoony low pop.
+        texture(0.1, 980, 0.1);
+        beep(160, 0.08, 'triangle', 0, 0.17, 105);
+        break;
+      case 'reward':
+        texture(0.08, 2600, 0.04);
+        [659, 784, 988, 1318].forEach((frequency, index) =>
+          beep(frequency, 0.16, 'sine', index * 0.065, 0.16),
+        );
         break;
     }
   }

@@ -6,6 +6,7 @@ import {
   coffeeCatchScore,
   coffeeComboMultiplier,
 } from '../../sim/minigames';
+import { useStore } from '../../state/store';
 import type { SubGameProps } from './MicroGame';
 
 interface Drop {
@@ -27,26 +28,61 @@ const FLOOR_Y = 88;
 // The list of drops lives in a ref (single source of truth) so the animation
 // loop can update positions AND resolve catches/misses without ever calling a
 // React state setter inside another setter's updater.
-export function CoffeeRescue({ seed, reducedMotion, timeLeft, onScore, onEnd }: SubGameProps) {
+export function CoffeeRescue({ seed, reducedMotion, paused, timeLeft, onScore, onCombo, onEnd }: SubGameProps) {
   const { t } = useTranslation();
+  const audio = useStore((state) => state.audio);
   const [mugX, setMugX] = useState(50);
   const [drops, setDrops] = useState<Drop[]>([]);
-  const [score, setScore] = useState(0);
   const [streak, setStreak] = useState(0);
   const [splash, setSplash] = useState(false);
+  const [catchFx, setCatchFx] = useState<{ id: number; x: number; value: number } | null>(null);
   const dropsRef = useRef<Drop[]>([]);
   const scoreRef = useRef(0);
   const streakRef = useRef(0);
   const idRef = useRef(0);
   const mugXRef = useRef(50);
   const areaRef = useRef<HTMLDivElement>(null);
-  const startRef = useRef(Date.now());
+  const startedAtRef = useRef(Date.now());
+  const pausedAtRef = useRef<number | null>(paused ? Date.now() : null);
+  const pausedDurationRef = useRef(0);
   const rng = useRef(seedToRng(seed));
   const splashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   void onEnd; // ending is driven by the shared shell timer
 
   mugXRef.current = mugX;
-  const elapsed = () => (Date.now() - startRef.current) / 1000;
+
+  const activeNow = () => {
+    const now = Date.now();
+    const currentPause = pausedAtRef.current == null ? 0 : now - pausedAtRef.current;
+    return now - pausedDurationRef.current - currentPause;
+  };
+  const elapsed = () => (activeNow() - startedAtRef.current) / 1000;
+
+  useEffect(() => {
+    if (paused) {
+      if (pausedAtRef.current == null) pausedAtRef.current = Date.now();
+      return;
+    }
+    if (pausedAtRef.current != null) {
+      pausedDurationRef.current += Date.now() - pausedAtRef.current;
+      pausedAtRef.current = null;
+    }
+  }, [paused]);
+
+  useEffect(() => {
+    if (!paused) return;
+    if (splashTimer.current) clearTimeout(splashTimer.current);
+    splashTimer.current = null;
+    setSplash(false);
+    setCatchFx(null);
+  }, [paused]);
+
+  useEffect(
+    () => () => {
+      if (splashTimer.current) clearTimeout(splashTimer.current);
+    },
+    [],
+  );
 
   function commitDrops(next: Drop[]) {
     dropsRef.current = next;
@@ -54,19 +90,24 @@ export function CoffeeRescue({ seed, reducedMotion, timeLeft, onScore, onEnd }: 
   }
 
   function registerCatch(n = 1) {
+    const scoreBefore = scoreRef.current;
     for (let i = 0; i < n; i += 1) {
       streakRef.current += 1;
       scoreRef.current += coffeeCatchScore(streakRef.current);
     }
     if (n > 0) {
+      const multiplier = coffeeComboMultiplier(streakRef.current);
       setStreak(streakRef.current);
-      setScore(scoreRef.current);
       onScore(scoreRef.current);
-      if (!reducedMotion) {
-        setSplash(true);
-        if (splashTimer.current) clearTimeout(splashTimer.current);
-        splashTimer.current = setTimeout(() => setSplash(false), 180);
-      }
+      onCombo(multiplier);
+      audio.play('coffeeCatch');
+      setCatchFx({ id: Date.now(), x: mugXRef.current, value: scoreRef.current - scoreBefore });
+      if (!reducedMotion) setSplash(true);
+      if (splashTimer.current) clearTimeout(splashTimer.current);
+      splashTimer.current = setTimeout(() => {
+        setSplash(false);
+        setCatchFx(null);
+      }, reducedMotion ? 0 : 420);
     }
   }
 
@@ -74,16 +115,18 @@ export function CoffeeRescue({ seed, reducedMotion, timeLeft, onScore, onEnd }: 
     if (streakRef.current !== 0) {
       streakRef.current = 0;
       setStreak(0);
+      onCombo(1);
     }
   }
 
   // spawn drops
   useEffect(() => {
+    if (paused) return;
     let cancelled = false;
     let handle: ReturnType<typeof setTimeout>;
     const loop = () => {
       if (cancelled) return;
-      const drop: Drop = { id: idRef.current++, x: 8 + rng.current() * 84, y: 0, born: Date.now() };
+      const drop: Drop = { id: idRef.current++, x: 8 + rng.current() * 84, y: 0, born: activeNow() };
       commitDrops([...dropsRef.current, drop]);
       handle = setTimeout(loop, coffeeSpawnInterval(elapsed()));
     };
@@ -94,11 +137,11 @@ export function CoffeeRescue({ seed, reducedMotion, timeLeft, onScore, onEnd }: 
       if (splashTimer.current) clearTimeout(splashTimer.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [paused]);
 
   // motion mode: animate falling + resolve catches/misses from the ref
   useEffect(() => {
-    if (reducedMotion) return;
+    if (reducedMotion || paused) return;
     let raf = 0;
     let last = performance.now();
     const tick = (now: number) => {
@@ -125,13 +168,13 @@ export function CoffeeRescue({ seed, reducedMotion, timeLeft, onScore, onEnd }: 
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reducedMotion]);
+  }, [paused, reducedMotion]);
 
   // reduced-motion tap mode: expire old drops (a lapsed drop breaks the streak)
   useEffect(() => {
-    if (!reducedMotion) return;
+    if (!reducedMotion || paused) return;
     const h = setInterval(() => {
-      const now = Date.now();
+      const now = activeNow();
       const kept = dropsRef.current.filter((d) => now - d.born < DROP_LIFETIME);
       if (kept.length < dropsRef.current.length) {
         commitDrops(kept);
@@ -140,11 +183,11 @@ export function CoffeeRescue({ seed, reducedMotion, timeLeft, onScore, onEnd }: 
     }, 150);
     return () => clearInterval(h);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reducedMotion]);
+  }, [paused, reducedMotion]);
 
   // pointer + keyboard control (motion mode)
   useEffect(() => {
-    if (reducedMotion) return;
+    if (reducedMotion || paused) return;
     const onMove = (e: PointerEvent) => {
       const el = areaRef.current;
       if (!el) return;
@@ -162,9 +205,10 @@ export function CoffeeRescue({ seed, reducedMotion, timeLeft, onScore, onEnd }: 
       el?.removeEventListener('pointermove', onMove);
       window.removeEventListener('keydown', onKey);
     };
-  }, [reducedMotion]);
+  }, [paused, reducedMotion]);
 
   function tap(d: Drop) {
+    if (paused) return;
     commitDrops(dropsRef.current.filter((x) => x.id !== d.id));
     registerCatch(1);
   }
@@ -174,33 +218,97 @@ export function CoffeeRescue({ seed, reducedMotion, timeLeft, onScore, onEnd }: 
 
   return (
     <div className="coffee">
-      <div className="coffee__hud">
-        <span>{t('microgame.score', { value: score })}</span>
-        {mult > 1 ? <span className="coffee__mult">{t('microgame.multiplier', { value: mult })}</span> : null}
-        <span>{timeLeft}s</span>
-      </div>
-      <div className="coffee__meter" aria-hidden>
-        <span className="coffee__meter-fill" style={{ width: `${warmth}%` }} />
+      <div className="coffee__status">
+        <span className="coffee__order-ticket">
+          <b>{t('microgame.coffeeRescue.order')}</b>
+          <small>{timeLeft}s</small>
+        </span>
+        <div
+          className="coffee__meter"
+          role="meter"
+          aria-label={t('microgame.coffeeRescue.warmth')}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(warmth)}
+        >
+          <span className="coffee__meter-fill" style={{ width: `${warmth}%` }} />
+          <i aria-hidden="true">♨</i>
+        </div>
+        <span className={`coffee__streak ${mult > 1 ? 'is-hot' : ''}`}>
+          {streak > 0 ? t('microgame.combo', { value: mult }) : t('microgame.coffeeRescue.steady')}
+        </span>
       </div>
       <div className="coffee__area" ref={areaRef}>
-        {drops.map((d) =>
+        <div className="coffee__cafe" aria-hidden="true">
+          <div className="coffee__shelf"><i /><i /><i /><span /></div>
+          <div className="coffee__menu-board">NUT<br />ROAST<br /><b>★ ★ ★</b></div>
+          <div className="coffee__window"><i /><i /><span /></div>
+          <CoffeeBuddy />
+          <div className="coffee__counter" />
+        </div>
+        {drops.map((drop) =>
           reducedMotion ? (
             <button
-              key={d.id}
+              key={drop.id}
               className="coffee__drop coffee__drop--tap"
-              style={{ left: `${d.x}%`, top: `${20 + (d.id % 4) * 18}%` }}
-              onClick={() => tap(d)}
+              style={{ left: `${drop.x}%`, top: `${20 + (drop.id % 4) * 16}%` }}
+              onClick={() => tap(drop)}
+              disabled={paused}
               aria-label={t('microgame.coffeeDrop')}
-            />
+            >
+              <span aria-hidden="true" />
+            </button>
           ) : (
-            <span key={d.id} className="coffee__drop" style={{ left: `${d.x}%`, top: `${d.y}%` }} aria-hidden />
+            <span
+              key={drop.id}
+              className="coffee__drop"
+              style={{ left: `${drop.x}%`, top: `${drop.y}%` }}
+              aria-hidden="true"
+            >
+              <i />
+            </span>
           ),
         )}
-        {!reducedMotion ? (
-          <span className={`coffee__mug ${splash ? 'is-splash' : ''}`} style={{ left: `${mugX}%` }} aria-hidden />
+        <span
+          className={`coffee__mug ${splash ? 'is-splash' : ''} ${reducedMotion ? 'is-stationary' : ''}`}
+          style={{ left: `${reducedMotion ? 50 : mugX}%` }}
+          aria-hidden="true"
+        >
+          <span className="coffee__liquid"><i /><i /><i /></span>
+          <span className="coffee__foam">● ● ●</span>
+          <span className="coffee__mug-face"><i /><i /><b /></span>
+          <span className="coffee__steam"><i /><i /><i /></span>
+        </span>
+        {catchFx ? (
+          <span
+            key={catchFx.id}
+            className="coffee__catch-fx"
+            style={{ left: `${catchFx.x}%` }}
+            aria-hidden="true"
+          >
+            <b>+{catchFx.value}</b>
+            {Array.from({ length: 7 }, (_, index) => <i key={index} style={{ ['--i' as string]: index }} />)}
+          </span>
         ) : null}
       </div>
     </div>
+  );
+}
+
+function CoffeeBuddy() {
+  return (
+    <svg className="coffee__buddy" viewBox="0 0 110 115" aria-hidden="true">
+      <ellipse cx="55" cy="107" rx="30" ry="6" fill="rgba(20,12,7,.22)" />
+      <path d="M78 96c29-8 28-51 7-60 13 20 7 39-8 46Z" fill="#cd7540" stroke="#332619" strokeWidth="3" />
+      <ellipse cx="55" cy="79" rx="27" ry="29" fill="#cd7540" stroke="#332619" strokeWidth="3" />
+      <circle cx="55" cy="46" r="29" fill="#dd8751" stroke="#332619" strokeWidth="3" />
+      <path d="M31 31 37 7l15 17M79 31 73 7 58 24" fill="#dd8751" stroke="#332619" strokeWidth="3" strokeLinejoin="round" />
+      <ellipse cx="55" cy="56" rx="17" ry="13" fill="#efc294" />
+      <circle cx="45" cy="45" r="3.4" fill="#332619" /><circle cx="65" cy="45" r="3.4" fill="#332619" />
+      <path d="M47 59q8 7 16 0" fill="none" stroke="#332619" strokeWidth="3" strokeLinecap="round" />
+      <path className="coffee__buddy-arm" d="M33 75q-16 10-18 25" fill="none" stroke="#cd7540" strokeWidth="10" strokeLinecap="round" />
+      <path d="M48 67h14l-7 16Z" fill="#739274" stroke="#332619" strokeWidth="2" />
+    </svg>
   );
 }
 
