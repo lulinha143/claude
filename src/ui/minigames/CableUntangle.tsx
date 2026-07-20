@@ -103,9 +103,12 @@ export function CableUntangle({ seed, reducedMotion, paused, onScore, onCombo, o
   );
 
   useEffect(() => {
-    if (!paused || !rewardTimer.current) return;
-    clearTimeout(rewardTimer.current);
+    if (!paused) return;
+    if (rewardTimer.current) clearTimeout(rewardTimer.current);
     rewardTimer.current = null;
+    if (rejectTimer.current) clearTimeout(rejectTimer.current);
+    rejectTimer.current = null;
+    setRejected(null);
   }, [paused]);
 
   const loadNext = useCallback(

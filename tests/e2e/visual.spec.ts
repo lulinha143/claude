@@ -1,4 +1,5 @@
 import { test, type Page } from '@playwright/test';
+import { ACHIEVEMENTS } from '../../src/content/achievements';
 
 // Visual-capture harness. Unlike smoke.spec, this does not assert — it seeds a
 // rich save, drives the app to each key screen at a matrix of window sizes and
@@ -6,7 +7,9 @@ import { test, type Page } from '@playwright/test';
 // (manual screenshots, so no stored baselines are required to run).
 
 const RICH_SAVE = {
-  version: 3, // deliberately old: also exercises the v3→v5 migration on load
+  version: 7,
+  // Keep this visual fixture current and fully specified so screenshots verify
+  // presentation rather than being obscured by migration-triggered unlocks.
   onboardingComplete: true,
   lastSaved: Date.now(),
   company: { name: 'Nutty Co.' },
@@ -19,6 +22,7 @@ const RICH_SAVE = {
     corvus: { hired: true, level: 2, friendship: 30, room: null, x: 0.5 },
     mina: { hired: true, level: 2, friendship: 30, room: null, x: 0.5 },
   },
+  achievements: Object.fromEntries(ACHIEVEMENTS.map((achievement) => [achievement.id, 1])),
   // own a spread of decorations so the tray + placed furniture are populated
   collections: {
     nuts: [],
@@ -49,6 +53,9 @@ async function seed(page: Page, save: Record<string, unknown>) {
 }
 
 async function shot(page: Page, name: string) {
+  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+  await page.mouse.move(4, 4);
+  await page.waitForTimeout(400);
   await page.screenshot({ path: `${DIR}/${name}.png`, fullPage: false });
 }
 
@@ -96,6 +103,10 @@ test('all views at desktop + compact', async ({ page }) => {
       ['team', /^Team$|^Equipe$/i],
       ['company', /^Company$|^Empresa$/i],
       ['focus', /^Focus$|^Foco$/i],
+      ['collections', /^Collections$|^Coleções$/i],
+      ['achievements', /^Achievements$|^Conquistas$/i],
+      ['stats', /^Stats$|^Estatísticas$/i],
+      ['prestige', /^Prestige$|^Prestígio$/i],
       ['settings', /^Settings$|^Ajustes$/i],
     ];
     for (const [key, name] of views) {

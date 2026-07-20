@@ -100,8 +100,8 @@ for (const scenario of [
     await page.screenshot({ path: `${DIR}/${LABEL}-${scenario.name}-office.png`, fullPage: false });
 
     if (scenario.width >= 1000) {
-      await page.locator('.nav__item').nth(1).click();
-      await expect(page.locator('.view')).toBeVisible();
+      await page.getByRole('button', { name: /^Upgrades$|^Melhorias$/i }).click();
+      await expect(page.locator('.view--shop')).toBeVisible();
       await page.mouse.move(scenario.width - 24, scenario.height - 24);
       await dismiss(page);
       const card = page.locator('.card').first();
@@ -180,8 +180,9 @@ test('high-contrast identity preserves marks, states, and compact reachability',
   await audioButton.click();
   await expect(audioButton).toHaveAttribute('aria-pressed', before === 'true' ? 'false' : 'true');
 
-  await page.locator('.nav__item').nth(1).click();
-  await expect(page.locator('.nav__item').nth(1)).toHaveClass(/is-active/);
+  const upgradesNav = page.getByRole('button', { name: /^Upgrades$/i });
+  await upgradesNav.click();
+  await expect(upgradesNav).toHaveClass(/is-active/);
   const disabledPurchase = page.locator('.buy-btn:disabled').first();
   if (await disabledPurchase.count()) {
     const disabledColors = await disabledPurchase.evaluate((element) => {

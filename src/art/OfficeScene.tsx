@@ -79,6 +79,12 @@ interface Bubble {
   until: number;
 }
 
+interface EmployeeInteraction {
+  employeeId: string;
+  targetX: number;
+  phase: 'walking' | 'interacting';
+}
+
 // department accent per room (references design tokens)
 const DEPT: Record<string, string> = {
   'founder-desk': 'var(--dept-founder)',
@@ -197,10 +203,15 @@ export function OfficeScene() {
   const [justPlaced, setJustPlaced] = useState<string | null>(null);
   // A decoration a nearby employee is currently reacting to (for a little wiggle).
   const [reactingDeco, setReactingDeco] = useState<string | null>(null);
-  // The employee currently visiting an object (leans toward it) + the object x.
-  const [interaction, setInteraction] = useState<{ employeeId: string; targetX: number } | null>(
-    null,
-  );
+  // The employee currently visiting an object (walks over, then interacts) + the object x.
+  const [interaction, setInteraction] = useState<EmployeeInteraction | null>(null);
+  const [hoveredEmployee, setHoveredEmployee] = useState<string | null>(null);
+  const [focusedEmployee, setFocusedEmployee] = useState<string | null>(null);
+  const [recentEmployee, setRecentEmployee] = useState<string | null>(null);
+  const [celebratingEmployee, setCelebratingEmployee] = useState<string | null>(null);
+  const lifeTimersRef = useRef<Set<number>>(new Set());
+  const recentReactionGenerationRef = useRef(0);
+  const celebrationGenerationRef = useRef(0);
   // Decoration ids currently reserved by an in-progress interaction.
   const reservedRef = useRef<Set<string>>(new Set());
   // Live drag (employee or decoration) for the ghost + drop highlighting.
@@ -230,6 +241,22 @@ export function OfficeScene() {
   const producing = engine.productionPerSecond() > 0;
   const focusMode = engine.isFocusActive();
   const lowMorale = state.resources.morale < 35;
+
+  function scheduleLife(callback: () => void, delay: number) {
+    const timer = window.setTimeout(() => {
+      lifeTimersRef.current.delete(timer);
+      callback();
+    }, delay);
+    lifeTimersRef.current.add(timer);
+  }
+
+  useEffect(
+    () => () => {
+      lifeTimersRef.current.forEach((timer) => window.clearTimeout(timer));
+      lifeTimersRef.current.clear();
+    },
+    [],
+  );
 
   useEffect(() => {
     if (!bubble) return;
@@ -305,8 +332,15 @@ export function OfficeScene() {
           until: Date.now() + 4200,
         });
         setReactingDeco(it.decorationId);
-        setInteraction({ employeeId: it.employeeId, targetX: it.targetX });
-        window.setTimeout(() => {
+        setInteraction({ employeeId: it.employeeId, targetX: it.targetX, phase: 'walking' });
+        scheduleLife(() => {
+          setInteraction((current) =>
+            current?.employeeId === it.employeeId
+              ? { ...current, phase: 'interacting' }
+              : current,
+          );
+        }, 650);
+        scheduleLife(() => {
           setReactingDeco((cur) => (cur === it.decorationId ? null : cur));
           setInteraction((cur) => (cur?.employeeId === it.employeeId ? null : cur));
           reservedRef.current.delete(it.decorationId);
@@ -328,6 +362,12 @@ export function OfficeScene() {
 
   function onCritterClick(employeeId: string) {
     if (draggedRef.current) return; // suppress the click that follows a drag
+    setRecentEmployee(employeeId);
+    const reactionGeneration = ++recentReactionGenerationRef.current;
+    scheduleLife(() => {
+      if (recentReactionGenerationRef.current !== reactionGeneration) return;
+      setRecentEmployee((current) => (current === employeeId ? null : current));
+    }, 1400);
     const def = EMPLOYEES_BY_ID[employeeId];
     if (employeeId === 'pip') {
       engine.petPip();
@@ -341,6 +381,17 @@ export function OfficeScene() {
 
   function onCollect(e: React.MouseEvent) {
     const res = engine.collectCrate();
+    const celebrator = stateRef.current.employees.pip?.hired
+      ? 'pip'
+      : Object.entries(stateRef.current.employees).find(([, employee]) => employee.hired)?.[0];
+    if (celebrator) {
+      setCelebratingEmployee(celebrator);
+      const celebrationGeneration = ++celebrationGenerationRef.current;
+      scheduleLife(() => {
+        if (celebrationGenerationRef.current !== celebrationGeneration) return;
+        setCelebratingEmployee((current) => (current === celebrator ? null : current));
+      }, 950);
+    }
     audio.play('collect');
     sparkleAt(e);
     const el = e.currentTarget as HTMLElement;
@@ -660,7 +711,14 @@ export function OfficeScene() {
       audio.play('error');
       return;
     }
-    if (engine.assignEmployee(id, room)) audio.play('upgrade');
+    if (engine.assignEmployee(id, room)) {
+      // Moving the focused/hovered button unmounts it without a reliable blur or
+      // pointerleave. Clear those DOM-owned signals so the remounted employee
+      // cannot inherit a stale tap reaction in its destination room.
+      setFocusedEmployee((current) => (current === id ? null : current));
+      setHoveredEmployee((current) => (current === id ? null : current));
+      audio.play('upgrade');
+    }
   }
 
   function finishDecorationDrop(
@@ -1011,15 +1069,24 @@ export function OfficeScene() {
                   const ex = visiting
                     ? slot.x * 0.55 + (interaction?.targetX ?? slot.x) * 0.45
                     : slot.x;
+                  const interactedRecently =
+                    recentEmployee === id ||
+                    (visiting && interaction?.phase === 'interacting');
                   const inputs = {
                     hired: rt.hired,
                     producing,
-                    moving: false,
+                    moving:
+                      (drag?.kind === 'employee' && drag.id === id) ||
+                      (visiting && interaction?.phase === 'walking'),
                     lowMorale,
-                    celebrating: false,
+                    celebrating: celebratingEmployee === id,
                     focusMode,
-                    interactedRecently: false,
-                    hovered: false,
+                    interactedRecently,
+                    // A click/keyboard activation or ambient interaction should be
+                    // visible even while the control remains hovered or focused.
+                    hovered:
+                      !interactedRecently &&
+                      (hoveredEmployee === id || focusedEmployee === id),
                   };
                   const anim: CritterState = machineFor(id).update(inputs, now);
                   const accent =
@@ -1039,6 +1106,14 @@ export function OfficeScene() {
                         zIndex: visiting ? 5 : 3 + (idx % 2),
                       }}
                       onPointerDown={(e) => beginDrag(e, 'employee', id)}
+                      onPointerEnter={() => setHoveredEmployee(id)}
+                      onPointerLeave={() =>
+                        setHoveredEmployee((current) => (current === id ? null : current))
+                      }
+                      onFocus={() => setFocusedEmployee(id)}
+                      onBlur={() =>
+                        setFocusedEmployee((current) => (current === id ? null : current))
+                      }
                       onClick={() => onCritterClick(id)}
                       title={label}
                       aria-label={label}

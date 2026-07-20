@@ -107,7 +107,8 @@ test('selected production fonts are bundled, active, and offline-safe', async ({
     await accentedRoomLabel.evaluate((element) => getComputedStyle(element).fontFamily),
   ).toContain('Nunito');
 
-  await page.locator('.nav__item').nth(4).click();
+  await page.getByRole('button', { name: /^Collections$|^Coleções$/i }).click();
+  await expect(page.locator('.view--collections')).toBeVisible();
   await page.locator('.view--collections .ghost-btn').first().click();
   await expect(page.locator('.photo-mode')).toBeVisible();
   const downloadPromise = page.waitForEvent('download');

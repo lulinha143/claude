@@ -142,15 +142,23 @@ test.describe.serial('premium minigame presentation', () => {
     await page.mouse.up();
     await expect(plugs.nth(0)).toHaveAttribute('aria-pressed', 'true');
     await expect(game.locator('.cable__port.is-connected')).toHaveCount(1);
+    await expect(plugs.nth(0)).toHaveClass(/is-rejected/);
+    await game.locator('.microgame__pause').click();
+    await expect(plugs.nth(0)).not.toHaveClass(/is-rejected/);
+    await game.locator('.microgame__paused .buy-btn').click();
 
     for (let index = 1; index < 5; index += 1) {
       await plugs.nth(index).focus();
       await page.keyboard.press('Enter');
+      await expect(game.locator('.cable__node.is-active')).toHaveCount(0);
     }
     await expect(game.locator('.cable__cleared')).toBeVisible();
     await expect(game.locator('.cable__port.is-connected')).toHaveCount(5);
     await page.waitForTimeout(750);
     await page.screenshot({ path: 'visual-artifacts/minigame-cable-complete-1280x800.png' });
+    await game.locator('.microgame__pause').click();
+    await page.waitForTimeout(1_600);
+    await expect(game.locator('.cable__cleared')).toBeVisible();
   });
 
   test('shared minigame cabinet stays contained at compact size', async ({ page }) => {
@@ -207,6 +215,35 @@ test.describe.serial('premium minigame presentation', () => {
     await expect(pause).toHaveAttribute('aria-pressed', 'false');
     await page.waitForTimeout(1_100);
     expect(await timer.textContent()).not.toBe(timeBefore);
+  });
+
+  test('replay rewards exactly once per completed round and close never duplicates it', async ({ page }) => {
+    await boot(page);
+    const game = await openGame(page, 'Bug Squash');
+    await startGame(page);
+    await game.locator('.microgame__exit').click();
+    await expect(game).toHaveAttribute('data-phase', 'result');
+    await game.getByRole('button', { name: /play again/i }).click();
+    await expect(game).toHaveAttribute('data-phase', 'intro');
+    await startGame(page);
+    await game.locator('.microgame__exit').click();
+    await expect(game).toHaveAttribute('data-phase', 'result');
+    await game.getByRole('button', { name: /back to office/i }).click();
+    await page.getByRole('button', { name: 'Stats', exact: true }).click();
+    const row = page.locator('.stats-table tr').filter({ hasText: 'Micro-games played' });
+    await expect(row.locator('td')).toHaveText('2');
+  });
+
+  test('reduced-motion Coffee feedback clears while preserving its awarded score', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await boot(page);
+    const game = await openGame(page, 'Coffee Rescue');
+    await startGame(page);
+    const drop = game.locator('.coffee__drop--tap').first();
+    await expect(drop).toBeVisible({ timeout: 3_000 });
+    await drop.dispatchEvent('click');
+    await expect(game.locator('.microgame__score b')).not.toHaveText('0');
+    await expect(game.locator('.coffee__catch-fx')).toHaveCount(0);
   });
 
   test('operating-system reduced motion disables JavaScript score tweening', async ({ page }) => {

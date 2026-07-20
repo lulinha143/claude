@@ -66,6 +66,10 @@ test('employee drag-and-drop moves a teammate between rooms and persists', async
   const destSel = `.floor[data-room="${destRoom}"]`;
   const beforeDest = await page.locator(`${destSel} .critter-btn`).count();
 
+  const sourceEmployee = page.locator(`${founder} .critter-btn`).first();
+  const draggedLabel = await sourceEmployee.getAttribute('aria-label');
+  expect(draggedLabel).toBeTruthy();
+  await sourceEmployee.focus();
   const from = await center(page, `${founder} .critter-btn`);
   const to = await center(page, destSel);
 
@@ -88,12 +92,58 @@ test('employee drag-and-drop moves a teammate between rooms and persists', async
     .toBe(beforeDest + 1);
   expect(await page.locator(`${founder} .critter-btn`).count()).toBe(beforeFounder - 1);
 
+  // A successful move unmounts the focused source without a browser blur event;
+  // the destination sprite must not inherit that stale focus reaction.
+  await page.mouse.move(1, 1);
+  const movedEmployee = page.locator(`${destSel} .critter-btn[aria-label="${draggedLabel}"]`);
+  await expect(movedEmployee).toBeVisible();
+  await expect(movedEmployee.locator('svg.critter')).not.toHaveClass(/critter--tap/);
+
   // persists across reload
   await page.reload();
   await page.locator('.office').first().waitFor({ timeout: 15000 });
   await page.locator(destSel).scrollIntoViewIfNeeded();
   await page.waitForTimeout(300);
   expect(await page.locator(`${destSel} .critter-btn`).count()).toBe(beforeDest + 1);
+});
+
+test('employee hover, focus, activation, movement, and celebration states keep their precedence', async ({
+  page,
+}) => {
+  await boot(page);
+  const founder = page.locator('.floor[data-room="founder-desk"]');
+  await founder.scrollIntoViewIfNeeded();
+  const pip = founder.locator('.critter-btn[aria-label="Pip"]');
+  const marlow = founder.locator('.critter-btn[aria-label="Marlow"]');
+  const pipCritter = pip.locator('svg.critter');
+  const marlowCritter = marlow.locator('svg.critter');
+
+  // Keyboard focus and pointer hover are independent inputs: moving away from
+  // Marlow must not erase Pip's focus reaction.
+  await pip.focus();
+  await expect(pipCritter).toHaveClass(/critter--tap/);
+  const marlowBox = (await marlow.boundingBox())!;
+  await page.mouse.move(marlowBox.x + marlowBox.width / 2, marlowBox.y + marlowBox.height / 2);
+  await expect(marlowCritter).toHaveClass(/critter--tap/);
+  await expect(pipCritter).toHaveClass(/critter--tap/);
+  await page.mouse.move(1, 1);
+  await expect(pipCritter).toHaveClass(/critter--tap/);
+
+  // Native keyboard activation temporarily outranks the retained focus state.
+  await pip.press('Enter');
+  await expect(pipCritter).toHaveClass(/critter--coffee/);
+
+  // Movement outranks hover while a real pointer drag is active.
+  await page.mouse.move(marlowBox.x + marlowBox.width / 2, marlowBox.y + marlowBox.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(marlowBox.x + marlowBox.width / 2 + 20, marlowBox.y - 12, { steps: 4 });
+  await expect(marlowCritter).toHaveClass(/critter--walk/);
+  await page.keyboard.press('Escape');
+  await page.mouse.up();
+
+  // Collection celebration has the highest authored life-state priority.
+  await founder.locator('.crate-btn').dispatchEvent('click');
+  await expect(pipCritter).toHaveClass(/critter--celebrate/);
 });
 
 test('decoration Arrange Mode: tray opens and a decoration can be placed by dragging', async ({
@@ -153,6 +203,7 @@ test('blur, focus, lost pointer streams, popups, and arrange mode never leave in
     );
   });
   const startTrayDrag = async () => {
+    await trayDecoration.scrollIntoViewIfNeeded();
     const box = (await trayDecoration.boundingBox())!;
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
     await page.mouse.down();
