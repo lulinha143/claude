@@ -8,7 +8,6 @@
 
 import type { GameState } from './types';
 import {
-  clampPointToValidRegion,
   pointOnRegion,
   regionContainsPoint,
   type NormalizedPoint,
@@ -186,29 +185,62 @@ export function decorationFootprintFitsRegion(
   return footprintSamples(point, size).every((sample) => regionContainsPoint(region, sample));
 }
 
+const clamp01 = (v: number): number => Math.max(0, Math.min(1, v));
+const lerp = (a: number, b: number, t: number): number => a + (b - a) * t;
+
 /**
- * Find the nearest anchor whose complete visible support footprint remains in
- * the authored region. Direct placements retain full precision; only an
- * outside/edge pointer uses the deterministic region-local search fallback.
+ * Continuously clamp a point so a footprint of `size` stays inside the region's
+ * (possibly tapered) plane. O(1) and smooth: as the pointer moves, the result
+ * glides along the plane instead of snapping to a discrete grid cell — this is
+ * what keeps live dragging fluid. Exclusions are handled by the caller.
+ */
+function insetClampToPlane(
+  region: PlacementRegion,
+  size: { width: number; depth: number },
+  point: NormalizedPoint,
+): { point: NormalizedPoint; u: number; v: number } {
+  const plane = region.plane;
+  const minY = plane.bottomLeft.y;
+  const maxY = plane.topLeft.y;
+  const height = maxY - minY;
+  const halfDepth = Math.min(size.depth / 2, Math.max(0, height / 2 - 1e-4));
+  const y = Math.max(minY + halfDepth, Math.min(maxY - halfDepth, point.y));
+  const v = height < Number.EPSILON ? 0 : (y - minY) / height;
+  const leftX = lerp(plane.bottomLeft.x, plane.topLeft.x, v);
+  const rightX = lerp(plane.bottomRight.x, plane.topRight.x, v);
+  const width = rightX - leftX;
+  const halfWidth = Math.min(size.width / 2, Math.max(0, width / 2 - 1e-4));
+  const x = Math.max(leftX + halfWidth, Math.min(rightX - halfWidth, point.x));
+  const u = width < Number.EPSILON ? 0 : (x - leftX) / width;
+  return { point: { x, y }, u: clamp01(u), v: clamp01(v) };
+}
+
+/**
+ * Find the anchor whose complete visible support footprint remains in the
+ * authored region. The continuous inset clamp is the fast path used on every
+ * pointer move (smooth, no jumps); only when it still overlaps an exclusion
+ * (window / fixture) does a bounded region-local search nudge it clear.
  */
 export function clampDecorationToRegion(
   id: string,
   region: PlacementRegion,
   point: NormalizedPoint,
 ): { point: NormalizedPoint; u: number; v: number } | null {
-  const direct = clampPointToValidRegion(region, point);
-  if (!direct) return null;
-  if (decorationFootprintFitsRegion(id, region, direct.point)) return direct;
+  const size = decorationPlaneFootprint(id, region);
+  const inset = insetClampToPlane(region, size, point);
+  if (decorationFootprintFitsRegion(id, region, inset.point)) return inset;
 
+  // Fallback (rare — only near window/fixture exclusions): search from the
+  // inset-clamped anchor outward for the nearest footprint-legal spot.
   let nearest: { point: NormalizedPoint; u: number; v: number; distance: number } | null = null;
-  const steps = 28;
+  const steps = 20;
   for (let row = 0; row <= steps; row += 1) {
     for (let column = 0; column <= steps; column += 1) {
       const u = column / steps;
       const v = row / steps;
       const candidate = pointOnRegion(region, u, v);
       if (!decorationFootprintFitsRegion(id, region, candidate)) continue;
-      const distance = (candidate.x - point.x) ** 2 + (candidate.y - point.y) ** 2;
+      const distance = (candidate.x - inset.point.x) ** 2 + (candidate.y - inset.point.y) ** 2;
       if (!nearest || distance < nearest.distance) nearest = { point: candidate, u, v, distance };
     }
   }
@@ -351,6 +383,7 @@ export function pointerRegionPlacement(
   id: string,
   roomId: string,
   rawPoint: NormalizedPoint,
+  preferKind?: PlacementRegion['kind'],
 ): RegionPlacementCheck | null {
   const def = DECORATIONS_BY_ID[id];
   if (!def) return null;
@@ -359,7 +392,16 @@ export function pointerRegionPlacement(
   const containing = compatible
     .filter((region) => regionContainsPoint(region, rawPoint))
     .sort((left, right) => right.priority - left.priority || regionArea(left) - regionArea(right));
+  // Hysteresis: while a drag is already targeting a support and the pointer is
+  // still inside it, keep it — this stops the preview flickering between
+  // overlapping compatible planes (e.g. floor vs. tabletop) as the pointer
+  // crosses their shared band.
+  const sticky =
+    preferKind !== undefined
+      ? containing.find((region) => region.kind === preferKind)
+      : undefined;
   const chosen =
+    sticky ??
     containing[0] ??
     compatible.find((region) => region.kind === def.defaultRegionKind) ??
     [...compatible].sort((left, right) => right.priority - left.priority)[0];

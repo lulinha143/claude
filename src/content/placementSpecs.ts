@@ -79,7 +79,7 @@ export const DECORATION_PLACEMENT: Record<string, DecorationPlacementSpec> = {
   'potted-fern': spec({ w: 0.11, h: 0.18, anchor: 'base', mirror: true }),
   'desk-lamp': spec({ w: 0.08, h: 0.13, anchor: 'base', scale: 0.92, mirror: true }),
   'motivational-poster': spec({ w: 0.13, h: 0.16, anchor: 'center' }),
-  'tiny-rug': spec({ w: 0.34, h: 0.07, anchor: 'base', baseline: 0.82, sceneryOverlap: true }),
+  'tiny-rug': spec({ w: 0.42, h: 0.06, anchor: 'base', baseline: 0.82, sceneryOverlap: true }),
   'window-view': spec({ w: 0.24, h: 0.2, anchor: 'center', scale: 1.1 }),
   // Sorting
   'sorting-bins': spec({ w: 0.16, h: 0.16, anchor: 'base', mirror: true }),
@@ -107,7 +107,7 @@ export const DECORATION_PLACEMENT: Record<string, DecorationPlacementSpec> = {
   'neon-sign': spec({ w: 0.2, h: 0.12, anchor: 'center' }),
   'trophy-shelf': spec({ w: 0.18, h: 0.14, anchor: 'center' }),
   // Vault
-  'gold-carpet': spec({ w: 0.38, h: 0.07, anchor: 'base', baseline: 0.82, sceneryOverlap: true }),
+  'gold-carpet': spec({ w: 0.42, h: 0.06, anchor: 'base', baseline: 0.82, sceneryOverlap: true }),
   'nut-statue': spec({ w: 0.14, h: 0.24, anchor: 'base', scale: 1.1, clearance: 0.03 }),
   chandelier: spec({ w: 0.2, h: 0.16, anchor: 'hanging' }),
   // Meeting

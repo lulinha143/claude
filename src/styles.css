@@ -3216,7 +3216,11 @@ select,
   filter: drop-shadow(0 0 6px var(--gold));
 }
 .floor__deco.is-dragging {
-  opacity: 0.25;
+  opacity: 0.22;
+  transition: opacity 0.16s var(--ease);
+}
+[data-reduced-motion='true'] .floor__deco.is-dragging {
+  transition: none;
 }
 /* Soft contact shadow grounds floor props (rugs excepted — they lie flat).
    It re-renders at the new spot automatically when a piece is moved. */
@@ -3868,11 +3872,21 @@ select,
 .drag-ghost--pointer-anchor {
   transform: translate(-50%, -62%) scale(1.05);
 }
-.drag-ghost--base-anchor {
-  transform: translate(-50%, -86.43%);
+/* Per-surface ghost anchor so the dragged sprite sits on the exact contact
+   line it will occupy once placed — a wall item can never preview like a
+   ceiling item. Each value mirrors the placed .floor__deco--{surface} contact
+   point (ghost translateY ~= -90 x baseline). Keep in lock-step with placed. */
+.drag-ghost--floor {
+  transform: translate(-50%, -86.43%); /* placed floor baseline (feet) */
 }
-.drag-ghost--rug-anchor {
-  transform: translate(-50%, -73.61%);
+.drag-ghost--rug {
+  transform: translate(-50%, -73.61%); /* placed rug ellipse centre */
+}
+.drag-ghost--wall {
+  transform: translate(-50%, -45%); /* placed wall centre (translate 50%) */
+}
+.drag-ghost--ceiling {
+  transform: translate(-50%, 0%); /* placed ceiling top (hangs below the rail) */
 }
 .drag-ghost.is-no {
   filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.5)) grayscale(0.4);

@@ -179,6 +179,18 @@ function RegionGuide({ preview }: { preview: DecorationDragPreview }) {
   );
 }
 
+// The drag ghost is anchored to EXACTLY mirror the committed placement for the
+// targeted surface. Because the ghost is positioned by its top edge and a
+// placed decoration by its bottom edge, each surface's ghost transform is the
+// placed transform shifted by one element-height (-100%) — so the sprite
+// occupies the identical screen rectangle it will land on (no post-drop jump),
+// and a wall item can never preview like a ceiling item.
+function ghostAnchorClass(drag: DragState): string {
+  if (drag.kind !== 'decoration' || !drag.preview) return 'drag-ghost--pointer-anchor';
+  if (isRug(drag.id)) return 'drag-ghost--rug';
+  return `drag-ghost--${projectSurfaceType(REGION_KIND_SURFACE[drag.preview.regionKind])}`;
+}
+
 // Persistent per-employee state machines (kept across renders).
 const machines: Record<string, CritterStateMachine> = {};
 function machineFor(id: string): CritterStateMachine {
@@ -464,6 +476,7 @@ export function OfficeScene() {
     y: number,
     id: string,
     grabOffset = { x: 0, y: 0 },
+    preferKind?: PlacementRegionKind,
   ): { room: string | null; valid: boolean; preview?: DecorationDragPreview } {
     const room = roomUnderPoint(x, y);
     const def = DECORATIONS_BY_ID[id];
@@ -483,7 +496,7 @@ export function OfficeScene() {
       x: (anchorClientX - rect.left) / Math.max(1, rect.width),
       y: (rect.bottom - anchorClientY) / Math.max(1, rect.height),
     };
-    const check = pointerRegionPlacement(stateRef.current, id, room, rawPoint);
+    const check = pointerRegionPlacement(stateRef.current, id, room, rawPoint, preferKind);
     if (!check) return { room, valid: false };
     const preview: DecorationDragPreview = {
       roomId: room,
@@ -581,42 +594,32 @@ export function OfficeScene() {
     let lastPreview: DecorationDragPreview | undefined;
     let started = false;
     let cleaned = false;
+    // Coalesce pointer moves to one recompute per animation frame so dragging
+    // stays smooth (no redundant re-renders) and always renders the newest
+    // pointer position — never a stale/delayed one.
+    let rafId = 0;
+    let latest: { x: number; y: number } | null = null;
 
-    function move(ev: PointerEvent) {
-      if (ev.pointerId !== pointerId) return;
-      if (!started && Math.hypot(ev.clientX - start.x, ev.clientY - start.y) < DRAG_THRESHOLD)
-        return;
-      started = true;
+    function applyMove(clientX: number, clientY: number) {
       if (kind === 'employee') {
-        const target = employeeTarget(ev.clientX, ev.clientY, id);
-        setDrag({
-          kind,
-          id,
-          x: ev.clientX,
-          y: ev.clientY,
-          room,
-          overRoom: target.room,
-          valid: target.valid,
-        });
+        const target = employeeTarget(clientX, clientY, id);
+        setDrag({ kind, id, x: clientX, y: clientY, room, overRoom: target.room, valid: target.valid });
         return;
       }
-
-      const target = decorationTarget(ev.clientX, ev.clientY, id, grabOffset);
+      // Bias toward the support already being targeted (hysteresis) so the
+      // live preview does not flicker between overlapping compatible planes.
+      const target = decorationTarget(clientX, clientY, id, grabOffset, lastPreview?.regionKind);
       if (target.preview) lastPreview = target.preview;
       const preview = target.preview
         ? target.preview
         : lastPreview
-          ? {
-              ...lastPreview,
-              valid: false,
-              reasonKey: 'decorate.reject.moveInside',
-            }
+          ? { ...lastPreview, valid: false, reasonKey: 'decorate.reject.moveInside' }
           : undefined;
       setDrag({
         kind,
         id,
-        x: preview?.clientX ?? ev.clientX,
-        y: preview?.clientY ?? ev.clientY,
+        x: preview?.clientX ?? clientX,
+        y: preview?.clientY ?? clientY,
         room,
         overRoom: target.room,
         valid: Boolean(preview ? preview.valid && target.room === preview.roomId : target.valid),
@@ -624,9 +627,25 @@ export function OfficeScene() {
       });
     }
 
+    function flush() {
+      rafId = 0;
+      if (!latest) return;
+      applyMove(latest.x, latest.y);
+    }
+
+    function move(ev: PointerEvent) {
+      if (ev.pointerId !== pointerId) return;
+      if (!started && Math.hypot(ev.clientX - start.x, ev.clientY - start.y) < DRAG_THRESHOLD)
+        return;
+      started = true;
+      latest = { x: ev.clientX, y: ev.clientY };
+      if (!rafId) rafId = requestAnimationFrame(flush);
+    }
+
     function cleanup() {
       if (cleaned) return;
       cleaned = true;
+      if (rafId) cancelAnimationFrame(rafId);
       window.removeEventListener('pointermove', move);
       window.removeEventListener('pointerup', up);
       window.removeEventListener('pointercancel', cancelPointer);
@@ -666,7 +685,7 @@ export function OfficeScene() {
       if (ev.pointerId !== pointerId) return;
       const decorationDrop =
         kind === 'decoration'
-          ? decorationTarget(ev.clientX, ev.clientY, id, grabOffset)
+          ? decorationTarget(ev.clientX, ev.clientY, id, grabOffset, lastPreview?.regionKind)
           : undefined;
       cleanup();
       if (started) {
@@ -1208,15 +1227,7 @@ export function OfficeScene() {
       {drag && typeof document !== 'undefined'
         ? createPortal(
             <div
-              className={`drag-ghost ${drag.valid ? 'is-ok' : 'is-no'} ${
-                drag.kind === 'decoration'
-                  ? isRug(drag.id)
-                    ? 'drag-ghost--rug-anchor'
-                    : drag.preview
-                      ? 'drag-ghost--base-anchor'
-                      : 'drag-ghost--pointer-anchor'
-                  : 'drag-ghost--pointer-anchor'
-              }`}
+              className={`drag-ghost ${drag.valid ? 'is-ok' : 'is-no'} ${ghostAnchorClass(drag)}`}
               style={{ left: `${drag.x}px`, top: `${drag.y}px` }}
               data-region={drag.preview?.regionId}
               data-region-kind={drag.preview?.regionKind}
@@ -1236,7 +1247,13 @@ export function OfficeScene() {
                   <span className="drag-ghost__surface">
                     {drag.preview?.regionKind === 'rug-plane'
                       ? t('decorate.surface.rug')
-                      : t(`decorate.surface.${decorationSurface(drag.id)}`)}
+                      : t(
+                          `decorate.surface.${
+                            drag.preview
+                              ? projectSurfaceType(REGION_KIND_SURFACE[drag.preview.regionKind])
+                              : decorationSurface(drag.id)
+                          }`,
+                        )}
                   </span>
                 </>
               )}
