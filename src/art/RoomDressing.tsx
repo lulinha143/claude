@@ -569,7 +569,7 @@ export const RoomDressing = memo(function RoomDressing({ roomId }: { roomId: str
   const tablePlane = regionsForKinds(roomId, ['tabletop'])[0]?.plane;
   const shelfPlane = regionsForKinds(roomId, ['shelf'])[0]?.plane;
   return (
-    <div className={`room-dressing room-dressing--${builtIn}`} aria-hidden>
+    <div className={`room-dressing room-dressing--${builtIn} rd--${roomId}`} aria-hidden>
       <span className="room-dressing__wall" />
       <span className="room-dressing__floor" />
       <span className="room-dressing__baseboard" />
@@ -578,17 +578,13 @@ export const RoomDressing = memo(function RoomDressing({ roomId }: { roomId: str
       {shelfPlane ? <BuiltInShelf plane={shelfPlane} /> : null}
       {tablePlane ? <BuiltInTable plane={tablePlane} /> : null}
 
-      {/* framed window on the back wall */}
-      <svg className="room-dressing__window" viewBox="0 0 60 44" preserveAspectRatio="none">
-        <rect x="1" y="1" width="58" height="42" rx="2" fill="url(#winsky)" stroke="#8a6a44" strokeWidth="3" />
-        <path d="M30 2 v40 M2 22 h56" stroke="#8a6a44" strokeWidth="2" />
-        <defs>
-          <linearGradient id="winsky" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#bfe0ef" />
-            <stop offset="1" stopColor="#e9f2d9" />
-          </linearGradient>
-        </defs>
-      </svg>
+      {/* Back-wall opening. Its shape, glazing and sky are set per department in
+          CSS (arched daylight, corporate city view, night window, sealed lab
+          pane, barred basement slit, open rooftop sky — or hidden entirely for
+          windowless interiors like the vault). */}
+      <span className="room-dressing__window">
+        <span className="room-dressing__window-glow" />
+      </span>
 
       {scene.map((piece, index) => (
         <span
@@ -598,6 +594,10 @@ export const RoomDressing = memo(function RoomDressing({ roomId }: { roomId: str
           <SceneProp prop={piece.prop} />
         </span>
       ))}
+
+      {/* Per-department mood lighting wash (warm cafe, cool lab, gold vault
+          spotlight, dim night, bright rooftop day). */}
+      <span className="room-dressing__light" />
     </div>
   );
 });

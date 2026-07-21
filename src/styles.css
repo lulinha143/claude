@@ -702,14 +702,61 @@ h4 {
   background: color-mix(in srgb, var(--dept) 34%, #8a6a44);
   box-shadow: 0 3px 6px rgba(40, 26, 12, 0.22);
 }
+/* Back-wall window. Fully CSS-driven so each department can restyle the frame,
+   glazing, sky and mullions — or hide it entirely for windowless interiors.
+   Defaults below are the warm daylight of the founder's study. */
 .room-dressing__window {
   position: absolute;
-  top: 8%;
-  right: 12%;
-  width: calc(58px * var(--asset-scale));
-  height: calc(40px * var(--asset-scale));
-  opacity: 0.92;
-  filter: drop-shadow(0 2px 2px rgba(40, 26, 12, 0.18));
+  top: 9%;
+  right: 11%;
+  width: calc(60px * var(--asset-scale));
+  height: calc(42px * var(--asset-scale));
+  border: 3px solid var(--win-frame, #8a6a44);
+  border-radius: var(--win-radius, 3px);
+  background: var(--win-sky, linear-gradient(180deg, #bfe0ef 0%, #dcecc4 62%, #e9f2d9 100%));
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.22),
+    0 2px 3px rgba(40, 26, 12, 0.2);
+  overflow: hidden;
+  opacity: 0.96;
+}
+/* mullions: a vertical + horizontal bar make four panes by default */
+.room-dressing__window::before,
+.room-dressing__window::after {
+  content: '';
+  position: absolute;
+  background: var(--win-frame, #8a6a44);
+}
+.room-dressing__window::before {
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  transform: translateX(-1px);
+}
+.room-dressing__window::after {
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 2px;
+  transform: translateY(-1px);
+}
+/* distant scenery seen through the glass (sun, moon, clouds, skyline) */
+.room-dressing__window-glow {
+  position: absolute;
+  inset: 0;
+  background: var(--win-scene, none);
+  background-repeat: no-repeat;
+  opacity: var(--win-scene-opacity, 1);
+}
+/* Per-department mood lighting wash, layered over the whole scene. */
+.room-dressing__light {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: var(--room-light, none);
+  mix-blend-mode: var(--room-light-blend, normal);
+  opacity: var(--room-light-opacity, 1);
 }
 /* Built-in support surfaces (positioned from the room's real placement regions)
    so tabletop / shelf decorations visibly rest on furniture. Warm wood, tinted
@@ -8427,3 +8474,576 @@ button:disabled,
 [data-high-contrast='true'] .cable .cable__strand-shadow { stroke: #000; }
 [data-high-contrast='true'] .cable .cable__strand-body { stroke: #fff; }
 [data-high-contrast='true'] .cable__handle { border-color: #fff; box-shadow: 0 0 0 2px #000; }
+
+
+/* ==========================================================================
+   Per-department room identity
+   --------------------------------------------------------------------------
+   Every room gets its own wall material, flooring, window (or intentional
+   absence), and lighting mood so no two departments read as the same template.
+   Geometry (wall band / floor band / baseboard) is shared; everything else is
+   department-specific.
+   ========================================================================== */
+
+/* --- founder-desk: warm startup study, arched daylight window ------------- */
+.rd--founder-desk {
+  --win-radius: 22px 22px 3px 3px;
+  --win-frame: #9c7746;
+  --room-light: radial-gradient(120% 80% at 78% 0%, rgba(255, 226, 168, 0.28), transparent 60%);
+}
+.rd--founder-desk .room-dressing__window-glow {
+  background: radial-gradient(circle at 30% 30%, rgba(255, 244, 200, 0.9) 0 12%, transparent 40%);
+}
+
+/* --- sorting: industrial warehouse, corrugated metal + hazard stripe ------ */
+.rd--sorting .room-dressing__wall {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      #b4b9c0 0 7px,
+      #9aa0a8 7px 9px,
+      #c5cad0 9px 11px,
+      #a6acb4 11px 13px
+    ),
+    linear-gradient(180deg, #b9bec4, #9aa0a8);
+}
+.rd--sorting .room-dressing__wall::after {
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.12), transparent 30%);
+  opacity: 1;
+}
+.rd--sorting .room-dressing__floor {
+  background: linear-gradient(180deg, #a6a49c 0%, #918f88 100%);
+}
+.rd--sorting .room-dressing__floor::after {
+  inset: 0 0 auto 0;
+  height: 6px;
+  background-image: repeating-linear-gradient(-45deg, #e6b400 0 9px, #2b2b2b 9px 18px);
+  opacity: 0.92;
+}
+.rd--sorting .room-dressing__baseboard {
+  background: #6f747c;
+}
+.rd--sorting {
+  --win-frame: #7d838b;
+  --win-radius: 1px;
+  --win-sky: linear-gradient(180deg, #cfe0ea, #dfe7ea);
+  --room-light: linear-gradient(180deg, rgba(210, 224, 235, 0.16), transparent 45%);
+}
+/* extra industrial glazing bars */
+.rd--sorting .room-dressing__window-glow {
+  background:
+    repeating-linear-gradient(90deg, transparent 0 32%, rgba(125, 131, 139, 0.9) 32% 34%),
+    repeating-linear-gradient(180deg, transparent 0 46%, rgba(125, 131, 139, 0.9) 46% 48%);
+}
+
+/* --- morale: cozy cafe lounge, string lights + sunset window -------------- */
+.rd--morale .room-dressing__wall {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.05) 0 10px,
+      rgba(120, 70, 50, 0.06) 10px 20px
+    ),
+    linear-gradient(180deg, #d9a488 0%, #c98f74 68%, #b87d63 100%);
+}
+/* a garland of warm bulbs strung along the top of the wall */
+.rd--morale .room-dressing__wall::after {
+  inset: 6% 0 auto 0;
+  height: 10px;
+  opacity: 1;
+  background-image: radial-gradient(circle, #ffdf92 0 2.2px, transparent 3px);
+  background-size: 26px 10px;
+  background-position: 6px 0;
+  filter: drop-shadow(0 0 3px rgba(255, 200, 110, 0.8));
+}
+.rd--morale .room-dressing__floor {
+  background:
+    conic-gradient(#c79a63 90deg, #a97d47 90deg 180deg, #c79a63 180deg 270deg, #a97d47 270deg);
+  background-size: 22px 22px;
+}
+.rd--morale .room-dressing__floor::after {
+  opacity: 0.18;
+}
+.rd--morale .room-dressing__baseboard {
+  background: #8a5c3c;
+}
+.rd--morale {
+  --win-radius: 14px 14px 3px 3px;
+  --win-frame: #8a5c3c;
+  --win-sky: linear-gradient(180deg, #ffbf7a 0%, #ff9e6b 55%, #ffcaa0 100%);
+  --room-light: radial-gradient(120% 90% at 50% 100%, rgba(255, 176, 96, 0.26), transparent 62%);
+}
+.rd--morale .room-dressing__window-glow {
+  background: radial-gradient(circle at 70% 78%, rgba(255, 240, 190, 0.85) 0 14%, transparent 42%);
+}
+
+/* --- procurement: records office, pinstripe wall + carpet tiles + blinds -- */
+.rd--procurement .room-dressing__wall {
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.06) 0 1px, transparent 1px 9px),
+    linear-gradient(180deg, #93a08f 0%, #86937f 100%);
+}
+.rd--procurement .room-dressing__wall::after {
+  opacity: 0.25;
+}
+.rd--procurement .room-dressing__floor {
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.06) 0 1px, transparent 1px),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.06) 0 1px, transparent 1px),
+    linear-gradient(180deg, #9a968d, #8a877e);
+  background-size:
+    26px 26px,
+    26px 26px,
+    100% 100%;
+}
+.rd--procurement .room-dressing__floor::after {
+  opacity: 0;
+}
+.rd--procurement .room-dressing__baseboard {
+  background: #6a6f66;
+}
+.rd--procurement {
+  --win-frame: #6f746c;
+  --win-radius: 1px;
+  --win-sky: linear-gradient(180deg, #d3ddde, #c6cfcf);
+  --room-light: linear-gradient(180deg, rgba(220, 228, 226, 0.12), transparent 40%);
+}
+/* venetian blinds over the glass */
+.rd--procurement .room-dressing__window-glow {
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(240, 244, 244, 0.78) 0 3px,
+    rgba(150, 160, 162, 0.5) 3px 5px
+  );
+}
+
+/* --- construction: workshop, plywood wall + spattered concrete + taped pane */
+.rd--construction .room-dressing__wall {
+  background:
+    radial-gradient(circle at 20% 40%, rgba(90, 60, 30, 0.22) 0 3px, transparent 4px),
+    radial-gradient(circle at 68% 66%, rgba(90, 60, 30, 0.22) 0 4px, transparent 5px),
+    radial-gradient(circle at 85% 28%, rgba(90, 60, 30, 0.18) 0 3px, transparent 4px),
+    repeating-linear-gradient(180deg, rgba(120, 82, 40, 0.12) 0 2px, transparent 2px 22px),
+    linear-gradient(180deg, #d9b483 0%, #c89f6c 100%);
+}
+.rd--construction .room-dressing__wall::after {
+  opacity: 0.2;
+}
+.rd--construction .room-dressing__floor {
+  background:
+    radial-gradient(circle at 30% 40%, rgba(224, 122, 95, 0.35) 0 3px, transparent 4px),
+    radial-gradient(circle at 62% 62%, rgba(127, 176, 200, 0.32) 0 4px, transparent 5px),
+    radial-gradient(circle at 80% 34%, rgba(79, 157, 105, 0.3) 0 3px, transparent 4px),
+    linear-gradient(180deg, #b3aea3, #a09b90);
+}
+.rd--construction .room-dressing__floor::after {
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(58, 42, 24, 0.1) 0 1px,
+    transparent 1px 40%
+  );
+  opacity: 0.4;
+}
+.rd--construction .room-dressing__baseboard {
+  background: #7a6440;
+}
+.rd--construction {
+  --win-frame: #8a6a44;
+  --win-radius: 2px;
+  --win-sky: linear-gradient(180deg, #e6e2d4, #d8d2c2);
+  --room-light: radial-gradient(140% 100% at 60% 0%, rgba(216, 196, 150, 0.14), transparent 55%);
+}
+/* milky plastic sheeting with a diagonal tape cross instead of mullions */
+.rd--construction .room-dressing__window::before {
+  top: -20%;
+  bottom: -20%;
+  left: 50%;
+  width: 3px;
+  background: rgba(180, 170, 150, 0.85);
+  transform: rotate(45deg);
+}
+.rd--construction .room-dressing__window::after {
+  top: 50%;
+  left: -20%;
+  right: -20%;
+  height: 3px;
+  background: rgba(180, 170, 150, 0.85);
+  transform: rotate(45deg);
+}
+.rd--construction .room-dressing__window-glow {
+  background: rgba(236, 232, 220, 0.35);
+}
+
+/* --- lab: clean science, white tile wall + epoxy floor + sealed pane ------ */
+.rd--lab .room-dressing__wall {
+  background:
+    linear-gradient(90deg, rgba(120, 160, 175, 0.16) 0 1px, transparent 1px),
+    linear-gradient(180deg, rgba(120, 160, 175, 0.16) 0 1px, transparent 1px),
+    linear-gradient(180deg, #eef4f5 0%, #e2edef 100%);
+  background-size:
+    18px 18px,
+    18px 18px,
+    100% 100%;
+}
+.rd--lab .room-dressing__wall::after {
+  opacity: 0;
+}
+.rd--lab .room-dressing__floor {
+  background: linear-gradient(180deg, #d3e0e0 0%, #c2d2d2 100%);
+}
+.rd--lab .room-dressing__floor::after {
+  background-image: linear-gradient(100deg, rgba(255, 255, 255, 0.4) 0 12%, transparent 26%);
+  opacity: 0.6;
+}
+.rd--lab .room-dressing__baseboard {
+  background: #9fb4b8;
+}
+.rd--lab {
+  --win-frame: #aebfc4;
+  --win-radius: 2px;
+  --win-sky: linear-gradient(180deg, #d6ecf2, #cfe6ee);
+  --room-light: linear-gradient(180deg, rgba(190, 224, 235, 0.22), transparent 50%);
+  --room-light-blend: screen;
+}
+.rd--lab .room-dressing__window-glow {
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.5) 0 30%, transparent 55%);
+}
+
+/* --- marketing: bold creative studio, colour-block wall + glass curtain --- */
+.rd--marketing .room-dressing__wall {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.14) 0 40%, transparent 40%),
+    radial-gradient(circle at 82% 30%, #e6b400 0 6%, transparent 7%),
+    linear-gradient(180deg, #c07fd6 0%, #a25fc0 100%);
+}
+.rd--marketing .room-dressing__wall::after {
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.5) 0 2px, transparent 3px);
+  background-size: 30px 30px;
+  opacity: 0.35;
+}
+.rd--marketing .room-dressing__floor {
+  background: linear-gradient(180deg, #6a5570 0%, #4f4056 100%);
+}
+.rd--marketing .room-dressing__floor::after {
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0 10%, transparent 40%);
+  opacity: 0.7;
+}
+.rd--marketing .room-dressing__baseboard {
+  background: #7d5a8c;
+}
+.rd--marketing {
+  --win-frame: #d9cfe0;
+  --win-radius: 1px;
+  --win-sky: linear-gradient(180deg, #8fc8ef 0%, #bfe4f5 100%);
+  --room-light: radial-gradient(120% 90% at 50% 0%, rgba(255, 210, 250, 0.2), transparent 55%);
+}
+/* floor-to-ceiling glass curtain: many slim vertical mullions */
+.rd--marketing .room-dressing__window {
+  width: calc(78px * var(--asset-scale));
+  right: 8%;
+}
+.rd--marketing .room-dressing__window::before {
+  display: none;
+}
+.rd--marketing .room-dressing__window::after {
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: auto;
+  transform: none;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0 15px,
+    rgba(217, 207, 224, 0.9) 15px 17px
+  );
+}
+
+/* --- vault: windowless gold treasury, dark marble + spotlight ------------- */
+.rd--vault .room-dressing__wall {
+  background:
+    radial-gradient(circle at 84% 46%, rgba(244, 201, 90, 0.14) 0 12%, transparent 26%),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.22) 0 1px, transparent 1px 34px),
+    linear-gradient(180deg, #37343c 0%, #2a2830 100%);
+}
+.rd--vault .room-dressing__wall::after {
+  /* embossed vault-door ring on the back wall */
+  content: '';
+  inset: auto 8% 6% auto;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 3px solid rgba(244, 201, 90, 0.3);
+  box-shadow: inset 0 0 0 4px rgba(0, 0, 0, 0.3);
+  background: radial-gradient(circle, rgba(244, 201, 90, 0.12), transparent 70%);
+  opacity: 1;
+}
+.rd--vault .room-dressing__floor {
+  background:
+    repeating-linear-gradient(52deg, rgba(244, 201, 90, 0.12) 0 1px, transparent 1px 26px),
+    repeating-linear-gradient(-38deg, rgba(244, 201, 90, 0.08) 0 1px, transparent 1px 40px),
+    linear-gradient(180deg, #26242b 0%, #1c1a20 100%);
+}
+.rd--vault .room-dressing__floor::after {
+  background-image: linear-gradient(90deg, rgba(255, 240, 200, 0.14) 0 8%, transparent 26%);
+  opacity: 0.5;
+}
+.rd--vault .room-dressing__baseboard {
+  background: #4a4530;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.5);
+}
+.rd--vault .room-dressing__window {
+  display: none;
+}
+.rd--vault {
+  --room-light:
+    radial-gradient(80% 70% at 50% -8%, rgba(255, 216, 120, 0.34), transparent 55%),
+    radial-gradient(140% 120% at 50% 40%, transparent 40%, rgba(0, 0, 0, 0.45) 100%);
+}
+
+/* --- research: dim data centre, LED wall + raised-floor grid, no window --- */
+.rd--research .room-dressing__wall {
+  background:
+    radial-gradient(circle at 12% 30%, #6ad0a0 0 1.6px, transparent 2.4px),
+    radial-gradient(circle at 12% 30%, #e0a43b 0 1.6px, transparent 2.4px),
+    linear-gradient(180deg, #24272e 0%, #1c1f25 100%);
+  background-size:
+    40px 22px,
+    40px 22px,
+    100% 100%;
+  background-position:
+    0 8px,
+    14px 8px,
+    0 0;
+}
+.rd--research .room-dressing__wall::after {
+  background-image: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 40px);
+  opacity: 0.5;
+}
+.rd--research .room-dressing__floor {
+  background:
+    linear-gradient(90deg, rgba(120, 200, 210, 0.12) 0 1px, transparent 1px),
+    linear-gradient(180deg, rgba(120, 200, 210, 0.12) 0 1px, transparent 1px),
+    linear-gradient(180deg, #2c313a, #24282f);
+  background-size:
+    24px 24px,
+    24px 24px,
+    100% 100%;
+}
+.rd--research .room-dressing__floor::after {
+  opacity: 0;
+}
+.rd--research .room-dressing__baseboard {
+  background: #3a4552;
+}
+.rd--research .room-dressing__window {
+  display: none;
+}
+.rd--research {
+  --room-light: radial-gradient(120% 100% at 30% 20%, rgba(90, 180, 210, 0.2), transparent 55%);
+  --room-light-blend: screen;
+}
+
+/* --- meeting: corporate boardroom, walnut panels + carpet + city window --- */
+.rd--meeting .room-dressing__wall {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.14) 0 1px,
+      transparent 1px 2px,
+      rgba(255, 255, 255, 0.05) 24px 25px,
+      transparent 25px 40px
+    ),
+    linear-gradient(180deg, #6a5236 0%, #5a4530 100%);
+}
+.rd--meeting .room-dressing__wall::after {
+  opacity: 0.3;
+}
+.rd--meeting .room-dressing__floor {
+  background:
+    radial-gradient(circle, rgba(0, 0, 0, 0.05) 0 1px, transparent 2px),
+    linear-gradient(180deg, #8f8a7e, #7d786d);
+  background-size:
+    5px 5px,
+    100% 100%;
+}
+.rd--meeting .room-dressing__floor::after {
+  opacity: 0;
+}
+.rd--meeting .room-dressing__baseboard {
+  background: #4a3a26;
+}
+.rd--meeting {
+  --win-frame: #4a3a26;
+  --win-radius: 2px;
+  --win-sky: linear-gradient(180deg, #9fbdd6 0%, #c4d8e6 100%);
+  --room-light: linear-gradient(180deg, rgba(255, 244, 214, 0.12), transparent 40%);
+}
+/* a real city skyline: distinct building blocks standing on a horizon band,
+   clear daytime sky above (so it never reads as office blinds) */
+.rd--meeting .room-dressing__window-glow {
+  background-repeat: no-repeat;
+  background-image:
+    linear-gradient(#5a6e84, #5a6e84),
+    linear-gradient(#48596c, #48596c),
+    linear-gradient(#647a90, #647a90),
+    linear-gradient(#3e4e60, #3e4e60),
+    linear-gradient(#566a7e, #566a7e),
+    linear-gradient(180deg, transparent 58%, rgba(70, 88, 108, 0.5) 58%);
+  background-position:
+    6% 100%,
+    24% 100%,
+    41% 100%,
+    60% 100%,
+    82% 100%,
+    0 0;
+  background-size:
+    13% 46%,
+    11% 66%,
+    15% 38%,
+    12% 56%,
+    16% 30%,
+    100% 100%;
+}
+/* lit windows dotted across a couple of the towers */
+.rd--meeting .room-dressing__window::after {
+  top: 62%;
+}
+
+/* --- nap: dim quiet room, deep indigo wall + soft carpet + night window --- */
+.rd--nap .room-dressing__wall {
+  background:
+    radial-gradient(120% 90% at 78% 12%, rgba(200, 208, 245, 0.16), transparent 45%),
+    linear-gradient(180deg, #3d3b63 0%, #302e50 100%);
+}
+.rd--nap .room-dressing__wall::after {
+  opacity: 0.12;
+}
+.rd--nap .room-dressing__floor {
+  background: linear-gradient(180deg, #423f5c 0%, #35334c 100%);
+}
+.rd--nap .room-dressing__floor::after {
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0 1px, transparent 2px);
+  background-size: 4px 4px;
+  opacity: 0.5;
+}
+.rd--nap .room-dressing__baseboard {
+  background: #26243c;
+}
+.rd--nap {
+  --win-radius: 50% 50% 4px 4px;
+  --win-frame: #2a2842;
+  --win-sky: linear-gradient(180deg, #1b1d3a 0%, #2b2d52 100%);
+  --room-light:
+    radial-gradient(90% 70% at 78% 14%, rgba(180, 190, 240, 0.16), transparent 50%),
+    radial-gradient(140% 120% at 50% 60%, transparent 45%, rgba(10, 8, 24, 0.42) 100%);
+}
+/* moon + a scatter of stars */
+.rd--nap .room-dressing__window-glow {
+  background:
+    radial-gradient(circle at 66% 32%, #f2f0d8 0 16%, rgba(242, 240, 216, 0.3) 20%, transparent 34%),
+    radial-gradient(circle at 28% 30%, #fff 0 1px, transparent 2px),
+    radial-gradient(circle at 40% 62%, #fff 0 1px, transparent 2px),
+    radial-gradient(circle at 78% 72%, #fff 0 1px, transparent 2px);
+}
+
+/* --- basement: raw utility, concrete + pipes + barred hopper window ------- */
+.rd--basement .room-dressing__wall {
+  background:
+    radial-gradient(circle at 24% 66%, rgba(0, 0, 0, 0.16) 0 8px, transparent 14px),
+    radial-gradient(circle at 72% 40%, rgba(0, 0, 0, 0.12) 0 10px, transparent 16px),
+    linear-gradient(180deg, #7a7f86 0%, #6a6f76 100%);
+}
+/* exposed pipe running along the wall */
+.rd--basement .room-dressing__wall::after {
+  inset: 20% 0 auto 0;
+  height: 7px;
+  opacity: 1;
+  background: linear-gradient(180deg, #9aa0a6 0%, #6f747a 60%, #565b60 100%);
+  box-shadow: 0 6px 5px -3px rgba(0, 0, 0, 0.4);
+}
+.rd--basement .room-dressing__floor {
+  background:
+    radial-gradient(circle at 40% 30%, rgba(0, 0, 0, 0.14) 0 1px, transparent 22px),
+    linear-gradient(180deg, #86847e, #737169);
+}
+.rd--basement .room-dressing__floor::after {
+  background-image:
+    linear-gradient(120deg, transparent 0 48%, rgba(0, 0, 0, 0.18) 48% 49%, transparent 50%),
+    linear-gradient(60deg, transparent 0 62%, rgba(0, 0, 0, 0.14) 62% 63%, transparent 64%);
+  opacity: 0.8;
+}
+.rd--basement .room-dressing__baseboard {
+  background: #4f545a;
+}
+.rd--basement {
+  --win-frame: #565b60;
+  --win-radius: 1px;
+  --win-sky: linear-gradient(180deg, #8a939a, #6f767c);
+  --room-light:
+    radial-gradient(60% 55% at 24% 8%, rgba(255, 226, 150, 0.2), transparent 55%),
+    radial-gradient(150% 130% at 50% 50%, transparent 42%, rgba(0, 0, 0, 0.4) 100%);
+}
+/* small high hopper window with vertical bars */
+.rd--basement .room-dressing__window {
+  width: calc(40px * var(--asset-scale));
+  height: calc(24px * var(--asset-scale));
+  top: 5%;
+}
+.rd--basement .room-dressing__window::before {
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: auto;
+  transform: none;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0 7px,
+    rgba(70, 74, 78, 0.95) 7px 9px
+  );
+}
+.rd--basement .room-dressing__window::after {
+  display: none;
+}
+
+/* --- rooftop: open-air terrace, open sky + decking, railing, no window ---- */
+.rd--rooftop .room-dressing__wall {
+  background: linear-gradient(180deg, #7fb8e6 0%, #a9d4ef 52%, #e6d6a4 100%);
+}
+/* drifting clouds */
+.rd--rooftop .room-dressing__wall::after {
+  opacity: 1;
+  background-image:
+    radial-gradient(circle at 22% 34%, rgba(255, 255, 255, 0.9) 0 10px, transparent 16px),
+    radial-gradient(circle at 34% 38%, rgba(255, 255, 255, 0.9) 0 13px, transparent 20px),
+    radial-gradient(circle at 72% 24%, rgba(255, 255, 255, 0.85) 0 9px, transparent 15px);
+}
+.rd--rooftop .room-dressing__floor {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      #c79a63 0 15px,
+      #b3843f 15px 16px,
+      #c2925a 16px 30px,
+      #b3843f 30px 31px
+    ),
+    linear-gradient(180deg, #c79a63, #ad7f45);
+}
+.rd--rooftop .room-dressing__floor::after {
+  opacity: 0;
+}
+/* baseboard becomes a terrace railing */
+.rd--rooftop .room-dressing__baseboard {
+  height: 12px;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 22px, rgba(120, 128, 136, 0.9) 22px 25px),
+    linear-gradient(180deg, transparent 0 3px, rgba(120, 128, 136, 0.95) 3px 5px, transparent 5px);
+  box-shadow: none;
+}
+.rd--rooftop .room-dressing__window {
+  display: none;
+}
+.rd--rooftop {
+  --room-light: radial-gradient(90% 80% at 84% 6%, rgba(255, 244, 200, 0.3), transparent 55%);
+}
