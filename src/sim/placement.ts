@@ -16,6 +16,7 @@ import {
 } from './placementRegions';
 import { regionArea } from './placementRegions';
 import { DECORATIONS_BY_ID } from '../content/decorations';
+import { placementSpec } from '../content/placementSpecs';
 import { decorationSurface, isRug } from './surfaces';
 import { placedDecorationsInRoom, decorationInstance } from './decorations';
 import { employeesInRoom } from './rooms';
@@ -29,34 +30,13 @@ export interface PlacementCheck {
   reasonKey?: string;
 }
 
-// Decorations that read as physically large and should demand real space.
-const LARGE_DECOS = new Set([
-  'safe',
-  'aquarium',
-  'nut-statue',
-  'snack-bar',
-  'beanbag-chairs',
-  'hammock',
-  'wooden-arch',
-  'billboard',
-  'blueprint-wall',
-  'window-view',
-  'projector',
-  'chandelier',
-  'hologram',
-  'star-ceiling',
-  'rooftop-garden-bed',
-  'trophy-shelf',
-]);
-
-/** Normalised bounding-box footprint (width, height) for a decoration. */
+/**
+ * Normalised bounding-box footprint (width, height) for a decoration, taken
+ * from its explicit per-item placement spec (never from filename regex).
+ */
 export function footprint(id: string): { w: number; h: number } {
-  if (isRug(id)) return { w: 0.42, h: 0.06 }; // wide + flat, lies under everything
-  const surface = decorationSurface(id);
-  const large = LARGE_DECOS.has(id);
-  if (surface === 'ceiling') return large ? { w: 0.4, h: 0.14 } : { w: 0.16, h: 0.1 };
-  if (surface === 'wall') return large ? { w: 0.26, h: 0.2 } : { w: 0.14, h: 0.14 };
-  return large ? { w: 0.22, h: 0.24 } : { w: 0.12, h: 0.16 };
+  const { footprint: box } = placementSpec(id);
+  return { w: box.width, h: box.height };
 }
 
 interface Box {
