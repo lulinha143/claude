@@ -8,9 +8,17 @@ import { DECORATIONS_BY_ID } from './decorations';
 // classified by filename regex or a coarse "large item" set. This is the single
 // source of truth for a decoration's physical footprint, where it visually
 // contacts its support (baseline), how it anchors, how big it renders, and the
-// clearances/permissions the placement system must respect. Preview, pointer
-// hit-testing, rendering, collision and persistence all consult this so a piece
-// behaves and looks identical everywhere.
+// clearances/permissions the placement system respects.
+//
+// What consumes each field today:
+//   footprint  → preview geometry, pointer hit-testing, collision (placement.ts)
+//   scale      → sprite render size (DecorationProp → DecoArt), placed + ghost
+//   mirrorable → deterministic horizontal flip of the sprite for variety
+//   anchor     → surface projection / contact-line CSS class (per surface)
+//   baseline / minClearance / allowSceneryOverlap → authored intent consulted
+//     where the surface model already encodes it (per-surface contact line,
+//     region inset, rug scenery pass-through); kept explicit per item so the
+//     placement system can tighten to them without re-deriving from filenames.
 //
 // Coordinate conventions (normalized to the room stage):
 //   footprint.width/height  — fraction of room width / stage height the upright

@@ -1,6 +1,15 @@
 import { useState, type PointerEvent as ReactPointerEvent } from 'react';
 import type { SfxName } from '../audio/audio';
 import { DecoArt } from './decoArt';
+import { placementSpec } from '../content/placementSpecs';
+
+// Stable per-id hash so a "mirrorable" prop always flips the same way (no
+// flicker between renders / on reload) while still varying across the catalogue.
+function idHash(id: string): number {
+  let h = 0;
+  for (let i = 0; i < id.length; i += 1) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+  return h;
+}
 
 // Renders an owned decoration as a large, charming, interactive furniture piece
 // in the office. Clicking gives a reaction (a lamp/screen toggling, a wobble,
@@ -81,6 +90,8 @@ export function DecorationProp({
   onPointerDown?: (e: ReactPointerEvent) => void;
 }) {
   const kind = decorKind(id);
+  const spec = placementSpec(id);
+  const mirror = spec.mirrorable && idHash(id) % 2 === 1;
   const [wiggle, setWiggle] = useState(false);
   const [on, setOn] = useState(true); // lit/active state for toggleable kinds
   const [variant, setVariant] = useState(0); // poster "slogan" / emblem
@@ -117,7 +128,15 @@ export function DecorationProp({
       data-on={TOGGLEABLE.includes(kind) ? String(on) : undefined}
       data-variant={kind === 'poster' ? variant : undefined}
     >
-      <DecoArt id={id} on={on} variant={variant} accent={accent} reducedMotion={reducedMotion} />
+      <DecoArt
+        id={id}
+        on={on}
+        variant={variant}
+        accent={accent}
+        reducedMotion={reducedMotion}
+        scale={spec.scale}
+        mirror={mirror}
+      />
     </button>
   );
 }

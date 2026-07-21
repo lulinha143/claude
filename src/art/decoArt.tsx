@@ -642,21 +642,28 @@ export function DecoArt({
   variant = 0,
   accent,
   reducedMotion,
+  scale = 1,
+  mirror = false,
 }: {
   id: string;
   on: boolean;
   variant?: number;
   accent: string;
   reducedMotion: boolean;
+  /** Per-item render multiplier from the placement spec (1 = catalogue base). */
+  scale?: number;
+  /** Horizontally flip the sprite (deterministic per item) for variety. */
+  mirror?: boolean;
 }) {
   const sp = spriteFor(id, on, variant, accent);
   const shadowR = sp.shadowR ?? 8;
   return (
     <svg
-      width={52}
-      height={60}
+      width={52 * scale}
+      height={60 * scale}
       viewBox="0 0 24 28"
       shapeRendering="crispEdges"
+      style={mirror ? { transform: 'scaleX(-1)' } : undefined}
       aria-hidden
     >
       {shadowR > 0 ? <ellipse cx={12} cy={27} rx={shadowR} ry={1.4} fill={C.shadow} /> : null}
