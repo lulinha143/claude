@@ -323,6 +323,17 @@ export function cableNodeCount(solved: number): number {
   return Math.min(7, 5 + Math.max(0, solved));
 }
 
+/**
+ * The conflict-free perimeter slots for an authored level, in node-id order
+ * (i.e. node `id` is solved when placed at `slots[id]`), before any seed
+ * mirroring. Exposed for end-to-end tests that need to drive a board to its
+ * solution without knowing the runtime seed.
+ */
+export function cableLevelSlots(levelId: string): readonly { x: number; y: number }[] {
+  const level = AUTHORED_CABLE_LEVELS.find((entry) => entry.id === levelId);
+  return level ? level.slots : [];
+}
+
 /** Reward for clearing a board of the given size; bigger tangles are worth more. */
 export function cableSolveScore(nodeCount: number): number {
   return 3 + Math.max(0, nodeCount - 4);

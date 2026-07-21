@@ -17,9 +17,17 @@ import {
   type CablePuzzle,
 } from '../../sim/minigames';
 import { useStore } from '../../state/store';
+import { usePausableTimeout } from '../usePausableTimeout';
 import type { SubGameProps } from './MicroGame';
 
 type Pos = { x: number; y: number };
+
+type Stage = 'solving' | 'cleared';
+
+// How long the celebratory "all clear" overlay lingers before the next desk
+// loads. Reduced-motion players get a much shorter, calmer beat.
+const TRANSITION_MS = 1450;
+const TRANSITION_MS_REDUCED = 400;
 
 interface CableStyle {
   color: string;
@@ -63,13 +71,16 @@ export function CableUntangle({ seed, reducedMotion, paused, onScore, onCombo, o
   const [puzzle, setPuzzle] = useState<CablePuzzle>(() => cablePuzzle(`${seed}-0`, cableNodeCount(0)));
   const [pos, setPos] = useState<Record<number, Pos>>(() => cablePositions(puzzle.points));
   const [active, setActive] = useState<number | null>(null);
-  const [justSolved, setJustSolved] = useState(false);
+  // A single explicit round phase drives the whole solve → celebrate → next
+  // lifecycle. `settled` mirrors it synchronously so a burst of pointer/render
+  // events can never award the same board twice before React commits.
+  const [stage, setStage] = useState<Stage>('solving');
+  const settled = useRef(false);
   const scoreRef = useRef(0);
   const boardRef = useRef<HTMLDivElement | null>(null);
   const dragRef = useRef<ActiveDrag | null>(null);
-  const advancing = useRef(false);
-  const solvedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const rewardTimer = useRef<number | null>(null);
+  const cleared = stage === 'cleared';
   void onEnd;
 
   const tangles = useMemo(() => countCableConflicts(puzzle.edges, pos), [puzzle.edges, pos]);
@@ -160,7 +171,6 @@ export function CableUntangle({ seed, reducedMotion, paused, onScore, onCombo, o
 
   useEffect(
     () => () => {
-      if (solvedTimer.current) clearTimeout(solvedTimer.current);
       if (rewardTimer.current) clearTimeout(rewardTimer.current);
     },
     [],
@@ -169,55 +179,57 @@ export function CableUntangle({ seed, reducedMotion, paused, onScore, onCombo, o
   useEffect(() => {
     if (!paused) return;
     cancelActiveDrag();
-    if (rewardTimer.current) window.clearTimeout(rewardTimer.current);
-    rewardTimer.current = null;
   }, [cancelActiveDrag, paused]);
 
   const loadNext = useCallback(
     (nextSolved: number) => {
       const next = cablePuzzle(`${seed}-${nextSolved}`, cableNodeCount(nextSolved));
+      settled.current = false;
       setPuzzle(next);
       setPos(cablePositions(next.points));
       setActive(null);
-      advancing.current = false;
-      setJustSolved(false);
+      setStage('solving');
     },
     [seed],
   );
 
+  // Detect a solved board. `settled` guards against a double award before the
+  // stage state commits; the stage itself then blocks any further detection
+  // until the next desk loads.
   useEffect(() => {
-    if (paused || advancing.current || active !== null || tangles !== 0) return;
-    advancing.current = true;
+    if (paused || settled.current || stage !== 'solving' || active !== null || tangles !== 0) return;
+    settled.current = true;
     scoreRef.current += cableSolveScore(puzzle.points.length);
     onScore(scoreRef.current);
     onCombo(Math.min(3, 1 + Math.floor((solvedCount + 1) / 2)));
-    const next = solvedCount + 1;
-    setSolvedCount(next);
-    setJustSolved(true);
+    setSolvedCount((count) => count + 1);
+    setStage('cleared');
     audio.play('cableSnap');
-    rewardTimer.current = window.setTimeout(() => {
-      rewardTimer.current = null;
-      audio.play('reward');
-    }, reducedMotion ? 0 : 130);
-  }, [active, audio, onCombo, onScore, paused, puzzle.points.length, reducedMotion, solvedCount, tangles]);
-
-  useEffect(() => {
-    if (!justSolved || paused) return;
-    solvedTimer.current = setTimeout(
-      () => loadNext(solvedCount),
-      reducedMotion ? 400 : 1450,
+    if (rewardTimer.current) clearTimeout(rewardTimer.current);
+    rewardTimer.current = window.setTimeout(
+      () => {
+        rewardTimer.current = null;
+        audio.play('reward');
+      },
+      reducedMotion ? 0 : 130,
     );
-    return () => {
-      if (solvedTimer.current) clearTimeout(solvedTimer.current);
-      solvedTimer.current = null;
-    };
-  }, [justSolved, loadNext, paused, reducedMotion, solvedCount]);
+  }, [active, audio, onCombo, onScore, paused, puzzle.points.length, reducedMotion, solvedCount, stage, tangles]);
+
+  // Advance to the next desk once the celebration has played. The countdown is
+  // pausable and self-healing: pausing (or the window blurring) freezes it, and
+  // any amount of pause/resume churn still resolves to loading the next board,
+  // so the game can never get permanently stuck between rounds.
+  usePausableTimeout(
+    cleared,
+    paused,
+    reducedMotion ? TRANSITION_MS_REDUCED : TRANSITION_MS,
+    () => loadNext(solvedCount),
+  );
 
   function beginDrag(event: ReactPointerEvent<HTMLButtonElement>, id: number) {
     if (
       paused ||
-      advancing.current ||
-      justSolved ||
+      settled.current ||
       dragRef.current ||
       !event.isPrimary ||
       (event.pointerType === 'mouse' && event.button !== 0)
@@ -248,7 +260,7 @@ export function CableUntangle({ seed, reducedMotion, paused, onScore, onCombo, o
   }
 
   function onKeyNode(event: ReactKeyboardEvent<HTMLButtonElement>, id: number) {
-    if (paused || advancing.current || justSolved) return;
+    if (paused || settled.current) return;
     const deltas: Record<string, Pos> = {
       ArrowUp: { x: 0, y: -NUDGE },
       ArrowDown: { x: 0, y: NUDGE },
@@ -296,8 +308,11 @@ export function CableUntangle({ seed, reducedMotion, paused, onScore, onCombo, o
 
       <div
         ref={boardRef}
-        className={`cable__board cable__board--${puzzle.difficulty} ${justSolved ? 'is-solved' : ''}`}
+        className={`cable__board cable__board--${puzzle.difficulty} ${cleared ? 'is-solved' : ''}`}
         role="group"
+        data-stage={stage}
+        data-round={solvedCount}
+        data-level={puzzle.levelId}
         aria-label={t('microgame.cableUntangle.name')}
         aria-describedby="cable-instructions"
       >
@@ -363,7 +378,7 @@ export function CableUntangle({ seed, reducedMotion, paused, onScore, onCombo, o
           );
         })}
 
-        {justSolved ? (
+        {cleared ? (
           <div className="cable__cleared" role="status">
             <div className="cable__confetti" aria-hidden="true">
               {Array.from({ length: 10 }, (_, index) => <i key={index} style={{ ['--i' as string]: index }} />)}
@@ -380,7 +395,7 @@ export function CableUntangle({ seed, reducedMotion, paused, onScore, onCombo, o
       </div>
 
       <p id="cable-instructions" className="cable__hint">
-        {justSolved ? t('microgame.cableUntangle.doneHint') : t('microgame.cableUntangle.hint')}
+        {cleared ? t('microgame.cableUntangle.doneHint') : t('microgame.cableUntangle.hint')}
       </p>
     </div>
   );
