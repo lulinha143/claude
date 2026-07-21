@@ -307,7 +307,7 @@ function createRecoveryWindow(): BrowserWindow {
     frame: true,
     transparent: false,
     backgroundColor: '#2a2118',
-    title: 'Working My Nuts Off! — startup error',
+    title: 'ZooWorkers — startup error',
     webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true },
   });
   win.on('closed', () => {
@@ -347,7 +347,7 @@ function showStartupError(description: string, failedPath: string): void {
     errorPageShown = true;
     const logPath = logFile();
     const html = `<!doctype html><html><head><meta charset="utf-8">
-<title>Working My Nuts Off! — startup error</title></head>
+<title>ZooWorkers — startup error</title></head>
 <body style="margin:0;font-family:Segoe UI,system-ui,sans-serif;background:#2a2118;color:#f4ecdd;padding:28px;line-height:1.5">
 <h1 style="margin:0 0 12px;font-size:20px">The game couldn't open its window</h1>
 <p style="margin:0 0 16px;opacity:.85">The app started, but the game screen failed to load. Please share the details below so it can be fixed. This window stays open — you can close it any time.</p>
@@ -680,7 +680,7 @@ function createTray(): void {
   }
   try {
     tray = new Tray(img);
-    tray.setToolTip('Working My Nuts Off!');
+    tray.setToolTip('ZooWorkers');
     tray.setContextMenu(buildTrayMenu());
     tray.on('click', () => toggleVisibility());
     log('Tray created.');

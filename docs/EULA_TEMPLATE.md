@@ -8,7 +8,7 @@
 ## 1. License
 
 `[COMPANY NAME]` grants you a personal, non-exclusive, non-transferable license
-to install and play _Working My Nuts Off!_ (the "Game") for your own
+to install and play _ZooWorkers_ (the "Game") for your own
 entertainment, subject to this agreement and the terms of the platform through
 which you obtained the Game.
 

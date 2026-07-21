@@ -25,7 +25,7 @@ Words explained once:
 
 ## Part 1 — Prepare before you make the store page
 Have these ready (write them in a document):
-- Final game name: **Working My Nuts Off!**
+- Final game name: **ZooWorkers**
 - Developer/Publisher name (a person or company you legally are).
 - Confirmation you own all assets. This game's art/audio are original and
   generated in code (see `assets/audio/LICENSES.md`, `docs/ASSET_REPLACEMENT.md`).
@@ -33,7 +33,7 @@ Have these ready (write them in a document):
 - System requirements (see the suggested list in `docs/STEAM.md`).
 - Supported languages (English + Brazilian Portuguese are complete; others are
   drafts — say so honestly).
-- Save location (Windows: `%APPDATA%\working-my-nuts-off\`).
+- Save location (Windows: `%APPDATA%\zooworkers\`).
 - Version number (start at `1.0.0`).
 - A support email.
 - Store text: short description (≤ ~300 chars) + long description.
@@ -67,7 +67,7 @@ Have these ready (write them in a document):
    - **Build** = one upload of those files.
    - **Branch** = `default` (public) or a private one like `beta` for testing.
    - **Launch option** = tells Steam which file to run:
-     `Working My Nuts Off!.exe`.
+     `ZooWorkers.exe`.
 
 ---
 
@@ -115,7 +115,7 @@ Steam is absent. When you're ready to wire real Steam features:
 - **Achievements / stats:** map the internal ids to Steamworks achievement ids
   (`STEAM_ACHIEVEMENT_IDS`) and call them from the Electron main process via a
   Steamworks binding, exposed over the existing IPC bridge.
-- **Cloud saves:** point Steam Auto-Cloud at `%APPDATA%\working-my-nuts-off\`.
+- **Cloud saves:** point Steam Auto-Cloud at `%APPDATA%\zooworkers\`.
 - **Steam Deck / language detection / overlay / Rich Presence:** optional; keep
   graceful fallbacks so launching outside Steam never crashes.
 
@@ -139,7 +139,7 @@ Steam is absent. When you're ready to wire real Steam features:
 5. In Steamworks → **SteamPipe → Builds**, find the new build. Assign it to a
    branch (start with a private `beta`), not `default`.
 6. In **Installation → General**, set the **launch option** executable to
-   `Working My Nuts Off!.exe`.
+   `ZooWorkers.exe`.
 7. Never put your password in a script or in git. Type it when prompted, or use
    Steam Guard-backed cached login.
 

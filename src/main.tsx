@@ -17,9 +17,13 @@ import '@fontsource/nunito/latin-800.css';
 import { initI18n } from './i18n';
 import { App } from './App';
 import { getGameState } from './state/store';
+import { GAME_TITLE } from './brand';
 import './styles.css';
 
 async function bootstrap() {
+  // Keep the browser/Electron window title in sync with the central brand.
+  if (typeof document !== 'undefined') document.title = GAME_TITLE;
+
   // Prefer the language saved in the game state; i18next detector handles the
   // rest (localStorage → navigator → 'en').
   const saved = getGameState().settings.language;

@@ -8,6 +8,7 @@ import { Icon } from '../art/UiIcon';
 import { unlockedRooms } from '../sim/rooms';
 import { EMPLOYEES_BY_ID } from '../content/employees';
 import { officePhotoToPng } from './officePhoto';
+import { GAME_TITLE } from '../brand';
 
 // A clean, framed "photo mode": the office with all chrome hidden, a caption
 // bar, and a one-click branded PNG export. Robust in browser + Electron.
@@ -25,7 +26,7 @@ export function PhotoMode() {
       companyName: state.company.name,
       tagline: t('photo.tagline'),
       dateLabel: fmt.date(Date.now()),
-      brand: 'Working My Nuts Off!',
+      brand: GAME_TITLE,
       critterColors,
       stats: [
         { label: t('resource.nuts'), value: fmt.num(state.resources.nuts) },

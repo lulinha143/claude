@@ -1,7 +1,7 @@
 {
   "_meta": { "name": "Italiano", "complete": false, "note": "Draft / machine-assisted. Falls back to English for missing keys." },
   "common": { "ok": "OK", "cancel": "Annulla", "close": "Chiudi", "buy": "Compra", "save": "Salva", "back": "Indietro" },
-  "app": { "title": "Lavoro Come un Matto!", "subtitle": "Un piccolo gioco idle da desktop", "tagline": "Uno scoiattolo. Una startup. Troppe noci." },
+  "app": { "title": "ZooWorkers", "subtitle": "Un accogliente gioco idle d'ufficio animale", "tagline": "Un intero ufficio di animali adorabili manda avanti una piccolissima azienda." },
   "nav": { "office": "Ufficio", "shop": "Potenziamenti", "employees": "Squadra", "company": "Azienda", "collections": "Collezioni", "achievements": "Obiettivi", "focus": "Concentrazione", "decorate": "Arreda", "settings": "Impostazioni", "stats": "Statistiche", "prestige": "Prestigio" },
   "resource": { "nuts": "Noci", "goldenNuts": "Noci Dorate", "morale": "Morale", "reputation": "Reputazione" }
 }

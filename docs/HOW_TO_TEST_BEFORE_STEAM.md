@@ -49,7 +49,7 @@ The development server is not the shipped game. Test the packaged build.
    ```
    npm run build:windows
    ```
-2. Open `release\win-unpacked\` and double-click **`Working My Nuts Off!.exe`**.
+2. Open `release\win-unpacked\` and double-click **`ZooWorkers.exe`**.
    The dev server must **not** be running — the app must work on its own.
 3. Work through the **QA checklist** in
    [`PACKAGED_BUILD_QA.md`](PACKAGED_BUILD_QA.md). At minimum:
@@ -81,7 +81,7 @@ not. This proves the app is self-contained.
 4. If something's missing, it's usually an asset path problem — rebuild and
    re-copy the **entire** folder (not just the exe).
 5. To collect logs from a tester: ask them for the folder
-   `C:\Users\<Name>\AppData\Roaming\working-my-nuts-off\logs\` (if present) and
+   `C:\Users\<Name>\AppData\Roaming\zooworkers\logs\` (if present) and
    any red text they saw.
 
 ---

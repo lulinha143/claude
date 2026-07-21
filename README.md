@@ -1,6 +1,6 @@
-# Working My Nuts Off!
+# ZooWorkers
 
-**A Tiny Desktop Idle Game** — _One squirrel. One startup. Way too many nuts._
+**A Cozy Animal Office Idle Game** — _A whole office of adorable animals runs one very small company._
 
 A cozy, humorous desktop idle game that lives in a small window in the corner of
 your screen. Inside a tree-trunk office, **Pip** the squirrel and a growing team

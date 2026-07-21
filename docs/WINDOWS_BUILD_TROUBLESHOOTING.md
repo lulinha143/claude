@@ -26,7 +26,7 @@ the Electron bundle) compiles successfully before this step.
 electron-builder creates the unpacked app **before** the failing step. Look in:
 
 ```
-release\win-unpacked\Working My Nuts Off!.exe
+release\win-unpacked\ZooWorkers.exe
 ```
 
 Double-click it — it runs without any installer. You can copy the whole
@@ -40,7 +40,7 @@ Build only the app folder (skips the installer/signing tooling entirely):
 npm run build:windows:folder
 ```
 
-Result: `release\win-unpacked\Working My Nuts Off!.exe` (a portable folder build).
+Result: `release\win-unpacked\ZooWorkers.exe` (a portable folder build).
 
 ### If you want the full installer (`Setup .exe`)
 
@@ -73,9 +73,9 @@ After a successful build, everything is in the `release\` folder:
 
 | Command | Output |
 | --- | --- |
-| `npm run build:windows:folder` | `release\win-unpacked\Working My Nuts Off!.exe` (portable folder) |
-| `npm run build:portable` | `release\Working My Nuts Off!-<version>-portable.exe` (single file) |
-| `npm run build:windows` | `release\Working My Nuts Off!-<version>-x64.exe` (NSIS installer) |
+| `npm run build:windows:folder` | `release\win-unpacked\ZooWorkers.exe` (portable folder) |
+| `npm run build:portable` | `release\ZooWorkers-<version>-portable.exe` (single file) |
+| `npm run build:windows` | `release\ZooWorkers-<version>-x64.exe` (NSIS installer) |
 
 ## Note about the "default Electron icon is used" warning
 

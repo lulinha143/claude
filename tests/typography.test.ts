@@ -63,7 +63,7 @@ describe('typography canvas parity', () => {
       dateLabel: '17 de julho',
       stats: [{ label: 'Produção', value: '125.430' }],
       critterColors: [],
-      brand: 'Working My Nuts Off!',
+      brand: 'ZooWorkers',
     });
 
     expect(drawn.find(({ text }) => text === 'Patas & Castanhas Ltda.')?.font).toContain(

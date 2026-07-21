@@ -41,9 +41,9 @@ ids on the Steamworks partner site. Starter mapping (extend to all 41):
 
 Electron stores saves in `app.getPath('userData')`:
 
-- Windows: `%APPDATA%/working-my-nuts-off/`
-- macOS: `~/Library/Application Support/working-my-nuts-off/`
-- Linux: `~/.config/working-my-nuts-off/`
+- Windows: `%APPDATA%/zooworkers/`
+- macOS: `~/Library/Application Support/zooworkers/`
+- Linux: `~/.config/zooworkers/`
 
 Configure Steam Auto-Cloud to sync `*.json` (the save + window settings) from
 that directory.

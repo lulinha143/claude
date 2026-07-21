@@ -21,7 +21,7 @@ after you build it yourself with Option B.
 1. Open the folder that contains the game.
    - If you built it yourself, it is: `release\win-unpacked\`
    - (Or, if you made the Steam folder: `release\steam\windows\`)
-2. Find the file named **`Working My Nuts Off!.exe`**.
+2. Find the file named **`ZooWorkers.exe`**.
 3. **Double-click** it.
 4. Windows may show a blue box that says *"Windows protected your PC."* This is
    normal for new apps that aren't signed yet. Click **More info**, then
@@ -50,7 +50,7 @@ after you build it yourself with Option B.
 Your progress saves automatically on your own computer. On Windows it lives in:
 
 ```
-C:\Users\<YourName>\AppData\Roaming\working-my-nuts-off\
+C:\Users\<YourName>\AppData\Roaming\zooworkers\
 ```
 
 To **back it up**: open the game → **Settings → Save & Data → Export** to save a
@@ -81,7 +81,7 @@ If you see something like `v20.x.x`, you're good.
 3. Type `cd ` (the letters c, d, and a space), then **drag the project folder**
    onto the PowerShell window and press **Enter**. The line looks like:
    ```
-   cd C:\Users\You\Downloads\working-my-nuts-off
+   cd C:\Users\You\Downloads\zooworkers
    ```
 
 > If PowerShell says scripts are disabled when you run npm, run this once, press
@@ -110,15 +110,15 @@ to stop it.
 npm run build:windows
 ```
 When it finishes, your installer and app appear in the **`release`** folder:
-- Installer: `release\Working My Nuts Off!-1.0.0-x64.exe`
+- Installer: `release\ZooWorkers-1.0.0-x64.exe`
 - Ready-to-run app folder: `release\win-unpacked\` → double-click
-  **`Working My Nuts Off!.exe`** inside it.
+  **`ZooWorkers.exe`** inside it.
 
 A **portable** single-file version (no install needed):
 ```
 npm run build:portable
 ```
-→ `release\Working My Nuts Off!-1.0.0-portable.exe`
+→ `release\ZooWorkers-1.0.0-portable.exe`
 
 ### Common problems
 - **"npm is not recognized"** → Node.js isn't installed or PowerShell needs to be

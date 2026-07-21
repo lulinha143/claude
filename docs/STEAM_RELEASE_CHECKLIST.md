@@ -13,14 +13,14 @@ A quick, ordered checklist for shipping on Steam. Details for each step are in
 ## Build
 - [ ] `npm run build:steam` (on Windows) → `release/steam/windows/`
 - [ ] `npm run verify:steam` reports OK (no secrets, saves, or source leaked)
-- [ ] Confirmed the folder has `Working My Nuts Off!.exe`
+- [ ] Confirmed the folder has `ZooWorkers.exe`
 - [ ] No `steam_appid.txt` in the public build
 
 ## Steamworks setup
 - [ ] Partner account complete: legal, tax, bank, Steam Guard
 - [ ] Steam Direct fee paid ($100 USD/app, recoupable — verify current amount)
 - [ ] AppID + Windows Depot ID recorded
-- [ ] Launch executable set to `Working My Nuts Off!.exe`
+- [ ] Launch executable set to `ZooWorkers.exe`
 
 ## Store page
 - [ ] Name, short + long descriptions

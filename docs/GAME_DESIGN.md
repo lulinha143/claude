@@ -1,4 +1,4 @@
-# Game Design — Working My Nuts Off!
+# Game Design — ZooWorkers
 
 ## Pitch
 

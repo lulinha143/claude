@@ -24,7 +24,7 @@ build — the fastest option for local testing (no installer, no signing).
 ### Expected executable location
 
 ```
-release\win-unpacked\Working My Nuts Off!.exe
+release\win-unpacked\ZooWorkers.exe
 ```
 
 Double-click that `.exe` to launch. (There is no installer with the `dir`
@@ -61,7 +61,7 @@ npm run electron:stage-m   :: + GPU self-heal (logs only)
 Tell me the FIRST stage that fails — that's the culprit. (Top hypothesis:
 **stage-e**, i.e. `sandbox: true`, since your working bare/isolated test uses
 `sandbox: false`.) A per-stage log is also written to
-`%APPDATA%\Working My Nuts Off!\diagnostic.log`.
+`%APPDATA%\ZooWorkers\diagnostic.log`.
 
 ### GPU / safe-mode fallbacks (manual only now — no auto-relaunch)
 
@@ -78,7 +78,7 @@ npx electron . --minimal-window-test
 
 :: 2. Dev app, normal:            npx electron .
 :: 3. Dev app, GPU disabled:      npm run electron:safe
-:: 4. Packaged, normal:           release\win-unpacked\Working My Nuts Off!.exe
+:: 4. Packaged, normal:           release\win-unpacked\ZooWorkers.exe
 :: 5. Packaged, GPU disabled:     npm run start:windows:safe
 ```
 
@@ -118,8 +118,8 @@ Other targets, if you want them:
 
 | Command | Output |
 | --- | --- |
-| `npm run build:windows` | `release\Working My Nuts Off! Setup 1.0.0.exe` (NSIS installer) |
-| `npm run build:portable` | `release\Working My Nuts Off!-1.0.0-portable.exe` (single portable exe) |
+| `npm run build:windows` | `release\ZooWorkers Setup 1.0.0.exe` (NSIS installer) |
+| `npm run build:portable` | `release\ZooWorkers-1.0.0-portable.exe` (single portable exe) |
 
 > Note: these builds must be run **on Windows**. Building the Windows target on
 > Linux/macOS fails at the executable-signing step with `wine is required` — an
@@ -128,9 +128,9 @@ Other targets, if you want them:
 Where things live at runtime (useful for the audio/window checks below):
 
 - Game save + settings: browser-style `localStorage`, which Electron persists
-  under `%APPDATA%\Working My Nuts Off!\`.
-- Window position/size/state: `%APPDATA%\Working My Nuts Off!\window-settings.json`.
-- Launch/crash log: `%APPDATA%\Working My Nuts Off!\startup.log`.
+  under `%APPDATA%\ZooWorkers\`.
+- Window position/size/state: `%APPDATA%\ZooWorkers\window-settings.json`.
+- Launch/crash log: `%APPDATA%\ZooWorkers\startup.log`.
 
 ---
 
@@ -227,5 +227,5 @@ The window is frameless with a custom title bar (the header). It is now
 
 ---
 
-If anything fails, grab `%APPDATA%\Working My Nuts Off!\startup.log` and note the
+If anything fails, grab `%APPDATA%\ZooWorkers\startup.log` and note the
 exact step; that log captures load, render and window events for diagnosis.

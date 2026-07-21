@@ -159,7 +159,7 @@ function TypographyLab() {
       <header className="lab__header">
         <div>
           <span className="lab__eyebrow">Internal visual decision sheet</span>
-          <h1>Working My Nuts Off! Typography Lab</h1>
+          <h1>ZooWorkers Typography Lab</h1>
           <p>
             Real menu, dialogue, number, tooltip, and Portuguese-accent roles—not an alphabet-only
             beauty sample.

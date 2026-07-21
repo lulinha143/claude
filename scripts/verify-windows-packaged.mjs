@@ -3,7 +3,7 @@
 //
 //   1. builds the unpacked Windows app  (build:windows:folder)
 //   2. verifies the unpacked renderer files exist
-//   3. launches the real Working My Nuts Off!.exe
+//   3. launches the real ZooWorkers.exe
 //   4. waits for the STARTUP SUCCESS marker (dom-ready + did-finish-load + shown)
 //   5. confirms the process stays alive and the game rendered
 //   6. FAILS on ERR_FAILED or "Object has been destroyed"
@@ -54,8 +54,8 @@ if (runNode('scripts/verify-packaged-renderer.mjs') !== 0) {
 
 // 3–6. Launch the real packaged exe and confirm it renders.
 const exe = isWin
-  ? path.join('release', 'win-unpacked', 'Working My Nuts Off!.exe')
-  : path.join('release', 'linux-unpacked', 'working-my-nuts-off');
+  ? path.join('release', 'win-unpacked', 'ZooWorkers.exe')
+  : path.join('release', 'linux-unpacked', 'zooworkers');
 if (!fs.existsSync(exe)) {
   console.error(`verify:windows:packaged FAILED: packaged executable not found: ${exe}`);
   process.exit(1);

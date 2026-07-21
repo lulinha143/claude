@@ -89,7 +89,7 @@ export function SettingsView() {
     const blob = new Blob([useStore.getState().save.exportSave(data)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = 'working-my-nuts-off-save.json';
+    a.download = 'zooworkers-save.json';
     a.click();
   }
 

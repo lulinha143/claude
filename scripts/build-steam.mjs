@@ -41,12 +41,12 @@ const version = JSON.parse(readFileSync('package.json', 'utf-8')).version;
 writeFileSync(
   join(OUT, 'BUILD_INFO.txt'),
   [
-    'Working My Nuts Off! — Steam Windows content',
+    'ZooWorkers — Steam Windows content',
     `version: ${version}`,
     `assembled: ${new Date().toISOString()}`,
     '',
     'Upload the CONTENTS of this folder as your Windows depot via SteamPipe.',
-    'The launch executable is "Working My Nuts Off!.exe".',
+    'The launch executable is "ZooWorkers.exe".',
     'Do NOT commit this folder or any Steam credentials to source control.',
   ].join('\n'),
 );

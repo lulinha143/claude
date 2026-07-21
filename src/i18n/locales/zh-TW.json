@@ -1,7 +1,7 @@
 {
   "_meta": { "name": "繁體中文", "complete": false, "note": "Draft / machine-assisted. Falls back to English for missing keys." },
   "common": { "ok": "確定", "cancel": "取消", "close": "關閉", "buy": "購買", "save": "儲存", "back": "返回" },
-  "app": { "title": "拼命工作中！", "subtitle": "一款迷你桌面放置遊戲", "tagline": "一隻松鼠。一家新創公司。太多的堅果。" },
+  "app": { "title": "ZooWorkers", "subtitle": "溫馨的動物辦公室放置遊戲", "tagline": "一整間可愛動物的辦公室經營著一家很小的公司。" },
   "nav": { "office": "辦公室", "shop": "升級", "employees": "團隊", "company": "公司", "collections": "收藏", "achievements": "成就", "focus": "專注", "decorate": "裝飾", "settings": "設定", "stats": "統計", "prestige": "轉生" },
   "resource": { "nuts": "堅果", "goldenNuts": "黃金堅果", "morale": "士氣", "reputation": "聲望" }
 }

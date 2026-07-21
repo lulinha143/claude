@@ -9,7 +9,7 @@ issue. We aim to acknowledge reports within a few days.
 
 ## Security posture
 
-Working My Nuts Off! is a fully offline game. It requires no server for core
+ZooWorkers is a fully offline game. It requires no server for core
 gameplay and makes no network requests during play.
 
 ### Electron hardening

@@ -1,6 +1,6 @@
 # Privacy Statement
 
-_Working My Nuts Off!_ is designed to be private by default and works completely
+_ZooWorkers_ is designed to be private by default and works completely
 offline.
 
 ## What the game stores

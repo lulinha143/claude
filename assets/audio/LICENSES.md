@@ -1,6 +1,6 @@
 # Audio licensing
 
-All audio in _Working My Nuts Off!_ is **generated at runtime** with the Web
+All audio in _ZooWorkers_ is **generated at runtime** with the Web
 Audio API (`src/audio/audio.ts`) — background music, office ambience, and sound
 effects are synthesized from oscillators and noise. **No audio files are bundled
 or downloaded**, so there is nothing to license and no attribution is required.

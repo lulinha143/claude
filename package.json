@@ -1,9 +1,9 @@
 {
-  "name": "working-my-nuts-off",
-  "productName": "Working My Nuts Off!",
+  "name": "zooworkers",
+  "productName": "ZooWorkers",
   "version": "1.0.0",
-  "description": "A tiny cozy desktop idle game. One squirrel. One startup. Way too many nuts.",
-  "author": "Working My Nuts Off! contributors",
+  "description": "A cozy desktop idle game where a whole office of adorable animals runs one very small company.",
+  "author": "ZooWorkers contributors",
   "license": "MIT",
   "private": true,
   "type": "module",
@@ -34,7 +34,7 @@
     "electron:stage-k": "electron dist-electron/diagnostic-main.cjs --stage=k",
     "electron:stage-l": "electron dist-electron/diagnostic-main.cjs --stage=l",
     "electron:stage-m": "electron dist-electron/diagnostic-main.cjs --stage=m",
-    "start:windows:safe": "\"release\\win-unpacked\\Working My Nuts Off!.exe\" --disable-gpu-safe-mode",
+    "start:windows:safe": "\"release\\win-unpacked\\ZooWorkers.exe\" --disable-gpu-safe-mode",
     "desktop:dev": "npm run dev:electron",
     "build:desktop": "npm run build && npm run build:electron",
     "package": "npm run build:desktop && electron-builder",
@@ -109,9 +109,9 @@
     "vitest": "^2.1.2"
   },
   "build": {
-    "appId": "com.tinynuts.workingmynutsoff",
-    "productName": "Working My Nuts Off!",
-    "copyright": "Copyright (c) 2026 Working My Nuts Off! contributors",
+    "appId": "com.tinynuts.zooworkers",
+    "productName": "ZooWorkers",
+    "copyright": "Copyright (c) 2026 ZooWorkers contributors",
     "publish": null,
     "directories": {
       "output": "release",
@@ -150,7 +150,7 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Working My Nuts Off!"
+      "shortcutName": "ZooWorkers"
     },
     "portable": {
       "artifactName": "${productName}-${version}-portable.${ext}"

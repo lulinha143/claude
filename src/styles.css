@@ -1,7 +1,7 @@
 @import './ui/tokens.css';
 
 /* ==========================================================================
-   Working My Nuts Off! — cozy diorama theme
+   ZooWorkers — cozy diorama theme
    Palette: warm wood, cream, moss green, amber, muted red.
    Semantic design tokens live in ui/tokens.css; the legacy aliases below map
    onto them so older rules keep working while new components use tokens.

@@ -1,4 +1,4 @@
-# Contributing to Working My Nuts Off!
+# Contributing to ZooWorkers
 
 Thanks for helping Pip build the nut empire! This project is a data-driven idle
 game designed to grow without architectural rewrites.

@@ -1,7 +1,7 @@
 {
   "_meta": { "name": "Deutsch", "complete": false, "note": "Draft / machine-assisted. Falls back to English for missing keys." },
   "common": { "ok": "OK", "cancel": "Abbrechen", "close": "Schließen", "buy": "Kaufen", "save": "Speichern", "back": "Zurück" },
-  "app": { "title": "Ich Rackere Mich Ab!", "subtitle": "Ein winziges Desktop-Idle-Spiel", "tagline": "Ein Eichhörnchen. Ein Startup. Viel zu viele Nüsse." },
+  "app": { "title": "ZooWorkers", "subtitle": "Ein gemütliches Tier-Büro-Idle-Spiel", "tagline": "Ein ganzes Büro voller liebenswerter Tiere führt eine sehr kleine Firma." },
   "nav": { "office": "Büro", "shop": "Verbesserungen", "employees": "Team", "company": "Firma", "collections": "Sammlungen", "achievements": "Erfolge", "focus": "Fokus", "decorate": "Einrichten", "settings": "Einstellungen", "stats": "Statistiken", "prestige": "Prestige" },
   "resource": { "nuts": "Nüsse", "goldenNuts": "Goldene Nüsse", "morale": "Moral", "reputation": "Ruf" }
 }

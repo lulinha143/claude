@@ -1,4 +1,4 @@
-# Implementation Plan — Working My Nuts Off!
+# Implementation Plan — ZooWorkers
 
 _A Tiny Desktop Idle Game — One squirrel. One startup. Way too many nuts._
 
