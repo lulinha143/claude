@@ -136,7 +136,7 @@
     "currentRoom": "Local atual",
     "roomFull": "Sala cheia",
     "wrongRoom": "Isto pertence à sala {{room}} — solte lá.",
-    "dragToPlace": "Arraste até o piso ou a parede destacada.", "surface": { "floor": "Piso", "rug": "Área de tapete", "wall": "Parede", "ceiling": "Teto" }, "reject": { "occupied": "Esse lugar já está ocupado — tente logo ao lado.", "stacked": "Já tem algo exatamente aí.", "coversTeammate": "Isso cobriria um colega — dê espaço a ele.", "moveInside": "Mova mais para dentro da sala.", "incompatibleRoom": "Essa decoração não pode ser colocada nesta sala.", "invalid": "Isso não cabe aqui." },
+    "dragToPlace": "Arraste até o piso ou a parede destacada.", "surface": { "floor": "Piso", "rug": "Área de tapete", "wall": "Parede", "ceiling": "Teto", "table": "Mesa", "shelf": "Prateleira", "special": "Ponto especial" }, "reject": { "occupied": "Esse lugar já está ocupado — tente logo ao lado.", "stacked": "Já tem algo exatamente aí.", "coversTeammate": "Isso cobriria um colega — dê espaço a ele.", "moveInside": "Mova mais para dentro da sala.", "incompatibleRoom": "Essa decoração não pode ser colocada nesta sala.", "invalid": "Isso não cabe aqui." },
     "roomEmpty": "Nenhuma decoração para esta sala ainda.",
     "noResults": "Nenhuma decoração corresponde aos filtros.",
     "undo": "Desfazer",

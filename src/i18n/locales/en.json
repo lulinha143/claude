@@ -136,7 +136,7 @@
     "currentRoom": "Current location",
     "roomFull": "Room full",
     "wrongRoom": "That belongs in {{room}} — drop it there.",
-    "dragToPlace": "Drag onto the highlighted floor or wall.", "surface": { "floor": "Floor", "rug": "Rug plane", "wall": "Wall", "ceiling": "Ceiling" }, "reject": { "occupied": "That spot's already taken — try just beside it.", "stacked": "There's already something right there.", "coversTeammate": "That would cover a teammate — give them room.", "moveInside": "Move it farther inside the room.", "incompatibleRoom": "That decoration can't be placed in this room.", "invalid": "That doesn't fit here." },
+    "dragToPlace": "Drag onto the highlighted floor or wall.", "surface": { "floor": "Floor", "rug": "Rug plane", "wall": "Wall", "ceiling": "Ceiling", "table": "Tabletop", "shelf": "Shelf", "special": "Feature spot" }, "reject": { "occupied": "That spot's already taken — try just beside it.", "stacked": "There's already something right there.", "coversTeammate": "That would cover a teammate — give them room.", "moveInside": "Move it farther inside the room.", "incompatibleRoom": "That decoration can't be placed in this room.", "invalid": "That doesn't fit here." },
     "roomEmpty": "No decorations for this room yet.",
     "noResults": "No decorations match your filters.",
     "undo": "Undo",

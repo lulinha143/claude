@@ -191,6 +191,22 @@ function ghostAnchorClass(drag: DragState): string {
   return `drag-ghost--${projectSurfaceType(REGION_KIND_SURFACE[drag.preview.regionKind])}`;
 }
 
+// i18n suffix naming the ACTUAL support being targeted, so a tabletop item
+// reads "Tabletop" (not the projected "Floor"), a shelf item "Shelf", etc.
+const REGION_LABEL: Record<PlacementRegionKind, string> = {
+  floor: 'floor',
+  'rug-plane': 'rug',
+  wall: 'wall',
+  'ceiling-rail': 'ceiling',
+  tabletop: 'table',
+  shelf: 'shelf',
+  special: 'special',
+};
+function ghostSurfaceLabel(drag: DragState): string {
+  if (drag.kind === 'decoration' && drag.preview) return REGION_LABEL[drag.preview.regionKind];
+  return decorationSurface(drag.id);
+}
+
 // Persistent per-employee state machines (kept across renders).
 const machines: Record<string, CritterStateMachine> = {};
 function machineFor(id: string): CritterStateMachine {
@@ -1245,15 +1261,7 @@ export function OfficeScene() {
                     title={t(`deco.${drag.id}.name`)}
                   />
                   <span className="drag-ghost__surface">
-                    {drag.preview?.regionKind === 'rug-plane'
-                      ? t('decorate.surface.rug')
-                      : t(
-                          `decorate.surface.${
-                            drag.preview
-                              ? projectSurfaceType(REGION_KIND_SURFACE[drag.preview.regionKind])
-                              : decorationSurface(drag.id)
-                          }`,
-                        )}
+                    {t(`decorate.surface.${ghostSurfaceLabel(drag)}`)}
                   </span>
                 </>
               )}
