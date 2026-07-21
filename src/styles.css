@@ -4008,7 +4008,10 @@ select,
   transform: translate(-50%, -73.61%); /* placed rug ellipse centre */
 }
 .drag-ghost--wall {
-  transform: translate(-50%, -45%); /* placed wall centre (translate 50%) */
+  /* Centre-anchored (baseline 0.5). Matches the same ghost offset the floor
+     (-86.43 for baseline .964) and rug (-73.61 for .82) use — about
+     -baseline*100 + 9 — so a wall preview lands exactly where it drops. */
+  transform: translate(-50%, -41%);
 }
 .drag-ghost--ceiling {
   transform: translate(-50%, 0%); /* placed ceiling top (hangs below the rail) */
