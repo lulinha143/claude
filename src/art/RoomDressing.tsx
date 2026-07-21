@@ -1,5 +1,6 @@
 import { memo } from 'react';
-import { ROOM_BUILTIN } from '../content/roomSurfaces';
+import { ROOM_BUILTIN, regionsForKinds } from '../content/roomSurfaces';
+import type { NormalizedPlacementPlane } from '../sim/placementRegions';
 
 // Built-in, non-interactive room "dressing" so every department reads as a real,
 // lived-in workplace even before the player adds a single decoration. Rendered
@@ -131,6 +132,55 @@ const ROOM_SCENE: Record<string, ScenePiece[]> = {
 
 function shadow(cx: number, cy: number, rx: number, ry = 3) {
   return <ellipse cx={cx} cy={cy} rx={rx} ry={ry} fill="rgba(40,26,12,0.22)" />;
+}
+
+// Built-in support surfaces are positioned to COINCIDE with the room's actual
+// tabletop / shelf placement regions, so a decoration dropped on a table or
+// shelf visibly rests on real furniture (never floating in mid-air). Coordinates
+// come straight from the region planes, keeping visual and logical placement in
+// lock-step at every window size.
+function BuiltInTable({ plane }: { plane: NormalizedPlacementPlane }) {
+  const left = plane.bottomLeft.x;
+  const width = plane.bottomRight.x - plane.bottomLeft.x;
+  const surfaceBottom = plane.bottomLeft.y;
+  const surfaceDepth = plane.topLeft.y - plane.bottomLeft.y;
+  return (
+    <>
+      {/* desk body / legs from the floor up to the front edge of the surface */}
+      <span
+        className="room-dressing__desk-body"
+        style={{ left: `${(left + 0.02) * 100}%`, width: `${(width - 0.04) * 100}%`, height: `${surfaceBottom * 100}%` }}
+      />
+      {/* the working surface itself (the tabletop region) */}
+      <span
+        className="room-dressing__desk-top"
+        style={{
+          left: `${left * 100}%`,
+          width: `${width * 100}%`,
+          bottom: `${surfaceBottom * 100}%`,
+          height: `${Math.max(0.03, surfaceDepth) * 100}%`,
+        }}
+      />
+    </>
+  );
+}
+
+function BuiltInShelf({ plane }: { plane: NormalizedPlacementPlane }) {
+  const left = plane.bottomLeft.x;
+  const width = plane.bottomRight.x - plane.bottomLeft.x;
+  const bottom = plane.bottomLeft.y;
+  const depth = plane.topLeft.y - plane.bottomLeft.y;
+  return (
+    <span
+      className="room-dressing__wall-shelf"
+      style={{
+        left: `${left * 100}%`,
+        width: `${width * 100}%`,
+        bottom: `${bottom * 100}%`,
+        height: `${Math.max(0.03, depth) * 100}%`,
+      }}
+    />
+  );
 }
 
 // A single prop, drawn in its own small viewBox so CSS can size + position it.
@@ -516,11 +566,17 @@ function SceneProp({ prop }: { prop: PropId }) {
 export const RoomDressing = memo(function RoomDressing({ roomId }: { roomId: string }) {
   const builtIn = ROOM_BUILTIN[roomId] ?? 'shelf';
   const scene = ROOM_SCENE[roomId] ?? [{ prop: 'bookshelf' as PropId, slot: 'wallLeft' as Slot }];
+  const tablePlane = regionsForKinds(roomId, ['tabletop'])[0]?.plane;
+  const shelfPlane = regionsForKinds(roomId, ['shelf'])[0]?.plane;
   return (
     <div className={`room-dressing room-dressing--${builtIn}`} aria-hidden>
       <span className="room-dressing__wall" />
       <span className="room-dressing__floor" />
       <span className="room-dressing__baseboard" />
+
+      {/* built-in support surfaces aligned to the tabletop / shelf regions */}
+      {shelfPlane ? <BuiltInShelf plane={shelfPlane} /> : null}
+      {tablePlane ? <BuiltInTable plane={tablePlane} /> : null}
 
       {/* framed window on the back wall */}
       <svg className="room-dressing__window" viewBox="0 0 60 44" preserveAspectRatio="none">
