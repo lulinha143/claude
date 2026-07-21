@@ -123,6 +123,21 @@ describe('repairs saves with decorations stored on the wrong surface', () => {
     expect(engine.state.placements['motivational-poster']?.surface).toBe('wall');
   });
 
+  it('keeps a shelf/tabletop item on its high support across a load (no drop to the floor)', () => {
+    const engine = engineWith('conveyor-plushie');
+    const shelf = pointerRegionPlacement(engine.state, 'conveyor-plushie', ROOM, { x: 0.22, y: 0.6 });
+    expect(shelf?.region.kind).toBe('shelf');
+    engine.moveDecorationToRoom('conveyor-plushie', ROOM, shelf!.point.x, shelf!.point.y, shelf!.depth, 'shelf');
+    const y = decorationInstance(engine.state, 'conveyor-plushie')!.normalizedY;
+    expect(y).toBeGreaterThan(0.4); // sitting up on the shelf, not on the floor band
+
+    // Reload the save; the shelf item must stay on the shelf at its height.
+    const reloaded = new GameEngine(structuredClone(engine.state), { deterministic: true });
+    const after = decorationInstance(reloaded.state, 'conveyor-plushie')!;
+    expect(after.regionKind).toBe('shelf');
+    expect(after.normalizedY).toBeGreaterThan(0.4);
+  });
+
   it('leaves a correctly placed decoration exactly where it is', () => {
     const engine = engineWith('potted-fern');
     const instance = decorationInstance(engine.state, 'potted-fern')!;

@@ -523,9 +523,16 @@ export function repairDecorationInstances(state: GameState): string[] {
     const x = Number.isFinite(instance.normalizedX) ? instance.normalizedX : fallback.x;
     const y = Number.isFinite(instance.normalizedY) ? instance.normalizedY : fallback.y;
     const nextX = Math.max(0.04, Math.min(0.96, x));
-    const nextY = isLegacySurface(instance.surfaceType)
-      ? clampToSurface(instance.surfaceType, y)
-      : Math.max(0, Math.min(1, y));
+    // When the item carries a semantic regionKind the region model owns its
+    // placement, so only keep the coordinate in-bounds and let
+    // reconcileInstanceRegion fit it to the correct plane. Clamping to the
+    // legacy floor band here would wrongly drag tabletop/shelf items (whose
+    // projected surface is "floor" but which sit high up) down onto the floor.
+    const nextY = instance.regionKind
+      ? Math.max(0, Math.min(1, y))
+      : isLegacySurface(instance.surfaceType)
+        ? clampToSurface(instance.surfaceType, y)
+        : Math.max(0, Math.min(1, y));
     if (nextX !== instance.normalizedX || nextY !== instance.normalizedY) mark(instance.decorationId);
     instance.normalizedX = nextX;
     instance.normalizedY = nextY;

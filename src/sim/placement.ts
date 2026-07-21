@@ -89,7 +89,7 @@ const STACK_DIST = 0.03;
 // How far (normalized room-stage units) a raw pointer may sit from the nearest
 // valid support point and still count as an intentional, committable drop. A
 // larger miss rolls back to the previous placement rather than snapping.
-const RAW_POINTER_TOLERANCE = 0.06;
+const RAW_POINTER_TOLERANCE = 0.08;
 
 /**
  * Decide whether placing (or moving) decoration `id` to a final, already-clamped
