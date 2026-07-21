@@ -2155,11 +2155,31 @@ select,
   cursor: pointer;
   animation: bob 1.5s ease-in-out infinite;
 }
+.opening-seq__title .brand-emblem {
+  display: block;
+  margin: 2px auto 8px;
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.4));
+  animation: bob 3.4s ease-in-out infinite;
+}
 .title-card {
   font-size: 2em;
   color: var(--gold);
   text-shadow: 0 3px 0 #1c150d;
   margin: 0;
+}
+/* Stacked emblem + wordmark lockup (menus / brand surfaces). */
+.brand-logo {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.brand-logo__wordmark {
+  font-family: var(--font-logo);
+  font-size: 2em;
+  color: var(--gold);
+  text-shadow: 0 3px 0 #1c150d;
+  letter-spacing: 0.01em;
 }
 .title-card__sub {
   color: var(--cream-dim);

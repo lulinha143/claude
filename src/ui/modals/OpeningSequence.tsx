@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useStore } from '../../state/store';
 import { useGame } from '../../state/hooks';
 import { GAME_TITLE } from '../../brand';
+import { BrandEmblem } from '../../art/BrandLogo';
 import { Acorn } from '../../art/Icons';
 import { Critter } from '../../art/Critter';
 import { shapeFor } from '../../art/critterShapes';
@@ -178,6 +179,7 @@ export function OpeningSequence() {
               <p className="opening-seq__eyebrow opening-seq__eyebrow--stamp">
                 {t('opening.impact')}
               </p>
+              <BrandEmblem size={78} title={GAME_TITLE} />
               <h1 id="opening-title" className="title-card">{GAME_TITLE}</h1>
               <p className="title-card__sub">{t('app.subtitle')}</p>
               <p id="opening-title-note" className="opening-seq__title-note">
