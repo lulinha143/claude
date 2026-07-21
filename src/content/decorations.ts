@@ -1,7 +1,7 @@
 import type { DecorationDef } from './types';
 import { ROOMS } from './rooms';
 import { compatibleRegionsForProfile } from './roomSurfaces';
-import { decorationSurface } from '../sim/surfaces';
+import { decorationSurface, projectSurfaceType } from '../sim/surfaces';
 import { REGION_KIND_SURFACE, type PlacementRegionKind } from '../sim/placementRegions';
 
 const ORDINARY_ROOMS = ROOMS.map((room) => room.id);
@@ -26,7 +26,15 @@ function deco(
     moraleBonus: morale,
     room,
     compatibleRooms: [...ORDINARY_ROOMS],
-    compatibleSurfaces: [decorationSurface(id)],
+    // Legacy floor/wall/ceiling projection surfaces the item can legitimately
+    // occupy — the union of every compatible region kind's projected surface,
+    // so the region model can never produce a surface the audit rejects.
+    compatibleSurfaces: [
+      ...new Set<DecorationDef['compatibleSurfaces'][number]>([
+        decorationSurface(id),
+        ...compatibleRegionKinds.map((kind) => projectSurfaceType(REGION_KIND_SURFACE[kind])),
+      ]),
+    ],
     defaultRegionKind,
     compatibleRegionKinds,
     compatibleRegionSurfaces: [

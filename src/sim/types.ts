@@ -5,6 +5,8 @@ import type { DecorationPlacement } from './surfaces';
 // of employees, upgrades, events…) live in `src/content` and are referenced by
 // id here so save files stay small and forward-compatible.
 
+import type { PlacementRegionKind } from './placementRegions';
+
 export type ResourceId = 'nuts' | 'goldenNuts' | 'permanentKernels';
 
 export interface ResourceState {
@@ -177,6 +179,13 @@ export interface DecorationInstance {
   /** null means the owned item is currently in inventory. */
   roomId: string | null;
   surfaceType: DecorationSurfaceType;
+  /**
+   * Authoritative semantic support the item is placed on (floor, wall,
+   * ceiling-rail, tabletop, shelf, rug-plane, special). `surfaceType` is the
+   * legacy floor/wall/ceiling projection derived from this for the renderer and
+   * old-save compatibility; `regionKind` is the source of truth for geometry.
+   */
+  regionKind?: PlacementRegionKind;
   normalizedX: number;
   normalizedY: number;
   depth: number;

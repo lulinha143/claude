@@ -151,6 +151,23 @@ const v6ToV7: Migration = (raw) => {
   return { ...raw, decorationInstances, version: 7 };
 };
 
+// v7 -> v8: the room-region model became the single source of truth for
+// decoration placement. Stamp each stable instance with an explicit semantic
+// `regionKind` so preview, rendering, and persistence agree. Coordinates and
+// surfaces stay untouched here; the runtime instance repair (which knows the
+// per-room region geometry) relocates any decoration saved on an impossible
+// surface when the save is loaded.
+const v7ToV8: Migration = (raw) => {
+  const instances = Array.isArray(raw.decorationInstances) ? raw.decorationInstances : [];
+  for (const instance of instances) {
+    if (!isRawSave(instance)) continue;
+    if (typeof instance.regionKind === 'string') continue;
+    const def = DECORATIONS_BY_ID[instance.decorationId as string];
+    if (def) instance.regionKind = def.defaultRegionKind;
+  }
+  return { ...raw, decorationInstances: instances, version: 8 };
+};
+
 const MIGRATIONS: Record<number, Migration> = {
   1: v1ToV2,
   2: v2ToV3,
@@ -158,6 +175,7 @@ const MIGRATIONS: Record<number, Migration> = {
   4: v4ToV5,
   5: v5ToV6,
   6: v6ToV7,
+  7: v7ToV8,
 };
 
 export function migrate(raw: RawSave): RawSave {

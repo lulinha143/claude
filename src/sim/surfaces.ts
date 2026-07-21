@@ -7,12 +7,34 @@
 // On drop we clamp y into the surface's vertical band, so a floor object can
 // never end up on the ceiling and a wall object can never sit on the floor.
 
+import type { DecorationSurfaceType } from './types';
+import type { PlacementRegionKind } from './placementRegions';
+
 export type DecorationSurface = 'floor' | 'wall' | 'ceiling';
 
 export interface DecorationPlacement {
   surface: DecorationSurface;
   x: number;
   y: number;
+}
+
+/**
+ * Collapse the authoritative semantic surface (which includes table + shelf)
+ * into the legacy floor/wall/ceiling vocabulary used by the renderer CSS and
+ * the persisted `state.placements` projection. Table and shelf props are
+ * base-anchored like floor props, so they share the floor anchor family.
+ */
+export function projectSurfaceType(surfaceType: DecorationSurfaceType): DecorationSurface {
+  if (surfaceType === 'wall') return 'wall';
+  if (surfaceType === 'ceiling') return 'ceiling';
+  return 'floor';
+}
+
+/** Legacy region kind that best matches a floor/wall/ceiling projection. */
+export function regionKindForSurface(surface: DecorationSurface): PlacementRegionKind {
+  if (surface === 'wall') return 'wall';
+  if (surface === 'ceiling') return 'ceiling-rail';
+  return 'floor';
 }
 
 // Vertical bands (normalised y) each surface may occupy on the room stage.

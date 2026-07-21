@@ -38,8 +38,15 @@ import {
   placementAt,
 } from './decorations';
 import { DECORATIONS_BY_ID } from '../content/decorations';
-import { decorationSurface, defaultPlacement } from './surfaces';
-import { evaluateRegionPlacement, findValidRegionPlacement } from './placement';
+import { decorationSurface, projectSurfaceType, regionKindForSurface } from './surfaces';
+import {
+  evaluateRegionPlacement,
+  resolveRegionByKind,
+  defaultRegionPlacementFor,
+  pointerRegionPlacement,
+} from './placement';
+import type { RegionPlacementCheck } from './placement';
+import type { PlacementRegionKind } from './placementRegions';
 import { compatibleRegionsForProfile } from '../content/roomSurfaces';
 
 /** A single employee's measured change from an event choice (WHAT CHANGED). */
@@ -110,7 +117,7 @@ export interface CollectResult {
 type DecorationArrangement = Array<
   Pick<
     DecorationInstance,
-    'instanceId' | 'roomId' | 'surfaceType' | 'normalizedX' | 'normalizedY' | 'depth'
+    'instanceId' | 'roomId' | 'surfaceType' | 'regionKind' | 'normalizedX' | 'normalizedY' | 'depth'
   >
 >;
 
@@ -763,40 +770,20 @@ export class GameEngine {
   }
 
   private applyDecorationPurchase(id: string, key: string): boolean {
-    // Ownership is added exactly once. Semantic floor/rug items may use a tidy
-    // authored point only when the complete footprint, room lock, collision,
-    // and region capacity checks all pass; otherwise the stable instance stays
+    // Ownership is added exactly once. The item auto-places on its real support
+    // (floor, wall, ceiling, tabletop, shelf or a room-specific surface) at a
+    // tidy authored spot only when the complete footprint, room lock, and
+    // collision/capacity checks all pass; otherwise the stable instance stays
     // safely in storage for explicit placement.
     this.state.collections.secrets.push(key);
     const def = DECORATIONS_BY_ID[id];
     if (def) {
-      const idx = placedCountOnSurface(this.state, def.room, decorationSurface(id));
-      const fallback = defaultPlacement(id, idx);
-      const semanticKind =
-        def.defaultRegionKind === 'floor' || def.defaultRegionKind === 'rug-plane'
-          ? def.defaultRegionKind
-          : null;
-      if (semanticKind) {
-        delete this.state.placements[id];
-        syncDecorationInstanceFromPlacement(this.state, id);
-        const region = compatibleRegionsForProfile(def.room, def).find(
-          (candidate) => candidate.kind === semanticKind,
-        );
-        const candidate = region
-          ? findValidRegionPlacement(this.state, id, def.room, region, fallback)
-          : null;
-        if (candidate && this.canMoveDecorationToRoom(id, def.room)) {
-          this.applyDecorationPlacement(
-            id,
-            def.room,
-            candidate.point.x,
-            candidate.point.y,
-            candidate.depth,
-          );
-        }
-      } else {
-        this.state.placements[id] = fallback;
-        syncDecorationInstanceFromPlacement(this.state, id);
+      delete this.state.placements[id];
+      syncDecorationInstanceFromPlacement(this.state, id);
+      const index = placedCountOnSurface(this.state, def.room, decorationSurface(id));
+      const candidate = defaultRegionPlacementFor(this.state, id, def.room, index);
+      if (candidate?.ok && this.canMoveDecorationToRoom(id, def.room)) {
+        this.applyRegionPlacement(id, def.room, candidate);
       }
     }
     this.emit();
@@ -809,6 +796,7 @@ export class GameEngine {
       instanceId: instance.instanceId,
       roomId: instance.roomId,
       surfaceType: instance.surfaceType,
+      regionKind: instance.regionKind,
       normalizedX: instance.normalizedX,
       normalizedY: instance.normalizedY,
       depth: instance.depth,
@@ -874,6 +862,7 @@ export class GameEngine {
     const instance = syncDecorationInstanceFromPlacement(this.state, id);
     if (!instance) return false;
     instance.roomId = roomId;
+    instance.regionKind = regionKindForSurface(placement.surface);
     if (depth !== undefined) {
       instance.depth = depth;
     } else {
@@ -891,32 +880,57 @@ export class GameEngine {
     return true;
   }
 
+  /**
+   * Authoritative region-anchored commit shared by pointer drops and every
+   * non-pointer flow (purchase, Move To, room reset). The exact clamped region
+   * point, its projected legacy surface, its semantic kind, and its perspective
+   * depth are written together so the preview a player saw is what gets saved.
+   */
+  private applyRegionPlacement(id: string, roomId: string, check: RegionPlacementCheck): boolean {
+    const surface = projectSurfaceType(check.region.surfaceType);
+    this.state.placements[id] = { surface, x: check.point.x, y: check.point.y };
+    const instance = syncDecorationInstanceFromPlacement(this.state, id);
+    if (!instance) return false;
+    instance.roomId = roomId;
+    instance.regionKind = check.region.kind;
+    instance.surfaceType = surface;
+    instance.normalizedX = check.point.x;
+    instance.normalizedY = check.point.y;
+    instance.depth = check.depth;
+    return true;
+  }
+
+  /** Resolve + validate a region placement for a specific semantic kind. */
+  private resolveRegionPlacement(
+    id: string,
+    roomId: string,
+    x: number,
+    y: number,
+    regionKind: PlacementRegionKind,
+  ): RegionPlacementCheck | null {
+    const def = DECORATIONS_BY_ID[id];
+    if (!def) return null;
+    const region = resolveRegionByKind(roomId, def, regionKind);
+    if (!region) return null;
+    return evaluateRegionPlacement(this.state, id, roomId, region, { x, y });
+  }
+
   /** Place a stored item in an unlocked compatible room. */
   placeDecorationInRoom(id: string, roomId: string, position?: { x: number; y: number }): boolean {
     if (!this.canMoveDecorationToRoom(id, roomId)) return false;
-    const surface = decorationSurface(id);
-    const fallback = defaultPlacement(id, placedCountOnSurface(this.state, roomId, surface));
-    let x = position?.x ?? fallback.x;
-    let y = position?.y ?? fallback.y;
-    if (!position) {
-      const def = DECORATIONS_BY_ID[id];
-      const semanticKind =
-        def?.defaultRegionKind === 'floor' || def?.defaultRegionKind === 'rug-plane'
-          ? def.defaultRegionKind
-          : null;
-      const region =
-        def && semanticKind
-          ? compatibleRegionsForProfile(roomId, def).find(
-              (candidate) => candidate.kind === semanticKind,
-            )
-          : undefined;
-      const safe = region ? findValidRegionPlacement(this.state, id, roomId, region, { x, y }) : null;
-      if (region && !safe) return false;
-      if (safe) ({ x, y } = safe.point);
+    const def = DECORATIONS_BY_ID[id];
+    if (!def) return false;
+    let check: RegionPlacementCheck | null;
+    if (position) {
+      // An explicit position picks the region under that point (any category).
+      check = pointerRegionPlacement(this.state, id, roomId, position);
+    } else {
+      const index = placedCountOnSurface(this.state, roomId, decorationSurface(id));
+      check = defaultRegionPlacementFor(this.state, id, roomId, index);
     }
-    if (!this.canApplyDecorationPlacement(id, roomId, x, y)) return false;
+    if (!check?.ok) return false;
     this.pushDecoHistory();
-    if (!this.applyDecorationPlacement(id, roomId, x, y)) return false;
+    if (!this.applyRegionPlacement(id, roomId, check)) return false;
     this.save();
     this.emit();
     return true;
@@ -929,14 +943,32 @@ export class GameEngine {
     return this.placeDecorationInRoom(id, decorationRoom(this.state, id) ?? def.room, position);
   }
 
-  /** Move a decoration across rooms while preserving its stable instance id. */
+  /**
+   * Move a decoration across rooms while preserving its stable instance id.
+   * When a `regionKind` is supplied (every pointer drop and the unified drag
+   * preview do), the placement is committed through the authoritative region
+   * model so it lands exactly where the preview showed — on floor, wall,
+   * ceiling, tabletop, shelf, or a room-specific special support. Callers that
+   * omit it keep the legacy floor/wall/ceiling band behaviour.
+   */
   moveDecorationToRoom(
     id: string,
     roomId: string,
     x: number,
     y: number,
     depth?: number,
+    regionKind?: PlacementRegionKind,
   ): boolean {
+    if (regionKind) {
+      if (!this.canMoveDecorationToRoom(id, roomId)) return false;
+      const check = this.resolveRegionPlacement(id, roomId, x, y, regionKind);
+      if (!check?.ok) return false;
+      this.pushDecoHistory();
+      if (!this.applyRegionPlacement(id, roomId, check)) return false;
+      this.save();
+      this.emit();
+      return true;
+    }
     if (!this.canApplyDecorationPlacement(id, roomId, x, y)) return false;
     this.pushDecoHistory();
     if (!this.applyDecorationPlacement(id, roomId, x, y, depth)) return false;
@@ -979,43 +1011,31 @@ export class GameEngine {
       syncDecorationInstanceFromPlacement(trial, def.id);
     }
 
-    const perSurface: Record<string, number> = {};
-    const plan: Array<{ id: string; x: number; y: number; depth: number }> = [];
+    const perKind: Record<string, number> = {};
+    const plan: Array<{ id: string; check: RegionPlacementCheck }> = [];
     for (const def of owned) {
-      const surface = decorationSurface(def.id);
-      const idx = perSurface[surface] ?? 0;
-      perSurface[surface] = idx + 1;
-      const fallback = defaultPlacement(def.id, idx);
-      const semanticKind =
-        def.defaultRegionKind === 'floor' || def.defaultRegionKind === 'rug-plane'
-          ? def.defaultRegionKind
-          : null;
-      const region = semanticKind
-        ? compatibleRegionsForProfile(roomId, def).find(
-            (candidate) => candidate.kind === semanticKind,
-          )
-        : undefined;
-      const candidate = region
-        ? findValidRegionPlacement(trial, def.id, roomId, region, fallback)
-        : null;
-      if (region && !candidate) return false;
-      const x = candidate?.point.x ?? fallback.x;
-      const y = candidate?.point.y ?? fallback.y;
-      trial.placements[def.id] = placementAt(def.id, x, y);
+      const idx = perKind[def.defaultRegionKind] ?? 0;
+      perKind[def.defaultRegionKind] = idx + 1;
+      const candidate = defaultRegionPlacementFor(trial, def.id, roomId, idx);
+      // Every owned item must land on a valid support; a full plane or a
+      // collision aborts the whole reset (no partial mutation, history, save).
+      if (!candidate?.ok) return false;
+      const surface = projectSurfaceType(candidate.region.surfaceType);
+      trial.placements[def.id] = { surface, x: candidate.point.x, y: candidate.point.y };
       const trialInstance = syncDecorationInstanceFromPlacement(trial, def.id);
       if (!trialInstance) return false;
       trialInstance.roomId = roomId;
-      if (candidate) trialInstance.depth = candidate.depth;
-      plan.push({ id: def.id, x, y, depth: trialInstance.depth });
+      trialInstance.regionKind = candidate.region.kind;
+      trialInstance.surfaceType = surface;
+      trialInstance.normalizedX = candidate.point.x;
+      trialInstance.normalizedY = candidate.point.y;
+      trialInstance.depth = candidate.depth;
+      plan.push({ id: def.id, check: candidate });
     }
 
     this.pushDecoHistory();
     for (const item of plan) {
-      this.state.placements[item.id] = placementAt(item.id, item.x, item.y);
-      const instance = syncDecorationInstanceFromPlacement(this.state, item.id);
-      if (!instance) continue; // planning already proved every known instance exists
-      instance.roomId = roomId;
-      instance.depth = item.depth;
+      this.applyRegionPlacement(item.id, roomId, item.check);
     }
     this.save();
     this.emit();

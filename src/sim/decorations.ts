@@ -7,10 +7,13 @@ import {
   defaultPlacement,
   isValidPlacement,
   clampToSurface,
+  projectSurfaceType,
   surfaceZ,
   type DecorationPlacement,
   type DecorationSurface,
 } from './surfaces';
+import { compatibleRegionsForProfile, defaultCompatiblePlacement } from '../content/roomSurfaces';
+import { projectPointToRegion, type PlacementRegionKind } from './placementRegions';
 
 // Decoration model
 // ----------------
@@ -137,6 +140,10 @@ export function repairDecorations(state: GameState): string[] {
       changed.push(id);
       continue;
     }
+    // A v7+ instance is authoritative for placement and its projection has
+    // already been rebuilt (region model). Never second-guess it with the
+    // legacy regex surface, which can disagree for tabletop/shelf props.
+    if (state.decorationInstances?.some((instance) => instance.decorationId === id)) continue;
     if (!isValidPlacement(id, p.surface, p.x, p.y)) {
       state.placements[id] = placementAt(id, Number.isFinite(p.x) ? p.x : 0.5, Number.isFinite(p.y) ? p.y : 0.1);
       changed.push(id);
@@ -206,6 +213,7 @@ export function syncDecorationInstanceFromPlacement(state: GameState, decoration
       decorationId,
       roomId: placement ? def.room : null,
       surfaceType: fallback.surface,
+      regionKind: def.defaultRegionKind,
       normalizedX: fallback.x,
       normalizedY: fallback.y,
       depth: surfaceZ(decorationId, fallback.surface),
@@ -355,6 +363,59 @@ export function auditDecorationState(state: GameState): DecorationAuditIssue[] {
 }
 
 /**
+ * Reconcile a decoration instance with the authoritative room-region model:
+ * ensure it carries a valid semantic `regionKind`, and RELOCATE any placed item
+ * whose stored point is on the wrong support (e.g. a legacy save with a wall
+ * item saved onto the floor band, or a floor item drifted onto the ceiling).
+ * Items that already sit on one of their compatible support planes keep their
+ * exact coordinates — only genuinely misplaced pieces move. Returns whether the
+ * instance changed. Inventory items only record a sensible kind.
+ */
+function reconcileInstanceRegion(instance: DecorationInstance, def: DecorationDef): boolean {
+  const desiredKind: PlacementRegionKind =
+    instance.regionKind && def.compatibleRegionKinds.includes(instance.regionKind)
+      ? instance.regionKind
+      : def.defaultRegionKind;
+
+  if (instance.roomId === null) {
+    if (instance.regionKind === desiredKind) return false;
+    instance.regionKind = desiredKind;
+    return true;
+  }
+
+  const compatible = compatibleRegionsForProfile(instance.roomId, def);
+  const point = { x: instance.normalizedX, y: instance.normalizedY };
+  const preferred = compatible.find((region) => region.kind === desiredKind);
+  const onPlane =
+    preferred && projectPointToRegion(preferred, point).inside
+      ? preferred
+      : compatible.find((region) => projectPointToRegion(region, point).inside);
+
+  if (onPlane) {
+    const surface = projectSurfaceType(onPlane.surfaceType);
+    const changed = instance.regionKind !== onPlane.kind || instance.surfaceType !== surface;
+    instance.regionKind = onPlane.kind;
+    instance.surfaceType = surface;
+    return changed;
+  }
+
+  // The stored point is on none of the item's compatible supports: it was saved
+  // on the wrong surface. Relocate it onto a tidy default of its default kind.
+  const fallback = defaultCompatiblePlacement(instance.roomId, def);
+  if (!fallback) {
+    if (instance.regionKind === desiredKind) return false;
+    instance.regionKind = desiredKind;
+    return true;
+  }
+  instance.regionKind = fallback.region.kind;
+  instance.surfaceType = projectSurfaceType(fallback.region.surfaceType);
+  instance.normalizedX = fallback.point.x;
+  instance.normalizedY = fallback.point.y;
+  instance.depth = fallback.region.depth.default;
+  return true;
+}
+
+/**
  * Repair the v7 source model deterministically and rebuild the v6 compatibility
  * projection. Valid ownership is never discarded: an orphaned known instance
  * restores its ownership token, while every owned catalogue item gets exactly
@@ -448,6 +509,7 @@ export function repairDecorationInstances(state: GameState): string[] {
         : 0;
       mark(instance.decorationId);
     }
+    if (reconcileInstanceRegion(instance, def)) mark(instance.decorationId);
     repaired.push(instance);
   }
   state.decorationInstances = repaired;
@@ -465,18 +527,21 @@ export function repairDecorationInstances(state: GameState): string[] {
       instanceId = `${instanceId}-${suffix}`;
     }
     usedIds.add(instanceId);
-    state.decorationInstances.push({
+    const backfilled: DecorationInstance = {
       instanceId,
       decorationId: def.id,
       roomId: placement ? def.room : null,
       surfaceType: fallback.surface,
+      regionKind: def.defaultRegionKind,
       normalizedX: fallback.x,
       normalizedY: fallback.y,
       depth: surfaceZ(def.id, fallback.surface),
       flipped: false,
       rotation: 0,
       interactionState: {},
-    });
+    };
+    reconcileInstanceRegion(backfilled, def);
+    state.decorationInstances.push(backfilled);
     represented.add(def.id);
     mark(def.id);
   }

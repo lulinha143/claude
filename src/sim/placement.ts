@@ -10,16 +10,18 @@ import type { GameState } from './types';
 import {
   clampPointToValidRegion,
   pointOnRegion,
-  projectPointToRegion,
   regionContainsPoint,
   type NormalizedPoint,
   type PlacementRegion,
 } from './placementRegions';
+import { regionArea } from './placementRegions';
 import { DECORATIONS_BY_ID } from '../content/decorations';
 import { decorationSurface, isRug } from './surfaces';
 import { placedDecorationsInRoom } from './decorations';
 import { employeesInRoom } from './rooms';
 import { characterSlots } from '../content/roomLayout';
+import { compatibleRegionsForProfile, defaultCompatiblePlacement } from '../content/roomSurfaces';
+import type { DecorationDef } from '../content/types';
 
 export interface PlacementCheck {
   ok: boolean;
@@ -84,6 +86,10 @@ function overlapRatio(a: Box, b: Box): number {
 const MAX_OVERLAP = 0.34;
 // Centres closer than this are effectively the same spot.
 const STACK_DIST = 0.03;
+// How far (normalized room-stage units) a raw pointer may sit from the nearest
+// valid support point and still count as an intentional, committable drop. A
+// larger miss rolls back to the previous placement rather than snapping.
+const RAW_POINTER_TOLERANCE = 0.06;
 
 /**
  * Decide whether placing (or moving) decoration `id` to a final, already-clamped
@@ -262,8 +268,15 @@ export function evaluateRegionPlacement(
 
   const constrained = clampDecorationToRegion(id, region, rawPoint);
   if (!constrained) return null;
-  const rawProjection = projectPointToRegion(region, rawPoint);
-  const rawFits = rawProjection.inside && decorationFootprintFitsRegion(id, region, rawPoint);
+  // A drop is "on target" when the pointer is already on (or barely off) the
+  // support: clamping it only nudged the position a little. A pointer far from
+  // any valid spot (e.g. flung outside the room, or a floor item held high on
+  // the wall) yields a large clamp distance and rolls back instead of teleport.
+  const clampDistance = Math.hypot(
+    constrained.point.x - rawPoint.x,
+    constrained.point.y - rawPoint.y,
+  );
+  const rawFits = clampDistance <= RAW_POINTER_TOLERANCE;
   const occupants = placedDecorationsInRoom(state, roomId).filter(
     (other) => other.def.id !== id && other.def.defaultRegionKind === region.kind,
   );
@@ -313,6 +326,82 @@ export function findValidRegionPlacement(
       const distance = (check.point.x - desired.x) ** 2 + (check.point.y - desired.y) ** 2;
       if (!nearest || distance < nearest.distance) nearest = { check, distance };
     }
+  }
+  return nearest?.check ?? null;
+}
+
+
+
+// --- unified region resolution -------------------------------------------
+// A single authoritative entry point that turns a pointer (or a desired point)
+// into a concrete support region for ANY category — floor, rug, wall, ceiling
+// rail, tabletop, shelf, or a room-specific special surface. Preview, pointer
+// hit-testing, drop commit, purchase/auto-place, Move To, and room reset all
+// funnel through these so a decoration can never be previewed on one surface
+// and then saved onto a different one.
+
+/** The compatible region of a specific kind for a decoration in a room. */
+export function resolveRegionByKind(
+  roomId: string,
+  def: DecorationDef,
+  kind: PlacementRegion['kind'],
+): PlacementRegion | null {
+  return compatibleRegionsForProfile(roomId, def).find((region) => region.kind === kind) ?? null;
+}
+
+/**
+ * Pick the support region under a raw pointer and evaluate the placement there.
+ * The region the pointer is physically inside wins (highest priority, then
+ * smallest area); otherwise the decoration's default-kind region is used and
+ * the point is clamped, yielding a constrained-but-invalid preview so an
+ * outside release rolls back cleanly instead of teleporting.
+ */
+export function pointerRegionPlacement(
+  state: GameState,
+  id: string,
+  roomId: string,
+  rawPoint: NormalizedPoint,
+): RegionPlacementCheck | null {
+  const def = DECORATIONS_BY_ID[id];
+  if (!def) return null;
+  const compatible = compatibleRegionsForProfile(roomId, def);
+  if (compatible.length === 0) return null;
+  const containing = compatible
+    .filter((region) => regionContainsPoint(region, rawPoint))
+    .sort((left, right) => right.priority - left.priority || regionArea(left) - regionArea(right));
+  const chosen =
+    containing[0] ??
+    compatible.find((region) => region.kind === def.defaultRegionKind) ??
+    [...compatible].sort((left, right) => right.priority - left.priority)[0];
+  return evaluateRegionPlacement(state, id, roomId, chosen, rawPoint);
+}
+
+/**
+ * Deterministically resolve a valid default placement for a decoration in a
+ * room across every compatible region (used by purchase auto-place, Move To,
+ * and room reset). Prefers the decoration's default region kind, then the
+ * nearest collision-free spot on any other compatible support.
+ */
+export function defaultRegionPlacementFor(
+  state: GameState,
+  id: string,
+  roomId: string,
+  index = 0,
+): RegionPlacementCheck | null {
+  const def = DECORATIONS_BY_ID[id];
+  if (!def) return null;
+  const seed = defaultCompatiblePlacement(roomId, def, index);
+  if (seed) {
+    const direct = evaluateRegionPlacement(state, id, roomId, seed.region, seed.point);
+    if (direct?.ok) return direct;
+  }
+  const desired = seed?.point ?? { x: 0.5, y: 0.12 };
+  let nearest: { check: RegionPlacementCheck; distance: number } | null = null;
+  for (const region of compatibleRegionsForProfile(roomId, def)) {
+    const found = findValidRegionPlacement(state, id, roomId, region, desired);
+    if (!found?.ok) continue;
+    const distance = (found.point.x - desired.x) ** 2 + (found.point.y - desired.y) ** 2;
+    if (!nearest || distance < nearest.distance) nearest = { check: found, distance };
   }
   return nearest?.check ?? null;
 }

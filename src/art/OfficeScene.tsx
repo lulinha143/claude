@@ -20,12 +20,11 @@ import {
   decorationRoom,
   decorationInstance,
   roomComfort,
-  placementAt,
 } from '../sim/decorations';
-import { surfaceZ, decorationSurface, isRug } from '../sim/surfaces';
-import { evaluatePlacement, evaluateRegionPlacement } from '../sim/placement';
-import { compatibleRegionsForProfile, placementRegionById } from '../content/roomSurfaces';
-import type { PlacementAnchorMode, PlacementRegionKind } from '../sim/placementRegions';
+import { surfaceZ, decorationSurface, isRug, projectSurfaceType } from '../sim/surfaces';
+import { pointerRegionPlacement } from '../sim/placement';
+import { placementRegionById } from '../content/roomSurfaces';
+import { REGION_KIND_SURFACE, type PlacementAnchorMode, type PlacementRegionKind } from '../sim/placementRegions';
 import { characterSlots } from '../content/roomLayout';
 import { pickOfficeInteraction } from '../sim/officeLife';
 import { DecorationTray } from '../ui/DecorationTray';
@@ -444,11 +443,22 @@ export function OfficeScene() {
     return { room, valid: already || !full };
   }
 
-  function semanticFloorKind(id: string): 'floor' | 'rug-plane' | null {
-    const kind = DECORATIONS_BY_ID[id]?.defaultRegionKind;
-    return kind === 'floor' || kind === 'rug-plane' ? kind : null;
+  // The fraction down the source thumbnail that maps to the support point, so
+  // the ghost lines up with where the piece will actually render for every
+  // category: base-standing props contact near their foot, wall props hang from
+  // their centre, ceiling props drop from the top, rugs centre on their ellipse.
+  function grabAnchorRatio(id: string): number {
+    if (isRug(id)) return RUG_CENTER_RATIO;
+    const surface = projectSurfaceType(REGION_KIND_SURFACE[DECORATIONS_BY_ID[id]?.defaultRegionKind ?? 'floor']);
+    if (surface === 'wall') return 0.5;
+    if (surface === 'ceiling') return 0.04;
+    return STANDING_BASELINE_RATIO;
   }
 
+  // A single authoritative hit-test for EVERY category. The pointer resolves to
+  // the compatible support region it is over (floor, wall, ceiling, tabletop,
+  // shelf, or a room-specific special surface); the returned preview point is
+  // exactly what a drop will commit, so nothing floats or teleports.
   function decorationTarget(
     x: number,
     y: number,
@@ -460,15 +470,11 @@ export function OfficeScene() {
     if (!room || !def) return { room, valid: false };
     const roomValid =
       def.compatibleRooms.includes(room) && isRoomUnlocked(stateRef.current, ROOMS_BY_ID[room]);
-    const regionKind = semanticFloorKind(id);
-    if (!roomValid || !regionKind) return { room, valid: roomValid };
+    if (!roomValid) return { room, valid: false };
 
     const floorElement = document.querySelector<HTMLElement>(`.floor[data-room="${room}"]`);
     const stage = floorElement?.querySelector<HTMLElement>('.floor__stage');
-    const region = compatibleRegionsForProfile(room, def).find(
-      (candidate) => candidate.kind === regionKind,
-    );
-    if (!stage || !region) return { room, valid: false };
+    if (!stage) return { room, valid: false };
 
     const rect = stage.getBoundingClientRect();
     const anchorClientX = x - grabOffset.x;
@@ -477,13 +483,13 @@ export function OfficeScene() {
       x: (anchorClientX - rect.left) / Math.max(1, rect.width),
       y: (rect.bottom - anchorClientY) / Math.max(1, rect.height),
     };
-    const check = evaluateRegionPlacement(stateRef.current, id, room, region, rawPoint);
+    const check = pointerRegionPlacement(stateRef.current, id, room, rawPoint);
     if (!check) return { room, valid: false };
     const preview: DecorationDragPreview = {
       roomId: room,
-      regionId: region.id,
-      regionKind: region.kind,
-      anchorMode: region.anchorMode,
+      regionId: check.region.id,
+      regionKind: check.region.kind,
+      anchorMode: check.region.anchorMode,
       point: check.point,
       clientX: rect.left + check.point.x * rect.width,
       clientY: rect.bottom - check.point.y * rect.height,
@@ -559,12 +565,17 @@ export function OfficeScene() {
     const start = { x: e.clientX, y: e.clientY };
     const room = kind === 'decoration' ? decorationRoom(stateRef.current, id) : null;
     const sourceRect = source.getBoundingClientRect();
-    const anchorRatio = isRug(id) ? RUG_CENTER_RATIO : STANDING_BASELINE_RATIO;
+    const anchorRatio = kind === 'decoration' ? grabAnchorRatio(id) : STANDING_BASELINE_RATIO;
+    // Tray thumbnails are drawn at a different scale than the in-scene prop, so
+    // a baseline offset derived from the thumbnail would push the drop far off
+    // the (often short) room stage. Dragging a stored item instead drops it
+    // right under the cursor, which is both predictable and always on-surface.
+    const fromTray = Boolean(source.closest('.deco-tray') || source.closest('.floor__tray'));
     const grabOffset =
       kind === 'decoration'
         ? {
             x: start.x - (sourceRect.left + sourceRect.width / 2),
-            y: start.y - (sourceRect.top + sourceRect.height * anchorRatio),
+            y: fromTray ? 0 : start.y - (sourceRect.top + sourceRect.height * anchorRatio),
           }
         : { x: 0, y: 0 };
     let lastPreview: DecorationDragPreview | undefined;
@@ -736,58 +747,30 @@ export function OfficeScene() {
       return;
     }
 
-    // Floor props and rugs use the exact normalized semantic-region candidate
-    // already shown during live preview. No state mutates until this valid drop.
-    if (semanticFloorKind(id)) {
-      const preview = target?.preview;
-      if (!preview || !target?.valid || preview.roomId !== target.room) {
-        if (target?.room) {
-          notify('rooms', t(preview?.reasonKey ?? 'decorate.reject.invalid'), 'neutral');
-          audio.play('error');
-        }
-        return;
-      }
-      if (
-        engine.moveDecorationToRoom(
-          id,
-          preview.roomId,
-          preview.point.x,
-          preview.point.y,
-          preview.depth,
-        )
-      ) {
-        audio.play('place');
-        dustPuff(preview.clientX, preview.clientY);
-        setJustPlaced(id);
-        window.setTimeout(() => setJustPlaced((current) => (current === id ? null : current)), 320);
+    // Every category commits the exact normalized region candidate shown during
+    // the live preview — floor, wall, ceiling, tabletop, shelf, or a
+    // room-specific special surface. No state mutates until a valid drop, and an
+    // invalid release simply rolls back to the last committed placement.
+    const preview = target?.preview;
+    if (!preview || !target?.valid || preview.roomId !== target.room) {
+      if (target?.room) {
+        notify('rooms', t(preview?.reasonKey ?? 'decorate.reject.invalid'), 'neutral');
+        audio.play('error');
       }
       return;
     }
-
-    const floorEl = el?.closest('.floor[data-room]') as HTMLElement | null;
-    const overRoom = floorEl?.dataset.room ?? null;
-    if (!floorEl || !overRoom) return; // outside a room or tray: cancel without changing state
-    if (!def.compatibleRooms.includes(overRoom) || !engine.canMoveDecorationToRoom(id, overRoom)) {
-      notify('rooms', t('decorate.reject.incompatibleRoom'), 'neutral');
-      audio.play('error');
-      return;
-    }
-    // Legacy wall/ceiling placement remains intact until their semantic bands,
-    // rails, tables, and shelves are integrated in the next focused stage.
-    const stage = (floorEl.querySelector('.floor__stage') as HTMLElement | null) ?? floorEl;
-    const rect = stage.getBoundingClientRect();
-    const nx = (x - rect.left) / Math.max(1, rect.width);
-    const ny = (rect.bottom - y) / Math.max(1, rect.height); // 0 = floor line, 1 = top of wall
-    const final = placementAt(id, nx, ny);
-    const check = evaluatePlacement(stateRef.current, id, final.x, final.y, overRoom);
-    if (!check.ok) {
-      notify('rooms', t(check.reasonKey ?? 'decorate.reject.invalid'), 'neutral');
-      audio.play('error');
-      return;
-    }
-    if (engine.moveDecorationToRoom(id, overRoom, nx, ny)) {
+    if (
+      engine.moveDecorationToRoom(
+        id,
+        preview.roomId,
+        preview.point.x,
+        preview.point.y,
+        preview.depth,
+        preview.regionKind,
+      )
+    ) {
       audio.play('place');
-      dustPuff(x, y);
+      dustPuff(preview.clientX, preview.clientY);
       setJustPlaced(id);
       window.setTimeout(() => setJustPlaced((current) => (current === id ? null : current)), 320);
     }
@@ -1016,12 +999,7 @@ export function OfficeScene() {
                   <div
                     key={def.id}
                     data-deco={def.id}
-                    data-region={
-                      semanticFloorKind(def.id)
-                        ? `${room.id}:${semanticFloorKind(def.id)}:main`
-                        : undefined
-                    }
-                    data-region-kind={semanticFloorKind(def.id) ?? undefined}
+                    data-region-kind={decorationInstance(state, def.id)?.regionKind ?? undefined}
                     className={`floor__deco floor__deco--${placement.surface} ${
                       isRug(def.id) ? 'floor__deco--rug' : ''
                     } ${selected === def.id ? 'is-selected' : ''} ${
