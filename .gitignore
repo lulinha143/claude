@@ -42,3 +42,6 @@ steam/depot_windows.vdf
 steam/*.vdf
 !steam/*.example.vdf
 steamcmd/
+
+# local code-review + visual artifacts (never committed)
+semantic-review/
