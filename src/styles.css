@@ -1797,6 +1797,21 @@ select,
   background: radial-gradient(circle at 40% 30%, #a9743b, #6f4a2f);
   border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
 }
+/* motion-mode droplets get a gentle liquid wobble as they fall. The transform
+   keeps the same centre, so the catch hitbox is unchanged; auto-stilled under
+   reduced motion (where drops are tap targets instead). */
+.coffee__drop:not(.coffee__drop--tap) {
+  animation: mg-drop-jiggle 0.85s ease-in-out infinite;
+}
+@keyframes mg-drop-jiggle {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    transform: translate(-50%, -50%) scaleY(1.14) scaleX(0.9);
+  }
+}
 .coffee__drop--tap {
   width: 26px;
   height: 30px;
@@ -1840,6 +1855,18 @@ select,
 }
 .cable__crossings.is-clear {
   color: var(--positive);
+  animation: mg-count-pop 0.34s var(--ease-pop, var(--ease));
+}
+@keyframes mg-count-pop {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 .cable__board {
   position: relative;
@@ -1885,15 +1912,24 @@ select,
   cursor: grab;
   touch-action: none;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition:
+    border-color var(--dur-fast) var(--ease),
+    box-shadow var(--dur-fast) var(--ease);
 }
 .cable__node:hover {
   border-color: var(--accent);
+  box-shadow:
+    0 4px 9px rgba(0, 0, 0, 0.36),
+    0 0 0 3px color-mix(in srgb, var(--accent) 28%, transparent);
 }
 .cable__node:active {
   cursor: grabbing;
 }
 .cable__node.is-active {
   border-color: var(--gold);
+  box-shadow:
+    0 6px 14px rgba(0, 0, 0, 0.42),
+    0 0 0 3px color-mix(in srgb, var(--gold) 45%, transparent);
 }
 .cable__node:focus-visible {
   outline: 3px solid var(--gold);
@@ -4373,7 +4409,12 @@ img {
   z-index: 2;
   margin-bottom: 14%;
   transform-origin: bottom center;
-  animation: bug-pop 0.16s var(--ease);
+  /* spring out of the burrow, then keep a small nervous idle bob so an
+     un-squashed pest reads as "still here, tap me" (idle auto-disables under
+     reduced motion via the global kill-switch). */
+  animation:
+    bug-pop 0.18s var(--ease-pop, var(--ease)),
+    bug-bob 1.5s ease-in-out 0.18s infinite;
   filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.4));
 }
 .burrow.is-hit .bug {
@@ -4387,6 +4428,15 @@ img {
   to {
     transform: none;
     opacity: 1;
+  }
+}
+@keyframes bug-bob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-8%) rotate(2deg);
   }
 }
 @keyframes bug-squash {
