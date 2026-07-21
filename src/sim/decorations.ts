@@ -13,7 +13,11 @@ import {
   type DecorationSurface,
 } from './surfaces';
 import { compatibleRegionsForProfile, defaultCompatiblePlacement } from '../content/roomSurfaces';
-import { projectPointToRegion, type PlacementRegionKind } from './placementRegions';
+import {
+  clampPointToValidRegion,
+  projectPointToRegion,
+  type PlacementRegionKind,
+} from './placementRegions';
 
 // Decoration model
 // ----------------
@@ -399,8 +403,30 @@ function reconcileInstanceRegion(instance: DecorationInstance, def: DecorationDe
     return changed;
   }
 
-  // The stored point is on none of the item's compatible supports: it was saved
-  // on the wrong surface. Relocate it onto a tidy default of its default kind.
+  // Near-edge preservation: an item saved at a legacy band edge can fall just
+  // outside the (slightly tighter) v8 plane. If it only needs a small nudge back
+  // onto a compatible support, clamp it there and keep it rather than yanking it
+  // to a default slot — this protects the exact positions in existing saves.
+  const target = preferred ?? compatible[0];
+  if (target) {
+    const clamped = clampPointToValidRegion(target, point);
+    if (clamped && Math.hypot(clamped.point.x - point.x, clamped.point.y - point.y) <= 0.06) {
+      const surface = projectSurfaceType(target.surfaceType);
+      const changed =
+        instance.regionKind !== target.kind ||
+        instance.surfaceType !== surface ||
+        instance.normalizedX !== clamped.point.x ||
+        instance.normalizedY !== clamped.point.y;
+      instance.regionKind = target.kind;
+      instance.surfaceType = surface;
+      instance.normalizedX = clamped.point.x;
+      instance.normalizedY = clamped.point.y;
+      return changed;
+    }
+  }
+
+  // The stored point is genuinely on the wrong surface. Relocate it onto a tidy
+  // default of its default kind.
   const fallback = defaultCompatiblePlacement(instance.roomId, def);
   if (!fallback) {
     if (instance.regionKind === desiredKind) return false;

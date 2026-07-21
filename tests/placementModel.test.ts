@@ -133,6 +133,40 @@ describe('repairs saves with decorations stored on the wrong surface', () => {
   });
 });
 
+describe('capacity is charged to the support an item actually sits on', () => {
+  it('counts a multi-compatible prop against its placed plane, not its default', () => {
+    const engine = engineWith('desk-lamp', 'potted-fern');
+    // desk-lamp defaults to tabletop; place it on the FLOOR instead.
+    const floor = pointerRegionPlacement(engine.state, 'desk-lamp', ROOM, { x: 0.3, y: 0.12 });
+    expect(floor?.region.kind).toBe('floor');
+    expect(
+      engine.moveDecorationToRoom('desk-lamp', ROOM, floor!.point.x, floor!.point.y, floor!.depth, 'floor'),
+    ).toBe(true);
+    expect(decorationInstance(engine.state, 'desk-lamp')!.regionKind).toBe('floor');
+
+    // The tabletop plane must now read as empty (the lamp is on the floor), so a
+    // tabletop drop is still allowed.
+    const table = pointerRegionPlacement(engine.state, 'potted-fern', ROOM, { x: 0.5, y: 0.24 });
+    expect(table?.region.kind).toBe('tabletop');
+    expect(table?.ok).toBe(true);
+  });
+
+  it('lets an item already on a full plane be repositioned on that same plane', () => {
+    const engine = engineWith('potted-fern');
+    // Force the founder-desk rug plane (capacity 1) to be occupied by a rug…
+    engine.buyDecoration('tiny-rug');
+    const rug = decorationInstance(engine.state, 'tiny-rug')!;
+    expect(rug.regionKind).toBe('rug-plane');
+    // …then reposition that same rug: capacity must not block it moving.
+    const before = { x: rug.normalizedX, y: rug.normalizedY };
+    expect(engine.moveDecorationToRoom('tiny-rug', ROOM, 0.42, 0.14, 0, 'rug-plane')).toBe(true);
+    const after = decorationInstance(engine.state, 'tiny-rug')!;
+    expect(after.regionKind).toBe('rug-plane');
+    expect(after.roomId).toBe(ROOM);
+    expect({ x: after.normalizedX, y: after.normalizedY }).not.toEqual(before);
+  });
+});
+
 describe('v7 -> v8 migration stamps an explicit region kind', () => {
   it('derives regionKind from the catalogue default when absent', () => {
     const migrated = migrate({

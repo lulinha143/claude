@@ -1155,6 +1155,10 @@ export function OfficeScene() {
                     className="mini-btn"
                     onClick={() => {
                       if (engine.resetRoomDecorations(room.id)) audio.play('upgrade');
+                      else {
+                        notify('rooms', t('decorate.resetFull'), 'neutral');
+                        audio.play('error');
+                      }
                       setSelected(null);
                     }}
                   >

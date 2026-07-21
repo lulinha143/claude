@@ -46,7 +46,7 @@ import {
   pointerRegionPlacement,
 } from './placement';
 import type { RegionPlacementCheck } from './placement';
-import type { PlacementRegionKind } from './placementRegions';
+import { REGION_KIND_SURFACE, type PlacementRegionKind } from './placementRegions';
 import { compatibleRegionsForProfile } from '../content/roomSurfaces';
 
 /** A single employee's measured change from an event choice (WHAT CHANGED). */
@@ -862,7 +862,14 @@ export class GameEngine {
     const instance = syncDecorationInstanceFromPlacement(this.state, id);
     if (!instance) return false;
     instance.roomId = roomId;
-    instance.regionKind = regionKindForSurface(placement.surface);
+    // Prefer the catalogue's semantic default kind when it projects to the same
+    // legacy surface (so a rug stays a rug-plane, a lamp a tabletop), else fall
+    // back to the coarse surface→kind mapping.
+    const legacyDef = DECORATIONS_BY_ID[id];
+    instance.regionKind =
+      legacyDef && projectSurfaceType(REGION_KIND_SURFACE[legacyDef.defaultRegionKind]) === placement.surface
+        ? legacyDef.defaultRegionKind
+        : regionKindForSurface(placement.surface);
     if (depth !== undefined) {
       instance.depth = depth;
     } else {

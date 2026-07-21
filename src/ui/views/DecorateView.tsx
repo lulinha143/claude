@@ -18,6 +18,7 @@ import { decorKind, DecorationProp, type DecorKind } from '../../art/DecorationP
 import { Icon } from '../../art/UiIcon';
 import { Acorn, GoldenNut } from '../../art/Icons';
 import { sparkleAt } from '../sparkle';
+import { notify } from '../notificationsStore';
 import { MoveDecorationModal } from '../modals/MoveDecorationModal';
 
 type RoomFilter = 'all' | string;
@@ -160,6 +161,10 @@ export function DecorateView() {
             className="tag-btn decorate__tidy"
             onClick={() => {
               if (engine.resetRoomDecorations(room)) audio.play('upgrade');
+              else {
+                notify('rooms', t('decorate.resetFull'), 'neutral');
+                audio.play('error');
+              }
             }}
             title={t('decorate.resetRoom')}
           >

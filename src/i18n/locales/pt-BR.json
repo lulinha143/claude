@@ -127,6 +127,7 @@
     "remove": "Remover",
     "stow": "Guardar",
     "resetRoom": "Arrumar",
+    "resetFull": "Esta sala está lotada — guarde algumas peças e arrume novamente.",
     "moveTo": "Mover para…",
     "moveToTitle": "Mover {{item}}",
     "moveToHelp": "Escolha qualquer sala compatível e desbloqueada. Esta opção também substitui o arrasto pelo teclado ou toque.",

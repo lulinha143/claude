@@ -17,7 +17,7 @@ import {
 import { regionArea } from './placementRegions';
 import { DECORATIONS_BY_ID } from '../content/decorations';
 import { decorationSurface, isRug } from './surfaces';
-import { placedDecorationsInRoom } from './decorations';
+import { placedDecorationsInRoom, decorationInstance } from './decorations';
 import { employeesInRoom } from './rooms';
 import { characterSlots } from '../content/roomLayout';
 import { compatibleRegionsForProfile, defaultCompatiblePlacement } from '../content/roomSurfaces';
@@ -277,11 +277,21 @@ export function evaluateRegionPlacement(
     constrained.point.y - rawPoint.y,
   );
   const rawFits = clampDistance <= RAW_POINTER_TOLERANCE;
-  const occupants = placedDecorationsInRoom(state, roomId).filter(
-    (other) => other.def.id !== id && other.def.defaultRegionKind === region.kind,
-  );
+  // Count occupants by the support they ACTUALLY sit on (their instance's
+  // regionKind), not their catalogue default — a multi-compatible prop placed
+  // off its default kind must charge the plane it is really on.
+  const occupants = placedDecorationsInRoom(state, roomId).filter((other) => {
+    if (other.def.id === id) return false;
+    const kind = decorationInstance(state, other.def.id)?.regionKind ?? other.def.defaultRegionKind;
+    return kind === region.kind;
+  });
+  // Repositioning a piece already living on this support does not add to the
+  // count, so it stays possible even when the plane is at (or over) capacity —
+  // otherwise a migrated, over-full room could never be tidied or rearranged.
+  const current = decorationInstance(state, id);
+  const repositioning = current?.roomId === roomId && current?.regionKind === region.kind;
   const capacityReached =
-    region.capacity !== undefined && occupants.length >= region.capacity;
+    region.capacity !== undefined && !repositioning && occupants.length >= region.capacity;
   const collision = capacityReached
     ? { ok: false, reasonKey: 'decorate.reject.occupied' }
     : evaluatePlacement(state, id, constrained.point.x, constrained.point.y, roomId);

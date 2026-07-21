@@ -127,6 +127,7 @@
     "remove": "Remove",
     "stow": "Stow",
     "resetRoom": "Tidy up",
+    "resetFull": "This room is packed — stow a few pieces, then tidy up again.",
     "moveTo": "Move To…",
     "moveToTitle": "Move {{item}}",
     "moveToHelp": "Choose any unlocked compatible room. This is also the keyboard and touch alternative to dragging.",

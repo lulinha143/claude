@@ -179,6 +179,11 @@ export function CableUntangle({ seed, reducedMotion, paused, onScore, onCombo, o
   useEffect(() => {
     if (!paused) return;
     cancelActiveDrag();
+    // Don't let a queued reward chirp fire while the game is paused/hidden.
+    if (rewardTimer.current) {
+      clearTimeout(rewardTimer.current);
+      rewardTimer.current = null;
+    }
   }, [cancelActiveDrag, paused]);
 
   const loadNext = useCallback(
