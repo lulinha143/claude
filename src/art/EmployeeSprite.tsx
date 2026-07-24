@@ -24,18 +24,10 @@ export interface EmployeeSpriteProps {
   reducedMotion: boolean;
   /** Rendered height in px (before the global --asset-scale multiplier). */
   height: number;
-  /** Accessible label (the wrapping control usually supplies its own). */
-  title?: string;
   className?: string;
 }
 
-function EmployeeSpriteImpl({
-  config,
-  reducedMotion,
-  height,
-  title,
-  className,
-}: EmployeeSpriteProps) {
+function EmployeeSpriteImpl({ config, reducedMotion, height, className }: EmployeeSpriteProps) {
   const width = Math.round((height * config.frameWidth) / config.frameHeight);
   const file = reducedMotion ? config.poster : config.src;
   // Push any authored bottom padding below the floor line so the character's
@@ -46,7 +38,9 @@ function EmployeeSpriteImpl({
     <img
       className={`employee-sprite ${className ?? ''}`}
       src={`${BASE}${file}`}
-      alt={title ?? ''}
+      // Decorative: the wrapping button / roster card already names the
+      // employee, so an empty alt avoids a duplicate screen-reader announcement.
+      alt=""
       width={width}
       height={height}
       draggable={false}
@@ -68,7 +62,6 @@ export const EmployeeSprite = memo(EmployeeSpriteImpl, (a, b) => {
     a.config === b.config &&
     a.reducedMotion === b.reducedMotion &&
     a.height === b.height &&
-    a.title === b.title &&
     a.className === b.className
   );
 });

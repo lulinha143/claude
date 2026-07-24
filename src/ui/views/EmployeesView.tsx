@@ -68,7 +68,6 @@ export function EmployeesView() {
                     // (unless the player prefers reduced motion).
                     reducedMotion={state.settings.reducedMotion || !rt.hired}
                     height={sprite.cardHeight}
-                    title={rt.nickname ?? t(def.nameKey)}
                   />
                 ) : (
                   <Critter

@@ -42,6 +42,42 @@ The gameplay never imports SVG internals. The rendering boundary is:
 3. Load a sprite atlas keyed by `employeeId` + `CritterState`; drive frames from
    the state machine. No changes to `src/sim` or `src/content` are required.
 
+## Final animated employee sprites (implemented)
+
+The first final character asset (Bea the beaver) ships as an **animated PNG
+(APNG)** and is wired through a small, reusable per-employee pipeline. This is
+the path to give every animal its own final art without any per-employee code:
+
+1. **Drop the files in `public/employees/`** — the animated `…​.png` (APNG) plus a
+   `…​-poster.png` still frame. They are served verbatim via `BASE_URL` (never
+   bundled/transformed by Vite), exactly like the office background, so the
+   animation, transparency, colours and timing are preserved end-to-end.
+2. **Register the sprite** in `src/art/employeeSprites.ts` (`EMPLOYEE_SPRITES`):
+   the source/poster paths, the intrinsic frame size, the in-office and roster
+   render heights, and the anchor/baseline used to seat the character on its
+   floor slot. Nothing else changes.
+3. `src/art/EmployeeSprite.tsx` renders the APNG in a `<img>` (browser-native
+   autoplay + infinite loop). It is **memoised on stable props** so the office
+   can re-render every animation frame without ever recreating the element —
+   the loop therefore never restarts on ordinary React churn. It swaps to the
+   static poster when the player prefers reduced motion, matching the office
+   background's behaviour.
+4. `OfficeScene` (diorama + drag ghost) and `EmployeesView` (roster card) prefer
+   a registered sprite and otherwise fall back to the code-drawn `Critter` SVG,
+   so animals without final art keep their placeholder silhouette.
+
+`scripts/verify-assets.mjs` fails the build if a registered sprite is missing or
+has regressed into a static PNG (it checks for the APNG `acTL` chunk).
+
+### Optimising a delivered APNG for shipping
+
+Raw exports are often huge (Bea's source was ~103 MB). Optimise **without
+flattening the animation** by trimming uniform transparent padding, scaling to a
+display-appropriate size (~384 px), quantising every frame against **one shared
+palette** (pngquant, so colours never pop between frames and alpha edges stay
+smooth), and re-assembling a looping APNG that keeps all frames, `num_plays = 0`
+and the original per-frame delays. Bea's ships at ~6 MB with all 121 frames.
+
 ## Replacing audio
 
 Swap `AudioManager.play()` in `src/audio/audio.ts` to play decoded audio buffers

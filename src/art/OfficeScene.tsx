@@ -131,12 +131,7 @@ function GhostCritter({ id, reducedMotion }: { id: string; reducedMotion: boolea
   const d = EMPLOYEES_BY_ID[id];
   if (sprite) {
     return (
-      <EmployeeSprite
-        config={sprite}
-        reducedMotion={reducedMotion}
-        height={sprite.officeHeight}
-        title={d ? undefined : id}
-      />
+      <EmployeeSprite config={sprite} reducedMotion={reducedMotion} height={sprite.officeHeight} />
     );
   }
   const sh = shapeFor(id);
@@ -1157,7 +1152,6 @@ export function OfficeScene() {
                           config={sprite}
                           reducedMotion={reducedMotion}
                           height={sprite.officeHeight}
-                          title={label}
                         />
                       ) : (
                         <Critter
