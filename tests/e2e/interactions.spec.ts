@@ -113,8 +113,10 @@ test('employee hover, focus, activation, movement, and celebration states keep t
   await boot(page);
   const founder = page.locator('.floor[data-room="founder-desk"]');
   await founder.scrollIntoViewIfNeeded();
-  const pip = founder.locator('.critter-btn[aria-label="Pip"]');
-  const marlow = founder.locator('.critter-btn[aria-label="Marlow"]');
+  const pip = founder.getByRole('button', { name: /^Pip,\s/i });
+  const marlow = founder.getByRole('button', { name: /^Marlow,\s/i });
+  await expect(pip).toHaveAttribute('aria-label', /^Pip,\s.+/i);
+  await expect(marlow).toHaveAttribute('aria-label', /^Marlow,\s.+/i);
   const pipCritter = pip.locator('svg.critter');
   const marlowCritter = marlow.locator('svg.critter');
 
@@ -382,7 +384,10 @@ test('blur, focus, lost pointer streams, popups, and arrange mode never leave in
 
   // The unified cancellation path also protects employee state: a swallowed
   // Pip release must neither move him nor leak the trailing pet click.
-  const pip = page.locator('.floor[data-room="founder-desk"] .critter-btn[aria-label="Pip"]');
+  const pip = page
+    .locator('.floor[data-room="founder-desk"]')
+    .getByRole('button', { name: /^Pip,\s/i });
+  await expect(pip).toHaveAttribute('aria-label', /^Pip,\s.+/i);
   await pip.scrollIntoViewIfNeeded();
   await expect(pip).toBeVisible();
   const pipFriendshipBefore = await page.evaluate(

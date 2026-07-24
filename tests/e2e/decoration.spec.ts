@@ -244,9 +244,9 @@ test.describe('decoration free-placement', () => {
     await page.mouse.move(sx, sy);
     await page.mouse.down();
     await page.mouse.move(sx + 12, sy + 4, { steps: 3 });
-    await expect(page.locator('.floor[data-room="morale"]')).toHaveClass(/is-drop-target/);
+    await expect(page.locator('.floor[data-room="morale"]')).toHaveClass(/is-deco-target/);
     await page.mouse.move(tx, ty, { steps: 10 });
-    await expect(page.locator('.floor[data-room="morale"]')).toHaveClass(/is-drop-hover/);
+    await expect(page.locator('.floor[data-room="morale"]')).toHaveClass(/is-deco-hover/);
     await page.mouse.up();
 
     await expect(page.locator('.floor[data-room="founder-desk"] [data-deco="potted-fern"]')).toHaveCount(0);

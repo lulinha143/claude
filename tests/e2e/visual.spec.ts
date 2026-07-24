@@ -1,5 +1,8 @@
-import { test, type Page } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { ACHIEVEMENTS } from '../../src/content/achievements';
+import { ROOMS } from '../../src/content/rooms';
+import { DECORATIONS } from '../../src/content/decorations';
+import { EMPLOYEES } from '../../src/content/employees';
 
 // Visual-capture harness. Unlike smoke.spec, this does not assert — it seeds a
 // rich save, drives the app to each key screen at a matrix of window sizes and
@@ -31,6 +34,30 @@ const RICH_SAVE = {
     moments: [],
     secrets: ['deco:potted-fern', 'deco:desk-lamp', 'deco:mini-couch', 'deco:water-cooler', 'deco:whiteboard'],
   },
+};
+
+// Exhaustive art-direction fixture: every department is unlocked but no one
+// and nothing has been added by the player. Each room capture therefore proves
+// the authored composition can stand on its own before customization.
+const EMPTY_ROOM_REVIEW_SAVE = {
+  ...RICH_SAVE,
+  settings: { language: 'en', reducedMotion: true, fontScale: 1, uiScale: 1 },
+  upgrades: {
+    'room-sorting': 1,
+    'room-lab': 1,
+    'room-vault': 1,
+    'room-meeting': 1,
+    'room-basement': 1,
+  },
+  employees: Object.fromEntries(
+    EMPLOYEES.map((employee) => [
+      employee.id,
+      { hired: false, level: 1, friendship: 0, room: null, x: 0.5 },
+    ]),
+  ),
+  collections: { nuts: [], outfits: [], logos: [], moments: [], secrets: [] },
+  placements: {},
+  decorationInstances: [],
 };
 
 const VIEWPORTS: { name: string; w: number; h: number }[] = [
@@ -191,5 +218,45 @@ test('pt-BR localization capture', async ({ page }) => {
     await settings.click();
     await page.waitForTimeout(300);
     await shot(page, 'settings-ptBR');
+  }
+});
+
+// Exhaustive per-room review. This is deliberately one room per artifact—not
+// a tall overview—so lighting, negative space, built-ins and surface readability
+// can be judged at the size the player actually sees.
+test('every undecorated room is captured individually for art direction review', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await seed(page, EMPTY_ROOM_REVIEW_SAVE);
+  await page.goto('/');
+  await page.locator('.office').first().waitFor({ timeout: 15_000 });
+  await clearModals(page);
+
+  for (const definition of ROOMS) {
+    const room = page.locator(`.floor[data-room="${definition.id}"]`);
+    await expect(room, `${definition.id} should be unlocked and rendered`).toHaveCount(1);
+    await room.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(120);
+    await room.screenshot({ path: `${DIR}/review/rooms/${definition.id}.png` });
+  }
+});
+
+// Exhaustive per-item catalogue review. Cards use the real sprite renderer,
+// authored scale, surface stage, department accent and localized product name.
+test('every decoration is captured individually for catalogue art review', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await seed(page, EMPTY_ROOM_REVIEW_SAVE);
+  await page.goto('/');
+  await page.locator('.office').first().waitFor({ timeout: 15_000 });
+  await clearModals(page);
+  await page.getByRole('button', { name: /^Decorate$/i }).click();
+
+  const cards = page.locator('.decocard');
+  await expect(cards).toHaveCount(DECORATIONS.length);
+  for (const definition of DECORATIONS) {
+    const card = page.locator(`.decocard[data-decoration="${definition.id}"]`);
+    await expect(card, `${definition.id} should have a catalogue card`).toHaveCount(1);
+    await card.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(80);
+    await card.screenshot({ path: `${DIR}/review/decorations/${definition.id}.png` });
   }
 });
