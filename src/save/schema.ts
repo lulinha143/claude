@@ -48,11 +48,8 @@ const decorationInstanceSchema = z.object({
   instanceId: z.string().min(1),
   decorationId: z.string().min(1),
   roomId: z.string().nullable().catch(null),
-  surfaceType: z.enum(['floor', 'wall', 'table', 'ceiling', 'shelf']).catch('floor'),
-  regionKind: z
-    .enum(['floor', 'rug-plane', 'wall', 'ceiling-rail', 'tabletop', 'shelf', 'special'])
-    .optional()
-    .catch(undefined),
+  surfaceType: z.enum(['floor', 'wall', 'ceiling']).catch('floor'),
+  regionKind: z.enum(['floor', 'wall', 'ceiling']).optional().catch(undefined),
   normalizedX: z.number().min(0).max(1).catch(0.5),
   normalizedY: z.number().min(0).max(1).catch(0.1),
   depth: z.number().finite().catch(0),

@@ -171,7 +171,7 @@ export interface GameSettings {
 }
 
 /** Stable persisted decoration instance. Coordinates are normalized to its destination surface. */
-export type DecorationSurfaceType = 'floor' | 'wall' | 'table' | 'ceiling' | 'shelf';
+export type DecorationSurfaceType = 'floor' | 'wall' | 'ceiling';
 
 export interface DecorationInstance {
   instanceId: string;
@@ -180,10 +180,9 @@ export interface DecorationInstance {
   roomId: string | null;
   surfaceType: DecorationSurfaceType;
   /**
-   * Authoritative semantic support the item is placed on (floor, wall,
-   * ceiling-rail, tabletop, shelf, rug-plane, special). `surfaceType` is the
-   * legacy floor/wall/ceiling projection derived from this for the renderer and
-   * old-save compatibility; `regionKind` is the source of truth for geometry.
+   * The single placement surface the item lives on: floor, wall or ceiling.
+   * `surfaceType` mirrors this for the renderer/old-save compatibility;
+   * `regionKind` is the source of truth for the placement geometry.
    */
   regionKind?: PlacementRegionKind;
   normalizedX: number;

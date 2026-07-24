@@ -31,16 +31,15 @@ describe('per-decoration placement specifications', () => {
     }
   });
 
-  it('aligns each item anchor with the physical surface of its default region', () => {
+  it('aligns each item anchor with its single placement surface', () => {
     for (const def of DECORATIONS) {
       const s = placementSpec(def.id);
       const surface = projectSurfaceType(REGION_KIND_SURFACE[def.defaultRegionKind]);
+      // Wall pieces mount at their centre, ceiling pieces hang, floor pieces
+      // (including flat rugs) stand on a base.
       if (surface === 'wall') expect(s.anchor, def.id).toBe('center');
-      if (def.defaultRegionKind === 'ceiling-rail') expect(s.anchor, def.id).toBe('hanging');
-      // Floor / tabletop / shelf / rug / special-floor items stand on a base.
-      if (surface === 'floor' && def.defaultRegionKind !== 'ceiling-rail') {
-        expect(s.anchor, def.id).toBe('base');
-      }
+      if (surface === 'ceiling') expect(s.anchor, def.id).toBe('hanging');
+      if (surface === 'floor') expect(s.anchor, def.id).toBe('base');
     }
   });
 

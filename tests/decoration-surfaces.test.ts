@@ -25,18 +25,12 @@ import {
 } from '../src/sim/placementRegions';
 import { decorationSurface, isRug } from '../src/sim/surfaces';
 
-const KINDS: PlacementRegionKind[] = [
-  'floor',
-  'rug-plane',
-  'wall',
-  'ceiling-rail',
-  'tabletop',
-  'shelf',
-  'special',
-];
+// The placement model exposes exactly three surfaces — floor, wall, ceiling —
+// and each spans its entire extent in every room.
+const KINDS: PlacementRegionKind[] = ['floor', 'wall', 'ceiling'];
 
-describe('room-specific normalized placement regions', () => {
-  it('defines every semantic support once for every room', () => {
+describe('full-surface placement regions', () => {
+  it('defines exactly floor/wall/ceiling once for every room', () => {
     expect(Object.keys(ROOM_SURFACES).sort()).toEqual(ROOMS.map((room) => room.id).sort());
     expect(new Set(ALL_ROOM_SURFACES.map((region) => region.id)).size).toBe(
       ALL_ROOM_SURFACES.length,
@@ -52,21 +46,18 @@ describe('room-specific normalized placement regions', () => {
     }
   });
 
-  it('keeps every authored plane, exclusion, depth, and capacity finite and normalized', () => {
+  it('keeps every authored plane, depth and capacity finite and normalized', () => {
     for (const region of ALL_ROOM_SURFACES) {
       expect(isNormalizedPlane(region.plane), region.id).toBe(true);
-      expect(region.surfaceType, region.id).toBe(
-        region.kind === 'special' ? region.surfaceType : REGION_KIND_SURFACE[region.kind],
-      );
+      expect(region.surfaceType, region.id).toBe(REGION_KIND_SURFACE[region.kind]);
       expect(Number.isFinite(region.depth.min), region.id).toBe(true);
       expect(Number.isFinite(region.depth.max), region.id).toBe(true);
       expect(region.depth.min, region.id).toBeLessThanOrEqual(region.depth.default);
       expect(region.depth.default, region.id).toBeLessThanOrEqual(region.depth.max);
       expect(region.capacity ?? 1, region.id).toBeGreaterThan(0);
       expect(region.tags.length, region.id).toBeGreaterThan(0);
-      for (const exclusion of region.exclusions) {
-        expect(isNormalizedPlane(exclusion.plane), exclusion.id).toBe(true);
-      }
+      // No sub-surface exclusions: the whole surface is usable.
+      expect(region.exclusions.length, region.id).toBe(0);
     }
   });
 
@@ -88,23 +79,25 @@ describe('room-specific normalized placement regions', () => {
     expect(projectPointToRegion(floor, clamped.point).inside).toBe(true);
     expect(clampToRoomRegion(floor.id, { x: -4, y: 8 })?.point).toEqual(clamped.point);
 
+    // A point below the wall band clamps up onto the wall.
     const wall = regionsForKinds('founder-desk', ['wall'])[0];
-    const windowSafe = clampToRoomRegion(wall.id, { x: 0.8, y: 0.69 });
-    expect(windowSafe).not.toBeNull();
-    expect(windowSafe!.point).not.toEqual({ x: 0.8, y: 0.69 });
-    expect(regionContainsPoint(wall, windowSafe!.point)).toBe(true);
+    const belowWall = clampToRoomRegion(wall.id, { x: 0.5, y: 0.1 });
+    expect(belowWall).not.toBeNull();
+    expect(regionContainsPoint(wall, belowWall!.point)).toBe(true);
     expect(clampToRoomRegion('missing-region', { x: 0.5, y: 0.5 })).toBeNull();
   });
 
-  it('selects the highest-priority compatible support under the pointer', () => {
-    const table = regionsForKinds('meeting', ['tabletop'])[0];
-    const point = pointOnRegion(table, 0.5, 0.5);
-    expect(regionAtPoint('meeting', point, ['tabletop'])?.id).toBe(table.id);
-    expect(regionAtPoint('meeting', point, ['wall'])?.kind).not.toBe('tabletop');
+  it('selects the surface under the pointer and only that surface', () => {
+    const floor = regionsForKinds('meeting', ['floor'])[0];
+    const floorPoint = pointOnRegion(floor, 0.5, 0.5);
+    expect(regionAtPoint('meeting', floorPoint, ['floor'])?.id).toBe(floor.id);
+    // A floor point is not inside the wall band.
+    const wall = regionsForKinds('meeting', ['wall'])[0];
+    expect(regionContainsPoint(wall, floorPoint)).toBe(false);
 
-    const wall = regionsForKinds('founder-desk', ['wall'])[0];
-    expect(regionContainsPoint(wall, { x: 0.8, y: 0.69 })).toBe(false);
-    expect(regionAtPoint('founder-desk', { x: 0.8, y: 0.69 }, ['wall'])).toBeNull();
+    const wallPoint = pointOnRegion(wall, 0.5, 0.5);
+    expect(regionAtPoint('meeting', wallPoint, ['wall'])?.id).toBe(wall.id);
+    expect(regionContainsPoint(floor, wallPoint)).toBe(false);
   });
 
   it('returns exclusion-safe unique defaults up to every region capacity', () => {
@@ -134,61 +127,65 @@ describe('room-specific normalized placement regions', () => {
   });
 });
 
-describe('decoration semantic support metadata', () => {
-  it('retains the legacy 19 floor, 10 wall, and 3 ceiling projection split', () => {
+describe('decoration surface metadata', () => {
+  it('keeps the 19 floor / 10 wall / 3 ceiling split', () => {
     const counts = { floor: 0, wall: 0, ceiling: 0 };
     for (const decoration of DECORATIONS) counts[decorationSurface(decoration.id)] += 1;
     expect(counts).toEqual({ floor: 19, wall: 10, ceiling: 3 });
     expect(DECORATIONS.filter((decoration) => isRug(decoration.id))).toHaveLength(2);
   });
 
-  it('explicitly assigns current assets across all seven semantic region categories', () => {
+  it('assigns every asset to exactly one of the three surfaces', () => {
     const defaults = new Set(DECORATIONS.map((decoration) => decoration.defaultRegionKind));
     expect(defaults).toEqual(new Set(KINDS));
 
     for (const decoration of DECORATIONS) {
-      expect(decoration.compatibleRegionKinds, decoration.id).toContain(
-        decoration.defaultRegionKind,
-      );
+      // Exactly one valid surface — no multi-surface props.
+      expect(decoration.compatibleRegionKinds, decoration.id).toEqual([decoration.defaultRegionKind]);
+      expect(decoration.compatibleSurfaces, decoration.id).toEqual([
+        decorationSurface(decoration.id),
+      ]);
+      expect(decoration.compatibleRegionSurfaces, decoration.id).toEqual([
+        REGION_KIND_SURFACE[decoration.defaultRegionKind],
+      ]);
       for (const roomId of decoration.compatibleRooms) {
         expect(
           compatibleRegionsForProfile(roomId, decoration).length,
           `${decoration.id} in ${roomId}`,
-        ).toBeGreaterThan(0);
+        ).toBe(1);
       }
     }
   });
 
-  it('classifies representative floor, rug, wall, hanging, tabletop, shelf, and special assets', () => {
+  it('classifies representative floor, rug, wall and ceiling assets', () => {
     const expected: Record<string, PlacementRegionKind> = {
       'potted-fern': 'floor',
-      'tiny-rug': 'rug-plane',
+      'tiny-rug': 'floor',
       'motivational-poster': 'wall',
-      chandelier: 'ceiling-rail',
-      'desk-lamp': 'tabletop',
-      'conveyor-plushie': 'shelf',
-      hammock: 'special',
+      chandelier: 'ceiling',
+      'desk-lamp': 'floor',
+      'conveyor-plushie': 'floor',
+      hammock: 'floor',
+      hologram: 'ceiling',
+      'star-ceiling': 'ceiling',
+      projector: 'wall',
     };
     for (const [id, kind] of Object.entries(expected)) {
-      expect(DECORATIONS.find((decoration) => decoration.id === id)?.defaultRegionKind).toBe(kind);
+      expect(DECORATIONS.find((decoration) => decoration.id === id)?.defaultRegionKind, id).toBe(kind);
     }
   });
 
-  it('constrains special supports by physical surface and room tags with a portable fallback', () => {
-    const hammock = DECORATIONS.find((decoration) => decoration.id === 'hammock')!;
-    expect(defaultCompatiblePlacement('nap', hammock)?.region.kind).toBe('special');
-    expect(defaultCompatiblePlacement('marketing', hammock)?.region.kind).toBe('floor');
-
-    const garden = DECORATIONS.find((decoration) => decoration.id === 'rooftop-garden-bed')!;
-    expect(defaultCompatiblePlacement('rooftop', garden)?.region.kind).toBe('special');
-    expect(defaultCompatiblePlacement('lab', garden)?.region.kind).toBe('floor');
-  });
-
-  it('keeps every legacy projection surface represented in semantic compatibility', () => {
-    for (const decoration of DECORATIONS) {
-      expect(decoration.compatibleRegionSurfaces, decoration.id).toContain(
-        decorationSurface(decoration.id),
-      );
+  it('places every asset on its single surface in any compatible room', () => {
+    const cases: Array<{ id: string; kind: PlacementRegionKind }> = [
+      { id: 'hammock', kind: 'floor' },
+      { id: 'rooftop-garden-bed', kind: 'floor' },
+      { id: 'chandelier', kind: 'ceiling' },
+      { id: 'motivational-poster', kind: 'wall' },
+    ];
+    for (const { id, kind } of cases) {
+      const def = DECORATIONS.find((decoration) => decoration.id === id)!;
+      expect(defaultCompatiblePlacement('nap', def)?.region.kind, id).toBe(kind);
+      expect(defaultCompatiblePlacement('marketing', def)?.region.kind, id).toBe(kind);
     }
   });
 

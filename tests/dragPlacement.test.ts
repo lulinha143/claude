@@ -44,19 +44,23 @@ describe('real-time drag clamping is continuous (smooth, never jumps)', () => {
   });
 });
 
-describe('drag hysteresis avoids flicker between overlapping compatible planes', () => {
-  it('sticks to the preferred region when the pointer is inside several', () => {
-    const engine = engineWith('potted-fern'); // floor + tabletop + shelf
-    // (0.5, 0.24) sits inside BOTH the floor plane and the founder tabletop plane.
+describe('each decoration resolves to its single compatible surface', () => {
+  it('always previews on its one surface, ignoring an incompatible preference', () => {
+    const engine = engineWith('potted-fern'); // floor only
     const point = { x: 0.5, y: 0.24 };
     const neutral = pointerRegionPlacement(engine.state, 'potted-fern', ROOM, point);
-    const stayFloor = pointerRegionPlacement(engine.state, 'potted-fern', ROOM, point, 'floor');
-    const stayTable = pointerRegionPlacement(engine.state, 'potted-fern', ROOM, point, 'tabletop');
+    // A wall preference cannot apply to a floor-only item — it stays on the floor.
+    const preferWall = pointerRegionPlacement(engine.state, 'potted-fern', ROOM, point, 'wall');
     expect(neutral).not.toBeNull();
-    // With no preference the highest-priority containing support wins (tabletop).
-    expect(neutral!.region.kind).toBe('tabletop');
-    // With a preference, an already-targeted support keeps the preview steady.
-    expect(stayFloor!.region.kind).toBe('floor');
-    expect(stayTable!.region.kind).toBe('tabletop');
+    expect(neutral!.region.kind).toBe('floor');
+    expect(preferWall!.region.kind).toBe('floor');
+  });
+
+  it('resolves a wall item to the wall and a ceiling item to the ceiling', () => {
+    const engine = engineWith('motivational-poster', 'chandelier');
+    const wall = pointerRegionPlacement(engine.state, 'motivational-poster', ROOM, { x: 0.5, y: 0.6 });
+    expect(wall!.region.kind).toBe('wall');
+    const ceiling = pointerRegionPlacement(engine.state, 'chandelier', ROOM, { x: 0.5, y: 0.9 });
+    expect(ceiling!.region.kind).toBe('ceiling');
   });
 });

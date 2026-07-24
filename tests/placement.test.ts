@@ -118,19 +118,20 @@ describe('semantic floor and rug placement previews', () => {
     expect(decorationFootprintFitsRegion('potted-fern', floor, constrained!.point)).toBe(true);
   });
 
-  it('constrains the complete rug footprint and keeps it beneath standing props', () => {
+  it('constrains the complete rug footprint and keeps it flat beneath standing props', () => {
     const state = createInitialState(0);
     const engine = new GameEngine(state, { deterministic: true });
     engine.buyDecoration('tiny-rug');
-    const rug = regionsForKinds('founder-desk', ['rug-plane'])[0];
-    const preview = evaluateRegionPlacement(state, 'tiny-rug', 'founder-desk', rug, {
+    // Rugs live on the floor surface but render flat, under everything (depth 0).
+    const floor = regionsForKinds('founder-desk', ['floor'])[0];
+    const preview = evaluateRegionPlacement(state, 'tiny-rug', 'founder-desk', floor, {
       x: 0.5,
       y: 0.14,
     });
     expect(preview).not.toBeNull();
     expect(preview!.ok).toBe(true);
     expect(preview!.depth).toBe(0);
-    expect(decorationFootprintFitsRegion('tiny-rug', rug, preview!.point)).toBe(true);
+    expect(decorationFootprintFitsRegion('tiny-rug', floor, preview!.point)).toBe(true);
   });
 
   it('returns a constrained but invalid preview at an outside pointer for exact rollback', () => {
@@ -195,72 +196,33 @@ describe('semantic floor and rug placement previews', () => {
     ).toBe(5);
   });
 
-  it('enforces the single-rug capacity of an authored rug plane', () => {
+  it('allows multiple rugs on the floor and never lets them block other props', () => {
     const engine = new GameEngine(createInitialState(0), { deterministic: true });
-    engine.state.resources.nuts = 10_000;
-    engine.state.resources.goldenNuts = 10;
+    engine.state.resources.nuts = 100_000;
+    engine.state.resources.goldenNuts = 100;
     expect(engine.buyDecoration('tiny-rug')).toBe(true);
     expect(engine.buyDecoration('gold-carpet')).toBe(true);
-
-    const rug = regionsForKinds('founder-desk', ['rug-plane'])[0];
-    const preview = evaluateRegionPlacement(
-      engine.state,
-      'gold-carpet',
-      'founder-desk',
-      rug,
-      { x: 0.5, y: 0.12 },
-    );
-    expect(preview?.ok).toBe(false);
-    expect(preview?.reasonKey).toBe('decorate.reject.occupied');
-    expect(engine.moveDecorationToRoom('gold-carpet', 'founder-desk', 0.5, 0.12, 0)).toBe(false);
-    expect(
-      engine.state.decorationInstances.find((instance) => instance.decorationId === 'gold-carpet')
-        ?.roomId,
-    ).not.toBe('founder-desk');
+    // Two rugs can coexist on the floor (flat underlays pass through collision).
+    expect(engine.moveDecorationToRoom('tiny-rug', 'founder-desk', 0.35, 0.12, 0, 'floor')).toBe(true);
+    expect(engine.moveDecorationToRoom('gold-carpet', 'founder-desk', 0.6, 0.12, 0, 'floor')).toBe(true);
+    // A standing prop drops fine on top of a rug.
+    expect(engine.buyDecoration('potted-fern')).toBe(true);
+    const check = evaluatePlacement(engine.state, 'potted-fern', 0.35, 0.12, 'founder-desk');
+    expect(check.ok).toBe(true);
   });
 
-  it('keeps a purchased rug in storage when its default rug plane is occupied', () => {
+  it('resets a room to tidy, valid defaults for every placed item', () => {
     const engine = new GameEngine(createInitialState(0), { deterministic: true });
-    engine.state.resources.nuts = 10_000;
-    engine.state.resources.goldenNuts = 10;
-    engine.state.upgrades['room-vault'] = 1;
-    expect(engine.buyDecoration('tiny-rug')).toBe(true);
-    expect(engine.moveDecorationToRoom('tiny-rug', 'vault', 0.5, 0.12, 0)).toBe(true);
-
-    expect(engine.buyDecoration('gold-carpet')).toBe(true);
-    const carpet = engine.state.decorationInstances.find(
-      (instance) => instance.decorationId === 'gold-carpet',
-    );
-    expect(carpet?.roomId).toBeNull();
-    expect(engine.state.placements['gold-carpet']).toBeUndefined();
-  });
-
-  it('aborts an impossible room reset without partial mutation or history', () => {
-    const engine = new GameEngine(createInitialState(0), { deterministic: true });
-    engine.state.resources.nuts = 10_000;
-    engine.state.resources.goldenNuts = 10;
-    expect(engine.buyDecoration('tiny-rug')).toBe(true);
-    expect(engine.buyDecoration('gold-carpet')).toBe(true);
-    const carpet = engine.state.decorationInstances.find(
-      (instance) => instance.decorationId === 'gold-carpet',
-    )!;
-    carpet.roomId = 'founder-desk';
-    carpet.surfaceType = 'floor';
-    carpet.normalizedX = 0.5;
-    carpet.normalizedY = 0.12;
-    carpet.depth = 0;
-    engine.state.placements['gold-carpet'] = { surface: 'floor', x: 0.5, y: 0.12 };
-    const beforeInstances = structuredClone(engine.state.decorationInstances);
-    const beforePlacements = structuredClone(engine.state.placements);
-    let saves = 0;
-    engine.onSave(() => {
-      saves += 1;
-    });
-
-    expect(engine.resetRoomDecorations('founder-desk')).toBe(false);
-    expect(engine.state.decorationInstances).toEqual(beforeInstances);
-    expect(engine.state.placements).toEqual(beforePlacements);
-    expect(engine.canUndoDecoration()).toBe(false);
-    expect(saves).toBe(0);
+    engine.state.resources.nuts = 100_000;
+    engine.state.resources.goldenNuts = 100;
+    for (const id of ['potted-fern', 'desk-lamp', 'motivational-poster']) {
+      expect(engine.buyDecoration(id)).toBe(true);
+      expect(engine.placeDecorationInRoom(id, 'founder-desk')).toBe(true);
+    }
+    expect(engine.resetRoomDecorations('founder-desk')).toBe(true);
+    for (const id of ['potted-fern', 'desk-lamp', 'motivational-poster']) {
+      const instance = engine.state.decorationInstances.find((i) => i.decorationId === id)!;
+      expect(instance.roomId).toBe('founder-desk');
+    }
   });
 });

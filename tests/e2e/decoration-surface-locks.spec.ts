@@ -1,32 +1,31 @@
 import { test, expect, type Page } from '@playwright/test';
 
-// End-to-end proof of the decoration surface locks in the RUNNING game: floor
+// End-to-end proof of the three placement surfaces in the RUNNING game: floor
 // items can never land on the wall/ceiling, wall items stay on walls, ceiling
-// items stay on ceilings, tabletop/shelf items never jump to an incompatible
-// support, and the drag preview matches the committed placement (no float,
-// no teleport). Screenshots go to a git-ignored folder for visual inspection.
+// items stay on ceilings, and the drag preview matches the committed placement
+// (no float, no teleport). Screenshots go to a git-ignored folder.
 const DIR = 'visual-artifacts/verify';
 
 const SAVE = {
   version: 8,
   onboardingComplete: true,
   lastSaved: Date.now(),
-  company: { name: 'Nutty Co.' },
+  company: { name: 'Nutty Co.', icon: 'paw' },
   resources: { nuts: 9_000_000_000, goldenNuts: 400, reputation: 4000, morale: 90, permanentKernels: 5 },
   employees: { pip: { hired: true, level: 6, room: 'founder-desk', x: 0.85 } },
   placements: {
     'potted-fern': { surface: 'floor', x: 0.28, y: 0.12 },
     'motivational-poster': { surface: 'wall', x: 0.55, y: 0.6 },
     chandelier: { surface: 'ceiling', x: 0.5, y: 0.9 },
-    'desk-lamp': { surface: 'floor', x: 0.5, y: 0.24 },
-    'conveyor-plushie': { surface: 'floor', x: 0.22, y: 0.6 },
+    'desk-lamp': { surface: 'floor', x: 0.5, y: 0.12 },
+    'conveyor-plushie': { surface: 'floor', x: 0.72, y: 0.12 },
   },
   decorationInstances: [
     { instanceId: 'v-fern', decorationId: 'potted-fern', roomId: 'founder-desk', surfaceType: 'floor', regionKind: 'floor', normalizedX: 0.28, normalizedY: 0.12, depth: 3, interactionState: {} },
     { instanceId: 'v-poster', decorationId: 'motivational-poster', roomId: 'founder-desk', surfaceType: 'wall', regionKind: 'wall', normalizedX: 0.55, normalizedY: 0.6, depth: 1, interactionState: {} },
-    { instanceId: 'v-chand', decorationId: 'chandelier', roomId: 'founder-desk', surfaceType: 'ceiling', regionKind: 'ceiling-rail', normalizedX: 0.5, normalizedY: 0.9, depth: 6, interactionState: {} },
-    { instanceId: 'v-lamp', decorationId: 'desk-lamp', roomId: 'founder-desk', surfaceType: 'floor', regionKind: 'tabletop', normalizedX: 0.5, normalizedY: 0.24, depth: 4, interactionState: {} },
-    { instanceId: 'v-plush', decorationId: 'conveyor-plushie', roomId: 'founder-desk', surfaceType: 'floor', regionKind: 'shelf', normalizedX: 0.22, normalizedY: 0.6, depth: 2, interactionState: {} },
+    { instanceId: 'v-chand', decorationId: 'chandelier', roomId: 'founder-desk', surfaceType: 'ceiling', regionKind: 'ceiling', normalizedX: 0.5, normalizedY: 0.9, depth: 6, interactionState: {} },
+    { instanceId: 'v-lamp', decorationId: 'desk-lamp', roomId: 'founder-desk', surfaceType: 'floor', regionKind: 'floor', normalizedX: 0.5, normalizedY: 0.12, depth: 3, interactionState: {} },
+    { instanceId: 'v-plush', decorationId: 'conveyor-plushie', roomId: 'founder-desk', surfaceType: 'floor', regionKind: 'floor', normalizedX: 0.72, normalizedY: 0.12, depth: 3, interactionState: {} },
   ],
   collections: { nuts: [], outfits: [], logos: [], moments: [], secrets: ['deco:potted-fern', 'deco:motivational-poster', 'deco:chandelier', 'deco:desk-lamp', 'deco:conveyor-plushie'] },
   settings: { reducedMotion: true, language: 'en', background: { enabled: false } },
@@ -51,16 +50,13 @@ const bottomPctOf = async (page: Page, deco: string) => {
   return parseFloat(/bottom:\s*([\d.]+)%/.exec(style)?.[1] ?? 'NaN');
 };
 
-// Drag a placed deco toward a normalized stage point (0..1, y from floor line up)
-// and report the ghost validity seen mid-drag.
+// Drag a placed deco toward a normalized stage point (0..1, y from floor line up).
 async function dragDecoToward(page: Page, deco: string, nx: number, ny: number) {
   const stage = page.locator('.floor[data-room="founder-desk"] .floor__stage');
   const el = page.locator(`.floor[data-room="founder-desk"] [data-deco="${deco}"]`);
   const box = (await el.boundingBox())!;
   const sb = (await stage.boundingBox())!;
   const sx = box.x + box.width / 2;
-  // Grab near the item's foot so the baseline anchor tracks the pointer (rather
-  // than pushing the drop off the short stage), matching how a player aims.
   const sy = box.y + box.height * 0.9;
   const tx = sb.x + nx * sb.width;
   const ty = sb.y + (1 - ny) * sb.height;
@@ -69,7 +65,8 @@ async function dragDecoToward(page: Page, deco: string, nx: number, ny: number) 
   await page.mouse.move(sx + 10, sy + 4, { steps: 3 });
   await page.mouse.move((sx + tx) / 2, (sy + ty) / 2, { steps: 6 });
   await page.mouse.move(tx, ty, { steps: 8 });
-  const ghostClass = (await page.locator('.drag-ghost').getAttribute('class').catch(() => '')) ?? '';
+  const ghost = page.locator('.drag-ghost');
+  const ghostClass = (await ghost.count()) ? ((await ghost.getAttribute('class').catch(() => '')) ?? '') : '';
   await page.mouse.up();
   await page.waitForTimeout(150);
   return ghostClass;
@@ -103,21 +100,21 @@ test.describe('surface locks in the running game', () => {
   test('a CEILING item stays on the ceiling when dragged down', async ({ page }) => {
     await boot(page);
     await dragDecoToward(page, 'chandelier', 0.4, 0.1); // aim at the floor
-    expect(await kindOf(page, 'chandelier')).toBe('ceiling-rail');
+    expect(await kindOf(page, 'chandelier')).toBe('ceiling');
     expect(await bottomPctOf(page, 'chandelier')).toBeGreaterThan(80);
     await page.screenshot({ path: `${DIR}/ceiling-locked.png` });
   });
 
-  test('tabletop and shelf items keep their support', async ({ page }) => {
+  test('floor items never jump onto the ceiling', async ({ page }) => {
     await boot(page);
-    // These props are multi-surface by design (desk-lamp: tabletop/shelf/floor;
-    // conveyor-plushie: shelf/tabletop/floor) but NEITHER is ceiling-compatible,
-    // so aiming at the ceiling must never move them onto it.
+    // desk-lamp and conveyor-plushie are floor items — aiming at the ceiling
+    // must never move them off the floor.
     await dragDecoToward(page, 'desk-lamp', 0.5, 0.95);
-    expect(await kindOf(page, 'desk-lamp')).toBe('tabletop');
+    expect(await kindOf(page, 'desk-lamp')).toBe('floor');
+    expect(await bottomPctOf(page, 'desk-lamp')).toBeLessThan(40);
     await dragDecoToward(page, 'conveyor-plushie', 0.5, 0.95);
-    expect(await kindOf(page, 'conveyor-plushie')).toBe('shelf');
-    await page.screenshot({ path: `${DIR}/table-shelf-locked.png` });
+    expect(await kindOf(page, 'conveyor-plushie')).toBe('floor');
+    await page.screenshot({ path: `${DIR}/floor-items-locked.png` });
   });
 
   test('preview position matches the final saved placement (no float/teleport)', async ({ page }) => {
@@ -132,7 +129,6 @@ test.describe('surface locks in the running game', () => {
     await page.mouse.down();
     await page.mouse.move(tx - 40, ty - 20, { steps: 5 });
     await page.mouse.move(tx, ty, { steps: 6 });
-    // Ghost centre while held
     const ghost = page.locator('.drag-ghost');
     await expect(ghost).toHaveClass(/is-ok/);
     const gb = (await ghost.boundingBox())!;
@@ -141,7 +137,6 @@ test.describe('surface locks in the running game', () => {
     await page.waitForTimeout(180);
     const placed = (await el.boundingBox())!;
     const placedCentreX = placed.x + placed.width / 2;
-    // The committed piece sits where the preview ghost was (within a few px).
     expect(Math.abs(placedCentreX - ghostCentreX)).toBeLessThan(24);
     await page.screenshot({ path: `${DIR}/preview-matches.png` });
   });

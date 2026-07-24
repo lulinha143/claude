@@ -229,11 +229,11 @@ test('rug uses its full footprint, stays at depth zero, and persists after resiz
     RUG_CENTER_RATIO,
   );
 
-  const ghost = page.locator('.drag-ghost[data-region-kind="rug-plane"][data-valid="true"]');
-  const guide = room.locator('.floor__region-guide[data-region-kind="rug-plane"].is-valid');
+  const ghost = page.locator('.drag-ghost[data-region-kind="floor"][data-valid="true"]');
+  const guide = room.locator('.floor__region-guide[data-region-kind="floor"].is-valid');
   const footprint = guide.locator('.floor__region-footprint');
   await expect(ghost).toBeVisible();
-  await expect(ghost.locator('.drag-ghost__surface')).toHaveText(/Rug/i);
+  await expect(ghost.locator('.drag-ghost__surface')).toHaveText(/Floor/i);
   await expect(guide).toBeVisible();
   await expect(footprint).toHaveAttribute('rx', '21');
   await expect(footprint).toHaveAttribute('ry', '3');
@@ -250,7 +250,7 @@ test('rug uses its full footprint, stays at depth zero, and persists after resiz
   const moved = await savedInstance(page, 'tiny-rug');
   expect(moved).not.toEqual(before);
   expect(moved).toMatchObject({ roomId: 'founder-desk', depth: 0 });
-  await expect(rug).toHaveAttribute('data-region-kind', 'rug-plane');
+  await expect(rug).toHaveAttribute('data-region-kind', 'floor');
   const movedStyle = await rug.getAttribute('style');
 
   await page.setViewportSize({ width: 520, height: 520 });
@@ -262,7 +262,7 @@ test('rug uses its full footprint, stays at depth zero, and persists after resiz
   await clearModals(page);
   await enterDecorateMode(page);
   const reloadedRug = page.locator('.floor[data-room="founder-desk"] [data-deco="tiny-rug"]');
-  await expect(reloadedRug).toHaveAttribute('data-region-kind', 'rug-plane');
+  await expect(reloadedRug).toHaveAttribute('data-region-kind', 'floor');
   await expect(reloadedRug).toHaveAttribute('style', movedStyle ?? '');
   expect(await savedInstance(page, 'tiny-rug')).toEqual(moved);
 });

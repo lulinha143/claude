@@ -157,11 +157,11 @@ describe('decoration surfaces + free placement', () => {
 
       for (const roomId of def.compatibleRooms) {
         const position =
-          def.defaultRegionKind === 'rug-plane'
-            ? { x: 0.5, y: 0.12 }
-            : def.defaultRegionKind === 'floor'
-              ? { x: 0.73, y: 0.12 }
-              : { x: 0.73, y: 0.51 };
+          def.defaultRegionKind === 'floor'
+            ? { x: 0.73, y: 0.12 }
+            : def.defaultRegionKind === 'wall'
+              ? { x: 0.73, y: 0.6 }
+              : { x: 0.73, y: 0.9 };
         expect(
           engine.moveDecorationToRoom(def.id, roomId, position.x, position.y),
           `${def.id} -> ${roomId}`,

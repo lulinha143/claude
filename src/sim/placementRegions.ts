@@ -1,8 +1,11 @@
 import type { DecorationSurfaceType } from './types';
 
-/** Semantic supports used by the room editor. Persisted surfaces stay stable. */
-export type PlacementRegionKind =
-  'floor' | 'rug-plane' | 'wall' | 'ceiling-rail' | 'tabletop' | 'shelf' | 'special';
+/**
+ * The three placement surfaces. Every decoration belongs to exactly one, and
+ * each spans the full extent of its surface in every room: the entire walkable
+ * floor, the entire wall, and the entire ceiling.
+ */
+export type PlacementRegionKind = 'floor' | 'wall' | 'ceiling';
 
 export interface NormalizedPoint {
   x: number;
@@ -53,12 +56,8 @@ export interface RegionProjection {
 
 export const REGION_KIND_SURFACE: Record<PlacementRegionKind, DecorationSurfaceType> = {
   floor: 'floor',
-  'rug-plane': 'floor',
   wall: 'wall',
-  'ceiling-rail': 'ceiling',
-  tabletop: 'table',
-  shelf: 'shelf',
-  special: 'floor',
+  ceiling: 'ceiling',
 };
 
 const clamp01 = (value: number): number => Math.max(0, Math.min(1, value));

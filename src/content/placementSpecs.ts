@@ -1,6 +1,7 @@
 import { DECORATIONS } from './decorations';
-import { REGION_KIND_SURFACE, type PlacementAnchorMode } from '../sim/placementRegions';
+import { type PlacementAnchorMode } from '../sim/placementRegions';
 import { DECORATIONS_BY_ID } from './decorations';
+import { isRug } from '../sim/surfaces';
 
 // Per-decoration placement specification.
 // -----------------------------------------------------------------------------
@@ -120,7 +121,8 @@ export const DECORATION_PLACEMENT: Record<string, DecorationPlacementSpec> = {
   chandelier: spec({ w: 0.2, h: 0.16, anchor: 'hanging' }),
   // Meeting
   'meeting-plant': spec({ w: 0.12, h: 0.18, anchor: 'base', mirror: true }),
-  projector: spec({ w: 0.12, h: 0.1, anchor: 'base', scale: 0.9 }),
+  // Wall-mounted projector.
+  projector: spec({ w: 0.16, h: 0.12, anchor: 'center' }),
   // Nap
   hammock: spec({ w: 0.28, h: 0.14, anchor: 'base', baseline: 0.9, clearance: 0.03, mirror: true }),
   'star-ceiling': spec({ w: 0.34, h: 0.1, anchor: 'hanging', baseline: 0.12 }),
@@ -128,16 +130,14 @@ export const DECORATION_PLACEMENT: Record<string, DecorationPlacementSpec> = {
   'rooftop-garden-bed': spec({ w: 0.3, h: 0.12, anchor: 'base', baseline: 0.9, clearance: 0.03 }),
 };
 
-/** A safe fallback derived from the decoration's default region kind. */
+/** A safe fallback derived from the decoration's single placement surface. */
 function fallbackSpec(id: string): DecorationPlacementSpec {
-  const def = DECORATIONS_BY_ID[id];
-  const kind = def?.defaultRegionKind ?? 'floor';
-  const surface = REGION_KIND_SURFACE[kind];
-  if (kind === 'rug-plane') {
+  const kind = DECORATIONS_BY_ID[id]?.defaultRegionKind ?? 'floor';
+  if (kind === 'ceiling') return spec({ w: 0.16, h: 0.14, anchor: 'hanging' });
+  if (kind === 'wall') return spec({ w: 0.16, h: 0.16, anchor: 'center' });
+  if (isRug(id)) {
     return spec({ w: 0.34, h: 0.07, anchor: 'base', baseline: 0.82, sceneryOverlap: true });
   }
-  if (kind === 'ceiling-rail') return spec({ w: 0.16, h: 0.14, anchor: 'hanging' });
-  if (surface === 'wall') return spec({ w: 0.16, h: 0.16, anchor: 'center' });
   return spec({ w: 0.12, h: 0.16, anchor: 'base' });
 }
 

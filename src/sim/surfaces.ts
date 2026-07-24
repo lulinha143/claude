@@ -19,10 +19,9 @@ export interface DecorationPlacement {
 }
 
 /**
- * Collapse the authoritative semantic surface (which includes table + shelf)
- * into the legacy floor/wall/ceiling vocabulary used by the renderer CSS and
- * the persisted `state.placements` projection. Table and shelf props are
- * base-anchored like floor props, so they share the floor anchor family.
+ * Map the persisted surface type onto the floor/wall/ceiling vocabulary used by
+ * the renderer CSS and the `state.placements` projection. The surface set is now
+ * exactly floor/wall/ceiling, so this is an identity guarded against bad input.
  */
 export function projectSurfaceType(surfaceType: DecorationSurfaceType): DecorationSurface {
   if (surfaceType === 'wall') return 'wall';
@@ -30,10 +29,10 @@ export function projectSurfaceType(surfaceType: DecorationSurfaceType): Decorati
   return 'floor';
 }
 
-/** Legacy region kind that best matches a floor/wall/ceiling projection. */
+/** The placement region kind for a floor/wall/ceiling surface (1:1). */
 export function regionKindForSurface(surface: DecorationSurface): PlacementRegionKind {
   if (surface === 'wall') return 'wall';
-  if (surface === 'ceiling') return 'ceiling-rail';
+  if (surface === 'ceiling') return 'ceiling';
   return 'floor';
 }
 

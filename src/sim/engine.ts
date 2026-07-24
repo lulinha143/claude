@@ -844,7 +844,7 @@ export class GameEngine {
   ): boolean {
     if (!this.canMoveDecorationToRoom(id, roomId)) return false;
     const def = DECORATIONS_BY_ID[id];
-    if (!def || (def.defaultRegionKind !== 'floor' && def.defaultRegionKind !== 'rug-plane')) {
+    if (!def || def.defaultRegionKind !== 'floor') {
       return true;
     }
     const region = compatibleRegionsForProfile(roomId, def).find(

@@ -143,12 +143,9 @@ export interface RegionPlacementCheck extends PlacementCheck {
  * their complete flat footprint. Keeping this pure makes live preview and drop
  * validation use exactly the same geometry.
  */
-export function decorationPlaneFootprint(
-  id: string,
-  region: Pick<PlacementRegion, 'kind'>,
-): { width: number; depth: number } {
+export function decorationPlaneFootprint(id: string): { width: number; depth: number } {
   const visible = footprint(id);
-  if (region.kind === 'rug-plane' || isRug(id)) {
+  if (isRug(id)) {
     return { width: visible.w, depth: Math.max(visible.h, 0.06) };
   }
   return {
@@ -181,7 +178,7 @@ export function decorationFootprintFitsRegion(
   region: PlacementRegion,
   point: NormalizedPoint,
 ): boolean {
-  const size = decorationPlaneFootprint(id, region);
+  const size = decorationPlaneFootprint(id);
   return footprintSamples(point, size).every((sample) => regionContainsPoint(region, sample));
 }
 
@@ -226,7 +223,7 @@ export function clampDecorationToRegion(
   region: PlacementRegion,
   point: NormalizedPoint,
 ): { point: NormalizedPoint; u: number; v: number } | null {
-  const size = decorationPlaneFootprint(id, region);
+  const size = decorationPlaneFootprint(id);
   const inset = insetClampToPlane(region, size, point);
   if (decorationFootprintFitsRegion(id, region, inset.point)) return inset;
 
@@ -312,8 +309,9 @@ export function evaluateRegionPlacement(
     point: constrained.point,
     u: constrained.u,
     v: constrained.v,
-    depth: depthAt(region, constrained.v),
-    planeFootprint: decorationPlaneFootprint(id, region),
+    // Rugs lie flat under everything else; other props take perspective depth.
+    depth: isRug(id) ? 0 : depthAt(region, constrained.v),
+    planeFootprint: decorationPlaneFootprint(id),
     ok: rawFits && collision.ok,
     reasonKey: rawFits ? collision.reasonKey : 'decorate.reject.moveInside',
   };

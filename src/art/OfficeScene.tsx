@@ -199,16 +199,11 @@ function ghostAnchorClass(drag: DragState): string {
   return `drag-ghost--${projectSurfaceType(REGION_KIND_SURFACE[drag.preview.regionKind])}`;
 }
 
-// i18n suffix naming the ACTUAL support being targeted, so a tabletop item
-// reads "Tabletop" (not the projected "Floor"), a shelf item "Shelf", etc.
+// i18n suffix naming the surface being targeted (Floor / Wall / Ceiling).
 const REGION_LABEL: Record<PlacementRegionKind, string> = {
   floor: 'floor',
-  'rug-plane': 'rug',
   wall: 'wall',
-  'ceiling-rail': 'ceiling',
-  tabletop: 'table',
-  shelf: 'shelf',
-  special: 'special',
+  ceiling: 'ceiling',
 };
 function ghostSurfaceLabel(drag: DragState): string {
   if (drag.kind === 'decoration' && drag.preview) return REGION_LABEL[drag.preview.regionKind];
