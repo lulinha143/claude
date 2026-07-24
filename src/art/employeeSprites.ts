@@ -51,7 +51,7 @@ export const EMPLOYEE_SPRITES: Record<string, EmployeeSpriteConfig> = {
     poster: 'employees/bea-poster.png',
     frameWidth: 384,
     frameHeight: 336,
-    officeHeight: 118,
+    officeHeight: 64,
     cardHeight: 92,
     anchorX: 0.5,
     baseline: 0,
