@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useGame } from '../state/hooks';
 import { useStore } from '../state/store';
@@ -5,14 +6,17 @@ import { useFmt } from './useFmt';
 import { moraleProductionBonusPct, nextReputationUnlock } from '../sim/economy';
 import { Acorn, GoldenNut } from '../art/Icons';
 import { Icon } from '../art/UiIcon';
+import { CompanyIcon } from '../art/companyIcons';
 import { AnimatedNumber } from './AnimatedNumber';
 import { useTooltip, TipContent } from './Tooltip';
 import { WindowControls } from './WindowControls';
+import { CompanyIconPicker } from './modals/CompanyIconPicker';
 
 export function Header() {
   const { t } = useTranslation();
   const { engine, state } = useGame();
   const fmt = useFmt();
+  const [iconPicker, setIconPicker] = useState(false);
   const muted = useStore((s) => s.masterMuted);
   const toggleMute = useStore((s) => s.toggleMute);
   const musicMuted = useStore((s) => s.musicMuted);
@@ -78,13 +82,23 @@ export function Header() {
       lines={[t('tip.music.d')]}
     />,
   );
+  const tipLogo = useTooltip(
+    <TipContent title={t('company.icon.title')} lines={[t('company.icon.tip')]} />,
+  );
 
   return (
     <header className="header">
       <div className="header__brand">
-        <span className="header__brand-mark" aria-hidden="true">
-          <Icon name="paw" size={17} />
-        </span>
+        <button
+          type="button"
+          className="header__brand-mark"
+          onClick={() => setIconPicker(true)}
+          aria-label={t('company.icon.change')}
+          data-testid="company-logo"
+          {...tipLogo}
+        >
+          <CompanyIcon id={state.company.icon} size={17} />
+        </button>
         <div className="header__title">
           <span className="header__company">{state.company.name}</span>
           <span className="header__rate" {...tipRate}>
@@ -131,6 +145,7 @@ export function Header() {
         </button>
       </div>
       <WindowControls />
+      {iconPicker ? <CompanyIconPicker onClose={() => setIconPicker(false)} /> : null}
     </header>
   );
 }

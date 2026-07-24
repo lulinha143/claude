@@ -373,6 +373,13 @@ export class GameEngine {
     this.emit();
   }
 
+  /** Set the company's chosen logo icon. Deliberate + must survive reload. */
+  setCompanyIcon(icon: string): void {
+    this.state.company.icon = icon;
+    this.save();
+    this.emit();
+  }
+
   renameEmployee(id: string, nickname: string): void {
     const rt = this.state.employees[id];
     if (!rt) return;

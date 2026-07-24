@@ -5405,6 +5405,7 @@ textarea {
   place-items: center;
   width: 28px;
   height: 28px;
+  padding: 0;
   color: var(--ink);
   background:
     linear-gradient(145deg, rgba(255, 255, 255, 0.32), transparent 46%), var(--paper-muted);
@@ -5412,7 +5413,92 @@ textarea {
   border-radius: 45% 55% 47% 53%;
   box-shadow: 2px 2px 0 rgba(12, 8, 4, 0.42);
   transform: rotate(-4deg);
-  pointer-events: none;
+  cursor: pointer;
+  transition:
+    transform var(--dur-fast, 0.12s) var(--ease),
+    box-shadow var(--dur-fast, 0.12s) var(--ease);
+}
+.header__brand-mark:hover {
+  transform: rotate(-4deg) scale(1.08);
+}
+.header__brand-mark:active {
+  transform: rotate(-4deg) scale(0.96);
+  box-shadow: 1px 1px 0 rgba(12, 8, 4, 0.42);
+}
+[data-reduced-motion='true'] .header__brand-mark {
+  transition: none;
+}
+
+/* ---- company logo picker ------------------------------------------------- */
+.company-icon-picker .company-icon-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+}
+@media (max-width: 520px) {
+  .company-icon-picker .company-icon-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+.company-icon-choice {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  color: var(--ink);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.28), transparent 48%), var(--paper-muted);
+  border: 1.5px solid var(--paper-edge);
+  border-radius: 12px;
+  cursor: pointer;
+  transition:
+    transform var(--dur-fast, 0.12s) var(--ease),
+    border-color var(--dur-fast, 0.12s) var(--ease),
+    background var(--dur-fast, 0.12s) var(--ease);
+}
+.company-icon-choice:hover {
+  transform: translateY(-2px) scale(1.05);
+  border-color: var(--accent-ink, #a9702f);
+}
+.company-icon-choice.is-selected {
+  border-color: var(--accent-ink, #a9702f);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.4), transparent 46%), var(--paper);
+  box-shadow: 0 0 0 2px var(--accent-ink, #a9702f) inset;
+  color: var(--accent-ink, #7a4f28);
+}
+[data-reduced-motion='true'] .company-icon-choice {
+  transition: none;
+}
+
+/* ---- company identity row (Company view) --------------------------------- */
+.company-identity {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+.company-identity__name {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.company-identity__logo {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  color: var(--ink);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.3), transparent 48%), var(--paper-muted);
+  border: 1.5px solid var(--paper-edge);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: transform var(--dur-fast, 0.12s) var(--ease);
+}
+.company-identity__logo:hover {
+  transform: scale(1.06);
+}
+[data-reduced-motion='true'] .company-identity__logo {
+  transition: none;
 }
 .header__company {
   text-shadow: 0 2px 0 rgba(28, 18, 8, 0.7);

@@ -4,6 +4,7 @@
     "ok": "OK",
     "cancel": "Cancelar",
     "close": "Fechar",
+    "done": "Concluído",
     "buy": "Comprar",
     "confirm": "Confirmar",
     "back": "Voltar",
@@ -927,7 +928,33 @@
     "founded": "Fundada em {{date}}",
     "prestigeCount": "Linhas do tempo: {{count}}",
     "timeline": "Decisões recentes",
-    "timelineEmpty": "Nenhuma grande decisão ainda — os eventos aparecerão aqui."
+    "timelineEmpty": "Nenhuma grande decisão ainda — os eventos aparecerão aqui.",
+    "icon": {
+      "title": "Logo da empresa",
+      "desc": "Escolha o emblema que representa sua empresa.",
+      "tip": "Clique para escolher o logo da empresa.",
+      "change": "Alterar logo da empresa",
+      "name": {
+        "paw": "Patinha",
+        "fox": "Raposa",
+        "beaver": "Castor",
+        "owl": "Coruja",
+        "raccoon": "Guaxinim",
+        "crow": "Corvo",
+        "coffee": "Xícara de café",
+        "briefcase": "Maleta",
+        "gear": "Engrenagem",
+        "leaf": "Folha",
+        "tree": "Árvore",
+        "building": "Prédio",
+        "heart": "Coração",
+        "star": "Estrela",
+        "moon": "Lua",
+        "sun": "Sol",
+        "gem": "Joia",
+        "crown": "Coroa"
+      }
+    }
   },
   "prod": {
     "title": "Detalhes da produção",

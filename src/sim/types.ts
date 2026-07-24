@@ -200,7 +200,7 @@ export interface GameState {
   version: number;
   createdAt: number;
   lastSaved: number;
-  company: { name: string };
+  company: { name: string; icon?: string };
   resources: ResourceState;
   employees: Record<string, EmployeeRuntimeState>;
   upgrades: Record<string, number>; // upgradeId -> owned count/level

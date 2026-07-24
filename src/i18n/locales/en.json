@@ -4,6 +4,7 @@
     "ok": "OK",
     "cancel": "Cancel",
     "close": "Close",
+    "done": "Done",
     "buy": "Buy",
     "confirm": "Confirm",
     "back": "Back",
@@ -927,7 +928,33 @@
     "founded": "Founded {{date}}",
     "prestigeCount": "Timelines: {{count}}",
     "timeline": "Recent decisions",
-    "timelineEmpty": "No big decisions yet — events will appear here."
+    "timelineEmpty": "No big decisions yet — events will appear here.",
+    "icon": {
+      "title": "Company logo",
+      "desc": "Pick the emblem that represents your company.",
+      "tip": "Click to choose your company logo.",
+      "change": "Change company logo",
+      "name": {
+        "paw": "Paw print",
+        "fox": "Fox",
+        "beaver": "Beaver",
+        "owl": "Owl",
+        "raccoon": "Raccoon",
+        "crow": "Crow",
+        "coffee": "Coffee cup",
+        "briefcase": "Briefcase",
+        "gear": "Gear",
+        "leaf": "Leaf",
+        "tree": "Tree",
+        "building": "Building",
+        "heart": "Heart",
+        "star": "Star",
+        "moon": "Moon",
+        "sun": "Sun",
+        "gem": "Gem",
+        "crown": "Crown"
+      }
+    }
   },
   "prod": {
     "title": "Production breakdown",

@@ -84,7 +84,7 @@ export function createInitialState(now = Date.now(), settings?: Partial<GameSett
     version: SAVE_VERSION,
     createdAt: now,
     lastSaved: now,
-    company: { name: 'Nutshell Inc.' },
+    company: { name: 'Nutshell Inc.', icon: 'paw' },
     resources: {
       nuts: BALANCE.startingNuts,
       goldenNuts: 0,

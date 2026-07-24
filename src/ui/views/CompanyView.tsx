@@ -1,9 +1,12 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useGame } from '../../state/hooks';
 import { useStore } from '../../state/store';
 import { useFmt } from '../useFmt';
 import { moraleCap } from '../../sim/economy';
 import { GoldenNut } from '../../art/Icons';
+import { CompanyIcon } from '../../art/companyIcons';
+import { CompanyIconPicker } from '../modals/CompanyIconPicker';
 import { GAME_EVENTS_BY_ID } from '../../content/events';
 import { ProductionBreakdown } from '../ProductionBreakdown';
 
@@ -13,23 +16,38 @@ export function CompanyView() {
   const fmt = useFmt();
   const audio = useStore((s) => s.audio);
   const cap = moraleCap(state);
+  const [iconPicker, setIconPicker] = useState(false);
 
   return (
     <section className="view view--company">
       <h2>{t('company.title')}</h2>
 
       <div className="panel">
-        <label className="field">
-          <span>{t('company.rename')}</span>
-          <input
-            defaultValue={state.company.name}
-            placeholder={t('company.renamePlaceholder')}
-            onBlur={(e) => engine.renameCompany(e.target.value)}
-          />
-        </label>
+        <div className="company-identity">
+          <button
+            type="button"
+            className="company-identity__logo"
+            onClick={() => setIconPicker(true)}
+            aria-label={t('company.icon.change')}
+          >
+            <CompanyIcon id={state.company.icon} size={34} />
+          </button>
+          <label className="field company-identity__name">
+            <span>{t('company.rename')}</span>
+            <input
+              defaultValue={state.company.name}
+              placeholder={t('company.renamePlaceholder')}
+              onBlur={(e) => engine.renameCompany(e.target.value)}
+            />
+          </label>
+          <button className="ghost-btn" type="button" onClick={() => setIconPicker(true)}>
+            {t('company.icon.change')}
+          </button>
+        </div>
         <p className="muted">{t('company.founded', { date: fmt.date(state.createdAt) })}</p>
         <p className="muted">{t('company.prestigeCount', { count: state.prestige.count })}</p>
       </div>
+      {iconPicker ? <CompanyIconPicker onClose={() => setIconPicker(false)} /> : null}
 
       <ProductionBreakdown />
 

@@ -58,6 +58,7 @@ export function performPrestige(state: GameState, branch: PrestigeBranchId, now:
     Object.entries(state.placements).map(([id, placement]) => [id, { ...placement }]),
   );
   fresh.company.name = state.company.name;
+  fresh.company.icon = state.company.icon;
   fresh.stats = { ...state.stats, prestiges: state.stats.prestiges + 1 };
   fresh.focus.completedSessions = state.focus.completedSessions;
 

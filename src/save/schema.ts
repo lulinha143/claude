@@ -128,7 +128,12 @@ export const gameStateSchema = z.object({
   version: z.number().catch(SAVE_VERSION),
   createdAt: z.number().catch(() => Date.now()),
   lastSaved: z.number().catch(() => Date.now()),
-  company: z.object({ name: z.string().catch('Nutshell Inc.') }).catch({ name: 'Nutshell Inc.' }),
+  company: z
+    .object({
+      name: z.string().catch('Nutshell Inc.'),
+      icon: z.string().optional().catch(undefined),
+    })
+    .catch({ name: 'Nutshell Inc.', icon: 'paw' }),
   resources: resourceSchema,
   employees: z.record(employeeSchema).catch({}),
   upgrades: z.record(z.number()).catch({}),
