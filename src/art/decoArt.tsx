@@ -315,6 +315,9 @@ function spriteFor(id: string, on: boolean, variant: number, accent: string): Sp
           [6, 15, 5, 1, C.white],
           [13, 15, 5, 1, C.white],
           [6, 18, 9, 1, C.white],
+          [8, 7, 1, 5, C.scrl], // little floor-plan corners
+          [15, 12, 1, 6, C.scrl],
+          [16, 8, 2, 2, C.redl], // reviewer's note
           [11, 2, 2, 2, C.ml], // pin
         ],
         shadowR: 0,
@@ -343,6 +346,12 @@ function spriteFor(id: string, on: boolean, variant: number, accent: string): Sp
           [7, 23, 10, 1, C.wh],
           [5, 26, 14, 1, C.w],
           [9, 24, 6, 1, C.wh],
+          [6, 24, 1, 1, C.goldl],
+          [17, 24, 1, 1, C.goldl],
+          [3, 23, 2, 1, C.wh], // soft fringe
+          [19, 23, 2, 1, C.wh],
+          [3, 25, 2, 1, C.wh],
+          [19, 25, 2, 1, C.wh],
         ],
         shadowR: 0,
       };
@@ -355,6 +364,10 @@ function spriteFor(id: string, on: boolean, variant: number, accent: string): Sp
           [1, 26, 22, 1, C.gy],
           [4, 24, 16, 1, C.gy],
           [10, 24, 4, 1, C.goldl],
+          [3, 24, 2, 1, C.goldl], // tiny woven corner marks
+          [19, 24, 2, 1, C.goldl],
+          [5, 26, 1, 1, C.goldl],
+          [18, 26, 1, 1, C.goldl],
         ],
         shadowR: 0,
       };
@@ -422,13 +435,20 @@ function spriteFor(id: string, on: boolean, variant: number, accent: string): Sp
 
     // ---- cushions / rest -------------------------------------------------
     case 'beanbag-chairs':
+      // two mismatched, squashy seats — the plural name now reads instantly
       return {
         base: [
-          [7, 16, 10, 3, accent],
-          [6, 18, 12, 6, accent],
-          [7, 24, 10, 2, C.k],
-          [7, 16, 6, 2, C.white], // highlight
-          [8, 20, 8, 1, C.out],
+          [3, 17, 8, 2, accent],
+          [2, 19, 10, 6, accent],
+          [3, 25, 8, 1, C.k],
+          [3, 18, 4, 1, C.white],
+          [5, 21, 5, 1, C.out],
+          [12, 15, 8, 3, C.blue],
+          [11, 18, 10, 6, C.blue],
+          [12, 24, 8, 2, C.k],
+          [13, 16, 4, 1, C.bluel],
+          [14, 20, 5, 1, C.out],
+          [10, 23, 2, 2, C.w],
         ],
         shadowR: 10,
       };
@@ -508,6 +528,9 @@ function spriteFor(id: string, on: boolean, variant: number, accent: string): Sp
     case 'sorting-bins':
       return {
         base: [
+          [4, 11, 3, 3, C.paper], // a few unruly items peeking out
+          [11, 10, 2, 4, C.gold],
+          [17, 11, 3, 3, C.gl],
           [3, 14, 6, 12, C.red],
           [3, 14, 6, 1, C.redl],
           [9, 14, 6, 12, C.blue],
@@ -517,6 +540,9 @@ function spriteFor(id: string, on: boolean, variant: number, accent: string): Sp
           [4, 16, 4, 1, C.white],
           [10, 16, 4, 1, C.white],
           [16, 16, 4, 1, C.white],
+          [5, 19, 2, 2, C.redl], // simple sorting marks
+          [11, 19, 2, 2, C.bluel],
+          [17, 19, 2, 2, C.gl],
         ],
         shadowR: 10,
       };

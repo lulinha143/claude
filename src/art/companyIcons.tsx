@@ -231,6 +231,7 @@ export function CompanyIcon({
       aria-label={title}
       aria-hidden={title ? undefined : true}
       focusable="false"
+      data-company-icon={resolved}
     >
       {title ? <title>{title}</title> : null}
       {PATHS[resolved]}

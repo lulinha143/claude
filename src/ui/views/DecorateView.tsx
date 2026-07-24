@@ -20,6 +20,23 @@ import { Acorn, GoldenNut } from '../../art/Icons';
 import { sparkleAt } from '../sparkle';
 import { notify } from '../notificationsStore';
 import { MoveDecorationModal } from '../modals/MoveDecorationModal';
+import { decorationSurface } from '../../sim/surfaces';
+
+const ROOM_ACCENT: Record<string, string> = {
+  'founder-desk': 'var(--dept-founder)',
+  sorting: 'var(--dept-sorting)',
+  morale: 'var(--dept-morale)',
+  procurement: 'var(--dept-procurement)',
+  construction: 'var(--dept-construction)',
+  lab: 'var(--dept-lab)',
+  marketing: 'var(--dept-marketing)',
+  vault: 'var(--dept-vault)',
+  research: 'var(--dept-research)',
+  meeting: 'var(--dept-meeting)',
+  nap: 'var(--dept-nap)',
+  basement: 'var(--dept-basement)',
+  rooftop: 'var(--dept-rooftop)',
+};
 
 type RoomFilter = 'all' | string;
 type TypeFilter = 'all' | DecorKind;
@@ -184,10 +201,25 @@ export function DecorateView() {
             const currentRoom = owned ? decorationRoom(state, d.id) : null;
             const afford = state.resources[d.cost.resource] >= d.cost.amount;
             const kind = decorKind(d.id);
+            const surface = decorationSurface(d.id);
             return (
-              <li key={d.id} className={`decocard ${owned ? 'is-owned' : ''} ${placed ? 'is-placed' : ''}`}>
-                <div className="decocard__preview" aria-hidden>
-                  <DecorationProp id={d.id} mode="interact" onInteract={() => audio.play('click')} title={t(`deco.${d.id}.name`)} />
+              <li
+                key={d.id}
+                className={`decocard ${owned ? 'is-owned' : ''} ${placed ? 'is-placed' : ''}`}
+                data-kind={kind}
+                data-decoration={d.id}
+              >
+                <div className={`decocard__preview decocard__preview--${surface}`}>
+                  <DecorationProp
+                    id={d.id}
+                    accent={ROOM_ACCENT[d.room]}
+                    mode="interact"
+                    onInteract={() => audio.play('click')}
+                    title={t(`deco.${d.id}.name`)}
+                  />
+                  <span className="decocard__surface" aria-hidden>
+                    {t(`decorate.surface.${surface}`)}
+                  </span>
                 </div>
                 <div className="decocard__body">
                   <div className="decocard__title">{t(`deco.${d.id}.name`)}</div>

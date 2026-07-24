@@ -12,6 +12,7 @@ import { CritterStateMachine, type CritterState } from './animation';
 import { shapeFor } from './critterShapes';
 import { employeeSprite } from './employeeSprites';
 import { EmployeeSprite } from './EmployeeSprite';
+import { EmployeeMoodBadge } from './EmployeeMoodBadge';
 import { Acorn, Crate } from './Icons';
 import { Icon } from './UiIcon';
 import { DecorationProp, decorKind, interactSound } from './DecorationProp';
@@ -968,9 +969,9 @@ export function OfficeScene() {
               const compatible =
                 DECORATIONS_BY_ID[drag.id]?.compatibleRooms.includes(room.id) ?? false;
               if (drag.overRoom === room.id) {
-                dropClass = drag.valid ? 'is-drop-hover' : 'is-drop-invalid';
+                dropClass = drag.valid ? 'is-deco-hover' : 'is-deco-invalid';
               } else if (compatible) {
-                dropClass = 'is-drop-target';
+                dropClass = 'is-deco-target';
               }
             }
           }
@@ -1111,6 +1112,8 @@ export function OfficeScene() {
                     def?.accent ??
                     '#3f7d4f';
                   const label = rt.nickname ?? t(def?.nameKey ?? id);
+                  const mood = employeeMood(state, id);
+                  const moodLabel = t(`mood.${mood}`);
                   return (
                     <button
                       key={id}
@@ -1132,16 +1135,10 @@ export function OfficeScene() {
                         setFocusedEmployee((current) => (current === id ? null : current))
                       }
                       onClick={() => onCritterClick(id)}
-                      title={label}
-                      aria-label={label}
+                      title={`${label} · ${moodLabel}`}
+                      aria-label={`${label}, ${moodLabel}`}
                     >
                       {focusMode ? <span className="focus-hat" aria-hidden /> : null}
-                      <span
-                        className="mood-dot"
-                        style={{ background: MOOD_TONE[employeeMood(state, id)] }}
-                        title={t(`mood.${employeeMood(state, id)}`)}
-                        aria-hidden
-                      />
                       {sprite ? (
                         <EmployeeSprite
                           config={sprite}
@@ -1161,8 +1158,12 @@ export function OfficeScene() {
                           seed={idx + room.floor}
                         />
                       )}
+                      <EmployeeMoodBadge mood={mood} color={MOOD_TONE[mood]} label={moodLabel} />
                       {bubble?.employeeId === id ? (
-                        <span className="bubble" role="status">
+                        <span
+                          className={`employee-reaction ${ex > 0.68 ? 'employee-reaction--left' : ''}`}
+                          role="status"
+                        >
                           {bubble.text}
                         </span>
                       ) : null}
@@ -1255,7 +1256,9 @@ export function OfficeScene() {
       {drag && typeof document !== 'undefined'
         ? createPortal(
             <div
-              className={`drag-ghost ${drag.valid ? 'is-ok' : 'is-no'} ${ghostAnchorClass(drag)}`}
+              className={`drag-ghost ${drag.kind === 'decoration' ? 'drag-ghost--decoration' : ''} ${
+                drag.valid ? 'is-ok' : 'is-no'
+              } ${ghostAnchorClass(drag)}`}
               style={{ left: `${drag.x}px`, top: `${drag.y}px` }}
               data-region={drag.preview?.regionId}
               data-region-kind={drag.preview?.regionKind}
@@ -1273,6 +1276,7 @@ export function OfficeScene() {
                     title={t(`deco.${drag.id}.name`)}
                   />
                   <span className="drag-ghost__surface">
+                    <Icon name={drag.valid ? 'success' : 'close'} size={10} />
                     {t(`decorate.surface.${ghostSurfaceLabel(drag)}`)}
                   </span>
                 </>

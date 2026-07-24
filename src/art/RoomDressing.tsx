@@ -59,73 +59,60 @@ interface ScenePiece {
   slot: Slot;
 }
 
-// Per-room recipe. Every department gets a signature silhouette plus supporting
-// props so its purpose reads at a glance.
+// Per-room recipe. Two quiet signature elements identify each department
+// without competing with employees or the decorations the player chooses.
 const ROOM_SCENE: Record<string, ScenePiece[]> = {
   'founder-desk': [
     { prop: 'corkboard', slot: 'wallLeft' },
     { prop: 'deskMonitor', slot: 'floorLeft' },
-    { prop: 'bookshelf', slot: 'floorRight' },
   ],
   sorting: [
     { prop: 'binShelf', slot: 'wallLeft' },
     { prop: 'conveyor', slot: 'floorCentre' },
-    { prop: 'crates', slot: 'floorRight' },
   ],
   morale: [
     { prop: 'menuBoard', slot: 'wallLeft' },
     { prop: 'coffeeCounter', slot: 'floorLeft' },
-    { prop: 'loungeChair', slot: 'floorRight' },
   ],
   procurement: [
     { prop: 'corkboard', slot: 'wallLeft' },
     { prop: 'filingCabinet', slot: 'floorLeft' },
-    { prop: 'printerDesk', slot: 'floorRight' },
   ],
   construction: [
     { prop: 'pegboard', slot: 'wallLeft' },
     { prop: 'workbench', slot: 'floorLeft' },
-    { prop: 'lumber', slot: 'floorRight' },
   ],
   lab: [
     { prop: 'flaskShelf', slot: 'wallLeft' },
     { prop: 'labBench', slot: 'floorLeft' },
-    { prop: 'plantPot', slot: 'floorRight' },
   ],
   marketing: [
     { prop: 'campaignBoard', slot: 'wallLeft' },
     { prop: 'easel', slot: 'floorLeft' },
-    { prop: 'plantTall', slot: 'floorRight' },
   ],
   vault: [
     { prop: 'goldStacks', slot: 'wallRight' },
     { prop: 'safe', slot: 'floorLeft' },
-    { prop: 'goldStacks', slot: 'floorRight' },
   ],
   research: [
     { prop: 'whiteboard', slot: 'wallLeft' },
     { prop: 'serverRack', slot: 'floorLeft' },
-    { prop: 'deskMonitor', slot: 'floorRight' },
   ],
   meeting: [
     { prop: 'whiteboard', slot: 'wallLeft' },
     { prop: 'conferenceTable', slot: 'floorCentre' },
-    { prop: 'projectorStand', slot: 'floorRight' },
   ],
   nap: [
-    { prop: 'plantPot', slot: 'floorLeft' },
     { prop: 'hammock', slot: 'floorCentre' },
     { prop: 'plantTall', slot: 'floorRight' },
   ],
   basement: [
     { prop: 'pipes', slot: 'wallLeft' },
-    { prop: 'crates', slot: 'floorLeft' },
     { prop: 'serverRack', slot: 'floorRight' },
   ],
   rooftop: [
     { prop: 'skyline', slot: 'wallLeft' },
     { prop: 'planterBed', slot: 'floorCentre' },
-    { prop: 'plantTall', slot: 'floorRight' },
   ],
 };
 

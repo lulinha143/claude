@@ -800,11 +800,12 @@ h4 {
     inset 0 1.5px 0 rgba(255, 244, 216, 0.3),
     0 5px 7px -2px rgba(40, 26, 12, 0.3);
 }
-/* department props, anchored to slots and gently grounded */
+/* department props stay quiet so employees and player-owned decor lead */
 .room-dressing__prop {
   position: absolute;
   line-height: 0;
-  filter: drop-shadow(0 2px 2px rgba(40, 26, 12, 0.2));
+  opacity: 0.78;
+  filter: saturate(0.82) drop-shadow(0 2px 2px rgba(40, 26, 12, 0.16));
 }
 .room-dressing__prop svg {
   height: auto;
@@ -1101,13 +1102,112 @@ h4 {
 .critter-btn--sprite {
   transform-origin: 50% 100%;
 }
-/* the sprite's bounding box is wider than a critter, so recentre the mood pip
-   and speech bubble over the character instead of the box's far corner. */
-.critter-btn--sprite .mood-dot {
-  top: 6px;
-  right: auto;
-  left: 50%;
-  transform: translateX(-50%);
+/* Base-mounted mood stamp: expressive without sitting over the employee art. */
+.employee-mood-badge {
+  --mood-color: #d9b65d;
+  position: absolute;
+  right: -8px;
+  bottom: -2px;
+  z-index: 4;
+  display: grid;
+  width: 19px;
+  height: 19px;
+  place-items: center;
+  border: 1.5px solid rgba(58, 42, 24, 0.82);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.72) 0 18%, transparent 19%),
+    color-mix(in srgb, var(--mood-color) 72%, #fff2d4);
+  box-shadow:
+    0 2px 0 rgba(58, 42, 24, 0.25),
+    0 3px 8px rgba(40, 26, 12, 0.24);
+  color: #382719;
+  pointer-events: none;
+  transform: rotate(4deg);
+}
+.employee-mood-badge svg {
+  display: block;
+  overflow: visible;
+}
+.employee-mood-badge path,
+.employee-mood-badge circle {
+  vector-effect: non-scaling-stroke;
+}
+.employee-mood-badge__face {
+  fill: rgba(255, 248, 223, 0.3);
+  stroke: rgba(56, 39, 25, 0.32);
+  stroke-width: 0.75;
+}
+.employee-mood-badge svg > path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.15;
+  stroke-linecap: round;
+}
+.employee-mood-badge svg > circle:not(.employee-mood-badge__face) {
+  fill: currentColor;
+}
+.employee-mood-badge__spark {
+  stroke: #fff8d8;
+  stroke-width: 1;
+}
+.critter-btn--sprite .employee-mood-badge {
+  right: -7px;
+  bottom: 0;
+}
+
+/* Reactions live beside the employee's base instead of covering their face. */
+.employee-reaction {
+  position: absolute;
+  bottom: 3px;
+  left: calc(100% + 9px);
+  z-index: 6;
+  width: max-content;
+  max-width: 132px;
+  padding: 4px 7px;
+  border: 1px solid rgba(75, 51, 29, 0.26);
+  border-radius: 8px 8px 8px 3px;
+  background: linear-gradient(180deg, #fff8e8, #f2e3c3);
+  box-shadow: 0 3px 8px rgba(40, 26, 12, 0.26);
+  color: #241a12;
+  font-size: 0.68em;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: left;
+  pointer-events: none;
+  animation: reaction-arrive 180ms var(--ease-pop) both;
+}
+.employee-reaction::after {
+  content: '';
+  position: absolute;
+  left: -5px;
+  bottom: 4px;
+  width: 8px;
+  height: 8px;
+  border-left: 1px solid rgba(75, 51, 29, 0.22);
+  border-bottom: 1px solid rgba(75, 51, 29, 0.22);
+  background: #f2e3c3;
+  transform: rotate(45deg);
+}
+.employee-reaction--left {
+  right: calc(100% + 9px);
+  left: auto;
+  border-radius: 8px 8px 3px 8px;
+  text-align: right;
+}
+.employee-reaction--left::after {
+  right: -5px;
+  left: auto;
+  border: 0;
+  border-top: 1px solid rgba(75, 51, 29, 0.22);
+  border-right: 1px solid rgba(75, 51, 29, 0.22);
+}
+@keyframes reaction-arrive {
+  from { opacity: 0; transform: translateY(4px) scale(0.94); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+[data-reduced-motion='true'] .employee-reaction {
+  animation: none;
 }
 .employee-card__art--sprite {
   display: flex;
@@ -3515,16 +3615,19 @@ select,
     opacity: 0;
   }
 }
-/* while dragging a decoration in, highlight the valid surface band */
+/* while dragging a decoration in, tint only its authored surface band */
 .floor__surface-guide {
   position: absolute;
   left: 0;
   right: 0;
   z-index: 0;
   pointer-events: none;
-  border: 2px dashed color-mix(in srgb, var(--gold) 70%, transparent);
-  background: color-mix(in srgb, var(--gold) 12%, transparent);
-  border-radius: 6px;
+  border: 0;
+  background:
+    repeating-linear-gradient(135deg, color-mix(in srgb, var(--gold) 7%, transparent) 0 5px, transparent 5px 10px),
+    color-mix(in srgb, var(--gold) 5%, transparent);
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gold) 34%, transparent);
 }
 .floor__surface-guide--floor {
   bottom: 0;
@@ -3551,29 +3654,29 @@ select,
   z-index: 7;
 }
 .floor__region-plane {
-  fill: color-mix(in srgb, var(--gold) 11%, transparent);
-  stroke: color-mix(in srgb, var(--gold) 72%, transparent);
-  stroke-width: 0.8;
-  stroke-dasharray: 2.5 2;
+  fill: color-mix(in srgb, var(--gold) 6%, transparent);
+  stroke: color-mix(in srgb, var(--gold) 38%, transparent);
+  stroke-width: 0.55;
+  stroke-dasharray: 3.5 3.5;
   vector-effect: non-scaling-stroke;
 }
 .floor__region-footprint {
-  fill: color-mix(in srgb, var(--positive) 24%, transparent);
-  stroke: var(--positive);
-  stroke-width: 1.2;
+  fill: color-mix(in srgb, var(--positive) 20%, transparent);
+  stroke: color-mix(in srgb, var(--positive) 88%, #fff4d8);
+  stroke-width: 1.25;
   vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0.8px 0 color-mix(in srgb, var(--positive) 30%, transparent));
 }
 .floor__region-guide.is-invalid .floor__region-plane {
-  fill: color-mix(in srgb, var(--negative) 8%, transparent);
-  stroke: color-mix(in srgb, var(--negative) 64%, transparent);
+  fill: color-mix(in srgb, var(--negative) 4%, transparent);
+  stroke: color-mix(in srgb, var(--negative) 34%, transparent);
 }
 .floor__region-guide.is-invalid .floor__region-footprint {
-  fill: color-mix(in srgb, var(--negative) 24%, transparent);
-  stroke: var(--negative);
+  fill: color-mix(in srgb, var(--negative) 19%, transparent);
+  stroke: color-mix(in srgb, var(--negative) 88%, #fff0df);
+  stroke-dasharray: 2 1.5;
 }
 .floor__stage--dropping {
-  outline: 2px dashed var(--gold);
-  outline-offset: -2px;
   border-radius: var(--r-sm);
 }
 .decor.is-selected {
@@ -3733,25 +3836,124 @@ select,
   gap: 10px;
 }
 .decocard {
-  display: flex;
+  position: relative;
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
   align-items: center;
-  gap: 10px;
+  gap: 9px 11px;
+  min-height: 116px;
   padding: 10px;
-  background: var(--surface);
+  overflow: hidden;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.035), transparent 46%),
+    var(--surface);
   border: 1px solid var(--wood-light);
   border-radius: var(--r-sm);
+  box-shadow: 1px 2px 0 rgba(37, 24, 12, 0.24);
+  transition:
+    transform var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease),
+    box-shadow var(--dur-fast) var(--ease);
+}
+.decocard:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--gold) 54%, var(--wood-light));
+  box-shadow: 2px 4px 0 rgba(37, 24, 12, 0.2);
+}
+.decocard.is-owned::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 26px;
+  height: 26px;
+  background: linear-gradient(225deg, color-mix(in srgb, var(--positive) 55%, transparent) 0 49%, transparent 50%);
+  pointer-events: none;
 }
 .decocard.is-placed {
   border-color: color-mix(in srgb, var(--positive) 55%, var(--wood-light));
 }
 .decocard__preview {
+  position: relative;
+  isolation: isolate;
   flex: 0 0 auto;
-  width: 34px;
-  height: 34px;
+  width: 72px;
+  height: 74px;
   display: grid;
   place-items: center;
-  background: var(--surface-sunken);
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--paper-muted) 88%, var(--surface)) 0 68%, #a87945 69% 100%);
+  border: 1px solid color-mix(in srgb, var(--wood-light) 72%, transparent);
   border-radius: var(--r-sm);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    inset 0 -7px 12px rgba(63, 39, 16, 0.1);
+}
+.decocard__preview::before,
+.decocard__preview::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+}
+.decocard__preview::before {
+  right: 8px;
+  top: 9px;
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(116, 80, 43, 0.26);
+  border-radius: 2px;
+  transform: rotate(3deg);
+}
+.decocard__preview::after {
+  left: 0;
+  right: 0;
+  bottom: 22px;
+  height: 1px;
+  background: rgba(84, 54, 28, 0.38);
+  box-shadow: 0 2px 0 rgba(255, 245, 220, 0.18);
+}
+.decocard__preview--wall {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--paper-muted) 90%, var(--surface)) 0 84%, #a87945 85% 100%);
+}
+.decocard__preview--wall::after {
+  bottom: 10px;
+}
+.decocard__preview--ceiling {
+  background: linear-gradient(180deg, #4b514e 0 16%, color-mix(in srgb, var(--paper-muted) 80%, #9ea9a2) 17% 82%, #a87945 83% 100%);
+}
+.decocard__preview--ceiling::after {
+  top: 10px;
+  bottom: auto;
+  height: 2px;
+  background: rgba(239, 224, 190, 0.25);
+}
+.decocard__preview .decor {
+  z-index: 1;
+  transform: scale(0.92);
+  transition: transform var(--dur-fast) var(--ease), filter var(--dur-fast) var(--ease);
+}
+.decocard:hover .decocard__preview .decor {
+  transform: translateY(-1px) scale(0.98);
+  filter: drop-shadow(0 4px 5px rgba(0, 0, 0, 0.34));
+}
+.decocard__surface {
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  z-index: 2;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: rgba(43, 30, 18, 0.78);
+  color: #fff4dc;
+  font-family: var(--type-caption-family);
+  font-size: 0.48em;
+  font-weight: 800;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.035em;
+  pointer-events: none;
 }
 .decocard__body {
   flex: 1 1 auto;
@@ -3779,11 +3981,16 @@ select,
   color: var(--positive);
 }
 .decocard__actions {
+  grid-column: 1 / -1;
   flex: 0 0 auto;
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
   gap: 5px;
+  min-height: 24px;
+  padding-top: 6px;
+  border-top: 1px dashed color-mix(in srgb, var(--wood-light) 42%, transparent);
 }
 .decocard__badge {
   display: inline-flex;
@@ -4022,7 +4229,8 @@ select,
   opacity: 0.25;
 }
 
-/* room drop-target highlighting while dragging */
+/* Employee room moves keep a room-level frame; decoration moves use the
+   authored surface plane and footprint below instead of boxing the whole room. */
 .floor.is-drop-target {
   outline: 2px dashed color-mix(in srgb, var(--gold) 45%, transparent);
   outline-offset: -3px;
@@ -4037,6 +4245,28 @@ select,
 .floor.is-drop-invalid {
   outline: 2px solid var(--negative);
   outline-offset: -3px;
+}
+.floor.is-deco-target .floor__label,
+.floor.is-deco-hover .floor__label,
+.floor.is-deco-invalid .floor__label {
+  transition:
+    border-color var(--dur-fast) var(--ease),
+    box-shadow var(--dur-fast) var(--ease),
+    background var(--dur-fast) var(--ease);
+}
+.floor.is-deco-target .floor__label {
+  border-color: color-mix(in srgb, var(--gold) 58%, var(--wood-light));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--gold) 10%, transparent);
+}
+.floor.is-deco-hover .floor__label {
+  border-color: var(--positive);
+  background: color-mix(in srgb, var(--positive) 18%, #fff6e4);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--positive) 13%, transparent);
+}
+.floor.is-deco-invalid .floor__label {
+  border-color: var(--negative);
+  background: color-mix(in srgb, var(--negative) 12%, #fff6e4);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--negative) 11%, transparent);
 }
 
 /* the floating ghost that follows the pointer */
@@ -4070,28 +4300,45 @@ select,
   transform: translate(-50%, 0%); /* placed ceiling top (hangs below the rail) */
 }
 .drag-ghost.is-no {
-  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.5)) grayscale(0.4);
-  opacity: 0.7;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.45)) grayscale(0.5) saturate(0.72);
+  opacity: 0.72;
 }
-/* small badge under the decoration ghost naming the surface being targeted */
+.drag-ghost--decoration.is-ok .decor {
+  filter:
+    drop-shadow(0 0 5px color-mix(in srgb, var(--positive) 58%, transparent))
+    drop-shadow(0 5px 8px rgba(0, 0, 0, 0.34));
+}
+.drag-ghost--decoration.is-no .decor {
+  filter: drop-shadow(0 5px 7px rgba(0, 0, 0, 0.28));
+}
+/* compact state badge under the ghost: icon + target surface */
 .drag-ghost__surface {
   position: absolute;
   left: 50%;
   top: 100%;
   transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
   margin-top: 4px;
-  padding: 1px 7px;
+  padding: 2px 7px 2px 5px;
+  border: 1px solid color-mix(in srgb, var(--positive) 64%, #f7e8c8);
   border-radius: 999px;
   white-space: nowrap;
   font-size: 0.62em;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: 0.02em;
-  color: var(--wood-dark, #241a10);
-  background: color-mix(in srgb, var(--gold) 88%, white);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.35);
+  color: #243522;
+  background: color-mix(in srgb, var(--positive) 24%, #fff5d9);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.32);
+}
+.drag-ghost__surface .ui-icon {
+  flex: 0 0 auto;
 }
 .drag-ghost.is-no .drag-ghost__surface {
-  background: color-mix(in srgb, #d98b6a 80%, white);
+  border-color: color-mix(in srgb, var(--negative) 64%, #f7e8c8);
+  color: #56291f;
+  background: color-mix(in srgb, var(--negative) 22%, #fff3dc);
 }
 
 /* ==========================================================================
@@ -5430,44 +5677,170 @@ textarea {
 }
 
 /* ---- company logo picker ------------------------------------------------- */
+.company-icon-picker {
+  width: min(560px, 100%);
+  --popup-mark: var(--dept-morale);
+}
+.company-icon-picker__heading {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.company-icon-picker__heading .popup__title,
+.company-icon-picker__heading p {
+  margin: 0;
+}
+.company-icon-picker__heading p {
+  margin-top: 3px;
+}
+.company-icon-picker__current {
+  display: grid;
+  width: 52px;
+  height: 52px;
+  place-items: center;
+  color: var(--accent-ink, #704822);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.48), transparent 48%),
+    color-mix(in srgb, var(--popup-paper) 80%, var(--popup-mark));
+  border: 1.5px solid var(--popup-edge);
+  border-radius: 45% 55% 47% 53%;
+  box-shadow: 2px 3px 0 color-mix(in srgb, var(--popup-edge) 45%, transparent);
+  transform: rotate(-3deg);
+}
 .company-icon-picker .company-icon-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 8px;
-  margin-top: 12px;
-}
-@media (max-width: 520px) {
-  .company-icon-picker .company-icon-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
 }
 .company-icon-choice {
+  position: relative;
   display: grid;
-  place-items: center;
-  aspect-ratio: 1;
+  grid-template-columns: 38px minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+  min-height: 56px;
+  padding: 6px 24px 6px 7px;
+  overflow: hidden;
   color: var(--ink);
   background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.28), transparent 48%), var(--paper-muted);
+    linear-gradient(145deg, rgba(255, 255, 255, 0.3), transparent 48%), var(--paper-muted);
   border: 1.5px solid var(--paper-edge);
-  border-radius: 12px;
+  border-radius: 8px;
+  box-shadow: 1px 2px 0 color-mix(in srgb, var(--popup-edge) 24%, transparent);
   cursor: pointer;
+  text-align: left;
   transition:
     transform var(--dur-fast, 0.12s) var(--ease),
     border-color var(--dur-fast, 0.12s) var(--ease),
-    background var(--dur-fast, 0.12s) var(--ease);
+    background var(--dur-fast, 0.12s) var(--ease),
+    box-shadow var(--dur-fast, 0.12s) var(--ease);
 }
 .company-icon-choice:hover {
-  transform: translateY(-2px) scale(1.05);
+  transform: translateY(-1px);
   border-color: var(--accent-ink, #a9702f);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.42), transparent 48%),
+    color-mix(in srgb, var(--paper-muted) 88%, var(--popup-mark));
+  box-shadow: 2px 3px 0 color-mix(in srgb, var(--popup-edge) 22%, transparent);
+}
+.company-icon-choice:active {
+  transform: translateY(1px) scale(0.985);
+  box-shadow: none;
+}
+.company-icon-choice:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent-ink, #a9702f) 34%, transparent);
+  outline-offset: 2px;
+  border-color: var(--accent-ink, #a9702f);
+}
+.company-icon-choice__art {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--paper-edge) 62%, transparent);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--paper) 76%, transparent);
+}
+.company-icon-choice__art .company-icon {
+  transform: scale(0.96);
+  transform-origin: center;
+}
+/* Optical normalization: broad silhouettes need slightly more breathing room. */
+.company-icon-choice__art .company-icon[data-company-icon='paw'],
+.company-icon-choice__art .company-icon[data-company-icon='crow'],
+.company-icon-choice__art .company-icon[data-company-icon='briefcase'],
+.company-icon-choice__art .company-icon[data-company-icon='gear'],
+.company-icon-choice__art .company-icon[data-company-icon='building'] {
+  transform: scale(0.87);
+}
+.company-icon-choice__art .company-icon[data-company-icon='sun'],
+.company-icon-choice__art .company-icon[data-company-icon='star'],
+.company-icon-choice__art .company-icon[data-company-icon='tree'] {
+  transform: scale(0.91);
+}
+.company-icon-choice__label {
+  min-width: 0;
+  color: inherit;
+  font-family: var(--type-caption-family);
+  font-size: 0.68em;
+  font-weight: 800;
+  line-height: 1.12;
+}
+.company-icon-choice__check {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  display: grid;
+  width: 17px;
+  height: 17px;
+  place-items: center;
+  color: #fffaf0;
+  background: var(--positive);
+  border: 1px solid color-mix(in srgb, var(--positive) 65%, #312516);
+  border-radius: 50%;
+  box-shadow: 0 1px 0 rgba(45, 31, 19, 0.28);
+  animation: company-check-in 170ms var(--ease-pop) both;
 }
 .company-icon-choice.is-selected {
   border-color: var(--accent-ink, #a9702f);
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.4), transparent 46%), var(--paper);
-  box-shadow: 0 0 0 2px var(--accent-ink, #a9702f) inset;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.48), transparent 46%),
+    color-mix(in srgb, var(--paper) 84%, var(--popup-mark));
+  box-shadow:
+    inset 0 0 0 1.5px var(--accent-ink, #a9702f),
+    1px 2px 0 color-mix(in srgb, var(--popup-edge) 28%, transparent);
   color: var(--accent-ink, #7a4f28);
 }
-[data-reduced-motion='true'] .company-icon-choice {
+.company-icon-choice.is-selected .company-icon-choice__art {
+  border-color: color-mix(in srgb, var(--accent-ink, #a9702f) 55%, transparent);
+  animation: company-logo-stamp 190ms var(--ease-pop) both;
+}
+@keyframes company-check-in {
+  from { opacity: 0; transform: scale(0.6) rotate(-12deg); }
+  to { opacity: 1; transform: scale(1) rotate(0); }
+}
+@keyframes company-logo-stamp {
+  0% { transform: scale(0.82) rotate(-4deg); }
+  70% { transform: scale(1.06) rotate(1deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+@media (max-width: 520px) {
+  .company-icon-picker .company-icon-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 340px) {
+  .company-icon-picker .company-icon-grid {
+    grid-template-columns: 1fr;
+  }
+}
+[data-reduced-motion='true'] .company-icon-choice,
+[data-reduced-motion='true'] .company-icon-choice__check,
+[data-reduced-motion='true'] .company-icon-choice.is-selected .company-icon-choice__art {
   transition: none;
+  animation: none;
 }
 
 /* ---- company identity row (Company view) --------------------------------- */
@@ -9238,4 +9611,162 @@ button:disabled,
 }
 .rd--rooftop {
   --room-light: radial-gradient(90% 80% at 84% 6%, rgba(255, 244, 200, 0.3), transparent 55%);
+}
+
+
+/* ==========================================================================
+   Commercial polish pass — typography rhythm and unified tactile controls
+   ========================================================================== */
+.view > h2,
+.decorate__head h2 {
+  margin-block: 0 10px;
+  font-size: var(--type-section-size);
+  text-wrap: balance;
+}
+.view > p,
+.panel > p,
+.popup__content > p {
+  line-height: var(--lh-normal);
+}
+.card__desc,
+.employee-card__story,
+.nut-cell__desc,
+.ach__desc,
+.decorate__summary {
+  line-height: var(--lh-snug);
+}
+.card__desc {
+  margin-top: 2px;
+  font-size: var(--fs-xs);
+}
+.card__title,
+.employee-card__name,
+.decocard__title {
+  line-height: var(--lh-tight);
+}
+.decocard__title {
+  font-size: var(--fs-sm);
+}
+.pill,
+.tag-btn,
+.chip-btn,
+.tab,
+.mini-btn,
+.decocard__badge {
+  letter-spacing: 0.005em;
+}
+
+/* The same short lift/press rhythm now applies to every desk control. */
+:is(.buy-btn, .ghost-btn, .danger-btn, .mini-btn, .chip-btn, .tag-btn, .tab, .preset-btn, .move-decoration__room) {
+  transition:
+    transform var(--dur-fast) var(--ease),
+    background var(--dur) var(--ease),
+    border-color var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease),
+    box-shadow var(--dur) var(--ease),
+    filter var(--dur) var(--ease);
+}
+:is(.ghost-btn, .danger-btn, .mini-btn, .chip-btn, .tag-btn, .tab, .preset-btn):hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(1.055);
+}
+:is(.buy-btn, .ghost-btn, .danger-btn, .mini-btn, .chip-btn, .tag-btn, .tab, .preset-btn):active:not(:disabled) {
+  transform: translateY(1px) scale(0.985);
+  box-shadow: var(--shadow-pressed);
+}
+:is(.chip-btn, .tag-btn, .tab).is-on,
+.tab.is-active {
+  box-shadow:
+    inset 0 -2px 0 color-mix(in srgb, currentColor 24%, transparent),
+    0 2px 0 color-mix(in srgb, var(--control-edge) 72%, transparent);
+}
+:is(.buy-btn, .ghost-btn, .danger-btn, .mini-btn, .chip-btn, .tag-btn, .tab, .preset-btn):focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus-ring) 20%, transparent);
+}
+
+/* Forms read as one family and respond before the player commits an edit. */
+:is(input, select, textarea) {
+  transition:
+    border-color var(--dur-fast) var(--ease),
+    background var(--dur-fast) var(--ease),
+    box-shadow var(--dur-fast) var(--ease);
+}
+:is(input, select, textarea):hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--gold) 46%, var(--wood-light));
+}
+:is(input, select, textarea):focus-visible {
+  outline: none;
+  border-color: var(--focus-ring);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--focus-ring) 18%, transparent),
+    inset 0 1px 2px rgba(0, 0, 0, 0.24);
+}
+
+/* List surfaces gain depth without turning the office into floating cards. */
+.card,
+.employee-card,
+.ach,
+.nut-cell,
+.micro-card {
+  transition:
+    transform var(--dur-fast) var(--ease),
+    border-color var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease);
+}
+.card:not(.is-maxed):hover,
+.employee-card:hover,
+.ach:hover,
+.nut-cell:hover {
+  border-color: color-mix(in srgb, var(--accent-rule) 42%, var(--border-strong));
+  box-shadow: 2px 4px 0 rgba(18, 12, 7, 0.36);
+  transform: translateY(-1px);
+}
+
+/* Compact windows preserve the hierarchy while spending less vertical space. */
+@media (max-width: 520px) {
+  .app__main {
+    padding: 9px;
+  }
+  .view > h2,
+  .decorate__head h2 {
+    margin-bottom: 7px;
+    font-size: var(--fs-lg);
+  }
+  .panel,
+  .settings-section {
+    margin-bottom: 9px;
+    padding: 10px;
+  }
+  .card-list,
+  .employee-list,
+  .daily-list,
+  .moment-list,
+  .decorate__grid {
+    gap: 7px;
+  }
+  .card {
+    padding: 7px 8px;
+  }
+  .tabs {
+    gap: 3px;
+    margin-bottom: 8px;
+  }
+  .tab,
+  .chip-btn,
+  .tag-btn {
+    padding-inline: 7px;
+  }
+  .decorate__filters,
+  .decorate__rooms {
+    gap: 5px;
+  }
+  .decocard {
+    gap: 7px 9px;
+    padding: 8px;
+  }
+  .popup__content {
+    line-height: var(--lh-snug);
+  }
 }
