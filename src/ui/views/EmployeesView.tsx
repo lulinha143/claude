@@ -7,6 +7,8 @@ import { aggregatePassives, employeeLevelCost, isEmployeeUnlocked } from '../../
 import { unlockedRooms, resolveEmployeeRoom } from '../../sim/rooms';
 import { Critter } from '../../art/Critter';
 import { shapeFor } from '../../art/critterShapes';
+import { employeeSprite } from '../../art/employeeSprites';
+import { EmployeeSprite } from '../../art/EmployeeSprite';
 import { Acorn, GoldenNut } from '../../art/Icons';
 import { Tip, TipContent } from '../Tooltip';
 import { employeeMood, moodProductivityMultiplier, MOOD_TONE } from '../../sim/mood';
@@ -54,19 +56,31 @@ export function EmployeesView() {
           const cost = employeeLevelCost(def, rt.level, reduction);
           const afford = state.resources[def.hireCost.resource] >= cost;
           const shape = shapeFor(def.id);
+          const sprite = employeeSprite(def.id);
           const accent = def.outfits.find((o) => o.id === rt.outfitId)?.accent ?? def.accent;
           return (
             <li key={def.id} className={`employee-card ${rt.hired ? '' : 'is-locked'}`}>
-              <div className="employee-card__art">
-                <Critter
-                  species={shape.species}
-                  color={def.color}
-                  accent={accent}
-                  state={rt.hired ? 'idle' : 'sleep'}
-                  hasGlasses={shape.hasGlasses}
-                  size={78}
-                  reducedMotion={state.settings.reducedMotion}
-                />
+              <div className={`employee-card__art ${sprite ? 'employee-card__art--sprite' : ''}`}>
+                {sprite ? (
+                  <EmployeeSprite
+                    config={sprite}
+                    // Locked animals stay a still poster; hired ones animate
+                    // (unless the player prefers reduced motion).
+                    reducedMotion={state.settings.reducedMotion || !rt.hired}
+                    height={sprite.cardHeight}
+                    title={rt.nickname ?? t(def.nameKey)}
+                  />
+                ) : (
+                  <Critter
+                    species={shape.species}
+                    color={def.color}
+                    accent={accent}
+                    state={rt.hired ? 'idle' : 'sleep'}
+                    hasGlasses={shape.hasGlasses}
+                    size={78}
+                    reducedMotion={state.settings.reducedMotion}
+                  />
+                )}
               </div>
               <div className="employee-card__info">
                 <div className="employee-card__name">

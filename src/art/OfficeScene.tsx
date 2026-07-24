@@ -10,6 +10,8 @@ import { DECORATIONS_BY_ID } from '../content/decorations';
 import { Critter } from './Critter';
 import { CritterStateMachine, type CritterState } from './animation';
 import { shapeFor } from './critterShapes';
+import { employeeSprite } from './employeeSprites';
+import { EmployeeSprite } from './EmployeeSprite';
 import { Acorn, Crate } from './Icons';
 import { Icon } from './UiIcon';
 import { DecorationProp, decorKind, interactSound } from './DecorationProp';
@@ -123,10 +125,21 @@ const AMBIENT: Record<string, string> = {
 // stand on the room floor. The room-local layout (`characterSlots`) and the
 // built-in room dressing provide the furnished feel in the meantime.
 
-// Small critter rendered inside the drag ghost.
+// Small critter (or final sprite) rendered inside the drag ghost.
 function GhostCritter({ id, reducedMotion }: { id: string; reducedMotion: boolean }) {
-  const sh = shapeFor(id);
+  const sprite = employeeSprite(id);
   const d = EMPLOYEES_BY_ID[id];
+  if (sprite) {
+    return (
+      <EmployeeSprite
+        config={sprite}
+        reducedMotion={reducedMotion}
+        height={sprite.officeHeight}
+        title={d ? undefined : id}
+      />
+    );
+  }
+  const sh = shapeFor(id);
   return (
     <Critter
       species={sh.species}
@@ -1077,6 +1090,7 @@ export function OfficeScene() {
                 {occupants.map(([id, rt], idx) => {
                   const def = EMPLOYEES_BY_ID[id];
                   const shape = shapeFor(id);
+                  const sprite = employeeSprite(id);
                   const slot = slots[idx] ?? { x: 0.5, bottom: 0 };
                   const visiting = interaction?.employeeId === id;
                   const ex = visiting
@@ -1110,9 +1124,9 @@ export function OfficeScene() {
                   return (
                     <button
                       key={id}
-                      className={`critter-btn ${drag?.kind === 'employee' && drag.id === id ? 'is-dragging' : ''} ${
-                        !decorMode ? 'is-draggable' : ''
-                      } ${visiting ? 'is-visiting' : ''}`}
+                      className={`critter-btn ${sprite ? 'critter-btn--sprite' : ''} ${
+                        drag?.kind === 'employee' && drag.id === id ? 'is-dragging' : ''
+                      } ${!decorMode ? 'is-draggable' : ''} ${visiting ? 'is-visiting' : ''}`}
                       style={{
                         left: `${ex * 100}%`,
                         bottom: `${slot.bottom}px`,
@@ -1138,17 +1152,26 @@ export function OfficeScene() {
                         title={t(`mood.${employeeMood(state, id)}`)}
                         aria-hidden
                       />
-                      <Critter
-                        species={shape.species}
-                        color={def?.color ?? '#c65b3c'}
-                        accent={accent}
-                        state={anim}
-                        hasGlasses={shape.hasGlasses}
-                        reducedMotion={reducedMotion}
-                        size={74}
-                        title={label}
-                        seed={idx + room.floor}
-                      />
+                      {sprite ? (
+                        <EmployeeSprite
+                          config={sprite}
+                          reducedMotion={reducedMotion}
+                          height={sprite.officeHeight}
+                          title={label}
+                        />
+                      ) : (
+                        <Critter
+                          species={shape.species}
+                          color={def?.color ?? '#c65b3c'}
+                          accent={accent}
+                          state={anim}
+                          hasGlasses={shape.hasGlasses}
+                          reducedMotion={reducedMotion}
+                          size={74}
+                          title={label}
+                          seed={idx + room.floor}
+                        />
+                      )}
                       {bubble?.employeeId === id ? (
                         <span className="bubble" role="status">
                           {bubble.text}

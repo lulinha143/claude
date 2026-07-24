@@ -1081,6 +1081,39 @@ h4 {
 [data-reduced-motion='true'] .critter-btn::after {
   transition: none;
 }
+
+/* ------- final animated employee sprites (APNG "workstations") ------- */
+.employee-sprite {
+  display: block;
+  /* the wrapping .critter-btn owns pointer input (drag/click) */
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  /* smooth, high-quality downscale from the hi-res source frame */
+  image-rendering: auto;
+}
+/* the workstation art carries its own grounded shadow, so suppress the
+   generic critter contact ellipse to avoid a doubled shadow. */
+.critter-btn--sprite::after {
+  display: none;
+}
+/* keep hover-lift / drag scaling anchored to the character's feet */
+.critter-btn--sprite {
+  transform-origin: 50% 100%;
+}
+/* the sprite's bounding box is wider than a critter, so recentre the mood pip
+   and speech bubble over the character instead of the box's far corner. */
+.critter-btn--sprite .mood-dot {
+  top: 6px;
+  right: auto;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.employee-card__art--sprite {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
 .focus-hat {
   position: absolute;
   top: 2px;
