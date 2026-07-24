@@ -468,6 +468,12 @@ function spriteFor(id: string, on: boolean, variant: number, accent: string): Sp
     case 'filing-cabinet':
       return {
         base: [
+          // a little potted succulent someone left on top — instant charm
+          [10, 4, 4, 3, C.t],
+          [10, 4, 4, 1, C.tl],
+          [11, 1, 1, 3, C.g],
+          [12, 0, 1, 4, C.gl],
+          [13, 1, 1, 3, C.g],
           [7, 7, 10, 19, C.m],
           [7, 7, 10, 1, C.ml],
           [15, 7, 2, 19, C.ms],
@@ -485,13 +491,17 @@ function spriteFor(id: string, on: boolean, variant: number, accent: string): Sp
           [5, 8, 14, 18, C.ms],
           [5, 8, 14, 1, C.m],
           [7, 10, 10, 14, C.m],
-          [10, 14, 4, 4, C.ms], // dial
-          [11, 15, 2, 2, C.ml],
+          [10, 13, 4, 4, C.ms], // dial
+          [11, 14, 2, 2, C.ml],
           [15, 16, 2, 3, C.ml], // handle
           [6, 9, 1, 1, C.ml], // bolts
           [17, 9, 1, 1, C.ml],
           [6, 24, 1, 1, C.ml],
           [17, 24, 1, 1, C.ml],
+          // a little stash of gold peeking out the bottom — treasure charm
+          [8, 20, 4, 2, C.gold],
+          [8, 20, 4, 1, C.goldl],
+          [9, 22, 2, 1, C.gy],
         ],
         shadowR: 9,
       };
@@ -551,7 +561,10 @@ function spriteFor(id: string, on: boolean, variant: number, accent: string): Sp
     case 'label-maker':
       return {
         base: [
-          [9, 11, 6, 2, C.paper], // label strip
+          [9, 10, 7, 3, C.paper], // label strip
+          [11, 11, 1, 1, C.red], // tiny printed heart
+          [13, 11, 1, 1, C.red],
+          [11, 12, 3, 1, C.red],
           [6, 13, 12, 11, C.ms],
           [6, 13, 12, 1, C.m],
           [8, 15, 6, 3, on ? C.scr : C.scrd],
@@ -569,6 +582,7 @@ function spriteFor(id: string, on: boolean, variant: number, accent: string): Sp
           [8, 8, 9, 5, C.ms],
           [8, 8, 9, 1, C.m],
           [15, 9, 3, 3, on ? C.scr : C.scrd],
+          [15, 9, 1, 1, C.white], // glossy lens glint (cute "eye")
           [17, 10, 1, 1, C.ms],
         ],
         lit: [[9, 9, 1, 1, C.redl]],
