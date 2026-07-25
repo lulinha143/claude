@@ -343,6 +343,69 @@
       "role": "Pesquisa de Campo",
       "story": "Canela, a panda-vermelha, observa, anota e protege — curiosíssima sobre como cada coisinha do escritório funciona.",
       "goal": "Encher um caderno inteiro de observações do escritório."
+    },
+    "nino": {
+      "name": "Nino",
+      "fullName": "Nino Bigodes",
+      "role": "Gerente de Escritório",
+      "story": "Nino, o gato do escritório, comanda a sala de reunião com um ronronado e uma pata de ferro. De algum jeito, tudo é agendado em volta das sonecas dele.",
+      "goal": "Participar de toda reunião sem acordar de vez."
+    },
+    "bia": {
+      "name": "Bia",
+      "fullName": "Bia Silvestre",
+      "role": "Segurança e Manutenção",
+      "story": "Bia, a ursa, protege o cofre e conserta o que quebra com a mesma calma. Patas grandes, coração maior — não mexa no pote de mel.",
+      "goal": "Manter o cofre seguro e a prateleira de lanches sempre cheia."
+    },
+    "quincy": {
+      "name": "Quincy",
+      "fullName": "Quincy Vitória-Régia",
+      "role": "Qualidade e Testes",
+      "story": "Quincy, o sapo, pega bugs antes de qualquer um perceber, com uma língua mais rápida que qualquer teclado.",
+      "goal": "Esmagar até o último bug do sistema."
+    },
+    "dorm": {
+      "name": "Soneca",
+      "fullName": "Soneca Galho-Lento",
+      "role": "Bem-estar e Descanso",
+      "story": "Soneca, a preguiça, lembra a todos que devagar é suave e suave é rápido. Com o tempo.",
+      "goal": "Tirar a pausa mais longa e revigorante da história."
+    },
+    "inky": {
+      "name": "Inky",
+      "fullName": "Inky Maré",
+      "role": "Logística e Triagem",
+      "story": "Inky, o polvo, organiza oito coisas ao mesmo tempo e ainda sobra um tentáculo pro café.",
+      "goal": "Organizar toda a fila antes do café esfriar."
+    },
+    "echo": {
+      "name": "Eco",
+      "fullName": "Eco Asa-Noite",
+      "role": "Pesquisa Noturna",
+      "story": "Eco, a morcega, pensa melhor de cabeça pra baixo, depois que todo mundo já foi pra casa.",
+      "goal": "Mapear cada cantinho silencioso do turno da noite."
+    },
+    "rosa": {
+      "name": "Rosa",
+      "fullName": "Rosa Pluma",
+      "role": "Marketing e Estilo",
+      "story": "Rosa, a flamingo, transforma todo lançamento numa passarela. Se não é fabuloso, não está pronto.",
+      "goal": "Deixar a empresa inteira estilosa demais."
+    },
+    "perry": {
+      "name": "Perry",
+      "fullName": "Perry Bico-Largo",
+      "role": "Compras e Bicos",
+      "story": "Perry, o ornitorrinco, consegue o impossível de conseguir. Metade contador, metade agente secreto, cem por cento negócios.",
+      "goal": "Arrumar um de cada coisa, só por garantia."
+    },
+    "axel": {
+      "name": "Axel",
+      "fullName": "Axel Babado",
+      "role": "Pesquisa e Regeneração",
+      "story": "Axel, o axolote, encara todo problema com um sorriso e a certeza de que tudo pode crescer de novo.",
+      "goal": "Descobrir algo que ninguém nunca cultivou."
     }
   },
   "item": {
@@ -416,6 +479,42 @@
     "canela": {
       "field": "Colete de Campo",
       "ranger": "Guarda-Florestal"
+    },
+    "nino": {
+      "collar": "Coleira com Sino",
+      "bowtie": "Gravatinha de Gerente"
+    },
+    "bia": {
+      "vest": "Colete de Guarda",
+      "badge": "Distintivo de Chefe"
+    },
+    "quincy": {
+      "labcoat": "Jaleco de QA",
+      "diver": "Mergulhador do Lago"
+    },
+    "dorm": {
+      "cozy": "Tricô Aconchegante",
+      "onesie": "Macacão dos Sonhos"
+    },
+    "inky": {
+      "apron": "Avental de Triagem",
+      "formal": "Terno de Oito Braços"
+    },
+    "echo": {
+      "cloak": "Manto Noturno",
+      "scarf": "Cachecol Sonar"
+    },
+    "rosa": {
+      "feather": "Boá de Penas",
+      "gala": "Vestido de Gala"
+    },
+    "perry": {
+      "toolbelt": "Cinto de Ferramentas",
+      "agent": "Agente Secreto"
+    },
+    "axel": {
+      "labcoat": "Jaleco Aquático",
+      "explorer": "Explorador de Cavernas"
     }
   },
   "room": {
@@ -1856,6 +1955,78 @@
       "Me dá um caderno e uma boa vista.",
       "Estudos de comportamento: o sujeito de hoje é você.",
       "A natureza está nos detalhes, até aqui."
+    ],
+    "nino": [
+      "A reunião é quando eu acordar.",
+      "Eu supervisiono. Deste cantinho quentinho.",
+      "Derrubei da mesa. De propósito.",
+      "Bom gerente delega. Em alto e bom som.",
+      "Estive no comando esse tempo todo.",
+      "Ronronado recebido. Pedido negado."
+    ],
+    "bia": [
+      "Ninguém passa por mim. Ninguém.",
+      "Consertei. Com as próprias mãos.",
+      "A pausa do lanche é sagrada.",
+      "O cofre está seguro. Conferi duas vezes.",
+      "Forte e gentil — esse é o truque.",
+      "Abraço agora, ronda depois."
+    ],
+    "quincy": [
+      "Peguei mais um bug. Delicioso.",
+      "Se pode quebrar, eu quebro primeiro.",
+      "'Croac' quer dizer 'pode lançar'.",
+      "Testa duas vezes, coaxa uma.",
+      "Nada escapa desta língua.",
+      "Achei o caso extremo. Ele me achou."
+    ],
+    "dorm": [
+      "Já já eu faço... com o tempo.",
+      "Devagar é suave. Suave é... zzz.",
+      "Uma tarefa por dia afasta o estresse.",
+      "Aguenta firme. Literalmente.",
+      "Espreguiça, depois pensa.",
+      "Pressa? Não conheço."
+    ],
+    "inky": [
+      "Oito braços, zero desculpas.",
+      "Já organizei isso. E aquilo. E aqueles.",
+      "Fazer mil coisas é só respirar.",
+      "Arquivei em 'concluído'.",
+      "Me dá tudo de uma vez.",
+      "Tinta acontece. Eu limpo."
+    ],
+    "echo": [
+      "Ouvi isso. Eu ouço tudo.",
+      "As melhores ideias vêm de noite.",
+      "De cabeça pra baixo, pensando alto.",
+      "O turno da noite é meu.",
+      "Eco, eco... ainda aqui.",
+      "Enxergo com som. Legal, né?"
+    ],
+    "rosa": [
+      "Fica numa perna só. Fica fabulosa.",
+      "Rosa é personalidade.",
+      "A gente não lança, a gente estreia.",
+      "Se não é ousado, refaz.",
+      "Equilíbrio é a minha marca.",
+      "Querido, isso é ouro no marketing."
+    ],
+    "perry": [
+      "Consegui. Não pergunta onde.",
+      "Metade do preço, dobro do mistério.",
+      "Bico difícil? Especialidade minha.",
+      "Conheço um cara. O cara sou eu.",
+      "Notas fiscais? Arquivadas. Em lugar seguro.",
+      "O incomum é minha zona de conforto."
+    ],
+    "axel": [
+      "Quebrou? Cresce de novo.",
+      "Sempre sorrindo. É só o rosto mesmo.",
+      "Ciência é basicamente magia com anotações.",
+      "Vamos regenerar essa ideia.",
+      "Debaixo d'água, superando metas.",
+      "Fica curioso, fica rosa."
     ],
     "idle": [
       "O escritório zumbe baixinho.",

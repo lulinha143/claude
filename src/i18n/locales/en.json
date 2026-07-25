@@ -343,6 +343,69 @@
       "role": "Field Research",
       "story": "Canela the red panda watches, notes, and protects — endlessly curious about how every little thing in the office works.",
       "goal": "Fill an entire notebook with office observations."
+    },
+    "nino": {
+      "name": "Nino",
+      "fullName": "Nino Whiskerton",
+      "role": "Office Manager",
+      "story": "Nino the office cat runs the meeting room with a purr and an iron paw. Somehow everything gets scheduled around his naps.",
+      "goal": "Attend every meeting without ever staying fully awake."
+    },
+    "bia": {
+      "name": "Bia",
+      "fullName": "Bia Bramble",
+      "role": "Security & Facilities",
+      "story": "Bia the bear guards the vault and fixes what's broken with equal calm. Big paws, bigger heart — do not touch the honey stash.",
+      "goal": "Keep the vault safe and the snack shelf fully stocked."
+    },
+    "quincy": {
+      "name": "Quincy",
+      "fullName": "Quincy Lilypad",
+      "role": "Quality & Testing",
+      "story": "Quincy the frog catches bugs before anyone else notices them, with a tongue faster than any keyboard.",
+      "goal": "Squash every last bug in the pipeline."
+    },
+    "dorm": {
+      "name": "Sonny",
+      "fullName": "Sonny Slowbranch",
+      "role": "Wellbeing & Rest",
+      "story": "Sonny the sloth reminds everyone that slow is smooth and smooth is fast. Eventually.",
+      "goal": "Take the longest, most restorative break in history."
+    },
+    "inky": {
+      "name": "Inky",
+      "fullName": "Inky Marlowe",
+      "role": "Logistics & Sorting",
+      "story": "Inky the octopus sorts eight things at once and still has a tentacle free for coffee.",
+      "goal": "Sort the entire backlog before the coffee cools."
+    },
+    "echo": {
+      "name": "Echo",
+      "fullName": "Echo Duskwing",
+      "role": "Night Research",
+      "story": "Echo the bat does her best thinking upside down, after everyone else has gone home.",
+      "goal": "Map every quiet corner of the night shift."
+    },
+    "rosa": {
+      "name": "Rosa",
+      "fullName": "Rosa Plume",
+      "role": "Marketing & Flair",
+      "story": "Rosa the flamingo turns every launch into a runway. If it isn't fabulous, it isn't finished.",
+      "goal": "Make the whole company impossibly stylish."
+    },
+    "perry": {
+      "name": "Perry",
+      "fullName": "Perry Billsby",
+      "role": "Procurement & Odd Jobs",
+      "story": "Perry the platypus sources the unsourceable. Part accountant, part secret agent, all business.",
+      "goal": "Track down one of everything, just in case."
+    },
+    "axel": {
+      "name": "Axel",
+      "fullName": "Axel Frill",
+      "role": "Research & Regeneration",
+      "story": "Axel the axolotl meets every problem with a smile and the certainty that anything can grow back.",
+      "goal": "Discover something no one has ever grown before."
     }
   },
   "item": {
@@ -416,6 +479,42 @@
     "canela": {
       "field": "Field Vest",
       "ranger": "Forest Ranger"
+    },
+    "nino": {
+      "collar": "Bell Collar",
+      "bowtie": "Manager Bowtie"
+    },
+    "bia": {
+      "vest": "Guard Vest",
+      "badge": "Chief Badge"
+    },
+    "quincy": {
+      "labcoat": "QA Coat",
+      "diver": "Pond Diver"
+    },
+    "dorm": {
+      "cozy": "Cozy Knit",
+      "onesie": "Dream Onesie"
+    },
+    "inky": {
+      "apron": "Sorter Apron",
+      "formal": "Eight-Arm Suit"
+    },
+    "echo": {
+      "cloak": "Night Cloak",
+      "scarf": "Sonar Scarf"
+    },
+    "rosa": {
+      "feather": "Feather Boa",
+      "gala": "Gala Gown"
+    },
+    "perry": {
+      "toolbelt": "Utility Belt",
+      "agent": "Secret Agent"
+    },
+    "axel": {
+      "labcoat": "Aqua Coat",
+      "explorer": "Cave Explorer"
     }
   },
   "room": {
@@ -1856,6 +1955,78 @@
       "Give me a notebook and a good view.",
       "Behavior studies: today's subject is you.",
       "Nature's in the details, even in here."
+    ],
+    "nino": [
+      "Meeting's whenever I wake up.",
+      "I supervise. From this warm spot.",
+      "Knocked it off the desk. On purpose.",
+      "A good manager delegates. Loudly.",
+      "I've been in charge this whole time.",
+      "Purr received. Request denied."
+    ],
+    "bia": [
+      "Nobody gets past me. Nobody.",
+      "Fixed it. With my own hands.",
+      "Snack break is sacred.",
+      "The vault is safe. I checked twice.",
+      "Strong and gentle — that's the trick.",
+      "Hug now, patrol later."
+    ],
+    "quincy": [
+      "Caught another bug. Delicious.",
+      "If it can break, I'll break it first.",
+      "Ribbit means 'ship it'.",
+      "Test twice, croak once.",
+      "Nothing gets past this tongue.",
+      "Found the edge case. It found me."
+    ],
+    "dorm": [
+      "I'll get to it... eventually.",
+      "Slow is smooth. Smooth is... zzz.",
+      "One task a day keeps the stress away.",
+      "Hang in there. Literally.",
+      "Big stretch, then big think.",
+      "Rushing? Never met her."
+    ],
+    "inky": [
+      "Eight arms, zero excuses.",
+      "Already sorted it. And that. And those.",
+      "Multitasking is just breathing.",
+      "I filed it under 'done'.",
+      "Give me all of it at once.",
+      "Ink happens. I clean it up."
+    ],
+    "echo": [
+      "I heard that. I hear everything.",
+      "Best ideas come after dark.",
+      "Hanging around, thinking big.",
+      "The night shift is mine.",
+      "Echo, echo... still here.",
+      "I see with sound. Neat, right?"
+    ],
+    "rosa": [
+      "Stand on one leg. Look fabulous.",
+      "Pink is a personality.",
+      "We don't launch, we debut.",
+      "If it's not bold, redo it.",
+      "Balance is my whole brand.",
+      "Darling, that's marketing gold."
+    ],
+    "perry": [
+      "I sourced it. Don't ask where.",
+      "Half the price, twice the mystery.",
+      "Odd job? My specialty.",
+      "I have a guy. I'm the guy.",
+      "Receipts? Filed. Somewhere safe.",
+      "Unusual is my comfort zone."
+    ],
+    "axel": [
+      "Broke it? It'll grow back.",
+      "Always smiling. It's just my face.",
+      "Science is basically magic with notes.",
+      "Let's regenerate this idea.",
+      "Underwater, overachieving.",
+      "Stay curious, stay pink."
     ],
     "idle": [
       "The office hums quietly.",
