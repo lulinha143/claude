@@ -43,26 +43,30 @@ export interface EmployeeSpriteConfig {
 }
 
 // Scale normalization: every final workstation sprite is a "seated animal at a
-// desk" composition. To make them all feel proportionate we render each so its
-// DESK reads at the same apparent width as Bea's (~78px in the office, ~112px on
-// the roster card). The per-sprite heights below are derived from each asset's
-// measured desk width so the desks line up regardless of how much the animal or
-// its props extend above the desk. All four provided assets are pre-trimmed to
-// their content, centred (anchorX 0.5) and rest on the bottom edge (baseline 0).
+// desk (with chair)" composition. Each is sized so its DESK reads at a shared
+// apparent width, derived from the asset's measured desk pixels so the desks
+// line up regardless of how much the animal, chair or props extend above. All
+// assets are pre-trimmed to their content, centred (anchorX 0.5) and rest on
+// the bottom edge (baseline 0).
+//
+// Scale refinement pass: Bea (beaver) was raised ~15% and Marlow (capybara),
+// Pingo (penguin) and Canela (red panda) ~20% over their previous rendered
+// size, then eyeballed together in-office for harmony. Pip (squirrel) is
+// intentionally left untouched from the previous pass.
 export const EMPLOYEE_SPRITES: Record<string, EmployeeSpriteConfig> = {
-  // Bea — Beaver, Construction. The established reference desk size.
+  // Bea — Beaver, Construction. Reference desk, raised ~15% (70->80 / 101->116).
   bea: {
     src: 'employees/bea.png',
     poster: 'employees/bea-poster.png',
     frameWidth: 384,
     frameHeight: 336,
-    officeHeight: 70,
-    cardHeight: 101,
+    officeHeight: 80,
+    cardHeight: 116,
     anchorX: 0.5,
     baseline: 0,
   },
   // Pip — Squirrel, Founder. Reading glasses, acorns, laptop; bushy tail rises
-  // above the desk so the frame is nearly square.
+  // above the desk so the frame is nearly square. (Unchanged this pass.)
   pip: {
     src: 'employees/pip.png',
     poster: 'employees/pip-poster.png',
@@ -73,37 +77,38 @@ export const EMPLOYEE_SPRITES: Record<string, EmployeeSpriteConfig> = {
     anchorX: 0.5,
     baseline: 0,
   },
-  // Marlow — Capybara, Morale/HR. Scarf, calm "TODAY / FOCUS / TEA / BREATHE".
+  // Marlow — Capybara, Morale/HR. Teal chair, scarf, calm desk. Raised ~20%.
   marlow: {
     src: 'employees/marlow.png',
     poster: 'employees/marlow-poster.png',
     frameWidth: 366,
     frameHeight: 300,
-    officeHeight: 65,
-    cardHeight: 94,
+    officeHeight: 79,
+    cardHeight: 114,
     anchorX: 0.5,
     baseline: 0,
   },
-  // Pingo — Penguin, Logistics. Scarf, "LOGISTICS / DATA / NAP" desk books.
+  // Pingo — Penguin, Logistics. Purple chair, scarf, "LOGISTICS / DATA / NAP".
+  // Raised ~20%.
   pingo: {
     src: 'employees/penguin.png',
     poster: 'employees/penguin-poster.png',
-    frameWidth: 365,
+    frameWidth: 371,
     frameHeight: 300,
-    officeHeight: 69,
-    cardHeight: 99,
+    officeHeight: 82,
+    cardHeight: 118,
     anchorX: 0.5,
     baseline: 0,
   },
-  // Canela — Red Panda, Research/Naturalist. "RED PANDA / BEHAVIOR STUDIES /
-  // FOREST WATCH" and an "Observe · Learn · Protect" note.
+  // Canela — Red Panda, Research/Naturalist. Desk lamp, "OBSERVATIONS" pad.
+  // Raised ~20%.
   canela: {
     src: 'employees/canela.png',
     poster: 'employees/canela-poster.png',
-    frameWidth: 368,
+    frameWidth: 374,
     frameHeight: 300,
-    officeHeight: 68,
-    cardHeight: 98,
+    officeHeight: 81,
+    cardHeight: 117,
     anchorX: 0.5,
     baseline: 0,
   },
