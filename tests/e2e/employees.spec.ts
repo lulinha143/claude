@@ -70,3 +70,37 @@ test('a full room lays out six teammates without overlap', async ({ page }) => {
     expect(centres[i] - centres[i - 1]).toBeGreaterThan(width * 0.5);
   }
 });
+
+// The employee's emotion bubble and speech bubble share ONE anchored node:
+// by default it shows the mood emoji; clicking the teammate morphs that same
+// bubble into a speech bubble, which then reverts to the emoji.
+test('one anchored bubble morphs between emotion and speech on click', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 860 });
+  await seed(page, FULL_ROOM);
+  await page.goto('/');
+  await page.locator('.office').first().waitFor({ timeout: 15000 });
+  await clearModals(page);
+  await page.locator('.floor[data-room="founder-desk"]').scrollIntoViewIfNeeded();
+  await page.waitForTimeout(400);
+
+  const critter = page.locator('.floor[data-room="founder-desk"] .critter-btn').first();
+  const bubble = critter.locator('.employee-bubble');
+
+  // default: exactly one bubble, in emoji mode, with the mood emoji present.
+  await expect(bubble).toHaveCount(1);
+  await expect(bubble).toHaveAttribute('data-mode', 'emoji');
+  await expect(bubble.locator('.mood-emoji')).toBeVisible();
+  await expect(bubble.locator('.employee-bubble__speech')).toHaveCount(0);
+
+  // click → same bubble switches to speech mode with visible text.
+  await critter.click();
+  await expect(bubble).toHaveAttribute('data-mode', 'speech', { timeout: 3000 });
+  const speech = bubble.locator('.employee-bubble__speech');
+  await expect(speech).toBeVisible();
+  expect(((await speech.textContent()) ?? '').trim().length).toBeGreaterThan(0);
+  // the mood emoji stays present as a small corner tag (same node).
+  await expect(bubble.locator('.mood-emoji')).toBeVisible();
+
+  // after the timed phrase it reverts to the emotion bubble.
+  await expect(bubble).toHaveAttribute('data-mode', 'emoji', { timeout: 8000 });
+});
