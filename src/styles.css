@@ -1951,34 +1951,8 @@ select,
   }
 }
 
-/* --- Coffee Rescue --- */
-.coffee__hud {
-  display: flex;
-  justify-content: space-between;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  margin-bottom: 6px;
-}
-.coffee__area {
-  position: relative;
-  height: 220px;
-  background: linear-gradient(180deg, #3a2c1f, #2d2216);
-  border-radius: var(--r-md);
-  overflow: hidden;
-  cursor: none;
-  touch-action: none;
-}
-.coffee__drop {
-  position: absolute;
-  width: 12px;
-  height: 16px;
-  transform: translate(-50%, -50%);
-  background: radial-gradient(circle at 40% 30%, #a9743b, #6f4a2f);
-  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-}
-/* motion-mode droplets get a gentle liquid wobble as they fall. The transform
-   keeps the same centre, so the catch hitbox is unchanged; auto-stilled under
-   reduced motion (where drops are tap targets instead). */
+/* Falling droplets keep a gentle liquid wobble. Reduced-motion mode renders
+   them as stationary 44px tap targets instead. */
 .coffee__drop:not(.coffee__drop--tap) {
   animation: mg-drop-jiggle 0.85s ease-in-out infinite;
 }
@@ -1990,34 +1964,6 @@ select,
   50% {
     transform: translate(-50%, -50%) scaleY(1.14) scaleX(0.9);
   }
-}
-.coffee__drop--tap {
-  width: 26px;
-  height: 30px;
-  border: none;
-  cursor: pointer;
-  animation: pop-in 0.15s var(--ease);
-}
-.coffee__mug {
-  position: absolute;
-  bottom: 6px;
-  width: 40px;
-  height: 26px;
-  transform: translateX(-50%);
-  background: var(--wood-light);
-  border: 2px solid var(--wood-dark);
-  border-radius: 4px 4px 10px 10px;
-}
-.coffee__mug::after {
-  content: '';
-  position: absolute;
-  right: -10px;
-  top: 4px;
-  width: 10px;
-  height: 12px;
-  border: 3px solid var(--wood-dark);
-  border-left: none;
-  border-radius: 0 8px 8px 0;
 }
 
 /* --- Cable Untangle Desk --- */
@@ -4074,51 +4020,6 @@ select,
   color: var(--text-muted);
 }
 
-/* ==========================================================================
-   Minigame polish — coffee combo meter, memory streaks
-   ========================================================================== */
-
-/* Coffee Rescue: combo readout, warmth meter, catch splash */
-.coffee__mult {
-  font-weight: 800;
-  color: var(--gold);
-}
-.coffee__meter {
-  height: 6px;
-  border-radius: var(--r-pill);
-  background: var(--surface-sunken);
-  overflow: hidden;
-  margin: 4px 0 6px;
-}
-.coffee__meter-fill {
-  display: block;
-  height: 100%;
-  background: linear-gradient(90deg, var(--amber), var(--gold));
-  transition: width 0.25s ease;
-}
-.coffee__mug.is-splash::before {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: -10px;
-  width: 16px;
-  height: 16px;
-  transform: translateX(-50%);
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 213, 74, 0.7), transparent 70%);
-  animation: coffee-splash 0.2s ease-out;
-}
-@keyframes coffee-splash {
-  from {
-    transform: translateX(-50%) scale(0.4);
-    opacity: 0.9;
-  }
-  to {
-    transform: translateX(-50%) scale(1.6);
-    opacity: 0;
-  }
-}
-
 /* A decoration a nearby employee is reacting to gets a soft glow. */
 .decor.is-reacting {
   filter: drop-shadow(0 0 5px color-mix(in srgb, var(--gold) 70%, transparent));
@@ -4785,9 +4686,6 @@ img {
     bug-bob 1.5s ease-in-out 0.18s infinite;
   filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.4));
 }
-.burrow.is-hit .bug {
-  animation: bug-squash 0.22s var(--ease) forwards;
-}
 @keyframes bug-pop {
   from {
     transform: translateY(70%) scale(0.5);
@@ -4805,12 +4703,6 @@ img {
   }
   50% {
     transform: translateY(-8%) rotate(2deg);
-  }
-}
-@keyframes bug-squash {
-  to {
-    transform: scaleY(0.25) scaleX(1.25);
-    opacity: 0;
   }
 }
 [data-reduced-motion='true'] .burrow .bug {
@@ -8575,8 +8467,8 @@ button:disabled,
   transform: rotate(-12deg);
 }
 .coffee__drop--tap {
-  width: 34px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   cursor: pointer;
   animation: coffee-drop-arrive var(--dur-slow) var(--ease-pop) both;
 }
@@ -9083,11 +8975,14 @@ button:disabled,
   pointer-events: none;
 }
 .burrow__impact b {
+  position: absolute;
+  top: -8px;
+  right: -8px;
   color: #fff4df;
   background: #c65b3c;
   border: 2px solid #332619;
   border-radius: 50%;
-  padding: 7px 5px;
+  padding: clamp(4px, 1vw, 7px) clamp(3px, 0.8vw, 5px);
   font: 900 clamp(8px, 1.5vw, 14px)/1 var(--font-display);
   text-shadow: 0 1px #332619;
   transform: rotate(-8deg);
@@ -9157,7 +9052,7 @@ button:disabled,
     transform: rotate(-5deg) scale(1.15);
   }
   to {
-    opacity: 0;
+    opacity: 0.96;
     transform: rotate(-8deg) scale(1);
   }
 }
@@ -9212,6 +9107,11 @@ button:disabled,
   }
   .bug {
     width: min(46px, 78%);
+  }
+  .bug.is-squashed {
+    bottom: 12px;
+    width: min(50px, 86%);
+    margin-left: -25px;
   }
 }
 [data-reduced-motion='true']
@@ -11754,4 +11654,183 @@ button:disabled,
   .decorate__empty {
     padding: 14px 12px;
   }
+}
+
+/* Coffee Rescue interaction contract: measured mug geometry, readable feedback,
+   and compact layouts that retain every status rather than hiding the streak. */
+.coffee__area:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: -5px;
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--focus-ring) 28%, transparent),
+    4px 6px 0 rgba(18, 12, 7, 0.38),
+    inset 0 2px 0 rgba(255, 244, 224, 0.09);
+}
+.coffee__drop--tap:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+.coffee__miss-fx {
+  position: absolute;
+  z-index: 10;
+  bottom: 16%;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+.coffee__miss-fx i {
+  position: absolute;
+  left: -19px;
+  top: -7px;
+  width: 38px;
+  height: 13px;
+  border: 3px solid color-mix(in srgb, var(--negative) 72%, #f3d39b);
+  border-radius: 50%;
+  opacity: 0;
+  animation: coffee-miss-ring 0.38s ease-out both;
+}
+.coffee__miss-fx b {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  transform: translateX(-50%);
+  color: #ffb49e;
+  font: 900 var(--fs-xs) / 1 var(--font-display);
+  text-shadow: 0 2px #4e2f1c;
+  animation: coffee-score-rise 0.38s ease-out both;
+}
+@keyframes coffee-miss-ring {
+  from {
+    opacity: 0.9;
+    transform: scale(0.45);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.35);
+  }
+}
+@media (max-width: 520px) {
+  .coffee__status {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'ticket streak'
+      'meter meter';
+    gap: 6px 8px;
+  }
+  .coffee__order-ticket {
+    grid-area: ticket;
+    justify-self: start;
+  }
+  .coffee__meter {
+    grid-area: meter;
+    width: 100%;
+  }
+  .coffee__streak {
+    display: block;
+    grid-area: streak;
+    min-width: 0;
+  }
+  .coffee__area {
+    height: clamp(220px, 42vh, 330px);
+  }
+}
+@media (max-width: 360px) {
+  .coffee {
+    padding-inline: 5px;
+  }
+  .coffee__order-ticket {
+    padding-inline: 6px;
+  }
+  .coffee__streak {
+    font-size: var(--fs-2xs);
+  }
+}
+[data-reduced-motion='true'] :is(.coffee__miss-fx i, .coffee__miss-fx b) {
+  animation: none;
+}
+
+/* Bug Hunt precision feedback: a claimed pest remains visible through the hit,
+   while empty-drawer penalties are unmistakable without punishing expiry races. */
+.burrow.is-urgent {
+  border-color: #e3aa4d;
+  box-shadow:
+    0 4px 0 rgba(27, 16, 8, 0.35),
+    0 0 0 3px color-mix(in srgb, #e3aa4d 24%, transparent);
+}
+.bug.is-squashed {
+  position: absolute;
+  z-index: 4;
+  left: 50%;
+  bottom: 10px;
+  margin-left: -29px;
+  opacity: 0.94;
+  transform: translateY(-2px) scale(1.08, 0.72);
+  animation: none;
+}
+.burrow.is-wrong {
+  border-color: var(--negative);
+  animation: bug-empty-knock 0.26s ease-out both;
+}
+.burrow__miss {
+  position: absolute;
+  z-index: 7;
+  inset: 0;
+  isolation: isolate;
+  display: grid;
+  place-items: center;
+  color: #ffe2d5;
+  pointer-events: none;
+}
+.burrow__miss b {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  min-width: 38px;
+  min-height: 30px;
+  place-items: center;
+  padding: 5px 7px;
+  color: #fff7e9;
+  background: #96372f;
+  border: 2px solid #2d1712;
+  border-radius: 5px;
+  box-shadow: 0 2px 0 rgba(45, 23, 18, 0.45);
+  font: 900 clamp(12px, 1.4vw, 16px) / 1 var(--font-numeric);
+  animation: none;
+}
+@keyframes bug-empty-knock {
+  0%,
+  100% {
+    transform: none;
+  }
+  30% {
+    transform: translateX(-3px) rotate(-1deg);
+  }
+  65% {
+    transform: translateX(3px) rotate(1deg);
+  }
+}
+@media (max-width: 520px) {
+  .bugsquash__status {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'ticket threat'
+      'streak streak';
+    gap: 5px 8px;
+  }
+  .bugsquash__ticket {
+    grid-area: ticket;
+    justify-self: start;
+  }
+  .bugsquash__threat {
+    grid-area: threat;
+  }
+  .bugsquash__streak {
+    display: block;
+    grid-area: streak;
+    min-width: 0;
+    text-align: left;
+  }
+}
+[data-reduced-motion='true'] :is(.bug.is-squashed, .burrow.is-wrong, .burrow__miss b) {
+  animation: none !important;
 }

@@ -64,11 +64,13 @@ const BOARD_MAX_Y = 0.91;
 // straight cables no longer cross or overlap. Pointer ownership lives in a ref so even a
 // very fast press/release cannot race React state, and window-level fallbacks
 // guarantee that an interrupted capture never leaves a plug stuck in mid-drag.
-export function CableUntangle({ seed, reducedMotion, paused, onScore, onCombo, onEnd }: SubGameProps) {
+export function CableUntangle({ seed, reducedMotion, paused, onScore, onCombo }: SubGameProps) {
   const { t } = useTranslation();
   const audio = useStore((state) => state.audio);
   const [solvedCount, setSolvedCount] = useState(0);
-  const [puzzle, setPuzzle] = useState<CablePuzzle>(() => cablePuzzle(`${seed}-0`, cableNodeCount(0)));
+  const [puzzle, setPuzzle] = useState<CablePuzzle>(() =>
+    cablePuzzle(`${seed}-0`, cableNodeCount(0)),
+  );
   const [pos, setPos] = useState<Record<number, Pos>>(() => cablePositions(puzzle.points));
   const [active, setActive] = useState<number | null>(null);
   // A single explicit round phase drives the whole solve → celebrate → next
@@ -81,7 +83,6 @@ export function CableUntangle({ seed, reducedMotion, paused, onScore, onCombo, o
   const dragRef = useRef<ActiveDrag | null>(null);
   const rewardTimer = useRef<number | null>(null);
   const cleared = stage === 'cleared';
-  void onEnd;
 
   const tangles = useMemo(() => countCableConflicts(puzzle.edges, pos), [puzzle.edges, pos]);
 
@@ -102,8 +103,14 @@ export function CableUntangle({ seed, reducedMotion, paused, onScore, onCombo, o
       const rect = board.getBoundingClientRect();
       if (rect.width === 0 || rect.height === 0) return null;
       return {
-        x: Math.max(BOARD_MIN_X, Math.min(BOARD_MAX_X, (clientX - offsetX - rect.left) / rect.width)),
-        y: Math.max(BOARD_MIN_Y, Math.min(BOARD_MAX_Y, (clientY - offsetY - rect.top) / rect.height)),
+        x: Math.max(
+          BOARD_MIN_X,
+          Math.min(BOARD_MAX_X, (clientX - offsetX - rect.left) / rect.width),
+        ),
+        y: Math.max(
+          BOARD_MIN_Y,
+          Math.min(BOARD_MAX_Y, (clientY - offsetY - rect.top) / rect.height),
+        ),
       };
     },
     [],
@@ -137,7 +144,8 @@ export function CableUntangle({ seed, reducedMotion, paused, onScore, onCombo, o
     (pointerId: number, clientX: number, clientY: number) => {
       const drag = dragRef.current;
       if (!drag || drag.pointerId !== pointerId) return;
-      const released = positionFromPointer(clientX, clientY, drag.offsetX, drag.offsetY) ?? drag.last;
+      const released =
+        positionFromPointer(clientX, clientY, drag.offsetX, drag.offsetY) ?? drag.last;
       dragRef.current = null;
       releaseCapture(drag);
       setPos((current) => ({ ...current, [drag.id]: released }));
@@ -202,7 +210,8 @@ export function CableUntangle({ seed, reducedMotion, paused, onScore, onCombo, o
   // stage state commits; the stage itself then blocks any further detection
   // until the next desk loads.
   useEffect(() => {
-    if (paused || settled.current || stage !== 'solving' || active !== null || tangles !== 0) return;
+    if (paused || settled.current || stage !== 'solving' || active !== null || tangles !== 0)
+      return;
     settled.current = true;
     scoreRef.current += cableSolveScore(puzzle.points.length);
     onScore(scoreRef.current);
@@ -218,17 +227,25 @@ export function CableUntangle({ seed, reducedMotion, paused, onScore, onCombo, o
       },
       reducedMotion ? 0 : 130,
     );
-  }, [active, audio, onCombo, onScore, paused, puzzle.points.length, reducedMotion, solvedCount, stage, tangles]);
+  }, [
+    active,
+    audio,
+    onCombo,
+    onScore,
+    paused,
+    puzzle.points.length,
+    reducedMotion,
+    solvedCount,
+    stage,
+    tangles,
+  ]);
 
   // Advance to the next desk once the celebration has played. The countdown is
   // pausable and self-healing: pausing (or the window blurring) freezes it, and
   // any amount of pause/resume churn still resolves to loading the next board,
   // so the game can never get permanently stuck between rounds.
-  usePausableTimeout(
-    cleared,
-    paused,
-    reducedMotion ? TRANSITION_MS_REDUCED : TRANSITION_MS,
-    () => loadNext(solvedCount),
+  usePausableTimeout(cleared, paused, reducedMotion ? TRANSITION_MS_REDUCED : TRANSITION_MS, () =>
+    loadNext(solvedCount),
   );
 
   function beginDrag(event: ReactPointerEvent<HTMLButtonElement>, id: number) {
@@ -238,7 +255,8 @@ export function CableUntangle({ seed, reducedMotion, paused, onScore, onCombo, o
       dragRef.current ||
       !event.isPrimary ||
       (event.pointerType === 'mouse' && event.button !== 0)
-    ) return;
+    )
+      return;
 
     event.preventDefault();
     const board = boardRef.current;
@@ -321,7 +339,12 @@ export function CableUntangle({ seed, reducedMotion, paused, onScore, onCombo, o
         aria-label={t('microgame.cableUntangle.name')}
         aria-describedby="cable-instructions"
       >
-        <svg className="cable__wires" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+        <svg
+          className="cable__wires"
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+        >
           {orderedEdges.map(({ edge, index }) => {
             const style = CABLES[index % CABLES.length];
             const lifted = edge.a === active || edge.b === active;
@@ -369,7 +392,9 @@ export function CableUntangle({ seed, reducedMotion, paused, onScore, onCombo, o
                 ['--cable-highlight' as string]: style.highlight,
               }}
               onPointerDown={(event) => beginDrag(event, point.id)}
-              onPointerUp={(event) => finishActiveDrag(event.pointerId, event.clientX, event.clientY)}
+              onPointerUp={(event) =>
+                finishActiveDrag(event.pointerId, event.clientX, event.clientY)
+              }
               onPointerCancel={(event) => cancelActiveDrag(event.pointerId)}
               onLostPointerCapture={(event) => cancelActiveDrag(event.pointerId)}
               onKeyDown={(event) => onKeyNode(event, point.id)}
@@ -386,7 +411,9 @@ export function CableUntangle({ seed, reducedMotion, paused, onScore, onCombo, o
         {cleared ? (
           <div className="cable__cleared" role="status">
             <div className="cable__confetti" aria-hidden="true">
-              {Array.from({ length: 10 }, (_, index) => <i key={index} style={{ ['--i' as string]: index }} />)}
+              {Array.from({ length: 10 }, (_, index) => (
+                <i key={index} style={{ ['--i' as string]: index }} />
+              ))}
             </div>
             <span className="cable__cleared-mark" aria-hidden="true">
               <svg viewBox="0 0 48 48">

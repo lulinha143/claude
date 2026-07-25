@@ -54,7 +54,9 @@ async function startGame(page: Page) {
   await page.locator('.microgame__start').click();
   await expect(page.locator('.microgame')).toHaveAttribute('data-phase', 'countdown');
   await expect(page.locator('.microgame__countdown')).toBeVisible();
-  await expect(page.locator('.microgame')).toHaveAttribute('data-phase', 'play', { timeout: 5_000 });
+  await expect(page.locator('.microgame')).toHaveAttribute('data-phase', 'play', {
+    timeout: 5_000,
+  });
   await expect(page.locator('.microgame__bar')).toBeVisible();
   await page.waitForTimeout(500);
 }
@@ -70,7 +72,7 @@ async function setDocumentVisibility(page: Page, state: 'hidden' | 'visible') {
 }
 
 test.describe.serial('premium minigame presentation', () => {
-  test('opens and plays Coffee Rescue through its shared result', async ({ page }) => {
+  test('opens, plays, and safely leaves Coffee Rescue without a reward', async ({ page }) => {
     await boot(page);
     const game = await openGame(page, 'Coffee Rescue');
     await page.screenshot({ path: 'visual-artifacts/minigame-coffee-intro-1280x800.png' });
@@ -86,10 +88,8 @@ test.describe.serial('premium minigame presentation', () => {
     }
     await page.screenshot({ path: 'visual-artifacts/minigame-coffee-play-1280x800.png' });
     await game.locator('.microgame__exit').click();
-    await expect(game).toHaveAttribute('data-phase', 'result');
-    await expect(game.locator('.microgame__reward-slip')).toBeVisible();
-    await page.waitForTimeout(750);
-    await page.screenshot({ path: 'visual-artifacts/minigame-coffee-result-1280x800.png' });
+    await expect(page.locator('.microgame-menu')).toBeVisible();
+    await expect(page.locator('.microgame__reward-slip')).toHaveCount(0);
   });
 
   test('opens and plays Bug Squash with a tactile hit', async ({ page }) => {
@@ -100,16 +100,37 @@ test.describe.serial('premium minigame presentation', () => {
     await expect(game.locator('.bugsquash__desk')).toBeVisible();
     const activeBug = game.locator('.burrow.is-up');
     await expect(activeBug).toBeVisible({ timeout: 3_000 });
-    await activeBug.click();
+    const activeIndex = await activeBug.evaluate((element) =>
+      [...element.parentElement!.children].indexOf(element),
+    );
+    const claimedBurrow = game.locator('.burrow').nth(activeIndex);
+    await claimedBurrow.click();
     await expect(game.locator('.burrow.is-hit')).toBeVisible();
+    await expect(game.locator('.microgame__score b')).toHaveText('2');
+    // A duplicate activation that lands inside the just-hit grace window must
+    // not become an unfair empty-drawer penalty.
+    // Dispatch synchronously because Playwright's actionability checks wait for
+    // the intentional drawer-hit animation, which would no longer exercise the
+    // real duplicate-event race window.
+    await claimedBurrow.dispatchEvent('click');
+    await expect(game.locator('.microgame__score b')).toHaveText('2');
     await page.screenshot({ path: 'visual-artifacts/minigame-bug-hit-1280x800.png' });
+    await page.waitForTimeout(220);
+    const emptyBurrow = game.locator('.burrow').nth((activeIndex + 1) % 9);
+    await emptyBurrow.click();
+    await expect(emptyBurrow).toHaveClass(/is-wrong/);
+    await expect(emptyBurrow.locator('.burrow__miss b')).toHaveText('−2');
+    await expect(emptyBurrow.locator('.burrow__miss b')).toBeVisible();
+    await page.waitForTimeout(120);
+    await page.screenshot({ path: 'visual-artifacts/minigame-bug-penalty-1280x800.png' });
+    await expect(game.locator('.microgame__score b')).toHaveText('0');
     await game.locator('.microgame__exit').click();
-    await expect(game).toHaveAttribute('data-phase', 'result');
-    await page.waitForTimeout(750);
-    await page.screenshot({ path: 'visual-artifacts/minigame-bug-result-1280x800.png' });
+    await expect(page.locator('.microgame-menu')).toBeVisible();
   });
 
-  test('untangles the Cable desk with robust pointer movement and one clear rule', async ({ page }) => {
+  test('untangles the Cable desk with robust pointer movement and one clear rule', async ({
+    page,
+  }) => {
     await boot(page);
     const game = await openGame(page, 'Cable Untangle Desk');
     await page.screenshot({ path: 'visual-artifacts/minigame-cable-intro-1280x800.png' });
@@ -119,7 +140,9 @@ test.describe.serial('premium minigame presentation', () => {
     await expect(board).toBeVisible();
     await expect(game.locator('.cable__strand-body')).toHaveCount(5);
     await expect(plugs).toHaveCount(5);
-    await expect(game.locator('.cable__port, .cable__desk-art, .cable__tag, .cable__node-label')).toHaveCount(0);
+    await expect(
+      game.locator('.cable__port, .cable__desk-art, .cable__tag, .cable__node-label'),
+    ).toHaveCount(0);
     await expect(game.locator('.cable__crossings')).not.toContainText('0');
     await page.screenshot({ path: 'visual-artifacts/minigame-cable-tangled-1280x800.png' });
 
@@ -127,7 +150,10 @@ test.describe.serial('premium minigame presentation', () => {
     // state, which was the source of the intermittent stuck-cable regression.
     const firstPlug = await plugs.nth(0).boundingBox();
     expect(firstPlug).not.toBeNull();
-    await page.mouse.move(firstPlug!.x + firstPlug!.width / 2, firstPlug!.y + firstPlug!.height / 2);
+    await page.mouse.move(
+      firstPlug!.x + firstPlug!.width / 2,
+      firstPlug!.y + firstPlug!.height / 2,
+    );
     await page.mouse.down();
     await page.mouse.up();
     await expect(game.locator('.cable__node.is-active')).toHaveCount(0);
@@ -138,10 +164,15 @@ test.describe.serial('premium minigame presentation', () => {
       left: (element as HTMLElement).style.left,
       top: (element as HTMLElement).style.top,
     }));
-    await page.mouse.move(beforeCancel!.x + beforeCancel!.width / 2, beforeCancel!.y + beforeCancel!.height / 2);
+    await page.mouse.move(
+      beforeCancel!.x + beforeCancel!.width / 2,
+      beforeCancel!.y + beforeCancel!.height / 2,
+    );
     await page.mouse.down();
     await page.mouse.move(beforeCancel!.x + 90, beforeCancel!.y + 70, { steps: 4 });
-    await plugs.nth(0).dispatchEvent('pointercancel', { pointerId: 1, pointerType: 'mouse', isPrimary: true });
+    await plugs
+      .nth(0)
+      .dispatchEvent('pointercancel', { pointerId: 1, pointerType: 'mouse', isPrimary: true });
     await page.mouse.up();
     await expect(game.locator('.cable__node.is-active')).toHaveCount(0);
     await expect
@@ -156,7 +187,7 @@ test.describe.serial('premium minigame presentation', () => {
     const boardBox = await board.boundingBox();
     expect(boardBox).not.toBeNull();
     const currentZero = await plugs.nth(0).boundingBox();
-    const mirrored = (currentZero!.x + currentZero!.width / 2) > boardBox!.x + boardBox!.width / 2;
+    const mirrored = currentZero!.x + currentZero!.width / 2 > boardBox!.x + boardBox!.width / 2;
     const target = (x: number, y: number) => ({
       x: boardBox!.x + (mirrored ? 1 - x : x) * boardBox!.width,
       y: boardBox!.y + y * boardBox!.height,
@@ -203,17 +234,20 @@ test.describe.serial('premium minigame presentation', () => {
     await expect(game.locator('.microgame__score b')).not.toHaveText('0', { timeout: 4_000 });
     await page.screenshot({ path: 'visual-artifacts/minigame-coffee-play-390x700.png' });
     await game.locator('.microgame__exit').click();
-    await game.getByRole('button', { name: /back to office/i }).click();
+    await expect(page.locator('.microgame-menu')).toBeVisible();
 
     game = await openGame(page, 'Bug Squash');
     await startGame(page);
     const activeBug = game.locator('.burrow.is-up');
     await expect(activeBug).toBeVisible({ timeout: 3_000 });
-    await activeBug.click();
+    await activeBug.dispatchEvent('click');
+    await expect(game.locator('.burrow.is-hit')).toBeVisible();
+    await expect(game.locator('.bug.is-squashed')).toBeVisible();
     await expect(game.locator('.microgame__score b')).not.toHaveText('0');
+    await page.waitForTimeout(120);
     await page.screenshot({ path: 'visual-artifacts/minigame-bug-hit-390x700.png' });
     await game.locator('.microgame__exit').click();
-    await game.getByRole('button', { name: /back to office/i }).click();
+    await expect(page.locator('.microgame-menu')).toBeVisible();
 
     game = await openGame(page, 'Cable Untangle Desk');
     await page.screenshot({ path: 'visual-artifacts/minigame-cable-intro-390x700.png' });
@@ -222,7 +256,10 @@ test.describe.serial('premium minigame presentation', () => {
     const cablePlug = game.locator('.cable__node').first();
     const cablePlugBox = await cablePlug.boundingBox();
     expect(cablePlugBox).not.toBeNull();
-    await page.mouse.move(cablePlugBox!.x + cablePlugBox!.width / 2, cablePlugBox!.y + cablePlugBox!.height / 2);
+    await page.mouse.move(
+      cablePlugBox!.x + cablePlugBox!.width / 2,
+      cablePlugBox!.y + cablePlugBox!.height / 2,
+    );
     await page.mouse.down();
     await page.mouse.move(cablePlugBox!.x + 35, cablePlugBox!.y + 55, { steps: 4 });
     await page.mouse.up();
@@ -233,7 +270,9 @@ test.describe.serial('premium minigame presentation', () => {
     expect(bounds).not.toBeNull();
     expect(bounds!.x).toBeGreaterThanOrEqual(0);
     expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(390);
-    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
     expect(overflow).toBeLessThanOrEqual(2);
     await page.screenshot({ path: 'visual-artifacts/minigame-cable-play-390x700.png' });
   });
@@ -252,7 +291,9 @@ test.describe.serial('premium minigame presentation', () => {
     await expect(game).toHaveAttribute('data-phase', 'play', { timeout: 5_000 });
   });
 
-  test('pause safety freezes play and preserves a manual pause across visibility changes', async ({ page }) => {
+  test('pause safety freezes play and preserves a manual pause across visibility changes', async ({
+    page,
+  }) => {
     await boot(page);
     const game = await openGame(page, 'Bug Squash');
     await startGame(page);
@@ -280,24 +321,75 @@ test.describe.serial('premium minigame presentation', () => {
     expect(await timer.textContent()).not.toBe(timeBefore);
   });
 
-  test('replay rewards exactly once per completed round and close never duplicates it', async ({ page }) => {
+  test('leaving active rounds never grants a reward and a fresh round starts cleanly', async ({
+    page,
+  }) => {
     await boot(page);
-    const game = await openGame(page, 'Bug Squash');
+    let game = await openGame(page, 'Bug Squash');
     await startGame(page);
+    const activeBug = game.locator('.burrow.is-up');
+    await expect(activeBug).toBeVisible({ timeout: 3_000 });
+    await activeBug.click();
     await game.locator('.microgame__exit').click();
-    await expect(game).toHaveAttribute('data-phase', 'result');
-    await game.getByRole('button', { name: /play again/i }).click();
-    await expect(game).toHaveAttribute('data-phase', 'intro');
+    await expect(page.locator('.microgame-menu')).toBeVisible();
+
+    game = await openGame(page, 'Bug Squash');
     await startGame(page);
+    await expect(game.locator('.microgame__score b')).toHaveText('0');
     await game.locator('.microgame__exit').click();
-    await expect(game).toHaveAttribute('data-phase', 'result');
-    await game.getByRole('button', { name: /back to office/i }).click();
     await page.getByRole('button', { name: 'Stats', exact: true }).click();
     const row = page.locator('.stats-table tr').filter({ hasText: 'Micro-games played' });
-    await expect(row.locator('td')).toHaveText('2');
+    await expect(row.locator('td')).toHaveText('0');
   });
 
-  test('reduced-motion Coffee feedback clears while preserving its awarded score', async ({ page }) => {
+  test('Coffee keyboard control is scoped, pause is inert, and compact geometry stays visible', async ({
+    page,
+  }) => {
+    await boot(page, { width: 320, height: 520 });
+    const game = await openGame(page, 'Coffee Rescue');
+    await startGame(page);
+    const area = game.locator('.coffee__area');
+    const mug = game.locator('.coffee__mug');
+    await area.scrollIntoViewIfNeeded();
+    await area.focus();
+    const before = Number.parseFloat(
+      (await mug.getAttribute('style'))?.match(/left:\s*([\d.]+)/)?.[1] ?? '0',
+    );
+    await page.keyboard.press('ArrowRight');
+    await expect
+      .poll(async () =>
+        Number.parseFloat((await mug.getAttribute('style'))?.match(/left:\s*([\d.]+)/)?.[1] ?? '0'),
+      )
+      .toBeGreaterThan(before);
+
+    const moved = await mug.getAttribute('style');
+    await game.locator('.microgame__exit').focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(mug).toHaveAttribute('style', moved ?? '');
+
+    await game.locator('.microgame__pause').click();
+    await expect(game.locator('.microgame__playfield')).toHaveAttribute('inert', '');
+    const resume = game.locator('.microgame__paused .buy-btn');
+    await expect(resume).toBeFocused();
+    await resume.click();
+    await expect(area).toBeFocused();
+
+    const areaBox = await area.boundingBox();
+    const mugBox = await mug.boundingBox();
+    expect(areaBox).not.toBeNull();
+    expect(mugBox).not.toBeNull();
+    expect(mugBox!.x).toBeGreaterThanOrEqual(areaBox!.x);
+    expect(mugBox!.x + mugBox!.width).toBeLessThanOrEqual(areaBox!.x + areaBox!.width);
+    await expect(game.locator('.coffee__streak')).toBeVisible();
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
+    expect(overflow).toBeLessThanOrEqual(2);
+  });
+
+  test('reduced-motion Coffee feedback clears while preserving its awarded score', async ({
+    page,
+  }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await boot(page);
     const game = await openGame(page, 'Coffee Rescue');
@@ -309,18 +401,15 @@ test.describe.serial('premium minigame presentation', () => {
     await expect(game.locator('.coffee__catch-fx')).toHaveCount(0);
   });
 
-  test('operating-system reduced motion disables JavaScript score tweening', async ({ page }) => {
-    await page.emulateMedia({ reducedMotion: 'reduce' });
+  test('changing the OS motion preference waits until the next round', async ({ page }) => {
     await boot(page);
-    const game = await openGame(page, 'Bug Squash');
+    const game = await openGame(page, 'Coffee Rescue');
     await startGame(page);
-    const activeBug = game.locator('.burrow.is-up');
-    await expect(activeBug).toBeVisible({ timeout: 3_000 });
-    await activeBug.click();
-    const liveScore = await game.locator('.microgame__score b').textContent();
-    await game.locator('.microgame__exit').click();
-    await expect(game).toHaveAttribute('data-phase', 'result');
-    await page.waitForTimeout(120);
-    await expect(game.locator('.microgame__final-score strong')).toHaveText(liveScore ?? '0');
+    const fallingDrop = game.locator('.coffee__drop:not(.coffee__drop--tap)').first();
+    await expect(fallingDrop).toBeVisible({ timeout: 3_000 });
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.waitForTimeout(600);
+    await expect(game.locator('.coffee__drop--tap')).toHaveCount(0);
+    await expect(game.locator('.coffee__area')).toHaveAttribute('tabindex', '0');
   });
 });

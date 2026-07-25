@@ -11,7 +11,7 @@ export function FocusView() {
   const { engine, state } = useGame();
   const audio = useStore((s) => s.audio);
   const [custom, setCustom] = useState(30);
-  const [micro, setMicro] = useState<MicroMode | null>(null);
+  const [micro, setMicro] = useState<{ mode: MicroMode; seed: number } | null>(null);
   const [, forceTick] = useState(0);
 
   // live countdown
@@ -27,68 +27,90 @@ export function FocusView() {
     <section className={`view view--focus ${micro ? 'view--focus-game' : ''}`}>
       {!micro ? <h2>{t('focus.title')}</h2> : null}
 
-      {!micro && (!state.settings.focusHarvestEnabled ? (
-        <div className="panel">
-          <p>{t('focus.disabled')}</p>
-          <button className="buy-btn" onClick={() => engine.updateSettings({ focusHarvestEnabled: true })}>
-            {t('focus.enable')}
-          </button>
-        </div>
-      ) : (
-        <div className="panel">
-          <p className="muted">{t('focus.intro')}</p>
-          {state.focus.active ? (
-            <div className="focus-active">
-              <div className="focus-active__label">{t('focus.active')}</div>
-              <div className="focus-active__clock">{formatClock(remaining)}</div>
-              <button className="ghost-btn" onClick={() => engine.cancelFocus()}>
-                {t('focus.cancel')}
-              </button>
-            </div>
-          ) : (
-            <div className="focus-presets">
-              {BALANCE.focus.presetMinutes.map((m) => (
-                <button key={m} className="preset-btn" onClick={() => { engine.startFocus(m); audio.play('event'); }}>
-                  {m}m
+      {!micro &&
+        (!state.settings.focusHarvestEnabled ? (
+          <div className="panel">
+            <p>{t('focus.disabled')}</p>
+            <button
+              className="buy-btn"
+              onClick={() => engine.updateSettings({ focusHarvestEnabled: true })}
+            >
+              {t('focus.enable')}
+            </button>
+          </div>
+        ) : (
+          <div className="panel">
+            <p className="muted">{t('focus.intro')}</p>
+            {state.focus.active ? (
+              <div className="focus-active">
+                <div className="focus-active__label">{t('focus.active')}</div>
+                <div className="focus-active__clock">{formatClock(remaining)}</div>
+                <button className="ghost-btn" onClick={() => engine.cancelFocus()}>
+                  {t('focus.cancel')}
                 </button>
-              ))}
-              <label className="field field--inline">
-                <span>{t('focus.custom')}</span>
-                <input
-                  type="number"
-                  min={1}
-                  max={180}
-                  value={custom}
-                  onChange={(e) => setCustom(Math.max(1, Math.min(180, Number(e.target.value) || 1)))}
-                />
-                <button className="preset-btn" onClick={() => { engine.startFocus(custom); audio.play('event'); }}>
-                  {t('focus.start')}
-                </button>
-              </label>
-            </div>
-          )}
-          <p className="muted small">{t('focus.privacy')}</p>
-        </div>
-      ))}
+              </div>
+            ) : (
+              <div className="focus-presets">
+                {BALANCE.focus.presetMinutes.map((m) => (
+                  <button
+                    key={m}
+                    className="preset-btn"
+                    onClick={() => {
+                      engine.startFocus(m);
+                      audio.play('event');
+                    }}
+                  >
+                    {m}m
+                  </button>
+                ))}
+                <label className="field field--inline">
+                  <span>{t('focus.custom')}</span>
+                  <input
+                    type="number"
+                    min={1}
+                    max={180}
+                    value={custom}
+                    onChange={(e) =>
+                      setCustom(Math.max(1, Math.min(180, Number(e.target.value) || 1)))
+                    }
+                  />
+                  <button
+                    className="preset-btn"
+                    onClick={() => {
+                      engine.startFocus(custom);
+                      audio.play('event');
+                    }}
+                  >
+                    {t('focus.start')}
+                  </button>
+                </label>
+              </div>
+            )}
+            <p className="muted small">{t('focus.privacy')}</p>
+          </div>
+        ))}
 
       <div className="panel">
         {!micro ? <h3>{t('microgame.title')}</h3> : null}
         {micro ? (
           <MicroGame
-            mode={micro}
-            seed={Date.now() & 0xffff}
+            mode={micro.mode}
+            seed={micro.seed}
             reducedMotion={state.settings.reducedMotion}
             onReward={(score) => {
-              engine.rewardMicrogame(micro, score);
+              engine.rewardMicrogame(micro.mode, score);
               audio.play('celebrate');
             }}
             onClose={() => setMicro(null)}
           />
         ) : (
           <div className="microgame-menu">
-            {(['coffeeRescue', 'bugSquash', 'cableUntangle'] as MicroMode[]).map(
-              (m) => (
-              <button key={m} className={`micro-card micro-card--${m}`} onClick={() => setMicro(m)}>
+            {(['coffeeRescue', 'bugSquash', 'cableUntangle'] as MicroMode[]).map((m) => (
+              <button
+                key={m}
+                className={`micro-card micro-card--${m}`}
+                onClick={() => setMicro({ mode: m, seed: Date.now() & 0xffff })}
+              >
                 <span className="micro-card__art" aria-hidden="true">
                   <MicroGameEmblem mode={m} compact />
                 </span>

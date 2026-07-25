@@ -78,15 +78,37 @@
     }
   },
   "tip": {
-    "nuts": { "t": "Nuts", "d": "Your main currency. Earned passively and by collecting crates. Spent on upgrades, hires and decorations." },
-    "golden": { "t": "Golden Nuts", "d": "Rare premium currency from milestones and prestige. Buys powerful upgrades and skills." },
-    "morale": { "t": "Morale", "d": "Team happiness. Higher morale boosts production; coffee, decorations and good events raise it.", "impact": "{{sign}}{{pct}}% production right now" },
-    "reputation": { "t": "Reputation", "d": "Grows as you produce. Unlocks new rooms and new teammates.", "next": "Next unlock at {{value}} reputation", "maxed": "Every reputation reward is unlocked" },
-    "rate": { "t": "Production", "d": "Nuts produced per second across every room right now." }, "current": "Now: {{value}}",
-    "quiet": { "t": "Quiet Mode", "d": "Softens audio and animation for calm, low-distraction play." },
+    "nuts": {
+      "t": "Nuts",
+      "d": "Your main currency. Earned passively and by collecting crates. Spent on upgrades, hires and decorations."
+    },
+    "golden": {
+      "t": "Golden Nuts",
+      "d": "Rare premium currency from milestones and prestige. Buys powerful upgrades and skills."
+    },
+    "morale": {
+      "t": "Morale",
+      "d": "Team happiness. Higher morale boosts production; coffee, decorations and good events raise it.",
+      "impact": "{{sign}}{{pct}}% production right now"
+    },
+    "reputation": {
+      "t": "Reputation",
+      "d": "Grows as you produce. Unlocks new rooms and new teammates.",
+      "next": "Next unlock at {{value}} reputation",
+      "maxed": "Every reputation reward is unlocked"
+    },
+    "rate": { "t": "Production", "d": "Nuts produced per second across every room right now." },
+    "current": "Now: {{value}}",
+    "quiet": {
+      "t": "Quiet Mode",
+      "d": "Softens audio and animation for calm, low-distraction play."
+    },
     "friendship": "Grows when you chat, gift coffee and keep them happy. Higher friendship boosts their output.",
     "mood": "How this teammate feels right now. Emotions gently nudge their output up or down.",
-    "mute": { "d": "Instantly silence (or restore) all music, ambience and sound effects." }, "music": { "d": "Mute only the background music. Sound effects, interface and event sounds keep playing." },
+    "mute": { "d": "Instantly silence (or restore) all music, ambience and sound effects." },
+    "music": {
+      "d": "Mute only the background music. Sound effects, interface and event sounds keep playing."
+    },
     "affinity": "How well this teammate works in their current room. Move them to a favourite room for a production bonus.",
     "nav": {
       "office": "Your cozy office and the team at work.",
@@ -137,7 +159,24 @@
     "currentRoom": "Current location",
     "roomFull": "Room full",
     "wrongRoom": "That belongs in {{room}} — drop it there.",
-    "dragToPlace": "Drag onto the highlighted floor or wall.", "surface": { "floor": "Floor", "rug": "Rug plane", "wall": "Wall", "ceiling": "Ceiling", "table": "Tabletop", "shelf": "Shelf", "special": "Feature spot" }, "reject": { "occupied": "That spot's already taken — try just beside it.", "stacked": "There's already something right there.", "coversTeammate": "That would cover a teammate — give them room.", "moveInside": "Move it farther inside the room.", "incompatibleRoom": "That decoration can't be placed in this room.", "invalid": "That doesn't fit here." },
+    "dragToPlace": "Drag onto the highlighted floor or wall.",
+    "surface": {
+      "floor": "Floor",
+      "rug": "Rug plane",
+      "wall": "Wall",
+      "ceiling": "Ceiling",
+      "table": "Tabletop",
+      "shelf": "Shelf",
+      "special": "Feature spot"
+    },
+    "reject": {
+      "occupied": "That spot's already taken — try just beside it.",
+      "stacked": "There's already something right there.",
+      "coversTeammate": "That would cover a teammate — give them room.",
+      "moveInside": "Move it farther inside the room.",
+      "incompatibleRoom": "That decoration can't be placed in this room.",
+      "invalid": "That doesn't fit here."
+    },
     "roomEmpty": "No decorations for this room yet.",
     "noResults": "No decorations match your filters.",
     "undo": "Undo",
@@ -313,39 +352,111 @@
     "fenn": { "blazer": "Sales Blazer", "tux": "Sharp Tuxedo" }
   },
   "room": {
-    "founderDesk": { "name": "Founder's Desk", "desc": "Where it all began. One desk, one dream, one very tired squirrel." },
-    "sorting": { "name": "Nut Sorting Department", "desc": "Good nuts left, broken shells right. Mostly." },
-    "morale": { "name": "Coffee & Morale Division", "desc": "Beanbags, snacks, and Marlow's calming presence." },
-    "procurement": { "name": "Procurement Burrow", "desc": "Rizzo's domain. Inventory counts are… approximate." },
-    "construction": { "name": "Construction Wing", "desc": "Bea's workshop. Smells like fresh sawdust and ambition." },
-    "lab": { "name": "Shell Research Laboratory", "desc": "Bubbling beakers and questionable breakthroughs." },
+    "founderDesk": {
+      "name": "Founder's Desk",
+      "desc": "Where it all began. One desk, one dream, one very tired squirrel."
+    },
+    "sorting": {
+      "name": "Nut Sorting Department",
+      "desc": "Good nuts left, broken shells right. Mostly."
+    },
+    "morale": {
+      "name": "Coffee & Morale Division",
+      "desc": "Beanbags, snacks, and Marlow's calming presence."
+    },
+    "procurement": {
+      "name": "Procurement Burrow",
+      "desc": "Rizzo's domain. Inventory counts are… approximate."
+    },
+    "construction": {
+      "name": "Construction Wing",
+      "desc": "Bea's workshop. Smells like fresh sawdust and ambition."
+    },
+    "lab": {
+      "name": "Shell Research Laboratory",
+      "desc": "Bubbling beakers and questionable breakthroughs."
+    },
     "marketing": { "name": "Marketing Burrow", "desc": "Corvus turns nuts into narrative." },
     "vault": { "name": "Golden Nut Vault", "desc": "Heavily guarded. Faintly glowing." },
-    "research": { "name": "Human Behavior Observation Room", "desc": "For science. Definitely just for science." },
-    "meeting": { "name": "Very Serious Meeting Room", "desc": "Where meetings about meetings are scheduled." },
-    "nap": { "name": "Employee Nap Chamber", "desc": "Productivity through rest. Marlow's proudest achievement." },
-    "basement": { "name": "Suspicious Basement", "desc": "There is definitely nothing weird down here." },
-    "rooftop": { "name": "Rooftop Acorn Garden", "desc": "Fresh air, actual grass, and a great view." }
+    "research": {
+      "name": "Human Behavior Observation Room",
+      "desc": "For science. Definitely just for science."
+    },
+    "meeting": {
+      "name": "Very Serious Meeting Room",
+      "desc": "Where meetings about meetings are scheduled."
+    },
+    "nap": {
+      "name": "Employee Nap Chamber",
+      "desc": "Productivity through rest. Marlow's proudest achievement."
+    },
+    "basement": {
+      "name": "Suspicious Basement",
+      "desc": "There is definitely nothing weird down here."
+    },
+    "rooftop": {
+      "name": "Rooftop Acorn Garden",
+      "desc": "Fresh air, actual grass, and a great view."
+    }
   },
   "upgrade": {
     "family": {
-      "production": { "name": "Production Line {{tier}}", "desc": "Streamline the nut pipeline. +10% nut production per level." },
-      "furniture": { "name": "Ergonomic Furniture {{tier}}", "desc": "Comfier chairs, happier squirrels. +6% production per level." },
-      "coffee": { "name": "Coffee Upgrade {{tier}}", "desc": "Better beans, better focus. +8% production per level." },
-      "quality": { "name": "Process Quality {{tier}}", "desc": "Fewer broken shells. +5% production per level." },
-      "click": { "name": "Sorting Gloves {{tier}}", "desc": "Collect crates faster. Increases click power." }
+      "production": {
+        "name": "Production Line {{tier}}",
+        "desc": "Streamline the nut pipeline. +10% nut production per level."
+      },
+      "furniture": {
+        "name": "Ergonomic Furniture {{tier}}",
+        "desc": "Comfier chairs, happier squirrels. +6% production per level."
+      },
+      "coffee": {
+        "name": "Coffee Upgrade {{tier}}",
+        "desc": "Better beans, better focus. +8% production per level."
+      },
+      "quality": {
+        "name": "Process Quality {{tier}}",
+        "desc": "Fewer broken shells. +5% production per level."
+      },
+      "click": {
+        "name": "Sorting Gloves {{tier}}",
+        "desc": "Collect crates faster. Increases click power."
+      }
     },
-    "autoCollector": { "name": "Auto-Collector", "desc": "Automatically banks a fraction of production. No clicking required." },
-    "conveyor": { "name": "Conveyor Belt", "desc": "Nuts move themselves. +15% production per level." },
-    "offlineCap": { "name": "Cold Storage {{tier}}", "desc": "Store more offline nuts. +2h offline cap per level." },
-    "reputationEngine": { "name": "Reputation Engine", "desc": "Grow the company's good name faster." },
+    "autoCollector": {
+      "name": "Auto-Collector",
+      "desc": "Automatically banks a fraction of production. No clicking required."
+    },
+    "conveyor": {
+      "name": "Conveyor Belt",
+      "desc": "Nuts move themselves. +15% production per level."
+    },
+    "offlineCap": {
+      "name": "Cold Storage {{tier}}",
+      "desc": "Store more offline nuts. +2h offline cap per level."
+    },
+    "reputationEngine": {
+      "name": "Reputation Engine",
+      "desc": "Grow the company's good name faster."
+    },
     "moraleCap": { "name": "Morale Ceiling", "desc": "Raise the maximum morale of the office." },
     "room": {
-      "sorting": { "name": "Build: Nut Sorting Department", "desc": "Unlock a whole new floor for sorting nuts." },
-      "lab": { "name": "Build: Research Laboratory", "desc": "Unlock the Shell Research Laboratory." },
-      "vault": { "name": "Build: Golden Nut Vault", "desc": "Unlock the glowing Golden Nut Vault." },
+      "sorting": {
+        "name": "Build: Nut Sorting Department",
+        "desc": "Unlock a whole new floor for sorting nuts."
+      },
+      "lab": {
+        "name": "Build: Research Laboratory",
+        "desc": "Unlock the Shell Research Laboratory."
+      },
+      "vault": {
+        "name": "Build: Golden Nut Vault",
+        "desc": "Unlock the glowing Golden Nut Vault."
+      },
       "meeting": { "name": "Build: Meeting Room", "desc": "Unlock the Very Serious Meeting Room." },
-      "basement": { "name": "Build: Suspicious Basement", "desc": "Unlock the definitely-normal basement." }
+      "basement": {
+        "name": "Build: Suspicious Basement",
+        "desc": "Unlock the definitely-normal basement."
+      }
     }
   },
   "event": {
@@ -650,24 +761,36 @@
     "multiverse": { "name": "Nut Multiverse", "desc": "Prestige 5 times." },
     "employeeMinute": { "name": "Employee of the Minute", "desc": "Hire a second employee." },
     "fullStaff": { "name": "Fully Staffed", "desc": "Hire all six employees." },
-    "meetingEmail": { "name": "This Meeting Could Have Been an Email", "desc": "Experience your first event." },
+    "meetingEmail": {
+      "name": "This Meeting Could Have Been an Email",
+      "desc": "Experience your first event."
+    },
     "incidentReport": { "name": "Incident Report", "desc": "Experience 10 events." },
     "zeroDays": { "name": "Zero Days Without Incident", "desc": "Experience 25 events." },
     "chairPromoted": { "name": "The Chair Deserved It", "desc": "Promote the office chair." },
     "raccoonAccounting": { "name": "Raccoon Accounting", "desc": "Hire Rizzo." },
     "calmCrisis": { "name": "Calm During Crisis", "desc": "Hire Marlow." },
     "infiniteCoffee": { "name": "Infinite Coffee", "desc": "Max out the coffee upgrades." },
-    "normalBasement": { "name": "Extremely Normal Basement", "desc": "Build the suspicious basement." },
+    "normalBasement": {
+      "name": "Extremely Normal Basement",
+      "desc": "Build the suspicious basement."
+    },
     "productivityTheater": { "name": "Productivity Theater", "desc": "Complete a focus session." },
     "deepFocus": { "name": "Deep Focus", "desc": "Complete 10 focus sessions." },
     "nutsAndBolts": { "name": "Nuts and Bolts", "desc": "Unlock 4 rooms." },
     "shellCompany": { "name": "Shell Company", "desc": "Unlock 8 rooms." },
     "hostileTakeover": { "name": "Hostile Takeover", "desc": "Reach 1,000 nuts/second." },
-    "goldenOpportunity": { "name": "Golden Opportunity", "desc": "Discover your first collectible nut." },
+    "goldenOpportunity": {
+      "name": "Golden Opportunity",
+      "desc": "Discover your first collectible nut."
+    },
     "nutScholar": { "name": "Nut Scholar", "desc": "Discover 10 nuts." },
     "nutProfessor": { "name": "Nut Professor", "desc": "Discover 20 nuts." },
     "touchGrass": { "name": "Touch Grass", "desc": "Unlock the rooftop garden." },
-    "spreadsheetKnows": { "name": "The Spreadsheet Knows", "desc": "Accept the spreadsheet's knowledge." },
+    "spreadsheetKnows": {
+      "name": "The Spreadsheet Knows",
+      "desc": "Accept the spreadsheet's knowledge."
+    },
     "clicker": { "name": "Clicker", "desc": "Click 100 times." },
     "clickerPro": { "name": "Clicker Pro", "desc": "Click 1,000 times." },
     "crateCollector": { "name": "Crate Expectations", "desc": "Collect 100 crates." },
@@ -685,11 +808,26 @@
   "nut": {
     "internAcorn": { "name": "Intern Acorn", "desc": "Eager, underpaid, full of potential." },
     "corporateCashew": { "name": "Corporate Cashew", "desc": "Curved to fit any org chart." },
-    "managementMacadamia": { "name": "Management Macadamia", "desc": "Hard shell, expensive, unclear purpose." },
-    "suspiciousPistachio": { "name": "Suspicious Pistachio", "desc": "Already slightly open. Who did this?" },
-    "walnut": { "name": "Legally Distinct Walnut", "desc": "Any resemblance to other walnuts is coincidental." },
-    "forbiddenPeanut": { "name": "Forbidden Peanut", "desc": "Technically a legume. We don't talk about it." },
-    "executiveHazelnut": { "name": "Executive Hazelnut", "desc": "Golden, glossy, and rarely in the office." },
+    "managementMacadamia": {
+      "name": "Management Macadamia",
+      "desc": "Hard shell, expensive, unclear purpose."
+    },
+    "suspiciousPistachio": {
+      "name": "Suspicious Pistachio",
+      "desc": "Already slightly open. Who did this?"
+    },
+    "walnut": {
+      "name": "Legally Distinct Walnut",
+      "desc": "Any resemblance to other walnuts is coincidental."
+    },
+    "forbiddenPeanut": {
+      "name": "Forbidden Peanut",
+      "desc": "Technically a legume. We don't talk about it."
+    },
+    "executiveHazelnut": {
+      "name": "Executive Hazelnut",
+      "desc": "Golden, glossy, and rarely in the office."
+    },
     "almond": { "name": "Emotional Support Almond", "desc": "Always there when you need it." },
     "chestnut": { "name": "Startup Chestnut", "desc": "Roasting on an open pivot." },
     "brazilNut": { "name": "Quarterly Brazil Nut", "desc": "Appears exactly four times a year." },
@@ -697,15 +835,30 @@
     "pineNut": { "name": "Disruptive Pine Nut", "desc": "Small, pricey, changing the game." },
     "onboardingWalnut": { "name": "Onboarding Walnut", "desc": "Comes with a 40-page handbook." },
     "overtimeAcorn": { "name": "Overtime Acorn", "desc": "Still glowing at 2 AM." },
-    "stakeholderCashew": { "name": "Stakeholder Cashew", "desc": "Wants to be looped in on everything." },
+    "stakeholderCashew": {
+      "name": "Stakeholder Cashew",
+      "desc": "Wants to be looped in on everything."
+    },
     "goldenKernel": { "name": "Golden Kernel", "desc": "The purest form of nut wealth." },
     "cryptoNut": { "name": "Crypto Nut", "desc": "Value fluctuates wildly. Backed by vibes." },
-    "cobNut": { "name": "Compliance Cob Nut", "desc": "Fully certified and thoroughly documented." },
-    "severanceAcorn": { "name": "Severance Acorn", "desc": "A parting gift, generously portioned." },
-    "legacyHazelnut": { "name": "Legacy Hazelnut", "desc": "Nobody knows how it works, don't touch it." },
+    "cobNut": {
+      "name": "Compliance Cob Nut",
+      "desc": "Fully certified and thoroughly documented."
+    },
+    "severanceAcorn": {
+      "name": "Severance Acorn",
+      "desc": "A parting gift, generously portioned."
+    },
+    "legacyHazelnut": {
+      "name": "Legacy Hazelnut",
+      "desc": "Nobody knows how it works, don't touch it."
+    },
     "agileAlmond": { "name": "Agile Almond", "desc": "Ships in two-week sprints." },
     "burnoutBrazil": { "name": "Burnout Brazil", "desc": "Needs a long weekend." },
-    "visionaryPistachio": { "name": "Visionary Pistachio", "desc": "Sees a future no one asked for." },
+    "visionaryPistachio": {
+      "name": "Visionary Pistachio",
+      "desc": "Sees a future no one asked for."
+    },
     "founderAcorn": { "name": "Founder Acorn", "desc": "The one that started it all." }
   },
   "deco": {
@@ -752,11 +905,26 @@
     "skillTree": "Permanent Skill Tree",
     "memory": "You remember a previous timeline…",
     "branch": {
-      "industrial": { "name": "Industrial Nuts", "desc": "Maximum output, minimal comfort. +35% production, lower morale." },
-      "cooperative": { "name": "Cozy Cooperative", "desc": "Everyone's happy. High morale, gentle bonuses." },
-      "science": { "name": "Questionable Science", "desc": "Breakthroughs and side effects. More rare events." },
-      "marketing": { "name": "Aggressive Marketing", "desc": "Hype above all. Big rare-event chance." },
-      "underground": { "name": "Underground Operations", "desc": "What happens in the basement stays in the basement." }
+      "industrial": {
+        "name": "Industrial Nuts",
+        "desc": "Maximum output, minimal comfort. +35% production, lower morale."
+      },
+      "cooperative": {
+        "name": "Cozy Cooperative",
+        "desc": "Everyone's happy. High morale, gentle bonuses."
+      },
+      "science": {
+        "name": "Questionable Science",
+        "desc": "Breakthroughs and side effects. More rare events."
+      },
+      "marketing": {
+        "name": "Aggressive Marketing",
+        "desc": "Hype above all. Big rare-event chance."
+      },
+      "underground": {
+        "name": "Underground Operations",
+        "desc": "What happens in the basement stays in the basement."
+      }
     },
     "skill": {
       "headStart": { "name": "Head Start", "desc": "Begin each run with bonus nuts." },
@@ -800,14 +968,22 @@
       "reaction": "Pip hugs the warm mug. Productivity has been rescued.",
       "order": "Priority pour",
       "warmth": "Mug warmth",
-      "steady": "Steady paws"
+      "steady": "Steady paws",
+      "controls": "Coffee counter. Focus here, then use Left and Right Arrow to move the mug.",
+      "caught": "Caught {{count}} coffee drop · +{{value}} points",
+      "missed": "Coffee missed",
+      "streakLost": "Coffee missed · {{count}} catch streak ended",
+      "missMark": "Miss"
     },
     "bugSquash": {
       "name": "Bug Squash",
       "desc": "Tap the office pests the instant they pop up — quick paws build a combo!",
       "reaction": "The IT desk is bug-free. The bugs have filed a complaint.",
       "ticket": "Bug queue",
-      "scanning": "Scanning desk…"
+      "scanning": "Scanning desk…",
+      "hit": "Bug fixed · +{{value}} points",
+      "penalty": "Empty drawer · −{{value}} points",
+      "empty": "Empty drawer — no points to deduct"
     },
     "cableUntangle": {
       "name": "Cable Untangle Desk",
@@ -845,7 +1021,7 @@
     "timeLeft": "{{value}}s",
     "result": "You scored {{value}}!",
     "start": "Start shift",
-    "exit": "Finish",
+    "exit": "Leave shift",
     "combo": "Combo ×{{value}}",
     "multiplier": "×{{value}} bonus",
     "rewardNote": "Reward added to your company!",
@@ -860,7 +1036,11 @@
   },
   "overview": {
     "workers": "{{count}} working here",
-    "comfort": "Room comfort +{{value}}", "capacityTitle": "Room capacity", "capacityTip": "Teammates working here. Every room holds up to six before it's full.", "comfortTitle": "Room comfort", "comfortTip": "Bonus morale from this room's decorations.",
+    "comfort": "Room comfort +{{value}}",
+    "capacityTitle": "Room capacity",
+    "capacityTip": "Teammates working here. Every room holds up to six before it's full.",
+    "comfortTitle": "Room comfort",
+    "comfortTip": "Bonus morale from this room's decorations.",
     "autoRoom": "Default (department)"
   },
   "nextStep": {
@@ -897,7 +1077,11 @@
   },
   "window": {
     "controls": "Window controls",
-    "minimize": "Minimize", "minimizeTip": "Tuck the window down to the taskbar.", "maximizeTip": "Fill the screen — click again to restore.", "restoreTip": "Shrink back to the previous window size.", "closeTip": "Saves your game and window size, then quits (or hides to the tray if you enabled that).",
+    "minimize": "Minimize",
+    "minimizeTip": "Tuck the window down to the taskbar.",
+    "maximizeTip": "Fill the screen — click again to restore.",
+    "restoreTip": "Shrink back to the previous window size.",
+    "closeTip": "Saves your game and window size, then quits (or hides to the tray if you enabled that).",
     "maximize": "Maximize",
     "restore": "Restore",
     "close": "Close",
@@ -1035,9 +1219,19 @@
     "scale": "Window scale",
     "quietMode": "Quiet Mode",
     "muteAll": "Mute all audio",
-    "unmuteAll": "Unmute audio", "restoreAll": "Restore all audio", "muteMusic": "Mute music", "restoreMusic": "Restore music",
+    "unmuteAll": "Unmute audio",
+    "restoreAll": "Restore all audio",
+    "muteMusic": "Mute music",
+    "restoreMusic": "Restore music",
     "launchOnStartup": "Launch on system startup",
-    "batterySaver": "Battery-friendly mode", "hint": { "alwaysOnTop": "Keep the game window above your other apps.", "clickThrough": "Let clicks pass through the window to whatever is behind it.", "launchOnStartup": "Open the game automatically when your computer starts.", "closeToTray": "The close button hides to the system tray instead of quitting.", "batterySaver": "Ease off animation and background work to save power." },
+    "batterySaver": "Battery-friendly mode",
+    "hint": {
+      "alwaysOnTop": "Keep the game window above your other apps.",
+      "clickThrough": "Let clicks pass through the window to whatever is behind it.",
+      "launchOnStartup": "Open the game automatically when your computer starts.",
+      "closeToTray": "The close button hides to the system tray instead of quitting.",
+      "batterySaver": "Ease off animation and background work to save power."
+    },
     "hideToTray": "Hide to tray",
     "focusHarvest": "Enable Focus Harvest",
     "offlineCap": "Offline cap (hours)",
@@ -1084,7 +1278,12 @@
   "moment": {
     "company": "Company",
     "rarityLabel": "Rarity",
-    "rarity": { "common": "Common", "uncommon": "Uncommon", "rare": "Rare", "legendary": "Legendary" }
+    "rarity": {
+      "common": "Common",
+      "uncommon": "Uncommon",
+      "rare": "Rare",
+      "legendary": "Legendary"
+    }
   },
   "consequence": {
     "nutsGain": "+{{value}} nuts",

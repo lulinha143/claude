@@ -12,9 +12,13 @@ import {
   coffeeSpawnInterval,
   coffeeComboMultiplier,
   coffeeCatchScore,
+  coffeeCatchGeometry,
+  resolveCoffeeDrop,
   bugLifetime,
   bugSpawnInterval,
   bugScore,
+  applyBugEmptyPenalty,
+  resolveBugWhack,
   microGrade,
 } from '../src/sim/minigames';
 
@@ -33,6 +37,24 @@ describe('Coffee Rescue difficulty', () => {
     expect(coffeeComboMultiplier(12)).toBe(3);
     expect(coffeeCatchScore(12)).toBeGreaterThan(coffeeCatchScore(0));
   });
+
+  it('derives honest mug bounds from the rendered playfield width', () => {
+    const compact = coffeeCatchGeometry(280, 240, 62, 178);
+    const desktop = coffeeCatchGeometry(1000, 390, 62, 294);
+    expect(compact.minMugX).toBeGreaterThan(desktop.minMugX);
+    expect(compact.maxMugX).toBeLessThan(desktop.maxMugX);
+    expect(compact.halfCatchWidth).toBeGreaterThan(desktop.halfCatchWidth);
+    expect(compact.catchY).toBeCloseTo((182 / 240) * 100);
+  });
+
+  it('resolves each drop id at most once across tap and expiry races', () => {
+    const first = resolveCoffeeDrop([{ id: 7, x: 50 }], 7);
+    expect(first.resolved).toBe(true);
+    expect(first.drops).toEqual([]);
+    const stale = resolveCoffeeDrop(first.drops, 7);
+    expect(stale.resolved).toBe(false);
+    expect(stale.drops).toEqual([]);
+  });
 });
 
 describe('Bug Squash difficulty', () => {
@@ -48,22 +70,36 @@ describe('Bug Squash difficulty', () => {
     expect(bugScore(6)).toBeGreaterThan(bugScore(0));
     expect(bugScore(999)).toBeLessThanOrEqual(8);
   });
+
+  it('deducts empty clicks without creating negative score', () => {
+    expect(applyBugEmptyPenalty(9)).toEqual({ score: 7, lost: 2 });
+    expect(applyBugEmptyPenalty(1)).toEqual({ score: 0, lost: 1 });
+    expect(applyBugEmptyPenalty(0)).toEqual({ score: 0, lost: 0 });
+  });
+
+  it('claims exact spawn tokens and forgives expiry races only in the grace window', () => {
+    const active = { hole: 4, token: 12 };
+    expect(resolveBugWhack(active, 4, 12, null, 500)).toBe('hit');
+    expect(resolveBugWhack(active, 4, 11, null, 500)).toBe('empty');
+    expect(resolveBugWhack(null, 4, 12, { hole: 4, at: 450 }, 500)).toBe('grace');
+    expect(resolveBugWhack(null, 4, 12, { hole: 4, at: 100 }, 500)).toBe('empty');
+  });
 });
 
 describe('Cable Untangle logic', () => {
   it('detects a proper segment crossing but not a shared endpoint or a miss', () => {
     // an X crossing
-    expect(
-      segmentsCross({ x: 0, y: 0 }, { x: 1, y: 1 }, { x: 0, y: 1 }, { x: 1, y: 0 }),
-    ).toBe(true);
+    expect(segmentsCross({ x: 0, y: 0 }, { x: 1, y: 1 }, { x: 0, y: 1 }, { x: 1, y: 0 })).toBe(
+      true,
+    );
     // parallel, no crossing
-    expect(
-      segmentsCross({ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 1 }),
-    ).toBe(false);
+    expect(segmentsCross({ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 1 })).toBe(
+      false,
+    );
     // shared endpoint (adjacent cables) is not a crossing
-    expect(
-      segmentsCross({ x: 0, y: 0 }, { x: 1, y: 1 }, { x: 0, y: 0 }, { x: 1, y: 0 }),
-    ).toBe(false);
+    expect(segmentsCross({ x: 0, y: 0 }, { x: 1, y: 1 }, { x: 0, y: 0 }, { x: 1, y: 0 })).toBe(
+      false,
+    );
   });
 
   it('counts zero crossings for a convex ring layout', () => {
@@ -130,8 +166,12 @@ describe('Cable Untangle logic', () => {
       expect(a.points).toHaveLength(nodes);
       expect(a.solution).toHaveLength(nodes);
       expect(a.edges).toHaveLength(nodes);
-      expect(a.points.map((point) => point.id)).toEqual(Array.from({ length: nodes }, (_, id) => id));
-      expect(a.solution.map((point) => point.id)).toEqual(Array.from({ length: nodes }, (_, id) => id));
+      expect(a.points.map((point) => point.id)).toEqual(
+        Array.from({ length: nodes }, (_, id) => id),
+      );
+      expect(a.solution.map((point) => point.id)).toEqual(
+        Array.from({ length: nodes }, (_, id) => id),
+      );
       expect(a.edges).toEqual(
         Array.from({ length: nodes }, (_, id) => ({ a: id, b: (id + 1) % nodes })),
       );

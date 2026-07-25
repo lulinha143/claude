@@ -21,15 +21,17 @@ src/ui/minigames/MicroGame.tsx shared shell: timer, exit, result, single reward
 src/ui/minigames/*.tsx         one component per game (owns timing + DOM)
 ```
 
-Each game component receives `SubGameProps { seed, reducedMotion, timeLeft,
-onScore(absolute), onEnd(final) }`. The shell owns the countdown, the "play
-again" flow, and the once-only reward.
+Each game component receives `SubGameProps { seed, reducedMotion, paused,
+timeLeft, onScore(absolute), onCombo(multiplier) }`. The shell owns the
+monotonic countdown, pause clock, “play again” flow, and once-only reward.
+Leaving an active shift abandons it immediately without opening a result or
+granted reward; only expiry of the full round enters the rewarded result state.
 
-| Mode          | Component                | Duration | Department | Core skill                        |
-| ------------- | ------------------------ | -------- | ---------- | --------------------------------- |
-| `coffeeRescue`| `CoffeeRescue`           | 30s      | Kitchen    | Catch timing + combo streak       |
-| `bugSquash`   | `BugSquash`              | 30s      | Maintenance| Reaction precision                |
-| `cableUntangle`| `CableUntangle`         | 45s      | IT / Maint.| Spatial: drag nodes to un-cross   |
+| Mode            | Component       | Duration | Department  | Core skill                      |
+| --------------- | --------------- | -------- | ----------- | ------------------------------- |
+| `coffeeRescue`  | `CoffeeRescue`  | 30s      | Kitchen     | Catch timing + combo streak     |
+| `bugSquash`     | `BugSquash`     | 30s      | Maintenance | Reaction precision              |
+| `cableUntangle` | `CableUntangle` | 45s      | IT / Maint. | Spatial: drag nodes to un-cross |
 
 ## Removed conveyor games (Sorting & Receiving Conveyor)
 

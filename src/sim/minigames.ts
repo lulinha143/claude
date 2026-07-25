@@ -30,6 +30,40 @@ export function coffeeCatchScore(streak: number): number {
   return 2 * coffeeComboMultiplier(streak);
 }
 
+export interface CoffeeCatchGeometry {
+  minMugX: number;
+  maxMugX: number;
+  halfCatchWidth: number;
+  catchY: number;
+}
+
+/** Normalize rendered mug dimensions into the same 0..100 space as drops. */
+export function coffeeCatchGeometry(
+  areaWidth: number,
+  areaHeight: number,
+  mugWidth: number,
+  mugTop: number,
+  handleWidth = 23,
+): CoffeeCatchGeometry {
+  const safeWidth = Math.max(1, areaWidth);
+  const safeHeight = Math.max(1, areaHeight);
+  return {
+    minMugX: ((mugWidth / 2 + 10) / safeWidth) * 100,
+    maxMugX: 100 - ((mugWidth / 2 + handleWidth) / safeWidth) * 100,
+    halfCatchWidth: Math.max(3.5, ((mugWidth / 2 - 5) / safeWidth) * 100),
+    catchY: ((mugTop + 4) / safeHeight) * 100,
+  };
+}
+
+/** Resolve a coffee drop atomically; stale/duplicate ids cannot score twice. */
+export function resolveCoffeeDrop<T extends { id: number }>(
+  drops: readonly T[],
+  id: number,
+): { resolved: boolean; drops: T[] } {
+  if (!drops.some((drop) => drop.id === id)) return { resolved: false, drops: [...drops] };
+  return { resolved: true, drops: drops.filter((drop) => drop.id !== id) };
+}
+
 // --- Bug Squash -----------------------------------------------------------
 // A reaction/precision "whack-a-mole": office pests pop out of a 3x3 grid of
 // burrows for a shrinking window; tap them before they duck back. Speed and
@@ -46,6 +80,38 @@ export function bugSpawnInterval(elapsedSeconds: number): number {
 
 export function bugScore(streak: number): number {
   return 2 + Math.min(6, Math.floor(streak / 2));
+}
+
+export const BUG_EMPTY_PENALTY = 2;
+export const BUG_INPUT_GRACE_MS = 180;
+
+export interface RecentBugTarget {
+  hole: number;
+  at: number;
+}
+
+/**
+ * Resolve one activation against the exact spawn token captured at pointer
+ * down. A target that disappeared in the short input grace window is ignored,
+ * never turned into an unfair penalty by an expiry/hit race.
+ */
+export function resolveBugWhack(
+  active: { hole: number; token: number } | null,
+  hole: number,
+  capturedToken: number | null,
+  recent: RecentBugTarget | null,
+  now: number,
+): 'hit' | 'grace' | 'empty' {
+  if (capturedToken !== null && active?.hole === hole && active.token === capturedToken)
+    return 'hit';
+  if (recent?.hole === hole && now - recent.at <= BUG_INPUT_GRACE_MS) return 'grace';
+  return 'empty';
+}
+
+/** Empty clicks deduct a small fixed amount without ever creating debt. */
+export function applyBugEmptyPenalty(score: number): { score: number; lost: number } {
+  const next = Math.max(0, score - BUG_EMPTY_PENALTY);
+  return { score: next, lost: score - next };
 }
 
 // --- Cable Untangle Desk --------------------------------------------------
@@ -134,7 +200,10 @@ export function cableSegmentsConflict(
 }
 
 /** Count the pairs of non-adjacent cables that cross at the given positions. */
-export function countCrossings(edges: CableEdge[], pos: Record<number, { x: number; y: number }>): number {
+export function countCrossings(
+  edges: CableEdge[],
+  pos: Record<number, { x: number; y: number }>,
+): number {
   let n = 0;
   for (let i = 0; i < edges.length; i += 1) {
     for (let j = i + 1; j < edges.length; j += 1) {
@@ -159,11 +228,7 @@ export function countCableConflicts(
       const e1 = edges[i];
       const e2 = edges[j];
       const shared =
-        e1.a === e2.a || e1.a === e2.b
-          ? e1.a
-          : e1.b === e2.a || e1.b === e2.b
-            ? e1.b
-            : null;
+        e1.a === e2.a || e1.a === e2.b ? e1.a : e1.b === e2.a || e1.b === e2.b ? e1.b : null;
       if (shared != null) {
         const other1 = e1.a === shared ? e1.b : e1.a;
         const other2 = e2.a === shared ? e2.b : e2.a;
@@ -171,7 +236,8 @@ export function countCableConflicts(
         const first = pos[other1];
         const second = pos[other2];
         const overlap =
-          Math.abs(orient(centre.x, centre.y, first.x, first.y, second.x, second.y)) <= CABLE_EPSILON &&
+          Math.abs(orient(centre.x, centre.y, first.x, first.y, second.x, second.y)) <=
+            CABLE_EPSILON &&
           (first.x - centre.x) * (second.x - centre.x) +
             (first.y - centre.y) * (second.y - centre.y) >
             CABLE_EPSILON;
@@ -185,7 +251,9 @@ export function countCableConflicts(
   const ids = Object.keys(pos).map(Number);
   for (let i = 0; i < ids.length; i += 1) {
     for (let j = i + 1; j < ids.length; j += 1) {
-      if (Math.hypot(pos[ids[i]].x - pos[ids[j]].x, pos[ids[i]].y - pos[ids[j]].y) < MIN_PLUG_DISTANCE) {
+      if (
+        Math.hypot(pos[ids[i]].x - pos[ids[j]].x, pos[ids[i]].y - pos[ids[j]].y) < MIN_PLUG_DISTANCE
+      ) {
         conflicts += 1;
       }
     }
@@ -193,7 +261,10 @@ export function countCableConflicts(
   return conflicts;
 }
 
-export function cableSolved(edges: CableEdge[], pos: Record<number, { x: number; y: number }>): boolean {
+export function cableSolved(
+  edges: CableEdge[],
+  pos: Record<number, { x: number; y: number }>,
+): boolean {
   return countCableConflicts(edges, pos) === 0;
 }
 
