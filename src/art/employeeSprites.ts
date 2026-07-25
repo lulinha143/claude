@@ -58,14 +58,15 @@ export interface EmployeeSpriteConfig {
 // they read as more present at their workstations, re-checked side-by-side in
 // the office so they stay harmonious and never dominate the room.
 export const EMPLOYEE_SPRITES: Record<string, EmployeeSpriteConfig> = {
-  // Bea — Beaver, Construction. Reference desk, raised ~15% (70->80 / 101->116).
+  // Bea — Beaver, Construction. Refreshed workstation art (overalls, bonsai,
+  // toolbox). Raised ~15% over the previous rendered desk width.
   bea: {
     src: 'employees/bea.png',
     poster: 'employees/bea-poster.png',
-    frameWidth: 384,
-    frameHeight: 336,
-    officeHeight: 80,
-    cardHeight: 116,
+    frameWidth: 335,
+    frameHeight: 300,
+    officeHeight: 103,
+    cardHeight: 148,
     anchorX: 0.5,
     baseline: 0,
   },
@@ -93,15 +94,15 @@ export const EMPLOYEE_SPRITES: Record<string, EmployeeSpriteConfig> = {
     anchorX: 0.5,
     baseline: 0,
   },
-  // Pingo — Penguin, Logistics. Purple chair, scarf, "LOGISTICS / DATA / NAP".
-  // Raised ~20%, then a further ~20% (82->98 / 118->142).
+  // Pingo — Penguin, Logistics. Refreshed workstation art (cocoa, snow globe,
+  // fan). Raised ~10% over the previous rendered desk width.
   pingo: {
     src: 'employees/penguin.png',
     poster: 'employees/penguin-poster.png',
-    frameWidth: 371,
+    frameWidth: 356,
     frameHeight: 300,
-    officeHeight: 98,
-    cardHeight: 142,
+    officeHeight: 112,
+    cardHeight: 161,
     anchorX: 0.5,
     baseline: 0,
   },
