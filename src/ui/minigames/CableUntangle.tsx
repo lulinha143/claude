@@ -52,13 +52,15 @@ const CABLES: readonly CableStyle[] = [
   { color: '#65a978', highlight: '#d1f5d8' },
   { color: '#ca715d', highlight: '#ffdbca' },
   { color: '#bd8557', highlight: '#f8dcba' },
+  { color: '#cf6f94', highlight: '#ffd6e5' },
+  { color: '#4fa4a2', highlight: '#c9f4ef' },
 ];
 
 const NUDGE = 0.035;
-const BOARD_MIN_X = 0.065;
-const BOARD_MAX_X = 0.935;
-const BOARD_MIN_Y = 0.09;
-const BOARD_MAX_Y = 0.91;
+const BOARD_MIN_X = 0.085;
+const BOARD_MAX_X = 0.915;
+const BOARD_MIN_Y = 0.12;
+const BOARD_MAX_Y = 0.88;
 
 // One rule, represented the same way everywhere: move the plugs until the
 // straight cables no longer cross or overlap. Pointer ownership lives in a ref so even a
@@ -72,6 +74,7 @@ export function CableUntangle({ seed, reducedMotion, paused, onScore, onCombo }:
     cablePuzzle(`${seed}-0`, cableNodeCount(0)),
   );
   const [pos, setPos] = useState<Record<number, Pos>>(() => cablePositions(puzzle.points));
+  const recentLayouts = useRef<string[]>([puzzle.levelId]);
   const [active, setActive] = useState<number | null>(null);
   // A single explicit round phase drives the whole solve → celebrate → next
   // lifecycle. `settled` mirrors it synchronously so a burst of pointer/render
@@ -196,7 +199,12 @@ export function CableUntangle({ seed, reducedMotion, paused, onScore, onCombo }:
 
   const loadNext = useCallback(
     (nextSolved: number) => {
-      const next = cablePuzzle(`${seed}-${nextSolved}`, cableNodeCount(nextSolved));
+      const next = cablePuzzle(
+        `${seed}-${nextSolved}`,
+        cableNodeCount(nextSolved),
+        recentLayouts.current,
+      );
+      recentLayouts.current = [next.levelId, ...recentLayouts.current].slice(0, 3);
       settled.current = false;
       setPuzzle(next);
       setPos(cablePositions(next.points));
@@ -336,6 +344,8 @@ export function CableUntangle({ seed, reducedMotion, paused, onScore, onCombo }:
         data-stage={stage}
         data-round={solvedCount}
         data-level={puzzle.levelId}
+        data-mirrored={puzzle.mirrored ? 'true' : 'false'}
+        data-nodes={puzzle.points.length}
         aria-label={t('microgame.cableUntangle.name')}
         aria-describedby="cable-instructions"
       >

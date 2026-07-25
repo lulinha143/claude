@@ -61,22 +61,30 @@ player drags each computer until **no two cables cross**.
   guaranteed to be untangle-able into a convex ring — so **every board is
   solvable and can never soft-lock**.
 - Clearing a board scores points (bigger tangles are worth more) and loads a
-  larger, messier board; the shared countdown ends the run.
+  larger, messier board from 5 through 9 plugs; the shared countdown ends the
+  run. At the nine-plug cap, a three-layout history prevents recent desk
+  profiles from repeating.
 - The live **crossing count** is shown as text (non-colour feedback).
 - **Controls:** drag a computer (pointer/touch), or Tab to a computer and nudge
   it with the arrow keys. Nodes are focusable buttons with `aria-label`s and a
   visible focus ring. **Reduced Motion** removes transitions.
-- Positions are normalised `0..1`, so the square board scales to any window
-  size.
+- Positions are normalised `0..1`, with inset-safe profile bounds and smaller
+  high-density plugs, so all five board sizes scale to compact and desktop
+  windows without clipping.
 
 **Rules (`src/sim/minigames.ts`):**
 
-- `cablePuzzle(seed, nodeCount)` → deterministic loop, retried until it starts
-  tangled.
+- `cablePuzzle(seed, nodeCount, recentLevelIds)` → deterministic selection from
+  8 convex desk profiles per board size (40 profiles total), horizontal
+  mirroring, and a bounded seeded tangle search that never opens already clear.
 - `segmentsCross(...)` → proper X-crossing only (shared endpoints excluded).
-- `countCrossings(edges, positions)` / `cableSolved(...)` → win when `0`.
-- `cableNodeCount(solved)` (5→9) and `cableSolveScore(nodeCount)`.
+- `countCableConflicts(edges, positions)` / `cableSolved(...)` → win only when
+  there are no crossings, cable overlaps, or stacked plugs.
+- `cableNodeCount(solved)` grows 5→9 and `cableSolveScore(nodeCount)` rewards
+  larger desks.
 
 **Tests:** `tests/minigames.test.ts` covers crossing detection (X vs parallel vs
-shared endpoint), a convex ring scoring `0` crossings vs a tangled bow-tie,
-deterministic solvable-and-tangled generation, and board growth/scoring.
+shared endpoint), collapsed/overlapping rejection, all 40 responsive convex
+profiles, deterministic tangled generation, recent-profile exclusion, and full
+5→9 progression/scoring. `tests/e2e/cable-progression.spec.ts` physically solves
+consecutive transformed boards and verifies progression cannot stall.

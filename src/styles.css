@@ -7910,6 +7910,9 @@ button:disabled,
     filter var(--dur-fast) var(--ease),
     transform var(--dur-fast) var(--ease-settle);
 }
+.cable__board:is([data-nodes='8'], [data-nodes='9']) .cable__node {
+  width: clamp(44px, 8%, 58px);
+}
 .cable__node:hover {
   z-index: 8;
   transform: translate(-50%, -53%) scale(1.07) rotate(-1deg);

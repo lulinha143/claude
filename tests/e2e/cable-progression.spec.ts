@@ -75,20 +75,16 @@ async function solveCurrentBoard(page: Page) {
   const boardBox = await board.boundingBox();
   expect(boardBox).not.toBeNull();
 
-  // The seed may mirror the composition horizontally; detect it from node 0,
-  // which always opens on slot 0 (left side when un-mirrored).
-  const node0 = await page.locator('.cable__node[data-node-id="0"]').boundingBox();
-  expect(node0).not.toBeNull();
-  const mirrored = node0!.x + node0!.width / 2 > boardBox!.x + boardBox!.width / 2;
+  // The layout exposes its deterministic horizontal transform so tests can
+  // place nodes against the canonical profile slots without inferring from a
+  // randomly tangled node position.
+  const mirrored = (await board.getAttribute('data-mirrored')) === 'true';
 
   const toPixels = (x: number, y: number) => ({
     x: boardBox!.x + (mirrored ? 1 - x : x) * boardBox!.width,
     y: boardBox!.y + y * boardBox!.height,
   });
 
-  // Lean drag: the plug is released at the pointer-up coordinate, so a couple
-  // of moves are enough. Kept fast so all rounds finish well within the shift
-  // timer even under heavy parallel CPU load.
   const dragTo = async (id: number, x: number, y: number) => {
     const plug = page.locator(`.cable__node[data-node-id="${id}"]`);
     const box = await plug.boundingBox();
@@ -100,15 +96,26 @@ async function solveCurrentBoard(page: Page) {
     await page.mouse.up();
   };
 
-  // Scratch row sits at y=0.5 — every authored slot is >0.13 away vertically,
-  // so no scratch plug can collide with a slot or another scratch plug.
-  const scratchX = (id: number) => 0.14 + (0.72 * id) / Math.max(1, n - 1);
-  for (let id = 0; id < n; id += 1) await dragTo(id, scratchX(id), 0.5);
+  // The convex ellipse layouts occupy only the board perimeter, so the central
+  // horizontal strip (x 0.28..0.72, y 0.42/0.58) is always free of solution
+  // slots and of the left/right extreme plugs. Scatter every plug there first
+  // so each pick-up unambiguously grabs its own plug, then place each onto its
+  // solution slot. Two rows keep spacing well above the collision threshold
+  // even at nine plugs on a compact board.
+  const scratchColumns = Math.ceil(n / 2);
+  const scratchPoint = (id: number) => ({
+    x: 0.28 + (0.44 * (id % scratchColumns)) / Math.max(1, scratchColumns - 1),
+    y: id < scratchColumns ? 0.42 : 0.58,
+  });
+  for (let id = 0; id < n; id += 1) {
+    const scratch = scratchPoint(id);
+    await dragTo(id, scratch.x, scratch.y);
+  }
 
   // Place each plug onto its solution slot. Under heavy parallel CPU load a
   // pointer move can be coalesced and a plug may miss its slot, so re-seat any
   // remaining plugs until the desk reads clear (bounded retries).
-  for (let attempt = 0; attempt < 4; attempt += 1) {
+  for (let attempt = 0; attempt < 8; attempt += 1) {
     for (let id = 0; id < n; id += 1) await dragTo(id, slots[id].x, slots[id].y);
     if ((await board.getAttribute('data-stage')) === 'cleared') return;
     const crossings = (await page.locator('.cable__crossings').textContent()) ?? '';
@@ -129,26 +136,76 @@ async function setVisibility(page: Page, state: 'hidden' | 'visible') {
 test.describe.configure({ retries: 1 });
 
 test.describe.serial('cable untangle keeps loading round after round', () => {
-  test('clears at least six consecutive desks without ever stalling', async ({ page }) => {
+  test('clears at least six consecutive desks without repeating the recent profile', async ({
+    page,
+  }) => {
     await boot(page);
     await startCable(page);
     const board = page.locator('.cable__board');
+    const seenLevels: string[] = [];
 
     for (let round = 0; round < 6; round += 1) {
       const startRound = Number(await board.getAttribute('data-round'));
+      const levelId = await board.getAttribute('data-level');
+      expect(levelId).toBeTruthy();
+      expect(seenLevels.slice(-3)).not.toContain(levelId);
+      seenLevels.push(levelId!);
+      if ((await board.getAttribute('data-nodes')) === '9') {
+        await page.screenshot({ path: 'visual-artifacts/minigame-cable-nine-1280x800.png' });
+      }
+
       await solveCurrentBoard(page);
       await expect(board).toHaveAttribute('data-stage', 'cleared', { timeout: 10_000 });
       await expect(page.locator('.cable__cleared')).toBeVisible();
 
       // The very next desk MUST arrive: round counter advances, stage returns
       // to solving, and a fresh (tangled) board is presented.
-      await expect(board).toHaveAttribute('data-round', String(startRound + 1), { timeout: 10_000 });
+      await expect(board).toHaveAttribute('data-round', String(startRound + 1), {
+        timeout: 10_000,
+      });
       await expect(board).toHaveAttribute('data-stage', 'solving', { timeout: 10_000 });
       await expect(page.locator('.cable__crossings')).not.toContainText('0');
     }
   });
 
-  test('advances even when the window blurs/focuses repeatedly mid-transition', async ({ page }) => {
+  test('keeps a nine-plug hard desk playable inside a compact viewport', async ({ page }) => {
+    await boot(page);
+    await startCable(page);
+    const board = page.locator('.cable__board');
+
+    for (let round = 0; round < 4; round += 1) {
+      await solveCurrentBoard(page);
+      await expect(board).toHaveAttribute('data-round', String(round + 1), {
+        timeout: 10_000,
+      });
+      await expect(board).toHaveAttribute('data-stage', 'solving', { timeout: 10_000 });
+    }
+
+    await page.setViewportSize({ width: 390, height: 700 });
+    await page.waitForTimeout(150);
+    await expect(board).toHaveAttribute('data-nodes', '9');
+    await expect(page.locator('.cable__node')).toHaveCount(9);
+    await expect(page.locator('.cable__strand-body')).toHaveCount(9);
+    const boardBox = await board.boundingBox();
+    expect(boardBox).not.toBeNull();
+    for (const node of await page.locator('.cable__node').all()) {
+      const box = await node.boundingBox();
+      expect(box).not.toBeNull();
+      expect(box!.x).toBeGreaterThanOrEqual(boardBox!.x - 1);
+      expect(box!.y).toBeGreaterThanOrEqual(boardBox!.y - 1);
+      expect(box!.x + box!.width).toBeLessThanOrEqual(boardBox!.x + boardBox!.width + 1);
+      expect(box!.y + box!.height).toBeLessThanOrEqual(boardBox!.y + boardBox!.height + 1);
+    }
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
+    expect(overflow).toBeLessThanOrEqual(2);
+    await page.screenshot({ path: 'visual-artifacts/minigame-cable-nine-390x700.png' });
+  });
+
+  test('advances even when the window blurs/focuses repeatedly mid-transition', async ({
+    page,
+  }) => {
     await boot(page);
     await startCable(page);
     const board = page.locator('.cable__board');

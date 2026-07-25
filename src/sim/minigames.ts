@@ -139,6 +139,7 @@ export interface CablePuzzle {
   solution: CablePoint[];
   difficulty: CableDifficulty;
   levelId: string;
+  mirrored: boolean;
 }
 
 /** Orientation of the ordered triplet (p, q, r): >0 ccw, <0 cw, 0 collinear. */
@@ -274,124 +275,186 @@ export function cablePositions(points: CablePoint[]): Record<number, { x: number
   return out;
 }
 
-interface AuthoredCableLevel {
+interface CableLayoutProfile {
   id: string;
-  difficulty: CableDifficulty;
-  slots: readonly { x: number; y: number }[];
-  /** Node ids arranged around the desk perimeter in their tangled order. */
-  tangledOrder: readonly number[];
+  centerX: number;
+  centerY: number;
+  radiusX: number;
+  radiusY: number;
+  phase: number;
 }
 
-// Hand-authored desk layouts. Every solution puts cable ids in perimeter order,
-// while each opening order creates a deliberate readable tangle. Mirroring from
-// the seed adds variety without surrendering solvability or visual composition.
-const AUTHORED_CABLE_LEVELS: readonly AuthoredCableLevel[] = [
-  {
-    id: 'starter-star',
-    difficulty: 'easy',
-    slots: [
-      { x: 0.18, y: 0.2 },
-      { x: 0.5, y: 0.11 },
-      { x: 0.82, y: 0.2 },
-      { x: 0.84, y: 0.72 },
-      { x: 0.5, y: 0.88 },
-    ],
-    tangledOrder: [0, 2, 4, 1, 3],
-  },
-  {
-    id: 'meeting-loop',
-    difficulty: 'medium',
-    slots: [
-      { x: 0.16, y: 0.22 },
-      { x: 0.48, y: 0.1 },
-      { x: 0.82, y: 0.2 },
-      { x: 0.86, y: 0.7 },
-      { x: 0.53, y: 0.89 },
-      { x: 0.14, y: 0.7 },
-    ],
-    tangledOrder: [0, 3, 1, 4, 2, 5],
-  },
-  {
-    id: 'support-heptagon',
-    difficulty: 'medium',
-    slots: [
-      { x: 0.14, y: 0.3 },
-      { x: 0.3, y: 0.12 },
-      { x: 0.65, y: 0.1 },
-      { x: 0.86, y: 0.32 },
-      { x: 0.82, y: 0.7 },
-      { x: 0.52, y: 0.89 },
-      { x: 0.16, y: 0.72 },
-    ],
-    tangledOrder: [0, 3, 6, 2, 5, 1, 4],
-  },
-  {
-    id: 'server-octagon',
-    difficulty: 'hard',
-    slots: [
-      { x: 0.14, y: 0.28 },
-      { x: 0.29, y: 0.11 },
-      { x: 0.66, y: 0.1 },
-      { x: 0.86, y: 0.28 },
-      { x: 0.86, y: 0.7 },
-      { x: 0.66, y: 0.89 },
-      { x: 0.3, y: 0.9 },
-      { x: 0.13, y: 0.7 },
-    ],
-    tangledOrder: [0, 4, 1, 5, 2, 6, 3, 7],
-  },
-  {
-    id: 'launch-day',
-    difficulty: 'hard',
-    slots: [
-      { x: 0.12, y: 0.32 },
-      { x: 0.24, y: 0.13 },
-      { x: 0.51, y: 0.08 },
-      { x: 0.78, y: 0.14 },
-      { x: 0.89, y: 0.37 },
-      { x: 0.83, y: 0.7 },
-      { x: 0.61, y: 0.9 },
-      { x: 0.32, y: 0.89 },
-      { x: 0.12, y: 0.68 },
-    ],
-    tangledOrder: [0, 4, 8, 3, 7, 2, 6, 1, 5],
-  },
+interface CableLayout {
+  id: string;
+  nodeCount: number;
+  difficulty: CableDifficulty;
+  slots: readonly { x: number; y: number }[];
+}
+
+// Eight desk silhouettes are generated for every supported size. Each profile
+// is an ellipse (therefore convex), so placing node ids around its perimeter is
+// always a valid crossing-free solution. Different proportions, offsets, and
+// phases make the desk read differently without sacrificing responsiveness.
+const CABLE_LAYOUT_PROFILES: readonly CableLayoutProfile[] = [
+  { id: 'classic', centerX: 0.5, centerY: 0.5, radiusX: 0.36, radiusY: 0.36, phase: -0.5 },
+  { id: 'wide', centerX: 0.5, centerY: 0.5, radiusX: 0.4, radiusY: 0.3, phase: -0.5 },
+  { id: 'tall', centerX: 0.5, centerY: 0.5, radiusX: 0.31, radiusY: 0.38, phase: -0.5 },
+  { id: 'tilted-left', centerX: 0.5, centerY: 0.5, radiusX: 0.38, radiusY: 0.33, phase: -0.61 },
+  { id: 'tilted-right', centerX: 0.5, centerY: 0.5, radiusX: 0.38, radiusY: 0.33, phase: -0.39 },
+  { id: 'high-arc', centerX: 0.5, centerY: 0.47, radiusX: 0.37, radiusY: 0.34, phase: -0.5 },
+  { id: 'low-arc', centerX: 0.5, centerY: 0.53, radiusX: 0.39, radiusY: 0.33, phase: -0.5 },
+  { id: 'offset', centerX: 0.48, centerY: 0.5, radiusX: 0.38, radiusY: 0.35, phase: -0.56 },
 ] as const;
 
-/**
- * Select a handcrafted, guaranteed-solvable cable desk. The seed only mirrors
- * the authored composition, so difficulty and crossing guarantees never rely
- * on lucky random scatter.
- */
-export function cablePuzzle(seedStr: string, nodeCount: number): CablePuzzle {
-  const n = Math.max(5, Math.min(9, nodeCount));
-  const level = AUTHORED_CABLE_LEVELS[n - 5];
-  const mirrored = hashStringToSeed(`cable:${seedStr}:${level.id}`) % 2 === 1;
-  const mapPoint = (point: { x: number; y: number }) => ({
-    x: mirrored ? 1 - point.x : point.x,
-    y: point.y,
+function roundCableCoordinate(value: number): number {
+  return Math.round(value * 10_000) / 10_000;
+}
+
+function cableDifficulty(nodeCount: number): CableDifficulty {
+  if (nodeCount <= 5) return 'easy';
+  if (nodeCount <= 7) return 'medium';
+  return 'hard';
+}
+
+function buildCableSlots(
+  nodeCount: number,
+  profile: CableLayoutProfile,
+): readonly { x: number; y: number }[] {
+  const phase = profile.phase * Math.PI;
+  return Array.from({ length: nodeCount }, (_, index) => {
+    const angle = phase + (index * Math.PI * 2) / nodeCount;
+    return {
+      x: roundCableCoordinate(profile.centerX + Math.cos(angle) * profile.radiusX),
+      y: roundCableCoordinate(profile.centerY + Math.sin(angle) * profile.radiusY),
+    };
   });
-  const solution = level.slots.map((slot, id) => ({ id, ...mapPoint(slot) }));
-  const points = level.tangledOrder.map((id, slotIndex) => ({
-    id,
-    ...mapPoint(level.slots[slotIndex]),
-  }));
-  const edges: CableEdge[] = Array.from({ length: n }, (_, index) => ({
-    a: index,
-    b: (index + 1) % n,
-  }));
-  return {
-    points: points.sort((a, b) => a.id - b.id),
-    edges,
-    solution,
-    difficulty: level.difficulty,
-    levelId: level.id,
+}
+
+const CABLE_LAYOUTS: readonly CableLayout[] = Array.from(
+  { length: 5 },
+  (_, index) => index + 5,
+).flatMap((nodeCount) =>
+  CABLE_LAYOUT_PROFILES.map((profile) => ({
+    id: `${nodeCount}-${profile.id}`,
+    nodeCount,
+    difficulty: cableDifficulty(nodeCount),
+    slots: buildCableSlots(nodeCount, profile),
+  })),
+);
+
+const FALLBACK_TANGLE_ORDERS: Readonly<Record<number, readonly number[]>> = {
+  5: [0, 2, 4, 1, 3],
+  6: [0, 3, 1, 4, 2, 5],
+  7: [0, 3, 6, 2, 5, 1, 4],
+  8: [0, 4, 1, 5, 2, 6, 3, 7],
+  9: [0, 4, 8, 3, 7, 2, 6, 1, 5],
+};
+
+function cableRng(seed: number): () => number {
+  let state = seed >>> 0;
+  return () => {
+    state = (state + 0x6d2b79f5) | 0;
+    let value = Math.imul(state ^ (state >>> 15), 1 | state);
+    value = (value + Math.imul(value ^ (value >>> 7), 61 | value)) ^ value;
+    return ((value ^ (value >>> 14)) >>> 0) / 4_294_967_296;
   };
 }
 
-/** Nodes for the Nth solved puzzle: starts at 5 and caps at 7 for clarity. */
+function shuffledCableOrder(nodeCount: number, random: () => number): number[] {
+  const order = Array.from({ length: nodeCount }, (_, id) => id);
+  for (let index = order.length - 1; index > 0; index -= 1) {
+    const target = Math.floor(random() * (index + 1));
+    [order[index], order[target]] = [order[target], order[index]];
+  }
+  return order;
+}
+
+function pointsForCableOrder(
+  order: readonly number[],
+  slots: readonly { x: number; y: number }[],
+): CablePoint[] {
+  return order
+    .map((id, slotIndex) => ({ id, ...slots[slotIndex] }))
+    .sort((left, right) => left.id - right.id);
+}
+
+function cableEdges(nodeCount: number): CableEdge[] {
+  return Array.from({ length: nodeCount }, (_, index) => ({
+    a: index,
+    b: (index + 1) % nodeCount,
+  }));
+}
+
+/** Pick a readable tangle near the target crossing count, never a lucky clear board. */
+function cableTangleOrder(
+  seedStr: string,
+  layout: CableLayout,
+  slots: readonly { x: number; y: number }[],
+): readonly number[] {
+  const random = cableRng(hashStringToSeed(`cable-tangle:${seedStr}:${layout.id}`));
+  const edges = cableEdges(layout.nodeCount);
+  const targetConflicts = Math.max(3, layout.nodeCount - 2);
+  let best = FALLBACK_TANGLE_ORDERS[layout.nodeCount];
+  let bestDistance = Number.POSITIVE_INFINITY;
+  let bestConflicts = -1;
+
+  for (let attempt = 0; attempt < 64; attempt += 1) {
+    const candidate = shuffledCableOrder(layout.nodeCount, random);
+    const conflicts = countCableConflicts(
+      edges,
+      cablePositions(pointsForCableOrder(candidate, slots)),
+    );
+    if (conflicts === 0) continue;
+    const distance = Math.abs(conflicts - targetConflicts);
+    if (distance < bestDistance || (distance === bestDistance && conflicts > bestConflicts)) {
+      best = candidate;
+      bestDistance = distance;
+      bestConflicts = conflicts;
+      if (distance === 0) break;
+    }
+  }
+
+  return best;
+}
+
+/**
+ * Select a deterministic, guaranteed-solvable cable desk. Callers may pass
+ * recently shown layout ids; whenever another profile is available it is
+ * chosen instead, preventing the capped late-game boards from repeating.
+ */
+export function cablePuzzle(
+  seedStr: string,
+  nodeCount: number,
+  recentLevelIds: readonly string[] = [],
+): CablePuzzle {
+  const n = Math.max(5, Math.min(9, nodeCount));
+  const candidates = CABLE_LAYOUTS.filter((layout) => layout.nodeCount === n);
+  const recent = new Set(recentLevelIds);
+  const available = candidates.filter((layout) => !recent.has(layout.id));
+  const pool = available.length > 0 ? available : candidates;
+  const level = pool[hashStringToSeed(`cable-layout:${seedStr}:${n}`) % pool.length];
+  const mirrored = hashStringToSeed(`cable-mirror:${seedStr}:${level.id}`) % 2 === 1;
+  const mapPoint = (point: { x: number; y: number }) => ({
+    x: mirrored ? roundCableCoordinate(1 - point.x) : point.x,
+    y: point.y,
+  });
+  const mappedSlots = level.slots.map(mapPoint);
+  const order = cableTangleOrder(seedStr, level, mappedSlots);
+  const solution = mappedSlots.map((slot, id) => ({ id, ...slot }));
+  const points = pointsForCableOrder(order, mappedSlots);
+  return {
+    points,
+    edges: cableEdges(n),
+    solution,
+    difficulty: level.difficulty,
+    levelId: level.id,
+    mirrored,
+  };
+}
+
+/** Nodes for the Nth solved puzzle: starts at 5 and grows to the nine-node cap. */
 export function cableNodeCount(solved: number): number {
-  return Math.min(7, 5 + Math.max(0, solved));
+  return Math.min(9, 5 + Math.max(0, solved));
 }
 
 /**
@@ -401,8 +464,14 @@ export function cableNodeCount(solved: number): number {
  * solution without knowing the runtime seed.
  */
 export function cableLevelSlots(levelId: string): readonly { x: number; y: number }[] {
-  const level = AUTHORED_CABLE_LEVELS.find((entry) => entry.id === levelId);
+  const level = CABLE_LAYOUTS.find((entry) => entry.id === levelId);
   return level ? level.slots : [];
+}
+
+/** Stable catalogue ids for diagnostics, progression tests, and anti-repeat checks. */
+export function cableLayoutIds(nodeCount: number): readonly string[] {
+  const n = Math.max(5, Math.min(9, nodeCount));
+  return CABLE_LAYOUTS.filter((entry) => entry.nodeCount === n).map((entry) => entry.id);
 }
 
 /** Reward for clearing a board of the given size; bigger tangles are worth more. */

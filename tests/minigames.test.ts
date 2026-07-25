@@ -7,6 +7,7 @@ import {
   cableSolved,
   segmentsCross,
   cableNodeCount,
+  cableLayoutIds,
   cableSolveScore,
   coffeeFallDuration,
   coffeeSpawnInterval,
@@ -151,18 +152,19 @@ describe('Cable Untangle logic', () => {
   });
 
   it.each([
-    { nodes: 5, levelId: 'starter-star', difficulty: 'easy' },
-    { nodes: 6, levelId: 'meeting-loop', difficulty: 'medium' },
-    { nodes: 7, levelId: 'support-heptagon', difficulty: 'medium' },
-    { nodes: 8, levelId: 'server-octagon', difficulty: 'hard' },
-    { nodes: 9, levelId: 'launch-day', difficulty: 'hard' },
+    { nodes: 5, difficulty: 'easy' },
+    { nodes: 6, difficulty: 'medium' },
+    { nodes: 7, difficulty: 'medium' },
+    { nodes: 8, difficulty: 'hard' },
+    { nodes: 9, difficulty: 'hard' },
   ] as const)(
-    'authors a deterministic, initially tangled, solvable $nodes-node $levelId desk',
-    ({ nodes, levelId, difficulty }) => {
+    'generates deterministic, initially tangled, solvable $nodes-node desks',
+    ({ nodes, difficulty }) => {
       const a = cablePuzzle('seed-1', nodes);
       const b = cablePuzzle('seed-1', nodes);
       expect(a).toEqual(b);
-      expect(a).toMatchObject({ levelId, difficulty });
+      expect(a.difficulty).toBe(difficulty);
+      expect(cableLayoutIds(nodes)).toContain(a.levelId);
       expect(a.points).toHaveLength(nodes);
       expect(a.solution).toHaveLength(nodes);
       expect(a.edges).toHaveLength(nodes);
@@ -175,23 +177,51 @@ describe('Cable Untangle logic', () => {
       expect(a.edges).toEqual(
         Array.from({ length: nodes }, (_, id) => ({ a: id, b: (id + 1) % nodes })),
       );
-      expect(countCrossings(a.edges, cablePositions(a.points))).toBeGreaterThan(0);
-      expect(countCrossings(a.edges, cablePositions(a.solution))).toBe(0);
+      expect(countCableConflicts(a.edges, cablePositions(a.points))).toBeGreaterThan(0);
       expect(countCableConflicts(a.edges, cablePositions(a.solution))).toBe(0);
       expect(cableSolved(a.edges, cablePositions(a.solution))).toBe(true);
+      for (const point of [...a.points, ...a.solution]) {
+        expect(point.x).toBeGreaterThanOrEqual(0.085);
+        expect(point.x).toBeLessThanOrEqual(0.915);
+        expect(point.y).toBeGreaterThanOrEqual(0.12);
+        expect(point.y).toBeLessThanOrEqual(0.88);
+      }
     },
   );
+
+  it('offers eight responsive layout profiles at every supported board size', () => {
+    for (let nodes = 5; nodes <= 9; nodes += 1) {
+      expect(cableLayoutIds(nodes)).toHaveLength(8);
+      expect(new Set(cableLayoutIds(nodes)).size).toBe(8);
+    }
+  });
+
+  it('varies layouts across seeds and excludes recent profiles deterministically', () => {
+    const layouts = new Set(
+      Array.from({ length: 64 }, (_, index) => cablePuzzle(`variety-${index}`, 9).levelId),
+    );
+    expect(layouts.size).toBeGreaterThanOrEqual(6);
+
+    let recent: string[] = [];
+    for (let round = 0; round < 32; round += 1) {
+      const puzzle = cablePuzzle(`run-${round}`, 9, recent);
+      expect(recent).not.toContain(puzzle.levelId);
+      expect(cablePuzzle(`run-${round}`, 9, recent)).toEqual(puzzle);
+      recent = [puzzle.levelId, ...recent].slice(0, 3);
+    }
+  });
 
   it('clamps authored board sizes to the supported five-to-nine node range', () => {
     expect(cablePuzzle('small', -20).points).toHaveLength(5);
     expect(cablePuzzle('large', 200).points).toHaveLength(9);
   });
 
-  it('grows gently and caps the board at seven nodes for readability', () => {
+  it('grows gently through all supported sizes and caps at nine nodes', () => {
     expect(cableNodeCount(0)).toBe(5);
-    expect(cableNodeCount(3)).toBe(7);
-    expect(cableNodeCount(99)).toBe(7); // clarity cap
-    expect(cableSolveScore(7)).toBeGreaterThan(cableSolveScore(5));
+    expect(cableNodeCount(2)).toBe(7);
+    expect(cableNodeCount(4)).toBe(9);
+    expect(cableNodeCount(99)).toBe(9);
+    expect(cableSolveScore(9)).toBeGreaterThan(cableSolveScore(5));
   });
 });
 
