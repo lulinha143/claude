@@ -43,9 +43,9 @@ describe('consecutive cable round progression', () => {
     expect(rounds).toHaveLength(12);
     // Every round awarded a positive score.
     expect(totalScore).toBeGreaterThan(0);
-    // Node counts ramp then cap for readability (5 → 6 → 7 → 7 …).
-    expect(rounds.slice(0, 3).map((r) => r.nodes)).toEqual([5, 6, 7]);
-    expect(rounds.slice(3).every((r) => r.nodes === 7)).toBe(true);
+    // Node counts ramp then cap (5 → 6 → 7 → 8 → 9 → 9 …).
+    expect(rounds.slice(0, 5).map((r) => r.nodes)).toEqual([5, 6, 7, 8, 9]);
+    expect(rounds.slice(5).every((r) => r.nodes === 9)).toBe(true);
   });
 
   it('is deterministic: the same seed always yields the same round sequence', () => {
