@@ -14,7 +14,20 @@ export type CritterSpecies =
   | 'hedgehog'
   | 'rabbit'
   | 'owl'
-  | 'fox';
+  | 'fox'
+  // third wave — new roster animals (fallback silhouettes; some also have
+  // final animated workstation sprites registered in employeeSprites.ts).
+  | 'penguin'
+  | 'redpanda'
+  | 'cat'
+  | 'bear'
+  | 'frog'
+  | 'sloth'
+  | 'octopus'
+  | 'bat'
+  | 'flamingo'
+  | 'platypus'
+  | 'axolotl';
 
 export interface CritterShape {
   species: CritterSpecies;
@@ -35,6 +48,19 @@ export const CRITTER_SHAPES: Record<string, CritterShape> = {
   junie: { species: 'rabbit', hasGlasses: false },
   moss: { species: 'owl', hasGlasses: true },
   fenn: { species: 'fox', hasGlasses: false },
+  // third wave — Pingo (penguin) and Canela (red panda) also have final
+  // animated sprites; the rest use the code-drawn fallback silhouette.
+  pingo: { species: 'penguin', hasGlasses: false },
+  canela: { species: 'redpanda', hasGlasses: true },
+  nino: { species: 'cat', hasGlasses: false },
+  bia: { species: 'bear', hasGlasses: false },
+  quincy: { species: 'frog', hasGlasses: false },
+  dorm: { species: 'sloth', hasGlasses: false },
+  inky: { species: 'octopus', hasGlasses: false },
+  echo: { species: 'bat', hasGlasses: false },
+  rosa: { species: 'flamingo', hasGlasses: false },
+  perry: { species: 'platypus', hasGlasses: false },
+  axel: { species: 'axolotl', hasGlasses: false },
 };
 
 export function shapeFor(id: string): CritterShape {

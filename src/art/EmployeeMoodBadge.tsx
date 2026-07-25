@@ -38,12 +38,19 @@ const MOOD_FACE: Record<EmployeeMood, MoodFace> = {
 
 function FaceEyes({ face }: { face: MoodFace }) {
   if (face === 'calm' || face === 'proud' || face === 'tired') {
-    return <path className="mood-emoji__line" d="M5.1 9.2c.7.6 1.4.6 2.1 0M12.8 9.2c.7.6 1.4.6 2.1 0" />;
+    return (
+      <path className="mood-emoji__line" d="M5.1 9.2c.7.6 1.4.6 2.1 0M12.8 9.2c.7.6 1.4.6 2.1 0" />
+    );
   }
   if (face === 'focus' || face === 'suspicious' || face === 'angry') {
     return (
       <>
-        <path className="mood-emoji__line" d={face === 'angry' ? 'm4.8 7.4 2.8 1M15.2 7.4l-2.8 1' : 'm4.8 8.2 2.8-.7M15.2 8.2l-2.8-.7'} />
+        <path
+          className="mood-emoji__line"
+          d={
+            face === 'angry' ? 'm4.8 7.4 2.8 1M15.2 7.4l-2.8 1' : 'm4.8 8.2 2.8-.7M15.2 8.2l-2.8-.7'
+          }
+        />
         <circle className="mood-emoji__ink" cx="6.4" cy="9.7" r="1" />
         <circle className="mood-emoji__ink" cx="13.6" cy="9.7" r="1" />
       </>
@@ -94,12 +101,19 @@ function FaceMouth({ face }: { face: MoodFace }) {
 }
 
 function FaceAccent({ face }: { face: MoodFace }): ReactNode {
-  if (face === 'spark') return <path className="mood-emoji__accent" d="M15.8 3v3M14.3 4.5h3M4.2 4.3v1.8M3.3 5.2h1.8" />;
+  if (face === 'spark')
+    return <path className="mood-emoji__accent" d="M15.8 3v3M14.3 4.5h3M4.2 4.3v1.8M3.3 5.2h1.8" />;
   if (face === 'tired') return <path className="mood-emoji__accent" d="m14.6 4.8 2-2h-2l2-2" />;
-  if (face === 'embarrassed') return <path className="mood-emoji__cheek" d="M3.8 11.7h3M13.2 11.7h3" />;
-  if (face === 'sad') return <path className="mood-emoji__tear" d="M14.7 10.8c1.4 1.7 1.2 2.8 0 2.8s-1.4-1.1 0-2.8Z" />;
-  if (face === 'frustrated') return <path className="mood-emoji__accent" d="M15.4 4.7h2M16.4 3.7v2" />;
-  if (face === 'suspicious') return <path className="mood-emoji__accent" d="M14.6 5.2c1-1 2.1-1 3.1 0" />;
+  if (face === 'embarrassed')
+    return <path className="mood-emoji__cheek" d="M3.8 11.7h3M13.2 11.7h3" />;
+  if (face === 'sad')
+    return (
+      <path className="mood-emoji__tear" d="M14.7 10.8c1.4 1.7 1.2 2.8 0 2.8s-1.4-1.1 0-2.8Z" />
+    );
+  if (face === 'frustrated')
+    return <path className="mood-emoji__accent" d="M15.4 4.7h2M16.4 3.7v2" />;
+  if (face === 'suspicious')
+    return <path className="mood-emoji__accent" d="M14.6 5.2c1-1 2.1-1 3.1 0" />;
   return null;
 }
 
@@ -131,25 +145,45 @@ export function MoodEmoji({
   );
 }
 
-/** Persistent employee-anchored emotion bubble for final and fallback art. */
-export function EmployeeMoodBubble({
+/**
+ * A single employee-anchored bubble that lives in ONE place above the character
+ * and cross-fades between two states:
+ *  - default: the mood **emotion** emoji (a compact, hand-crafted bubble);
+ *  - speaking: a wider **speech** bubble showing a short phrase, shown when the
+ *    player clicks the employee (or during ambient chatter) and then reverting.
+ *
+ * Keeping both states in the same node — with a shared downward tail — makes the
+ * words feel like they come from that exact character, and the emoji↔speech
+ * transition reads as the same bubble morphing rather than two separate popups.
+ */
+export function EmployeeBubble({
   mood,
   color,
   label,
+  speech,
 }: {
   mood: EmployeeMood;
   color: string;
   label: string;
+  speech?: string | null;
 }) {
+  const speaking = Boolean(speech);
   return (
     <span
-      className="employee-mood-bubble"
+      className="employee-bubble"
       style={{ ['--mood-color' as string]: color } as CSSProperties}
-      title={label}
+      data-mode={speaking ? 'speech' : 'emoji'}
       data-mood={mood}
-      aria-hidden
+      title={speaking ? undefined : label}
     >
-      <MoodEmoji mood={mood} color={color} className="employee-mood-bubble__emoji" />
+      <span className="employee-bubble__emoji" aria-hidden={speaking || undefined}>
+        <MoodEmoji mood={mood} color={color} />
+      </span>
+      {speaking ? (
+        <span className="employee-bubble__speech" role="status">
+          {speech}
+        </span>
+      ) : null}
     </span>
   );
 }

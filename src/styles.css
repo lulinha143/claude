@@ -1079,42 +1079,153 @@ h4 {
 .critter-btn--sprite {
   transform-origin: 50% 100%;
 }
-/* Employee-anchored emotion bubble: always floats above final or fallback art. */
-.employee-mood-bubble {
+/* ===================================================================
+   Employee-anchored bubble — one node above the character that morphs
+   between the mood EMOTION emoji (default) and a SPEECH bubble (on click /
+   ambient chatter), then reverts. Both states share the same downward tail so
+   the words always feel like they come from that exact teammate.
+   =================================================================== */
+.employee-bubble {
   --mood-color: #d9b65d;
+  --bubble-ink: #43301d;
+  --bubble-edge: color-mix(in srgb, var(--mood-color) 56%, #4b321f);
+  --bubble-fill: color-mix(in srgb, var(--mood-color) 15%, #fff8ea);
   position: absolute;
   left: 50%;
-  bottom: calc(100% + 5px);
-  z-index: 7;
+  bottom: calc(100% + 8px);
+  z-index: 8;
   display: grid;
-  width: 34px;
-  height: 30px;
   place-items: center;
-  border: 1.5px solid color-mix(in srgb, var(--mood-color) 58%, #4b321f);
-  border-radius: 48% 52% 50% 48%;
+  padding: 4px;
+  border: 1.5px solid var(--bubble-edge);
+  border-radius: 13px;
   background:
-    radial-gradient(circle at 32% 23%, rgba(255, 255, 255, 0.92) 0 16%, transparent 17%),
-    linear-gradient(155deg, #fffaf0, color-mix(in srgb, var(--mood-color) 17%, #f2e4c8));
+    radial-gradient(circle at 30% 22%, rgba(255, 255, 255, 0.95) 0 14%, transparent 15%),
+    linear-gradient(158deg, #fffaf0, var(--bubble-fill));
   box-shadow:
-    inset 0 -2px 0 color-mix(in srgb, var(--mood-color) 16%, transparent),
-    0 2px 0 rgba(58, 42, 24, 0.22),
-    0 5px 10px rgba(40, 26, 12, 0.22);
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    inset 0 -2px 0 color-mix(in srgb, var(--mood-color) 15%, transparent),
+    0 2px 0 rgba(58, 42, 24, 0.2),
+    0 6px 12px rgba(40, 26, 12, 0.24);
   pointer-events: none;
-  transform: translateX(-50%) rotate(-1deg);
-  transform-origin: 50% 100%;
-  animation: employee-mood-arrive 220ms var(--ease-pop) both;
+  transform: translateX(-50%);
+  transform-origin: 50% calc(100% + 6px);
+  transition:
+    padding 200ms var(--ease-settle),
+    border-radius 200ms var(--ease-settle),
+    border-color 200ms ease,
+    background 200ms ease;
+  animation: employee-bubble-arrive 240ms var(--ease-pop) both;
 }
-.employee-mood-bubble::before {
+/* shared tail pointing down at the character */
+.employee-bubble::after {
   content: '';
   position: absolute;
   left: 50%;
-  bottom: -5px;
-  width: 9px;
-  height: 9px;
-  border-right: 1.5px solid color-mix(in srgb, var(--mood-color) 58%, #4b321f);
-  border-bottom: 1.5px solid color-mix(in srgb, var(--mood-color) 58%, #4b321f);
-  background: color-mix(in srgb, var(--mood-color) 12%, #f2e4c8);
+  bottom: -6px;
+  width: 11px;
+  height: 11px;
+  border-right: 1.5px solid var(--bubble-edge);
+  border-bottom: 1.5px solid var(--bubble-edge);
+  border-bottom-right-radius: 3px;
+  background: linear-gradient(135deg, transparent 40%, var(--bubble-fill) 41%);
   transform: translateX(-50%) rotate(45deg);
+}
+/* a gentle idle float keeps the emotion bubble alive without being distracting */
+.employee-bubble[data-mode='emoji'] {
+  animation:
+    employee-bubble-arrive 240ms var(--ease-pop) both,
+    employee-bubble-float 4.2s ease-in-out 240ms infinite;
+}
+.employee-bubble[data-mode='speech'] {
+  padding: 7px 11px;
+  border-radius: 14px 14px 14px 5px;
+  animation: employee-bubble-pop 260ms var(--ease-pop) both;
+}
+.employee-bubble__emoji {
+  display: grid;
+  place-items: center;
+  width: 27px;
+  height: 27px;
+  transition:
+    width 180ms var(--ease-settle),
+    height 180ms var(--ease-settle),
+    opacity 140ms ease;
+}
+/* in speech mode the emoji tucks into the corner as a tiny mood tag */
+.employee-bubble[data-mode='speech'] .employee-bubble__emoji {
+  position: absolute;
+  top: -9px;
+  left: -9px;
+  width: 20px;
+  height: 20px;
+  padding: 1px;
+  border-radius: 50%;
+  background: var(--bubble-fill);
+  border: 1.5px solid var(--bubble-edge);
+  box-shadow: 0 1px 3px rgba(40, 26, 12, 0.28);
+  z-index: 2;
+}
+.employee-bubble[data-mode='speech'] .employee-bubble__emoji svg {
+  width: 15px;
+  height: 15px;
+}
+.employee-bubble__speech {
+  display: block;
+  width: max-content;
+  max-width: 150px;
+  color: var(--bubble-ink);
+  font-family: var(--font-body, inherit);
+  font-size: 0.7em;
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: center;
+  text-wrap: balance;
+  animation: employee-bubble-text 220ms ease both;
+}
+@keyframes employee-bubble-arrive {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(5px) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+@keyframes employee-bubble-pop {
+  0% {
+    transform: translateX(-50%) translateY(2px) scale(0.9);
+  }
+  60% {
+    transform: translateX(-50%) translateY(0) scale(1.04);
+  }
+  100% {
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+@keyframes employee-bubble-float {
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    transform: translateX(-50%) translateY(-2.5px);
+  }
+}
+@keyframes employee-bubble-text {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+[data-reduced-motion='true'] .employee-bubble,
+[data-reduced-motion='true'] .employee-bubble[data-mode='emoji'],
+[data-reduced-motion='true'] .employee-bubble[data-mode='speech'] {
+  animation: none;
+  transition: none;
 }
 .mood-emoji {
   display: inline-grid;
@@ -1168,92 +1279,6 @@ h4 {
   fill: #79bce5;
   stroke: #3d779e;
   stroke-width: 0.7;
-}
-.employee-mood-bubble__emoji {
-  position: relative;
-  z-index: 1;
-  width: 27px;
-  height: 27px;
-  border: 0;
-  background: transparent;
-  box-shadow: none;
-}
-.employee-mood-bubble__emoji svg {
-  width: 27px;
-  height: 27px;
-}
-@keyframes employee-mood-arrive {
-  from {
-    opacity: 0;
-    transform: translateX(-50%) translateY(4px) scale(0.82) rotate(-4deg);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0) scale(1) rotate(-1deg);
-  }
-}
-[data-reduced-motion='true'] .employee-mood-bubble {
-  animation: none;
-}
-
-/* Reactions live beside the employee's base instead of covering their face. */
-.employee-reaction {
-  position: absolute;
-  bottom: 3px;
-  left: calc(100% + 9px);
-  z-index: 6;
-  width: max-content;
-  max-width: 132px;
-  padding: 4px 7px;
-  border: 1px solid rgba(75, 51, 29, 0.26);
-  border-radius: 8px 8px 8px 3px;
-  background: linear-gradient(180deg, #fff8e8, #f2e3c3);
-  box-shadow: 0 3px 8px rgba(40, 26, 12, 0.26);
-  color: #241a12;
-  font-size: 0.68em;
-  font-weight: 700;
-  line-height: 1.2;
-  text-align: left;
-  pointer-events: none;
-  animation: reaction-arrive 180ms var(--ease-pop) both;
-}
-.employee-reaction::after {
-  content: '';
-  position: absolute;
-  left: -5px;
-  bottom: 4px;
-  width: 8px;
-  height: 8px;
-  border-left: 1px solid rgba(75, 51, 29, 0.22);
-  border-bottom: 1px solid rgba(75, 51, 29, 0.22);
-  background: #f2e3c3;
-  transform: rotate(45deg);
-}
-.employee-reaction--left {
-  right: calc(100% + 9px);
-  left: auto;
-  border-radius: 8px 8px 3px 8px;
-  text-align: right;
-}
-.employee-reaction--left::after {
-  right: -5px;
-  left: auto;
-  border: 0;
-  border-top: 1px solid rgba(75, 51, 29, 0.22);
-  border-right: 1px solid rgba(75, 51, 29, 0.22);
-}
-@keyframes reaction-arrive {
-  from {
-    opacity: 0;
-    transform: translateY(4px) scale(0.94);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-[data-reduced-motion='true'] .employee-reaction {
-  animation: none;
 }
 .employee-card__art--sprite {
   display: flex;

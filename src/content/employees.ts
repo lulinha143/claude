@@ -23,9 +23,24 @@ export const EMPLOYEES: EmployeeDef[] = [
     dialogueCategory: 'pip',
     room: 'founder-desk',
     outfits: [
-      { id: 'pip-classic', nameKey: 'outfit.pip.classic', cost: { resource: 'nuts', amount: 0 }, accent: '#3f7d4f' },
-      { id: 'pip-ceo', nameKey: 'outfit.pip.ceo', cost: { resource: 'goldenNuts', amount: 3 }, accent: '#b8860b' },
-      { id: 'pip-cozy', nameKey: 'outfit.pip.cozy', cost: { resource: 'goldenNuts', amount: 2 }, accent: '#8a5a44' },
+      {
+        id: 'pip-classic',
+        nameKey: 'outfit.pip.classic',
+        cost: { resource: 'nuts', amount: 0 },
+        accent: '#3f7d4f',
+      },
+      {
+        id: 'pip-ceo',
+        nameKey: 'outfit.pip.ceo',
+        cost: { resource: 'goldenNuts', amount: 3 },
+        accent: '#b8860b',
+      },
+      {
+        id: 'pip-cozy',
+        nameKey: 'outfit.pip.cozy',
+        cost: { resource: 'goldenNuts', amount: 2 },
+        accent: '#8a5a44',
+      },
     ],
   },
   {
@@ -47,8 +62,18 @@ export const EMPLOYEES: EmployeeDef[] = [
     dialogueCategory: 'marlow',
     room: 'morale',
     outfits: [
-      { id: 'marlow-hr', nameKey: 'outfit.marlow.hr', cost: { resource: 'nuts', amount: 0 }, accent: '#d8b48a' },
-      { id: 'marlow-spa', nameKey: 'outfit.marlow.spa', cost: { resource: 'goldenNuts', amount: 2 }, accent: '#7fb8b0' },
+      {
+        id: 'marlow-hr',
+        nameKey: 'outfit.marlow.hr',
+        cost: { resource: 'nuts', amount: 0 },
+        accent: '#d8b48a',
+      },
+      {
+        id: 'marlow-spa',
+        nameKey: 'outfit.marlow.spa',
+        cost: { resource: 'goldenNuts', amount: 2 },
+        accent: '#7fb8b0',
+      },
     ],
   },
   {
@@ -70,8 +95,18 @@ export const EMPLOYEES: EmployeeDef[] = [
     dialogueCategory: 'rizzo',
     room: 'procurement',
     outfits: [
-      { id: 'rizzo-vest', nameKey: 'outfit.rizzo.vest', cost: { resource: 'nuts', amount: 0 }, accent: '#2d2d34' },
-      { id: 'rizzo-heist', nameKey: 'outfit.rizzo.heist', cost: { resource: 'goldenNuts', amount: 3 }, accent: '#1b1b1f' },
+      {
+        id: 'rizzo-vest',
+        nameKey: 'outfit.rizzo.vest',
+        cost: { resource: 'nuts', amount: 0 },
+        accent: '#2d2d34',
+      },
+      {
+        id: 'rizzo-heist',
+        nameKey: 'outfit.rizzo.heist',
+        cost: { resource: 'goldenNuts', amount: 3 },
+        accent: '#1b1b1f',
+      },
     ],
   },
   {
@@ -93,8 +128,18 @@ export const EMPLOYEES: EmployeeDef[] = [
     dialogueCategory: 'bea',
     room: 'construction',
     outfits: [
-      { id: 'bea-hardhat', nameKey: 'outfit.bea.hardhat', cost: { resource: 'nuts', amount: 0 }, accent: '#c98a4b' },
-      { id: 'bea-architect', nameKey: 'outfit.bea.architect', cost: { resource: 'goldenNuts', amount: 3 }, accent: '#e0e0e0' },
+      {
+        id: 'bea-hardhat',
+        nameKey: 'outfit.bea.hardhat',
+        cost: { resource: 'nuts', amount: 0 },
+        accent: '#c98a4b',
+      },
+      {
+        id: 'bea-architect',
+        nameKey: 'outfit.bea.architect',
+        cost: { resource: 'goldenNuts', amount: 3 },
+        accent: '#e0e0e0',
+      },
     ],
   },
   {
@@ -116,8 +161,18 @@ export const EMPLOYEES: EmployeeDef[] = [
     dialogueCategory: 'corvus',
     room: 'marketing',
     outfits: [
-      { id: 'corvus-suit', nameKey: 'outfit.corvus.suit', cost: { resource: 'nuts', amount: 0 }, accent: '#7c5cff' },
-      { id: 'corvus-influencer', nameKey: 'outfit.corvus.influencer', cost: { resource: 'goldenNuts', amount: 4 }, accent: '#ff5ca8' },
+      {
+        id: 'corvus-suit',
+        nameKey: 'outfit.corvus.suit',
+        cost: { resource: 'nuts', amount: 0 },
+        accent: '#7c5cff',
+      },
+      {
+        id: 'corvus-influencer',
+        nameKey: 'outfit.corvus.influencer',
+        cost: { resource: 'goldenNuts', amount: 4 },
+        accent: '#ff5ca8',
+      },
     ],
   },
   {
@@ -139,8 +194,18 @@ export const EMPLOYEES: EmployeeDef[] = [
     dialogueCategory: 'mina',
     room: 'research',
     outfits: [
-      { id: 'mina-labcoat', nameKey: 'outfit.mina.labcoat', cost: { resource: 'nuts', amount: 0 }, accent: '#ffb14e' },
-      { id: 'mina-miner', nameKey: 'outfit.mina.miner', cost: { resource: 'goldenNuts', amount: 4 }, accent: '#ffd700' },
+      {
+        id: 'mina-labcoat',
+        nameKey: 'outfit.mina.labcoat',
+        cost: { resource: 'nuts', amount: 0 },
+        accent: '#ffb14e',
+      },
+      {
+        id: 'mina-miner',
+        nameKey: 'outfit.mina.miner',
+        cost: { resource: 'goldenNuts', amount: 4 },
+        accent: '#ffd700',
+      },
     ],
   },
 
@@ -165,8 +230,18 @@ export const EMPLOYEES: EmployeeDef[] = [
     dialogueCategory: 'nixie',
     room: 'lab',
     outfits: [
-      { id: 'nixie-tech', nameKey: 'outfit.nixie.tech', cost: { resource: 'nuts', amount: 0 }, accent: '#6fa8dc' },
-      { id: 'nixie-hazmat', nameKey: 'outfit.nixie.hazmat', cost: { resource: 'goldenNuts', amount: 4 }, accent: '#ffd54a' },
+      {
+        id: 'nixie-tech',
+        nameKey: 'outfit.nixie.tech',
+        cost: { resource: 'nuts', amount: 0 },
+        accent: '#6fa8dc',
+      },
+      {
+        id: 'nixie-hazmat',
+        nameKey: 'outfit.nixie.hazmat',
+        cost: { resource: 'goldenNuts', amount: 4 },
+        accent: '#ffd54a',
+      },
     ],
   },
   {
@@ -189,8 +264,18 @@ export const EMPLOYEES: EmployeeDef[] = [
     dialogueCategory: 'otto',
     room: 'procurement',
     outfits: [
-      { id: 'otto-suit', nameKey: 'outfit.otto.suit', cost: { resource: 'nuts', amount: 0 }, accent: '#5a9a68' },
-      { id: 'otto-diver', nameKey: 'outfit.otto.diver', cost: { resource: 'goldenNuts', amount: 4 }, accent: '#4f9d69' },
+      {
+        id: 'otto-suit',
+        nameKey: 'outfit.otto.suit',
+        cost: { resource: 'nuts', amount: 0 },
+        accent: '#5a9a68',
+      },
+      {
+        id: 'otto-diver',
+        nameKey: 'outfit.otto.diver',
+        cost: { resource: 'goldenNuts', amount: 4 },
+        accent: '#4f9d69',
+      },
     ],
   },
   {
@@ -213,8 +298,18 @@ export const EMPLOYEES: EmployeeDef[] = [
     dialogueCategory: 'hazel',
     room: 'meeting',
     outfits: [
-      { id: 'hazel-robe', nameKey: 'outfit.hazel.robe', cost: { resource: 'nuts', amount: 0 }, accent: '#b0473a' },
-      { id: 'hazel-judge', nameKey: 'outfit.hazel.judge', cost: { resource: 'goldenNuts', amount: 4 }, accent: '#2f3640' },
+      {
+        id: 'hazel-robe',
+        nameKey: 'outfit.hazel.robe',
+        cost: { resource: 'nuts', amount: 0 },
+        accent: '#b0473a',
+      },
+      {
+        id: 'hazel-judge',
+        nameKey: 'outfit.hazel.judge',
+        cost: { resource: 'goldenNuts', amount: 4 },
+        accent: '#2f3640',
+      },
     ],
   },
   {
@@ -237,8 +332,18 @@ export const EMPLOYEES: EmployeeDef[] = [
     dialogueCategory: 'junie',
     room: 'sorting',
     outfits: [
-      { id: 'junie-vest', nameKey: 'outfit.junie.vest', cost: { resource: 'nuts', amount: 0 }, accent: '#e59aa8' },
-      { id: 'junie-runner', nameKey: 'outfit.junie.runner', cost: { resource: 'goldenNuts', amount: 4 }, accent: '#6fa8dc' },
+      {
+        id: 'junie-vest',
+        nameKey: 'outfit.junie.vest',
+        cost: { resource: 'nuts', amount: 0 },
+        accent: '#e59aa8',
+      },
+      {
+        id: 'junie-runner',
+        nameKey: 'outfit.junie.runner',
+        cost: { resource: 'goldenNuts', amount: 4 },
+        accent: '#6fa8dc',
+      },
     ],
   },
   {
@@ -261,8 +366,18 @@ export const EMPLOYEES: EmployeeDef[] = [
     dialogueCategory: 'moss',
     room: 'research',
     outfits: [
-      { id: 'moss-cloak', nameKey: 'outfit.moss.cloak', cost: { resource: 'nuts', amount: 0 }, accent: '#9a8cff' },
-      { id: 'moss-scholar', nameKey: 'outfit.moss.scholar', cost: { resource: 'goldenNuts', amount: 4 }, accent: '#e0e0e0' },
+      {
+        id: 'moss-cloak',
+        nameKey: 'outfit.moss.cloak',
+        cost: { resource: 'nuts', amount: 0 },
+        accent: '#9a8cff',
+      },
+      {
+        id: 'moss-scholar',
+        nameKey: 'outfit.moss.scholar',
+        cost: { resource: 'goldenNuts', amount: 4 },
+        accent: '#e0e0e0',
+      },
     ],
   },
   {
@@ -285,8 +400,88 @@ export const EMPLOYEES: EmployeeDef[] = [
     dialogueCategory: 'fenn',
     room: 'marketing',
     outfits: [
-      { id: 'fenn-blazer', nameKey: 'outfit.fenn.blazer', cost: { resource: 'nuts', amount: 0 }, accent: '#e0c9a8' },
-      { id: 'fenn-tux', nameKey: 'outfit.fenn.tux', cost: { resource: 'goldenNuts', amount: 5 }, accent: '#2f3640' },
+      {
+        id: 'fenn-blazer',
+        nameKey: 'outfit.fenn.blazer',
+        cost: { resource: 'nuts', amount: 0 },
+        accent: '#e0c9a8',
+      },
+      {
+        id: 'fenn-tux',
+        nameKey: 'outfit.fenn.tux',
+        cost: { resource: 'goldenNuts', amount: 5 },
+        accent: '#2f3640',
+      },
+    ],
+  },
+
+  // --- third wave: animated workstation sprites (Pingo, Canela) ------------
+  {
+    id: 'pingo',
+    nameKey: 'employee.pingo.name',
+    fullNameKey: 'employee.pingo.fullName',
+    roleKey: 'employee.pingo.role',
+    storyKey: 'employee.pingo.story',
+    goalKey: 'employee.pingo.goal',
+    color: '#33445c',
+    accent: '#8f79c9',
+    baseRate: 300,
+    hireCost: { resource: 'nuts', amount: 700000000 },
+    levelCostMult: 1.25,
+    unlock: { reputation: 500 },
+    // logistics keeps the whole pipeline flowing — a global nudge
+    passive: { type: 'globalMultiplier', base: 0.03, perLevel: 0.012 },
+    favoriteItemKey: 'item.clipboard',
+    rareEventId: 'pingo-manifest',
+    dialogueCategory: 'pingo',
+    room: 'sorting',
+    outfits: [
+      {
+        id: 'pingo-scarf',
+        nameKey: 'outfit.pingo.scarf',
+        cost: { resource: 'nuts', amount: 0 },
+        accent: '#8f79c9',
+      },
+      {
+        id: 'pingo-captain',
+        nameKey: 'outfit.pingo.captain',
+        cost: { resource: 'goldenNuts', amount: 5 },
+        accent: '#d9b44a',
+      },
+    ],
+  },
+  {
+    id: 'canela',
+    nameKey: 'employee.canela.name',
+    fullNameKey: 'employee.canela.fullName',
+    roleKey: 'employee.canela.role',
+    storyKey: 'employee.canela.story',
+    goalKey: 'employee.canela.goal',
+    color: '#b5632f',
+    accent: '#5a9a68',
+    baseRate: 380,
+    hireCost: { resource: 'nuts', amount: 1200000000 },
+    levelCostMult: 1.26,
+    unlock: { reputation: 560 },
+    // a patient naturalist grows the company's reputation and discoveries
+    passive: { type: 'reputationGain', base: 0.6, perLevel: 0.25 },
+    favoriteItemKey: 'item.telescope',
+    rareEventId: 'canela-field-notes',
+    dialogueCategory: 'canela',
+    room: 'research',
+    outfits: [
+      {
+        id: 'canela-field',
+        nameKey: 'outfit.canela.field',
+        cost: { resource: 'nuts', amount: 0 },
+        accent: '#5a9a68',
+      },
+      {
+        id: 'canela-ranger',
+        nameKey: 'outfit.canela.ranger',
+        cost: { resource: 'goldenNuts', amount: 5 },
+        accent: '#c98a4b',
+      },
     ],
   },
 ];

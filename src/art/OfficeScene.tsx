@@ -12,7 +12,7 @@ import { CritterStateMachine, type CritterState } from './animation';
 import { shapeFor } from './critterShapes';
 import { employeeSprite } from './employeeSprites';
 import { EmployeeSprite } from './EmployeeSprite';
-import { EmployeeMoodBubble } from './EmployeeMoodBadge';
+import { EmployeeBubble } from './EmployeeMoodBadge';
 import { Acorn, Crate } from './Icons';
 import { Icon } from './UiIcon';
 import { DecorationProp, decorKind, interactSound } from './DecorationProp';
@@ -372,9 +372,7 @@ export function OfficeScene() {
         setInteraction({ employeeId: it.employeeId, targetX: it.targetX, phase: 'walking' });
         scheduleLife(() => {
           setInteraction((current) =>
-            current?.employeeId === it.employeeId
-              ? { ...current, phase: 'interacting' }
-              : current,
+            current?.employeeId === it.employeeId ? { ...current, phase: 'interacting' } : current,
           );
         }, 650);
         scheduleLife(() => {
@@ -623,7 +621,15 @@ export function OfficeScene() {
     function applyMove(clientX: number, clientY: number) {
       if (kind === 'employee') {
         const target = employeeTarget(clientX, clientY, id);
-        setDrag({ kind, id, x: clientX, y: clientY, room, overRoom: target.room, valid: target.valid });
+        setDrag({
+          kind,
+          id,
+          x: clientX,
+          y: clientY,
+          room,
+          overRoom: target.room,
+          valid: target.valid,
+        });
         return;
       }
       // Bias toward the support already being targeted (hysteresis) so the
@@ -1093,8 +1099,7 @@ export function OfficeScene() {
                     ? slot.x * 0.55 + (interaction?.targetX ?? slot.x) * 0.45
                     : slot.x;
                   const interactedRecently =
-                    recentEmployee === id ||
-                    (visiting && interaction?.phase === 'interacting');
+                    recentEmployee === id || (visiting && interaction?.phase === 'interacting');
                   const inputs = {
                     hired: rt.hired,
                     producing,
@@ -1108,8 +1113,7 @@ export function OfficeScene() {
                     // A click/keyboard activation or ambient interaction should be
                     // visible even while the control remains hovered or focused.
                     hovered:
-                      !interactedRecently &&
-                      (hoveredEmployee === id || focusedEmployee === id),
+                      !interactedRecently && (hoveredEmployee === id || focusedEmployee === id),
                   };
                   const anim: CritterState = machineFor(id).update(inputs, now);
                   const accent =
@@ -1163,20 +1167,12 @@ export function OfficeScene() {
                           seed={idx + room.floor}
                         />
                       )}
-                      <EmployeeMoodBubble
-                        key={mood}
+                      <EmployeeBubble
                         mood={mood}
                         color={MOOD_TONE[mood]}
                         label={moodLabel}
+                        speech={bubble?.employeeId === id ? bubble.text : null}
                       />
-                      {bubble?.employeeId === id ? (
-                        <span
-                          className={`employee-reaction ${ex > 0.68 ? 'employee-reaction--left' : ''}`}
-                          role="status"
-                        >
-                          {bubble.text}
-                        </span>
-                      ) : null}
                     </button>
                   );
                 })}

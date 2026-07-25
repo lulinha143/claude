@@ -1,5 +1,8 @@
 {
-  "_meta": { "name": "English", "complete": true },
+  "_meta": {
+    "name": "English",
+    "complete": true
+  },
   "common": {
     "ok": "OK",
     "cancel": "Cancel",
@@ -97,7 +100,10 @@
       "next": "Next unlock at {{value}} reputation",
       "maxed": "Every reputation reward is unlocked"
     },
-    "rate": { "t": "Production", "d": "Nuts produced per second across every room right now." },
+    "rate": {
+      "t": "Production",
+      "d": "Nuts produced per second across every room right now."
+    },
     "current": "Now: {{value}}",
     "quiet": {
       "t": "Quiet Mode",
@@ -105,7 +111,9 @@
     },
     "friendship": "Grows when you chat, gift coffee and keep them happy. Higher friendship boosts their output.",
     "mood": "How this teammate feels right now. Emotions gently nudge their output up or down.",
-    "mute": { "d": "Instantly silence (or restore) all music, ambience and sound effects." },
+    "mute": {
+      "d": "Instantly silence (or restore) all music, ambience and sound effects."
+    },
     "music": {
       "d": "Mute only the background music. Sound effects, interface and event sounds keep playing."
     },
@@ -254,14 +262,14 @@
     },
     "rizzo": {
       "name": "Rizzo",
-      "fullName": "Rizzo \u201cReceipts\u201d Ringtail",
+      "fullName": "Rizzo “Receipts” Ringtail",
       "role": "Procurement Specialist",
       "story": "Rizzo can find anything the company needs. Also several things it didn't. Please do not ask where the stapler went.",
       "goal": "Source everything at a suspiciously good price."
     },
     "bea": {
       "name": "Bea",
-      "fullName": "Beatrice \u201cBea\u201d Timberton",
+      "fullName": "Beatrice “Bea” Timberton",
       "role": "Construction Manager",
       "story": "Bea believes every problem can be solved with more wood. The chairs are now 40% sturdier and 60% more wooden.",
       "goal": "Reinforce every single thing in the building."
@@ -321,6 +329,20 @@
       "role": "Sales & Client Relations",
       "story": "Fenn the fox could sell a walnut back to the tree it fell from. Charming, ambitious, and just a little too persuasive.",
       "goal": "Close the biggest nut deal in company history."
+    },
+    "pingo": {
+      "name": "Pingo",
+      "fullName": "Pingo Frost",
+      "role": "Logistics & Flow",
+      "story": "Pingo the penguin keeps every parcel, pallet and nap perfectly scheduled. Cool under pressure, warm at heart.",
+      "goal": "Route a thousand crates without a single delay."
+    },
+    "canela": {
+      "name": "Canela",
+      "fullName": "Canela Embertail",
+      "role": "Field Research",
+      "story": "Canela the red panda watches, notes, and protects — endlessly curious about how every little thing in the office works.",
+      "goal": "Fill an entire notebook with office observations."
     }
   },
   "item": {
@@ -338,18 +360,63 @@
     "briefcase": "Charming briefcase"
   },
   "outfit": {
-    "pip": { "classic": "Green Necktie", "ceo": "CEO Blazer", "cozy": "Cozy Sweater" },
-    "marlow": { "hr": "HR Cardigan", "spa": "Spa Robe" },
-    "rizzo": { "vest": "Utility Vest", "heist": "Heist Turtleneck" },
-    "bea": { "hardhat": "Hard Hat", "architect": "Architect Coat" },
-    "corvus": { "suit": "Sharp Suit", "influencer": "Influencer Fit" },
-    "mina": { "labcoat": "Lab Coat", "miner": "Miner Gear" },
-    "nixie": { "tech": "Tech Vest", "hazmat": "Hazmat Suit" },
-    "otto": { "suit": "Accountant Suit", "diver": "Diving Gear" },
-    "hazel": { "robe": "Legal Robe", "judge": "Judge's Robe" },
-    "junie": { "vest": "Courier Vest", "runner": "Runner Kit" },
-    "moss": { "cloak": "Night Cloak", "scholar": "Scholar Robe" },
-    "fenn": { "blazer": "Sales Blazer", "tux": "Sharp Tuxedo" }
+    "pip": {
+      "classic": "Green Necktie",
+      "ceo": "CEO Blazer",
+      "cozy": "Cozy Sweater"
+    },
+    "marlow": {
+      "hr": "HR Cardigan",
+      "spa": "Spa Robe"
+    },
+    "rizzo": {
+      "vest": "Utility Vest",
+      "heist": "Heist Turtleneck"
+    },
+    "bea": {
+      "hardhat": "Hard Hat",
+      "architect": "Architect Coat"
+    },
+    "corvus": {
+      "suit": "Sharp Suit",
+      "influencer": "Influencer Fit"
+    },
+    "mina": {
+      "labcoat": "Lab Coat",
+      "miner": "Miner Gear"
+    },
+    "nixie": {
+      "tech": "Tech Vest",
+      "hazmat": "Hazmat Suit"
+    },
+    "otto": {
+      "suit": "Accountant Suit",
+      "diver": "Diving Gear"
+    },
+    "hazel": {
+      "robe": "Legal Robe",
+      "judge": "Judge's Robe"
+    },
+    "junie": {
+      "vest": "Courier Vest",
+      "runner": "Runner Kit"
+    },
+    "moss": {
+      "cloak": "Night Cloak",
+      "scholar": "Scholar Robe"
+    },
+    "fenn": {
+      "blazer": "Sales Blazer",
+      "tux": "Sharp Tuxedo"
+    },
+    "pingo": {
+      "scarf": "Commuter Scarf",
+      "captain": "Fleet Captain"
+    },
+    "canela": {
+      "field": "Field Vest",
+      "ranger": "Forest Ranger"
+    }
   },
   "room": {
     "founderDesk": {
@@ -376,8 +443,14 @@
       "name": "Shell Research Laboratory",
       "desc": "Bubbling beakers and questionable breakthroughs."
     },
-    "marketing": { "name": "Marketing Burrow", "desc": "Corvus turns nuts into narrative." },
-    "vault": { "name": "Golden Nut Vault", "desc": "Heavily guarded. Faintly glowing." },
+    "marketing": {
+      "name": "Marketing Burrow",
+      "desc": "Corvus turns nuts into narrative."
+    },
+    "vault": {
+      "name": "Golden Nut Vault",
+      "desc": "Heavily guarded. Faintly glowing."
+    },
     "research": {
       "name": "Human Behavior Observation Room",
       "desc": "For science. Definitely just for science."
@@ -438,7 +511,10 @@
       "name": "Reputation Engine",
       "desc": "Grow the company's good name faster."
     },
-    "moraleCap": { "name": "Morale Ceiling", "desc": "Raise the maximum morale of the office." },
+    "moraleCap": {
+      "name": "Morale Ceiling",
+      "desc": "Raise the maximum morale of the office."
+    },
     "room": {
       "sorting": {
         "name": "Build: Nut Sorting Department",
@@ -452,7 +528,10 @@
         "name": "Build: Golden Nut Vault",
         "desc": "Unlock the glowing Golden Nut Vault."
       },
-      "meeting": { "name": "Build: Meeting Room", "desc": "Unlock the Very Serious Meeting Room." },
+      "meeting": {
+        "name": "Build: Meeting Room",
+        "desc": "Unlock the Very Serious Meeting Room."
+      },
       "basement": {
         "name": "Build: Suspicious Basement",
         "desc": "Unlock the definitely-normal basement."
@@ -750,64 +829,184 @@
   },
   "ach": {
     "unlocked": "Achievement unlocked!",
-    "firstDay": { "name": "First Day on the Job", "desc": "Collect your very first nut." },
-    "workingNutsOff": { "name": "Working My Nuts Off", "desc": "Earn 1,000 nuts total." },
-    "tenK": { "name": "Getting Nutty", "desc": "Earn 10,000 nuts total." },
-    "hundredK": { "name": "Nut Enterprise", "desc": "Earn 100,000 nuts total." },
-    "oneMillion": { "name": "Nut Tycoon", "desc": "Earn 1,000,000 nuts total." },
-    "nutillion": { "name": "One Nutillion", "desc": "Earn a billion nuts total." },
-    "nice": { "name": "Nice.", "desc": "Hold exactly 69,420 nuts." },
-    "goingNuts": { "name": "Going Completely Nuts", "desc": "Perform your first prestige." },
-    "multiverse": { "name": "Nut Multiverse", "desc": "Prestige 5 times." },
-    "employeeMinute": { "name": "Employee of the Minute", "desc": "Hire a second employee." },
-    "fullStaff": { "name": "Fully Staffed", "desc": "Hire all six employees." },
+    "firstDay": {
+      "name": "First Day on the Job",
+      "desc": "Collect your very first nut."
+    },
+    "workingNutsOff": {
+      "name": "Working My Nuts Off",
+      "desc": "Earn 1,000 nuts total."
+    },
+    "tenK": {
+      "name": "Getting Nutty",
+      "desc": "Earn 10,000 nuts total."
+    },
+    "hundredK": {
+      "name": "Nut Enterprise",
+      "desc": "Earn 100,000 nuts total."
+    },
+    "oneMillion": {
+      "name": "Nut Tycoon",
+      "desc": "Earn 1,000,000 nuts total."
+    },
+    "nutillion": {
+      "name": "One Nutillion",
+      "desc": "Earn a billion nuts total."
+    },
+    "nice": {
+      "name": "Nice.",
+      "desc": "Hold exactly 69,420 nuts."
+    },
+    "goingNuts": {
+      "name": "Going Completely Nuts",
+      "desc": "Perform your first prestige."
+    },
+    "multiverse": {
+      "name": "Nut Multiverse",
+      "desc": "Prestige 5 times."
+    },
+    "employeeMinute": {
+      "name": "Employee of the Minute",
+      "desc": "Hire a second employee."
+    },
+    "fullStaff": {
+      "name": "Fully Staffed",
+      "desc": "Hire all six employees."
+    },
     "meetingEmail": {
       "name": "This Meeting Could Have Been an Email",
       "desc": "Experience your first event."
     },
-    "incidentReport": { "name": "Incident Report", "desc": "Experience 10 events." },
-    "zeroDays": { "name": "Zero Days Without Incident", "desc": "Experience 25 events." },
-    "chairPromoted": { "name": "The Chair Deserved It", "desc": "Promote the office chair." },
-    "raccoonAccounting": { "name": "Raccoon Accounting", "desc": "Hire Rizzo." },
-    "calmCrisis": { "name": "Calm During Crisis", "desc": "Hire Marlow." },
-    "infiniteCoffee": { "name": "Infinite Coffee", "desc": "Max out the coffee upgrades." },
+    "incidentReport": {
+      "name": "Incident Report",
+      "desc": "Experience 10 events."
+    },
+    "zeroDays": {
+      "name": "Zero Days Without Incident",
+      "desc": "Experience 25 events."
+    },
+    "chairPromoted": {
+      "name": "The Chair Deserved It",
+      "desc": "Promote the office chair."
+    },
+    "raccoonAccounting": {
+      "name": "Raccoon Accounting",
+      "desc": "Hire Rizzo."
+    },
+    "calmCrisis": {
+      "name": "Calm During Crisis",
+      "desc": "Hire Marlow."
+    },
+    "infiniteCoffee": {
+      "name": "Infinite Coffee",
+      "desc": "Max out the coffee upgrades."
+    },
     "normalBasement": {
       "name": "Extremely Normal Basement",
       "desc": "Build the suspicious basement."
     },
-    "productivityTheater": { "name": "Productivity Theater", "desc": "Complete a focus session." },
-    "deepFocus": { "name": "Deep Focus", "desc": "Complete 10 focus sessions." },
-    "nutsAndBolts": { "name": "Nuts and Bolts", "desc": "Unlock 4 rooms." },
-    "shellCompany": { "name": "Shell Company", "desc": "Unlock 8 rooms." },
-    "hostileTakeover": { "name": "Hostile Takeover", "desc": "Reach 1,000 nuts/second." },
+    "productivityTheater": {
+      "name": "Productivity Theater",
+      "desc": "Complete a focus session."
+    },
+    "deepFocus": {
+      "name": "Deep Focus",
+      "desc": "Complete 10 focus sessions."
+    },
+    "nutsAndBolts": {
+      "name": "Nuts and Bolts",
+      "desc": "Unlock 4 rooms."
+    },
+    "shellCompany": {
+      "name": "Shell Company",
+      "desc": "Unlock 8 rooms."
+    },
+    "hostileTakeover": {
+      "name": "Hostile Takeover",
+      "desc": "Reach 1,000 nuts/second."
+    },
     "goldenOpportunity": {
       "name": "Golden Opportunity",
       "desc": "Discover your first collectible nut."
     },
-    "nutScholar": { "name": "Nut Scholar", "desc": "Discover 10 nuts." },
-    "nutProfessor": { "name": "Nut Professor", "desc": "Discover 20 nuts." },
-    "touchGrass": { "name": "Touch Grass", "desc": "Unlock the rooftop garden." },
+    "nutScholar": {
+      "name": "Nut Scholar",
+      "desc": "Discover 10 nuts."
+    },
+    "nutProfessor": {
+      "name": "Nut Professor",
+      "desc": "Discover 20 nuts."
+    },
+    "touchGrass": {
+      "name": "Touch Grass",
+      "desc": "Unlock the rooftop garden."
+    },
     "spreadsheetKnows": {
       "name": "The Spreadsheet Knows",
       "desc": "Accept the spreadsheet's knowledge."
     },
-    "clicker": { "name": "Clicker", "desc": "Click 100 times." },
-    "clickerPro": { "name": "Clicker Pro", "desc": "Click 1,000 times." },
-    "crateCollector": { "name": "Crate Expectations", "desc": "Collect 100 crates." },
-    "highMorale": { "name": "Good Vibes Only", "desc": "Reach 95 morale." },
-    "minigamer": { "name": "Minigamer", "desc": "Play a micro-game." },
-    "arcadeLegend": { "name": "Arcade Legend", "desc": "Play 20 micro-games." },
-    "woodEnthusiast": { "name": "Wood Enthusiast", "desc": "Hire Bea." },
-    "cryptoSkeptic": { "name": "Crypto Skeptic", "desc": "Refuse to invest in NutCoin." },
-    "underground": { "name": "Underground", "desc": "Hire Mina." },
-    "reputable": { "name": "Reputable", "desc": "Reach 100 reputation." },
-    "empire": { "name": "Nut Empire", "desc": "Reach 100,000 nuts/second." },
-    "marathon": { "name": "Marathon", "desc": "Play for one hour total." },
-    "collectorOutfits": { "name": "Dressed to Impress", "desc": "Own 6 outfits." }
+    "clicker": {
+      "name": "Clicker",
+      "desc": "Click 100 times."
+    },
+    "clickerPro": {
+      "name": "Clicker Pro",
+      "desc": "Click 1,000 times."
+    },
+    "crateCollector": {
+      "name": "Crate Expectations",
+      "desc": "Collect 100 crates."
+    },
+    "highMorale": {
+      "name": "Good Vibes Only",
+      "desc": "Reach 95 morale."
+    },
+    "minigamer": {
+      "name": "Minigamer",
+      "desc": "Play a micro-game."
+    },
+    "arcadeLegend": {
+      "name": "Arcade Legend",
+      "desc": "Play 20 micro-games."
+    },
+    "woodEnthusiast": {
+      "name": "Wood Enthusiast",
+      "desc": "Hire Bea."
+    },
+    "cryptoSkeptic": {
+      "name": "Crypto Skeptic",
+      "desc": "Refuse to invest in NutCoin."
+    },
+    "underground": {
+      "name": "Underground",
+      "desc": "Hire Mina."
+    },
+    "reputable": {
+      "name": "Reputable",
+      "desc": "Reach 100 reputation."
+    },
+    "empire": {
+      "name": "Nut Empire",
+      "desc": "Reach 100,000 nuts/second."
+    },
+    "marathon": {
+      "name": "Marathon",
+      "desc": "Play for one hour total."
+    },
+    "collectorOutfits": {
+      "name": "Dressed to Impress",
+      "desc": "Own 6 outfits."
+    }
   },
   "nut": {
-    "internAcorn": { "name": "Intern Acorn", "desc": "Eager, underpaid, full of potential." },
-    "corporateCashew": { "name": "Corporate Cashew", "desc": "Curved to fit any org chart." },
+    "internAcorn": {
+      "name": "Intern Acorn",
+      "desc": "Eager, underpaid, full of potential."
+    },
+    "corporateCashew": {
+      "name": "Corporate Cashew",
+      "desc": "Curved to fit any org chart."
+    },
     "managementMacadamia": {
       "name": "Management Macadamia",
       "desc": "Hard shell, expensive, unclear purpose."
@@ -828,19 +1027,46 @@
       "name": "Executive Hazelnut",
       "desc": "Golden, glossy, and rarely in the office."
     },
-    "almond": { "name": "Emotional Support Almond", "desc": "Always there when you need it." },
-    "chestnut": { "name": "Startup Chestnut", "desc": "Roasting on an open pivot." },
-    "brazilNut": { "name": "Quarterly Brazil Nut", "desc": "Appears exactly four times a year." },
-    "pecan": { "name": "Synergy Pecan", "desc": "Leverages its core competencies." },
-    "pineNut": { "name": "Disruptive Pine Nut", "desc": "Small, pricey, changing the game." },
-    "onboardingWalnut": { "name": "Onboarding Walnut", "desc": "Comes with a 40-page handbook." },
-    "overtimeAcorn": { "name": "Overtime Acorn", "desc": "Still glowing at 2 AM." },
+    "almond": {
+      "name": "Emotional Support Almond",
+      "desc": "Always there when you need it."
+    },
+    "chestnut": {
+      "name": "Startup Chestnut",
+      "desc": "Roasting on an open pivot."
+    },
+    "brazilNut": {
+      "name": "Quarterly Brazil Nut",
+      "desc": "Appears exactly four times a year."
+    },
+    "pecan": {
+      "name": "Synergy Pecan",
+      "desc": "Leverages its core competencies."
+    },
+    "pineNut": {
+      "name": "Disruptive Pine Nut",
+      "desc": "Small, pricey, changing the game."
+    },
+    "onboardingWalnut": {
+      "name": "Onboarding Walnut",
+      "desc": "Comes with a 40-page handbook."
+    },
+    "overtimeAcorn": {
+      "name": "Overtime Acorn",
+      "desc": "Still glowing at 2 AM."
+    },
     "stakeholderCashew": {
       "name": "Stakeholder Cashew",
       "desc": "Wants to be looped in on everything."
     },
-    "goldenKernel": { "name": "Golden Kernel", "desc": "The purest form of nut wealth." },
-    "cryptoNut": { "name": "Crypto Nut", "desc": "Value fluctuates wildly. Backed by vibes." },
+    "goldenKernel": {
+      "name": "Golden Kernel",
+      "desc": "The purest form of nut wealth."
+    },
+    "cryptoNut": {
+      "name": "Crypto Nut",
+      "desc": "Value fluctuates wildly. Backed by vibes."
+    },
     "cobNut": {
       "name": "Compliance Cob Nut",
       "desc": "Fully certified and thoroughly documented."
@@ -853,47 +1079,120 @@
       "name": "Legacy Hazelnut",
       "desc": "Nobody knows how it works, don't touch it."
     },
-    "agileAlmond": { "name": "Agile Almond", "desc": "Ships in two-week sprints." },
-    "burnoutBrazil": { "name": "Burnout Brazil", "desc": "Needs a long weekend." },
+    "agileAlmond": {
+      "name": "Agile Almond",
+      "desc": "Ships in two-week sprints."
+    },
+    "burnoutBrazil": {
+      "name": "Burnout Brazil",
+      "desc": "Needs a long weekend."
+    },
     "visionaryPistachio": {
       "name": "Visionary Pistachio",
       "desc": "Sees a future no one asked for."
     },
-    "founderAcorn": { "name": "Founder Acorn", "desc": "The one that started it all." }
+    "founderAcorn": {
+      "name": "Founder Acorn",
+      "desc": "The one that started it all."
+    }
   },
   "deco": {
-    "potted-fern": { "name": "Potted Fern" },
-    "desk-lamp": { "name": "Warm Task Lamp" },
-    "motivational-poster": { "name": "Motivational Poster" },
-    "tiny-rug": { "name": "Tiny Rug" },
-    "window-view": { "name": "Window with a View" },
-    "sorting-bins": { "name": "Sorting Bins" },
-    "conveyor-plushie": { "name": "Conveyor Plushie" },
-    "label-maker": { "name": "Label Maker" },
-    "beanbag-chairs": { "name": "Beanbag Chairs" },
-    "snack-bar": { "name": "Snack Bar" },
-    "aquarium": { "name": "Calming Aquarium" },
-    "mood-lighting": { "name": "Mood Lighting" },
-    "filing-cabinet": { "name": "Filing Cabinet" },
-    "safe": { "name": "Heavy Safe" },
-    "security-cam": { "name": "Security Camera" },
-    "wooden-arch": { "name": "Wooden Arch" },
-    "blueprint-wall": { "name": "Blueprint Wall" },
-    "sawdust-pile": { "name": "Tidy Sawdust Pile" },
-    "bubbling-beakers": { "name": "Bubbling Beakers" },
-    "hologram": { "name": "Nut Hologram" },
-    "lab-plants": { "name": "Lab Plants" },
-    "billboard": { "name": "Giant Billboard" },
-    "neon-sign": { "name": "Neon Sign" },
-    "trophy-shelf": { "name": "Trophy Shelf" },
-    "gold-carpet": { "name": "Gold Carpet" },
-    "nut-statue": { "name": "Golden Nut Statue" },
-    "chandelier": { "name": "Acorn Chandelier" },
-    "meeting-plant": { "name": "Meeting Room Plant" },
-    "projector": { "name": "Projector" },
-    "hammock": { "name": "Nap Hammock" },
-    "star-ceiling": { "name": "Star Ceiling" },
-    "rooftop-garden-bed": { "name": "Rooftop Garden Bed" }
+    "potted-fern": {
+      "name": "Potted Fern"
+    },
+    "desk-lamp": {
+      "name": "Warm Task Lamp"
+    },
+    "motivational-poster": {
+      "name": "Motivational Poster"
+    },
+    "tiny-rug": {
+      "name": "Tiny Rug"
+    },
+    "window-view": {
+      "name": "Window with a View"
+    },
+    "sorting-bins": {
+      "name": "Sorting Bins"
+    },
+    "conveyor-plushie": {
+      "name": "Conveyor Plushie"
+    },
+    "label-maker": {
+      "name": "Label Maker"
+    },
+    "beanbag-chairs": {
+      "name": "Beanbag Chairs"
+    },
+    "snack-bar": {
+      "name": "Snack Bar"
+    },
+    "aquarium": {
+      "name": "Calming Aquarium"
+    },
+    "mood-lighting": {
+      "name": "Mood Lighting"
+    },
+    "filing-cabinet": {
+      "name": "Filing Cabinet"
+    },
+    "safe": {
+      "name": "Heavy Safe"
+    },
+    "security-cam": {
+      "name": "Security Camera"
+    },
+    "wooden-arch": {
+      "name": "Wooden Arch"
+    },
+    "blueprint-wall": {
+      "name": "Blueprint Wall"
+    },
+    "sawdust-pile": {
+      "name": "Tidy Sawdust Pile"
+    },
+    "bubbling-beakers": {
+      "name": "Bubbling Beakers"
+    },
+    "hologram": {
+      "name": "Nut Hologram"
+    },
+    "lab-plants": {
+      "name": "Lab Plants"
+    },
+    "billboard": {
+      "name": "Giant Billboard"
+    },
+    "neon-sign": {
+      "name": "Neon Sign"
+    },
+    "trophy-shelf": {
+      "name": "Trophy Shelf"
+    },
+    "gold-carpet": {
+      "name": "Gold Carpet"
+    },
+    "nut-statue": {
+      "name": "Golden Nut Statue"
+    },
+    "chandelier": {
+      "name": "Acorn Chandelier"
+    },
+    "meeting-plant": {
+      "name": "Meeting Room Plant"
+    },
+    "projector": {
+      "name": "Projector"
+    },
+    "hammock": {
+      "name": "Nap Hammock"
+    },
+    "star-ceiling": {
+      "name": "Star Ceiling"
+    },
+    "rooftop-garden-bed": {
+      "name": "Rooftop Garden Bed"
+    }
   },
   "prestige": {
     "title": "Go Completely Nuts",
@@ -927,11 +1226,26 @@
       }
     },
     "skill": {
-      "headStart": { "name": "Head Start", "desc": "Begin each run with bonus nuts." },
-      "compound": { "name": "Compound Nuts", "desc": "+5% global production per level." },
-      "refinery": { "name": "Kernel Refinery", "desc": "Earn more Permanent Kernels on prestige." },
-      "deepStorage": { "name": "Deep Storage", "desc": "+1h offline cap per level." },
-      "goodVibes": { "name": "Good Vibes", "desc": "Raise the minimum morale floor." }
+      "headStart": {
+        "name": "Head Start",
+        "desc": "Begin each run with bonus nuts."
+      },
+      "compound": {
+        "name": "Compound Nuts",
+        "desc": "+5% global production per level."
+      },
+      "refinery": {
+        "name": "Kernel Refinery",
+        "desc": "Earn more Permanent Kernels on prestige."
+      },
+      "deepStorage": {
+        "name": "Deep Storage",
+        "desc": "+1h offline cap per level."
+      },
+      "goodVibes": {
+        "name": "Good Vibes",
+        "desc": "Raise the minimum morale floor."
+      }
     }
   },
   "focus": {
@@ -1518,6 +1832,30 @@
       "No such thing as a hard sell, only a soft target.",
       "I don't chase clients. They arrive, delighted.",
       "Let's make a deal you can't quite say no to."
+    ],
+    "pingo": [
+      "Everything ships on time. Even the naps.",
+      "A tidy queue is a happy queue.",
+      "I sorted it before you finished asking.",
+      "Cold outside, warm workflow inside.",
+      "Logistics is just kindness with a schedule.",
+      "Every crate has a home. I know all of them.",
+      "Slide it over here — I'll route it.",
+      "No bottleneck survives my clipboard.",
+      "Waddle with purpose, that's my motto.",
+      "The data says we're ahead of schedule."
+    ],
+    "canela": [
+      "Fascinating. Let me note that down.",
+      "Observe, learn, protect — in that order.",
+      "Every desk is a little ecosystem.",
+      "I've been watching. It's all very interesting.",
+      "Patience sees what hurry misses.",
+      "Field notes never lie.",
+      "The quiet ones notice everything.",
+      "Give me a notebook and a good view.",
+      "Behavior studies: today's subject is you.",
+      "Nature's in the details, even in here."
     ],
     "idle": [
       "The office hums quietly.",

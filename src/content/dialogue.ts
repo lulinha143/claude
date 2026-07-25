@@ -16,6 +16,8 @@ export const DIALOGUE_COUNTS: Record<string, number> = {
   junie: 10,
   moss: 10,
   fenn: 10,
+  pingo: 10,
+  canela: 10,
   idle: 12,
   upgrade: 8,
   lowMorale: 8,
