@@ -53,6 +53,10 @@ export interface EmployeeSpriteConfig {
 // Pingo (penguin) and Canela (red panda) ~20% over their previous rendered
 // size, then eyeballed together in-office for harmony. Pip (squirrel) is
 // intentionally left untouched from the previous pass.
+//
+// Follow-up presence pass: Marlow, Pingo and Canela raised a further ~20% so
+// they read as more present at their workstations, re-checked side-by-side in
+// the office so they stay harmonious and never dominate the room.
 export const EMPLOYEE_SPRITES: Record<string, EmployeeSpriteConfig> = {
   // Bea — Beaver, Construction. Reference desk, raised ~15% (70->80 / 101->116).
   bea: {
@@ -77,38 +81,39 @@ export const EMPLOYEE_SPRITES: Record<string, EmployeeSpriteConfig> = {
     anchorX: 0.5,
     baseline: 0,
   },
-  // Marlow — Capybara, Morale/HR. Teal chair, scarf, calm desk. Raised ~20%.
+  // Marlow — Capybara, Morale/HR. Teal chair, scarf, calm desk. Raised ~20%,
+  // then a further ~20% (79->95 / 114->137).
   marlow: {
     src: 'employees/marlow.png',
     poster: 'employees/marlow-poster.png',
     frameWidth: 366,
     frameHeight: 300,
-    officeHeight: 79,
-    cardHeight: 114,
+    officeHeight: 95,
+    cardHeight: 137,
     anchorX: 0.5,
     baseline: 0,
   },
   // Pingo — Penguin, Logistics. Purple chair, scarf, "LOGISTICS / DATA / NAP".
-  // Raised ~20%.
+  // Raised ~20%, then a further ~20% (82->98 / 118->142).
   pingo: {
     src: 'employees/penguin.png',
     poster: 'employees/penguin-poster.png',
     frameWidth: 371,
     frameHeight: 300,
-    officeHeight: 82,
-    cardHeight: 118,
+    officeHeight: 98,
+    cardHeight: 142,
     anchorX: 0.5,
     baseline: 0,
   },
   // Canela — Red Panda, Research/Naturalist. Desk lamp, "OBSERVATIONS" pad.
-  // Raised ~20%.
+  // Raised ~20%, then a further ~20% (81->97 / 117->140).
   canela: {
     src: 'employees/canela.png',
     poster: 'employees/canela-poster.png',
     frameWidth: 374,
     frameHeight: 300,
-    officeHeight: 81,
-    cardHeight: 117,
+    officeHeight: 97,
+    cardHeight: 140,
     anchorX: 0.5,
     baseline: 0,
   },
