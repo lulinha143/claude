@@ -30,13 +30,13 @@ export type DecorKind =
   | 'screen';
 
 export function decorKind(id: string): DecorKind {
-  if (/(fern|plant|garden|terrarium|sawdust)/.test(id)) return 'plant';
+  if (/(fern|plant|garden|terrarium)/.test(id)) return 'plant';
   if (/(lamp|light|neon|chandelier|star|hologram)/.test(id)) return 'lamp';
-  if (/(poster|blueprint|billboard|window|arch)/.test(id)) return 'poster';
+  if (/(motivational-poster|blueprint|window|painting)/.test(id)) return 'poster';
   if (/(rug|carpet)/.test(id)) return 'rug';
   if (/aquarium/.test(id)) return 'aquarium';
   if (/(trophy|statue)/.test(id)) return 'trophy';
-  if (/(beanbag|hammock|cushion|snack)/.test(id)) return 'cushion';
+  if (/(beanbag|hammock|cushion)/.test(id)) return 'cushion';
   if (/(projector|security|camera|label|monitor)/.test(id)) return 'screen';
   return 'box';
 }
@@ -125,6 +125,8 @@ export function DecorationProp({
       title={title}
       aria-label={title}
       type="button"
+      data-anchor={spec.anchor}
+      data-baseline={spec.baseline}
       data-on={TOGGLEABLE.includes(kind) ? String(on) : undefined}
       data-variant={kind === 'poster' ? variant : undefined}
     >

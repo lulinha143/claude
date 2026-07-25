@@ -182,7 +182,9 @@ export interface DecorationDef {
   /** Legacy/default room used only for initial placement and old-save inference. */
   room: string;
   compatibleRooms: string[];
-  /** Legacy serialized support types retained for save compatibility. */
+  /** Canonical, exclusive support for this item. Never inferred from its id. */
+  placementSurface: DecorationSurfaceType;
+  /** Legacy serialized support list; always contains only placementSurface. */
   compatibleSurfaces: DecorationSurfaceType[];
   /** Explicit semantic supports used by the normalized room-region model. */
   defaultRegionKind: PlacementRegionKind;

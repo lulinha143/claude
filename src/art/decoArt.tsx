@@ -149,21 +149,22 @@ function spriteFor(id: string, on: boolean, variant: number, accent: string): Sp
         shadowR: 10,
       };
     case 'sawdust-pile':
-      // conical pile of shavings + a couple chips (NOT a plant visually)
       return {
         base: [
-          [10, 14, 4, 2, C.wh],
-          [8, 16, 8, 2, C.wl],
-          [6, 18, 12, 2, C.wl],
-          [4, 20, 16, 3, C.wd],
-          [3, 23, 18, 3, C.w],
-          [3, 26, 18, 1, C.k],
-          [7, 21, 2, 1, C.wh],
-          [13, 22, 3, 1, C.wh],
-          [15, 17, 3, 1, C.k], // wood chip
-          [6, 15, 2, 1, C.k],
+          [11, 13, 3, 1, C.wh],
+          [9, 14, 7, 2, C.wh],
+          [7, 16, 11, 2, C.wl],
+          [5, 18, 15, 3, C.wl],
+          [3, 21, 19, 5, C.wd],
+          [2, 25, 21, 2, C.w],
+          [5, 20, 2, 1, C.wh],
+          [9, 22, 3, 1, C.wh],
+          [15, 21, 2, 1, C.k],
+          [18, 17, 4, 1, C.k],
+          [4, 16, 3, 1, C.k],
+          [13, 24, 4, 1, C.wh],
         ],
-        shadowR: 10,
+        shadowR: 11,
       };
 
     // ---- lamps -----------------------------------------------------------
@@ -182,49 +183,61 @@ function spriteFor(id: string, on: boolean, variant: number, accent: string): Sp
         lit: [[16, 13, 3, 1, C.goldl]],
       };
     case 'mood-lighting':
-      // tall floor lamp with a dome shade
+      // Sculptural ambient tower with stacked color cells and a broad aura.
       return {
         base: [
-          [9, 25, 6, 2, C.k],
-          [11, 10, 2, 15, C.m],
-          [8, 6, 8, 2, on ? accent : C.ms],
-          [7, 8, 10, 2, on ? accent : C.ms],
-          [9, 10, 6, 1, on ? C.goldl : C.ms],
+          [7, 25, 10, 2, C.k],
+          [9, 23, 6, 2, C.m],
+          [8, 7, 8, 16, C.ms],
+          [9, 8, 6, 4, on ? C.viol : C.ms],
+          [9, 13, 6, 4, on ? C.scr : C.ms],
+          [9, 18, 6, 4, on ? C.gold : C.ms],
+          [10, 8, 1, 13, C.white],
         ],
-        glow: [[5, 5, 14, 9, C.glow]],
+        glow: [[5, 5, 14, 19, C.glowp]],
       };
     case 'neon-sign': {
-      // glowing acorn sign
+      // Hollow neon acorn: cap, tapered shell, and stem stay legible at card size.
       const nc = on ? '#ff5fa8' : '#5a3a52';
       const nl = on ? '#ffc0e0' : '#6a4a62';
       return {
         base: [
+          [11, 3, 2, 3, nc],
           [8, 6, 8, 2, nc],
-          [7, 8, 10, 6, nc],
-          [8, 14, 6, 3, nc],
-          [10, 17, 2, 2, nc],
-          [9, 9, 2, 2, nl],
-          [8, 6, 8, 1, nl],
+          [6, 8, 12, 3, nc],
+          [6, 11, 2, 6, nc],
+          [16, 11, 2, 6, nc],
+          [8, 17, 2, 2, nc],
+          [14, 17, 2, 2, nc],
+          [10, 19, 4, 2, nc],
+          [8, 8, 8, 1, nl],
+          [7, 11, 1, 4, nl],
         ],
-        glow: [[5, 4, 16, 16, 'rgba(255,95,168,0.30)']],
+        glow: [[4, 2, 16, 21, 'rgba(255,95,168,0.30)']],
         shadowR: 0,
       };
     }
     case 'chandelier':
-      // hangs from the ceiling (top of grid)
+      // Branched brass fixture with three unmistakable glowing acorn pendants.
       return {
         base: [
-          [11, 0, 2, 4, C.m],
-          [6, 4, 12, 2, C.gold],
-          [6, 4, 12, 1, C.goldl],
-          [5, 6, 2, 2, C.gy],
-          [11, 6, 2, 2, C.gy],
-          [17, 6, 2, 2, C.gy],
-          [5, 8, 2, 2, on ? C.goldl : C.gy],
-          [11, 8, 2, 2, on ? C.goldl : C.gy],
-          [17, 8, 2, 2, on ? C.goldl : C.gy],
+          [11, 0, 2, 5, C.m],
+          [10, 4, 4, 2, C.gold],
+          [5, 6, 14, 2, C.gy],
+          [4, 7, 2, 4, C.gy],
+          [11, 7, 2, 4, C.gy],
+          [18, 7, 2, 4, C.gy],
+          [3, 10, 4, 2, C.w],
+          [10, 10, 4, 2, C.w],
+          [17, 10, 4, 2, C.w],
+          [4, 12, 2, 4, on ? C.gold : C.gy],
+          [11, 12, 2, 4, on ? C.gold : C.gy],
+          [18, 12, 2, 4, on ? C.gold : C.gy],
+          [5, 16, 1, 1, on ? C.goldl : C.gy],
+          [12, 16, 1, 1, on ? C.goldl : C.gy],
+          [19, 16, 1, 1, on ? C.goldl : C.gy],
         ],
-        glow: [[3, 4, 18, 8, C.glow]],
+        glow: [[2, 8, 20, 11, C.glow]],
         shadowR: 0,
       };
     case 'star-ceiling':
@@ -245,17 +258,21 @@ function spriteFor(id: string, on: boolean, variant: number, accent: string): Sp
         shadowR: 0,
       };
     case 'hologram':
-      // emitter at ceiling projecting a glowing orb downward
+      // Ceiling emitter projects a cyan acorn through a fading light cone.
       return {
         base: [
-          [9, 0, 6, 2, C.ms],
-          [10, 2, 4, 1, C.m],
-          [9, 6, 6, 6, on ? C.scr : C.scrd],
-          [11, 8, 2, 2, on ? C.scrl : C.ms],
+          [8, 0, 8, 2, C.ms],
+          [10, 2, 4, 2, C.m],
+          [11, 7, 2, 2, on ? C.scrl : C.ms],
+          [8, 9, 8, 3, on ? C.scr : C.scrd],
+          [7, 12, 10, 3, on ? C.scr : C.scrd],
+          [8, 15, 8, 4, on ? C.scrl : C.ms],
+          [10, 19, 4, 2, on ? C.scr : C.scrd],
         ],
         glow: [
-          [7, 4, 10, 10, C.glowc],
-          [10, 3, 4, 12, 'rgba(120,200,230,0.18)'],
+          [7, 4, 10, 4, 'rgba(120,200,230,0.16)'],
+          [5, 8, 14, 9, C.glowc],
+          [7, 17, 10, 5, 'rgba(120,200,230,0.16)'],
         ],
         shadowR: 0,
       };
@@ -293,16 +310,19 @@ function spriteFor(id: string, on: boolean, variant: number, accent: string): Sp
     case 'wooden-arch':
       return {
         base: [
-          [5, 3, 14, 3, C.wl],
-          [5, 3, 14, 1, C.wh],
-          [6, 6, 3, 18, C.wd],
-          [15, 6, 3, 18, C.wd],
-          [6, 6, 1, 18, C.wl],
-          [9, 6, 6, 2, C.w], // inner top
-          [8, 24, 4, 2, C.k],
-          [12, 24, 4, 2, C.k],
+          [9, 2, 6, 2, C.wl],
+          [7, 4, 10, 2, C.wl],
+          [5, 6, 4, 4, C.wd],
+          [15, 6, 4, 4, C.wd],
+          [4, 10, 4, 15, C.wd],
+          [16, 10, 4, 15, C.wd],
+          [5, 7, 2, 17, C.wl],
+          [17, 7, 2, 17, C.w],
+          [8, 6, 8, 2, C.w],
+          [3, 24, 6, 3, C.k],
+          [15, 24, 6, 3, C.k],
         ],
-        shadowR: 8,
+        shadowR: 9,
       };
     case 'blueprint-wall':
       return {
@@ -339,35 +359,35 @@ function spriteFor(id: string, on: boolean, variant: number, accent: string): Sp
 
     // ---- rugs ------------------------------------------------------------
     case 'tiny-rug':
+      // Stepped perspective silhouette reads as a floor textile, not a shelf.
       return {
         base: [
-          [7, 22, 10, 1, C.wl],
-          [5, 23, 14, 3, accent],
-          [7, 23, 10, 1, C.wh],
-          [5, 26, 14, 1, C.w],
-          [9, 24, 6, 1, C.wh],
-          [6, 24, 1, 1, C.goldl],
-          [17, 24, 1, 1, C.goldl],
-          [3, 23, 2, 1, C.wh], // soft fringe
-          [19, 23, 2, 1, C.wh],
-          [3, 25, 2, 1, C.wh],
-          [19, 25, 2, 1, C.wh],
+          [8, 20, 8, 1, C.wh],
+          [6, 21, 12, 1, accent],
+          [4, 22, 16, 2, accent],
+          [2, 24, 20, 3, accent],
+          [4, 22, 16, 1, C.wh],
+          [6, 24, 12, 1, C.wl],
+          [9, 25, 6, 1, C.wh],
+          [2, 26, 20, 1, C.w],
+          [0, 25, 2, 1, C.wh],
+          [22, 25, 2, 1, C.wh],
         ],
         shadowR: 0,
       };
     case 'gold-carpet':
       return {
         base: [
-          [2, 22, 20, 1, C.goldl],
-          [1, 23, 22, 3, C.gold],
-          [1, 23, 22, 1, C.goldl],
+          [7, 19, 10, 1, C.goldl],
+          [5, 20, 14, 2, C.gold],
+          [3, 22, 18, 2, C.gold],
+          [1, 24, 22, 3, C.gold],
+          [3, 22, 18, 1, C.goldl],
+          [5, 24, 14, 1, C.gy],
+          [9, 25, 6, 1, C.goldl],
           [1, 26, 22, 1, C.gy],
-          [4, 24, 16, 1, C.gy],
-          [10, 24, 4, 1, C.goldl],
-          [3, 24, 2, 1, C.goldl], // tiny woven corner marks
-          [19, 24, 2, 1, C.goldl],
-          [5, 26, 1, 1, C.goldl],
-          [18, 26, 1, 1, C.goldl],
+          [0, 25, 1, 1, C.goldl],
+          [23, 25, 1, 1, C.goldl],
         ],
         shadowR: 0,
       };
@@ -420,66 +440,75 @@ function spriteFor(id: string, on: boolean, variant: number, accent: string): Sp
     case 'nut-statue':
       return {
         base: [
-          [7, 20, 10, 6, C.m],
-          [7, 20, 10, 1, C.ml],
-          [8, 25, 8, 1, C.ms],
-          [8, 8, 8, 4, C.gy], // cap
-          [8, 11, 8, 8, C.gold],
-          [8, 11, 5, 5, C.goldl], // shine
-          [11, 7, 2, 2, C.gy], // stem
-          [8, 8, 8, 1, C.goldl],
+          [6, 21, 12, 5, C.m],
+          [6, 21, 12, 1, C.ml],
+          [8, 20, 8, 2, C.ms],
+          [11, 4, 2, 3, C.gy],
+          [8, 7, 8, 2, C.gy],
+          [6, 9, 12, 3, C.gy],
+          [7, 12, 10, 4, C.gold],
+          [8, 16, 8, 3, C.gold],
+          [10, 19, 4, 2, C.gold],
+          [8, 12, 3, 5, C.goldl],
+          [8, 9, 8, 1, C.goldl],
         ],
-        spin: [[15, 9, 1, 2, C.white]],
+        spin: [[15, 10, 1, 2, C.white]],
         shadowR: 8,
       };
 
     // ---- cushions / rest -------------------------------------------------
     case 'beanbag-chairs':
-      // two mismatched, squashy seats — the plural name now reads instantly
+      // Two slumped, asymmetrical bags with folds and soft low silhouettes.
       return {
         base: [
-          [3, 17, 8, 2, accent],
-          [2, 19, 10, 6, accent],
-          [3, 25, 8, 1, C.k],
-          [3, 18, 4, 1, C.white],
-          [5, 21, 5, 1, C.out],
-          [12, 15, 8, 3, C.blue],
-          [11, 18, 10, 6, C.blue],
-          [12, 24, 8, 2, C.k],
-          [13, 16, 4, 1, C.bluel],
-          [14, 20, 5, 1, C.out],
+          [4, 15, 5, 2, accent],
+          [2, 17, 9, 3, accent],
+          [1, 20, 11, 5, accent],
+          [3, 25, 8, 2, C.k],
+          [3, 18, 3, 1, C.white],
+          [6, 22, 4, 1, C.out],
+          [15, 13, 4, 2, C.blue],
+          [12, 15, 9, 4, C.blue],
+          [11, 19, 12, 6, C.blue],
+          [13, 25, 9, 2, C.k],
+          [14, 16, 3, 1, C.bluel],
+          [14, 21, 6, 1, C.out],
           [10, 23, 2, 2, C.w],
         ],
-        shadowR: 10,
+        shadowR: 11,
       };
     case 'snack-bar':
       return {
         base: [
-          [4, 16, 16, 2, C.wl],
-          [5, 18, 14, 8, C.wd],
-          [5, 18, 14, 1, C.wh],
-          [6, 20, 12, 1, C.k],
-          [7, 11, 2, 5, C.red], // cup
-          [7, 10, 2, 1, C.redl],
-          [11, 10, 3, 6, C.scr], // jar
-          [11, 10, 3, 1, C.scrl],
-          [15, 12, 2, 4, C.gold], // snack
+          [3, 14, 18, 3, C.wl],
+          [4, 17, 16, 10, C.wd],
+          [4, 17, 16, 1, C.wh],
+          [6, 19, 12, 6, C.k],
+          [7, 20, 3, 4, C.red],
+          [11, 20, 3, 4, C.gold],
+          [15, 20, 2, 4, C.gl],
+          [6, 12, 12, 2, accent],
+          [8, 7, 2, 5, C.red],
+          [12, 6, 4, 6, C.scr],
+          [13, 7, 2, 3, C.goldl],
         ],
-        shadowR: 9,
+        shadowR: 10,
       };
     case 'hammock':
       return {
         base: [
-          [3, 8, 2, 16, C.w],
-          [19, 8, 2, 16, C.w],
-          [3, 8, 2, 1, C.wl],
-          [19, 8, 2, 1, C.wl],
-          [5, 14, 14, 1, accent],
-          [4, 15, 16, 3, accent],
-          [4, 15, 16, 1, C.white],
-          [6, 18, 12, 1, C.k],
-          [5, 13, 1, 2, C.wd], // ropes
-          [18, 13, 1, 2, C.wd],
+          [2, 7, 3, 19, C.w],
+          [19, 7, 3, 19, C.w],
+          [3, 7, 1, 18, C.wl],
+          [20, 7, 1, 18, C.wl],
+          [5, 12, 3, 2, C.wd],
+          [16, 12, 3, 2, C.wd],
+          [6, 14, 12, 2, accent],
+          [7, 16, 10, 3, accent],
+          [9, 19, 6, 3, accent],
+          [10, 20, 4, 1, C.white],
+          [5, 13, 1, 2, C.wh],
+          [18, 13, 1, 2, C.wh],
         ],
         shadowR: 10,
       };
@@ -568,19 +597,25 @@ function spriteFor(id: string, on: boolean, variant: number, accent: string): Sp
     case 'bubbling-beakers':
       return {
         base: [
-          [5, 25, 14, 1, C.k],
-          [7, 13, 4, 12, C.scrl],
-          [7, 13, 4, 1, C.white],
-          [8, 18, 3, 6, C.g], // green liquid
-          [13, 12, 4, 13, C.scrl],
-          [13, 12, 4, 1, C.white],
-          [14, 16, 3, 8, C.vio], // violet liquid
+          [3, 25, 18, 2, C.k],
+          [5, 23, 14, 2, C.m],
+          [8, 9, 2, 5, C.scrl],
+          [6, 13, 6, 3, C.scrl],
+          [5, 16, 8, 9, C.scrl],
+          [6, 19, 6, 5, C.g],
+          [15, 7, 2, 6, C.scrl],
+          [13, 12, 6, 3, C.scrl],
+          [12, 15, 8, 10, C.scrl],
+          [13, 18, 6, 6, C.vio],
+          [6, 16, 1, 6, C.white],
+          [13, 15, 1, 7, C.white],
         ],
         bubble: [
           [9, 16, 1, 1, C.gl],
-          [15, 14, 1, 1, C.viol],
+          [16, 14, 1, 1, C.viol],
+          [15, 10, 1, 1, C.viol],
         ],
-        shadowR: 9,
+        shadowR: 10,
       };
 
     // ---- screens / devices ----------------------------------------------
@@ -618,16 +653,20 @@ function spriteFor(id: string, on: boolean, variant: number, accent: string): Sp
     case 'projector':
       return {
         base: [
-          [5, 12, 12, 9, C.m],
-          [5, 12, 12, 1, C.ml],
-          [15, 14, 3, 4, on ? C.scrl : C.scrd],
-          [7, 14, 1, 5, C.ms],
-          [9, 14, 1, 5, C.ms],
-          [6, 21, 2, 2, C.ms], // feet
-          [14, 21, 2, 2, C.ms],
+          [5, 8, 13, 8, C.m],
+          [5, 8, 13, 1, C.ml],
+          [16, 10, 4, 4, on ? C.scrl : C.scrd],
+          [7, 10, 1, 4, C.ms],
+          [9, 10, 1, 4, C.ms],
+          [7, 17, 10, 2, C.ml],
+          [8, 19, 8, 2, C.m],
+          [11, 21, 2, 4, C.ms],
+          [6, 25, 12, 2, C.k],
+          [7, 24, 2, 3, C.ms],
+          [15, 24, 2, 3, C.ms],
         ],
-        glow: [[17, 12, 6, 9, C.glowc]],
-        lit: [[15, 15, 3, 1, C.white]],
+        glow: [[18, 8, 6, 9, C.glowc]],
+        lit: [[17, 11, 2, 1, C.white]],
         shadowR: 8,
       };
 

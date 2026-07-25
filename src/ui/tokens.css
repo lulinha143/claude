@@ -137,7 +137,9 @@
   --shadow-form: 2px 3px 0 rgba(18, 12, 7, 0.45);
   --shadow-stationery: 3px 4px 0 rgba(18, 12, 7, 0.4);
   --shadow-control: 0 3px 0 var(--control-edge), inset 0 1px 0 var(--control-highlight);
-  --shadow-control-hover: 0 5px 0 var(--control-edge), 0 7px 12px rgba(18, 12, 7, 0.2), inset 0 1px 0 var(--control-highlight);
+  --shadow-control-hover:
+    0 5px 0 var(--control-edge), 0 7px 12px rgba(18, 12, 7, 0.2),
+    inset 0 1px 0 var(--control-highlight);
   --shadow-pressed: inset 0 2px 0 rgba(0, 0, 0, 0.28);
   --outline-handmade: color-mix(in srgb, var(--c-bark-900) 84%, black);
   --material-paper-highlight: rgba(255, 255, 255, 0.38);
@@ -188,9 +190,9 @@
 
   /* Fluid type scale. Each step scales gently with the viewport and with the
      player's font-size preference. */
-  --fs-2xs: calc(clamp(9.5px, 0.55vw + 0.5vh, 11.5px) * var(--font-scale));
-  --fs-xs: calc(clamp(10.5px, 0.6vw + 0.55vh, 13px) * var(--font-scale));
-  --fs-sm: calc(clamp(12px, 0.65vw + 0.6vh, 14.5px) * var(--font-scale));
+  --fs-2xs: calc(clamp(11px, 0.55vw + 0.5vh, 12px) * var(--font-scale));
+  --fs-xs: calc(clamp(12px, 0.6vw + 0.55vh, 13.5px) * var(--font-scale));
+  --fs-sm: calc(clamp(12.5px, 0.65vw + 0.6vh, 14.5px) * var(--font-scale));
   --fs-base: calc(clamp(13px, 0.7vw + 0.65vh, 16.5px) * var(--font-scale));
   --fs-lg: calc(clamp(15px, 0.8vw + 0.7vh, 19px) * var(--font-scale));
   --fs-xl: calc(clamp(18px, 1vw + 0.9vh, 24px) * var(--font-scale));

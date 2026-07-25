@@ -175,7 +175,7 @@ test.describe('decoration free-placement', () => {
   test('place a decoration from the inventory tray onto the floor', async ({ page }) => {
     const stage = page.locator('.floor[data-room="founder-desk"] .floor__stage');
     // desk-lamp starts stowed → it should be a card in the tray.
-    const card = page.locator('.deco-tray__card .decor').first();
+    const card = page.locator('.deco-tray__card[data-placement="stored"] .decor').first();
     await expect(card).toBeVisible();
     await page.screenshot({ path: `${DIR}/deco-04-tray.png` });
 

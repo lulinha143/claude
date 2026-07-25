@@ -92,12 +92,6 @@ async function enterDecorateMode(page: Page) {
   await expect(page.locator('.office--decorating')).toHaveCount(1);
 }
 
-function styleNumbers(style: string) {
-  const left = /left:\s*([\d.]+)%/.exec(style)?.[1];
-  const bottom = /bottom:\s*([\d.]+)%/.exec(style)?.[1];
-  return { left: left ? parseFloat(left) : NaN, bottom: bottom ? parseFloat(bottom) : NaN };
-}
-
 async function dragTo(
   page: Page,
   source: ReturnType<Page['locator']>,
@@ -133,7 +127,7 @@ test.describe('decoration composition protection', () => {
     await enterDecorateMode(page);
   });
 
-  test('rejects dropping a decoration onto another and keeps it put', async ({ page }) => {
+  test('allows exact overlap and keeps every layer selectable from the arrangement tray', async ({ page }) => {
     await page.locator('.floor[data-room="founder-desk"]').scrollIntoViewIfNeeded();
     await page.waitForTimeout(300);
 
@@ -141,11 +135,7 @@ test.describe('decoration composition protection', () => {
     const lamp = page.locator('.floor[data-room="founder-desk"] [data-deco="desk-lamp"]');
     await expect(fern).toBeVisible();
     const lampBox = (await lamp.boundingBox())!;
-    const before = styleNumbers((await fern.getAttribute('style')) ?? '');
-    await page.screenshot({ path: `${DIR}/collide-01-valid-neighbours.png` });
 
-    // Drop the fern right on the lamp's anchor (bottom-centre) to force a
-    // stacked/severe overlap, not just a glancing corner.
     await dragTo(
       page,
       fern,
@@ -153,16 +143,17 @@ test.describe('decoration composition protection', () => {
       lampBox.y + lampBox.height * (54 / 56),
     );
 
-    // A localized rejection toast appears and the fern hasn't moved. (Other
-    // toasts — e.g. achievement unlocks from the seeded save — may coexist, so
-    // filter for the composition message specifically.)
-    await expect(
-      page.locator('.toast').filter({ hasText: /already|cover|there's|taken|room|inside/i }).first(),
-    ).toBeVisible();
-    await page.screenshot({ path: `${DIR}/collide-02-invalid-overlap.png` });
-    const after = styleNumbers((await fern.getAttribute('style')) ?? '');
-    expect(Math.abs(after.left - before.left)).toBeLessThan(1.5);
-    expect(Math.abs(after.bottom - before.bottom)).toBeLessThan(1.5);
+    const fernAfter = (await fern.boundingBox())!;
+    const lampAfter = (await lamp.boundingBox())!;
+    expect(Math.abs(fernAfter.x + fernAfter.width / 2 - (lampAfter.x + lampAfter.width / 2))).toBeLessThan(12);
+
+    // Every owned item—including a buried placed item—has a direct tray entry.
+    const lampCard = page.locator('.deco-tray__card[data-decoration="desk-lamp"]');
+    await expect(lampCard).toHaveAttribute('data-placement', 'placed');
+    await lampCard.locator('.decor').click();
+    await expect(lamp).toHaveClass(/is-selected/);
+    expect(await lamp.evaluate((element) => getComputedStyle(element).zIndex)).toBe('20');
+    await page.screenshot({ path: `${DIR}/collide-02-dense-overlap.png` });
   });
 
   test('captures a large floor object near a teammate and a busy room', async ({ page }) => {

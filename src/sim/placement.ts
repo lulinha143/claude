@@ -17,7 +17,6 @@ import { regionArea } from './placementRegions';
 import { DECORATIONS_BY_ID } from '../content/decorations';
 import { placementSpec } from '../content/placementSpecs';
 import { decorationSurface, isRug } from './surfaces';
-import { placedDecorationsInRoom, decorationInstance } from './decorations';
 import { employeesInRoom } from './rooms';
 import { characterSlots } from '../content/roomLayout';
 import { compatibleRegionsForProfile, defaultCompatiblePlacement } from '../content/roomSurfaces';
@@ -38,33 +37,6 @@ export function footprint(id: string): { w: number; h: number } {
   return { w: box.width, h: box.height };
 }
 
-interface Box {
-  x0: number;
-  x1: number;
-  y0: number;
-  y1: number;
-}
-
-function boxOf(id: string, x: number, y: number): Box {
-  const fp = footprint(id);
-  return { x0: x - fp.w / 2, x1: x + fp.w / 2, y0: y, y1: y + fp.h };
-}
-
-function overlapRatio(a: Box, b: Box): number {
-  const ix = Math.max(0, Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0));
-  const iy = Math.max(0, Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0));
-  const inter = ix * iy;
-  const areaA = (a.x1 - a.x0) * (a.y1 - a.y0);
-  const areaB = (b.x1 - b.x0) * (b.y1 - b.y0);
-  const minArea = Math.min(areaA, areaB);
-  return minArea > 0 ? inter / minArea : 0;
-}
-
-// A small, natural-looking overlap is fine (a plant tucked beside a cabinet);
-// beyond this fraction of the smaller object it reads as "stacked/broken".
-const MAX_OVERLAP = 0.34;
-// Centres closer than this are effectively the same spot.
-const STACK_DIST = 0.03;
 // How far (normalized room-stage units) a raw pointer may sit from the nearest
 // valid support point and still count as an intentional, committable drop. A
 // larger miss rolls back to the previous placement rather than snapping.
@@ -78,7 +50,7 @@ export function evaluatePlacement(
   state: GameState,
   id: string,
   x: number,
-  y: number,
+  _y: number,
   roomId?: string,
 ): PlacementCheck {
   const def = DECORATIONS_BY_ID[id];
@@ -92,22 +64,14 @@ export function evaluatePlacement(
   // Rugs lie flat on the floor under everything else — they never block.
   if (isRug(id)) return { ok: true };
 
-  const box = boxOf(id, x, y);
   const fp = footprint(id);
 
-  // Must sit fully inside the room (allow a hair of bleed for anti-aliasing).
-  if (box.x0 < -0.02 || box.x1 > 1.02) return { ok: false, reasonKey: 'decorate.reject.moveInside' };
-
-  // No severe overlap with another object on the same surface.
-  for (const other of placedDecorationsInRoom(state, destinationRoom)) {
-    if (other.def.id === id) continue;
-    if (other.placement.surface !== surface) continue;
-    if (isRug(other.def.id)) continue;
-    const dist = Math.hypot(x - other.placement.x, y - other.placement.y);
-    if (dist < STACK_DIST) return { ok: false, reasonKey: 'decorate.reject.stacked' };
-    if (overlapRatio(box, boxOf(other.def.id, other.placement.x, other.placement.y)) > MAX_OVERLAP) {
-      return { ok: false, reasonKey: 'decorate.reject.occupied' };
-    }
+  // Keep the complete visible width inside the room (allow a hair of bleed for
+  // anti-aliasing). Overlap with other player-owned props is intentionally
+  // unrestricted: layered, dense arrangements are a creative tool, not an
+  // error state.
+  if (x - fp.w / 2 < -0.02 || x + fp.w / 2 > 1.02) {
+    return { ok: false, reasonKey: 'decorate.reject.moveInside' };
   }
 
   // A large floor object must not sit on top of a teammate (covering the face).
@@ -286,24 +250,7 @@ export function evaluateRegionPlacement(
     constrained.point.y - rawPoint.y,
   );
   const rawFits = clampDistance <= RAW_POINTER_TOLERANCE;
-  // Count occupants by the support they ACTUALLY sit on (their instance's
-  // regionKind), not their catalogue default — a multi-compatible prop placed
-  // off its default kind must charge the plane it is really on.
-  const occupants = placedDecorationsInRoom(state, roomId).filter((other) => {
-    if (other.def.id === id) return false;
-    const kind = decorationInstance(state, other.def.id)?.regionKind ?? other.def.defaultRegionKind;
-    return kind === region.kind;
-  });
-  // Repositioning a piece already living on this support does not add to the
-  // count, so it stays possible even when the plane is at (or over) capacity —
-  // otherwise a migrated, over-full room could never be tidied or rearranged.
-  const current = decorationInstance(state, id);
-  const repositioning = current?.roomId === roomId && current?.regionKind === region.kind;
-  const capacityReached =
-    region.capacity !== undefined && !repositioning && occupants.length >= region.capacity;
-  const collision = capacityReached
-    ? { ok: false, reasonKey: 'decorate.reject.occupied' }
-    : evaluatePlacement(state, id, constrained.point.x, constrained.point.y, roomId);
+  const collision = evaluatePlacement(state, id, constrained.point.x, constrained.point.y, roomId);
   return {
     region,
     point: constrained.point,

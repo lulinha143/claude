@@ -1,16 +1,10 @@
 import { memo } from 'react';
 import { ROOM_BUILTIN } from '../content/roomSurfaces';
 
-// Built-in, non-interactive room "dressing" so every department reads as a real,
-// lived-in workplace even before the player adds a single decoration. Rendered
-// behind the characters (z-index 0 inside the stage) as cohesive, hand-authored
-// SVG furniture tinted by the room's department accent (`--dept`). None of this
-// consumes the player's decoration inventory — decorations layer on top and
-// personalise the space, while this scenery gives it its identity.
-//
-// Each room composes a shared wall + floor treatment with a few department
-// props anchored to the walls and floor, leaving the centre open for teammates
-// and player decorations.
+// Built-in, non-interactive room architecture. Department identity comes from
+// wall treatment, flooring, baseboards, windows, lighting, and restrained
+// wall-mounted motifs. Freestanding objects are deliberately excluded: every
+// object resting on the floor must be a movable player decoration.
 
 const LINE = '#3a2a18';
 const WOOD = '#b8935e';
@@ -50,70 +44,32 @@ type PropId =
   | 'planterBed'
   | 'skyline';
 
-// Where a prop sits in the room. Wall props hang in the upper band; floor props
-// rest on the floor line; centre props (like a conference table) anchor lower-middle.
-type Slot = 'wallLeft' | 'wallRight' | 'floorLeft' | 'floorRight' | 'floorCentre' | 'ambient';
+// Architectural props are restricted to the back wall. Any prop that rests on
+// the floor must be a movable DecorationDef instead.
+type Slot = 'wallLeft' | 'wallRight' | 'ambient';
 
 interface ScenePiece {
   prop: PropId;
   slot: Slot;
 }
 
-// Per-room recipe. Two quiet signature elements identify each department
-// without competing with employees or the decorations the player chooses.
+// Per-room architectural recipe. Only wall-mounted identity pieces remain here;
+// every object that visually rests on the floor belongs to the movable player
+// decoration system instead of being baked into the room.
 const ROOM_SCENE: Record<string, ScenePiece[]> = {
-  'founder-desk': [
-    { prop: 'corkboard', slot: 'wallLeft' },
-    { prop: 'deskMonitor', slot: 'floorLeft' },
-  ],
-  sorting: [
-    { prop: 'binShelf', slot: 'wallLeft' },
-    { prop: 'conveyor', slot: 'floorCentre' },
-  ],
-  morale: [
-    { prop: 'menuBoard', slot: 'wallLeft' },
-    { prop: 'coffeeCounter', slot: 'floorLeft' },
-  ],
-  procurement: [
-    { prop: 'corkboard', slot: 'wallLeft' },
-    { prop: 'filingCabinet', slot: 'floorLeft' },
-  ],
-  construction: [
-    { prop: 'pegboard', slot: 'wallLeft' },
-    { prop: 'workbench', slot: 'floorLeft' },
-  ],
-  lab: [
-    { prop: 'flaskShelf', slot: 'wallLeft' },
-    { prop: 'labBench', slot: 'floorLeft' },
-  ],
-  marketing: [
-    { prop: 'campaignBoard', slot: 'wallLeft' },
-    { prop: 'easel', slot: 'floorLeft' },
-  ],
-  vault: [
-    { prop: 'goldStacks', slot: 'wallRight' },
-    { prop: 'safe', slot: 'floorLeft' },
-  ],
-  research: [
-    { prop: 'whiteboard', slot: 'wallLeft' },
-    { prop: 'serverRack', slot: 'floorLeft' },
-  ],
-  meeting: [
-    { prop: 'whiteboard', slot: 'wallLeft' },
-    { prop: 'conferenceTable', slot: 'floorCentre' },
-  ],
-  nap: [
-    { prop: 'hammock', slot: 'floorCentre' },
-    { prop: 'plantTall', slot: 'floorRight' },
-  ],
-  basement: [
-    { prop: 'pipes', slot: 'wallLeft' },
-    { prop: 'serverRack', slot: 'floorRight' },
-  ],
-  rooftop: [
-    { prop: 'skyline', slot: 'wallLeft' },
-    { prop: 'planterBed', slot: 'floorCentre' },
-  ],
+  'founder-desk': [{ prop: 'corkboard', slot: 'wallLeft' }],
+  sorting: [{ prop: 'binShelf', slot: 'wallLeft' }],
+  morale: [{ prop: 'menuBoard', slot: 'wallLeft' }],
+  procurement: [{ prop: 'corkboard', slot: 'wallLeft' }],
+  construction: [{ prop: 'pegboard', slot: 'wallLeft' }],
+  lab: [{ prop: 'flaskShelf', slot: 'wallLeft' }],
+  marketing: [{ prop: 'campaignBoard', slot: 'wallLeft' }],
+  vault: [],
+  research: [{ prop: 'whiteboard', slot: 'wallLeft' }],
+  meeting: [{ prop: 'whiteboard', slot: 'wallLeft' }],
+  nap: [],
+  basement: [{ prop: 'pipes', slot: 'wallLeft' }],
+  rooftop: [{ prop: 'skyline', slot: 'wallLeft' }],
 };
 
 function shadow(cx: number, cy: number, rx: number, ry = 3) {

@@ -20,11 +20,12 @@ import { ROOMS } from '../src/content/rooms';
 const ROOM = 'founder-desk';
 
 describe('decoration surfaces + free placement', () => {
-  it('derives surfaces from the decoration (floor vs wall vs ceiling)', () => {
+  it('reads the canonical surface declared by each decoration', () => {
     expect(decorationSurface('potted-fern')).toBe('floor');
     expect(decorationSurface('desk-lamp')).toBe('floor');
     expect(decorationSurface('motivational-poster')).toBe('wall');
     expect(decorationSurface('window-view')).toBe('wall');
+    expect(decorationSurface('billboard')).toBe('floor');
     expect(decorationSurface('star-ceiling')).toBe('ceiling');
     expect(decorationSurface('chandelier')).toBe('ceiling');
   });

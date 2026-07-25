@@ -16,10 +16,10 @@ import { isRug } from '../sim/surfaces';
 //   scale      → sprite render size (DecorationProp → DecoArt), placed + ghost
 //   mirrorable → deterministic horizontal flip of the sprite for variety
 //   anchor     → surface projection / contact-line CSS class (per surface)
-//   baseline / minClearance / allowSceneryOverlap → authored intent consulted
-//     where the surface model already encodes it (per-surface contact line,
-//     region inset, rug scenery pass-through); kept explicit per item so the
-//     placement system can tighten to them without re-deriving from filenames.
+//   minClearance           → optional per-item visual padding used only for
+//                             authored defaults, never as an invisible drag zone
+//   allowSceneryOverlap    → retained as explicit art intent; player-owned
+//                             decorations may overlap one another freely
 //
 // Coordinate conventions (normalized to the room stage):
 //   footprint.width/height  — fraction of room width / stage height the upright
@@ -86,43 +86,43 @@ function spec(input: SpecInput): DecorationPlacementSpec {
 export const DECORATION_PLACEMENT: Record<string, DecorationPlacementSpec> = {
   // Founder's Desk
   'potted-fern': spec({ w: 0.11, h: 0.18, anchor: 'base', mirror: true }),
-  'desk-lamp': spec({ w: 0.08, h: 0.13, anchor: 'base', scale: 0.92, mirror: true }),
+  'desk-lamp': spec({ w: 0.09, h: 0.14, anchor: 'base', mirror: true }),
   'motivational-poster': spec({ w: 0.13, h: 0.16, anchor: 'center' }),
-  'tiny-rug': spec({ w: 0.42, h: 0.06, anchor: 'base', baseline: 0.82, sceneryOverlap: true }),
+  'tiny-rug': spec({ w: 0.42, h: 0.08, anchor: 'base', baseline: 0.86, sceneryOverlap: true }),
   'window-view': spec({ w: 0.24, h: 0.2, anchor: 'center', scale: 1.1 }),
   // Sorting
   'sorting-bins': spec({ w: 0.16, h: 0.16, anchor: 'base', mirror: true }),
-  'conveyor-plushie': spec({ w: 0.09, h: 0.11, anchor: 'base', scale: 0.85, mirror: true }),
-  'label-maker': spec({ w: 0.07, h: 0.09, anchor: 'base', scale: 0.8, mirror: true }),
+  'conveyor-plushie': spec({ w: 0.1, h: 0.12, anchor: 'base', mirror: true }),
+  'label-maker': spec({ w: 0.08, h: 0.1, anchor: 'base', scale: 0.95, mirror: true }),
   // Coffee & Morale
   'beanbag-chairs': spec({ w: 0.22, h: 0.14, anchor: 'base', clearance: 0.03, mirror: true }),
   'snack-bar': spec({ w: 0.22, h: 0.2, anchor: 'base', clearance: 0.03 }),
   aquarium: spec({ w: 0.18, h: 0.16, anchor: 'base', clearance: 0.03 }),
-  'mood-lighting': spec({ w: 0.16, h: 0.13, anchor: 'center' }),
+  'mood-lighting': spec({ w: 0.16, h: 0.2, anchor: 'base', baseline: 0.96 }),
   // Procurement / Finance
   'filing-cabinet': spec({ w: 0.13, h: 0.22, anchor: 'base' }),
   safe: spec({ w: 0.16, h: 0.18, anchor: 'base', clearance: 0.03 }),
-  'security-cam': spec({ w: 0.08, h: 0.08, anchor: 'center', scale: 0.8, mirror: true }),
+  'security-cam': spec({ w: 0.09, h: 0.09, anchor: 'center', scale: 0.95, mirror: true }),
   // Construction
-  'wooden-arch': spec({ w: 0.28, h: 0.24, anchor: 'center', scale: 1.15, clearance: 0.03 }),
+  'wooden-arch': spec({ w: 0.28, h: 0.24, anchor: 'base', baseline: 0.93, scale: 1.15 }),
   'blueprint-wall': spec({ w: 0.24, h: 0.2, anchor: 'center' }),
   'sawdust-pile': spec({ w: 0.16, h: 0.08, anchor: 'base', scale: 0.9, mirror: true }),
   // Lab
-  'bubbling-beakers': spec({ w: 0.1, h: 0.12, anchor: 'base', scale: 0.9, mirror: true }),
+  'bubbling-beakers': spec({ w: 0.12, h: 0.14, anchor: 'base', mirror: true }),
   hologram: spec({ w: 0.16, h: 0.16, anchor: 'hanging' }),
   'lab-plants': spec({ w: 0.11, h: 0.16, anchor: 'base', mirror: true }),
   // Marketing
-  billboard: spec({ w: 0.3, h: 0.22, anchor: 'center', scale: 1.15, clearance: 0.03 }),
+  billboard: spec({ w: 0.3, h: 0.22, anchor: 'base', baseline: 0.96, scale: 1.15 }),
   'neon-sign': spec({ w: 0.2, h: 0.12, anchor: 'center' }),
   'trophy-shelf': spec({ w: 0.18, h: 0.14, anchor: 'center' }),
   // Vault
-  'gold-carpet': spec({ w: 0.42, h: 0.06, anchor: 'base', baseline: 0.82, sceneryOverlap: true }),
+  'gold-carpet': spec({ w: 0.42, h: 0.08, anchor: 'base', baseline: 0.86, sceneryOverlap: true }),
   'nut-statue': spec({ w: 0.14, h: 0.24, anchor: 'base', scale: 1.1, clearance: 0.03 }),
   chandelier: spec({ w: 0.2, h: 0.16, anchor: 'hanging' }),
   // Meeting
   'meeting-plant': spec({ w: 0.12, h: 0.18, anchor: 'base', mirror: true }),
-  // Wall-mounted projector.
-  projector: spec({ w: 0.16, h: 0.12, anchor: 'center' }),
+  // Freestanding projector cart contacts the support through its wheels.
+  projector: spec({ w: 0.18, h: 0.18, anchor: 'base', baseline: 0.96 }),
   // Nap
   hammock: spec({ w: 0.28, h: 0.14, anchor: 'base', baseline: 0.9, clearance: 0.03, mirror: true }),
   'star-ceiling': spec({ w: 0.34, h: 0.1, anchor: 'hanging', baseline: 0.12 }),

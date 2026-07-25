@@ -41,14 +41,21 @@ export function ShopView() {
   return (
     <section className="view view--shop">
       <h2>{t('shop.title')}</h2>
-      <div className="tabs">
+      <div className="tabs" role="tablist" aria-label={t('shop.title')}>
         {CATEGORIES.map((c) => (
-          <button key={c} className={`tab ${cat === c ? 'is-active' : ''}`} onClick={() => setCat(c)}>
+          <button
+            key={c}
+            type="button"
+            role="tab"
+            aria-selected={cat === c}
+            className={`tab ${cat === c ? 'is-active' : ''}`}
+            onClick={() => setCat(c)}
+          >
             {t(`shop.category.${c}`)}
           </button>
         ))}
       </div>
-      {visible.length === 0 ? <p className="muted">{t('shop.empty')}</p> : null}
+      {visible.length === 0 ? <p className="empty-state">{t('shop.empty')}</p> : null}
       <ul className="card-list">
         {visible.map((u) => {
           const owned = state.upgrades[u.id] ?? 0;
@@ -61,7 +68,11 @@ export function ShopView() {
               <div className="card__body">
                 <div className="card__title">
                   {t(u.nameKey, u.nameParams)}
-                  {u.maxLevel > 1 ? <span className="pill">{maxed ? t('common.max') : t('common.level', { level: owned })}</span> : null}
+                  {u.maxLevel > 1 ? (
+                    <span className="pill">
+                      {maxed ? t('common.max') : t('common.level', { level: owned })}
+                    </span>
+                  ) : null}
                 </div>
                 <div className="card__desc">{t(u.descriptionKey, u.nameParams)}</div>
               </div>
@@ -71,7 +82,11 @@ export function ShopView() {
                     title={t(u.nameKey, u.nameParams)}
                     lines={[
                       t(u.descriptionKey, u.nameParams),
-                      u.maxLevel > 1 ? (maxed ? t('common.max') : t('common.level', { level: owned })) : null,
+                      u.maxLevel > 1
+                        ? maxed
+                          ? t('common.max')
+                          : t('common.level', { level: owned })
+                        : null,
                       maxed ? null : `${t('common.cost')}: ${fmt.num(cost)}`,
                     ]}
                   />

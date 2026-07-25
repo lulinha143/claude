@@ -1,4 +1,5 @@
-// Decoration surface model + controlled free-placement geometry.
+// A project-owned decoration's surface is declared canonically in content data.
+// These helpers deliberately contain no filename classification heuristics.
 //
 // A decoration lives on one SURFACE (floor / wall / ceiling). Its position is
 // stored as room-local NORMALISED coordinates so it survives window resizing:
@@ -9,6 +10,7 @@
 
 import type { DecorationSurfaceType } from './types';
 import type { PlacementRegionKind } from './placementRegions';
+import { DECORATIONS_BY_ID } from '../content/decorations';
 
 export type DecorationSurface = 'floor' | 'wall' | 'ceiling';
 
@@ -43,17 +45,13 @@ export const SURFACE_BANDS: Record<DecorationSurface, { min: number; max: number
   ceiling: { min: 0.84, max: 0.99, default: 0.92 },
 };
 
-/** The surface a given decoration belongs to, derived from its id. */
+/**
+ * Canonical support for a decoration. Content declares this once in the
+ * catalogue; render, placement, migration, and validation all consume it.
+ * Unknown/newer ids degrade safely to floor without guessing from filenames.
+ */
 export function decorationSurface(id: string): DecorationSurface {
-  if (/(chandelier|star-ceiling|hologram|hanging|mobile|ceiling-fan)/.test(id)) return 'ceiling';
-  if (
-    /(poster|blueprint|billboard|window|neon|sign|projector|security|cam|whiteboard|certificate|clock|calendar|corkboard|shelf|arch|painting|mood-lighting)/.test(
-      id,
-    )
-  ) {
-    return 'wall';
-  }
-  return 'floor';
+  return projectSurfaceType(DECORATIONS_BY_ID[id]?.placementSurface ?? 'floor');
 }
 
 export function isRug(id: string): boolean {

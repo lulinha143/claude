@@ -11,7 +11,8 @@ import { employeeSprite } from '../../art/employeeSprites';
 import { EmployeeSprite } from '../../art/EmployeeSprite';
 import { Acorn, GoldenNut } from '../../art/Icons';
 import { Tip, TipContent } from '../Tooltip';
-import { employeeMood, moodProductivityMultiplier, MOOD_TONE } from '../../sim/mood';
+import { employeeMood, moodProductivityMultiplier, MOOD_POSITIVE, MOOD_TONE } from '../../sim/mood';
+import { MoodEmoji } from '../../art/EmployeeMoodBadge';
 import { roomAffinity, affinityPercent } from '../../sim/affinity';
 import { ROOMS_BY_ID } from '../../content/rooms';
 
@@ -121,9 +122,13 @@ export function EmployeesView() {
                           : t('mood.effect', { value: `${delta > 0 ? '+' : ''}${delta}` });
                       return (
                         <Tip content={<TipContent title={t(`mood.${mood}`)} lines={[t('tip.mood'), effect]} />}>
-                          <span className="mood-chip">
-                            <span className="mood-dot" style={{ background: MOOD_TONE[mood] }} />
-                            {t(`mood.${mood}`)}
+                          <span
+                            className={`mood-chip ${MOOD_POSITIVE[mood] ? 'mood-chip--positive' : 'mood-chip--negative'}`}
+                            data-mood={mood}
+                            style={{ ['--mood-color' as string]: MOOD_TONE[mood] }}
+                          >
+                            <MoodEmoji mood={mood} color={MOOD_TONE[mood]} />
+                            <span className="mood-chip__label">{t(`mood.${mood}`)}</span>
                             <em className={delta >= 0 ? 'prod-pos' : 'prod-neg'}>
                               {delta > 0 ? '+' : ''}
                               {delta}%

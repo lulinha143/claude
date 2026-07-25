@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { useGame } from '../state/hooks';
@@ -12,7 +12,7 @@ import { CritterStateMachine, type CritterState } from './animation';
 import { shapeFor } from './critterShapes';
 import { employeeSprite } from './employeeSprites';
 import { EmployeeSprite } from './EmployeeSprite';
-import { EmployeeMoodBadge } from './EmployeeMoodBadge';
+import { EmployeeMoodBubble } from './EmployeeMoodBadge';
 import { Acorn, Crate } from './Icons';
 import { Icon } from './UiIcon';
 import { DecorationProp, decorKind, interactSound } from './DecorationProp';
@@ -24,11 +24,12 @@ import {
   decorationInstance,
   roomComfort,
 } from '../sim/decorations';
-import { surfaceZ, decorationSurface, isRug, projectSurfaceType } from '../sim/surfaces';
+import { surfaceZ, decorationSurface, isRug } from '../sim/surfaces';
 import { pointerRegionPlacement } from '../sim/placement';
 import { placementRegionById } from '../content/roomSurfaces';
-import { REGION_KIND_SURFACE, type PlacementAnchorMode, type PlacementRegionKind } from '../sim/placementRegions';
+import { type PlacementAnchorMode, type PlacementRegionKind } from '../sim/placementRegions';
 import { characterSlots } from '../content/roomLayout';
+import { placementSpec } from '../content/placementSpecs';
 import { pickOfficeInteraction } from '../sim/officeLife';
 import { DecorationTray } from '../ui/DecorationTray';
 import { MoveDecorationModal } from '../ui/modals/MoveDecorationModal';
@@ -149,10 +150,19 @@ function GhostCritter({ id, reducedMotion }: { id: string; reducedMotion: boolea
   );
 }
 
-// The handcrafted prop SVGs use a 56-unit viewBox. Standing items touch their
-// support at y=54; rugs visually center on their ellipse at y=46.
-const STANDING_BASELINE_RATIO = 54 / 56;
-const RUG_CENTER_RATIO = 46 / 56;
+const EMPLOYEE_DRAG_BASELINE_RATIO = 54 / 56;
+
+function decorationAnchorStyle(id: string): CSSProperties {
+  const { baseline } = placementSpec(id);
+  return {
+    ['--deco-anchor-offset' as string]: `${(1 - baseline) * 100}%`,
+    ['--deco-ghost-offset' as string]: `${-baseline * 100}%`,
+  };
+}
+
+function decorationAnchorClass(id: string): string {
+  return `deco-anchor--${placementSpec(id).anchor}`;
+}
 
 function RegionGuide({ preview }: { preview: DecorationDragPreview }) {
   const region = placementRegionById(preview.regionId);
@@ -188,16 +198,12 @@ function RegionGuide({ preview }: { preview: DecorationDragPreview }) {
   );
 }
 
-// The drag ghost is anchored to EXACTLY mirror the committed placement for the
-// targeted surface. Because the ghost is positioned by its top edge and a
-// placed decoration by its bottom edge, each surface's ghost transform is the
-// placed transform shifted by one element-height (-100%) — so the sprite
-// occupies the identical screen rectangle it will land on (no post-drop jump),
-// and a wall item can never preview like a ceiling item.
+// The ghost and committed item consume the same authored baseline. Surface
+// selection decides where the support point is; item metadata decides which
+// visual contact point (base, mount, or suspension) sits on it.
 function ghostAnchorClass(drag: DragState): string {
   if (drag.kind !== 'decoration' || !drag.preview) return 'drag-ghost--pointer-anchor';
-  if (isRug(drag.id)) return 'drag-ghost--rug';
-  return `drag-ghost--${projectSurfaceType(REGION_KIND_SURFACE[drag.preview.regionKind])}`;
+  return `drag-ghost--anchored ${decorationAnchorClass(drag.id)}`;
 }
 
 // i18n suffix naming the surface being targeted (Floor / Wall / Ceiling).
@@ -475,16 +481,10 @@ export function OfficeScene() {
     return { room, valid: already || !full };
   }
 
-  // The fraction down the source thumbnail that maps to the support point, so
-  // the ghost lines up with where the piece will actually render for every
-  // category: base-standing props contact near their foot, wall props hang from
-  // their centre, ceiling props drop from the top, rugs centre on their ellipse.
+  // The authored visual contact point maps the source grab offset to the exact
+  // support point. The same value drives committed and ghost transforms.
   function grabAnchorRatio(id: string): number {
-    if (isRug(id)) return RUG_CENTER_RATIO;
-    const surface = projectSurfaceType(REGION_KIND_SURFACE[DECORATIONS_BY_ID[id]?.defaultRegionKind ?? 'floor']);
-    if (surface === 'wall') return 0.5;
-    if (surface === 'ceiling') return 0.04;
-    return STANDING_BASELINE_RATIO;
+    return placementSpec(id).baseline;
   }
 
   // A single authoritative hit-test for EVERY category. The pointer resolves to
@@ -598,7 +598,7 @@ export function OfficeScene() {
     const start = { x: e.clientX, y: e.clientY };
     const room = kind === 'decoration' ? decorationRoom(stateRef.current, id) : null;
     const sourceRect = source.getBoundingClientRect();
-    const anchorRatio = kind === 'decoration' ? grabAnchorRatio(id) : STANDING_BASELINE_RATIO;
+    const anchorRatio = kind === 'decoration' ? grabAnchorRatio(id) : EMPLOYEE_DRAG_BASELINE_RATIO;
     // Tray thumbnails are drawn at a different scale than the in-scene prop, so
     // a baseline offset derived from the thumbnail would push the drop far off
     // the (often short) room stage. Dragging a stored item instead drops it
@@ -1039,17 +1039,22 @@ export function OfficeScene() {
                     key={def.id}
                     data-deco={def.id}
                     data-region-kind={decorationInstance(state, def.id)?.regionKind ?? undefined}
-                    className={`floor__deco floor__deco--${placement.surface} ${
+                    data-anchor={placementSpec(def.id).anchor}
+                    data-depth={decorationInstance(state, def.id)?.depth}
+                    className={`floor__deco floor__deco--${placement.surface} ${decorationAnchorClass(def.id)} ${
                       isRug(def.id) ? 'floor__deco--rug' : ''
                     } ${selected === def.id ? 'is-selected' : ''} ${
                       drag?.kind === 'decoration' && drag.id === def.id ? 'is-dragging' : ''
                     } ${justPlaced === def.id ? 'is-placing' : ''}`}
                     style={{
+                      ...decorationAnchorStyle(def.id),
                       left: `${placement.x * 100}%`,
                       bottom: `${placement.y * 100}%`,
                       zIndex:
-                        decorationInstance(state, def.id)?.depth ??
-                        surfaceZ(def.id, placement.surface),
+                        decorMode && selected === def.id
+                          ? 20
+                          : (decorationInstance(state, def.id)?.depth ??
+                            surfaceZ(def.id, placement.surface)),
                     }}
                   >
                     <DecorationProp
@@ -1158,7 +1163,12 @@ export function OfficeScene() {
                           seed={idx + room.floor}
                         />
                       )}
-                      <EmployeeMoodBadge mood={mood} color={MOOD_TONE[mood]} label={moodLabel} />
+                      <EmployeeMoodBubble
+                        key={mood}
+                        mood={mood}
+                        color={MOOD_TONE[mood]}
+                        label={moodLabel}
+                      />
                       {bubble?.employeeId === id ? (
                         <span
                           className={`employee-reaction ${ex > 0.68 ? 'employee-reaction--left' : ''}`}
@@ -1259,9 +1269,14 @@ export function OfficeScene() {
               className={`drag-ghost ${drag.kind === 'decoration' ? 'drag-ghost--decoration' : ''} ${
                 drag.valid ? 'is-ok' : 'is-no'
               } ${ghostAnchorClass(drag)}`}
-              style={{ left: `${drag.x}px`, top: `${drag.y}px` }}
+              style={{
+                left: `${drag.x}px`,
+                top: `${drag.y}px`,
+                ...(drag.kind === 'decoration' ? decorationAnchorStyle(drag.id) : {}),
+              }}
               data-region={drag.preview?.regionId}
               data-region-kind={drag.preview?.regionKind}
+              data-anchor={drag.kind === 'decoration' ? placementSpec(drag.id).anchor : undefined}
               data-valid={drag.valid}
               aria-hidden
             >

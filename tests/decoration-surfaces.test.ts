@@ -128,10 +128,10 @@ describe('full-surface placement regions', () => {
 });
 
 describe('decoration surface metadata', () => {
-  it('keeps the 19 floor / 10 wall / 3 ceiling split', () => {
+  it('keeps the audited 23 floor / 6 wall / 3 ceiling split', () => {
     const counts = { floor: 0, wall: 0, ceiling: 0 };
     for (const decoration of DECORATIONS) counts[decorationSurface(decoration.id)] += 1;
-    expect(counts).toEqual({ floor: 19, wall: 10, ceiling: 3 });
+    expect(counts).toEqual({ floor: 23, wall: 6, ceiling: 3 });
     expect(DECORATIONS.filter((decoration) => isRug(decoration.id))).toHaveLength(2);
   });
 
@@ -142,8 +142,9 @@ describe('decoration surface metadata', () => {
     for (const decoration of DECORATIONS) {
       // Exactly one valid surface — no multi-surface props.
       expect(decoration.compatibleRegionKinds, decoration.id).toEqual([decoration.defaultRegionKind]);
+      expect(decoration.placementSurface, decoration.id).toBe(decorationSurface(decoration.id));
       expect(decoration.compatibleSurfaces, decoration.id).toEqual([
-        decorationSurface(decoration.id),
+        decoration.placementSurface,
       ]);
       expect(decoration.compatibleRegionSurfaces, decoration.id).toEqual([
         REGION_KIND_SURFACE[decoration.defaultRegionKind],
@@ -168,7 +169,8 @@ describe('decoration surface metadata', () => {
       hammock: 'floor',
       hologram: 'ceiling',
       'star-ceiling': 'ceiling',
-      projector: 'wall',
+      projector: 'floor',
+      billboard: 'floor',
     };
     for (const [id, kind] of Object.entries(expected)) {
       expect(DECORATIONS.find((decoration) => decoration.id === id)?.defaultRegionKind, id).toBe(kind);

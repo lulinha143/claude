@@ -55,9 +55,16 @@ export function CollectionsView() {
           {t('collections.photoMode')}
         </button>
       </div>
-      <div className="tabs">
+      <div className="tabs" role="tablist" aria-label={t('collections.title')}>
         {(['nuts', 'moments', 'outfits', 'secrets'] as Tab[]).map((tb) => (
-          <button key={tb} className={`tab ${tab === tb ? 'is-active' : ''}`} onClick={() => setTab(tb)}>
+          <button
+            key={tb}
+            type="button"
+            role="tab"
+            aria-selected={tab === tb}
+            className={`tab ${tab === tb ? 'is-active' : ''}`}
+            onClick={() => setTab(tb)}
+          >
             {t(`collections.${tb}`)}
           </button>
         ))}
@@ -75,7 +82,9 @@ export function CollectionsView() {
                 <li key={n.id} className={`nut-cell ${found ? '' : 'is-locked'}`}>
                   <NutDot color={found ? n.color : '#4a4038'} size={30} />
                   <span className="nut-cell__name">{found ? t(n.nameKey) : '???'}</span>
-                  <span className="nut-cell__desc">{found ? t(n.descriptionKey) : t('collections.undiscovered')}</span>
+                  <span className="nut-cell__desc">
+                    {found ? t(n.descriptionKey) : t('collections.undiscovered')}
+                  </span>
                 </li>
               );
             })}
@@ -84,31 +93,44 @@ export function CollectionsView() {
       ) : null}
 
       {tab === 'moments' ? (
-        <ul className="moment-list">
-          {state.collections.moments.length === 0 ? <p className="muted">{t('collections.undiscovered')}</p> : null}
-          {state.collections.moments
-            .slice()
-            .reverse()
-            .map((card) => {
-              const def = GAME_EVENTS_BY_ID[card.eventId];
-              return (
-                <li key={card.id} className={`moment moment--${card.rarity}`}>
-                  <button className="moment__open" onClick={() => setViewing(card)} title={t('collections.view')}>
-                    <span className="moment__dot" aria-hidden />
-                    <span className="moment__info">
-                      <span className="moment__title">{def ? t(def.titleKey) : card.eventId}</span>
-                      <span className="moment__meta">
-                        {t(`moment.rarity.${card.rarity}`)} · {fmt.date(card.createdAt)}
+        state.collections.moments.length === 0 ? (
+          <p className="empty-state">{t('collections.undiscovered')}</p>
+        ) : (
+          <ul className="moment-list">
+            {state.collections.moments
+              .slice()
+              .reverse()
+              .map((card) => {
+                const def = GAME_EVENTS_BY_ID[card.eventId];
+                return (
+                  <li key={card.id} className={`moment moment--${card.rarity}`}>
+                    <button
+                      className="moment__open"
+                      onClick={() => setViewing(card)}
+                      title={t('collections.view')}
+                    >
+                      <span className="moment__dot" aria-hidden />
+                      <span className="moment__info">
+                        <span className="moment__title">
+                          {def ? t(def.titleKey) : card.eventId}
+                        </span>
+                        <span className="moment__meta">
+                          {t(`moment.rarity.${card.rarity}`)} · {fmt.date(card.createdAt)}
+                        </span>
                       </span>
-                    </span>
-                  </button>
-                  <button className="ghost-btn" onClick={() => saveCard(card)} title={t('collections.saveCard')}>
-                    <Icon name="export" size={14} />
-                  </button>
-                </li>
-              );
-            })}
-        </ul>
+                    </button>
+                    <button
+                      className="ghost-btn"
+                      onClick={() => saveCard(card)}
+                      title={t('collections.saveCard')}
+                    >
+                      <Icon name="export" size={14} />
+                    </button>
+                  </li>
+                );
+              })}
+          </ul>
+        )
       ) : null}
 
       {viewing ? (
@@ -127,7 +149,15 @@ export function CollectionsView() {
             const owned = state.collections.outfits.includes(o.id);
             return (
               <li key={o.id} className={`nut-cell ${owned ? '' : 'is-locked'}`}>
-                <span className="dot" style={{ background: owned ? o.accent : '#4a4038', width: 24, height: 24, borderRadius: '50%' }} />
+                <span
+                  className="dot"
+                  style={{
+                    background: owned ? o.accent : '#4a4038',
+                    width: 24,
+                    height: 24,
+                    borderRadius: '50%',
+                  }}
+                />
                 <span className="nut-cell__name">{owned ? t(o.nameKey) : '???'}</span>
               </li>
             );
@@ -136,18 +166,19 @@ export function CollectionsView() {
       ) : null}
 
       {tab === 'secrets' ? (
-        <ul className="nut-grid">
-          {state.collections.secrets
-            .filter((s) => !s.startsWith('deco:'))
-            .map((s) => (
-              <li key={s} className="nut-cell">
-                <span className="nut-cell__name">{s}</span>
-              </li>
-            ))}
-          {state.collections.secrets.filter((s) => !s.startsWith('deco:')).length === 0 ? (
-            <p className="muted">{t('collections.undiscovered')}</p>
-          ) : null}
-        </ul>
+        state.collections.secrets.some((secret) => !secret.startsWith('deco:')) ? (
+          <ul className="nut-grid">
+            {state.collections.secrets
+              .filter((secret) => !secret.startsWith('deco:'))
+              .map((secret) => (
+                <li key={secret} className="nut-cell">
+                  <span className="nut-cell__name">{secret}</span>
+                </li>
+              ))}
+          </ul>
+        ) : (
+          <p className="empty-state">{t('collections.undiscovered')}</p>
+        )
       ) : null}
     </section>
   );
@@ -170,7 +201,10 @@ function MomentModal({
   const png = useMemo(() => momentCardToPng(data), [data]);
   return (
     <div className="modal-backdrop" role="dialog" aria-modal="true" onClick={onClose}>
-      <div className={`moment-modal moment-modal--${data.card.rarity}`} onClick={(e) => e.stopPropagation()}>
+      <div
+        className={`moment-modal moment-modal--${data.card.rarity}`}
+        onClick={(e) => e.stopPropagation()}
+      >
         {png ? (
           <img className="moment-modal__img" src={png} alt={data.title} />
         ) : (

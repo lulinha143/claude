@@ -1,4 +1,4 @@
-import { useId } from 'react';
+import { useId, useRef, type KeyboardEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { useGame } from '../../state/hooks';
@@ -8,6 +8,7 @@ import { Icon } from '../../art/UiIcon';
 import {
   CompanyIcon,
   COMPANY_ICON_IDS,
+  type CompanyIconId,
   companyIconLabelKey,
   resolveCompanyIcon,
 } from '../../art/companyIcons';
@@ -24,13 +25,27 @@ export function CompanyIconPicker({ onClose }: { onClose: () => void }) {
   const { closing, exitThen } = usePopupExit();
   const titleId = useId();
   const descriptionId = useId();
+  const choiceRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const current = resolveCompanyIcon(state.company.icon);
 
-  function choose(id: string) {
-    if (id !== state.company.icon) {
+  function choose(id: CompanyIconId) {
+    if (id !== current) {
       engine.setCompanyIcon(id);
       audio.play('toggle');
     }
+  }
+
+  function handleChoiceKey(event: KeyboardEvent<HTMLButtonElement>, index: number) {
+    let next = index;
+    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') next = (index + 1) % COMPANY_ICON_IDS.length;
+    else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') next = (index - 1 + COMPANY_ICON_IDS.length) % COMPANY_ICON_IDS.length;
+    else if (event.key === 'Home') next = 0;
+    else if (event.key === 'End') next = COMPANY_ICON_IDS.length - 1;
+    else return;
+    event.preventDefault();
+    const id = COMPANY_ICON_IDS[next];
+    choose(id);
+    choiceRefs.current[next]?.focus();
   }
 
   return createPortal(
@@ -66,17 +81,22 @@ export function CompanyIconPicker({ onClose }: { onClose: () => void }) {
         aria-labelledby={titleId}
         aria-describedby={descriptionId}
       >
-        {COMPANY_ICON_IDS.map((id) => {
+        {COMPANY_ICON_IDS.map((id, index) => {
           const selected = id === current;
           const label = t(companyIconLabelKey(id));
           return (
             <button
               key={id}
+              ref={(element) => {
+                choiceRefs.current[index] = element;
+              }}
               type="button"
               role="radio"
               aria-checked={selected}
               aria-label={label}
+              tabIndex={selected ? 0 : -1}
               className={`company-icon-choice ${selected ? 'is-selected' : ''}`}
+              onKeyDown={(event) => handleChoiceKey(event, index)}
               onClick={() => choose(id)}
             >
               <span className="company-icon-choice__art" aria-hidden>

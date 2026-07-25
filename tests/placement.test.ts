@@ -28,23 +28,19 @@ describe('decoration composition rules', () => {
     expect(evaluatePlacement(engine.state, 'potted-fern', 0.2, 0.06).ok).toBe(true);
   });
 
-  it('rejects dropping one object exactly on top of another', () => {
+  it('allows decorations to share the exact same support point', () => {
     const engine = new GameEngine(createInitialState(0), { deterministic: true });
     ownAll(engine);
     const lamp = placedPlacement(engine.state, 'desk-lamp')!;
     const check = evaluatePlacement(engine.state, 'potted-fern', lamp.x, lamp.y);
-    expect(check.ok).toBe(false);
-    expect(check.reasonKey).toBe('decorate.reject.stacked');
+    expect(check.ok).toBe(true);
   });
 
-  it('rejects a severe overlap with a same-surface neighbour', () => {
+  it('allows severe overlap for dense authored arrangements', () => {
     const engine = new GameEngine(createInitialState(0), { deterministic: true });
     ownAll(engine);
     engine.moveDecoration('desk-lamp', 0.5, 0.06);
-    // Overlap the lamp heavily but from a clearly different centre (not stacked).
-    const check = evaluatePlacement(engine.state, 'potted-fern', 0.56, 0.06);
-    expect(check.ok).toBe(false);
-    expect(check.reasonKey).toBe('decorate.reject.occupied');
+    expect(evaluatePlacement(engine.state, 'potted-fern', 0.56, 0.06).ok).toBe(true);
   });
 
   it('allows a small, natural overlap between neighbours', () => {
@@ -91,15 +87,14 @@ describe('decoration composition rules', () => {
     expect(evaluatePlacement(engine.state, 'aquarium', 0.14, 0.06).ok).toBe(true);
   });
 
-  it('validates collisions and teammates in the explicit destination room', () => {
+  it('validates the destination room while permitting prop overlap there', () => {
     const engine = new GameEngine(createInitialState(0), { deterministic: true });
     engine.state.resources.reputation = 10;
     engine.buyDecoration('potted-fern');
     engine.buyDecoration('desk-lamp');
     engine.moveDecorationToRoom('desk-lamp', 'morale', 0.5, 0.06);
     const check = evaluatePlacement(engine.state, 'potted-fern', 0.5, 0.06, 'morale');
-    expect(check.ok).toBe(false);
-    expect(check.reasonKey).toBe('decorate.reject.stacked');
+    expect(check.ok).toBe(true);
   });
 
   it('gives every large decoration a bigger footprint than a small one', () => {
@@ -149,7 +144,7 @@ describe('semantic floor and rug placement previews', () => {
     expect(decorationFootprintFitsRegion('potted-fern', floor, preview!.point)).toBe(true);
   });
 
-  it('previews collision failure without mutating the committed arrangement', () => {
+  it('previews dense overlap without mutating the committed arrangement', () => {
     const state = createInitialState(0);
     const engine = new GameEngine(state, { deterministic: true });
     ownAll(engine);
@@ -160,8 +155,7 @@ describe('semantic floor and rug placement previews', () => {
       x: lamp.x,
       y: lamp.y,
     });
-    expect(preview?.ok).toBe(false);
-    expect(preview?.reasonKey).toMatch(/decorate\.reject\.(stacked|occupied)/);
+    expect(preview?.ok).toBe(true);
     expect(state.placements).toEqual(before);
   });
 

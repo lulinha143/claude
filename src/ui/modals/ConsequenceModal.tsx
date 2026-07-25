@@ -3,7 +3,8 @@ import { useGame } from '../../state/hooks';
 import { useFmt } from '../useFmt';
 import { Icon, type IconName } from '../../art/UiIcon';
 import { EMPLOYEES_BY_ID } from '../../content/employees';
-import { MOOD_TONE, MOOD_POSITIVE } from '../../sim/mood';
+import { MOOD_POSITIVE, MOOD_TONE } from '../../sim/mood';
+import { MoodEmoji } from '../../art/EmployeeMoodBadge';
 import { PopupShell, usePopupExit } from './PopupShell';
 
 type Tone = 'positive' | 'negative' | 'neutral';
@@ -99,8 +100,12 @@ export function ConsequenceModal() {
                   <li key={e.id} className="consequence-emp">
                     <span className="consequence-emp__name">{name ? t(name) : e.id}</span>
                     {e.emotion ? (
-                      <span className="mood-chip mood-chip--sm">
-                        <span className="mood-dot" style={{ background: MOOD_TONE[e.emotion] }} />
+                      <span
+                        className={`mood-chip mood-chip--sm ${MOOD_POSITIVE[e.emotion] ? 'mood-chip--positive' : 'mood-chip--negative'}`}
+                        data-mood={e.emotion}
+                        style={{ ['--mood-color' as string]: MOOD_TONE[e.emotion] }}
+                      >
+                        <MoodEmoji mood={e.emotion} color={MOOD_TONE[e.emotion]} />
                         <span className={MOOD_POSITIVE[e.emotion] ? 'prod-pos' : 'prod-neg'}>
                           {t(`mood.${e.emotion}`)}
                         </span>
