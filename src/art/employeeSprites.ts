@@ -59,50 +59,50 @@ export interface EmployeeSpriteConfig {
 // the office so they stay harmonious and never dominate the room.
 export const EMPLOYEE_SPRITES: Record<string, EmployeeSpriteConfig> = {
   // Bea — Beaver, Construction. Refreshed workstation art (overalls, bonsai,
-  // toolbox). Raised ~15% over the previous rendered desk width.
+  // toolbox). Sized to the shared ~115px desk width.
   bea: {
     src: 'employees/bea.png',
     poster: 'employees/bea-poster.png',
     frameWidth: 335,
     frameHeight: 300,
-    officeHeight: 103,
-    cardHeight: 148,
+    officeHeight: 116,
+    cardHeight: 164,
     anchorX: 0.5,
     baseline: 0,
   },
-  // Pip — Squirrel, Founder. Reading glasses, acorns, laptop; bushy tail rises
-  // above the desk so the frame is nearly square. (Unchanged this pass.)
+  // Pip — Squirrel slot, refreshed workstation art. Sized to the shared ~115px
+  // desk width so the test set reads harmoniously with the rest of the office.
   pip: {
     src: 'employees/pip.png',
     poster: 'employees/pip-poster.png',
-    frameWidth: 320,
+    frameWidth: 349,
     frameHeight: 300,
-    officeHeight: 73,
-    cardHeight: 105,
+    officeHeight: 106,
+    cardHeight: 150,
     anchorX: 0.5,
     baseline: 0,
   },
-  // Marlow — Capybara, Morale/HR. Teal chair, scarf, calm desk. Raised ~20%,
-  // then a further ~20% (79->95 / 114->137).
+  // Marlow — Capybara slot, refreshed workstation art. Sized to the shared
+  // ~115px desk width.
   marlow: {
     src: 'employees/marlow.png',
     poster: 'employees/marlow-poster.png',
-    frameWidth: 366,
+    frameWidth: 330,
     frameHeight: 300,
-    officeHeight: 95,
-    cardHeight: 137,
+    officeHeight: 115,
+    cardHeight: 163,
     anchorX: 0.5,
     baseline: 0,
   },
   // Pingo — Penguin, Logistics. Refreshed workstation art (cocoa, snow globe,
-  // fan). Raised ~10% over the previous rendered desk width.
+  // fan). Sized to the shared ~115px desk width.
   pingo: {
     src: 'employees/penguin.png',
     poster: 'employees/penguin-poster.png',
     frameWidth: 356,
     frameHeight: 300,
-    officeHeight: 112,
-    cardHeight: 161,
+    officeHeight: 105,
+    cardHeight: 149,
     anchorX: 0.5,
     baseline: 0,
   },
