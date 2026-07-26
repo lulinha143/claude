@@ -70,27 +70,29 @@ export const EMPLOYEE_SPRITES: Record<string, EmployeeSpriteConfig> = {
     anchorX: 0.5,
     baseline: 0,
   },
-  // Pip — Squirrel slot, refreshed workstation art. Sized to the shared ~115px
-  // desk width so the test set reads harmoniously with the rest of the office.
+  // Pip — Squirrel slot, refreshed test workstation art (all frames kept, single
+  // premultiplied downscale to ~180px so the office renders near 1:1 and stays
+  // sharp/stable). Reduced ~20% from the previous rendered desk width.
   pip: {
     src: 'employees/pip.png',
     poster: 'employees/pip-poster.png',
-    frameWidth: 349,
-    frameHeight: 300,
-    officeHeight: 106,
-    cardHeight: 150,
+    frameWidth: 235,
+    frameHeight: 180,
+    officeHeight: 75,
+    cardHeight: 108,
     anchorX: 0.5,
     baseline: 0,
   },
-  // Marlow — Capybara slot, refreshed workstation art. Sized to the shared
-  // ~115px desk width.
+  // Marlow — Capybara slot, refreshed test workstation art (all frames kept,
+  // single premultiplied downscale to ~180px for sharp, stable animation).
+  // Reduced ~20% from the previous rendered desk width.
   marlow: {
     src: 'employees/marlow.png',
     poster: 'employees/marlow-poster.png',
-    frameWidth: 330,
-    frameHeight: 300,
-    officeHeight: 115,
-    cardHeight: 163,
+    frameWidth: 216,
+    frameHeight: 180,
+    officeHeight: 83,
+    cardHeight: 119,
     anchorX: 0.5,
     baseline: 0,
   },
