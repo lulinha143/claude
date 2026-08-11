@@ -1079,6 +1079,7 @@ h4 {
 .critter-btn--sprite {
   transform-origin: 50% 100%;
 }
+
 /* ===================================================================
    Employee-anchored bubble — one node above the character that morphs
    between the mood EMOTION emoji (default) and a SPEECH bubble (on click /
@@ -3480,22 +3481,32 @@ select,
    panels: you can still read the wall/floor and the dept accent, but the
    looping office clearly shows through. */
 .office--overgif .floor {
+  /* Opaque diorama panel. This used to be translucent (alpha ~0.3) so the
+     looping office <video> behind the office showed THROUGH the room floor.
+     That bleed-through was the real cause of the employee "halo flicker": a
+     sprite's soft SEMI-TRANSPARENT drop-shadow halo composited over the panel,
+     so the moving video showed through the halo and made it shimmer/pulse while
+     the opaque body stayed still (which is exactly why only the halo flickered,
+     and why it was fine viewing the raw APNG at 100% over a static page). Making
+     the panel opaque removes the bleed-through, so halos sit on a stable floor.
+     The animated office stays richly visible in the open margins around/below
+     the rooms — matching the intended "rooms STAY fully opaque illustrated
+     dioramas; the video is just warmth in the margins". */
   background: linear-gradient(
     180deg,
-    color-mix(in srgb, var(--dept) 15%, rgba(247, 236, 212, 0.4)) 0%,
-    rgba(239, 224, 193, 0.32) 46%,
-    rgba(234, 217, 184, 0.28) calc(100% - var(--floor-h))
+    color-mix(in srgb, var(--dept) 15%, #f7ecd4) 0%,
+    #efe0c1 46%,
+    #ead9b8 calc(100% - var(--floor-h))
   );
-  backdrop-filter: blur(1.5px) saturate(1.05);
   box-shadow:
     0 2px 7px rgba(40, 26, 12, 0.22),
     inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 .office--overgif .floor::after {
-  opacity: 0.62; /* wood floor plane lets the animation peek through */
+  opacity: 1; /* wood floor plane is opaque so the video can't bleed through it */
 }
 .office--overgif .floor::before {
-  opacity: 0.5;
+  opacity: 0.9;
 }
 .office--overgif .room-dressing {
   opacity: 0.82;
