@@ -70,16 +70,22 @@ export const EMPLOYEE_SPRITES: Record<string, EmployeeSpriteConfig> = {
     anchorX: 0.5,
     baseline: 0,
   },
-  // Pip — Squirrel slot, refreshed test workstation art (all frames kept, single
-  // premultiplied downscale to ~180px so the office renders near 1:1 and stays
-  // sharp/stable). Reduced ~20% from the previous rendered desk width.
+  // Pip — Squirrel, Founder. FINAL animated workstation art (bespectacled
+  // squirrel typing at a wooden desk: laptop, cocoa, pencil cup, books,
+  // sticky notes, cactus). Source is a 960x960 / 242-frame / 30fps APNG; all
+  // frames + timing are kept and it loops forever. A single premultiplied
+  // LANCZOS downscale to 248x223 keeps it crisp with no edge halos or shimmer.
+  // The frame is padded so the desk footprint is horizontally centred, and the
+  // art carries its own soft grounded shadow (baseline 0). officeHeight is set
+  // so the rendered DESK reads at ~92px — matching the previous Pip exactly so
+  // he stays coherent with the other workstations.
   pip: {
     src: 'employees/pip.png',
     poster: 'employees/pip-poster.png',
-    frameWidth: 235,
-    frameHeight: 180,
-    officeHeight: 75,
-    cardHeight: 108,
+    frameWidth: 248,
+    frameHeight: 223,
+    officeHeight: 93,
+    cardHeight: 133,
     anchorX: 0.5,
     baseline: 0,
   },
