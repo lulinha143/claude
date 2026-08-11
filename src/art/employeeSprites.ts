@@ -79,6 +79,15 @@ export const EMPLOYEE_SPRITES: Record<string, EmployeeSpriteConfig> = {
   // art carries its own soft grounded shadow (baseline 0). officeHeight is set
   // so the rendered DESK reads at ~92px — matching the previous Pip exactly so
   // he stays coherent with the other workstations.
+  //
+  // IMPORTANT (pip.png encoding): every APNG frame is stored as a FULL 248x223
+  // canvas (dispose=NONE, blend=SOURCE) — do NOT re-encode with the usual
+  // inter-frame sub-rectangle ("bbox diff") optimisation. Because the office
+  // scales the sprite down, an oscillating dirty-rect leaves the soft halo/blur
+  // alternately inside/outside the updated region, and Chromium/Electron's GPU
+  // compositor resamples that moving boundary inconsistently → the halo flickers
+  // frame to frame. Full frames give the compositor one stable rect to scale, so
+  // the halo stays rock-steady. (Same decoded pixels either way; ~same size.)
   pip: {
     src: 'employees/pip.png',
     poster: 'employees/pip-poster.png',
