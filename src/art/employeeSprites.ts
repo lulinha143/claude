@@ -12,8 +12,17 @@
 // register a config here — no per-employee code anywhere else.
 
 export interface EmployeeSpriteConfig {
-  /** Animated APNG (autoplay + infinite loop), path relative to BASE_URL. */
+  /** Animated APNG (autoplay + infinite loop), path relative to BASE_URL. This
+   * is the @2x asset (twice the slot size); see `src1x`. */
   src: string;
+  /**
+   * Optional @1x variant of `src` (exactly the slot's CSS-pixel size). When
+   * present the renderer emits `srcset` so the browser picks @1x on a DPR-1
+   * display and @2x on DPR-2 — the frame then renders 1:1 at either ratio, so
+   * the GPU never does a fractional per-frame downscale (which shimmers the
+   * soft semi-transparent halo). frameWidth/frameHeight are the @1x dimensions.
+   */
+  src1x?: string;
   /** Static frame shown when the player enables reduced motion. */
   poster: string;
   /** Intrinsic frame dimensions of the source art (drives the aspect ratio). */
@@ -71,28 +80,27 @@ export const EMPLOYEE_SPRITES: Record<string, EmployeeSpriteConfig> = {
     baseline: 0,
   },
   // Pip — Squirrel, Founder. FINAL animated workstation art (bespectacled
-  // squirrel typing at a wooden desk: laptop, cocoa, pencil cup, books,
-  // sticky notes, cactus). Source is a 960x960 / 242-frame / 30fps APNG; all
-  // frames + timing are kept and it loops forever. A single premultiplied
-  // LANCZOS downscale to 248x223 keeps it crisp with no edge halos or shimmer.
-  // The frame is padded so the desk footprint is horizontally centred, and the
-  // art carries its own soft grounded shadow (baseline 0). officeHeight is set
-  // so the rendered DESK reads at ~92px — matching the previous Pip exactly so
-  // he stays coherent with the other workstations.
+  // squirrel typing at a wooden desk: laptop, cocoa, pencil cup, books, sticky
+  // notes, cactus). Source is a 960x960 / 242-frame / 30fps APNG; all frames +
+  // timing are kept and it loops forever (full-frame encode, premultiplied
+  // LANCZOS downscale — crisp, no edge halos). The desk footprint is centred and
+  // the art carries its own soft grounded shadow (baseline 0).
   //
-  // IMPORTANT (pip.png encoding): every APNG frame is stored as a FULL 248x223
-  // canvas (dispose=NONE, blend=SOURCE) — do NOT re-encode with the usual
-  // inter-frame sub-rectangle ("bbox diff") optimisation. Because the office
-  // scales the sprite down, an oscillating dirty-rect leaves the soft halo/blur
-  // alternately inside/outside the updated region, and Chromium/Electron's GPU
-  // compositor resamples that moving boundary inconsistently → the halo flickers
-  // frame to frame. Full frames give the compositor one stable rect to scale, so
-  // the halo stays rock-steady. (Same decoded pixels either way; ~same size.)
+  // HALO SHIMMER FIX — resolution, not encoding: the halo flicker seen in the
+  // real GPU build was NOT the asset or scene compositing (both were proven
+  // clean); it was the GPU doing a FRACTIONAL per-frame downscale of the soft
+  // semi-transparent halo (a hi-res frame resampled to the small slot every
+  // frame → shifting sub-pixel/mip sampling → shimmer; the flat opaque body is
+  // unaffected, and at 100%/integer it's stable). Fix: ship the frame at exactly
+  // the slot size (@1x, 103x93) AND at 2x (206x186) and let the browser pick per
+  // devicePixelRatio via srcset, so it renders 1:1 (no fractional downscale) on
+  // both DPR-1 and DPR-2. frameWidth/frameHeight below are the @1x dimensions.
   pip: {
-    src: 'employees/pip.png',
+    src: 'employees/pip.png', // @2x (206x186)
+    src1x: 'employees/pip-1x.png', // @1x (103x93) — exact slot size
     poster: 'employees/pip-poster.png',
-    frameWidth: 248,
-    frameHeight: 223,
+    frameWidth: 103,
+    frameHeight: 93,
     officeHeight: 93,
     cardHeight: 133,
     anchorX: 0.5,

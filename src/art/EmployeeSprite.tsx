@@ -34,48 +34,40 @@ function EmployeeSpriteImpl({ config, reducedMotion, height, className }: Employ
   // real contact point sits exactly on its slot (baseline 0 = no shift).
   const baselineShift = config.baseline > 0 ? `translateY(${config.baseline * 100}%)` : undefined;
 
-  // Render the APNG at its NATIVE pixel size and size it down to the slot with a
-  // single, CONSTANT compositor transform — instead of letting the <img> resample
-  // the frame to the display size every animation frame.
+  // Serve the animated APNG at the RESOLUTION IT IS ACTUALLY DISPLAYED AT, per
+  // device pixel ratio, so the GPU never has to resample it every frame.
   //
-  // Why: the office renders the sprite scaled down (e.g. a 248px-wide source in a
-  // ~103px slot). On the GPU, resampling the soft SEMI-TRANSPARENT halo to a
-  // smaller size every animation frame is not temporally stable — the halo's
-  // partially-transparent edge pixels are filtered slightly differently frame to
-  // frame, so the halo shimmers/flickers while the opaque body (flat colour) is
-  // unaffected. Viewed at 100% (native) in a browser there is no downscale, so it
-  // looks perfect. Painting the frame at native resolution into its own layer and
-  // then scaling that layer by a fixed transform samples the halo identically on
-  // every frame, so it stays rock-steady — no blur, no change to the artwork,
-  // halo, transparency, animation, scale or position.
-  const scale = height / config.frameHeight;
+  // Why: the office renders the sprite small (its slot is ~1x its @1x size). If a
+  // single hi-res frame is downscaled by a FRACTIONAL factor every animation
+  // frame, the GPU samples the soft SEMI-TRANSPARENT halo at a shifting sub-pixel
+  // grid / fractional mip level, so the halo shimmers frame-to-frame while the
+  // flat opaque body stays put. At 100% (integer/1:1) it is stable — which is
+  // exactly why the raw APNG looks perfect in a browser tab. By shipping the
+  // frame at 1x AND 2x the slot size and letting the browser pick the one that
+  // matches the device pixel ratio, it renders 1:1 (DPR 1 -> @1x, DPR 2 -> @2x):
+  // no fractional downscale, no upscale blur. Nothing about the artwork, halo,
+  // transparency, animation, scale or position changes.
+  const srcSet =
+    !reducedMotion && config.src1x ? `${BASE}${config.src1x} 1x, ${BASE}${config.src} 2x` : undefined;
 
   return (
-    <span
-      className={`employee-sprite-frame ${className ?? ''}`}
+    <img
+      className={`employee-sprite ${className ?? ''}`}
+      src={`${BASE}${file}`}
+      srcSet={srcSet}
+      // Decorative: the wrapping button / roster card already names the
+      // employee, so an empty alt avoids a duplicate screen-reader announcement.
+      alt=""
+      width={width}
+      height={height}
+      draggable={false}
+      decoding="async"
       style={{
         width: `calc(${width}px * var(--asset-scale))`,
         height: `calc(${height}px * var(--asset-scale))`,
         transform: baselineShift,
       }}
-    >
-      <img
-        className="employee-sprite"
-        src={`${BASE}${file}`}
-        // Decorative: the wrapping button / roster card already names the
-        // employee, so an empty alt avoids a duplicate screen-reader announcement.
-        alt=""
-        width={config.frameWidth}
-        height={config.frameHeight}
-        draggable={false}
-        decoding="async"
-        style={{
-          width: `${config.frameWidth}px`,
-          height: `${config.frameHeight}px`,
-          transform: `scale(calc(${scale} * var(--asset-scale)))`,
-        }}
-      />
-    </span>
+    />
   );
 }
 

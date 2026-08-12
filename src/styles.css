@@ -1061,33 +1061,16 @@ h4 {
 }
 
 /* ------- final animated employee sprites (APNG "workstations") ------- */
-/* Frame box sized to the slot; the inner <img> (.employee-sprite) is painted at
-   NATIVE resolution and scaled down to fill it with a constant transform, so the
-   semi-transparent halo is sampled identically every animation frame (no GPU
-   downscale-resampling shimmer). */
-.employee-sprite-frame {
+/* The APNG is shipped at @1x and @2x the slot size (see EmployeeSprite) so the
+   browser renders it 1:1 for the device pixel ratio — no fractional per-frame
+   GPU downscale, which is what made the soft halo shimmer. */
+.employee-sprite {
   display: block;
-  position: relative;
   /* the wrapping .critter-btn owns pointer input (drag/click) */
   pointer-events: none;
   user-select: none;
-}
-.employee-sprite {
-  position: absolute;
-  left: 0;
-  top: 0;
-  /* rendered at NATIVE pixel size (overrides the global img{max-width:100%}) */
-  max-width: none;
-  transform-origin: 0 0;
-  /* smooth, high-quality sampling of the hi-res source frame */
-  image-rendering: auto;
   -webkit-user-drag: none;
-  user-select: none;
-  pointer-events: none;
-  /* isolate onto its own compositing layer so the diorama's per-frame repaints
-     never re-rasterise the sprite; the layer is only scaled, never resampled. */
-  will-change: transform;
-  backface-visibility: hidden;
+  image-rendering: auto;
 }
 /* the workstation art carries its own grounded shadow, so suppress the
    generic critter contact ellipse to avoid a doubled shadow. */
