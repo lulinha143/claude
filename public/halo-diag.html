@@ -1,0 +1,71 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Squirrel halo diagnostic</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { background: #171717; color: #eee; font: 14px/1.45 system-ui, sans-serif; padding: 22px 26px 60px; }
+      h1 { font-size: 19px; margin-bottom: 6px; }
+      h2 { font-size: 15px; margin: 22px 0 10px; color: #8fd0ff; }
+      p.note { color: #aaa; max-width: 980px; margin-bottom: 6px; }
+      .row { display: flex; gap: 28px; flex-wrap: wrap; align-items: flex-start; margin-top: 10px; }
+      .cell { text-align: center; }
+      .label { font-size: 12px; margin-bottom: 6px; color: #ddd; }
+      /* stage = office slot size (103x93), NO css effects: no filter, transform,
+         blend, backdrop-filter, opacity, animation. */
+      .stage { width: 103px; height: 93px; display: flex; align-items: flex-end;
+               justify-content: center; overflow: hidden; position: relative; }
+      .solid { background: #808080; }
+      .vid { background: #000; }
+      .vid video.bg { position: absolute; inset: 0; width: 100%; height: 100%;
+                      object-fit: cover; z-index: 0; }
+      .sprite { width: 103px; height: 93px; display: block; position: relative; z-index: 1;
+                image-rendering: auto; }
+      .z3 .stage, .z3 .sprite { width: 309px; height: 279px; }
+      a { color: #8fd0ff; }
+      .back { position: fixed; top: 12px; right: 16px; font-size: 13px; }
+    </style>
+  </head>
+  <body>
+    <div class="back"><a href="./index.html">← back to game</a></div>
+    <h1>Squirrel halo diagnostic — A/B</h1>
+    <p class="note">Every sprite below is the SAME character at the SAME in‑office size (103×93), same loop,
+      with NO CSS effects (no filter / transform / blend‑mode / backdrop‑filter / opacity / extra animation).</p>
+    <p class="note">Watch the soft halo/blur around each one for a few loops. Note which ones <b>shimmer/flicker</b>
+      and which are <b>stable</b>. Answers: (A) whole APNG vs (B) only the halo, (C) does removing the halo fix it,
+      (D) does the alpha video fix it, (F) is it a game‑CSS effect (this page has none).</p>
+
+    <h2>A · Over a SOLID background (isolates the sprite rendering)</h2>
+    <div class="row">
+      <div class="cell"><div class="label">1 · APNG (current)</div>
+        <div class="stage solid"><img class="sprite" src="employees/pip.png" srcset="employees/pip-1x.png 1x, employees/pip.png 2x" alt=""></div></div>
+      <div class="cell"><div class="label">2 · APNG — halo removed</div>
+        <div class="stage solid"><img class="sprite" src="_diag/pip-nohalo.png" alt=""></div></div>
+      <div class="cell"><div class="label">3 · WebM VP9 + alpha (video)</div>
+        <div class="stage solid"><video class="sprite" src="_diag/pip-alpha.webm" autoplay loop muted playsinline></video></div></div>
+      <div class="cell"><div class="label">4 · Static poster</div>
+        <div class="stage solid"><img class="sprite" src="employees/pip-poster.png" alt=""></div></div>
+    </div>
+
+    <h2>B · Over the ANIMATED office background (same moving backdrop as the game)</h2>
+    <div class="row">
+      <div class="cell"><div class="label">1 · APNG (current)</div>
+        <div class="stage vid"><video class="bg" src="backgrounds/office/office-main-loop.mp4" autoplay loop muted playsinline></video><img class="sprite" src="employees/pip.png" srcset="employees/pip-1x.png 1x, employees/pip.png 2x" alt=""></div></div>
+      <div class="cell"><div class="label">2 · APNG — halo removed</div>
+        <div class="stage vid"><video class="bg" src="backgrounds/office/office-main-loop.mp4" autoplay loop muted playsinline></video><img class="sprite" src="_diag/pip-nohalo.png" alt=""></div></div>
+      <div class="cell"><div class="label">3 · WebM VP9 + alpha</div>
+        <div class="stage vid"><video class="bg" src="backgrounds/office/office-main-loop.mp4" autoplay loop muted playsinline></video><video class="sprite" src="_diag/pip-alpha.webm" autoplay loop muted playsinline></video></div></div>
+      <div class="cell"><div class="label">4 · Static poster</div>
+        <div class="stage vid"><video class="bg" src="backgrounds/office/office-main-loop.mp4" autoplay loop muted playsinline></video><img class="sprite" src="employees/pip-poster.png" alt=""></div></div>
+    </div>
+
+    <h2>C · 3× zoom (over solid) — to inspect the halo edges closely</h2>
+    <div class="row z3">
+      <div class="cell"><div class="label">1 · APNG (current)</div>
+        <div class="stage solid"><img class="sprite" src="employees/pip.png" srcset="employees/pip-1x.png 1x, employees/pip.png 2x" alt=""></div></div>
+      <div class="cell"><div class="label">3 · WebM VP9 + alpha</div>
+        <div class="stage solid"><video class="sprite" src="_diag/pip-alpha.webm" autoplay loop muted playsinline></video></div></div>
+    </div>
+  </body>
+</html>

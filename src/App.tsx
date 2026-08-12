@@ -63,6 +63,19 @@ export function App() {
     startGameLoop();
   }, []);
 
+  // TEMPORARY diagnostic hook: press Ctrl+Alt+D to open the squirrel halo A/B
+  // comparison page (public/halo-diag.html). Remove once the halo shimmer
+  // investigation is concluded.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.altKey && (e.key === 'd' || e.key === 'D')) {
+        window.location.assign(`${import.meta.env.BASE_URL ?? '/'}halo-diag.html`);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
   // Mark the desktop (frameless) shell so the app can fill the window edge-to-
   // edge — no rounded margin/shadow gap — which keeps the native OS resize
   // border exactly at the visible edge. In the browser we keep the framed card.
