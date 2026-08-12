@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStore, startGameLoop, getGameState, type ViewId } from './state/store';
 import { ambientState } from './art/ambient';
+import { toggleHaloTest } from './art/haloTest'; // TEMP halo-isolation A/B (Ctrl+Alt+H)
 import { useGame } from './state/hooks';
 import { Header } from './ui/Header';
 import { NavBar } from './ui/NavBar';
@@ -63,13 +64,20 @@ export function App() {
     startGameLoop();
   }, []);
 
-  // TEMPORARY diagnostic hook: press Ctrl+Alt+D to open the squirrel halo A/B
-  // comparison page (public/halo-diag.html). Remove once the halo shimmer
-  // investigation is concluded.
+  // TEMPORARY diagnostic hooks (halo shimmer investigation). Remove once done.
+  //   Ctrl+Alt+D → open the standalone A/B comparison page (public/halo-diag.html)
+  //   Ctrl+Alt+H → flip the squirrel between its normal (halo) art and a
+  //                halo-stripped (ZERO semi-transparent pixels) variant, in place,
+  //                so the real-GPU shimmer can be judged against one variable.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.altKey && (e.key === 'd' || e.key === 'D')) {
+      if (!e.ctrlKey || !e.altKey) return;
+      if (e.key === 'd' || e.key === 'D') {
         window.location.assign(`${import.meta.env.BASE_URL ?? '/'}halo-diag.html`);
+      } else if (e.key === 'h' || e.key === 'H') {
+        const off = toggleHaloTest();
+        // eslint-disable-next-line no-console
+        console.info(`[halo-test] squirrel halo ${off ? 'REMOVED (binary alpha)' : 'restored (normal art)'}`);
       }
     };
     window.addEventListener('keydown', onKey);

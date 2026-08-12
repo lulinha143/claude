@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import type { EmployeeSpriteConfig } from './employeeSprites';
+import { useHaloOff } from './haloTest';
 
 // Renders an employee's FINAL animated artwork as a looping APNG.
 //
@@ -29,7 +30,12 @@ export interface EmployeeSpriteProps {
 
 function EmployeeSpriteImpl({ config, reducedMotion, height, className }: EmployeeSpriteProps) {
   const width = Math.round((height * config.frameWidth) / config.frameHeight);
-  const file = reducedMotion ? config.poster : config.src;
+  // TEMP halo-isolation A/B (Ctrl+Alt+H): when enabled, and only for sprites
+  // that declare a halo-stripped variant (Pip), swap in the ZERO-semi-transparent
+  // art. Same size/position/animation/scene — the halo is the ONLY variable.
+  const haloOff = useHaloOff();
+  const useNoHalo = haloOff && !reducedMotion && !!config.srcNoHalo;
+  const file = reducedMotion ? config.poster : useNoHalo ? config.srcNoHalo! : config.src;
   // Push any authored bottom padding below the floor line so the character's
   // real contact point sits exactly on its slot (baseline 0 = no shift).
   const baselineShift = config.baseline > 0 ? `translateY(${config.baseline * 100}%)` : undefined;
@@ -48,7 +54,9 @@ function EmployeeSpriteImpl({ config, reducedMotion, height, className }: Employ
   // no fractional downscale, no upscale blur. Nothing about the artwork, halo,
   // transparency, animation, scale or position changes.
   const srcSet =
-    !reducedMotion && config.src1x ? `${BASE}${config.src1x} 1x, ${BASE}${config.src} 2x` : undefined;
+    !reducedMotion && !useNoHalo && config.src1x
+      ? `${BASE}${config.src1x} 1x, ${BASE}${config.src} 2x`
+      : undefined;
 
   return (
     <img

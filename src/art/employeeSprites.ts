@@ -23,6 +23,14 @@ export interface EmployeeSpriteConfig {
    * soft semi-transparent halo). frameWidth/frameHeight are the @1x dimensions.
    */
   src1x?: string;
+  /**
+   * TEMPORARY (halo-isolation diagnostic): a halo-stripped variant of the
+   * animation — identical size / timing / motion but with hard (binary) alpha,
+   * i.e. ZERO semi-transparent pixels. Toggled in-game with Ctrl+Alt+H (see
+   * `haloTest.ts`) to prove whether the soft halo pixels are the source of the
+   * real-GPU shimmer. Remove once the investigation concludes.
+   */
+  srcNoHalo?: string;
   /** Static frame shown when the player enables reduced motion. */
   poster: string;
   /** Intrinsic frame dimensions of the source art (drives the aspect ratio). */
@@ -98,6 +106,7 @@ export const EMPLOYEE_SPRITES: Record<string, EmployeeSpriteConfig> = {
   pip: {
     src: 'employees/pip.png', // @2x (206x186)
     src1x: 'employees/pip-1x.png', // @1x (103x93) — exact slot size
+    srcNoHalo: '_diag/pip-nohalo.png', // TEMP halo-isolation A/B (Ctrl+Alt+H)
     poster: 'employees/pip-poster.png',
     frameWidth: 103,
     frameHeight: 93,
