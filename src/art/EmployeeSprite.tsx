@@ -34,23 +34,48 @@ function EmployeeSpriteImpl({ config, reducedMotion, height, className }: Employ
   // real contact point sits exactly on its slot (baseline 0 = no shift).
   const baselineShift = config.baseline > 0 ? `translateY(${config.baseline * 100}%)` : undefined;
 
+  // Render the APNG at its NATIVE pixel size and size it down to the slot with a
+  // single, CONSTANT compositor transform — instead of letting the <img> resample
+  // the frame to the display size every animation frame.
+  //
+  // Why: the office renders the sprite scaled down (e.g. a 248px-wide source in a
+  // ~103px slot). On the GPU, resampling the soft SEMI-TRANSPARENT halo to a
+  // smaller size every animation frame is not temporally stable — the halo's
+  // partially-transparent edge pixels are filtered slightly differently frame to
+  // frame, so the halo shimmers/flickers while the opaque body (flat colour) is
+  // unaffected. Viewed at 100% (native) in a browser there is no downscale, so it
+  // looks perfect. Painting the frame at native resolution into its own layer and
+  // then scaling that layer by a fixed transform samples the halo identically on
+  // every frame, so it stays rock-steady — no blur, no change to the artwork,
+  // halo, transparency, animation, scale or position.
+  const scale = height / config.frameHeight;
+
   return (
-    <img
-      className={`employee-sprite ${className ?? ''}`}
-      src={`${BASE}${file}`}
-      // Decorative: the wrapping button / roster card already names the
-      // employee, so an empty alt avoids a duplicate screen-reader announcement.
-      alt=""
-      width={width}
-      height={height}
-      draggable={false}
-      decoding="async"
+    <span
+      className={`employee-sprite-frame ${className ?? ''}`}
       style={{
         width: `calc(${width}px * var(--asset-scale))`,
         height: `calc(${height}px * var(--asset-scale))`,
         transform: baselineShift,
       }}
-    />
+    >
+      <img
+        className="employee-sprite"
+        src={`${BASE}${file}`}
+        // Decorative: the wrapping button / roster card already names the
+        // employee, so an empty alt avoids a duplicate screen-reader announcement.
+        alt=""
+        width={config.frameWidth}
+        height={config.frameHeight}
+        draggable={false}
+        decoding="async"
+        style={{
+          width: `${config.frameWidth}px`,
+          height: `${config.frameHeight}px`,
+          transform: `scale(calc(${scale} * var(--asset-scale)))`,
+        }}
+      />
+    </span>
   );
 }
 
