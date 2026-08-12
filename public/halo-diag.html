@@ -2,70 +2,137 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Squirrel halo diagnostic</title>
+    <title>Squirrel halo diagnostic — A/B</title>
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
-      body { background: #171717; color: #eee; font: 14px/1.45 system-ui, sans-serif; padding: 22px 26px 60px; }
-      h1 { font-size: 19px; margin-bottom: 6px; }
-      h2 { font-size: 15px; margin: 22px 0 10px; color: #8fd0ff; }
-      p.note { color: #aaa; max-width: 980px; margin-bottom: 6px; }
-      .row { display: flex; gap: 28px; flex-wrap: wrap; align-items: flex-start; margin-top: 10px; }
+      body { background: #171717; color: #eee; font: 14px/1.45 system-ui, sans-serif; padding: 20px 24px 80px; }
+      h1 { font-size: 20px; margin-bottom: 6px; }
+      h2 { font-size: 15px; margin: 26px 0 4px; color: #8fd0ff; }
+      h2 small { color: #9aa; font-weight: 400; }
+      p.note { color: #b0b0b0; max-width: 1040px; margin: 4px 0; }
+      code { background: #2a2a2a; padding: 1px 5px; border-radius: 4px; color: #ffd479; }
+      .dpr { background: #223; border: 1px solid #345; border-radius: 8px; padding: 8px 12px;
+             display: inline-block; margin: 8px 0; font-size: 13px; }
+      .dpr b { color: #ffd479; font-size: 15px; }
+      .row { display: flex; gap: 26px; flex-wrap: wrap; align-items: flex-start; margin-top: 8px; }
       .cell { text-align: center; }
-      .label { font-size: 12px; margin-bottom: 6px; color: #ddd; }
-      /* stage = office slot size (103x93), NO css effects: no filter, transform,
-         blend, backdrop-filter, opacity, animation. */
-      .stage { width: 103px; height: 93px; display: flex; align-items: flex-end;
-               justify-content: center; overflow: hidden; position: relative; }
+      .label { font-size: 12px; margin-bottom: 6px; color: #ddd; max-width: 150px; }
+
+      /* The stage = the office slot (103x93). NO css effects live on it: no
+         filter, blend-mode, backdrop-filter, opacity or extra CSS animation.
+         The ONLY thing that varies between cells is the geometric transform
+         under test (scale / sub-pixel offset / none), so any difference is
+         attributable purely to how the GPU resamples the sprite. */
+      .stage { width: 103px; height: 93px; position: relative; overflow: visible;
+               display: flex; align-items: flex-end; justify-content: center; }
       .solid { background: #808080; }
-      .vid { background: #000; }
-      .vid video.bg { position: absolute; inset: 0; width: 100%; height: 100%;
-                      object-fit: cover; z-index: 0; }
-      .sprite { width: 103px; height: 93px; display: block; position: relative; z-index: 1;
-                image-rendering: auto; }
-      .z3 .stage, .z3 .sprite { width: 309px; height: 279px; }
+      .spr { width: 103px; height: 93px; display: block; }
+
+      /* transforms under test (all pinned to the feet, like the game) */
+      .t-int  { transform: translateZ(0); }                 /* 1:1, GPU layer, integer */
+      .t-frac { transform: scale(1.3); transform-origin: 50% 100%; } /* fractional resample */
+      .t-sub  { transform: translate(0.5px, 0.5px); }        /* half-pixel offset */
+      .t-big  { transform: scale(3); transform-origin: 50% 100%; image-rendering: auto; }
+
+      /* Reproduce the EXACT game placement: absolute + left:% + translateX(-50%). */
+      .gamebox { position: relative; width: 260px; height: 120px; background: #808080; }
+      .gamebtn { position: absolute; bottom: 0; left: 47.3%; transform: translateX(-50%); }
+
       a { color: #8fd0ff; }
       .back { position: fixed; top: 12px; right: 16px; font-size: 13px; }
+      .legend { color: #8f8; } .bad { color: #f88; }
     </style>
   </head>
   <body>
     <div class="back"><a href="./index.html">← back to game</a></div>
-    <h1>Squirrel halo diagnostic — A/B</h1>
-    <p class="note">Every sprite below is the SAME character at the SAME in‑office size (103×93), same loop,
-      with NO CSS effects (no filter / transform / blend‑mode / backdrop‑filter / opacity / extra animation).</p>
-    <p class="note">Watch the soft halo/blur around each one for a few loops. Note which ones <b>shimmer/flicker</b>
-      and which are <b>stable</b>. Answers: (A) whole APNG vs (B) only the halo, (C) does removing the halo fix it,
-      (D) does the alpha video fix it, (F) is it a game‑CSS effect (this page has none).</p>
+    <h1>Squirrel halo diagnostic — controlled A/B</h1>
+    <div class="dpr" id="dpr">devicePixelRatio: <b id="dprv">?</b> &nbsp;·&nbsp; window: <b id="winv">?</b></div>
+    <p class="note"><b>How to read this:</b> every squirrel below is the SAME asset at the SAME 103×93 slot size,
+      same 30fps loop, with NO filter / blend-mode / backdrop-filter / opacity / CSS keyframes. The only difference
+      per cell is the <b>geometric transform</b> noted in its label. Watch the soft halo for several loops and note
+      which cells <span class="legend">stay stable</span> and which <span class="bad">shimmer/flicker</span>.</p>
+    <p class="note">The <b>fractional</b> cells (<code>scale(1.3)</code>) deliberately force the GPU to resample the
+      sprite off the pixel grid <i>every frame</i> — the same thing your real display does at 125%/150% Windows
+      scaling and/or the sub-pixel position the office uses. This reproduces the bug on-demand regardless of your DPR.</p>
 
-    <h2>A · Over a SOLID background (isolates the sprite rendering)</h2>
+    <h2>1 · Core test — integer vs fractional resampling <small>(over solid gray)</small></h2>
+    <p class="note">If the hypothesis is right: <b>A</b> is stable, <b>B</b> and <b>C</b> shimmer in the halo only.</p>
     <div class="row">
-      <div class="cell"><div class="label">1 · APNG (current)</div>
-        <div class="stage solid"><img class="sprite" src="employees/pip.png" srcset="employees/pip-1x.png 1x, employees/pip.png 2x" alt=""></div></div>
-      <div class="cell"><div class="label">2 · APNG — halo removed</div>
-        <div class="stage solid"><img class="sprite" src="_diag/pip-nohalo.png" alt=""></div></div>
-      <div class="cell"><div class="label">3 · WebM VP9 + alpha (video)</div>
-        <div class="stage solid"><video class="sprite" src="_diag/pip-alpha.webm" autoplay loop muted playsinline></video></div></div>
-      <div class="cell"><div class="label">4 · Static poster</div>
-        <div class="stage solid"><img class="sprite" src="employees/pip-poster.png" alt=""></div></div>
+      <div class="cell"><div class="label">A · APNG · integer 1:1 (pixel-snapped, own layer)</div>
+        <div class="stage solid"><img class="spr t-int" src="employees/pip-1x.png" alt=""></div></div>
+      <div class="cell"><div class="label">B · APNG · fractional <code>scale(1.3)</code></div>
+        <div class="stage solid"><img class="spr t-frac" src="employees/pip-1x.png" alt=""></div></div>
+      <div class="cell"><div class="label">C · APNG · sub-pixel <code>translate(.5px)</code></div>
+        <div class="stage solid"><img class="spr t-sub" src="employees/pip-1x.png" alt=""></div></div>
     </div>
 
-    <h2>B · Over the ANIMATED office background (same moving backdrop as the game)</h2>
+    <h2>2 · Decoder vs compositor <small>(both at the triggering fractional scale)</small></h2>
+    <p class="note">Same fractional scale for both. <b>D</b> is the browser's APNG decoder; <b>E</b> is the identical
+      242 frames as separate PNG files swapped by JS. If both shimmer equally → it's GPU compositing of the alpha
+      halo (not the APNG decoder). If only D → it's the decoder.</p>
     <div class="row">
-      <div class="cell"><div class="label">1 · APNG (current)</div>
-        <div class="stage vid"><video class="bg" src="backgrounds/office/office-main-loop.mp4" autoplay loop muted playsinline></video><img class="sprite" src="employees/pip.png" srcset="employees/pip-1x.png 1x, employees/pip.png 2x" alt=""></div></div>
-      <div class="cell"><div class="label">2 · APNG — halo removed</div>
-        <div class="stage vid"><video class="bg" src="backgrounds/office/office-main-loop.mp4" autoplay loop muted playsinline></video><img class="sprite" src="_diag/pip-nohalo.png" alt=""></div></div>
-      <div class="cell"><div class="label">3 · WebM VP9 + alpha</div>
-        <div class="stage vid"><video class="bg" src="backgrounds/office/office-main-loop.mp4" autoplay loop muted playsinline></video><video class="sprite" src="_diag/pip-alpha.webm" autoplay loop muted playsinline></video></div></div>
-      <div class="cell"><div class="label">4 · Static poster</div>
-        <div class="stage vid"><video class="bg" src="backgrounds/office/office-main-loop.mp4" autoplay loop muted playsinline></video><img class="sprite" src="employees/pip-poster.png" alt=""></div></div>
+      <div class="cell"><div class="label">D · APNG (decoder) · <code>scale(1.3)</code></div>
+        <div class="stage solid"><img class="spr t-frac" src="employees/pip-1x.png" alt=""></div></div>
+      <div class="cell"><div class="label">E · PNG frame-sequence (JS) · <code>scale(1.3)</code></div>
+        <div class="stage solid"><img id="seq" class="spr t-frac" src="_diag/frames/f000.png" alt=""></div></div>
     </div>
 
-    <h2>C · 3× zoom (over solid) — to inspect the halo edges closely</h2>
-    <div class="row z3">
-      <div class="cell"><div class="label">1 · APNG (current)</div>
-        <div class="stage solid"><img class="sprite" src="employees/pip.png" srcset="employees/pip-1x.png 1x, employees/pip.png 2x" alt=""></div></div>
-      <div class="cell"><div class="label">3 · WebM VP9 + alpha</div>
-        <div class="stage solid"><video class="sprite" src="_diag/pip-alpha.webm" autoplay loop muted playsinline></video></div></div>
+    <h2>3 · Is it specifically the halo? <small>(at fractional scale)</small></h2>
+    <p class="note">If <b>G</b> (halo removed) is stable while <b>F</b> shimmers → the instability lives in the
+      semi-transparent halo pixels, exactly as you describe.</p>
+    <div class="row">
+      <div class="cell"><div class="label">F · APNG full halo · <code>scale(1.3)</code></div>
+        <div class="stage solid"><img class="spr t-frac" src="employees/pip-1x.png" alt=""></div></div>
+      <div class="cell"><div class="label">G · APNG halo removed · <code>scale(1.3)</code></div>
+        <div class="stage solid"><img class="spr t-frac" src="_diag/pip-nohalo.png" alt=""></div></div>
     </div>
+
+    <h2>4 · Candidate fix — VP9+alpha video <small>(at the triggering fractional scale)</small></h2>
+    <p class="note">If <b>I</b> (WebM/VP9 with alpha) stays stable at the SAME fractional scale that makes the APNG
+      shimmer → the video compositing path is immune and is the robust fix. It keeps the halo, transparency and
+      animation.</p>
+    <div class="row">
+      <div class="cell"><div class="label">H · APNG · <code>scale(1.3)</code></div>
+        <div class="stage solid"><img class="spr t-frac" src="employees/pip-1x.png" alt=""></div></div>
+      <div class="cell"><div class="label">I · WebM VP9+alpha · <code>scale(1.3)</code></div>
+        <div class="stage solid"><video class="spr t-frac" src="_diag/pip-alpha.webm" autoplay loop muted playsinline></video></div></div>
+    </div>
+
+    <h2>5 · Exactly as placed in the game <small>(absolute · left:47.3% · translateX(-50%))</small></h2>
+    <p class="note">This reproduces the office's real positioning (fractional sub-pixel left edge). Compare the APNG
+      against the WebM in the identical placement.</p>
+    <div class="row">
+      <div class="cell"><div class="label">J · APNG — game placement</div>
+        <div class="gamebox"><div class="gamebtn"><img class="spr" src="employees/pip-1x.png" srcset="employees/pip-1x.png 1x, employees/pip.png 2x" alt=""></div></div></div>
+      <div class="cell"><div class="label">K · WebM — game placement</div>
+        <div class="gamebox"><div class="gamebtn"><video class="spr" src="_diag/pip-alpha.webm" autoplay loop muted playsinline></video></div></div></div>
+    </div>
+
+    <h2>6 · 3× zoom — inspect the halo edge closely</h2>
+    <div class="row">
+      <div class="cell"><div class="label">APNG · 3×</div>
+        <div class="stage solid" style="width:309px;height:279px"><img class="spr t-big" src="employees/pip-1x.png" alt=""></div></div>
+      <div class="cell"><div class="label">WebM · 3×</div>
+        <div class="stage solid" style="width:309px;height:279px"><video class="spr t-big" src="_diag/pip-alpha.webm" autoplay loop muted playsinline></video></div></div>
+    </div>
+
+    <script>
+      // report the environment (the DPR is the crux: 1.25/1.5 => fractional resample)
+      function upd() {
+        document.getElementById('dprv').textContent = window.devicePixelRatio;
+        document.getElementById('winv').textContent = innerWidth + '×' + innerHeight;
+      }
+      upd(); addEventListener('resize', upd);
+
+      // E: the "individual PNG frames" test — preload all 242 and swap src at 30fps.
+      const N = 242, FPS = 30;
+      const cache = [];
+      for (let i = 0; i < N; i++) { const im = new Image(); im.src = `_diag/frames/f${String(i).padStart(3,'0')}.png`; cache.push(im); }
+      const seq = document.getElementById('seq');
+      let f = 0;
+      Promise.all(cache.map(im => im.decode().catch(() => {}))).then(() => {
+        setInterval(() => { seq.src = cache[f].src; f = (f + 1) % N; }, 1000 / FPS);
+      });
+    </script>
   </body>
 </html>
