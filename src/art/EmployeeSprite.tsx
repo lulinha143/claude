@@ -38,10 +38,25 @@ function EmployeeSpriteImpl({ config, reducedMotion, height, className }: Employ
   const file = reducedMotion ? config.poster : useNoHalo ? config.srcNoHalo! : config.src;
   // Push any authored bottom padding below the floor line so the character's
   // real contact point sits exactly on its slot (baseline 0 = no shift).
-  const baselineShift = config.baseline > 0 ? `translateY(${config.baseline * 100}%)` : undefined;
+  const baselineShift = config.baseline > 0 ? `translateY(${config.baseline * 100}%)` : '';
+  // Always keep a `translateZ(0)` so the sprite stays on its OWN compositor
+  // layer (see `.employee-sprite` in styles.css). This is what makes the soft
+  // baked-in halo temporally STABLE: the animated frames are composited from an
+  // independently-rasterised texture, so nothing an ancestor does per frame — a
+  // backdrop-filter reacting to the animated office <video>, an idle re-render,
+  // a neighbouring animation — can re-blend the halo's semi-transparent edge and
+  // make it shimmer. Combined with dropping the redundant backdrop-filter on the
+  // office floor, this keeps the halo looking exactly as authored, just steady.
+  const transform = `${baselineShift} translateZ(0)`.trim();
 
-  // Serve the animated APNG at the RESOLUTION IT IS ACTUALLY DISPLAYED AT, per
-  // device pixel ratio, so the GPU never has to resample it every frame.
+  // SECONDARY mitigation (integer DPR): serve the animated APNG at the
+  // RESOLUTION IT IS ACTUALLY DISPLAYED AT so the GPU need not resample it. The
+  // PRIMARY halo-stability fix is the own-compositor-layer promotion above plus
+  // removing the redundant office-floor backdrop-filter; this srcset additionally
+  // avoids a fractional per-frame downscale on integer-DPR displays (DPR 1 -> @1x,
+  // DPR 2 -> @2x). On fractional DPR (e.g. Windows 125/150%) the layer promotion
+  // is what keeps the edge steady, since the texture is scaled once by a constant
+  // GPU transform rather than re-resampled per frame.
   //
   // Why: the office renders the sprite small (its slot is ~1x its @1x size). If a
   // single hi-res frame is downscaled by a FRACTIONAL factor every animation
@@ -73,7 +88,7 @@ function EmployeeSpriteImpl({ config, reducedMotion, height, className }: Employ
       style={{
         width: `calc(${width}px * var(--asset-scale))`,
         height: `calc(${height}px * var(--asset-scale))`,
-        transform: baselineShift,
+        transform,
       }}
     />
   );

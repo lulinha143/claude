@@ -1061,9 +1061,13 @@ h4 {
 }
 
 /* ------- final animated employee sprites (APNG "workstations") ------- */
-/* The APNG is shipped at @1x and @2x the slot size (see EmployeeSprite) so the
-   browser renders it 1:1 for the device pixel ratio — no fractional per-frame
-   GPU downscale, which is what made the soft halo shimmer. */
+/* Animated employee sprites. The soft "halo/glow" is baked into the APNG's own
+   alpha channel (not a CSS effect); the job here is to keep it TEMPORALLY STABLE
+   while it animates. Two things do that: (1) each sprite gets its own compositor
+   layer (below) so its semi-transparent edge is never re-blended by a repainting
+   ancestor — notably the office floor's backdrop-filter, which was the primary
+   cause and has been removed; (2) the @1x/@2x srcset (see EmployeeSprite) renders
+   1:1 on integer-DPR displays to avoid a fractional per-frame downscale. */
 .employee-sprite {
   display: block;
   /* the wrapping .critter-btn owns pointer input (drag/click) */
@@ -1071,6 +1075,17 @@ h4 {
   user-select: none;
   -webkit-user-drag: none;
   image-rendering: auto;
+  /* Give every animated character sprite its OWN compositor layer. This is the
+   * generic, reusable half of the halo-stability fix (works for any future
+   * animal APNG, not just Pip): the sprite is rasterised once per animation
+   * frame into its own GPU texture and composited independently, so its soft
+   * semi-transparent halo is NOT re-blended when an ancestor repaints (e.g. a
+   * backdrop-filter reacting to the animated office video, or ordinary idle
+   * ticks elsewhere in the scene). `translateZ(0)` is also applied inline in
+   * EmployeeSprite so the promotion holds even alongside the baseline shift. */
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 /* the workstation art carries its own grounded shadow, so suppress the
    generic critter contact ellipse to avoid a doubled shadow. */
@@ -3514,8 +3529,24 @@ select,
   opacity: 0.82;
 }
 
-/* optional soft blur behind panels/modals for readability over the animation */
-[data-bg-blur='true'] .office--overgif .floor,
+/* Optional soft blur behind MODALS for readability over the animation.
+ *
+ * IMPORTANT — halo-shimmer root cause: this used to ALSO include
+ * `.office--overgif .floor`, i.e. a live `backdrop-filter: blur(6px)` on the
+ * very panel that contains the animated employee sprites. On the GPU compositor
+ * a backdrop-filtered element must RE-COMPOSITE its entire subtree every time
+ * its backdrop changes — and the office backdrop is an animated <video> running
+ * ~30fps. So each employee's soft SEMI-TRANSPARENT halo pixels were re-blended
+ * on every single video frame; the tiny per-recomposite rounding differences
+ * live exactly in those soft alpha edges, which is why the halo shimmered while
+ * the opaque body (which blends to a stable colour) stayed put. It is fine when
+ * the raw APNG is viewed standalone (no backdrop-filter there) and it never
+ * showed under software rendering (GPU-compositor-specific) — matching the
+ * real-machine-only report. The blur was also VISUALLY REDUNDANT here: the
+ * `.office--overgif .floor` background is an opaque gradient (see above), so the
+ * blurred backdrop behind it is fully occluded and never visible. Dropping the
+ * floor from this rule therefore changes nothing on screen but removes the
+ * per-frame recomposition of the sprite's halo. Modals still get the blur. */
 [data-bg-blur='true'] .modal {
   backdrop-filter: blur(6px);
 }
