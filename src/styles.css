@@ -1063,11 +1063,13 @@ h4 {
 /* ------- final animated employee sprites (APNG "workstations") ------- */
 /* Animated employee sprites. The soft "halo/glow" is baked into the APNG's own
    alpha channel (not a CSS effect); the job here is to keep it TEMPORALLY STABLE
-   while it animates. Two things do that: (1) each sprite gets its own compositor
-   layer (below) so its semi-transparent edge is never re-blended by a repainting
-   ancestor — notably the office floor's backdrop-filter, which was the primary
-   cause and has been removed; (2) the @1x/@2x srcset (see EmployeeSprite) renders
-   1:1 on integer-DPR displays to avoid a fractional per-frame downscale. */
+   while it animates. Two things do that (see EmployeeSprite for the full note):
+   (1) each sprite gets its own compositor layer (below) so its semi-transparent
+   edge is never re-blended by a repainting ancestor — notably the office floor's
+   backdrop-filter, which was removed; (2) the animated frame is rendered at its
+   NATIVE resolution and shrunk to the slot with a CONSTANT transform, so the GPU
+   never re-downscales it per frame (which shimmers the soft edge at fractional
+   device pixel ratios such as Windows 125%/150% scaling). */
 .employee-sprite {
   display: block;
   /* the wrapping .critter-btn owns pointer input (drag/click) */

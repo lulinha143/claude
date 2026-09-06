@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, type CSSProperties } from 'react';
 import type { EmployeeSpriteConfig } from './employeeSprites';
 import { useHaloOff } from './haloTest';
 
@@ -16,6 +16,37 @@ import { useHaloOff } from './haloTest';
 // Asset URLs resolve through import.meta.env.BASE_URL so they work identically
 // in the dev server, the GitHub Pages build (base './') and the packaged
 // Electron app (file://) — matching the office-background convention.
+//
+// HALO STABILITY (why the soft baked-in halo does not shimmer):
+// The glow/halo is painted into the APNG's own alpha channel. Its soft
+// SEMI-TRANSPARENT edge shimmers if the GPU resamples it with a DIFFERENT
+// sub-pixel geometry on every animation frame. Two independent things cause
+// that in a game (but never when viewing the raw APNG standalone), so we defeat
+// both, generically, for EVERY animated character — not just Pip:
+//
+//   1. Compositing coupling. If a repainting ancestor (e.g. the office floor's
+//      backdrop-filter reacting to the animated background <video>) forces the
+//      sprite's subtree to re-composite each frame, the halo's alpha edge is
+//      re-blended repeatedly. Fixed by (a) removing that redundant
+//      backdrop-filter (see styles.css) and (b) promoting the sprite to its own
+//      compositor layer (`will-change: transform` in .employee-sprite +
+//      `translateZ(0)` here) so it is composited from an independent texture.
+//
+//   2. Fractional per-frame downscale. The office draws the sprite small. If a
+//      hi-res frame is downscaled by a FRACTIONAL factor (which happens at
+//      non-integer device pixel ratios — e.g. Windows 125%/150% scaling — even
+//      with a @1x/@2x srcset) the soft edge lands on a shifting sub-pixel grid
+//      each frame and shimmers, while the flat opaque body stays put. Fixed by
+//      rendering the frame at its NATIVE pixel size and shrinking it with a
+//      CONSTANT transform on the sprite's own layer: the browser rasterises each
+//      frame once at native resolution into the layer texture, then the GPU
+//      scales that texture by the SAME factor every frame — identical sampling
+//      geometry frame-to-frame, so the halo is steady at any DPR. This is why we
+//      wrap the animated <img> in a fixed display-size box and scale the img,
+//      instead of setting its CSS width/height to the small display size (which
+//      re-downscales the decode every frame). Verified pixel-equivalent to the
+//      previous rendering in appearance and geometry; nothing about the artwork,
+//      halo, transparency, animation, scale or position changes.
 
 const BASE = import.meta.env.BASE_URL ?? '/';
 
@@ -36,48 +67,67 @@ function EmployeeSpriteImpl({ config, reducedMotion, height, className }: Employ
   const haloOff = useHaloOff();
   const useNoHalo = haloOff && !reducedMotion && !!config.srcNoHalo;
   const file = reducedMotion ? config.poster : useNoHalo ? config.srcNoHalo! : config.src;
+
   // Push any authored bottom padding below the floor line so the character's
   // real contact point sits exactly on its slot (baseline 0 = no shift).
   const baselineShift = config.baseline > 0 ? `translateY(${config.baseline * 100}%)` : '';
-  // Always keep a `translateZ(0)` so the sprite stays on its OWN compositor
-  // layer (see `.employee-sprite` in styles.css). This is what makes the soft
-  // baked-in halo temporally STABLE: the animated frames are composited from an
-  // independently-rasterised texture, so nothing an ancestor does per frame — a
-  // backdrop-filter reacting to the animated office <video>, an idle re-render,
-  // a neighbouring animation — can re-blend the halo's semi-transparent edge and
-  // make it shimmer. Combined with dropping the redundant backdrop-filter on the
-  // office floor, this keeps the halo looking exactly as authored, just steady.
-  const transform = `${baselineShift} translateZ(0)`.trim();
 
-  // SECONDARY mitigation (integer DPR): serve the animated APNG at the
-  // RESOLUTION IT IS ACTUALLY DISPLAYED AT so the GPU need not resample it. The
-  // PRIMARY halo-stability fix is the own-compositor-layer promotion above plus
-  // removing the redundant office-floor backdrop-filter; this srcset additionally
-  // avoids a fractional per-frame downscale on integer-DPR displays (DPR 1 -> @1x,
-  // DPR 2 -> @2x). On fractional DPR (e.g. Windows 125/150%) the layer promotion
-  // is what keeps the edge steady, since the texture is scaled once by a constant
-  // GPU transform rather than re-resampled per frame.
-  //
-  // Why: the office renders the sprite small (its slot is ~1x its @1x size). If a
-  // single hi-res frame is downscaled by a FRACTIONAL factor every animation
-  // frame, the GPU samples the soft SEMI-TRANSPARENT halo at a shifting sub-pixel
-  // grid / fractional mip level, so the halo shimmers frame-to-frame while the
-  // flat opaque body stays put. At 100% (integer/1:1) it is stable — which is
-  // exactly why the raw APNG looks perfect in a browser tab. By shipping the
-  // frame at 1x AND 2x the slot size and letting the browser pick the one that
-  // matches the device pixel ratio, it renders 1:1 (DPR 1 -> @1x, DPR 2 -> @2x):
-  // no fractional downscale, no upscale blur. Nothing about the artwork, halo,
-  // transparency, animation, scale or position changes.
-  const srcSet =
-    !reducedMotion && !useNoHalo && config.src1x
-      ? `${BASE}${config.src1x} 1x, ${BASE}${config.src} 2x`
-      : undefined;
+  // The animation is the only path that gets resampled every frame, so it is the
+  // only path that needs the native-resolution + constant-scale treatment. The
+  // static poster / halo-diagnostic frames are decoded once and never re-scaled
+  // per frame, so they render at display size directly (still on their own
+  // layer for isolation).
+  const animated = !reducedMotion && !useNoHalo;
 
+  if (animated) {
+    // `config.src` is the @2x asset when a @1x variant exists (Pip: 206×186 for a
+    // 103×93 slot), otherwise it is already the art's native size. Render the img
+    // at that native size and shrink it to the slot with a constant transform.
+    const nativeScale = config.src1x ? 2 : 1;
+    const nativeW = config.frameWidth * nativeScale;
+    const nativeH = config.frameHeight * nativeScale;
+    const fit = width / nativeW; // constant downscale factor (e.g. 0.5 for Pip)
+
+    const wrapStyle: CSSProperties = {
+      position: 'relative',
+      display: 'block',
+      width: `calc(${width}px * var(--asset-scale))`,
+      height: `calc(${height}px * var(--asset-scale))`,
+      transform: baselineShift || undefined,
+      pointerEvents: 'none',
+    };
+    const imgStyle: CSSProperties = {
+      position: 'absolute',
+      left: 0,
+      bottom: 0,
+      width: `${nativeW}px`,
+      height: `${nativeH}px`,
+      transformOrigin: 'left bottom',
+      // Scale the native texture down by a constant factor on the sprite's own
+      // GPU layer (translateZ keeps it promoted alongside the CSS will-change).
+      transform: `scale(calc(${fit} * var(--asset-scale))) translateZ(0)`,
+    };
+    return (
+      <span className={`employee-sprite-wrap ${className ?? ''}`} style={wrapStyle}>
+        <img
+          className="employee-sprite"
+          src={`${BASE}${file}`}
+          alt=""
+          width={nativeW}
+          height={nativeH}
+          draggable={false}
+          decoding="async"
+          style={imgStyle}
+        />
+      </span>
+    );
+  }
+
+  // Static frame (reduced motion poster, or the halo-isolation diagnostic).
   return (
     <img
       className={`employee-sprite ${className ?? ''}`}
       src={`${BASE}${file}`}
-      srcSet={srcSet}
       // Decorative: the wrapping button / roster card already names the
       // employee, so an empty alt avoids a duplicate screen-reader announcement.
       alt=""
@@ -88,7 +138,7 @@ function EmployeeSpriteImpl({ config, reducedMotion, height, className }: Employ
       style={{
         width: `calc(${width}px * var(--asset-scale))`,
         height: `calc(${height}px * var(--asset-scale))`,
-        transform,
+        transform: `${baselineShift} translateZ(0)`.trim(),
       }}
     />
   );
