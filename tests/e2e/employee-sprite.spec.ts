@@ -14,7 +14,13 @@ function saveWith(extra: Record<string, unknown>) {
     onboardingComplete: true,
     lastSaved: Date.now(),
     company: { name: 'Nutty Co.' },
-    resources: { nuts: 5_000_000, goldenNuts: 40, reputation: 4000, morale: 82, permanentKernels: 3 },
+    resources: {
+      nuts: 5_000_000,
+      goldenNuts: 40,
+      reputation: 4000,
+      morale: 82,
+      permanentKernels: 3,
+    },
     employees: {
       pip: { hired: true, level: 6, friendship: 70, room: 'founder-desk', x: 0.5 },
       bea: { hired: true, level: 4, friendship: 60, room: 'construction', x: 0.5 },
@@ -54,7 +60,9 @@ test("Bea's animated workstation sprite renders and loops in her department", as
   await page.goto('/');
   await openConstruction(page);
 
-  const sprite = page.locator('.floor[data-room="construction"] .critter-btn--sprite .employee-sprite');
+  const sprite = page.locator(
+    '.floor[data-room="construction"] .critter-btn--sprite .employee-sprite',
+  );
   await expect(sprite).toHaveCount(1);
   await expect(sprite).toBeVisible();
 
@@ -96,7 +104,9 @@ test('reduced motion swaps Bea to a static poster frame', async ({ page }) => {
   await page.goto('/');
   await openConstruction(page);
 
-  const sprite = page.locator('.floor[data-room="construction"] .critter-btn--sprite .employee-sprite');
+  const sprite = page.locator(
+    '.floor[data-room="construction"] .critter-btn--sprite .employee-sprite',
+  );
   await expect(sprite).toHaveCount(1);
   const src = await sprite.getAttribute('src');
   expect(src).toContain('employees/bea-poster.png');
@@ -106,4 +116,102 @@ test('reduced motion swaps Bea to a static poster frame', async ({ page }) => {
   await page.waitForTimeout(600);
   const b = await sprite.screenshot();
   expect(Buffer.compare(a, b)).toBe(0);
+});
+
+// GEOMETRY GUARD — Pip (squirrel).
+//
+// A previous rendering change sized the animated <img> at its NATIVE resolution
+// inside a smaller wrapper and shrank it with a transform. That tripped the
+// global `img { max-width: 100% }` rule in styles.css, which clamps WIDTH while
+// leaving an explicit height alone: Pip rendered 51.5x93 instead of 103x93 — a
+// 2:1 distortion that unit tests and jsdom cannot see because it only happens
+// once real CSS is applied.
+//
+// These tests assert the ON-SCREEN box matches the artwork's aspect ratio in
+// both places Pip is drawn, at an integer AND a fractional device pixel ratio.
+async function openFounderDesk(page: Page) {
+  await page.locator('.office').first().waitFor({ timeout: 15000 });
+  await clearModals(page);
+  await page.locator('.floor[data-room="founder-desk"]').scrollIntoViewIfNeeded();
+  await page.waitForTimeout(400);
+}
+
+// Pip's registered art proportions (see EMPLOYEE_SPRITES.pip).
+const PIP_ASPECT = 103 / 93;
+
+test('Pip renders at the artwork aspect ratio in the office (no squash)', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await seed(page, saveWith({}));
+  await page.goto('/');
+  await openFounderDesk(page);
+
+  const sprite = page.locator(
+    '.floor[data-room="founder-desk"] .critter-btn--sprite .employee-sprite',
+  );
+  await expect(sprite).toHaveCount(1);
+  await expect(sprite).toBeVisible();
+
+  const box = await sprite.evaluate((el) => {
+    const r = el.getBoundingClientRect();
+    return { w: r.width, h: r.height };
+  });
+  expect(box.w).toBeGreaterThan(0);
+  expect(box.h).toBeGreaterThan(0);
+  // Within 2% of the authored proportions (allows integer px rounding only).
+  expect(box.w / box.h).toBeGreaterThan(PIP_ASPECT * 0.98);
+  expect(box.w / box.h).toBeLessThan(PIP_ASPECT * 1.02);
+});
+
+test('Pip renders at the artwork aspect ratio on the roster card', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await seed(page, saveWith({}));
+  await page.goto('/');
+  await page.locator('.office').first().waitFor({ timeout: 15000 });
+  await clearModals(page);
+
+  // Walk the navigation until the roster (which renders .employee-card__art) shows.
+  const dests = page.locator('.nav__destination');
+  const count = await dests.count();
+  for (let i = 0; i < count; i += 1) {
+    await dests
+      .nth(i)
+      .click({ timeout: 2000 })
+      .catch(() => {});
+    await page.waitForTimeout(250);
+    if (await page.locator('.employee-card__art--sprite .employee-sprite').count()) break;
+  }
+
+  const sprite = page.locator('.employee-card__art--sprite .employee-sprite').first();
+  await expect(sprite).toBeVisible();
+  const box = await sprite.evaluate((el) => {
+    const r = el.getBoundingClientRect();
+    return { w: r.width, h: r.height };
+  });
+  expect(box.w / box.h).toBeGreaterThan(PIP_ASPECT * 0.98);
+  expect(box.w / box.h).toBeLessThan(PIP_ASPECT * 1.02);
+});
+
+test('Pip keeps her aspect ratio at a fractional device pixel ratio', async ({ browser }) => {
+  // Windows display scaling (125%/150%) is the environment the original
+  // investigation suspected, so pin a fractional DPR explicitly.
+  const ctx = await browser.newContext({
+    viewport: { width: 1280, height: 900 },
+    deviceScaleFactor: 1.5,
+  });
+  const page = await ctx.newPage();
+  await seed(page, saveWith({}));
+  await page.goto('/');
+  await openFounderDesk(page);
+
+  const sprite = page.locator(
+    '.floor[data-room="founder-desk"] .critter-btn--sprite .employee-sprite',
+  );
+  await expect(sprite).toBeVisible();
+  const box = await sprite.evaluate((el) => {
+    const r = el.getBoundingClientRect();
+    return { w: r.width, h: r.height };
+  });
+  expect(box.w / box.h).toBeGreaterThan(PIP_ASPECT * 0.98);
+  expect(box.w / box.h).toBeLessThan(PIP_ASPECT * 1.02);
+  await ctx.close();
 });

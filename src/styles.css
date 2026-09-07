@@ -1062,14 +1062,18 @@ h4 {
 
 /* ------- final animated employee sprites (APNG "workstations") ------- */
 /* Animated employee sprites. The soft "halo/glow" is baked into the APNG's own
-   alpha channel (not a CSS effect); the job here is to keep it TEMPORALLY STABLE
-   while it animates. Two things do that (see EmployeeSprite for the full note):
-   (1) each sprite gets its own compositor layer (below) so its semi-transparent
-   edge is never re-blended by a repainting ancestor — notably the office floor's
-   backdrop-filter, which was removed; (2) the animated frame is rendered at its
-   NATIVE resolution and shrunk to the slot with a CONSTANT transform, so the GPU
-   never re-downscales it per frame (which shimmers the soft edge at fractional
-   device pixel ratios such as Windows 125%/150% scaling). */
+   alpha channel (not a CSS effect), so CSS must never try to recreate, blur or
+   clip it — it only has to lay the artwork out at the right size and leave it
+   alone.
+
+   The halo shimmer that was chased here for a long time turned out NOT to be a
+   CSS/compositing/DPR/GPU-scaling problem: a few individual frames of the source
+   artwork had their semi-transparent alpha collapsed to about half, so the halo
+   deflated for one frame roughly once a second. That is fixed in the asset (see
+   docs/CHARACTER_SPRITES.md and scripts/repair-character-apng.py) and guarded by
+   `npm run verify:assets`. The own-compositor-layer promotion below is kept
+   because it is cheap and genuinely avoids an ancestor repaint re-blending the
+   semi-transparent edge, but it was never the cause. */
 .employee-sprite {
   display: block;
   /* the wrapping .critter-btn owns pointer input (drag/click) */
@@ -1077,6 +1081,12 @@ h4 {
   user-select: none;
   -webkit-user-drag: none;
   image-rendering: auto;
+  /* Character art is sized EXPLICITLY from the asset's own aspect ratio (see
+   * EmployeeSprite), so the generic `img { max-width: 100% }` overflow guard
+   * further down this file must not apply here: it clamps width while leaving an
+   * explicit height untouched, which silently distorts the proportions. Opting
+   * out keeps every animal's rendered box exactly proportional to its source. */
+  max-width: none;
   /* Give every animated character sprite its OWN compositor layer. This is the
    * generic, reusable half of the halo-stability fix (works for any future
    * animal APNG, not just Pip): the sprite is rasterised once per animation
