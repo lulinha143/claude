@@ -94,15 +94,20 @@ export const EMPLOYEE_SPRITES: Record<string, EmployeeSpriteConfig> = {
   // LANCZOS downscale — crisp, no edge halos). The desk footprint is centred and
   // the art carries its own soft grounded shadow (baseline 0).
   //
-  // HALO SHIMMER FIX — resolution, not encoding: the halo flicker seen in the
-  // real GPU build was NOT the asset or scene compositing (both were proven
-  // clean); it was the GPU doing a FRACTIONAL per-frame downscale of the soft
-  // semi-transparent halo (a hi-res frame resampled to the small slot every
-  // frame → shifting sub-pixel/mip sampling → shimmer; the flat opaque body is
-  // unaffected, and at 100%/integer it's stable). Fix: ship the frame at exactly
-  // the slot size (@1x, 103x93) AND at 2x (206x186) and let the browser pick per
-  // devicePixelRatio via srcset, so it renders 1:1 (no fractional downscale) on
-  // both DPR-1 and DPR-2. frameWidth/frameHeight below are the @1x dimensions.
+  // HALO SHIMMER — the cause was IN THE ARTWORK, not the renderer. 8 of the 242
+  // frames (13, 67, 87, 94, 157, 158, 161, 210) had their semi-transparent alpha
+  // collapsed ~52%, so the soft halo deflated for a single frame roughly once a
+  // second while the near-opaque body barely moved — exactly the reported
+  // symptom. Between healthy frames the mean alpha changes by only ~0.4/255, so
+  // the dropouts stood out at ~24/255. Repaired in place by substituting the
+  // nearest healthy frame (healthy frames left bit-identical, timing and loop
+  // preserved); see docs/CHARACTER_SPRITES.md. `npm run verify:assets` now fails
+  // if any character APNG regains this defect.
+  //
+  // The @1x/@2x pair below is kept only as a resolution hint so the frame maps
+  // 1:1 to device pixels at integer DPR. It is NOT a shimmer fix, and it cannot
+  // affect geometry: EmployeeSprite always sets the <img>'s CSS width AND height
+  // from frameWidth/frameHeight, which are the @1x dimensions.
   pip: {
     src: 'employees/pip.png', // @2x (206x186)
     src1x: 'employees/pip-1x.png', // @1x (103x93) — exact slot size
