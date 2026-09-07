@@ -1,0 +1,7 @@
+{
+  "_meta": { "name": "Français", "complete": false, "note": "Draft / machine-assisted. Falls back to English for missing keys." },
+  "common": { "ok": "OK", "cancel": "Annuler", "close": "Fermer", "buy": "Acheter", "save": "Enregistrer", "back": "Retour" },
+  "app": { "title": "ZooWorkers", "subtitle": "Un douillet jeu idle de bureau animalier", "tagline": "Tout un bureau d'animaux adorables gère une toute petite entreprise." },
+  "nav": { "office": "Bureau", "shop": "Améliorations", "employees": "Équipe", "company": "Société", "collections": "Collections", "achievements": "Succès", "focus": "Focus", "decorate": "Décorer", "settings": "Réglages", "stats": "Statistiques", "prestige": "Prestige" },
+  "resource": { "nuts": "Noix", "goldenNuts": "Noix Dorées", "morale": "Moral", "reputation": "Réputation" }
+}

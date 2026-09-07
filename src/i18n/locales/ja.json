@@ -1,0 +1,7 @@
+{
+  "_meta": { "name": "日本語", "complete": false, "note": "Draft / machine-assisted. Falls back to English for missing keys." },
+  "common": { "ok": "OK", "cancel": "キャンセル", "close": "閉じる", "buy": "購入", "save": "保存", "back": "戻る" },
+  "app": { "title": "ZooWorkers", "subtitle": "ほのぼの動物オフィス放置ゲーム", "tagline": "愛らしい動物たちのオフィスが、小さな会社を切り盛りします。" },
+  "nav": { "office": "オフィス", "shop": "アップグレード", "employees": "チーム", "company": "会社", "collections": "コレクション", "achievements": "実績", "focus": "集中", "decorate": "模様替え", "settings": "設定", "stats": "統計", "prestige": "プレステージ" },
+  "resource": { "nuts": "ナッツ", "goldenNuts": "黄金のナッツ", "morale": "士気", "reputation": "評判" }
+}

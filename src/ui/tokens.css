@@ -1,0 +1,279 @@
+/* ==========================================================================
+   Design tokens — the single source of truth for colour, elevation, spacing,
+   radius, and motion. Components reference these semantic tokens rather than
+   hardcoding hex values, so the whole game can be re-themed from one place and
+   high-contrast / colourblind modes stay consistent.
+   ========================================================================== */
+:root {
+  /* --- raw palette (warm cozy tree-trunk office) --- */
+  --c-bark-900: #1c150d;
+  --c-bark-800: #241a12;
+  --c-bark-700: #2a2016;
+  --c-bark-600: #3a2c1f;
+  --c-bark-500: #4a3826;
+  --c-bark-400: #5a4632;
+  --c-bark-300: #6b533b;
+  --c-wood-500: #8a5a2b;
+  --c-wood-400: #a9743b;
+  --c-wood-300: #c98a4b;
+
+  --c-cream-100: #fff4e0;
+  --c-cream-200: #f0e2c8;
+  --c-cream-300: #d8c4a8;
+  --c-cream-400: #a89577;
+  --c-paper-100: #fff1cf;
+  --c-paper-200: #f3ddb1;
+  --c-paper-300: #d9b982;
+  --c-ink-800: #332619;
+  --c-brass-500: #bd8733;
+
+  --c-moss-600: #2f6b40;
+  --c-moss-500: #3f7d4f;
+  --c-moss-400: #5a9a68;
+  --c-amber-500: #e0a43b;
+  --c-amber-400: #f0be5e;
+  --c-brick-500: #c65b3c;
+  --c-brick-600: #a8492e;
+  --c-coffee-500: #6f4a2f;
+  --c-gold-500: #ffd54a;
+  --c-gold-600: #d9a800;
+  --c-charcoal: #2f3640;
+  --c-plum-500: #7c5cff;
+
+  /* --- semantic tokens --- */
+  --bg: #2a2016;
+  --bg-app-top: #43331f;
+  --surface: rgba(0, 0, 0, 0.22);
+  --surface-raised: rgba(255, 244, 224, 0.06);
+  --surface-sunken: rgba(0, 0, 0, 0.4);
+  --border: rgba(0, 0, 0, 0.4);
+  --border-strong: var(--c-bark-900);
+
+  --text: var(--c-cream-100);
+  --text-secondary: var(--c-cream-300);
+  --text-muted: var(--c-cream-400);
+  --text-disabled: #8a7d6c;
+  --text-on-accent: #ffffff;
+
+  --primary: var(--c-moss-500);
+  --primary-hover: var(--c-moss-400);
+  --primary-press: var(--c-moss-600);
+
+  --accent: var(--c-amber-500);
+  --positive: #4f9d69;
+  --warning: var(--c-amber-500);
+  --negative: #b0473a;
+  --rare: #4f7dd6;
+  --gold: var(--c-gold-500);
+  --focus-mode: #6fa8dc;
+  --quiet-mode: #9a8cff;
+
+  --interactive-hover: rgba(255, 255, 255, 0.06);
+  --interactive-press: rgba(255, 255, 255, 0.12);
+  --focus-ring: var(--c-gold-500);
+
+  /* department accents (desaturated, distinct, compatible) */
+  --dept-founder: #c98a4b;
+  --dept-sorting: #b98a4b;
+  --dept-morale: #7fb8a0;
+  --dept-procurement: #8a8f98;
+  --dept-construction: #c98a4b;
+  --dept-lab: #7fb0c8;
+  --dept-marketing: #b98ad0;
+  --dept-vault: var(--c-gold-500);
+  --dept-research: #d0a86a;
+  --dept-meeting: #a0906a;
+  --dept-nap: #9aa0c8;
+  --dept-basement: #6a6f78;
+  --dept-rooftop: #7fb86a;
+
+  /* elevation */
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.5);
+  --shadow-contact: 0 3px 4px -2px rgba(0, 0, 0, 0.55);
+
+  /* spacing scale */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+
+  /* borders and corners — compact office forms, not soft dashboard cards */
+  --border-thin: 1px;
+  --border-strong-width: 2px;
+  --r-sm: 4px;
+  --r-md: 7px;
+  --r-lg: 10px;
+  --r-pill: 999px; /* reserved for true circular meters only */
+  --corner-control: 4px;
+  --corner-panel: 6px;
+
+  /* shared UI identity surfaces and interaction states */
+  --paper: var(--c-paper-100);
+  --paper-muted: var(--c-paper-200);
+  --paper-edge: var(--c-paper-300);
+  --ink: var(--c-ink-800);
+  --stationery-rule: rgba(128, 87, 40, 0.2);
+  --stationery-stitch: color-mix(in srgb, var(--c-cream-300) 42%, transparent);
+  --brand-mark: var(--c-amber-400);
+  --panel-surface: color-mix(in srgb, var(--c-bark-700) 94%, var(--c-wood-500));
+  --panel-surface-raised: color-mix(in srgb, var(--c-bark-600) 90%, var(--c-wood-400));
+  --panel-texture:
+    repeating-linear-gradient(0deg, rgba(255, 244, 224, 0.022) 0 1px, transparent 1px 19px),
+    linear-gradient(145deg, rgba(255, 244, 224, 0.045), transparent 42%);
+  --chrome-surface: color-mix(in srgb, var(--c-bark-900) 88%, transparent);
+  --chrome-texture:
+    linear-gradient(100deg, rgba(255, 244, 224, 0.04), transparent 26%),
+    repeating-linear-gradient(90deg, rgba(255, 244, 224, 0.016) 0 1px, transparent 1px 32px);
+  --control-surface: color-mix(in srgb, var(--c-bark-600) 86%, var(--c-wood-400));
+  --control-edge: color-mix(in srgb, var(--c-bark-900) 82%, black);
+  --control-highlight: rgba(255, 244, 224, 0.13);
+  --control-hover: color-mix(in srgb, var(--primary) 32%, var(--panel-surface-raised));
+  --control-pressed: color-mix(in srgb, var(--primary) 46%, var(--c-bark-900));
+  --control-disabled: #40372e;
+  --accent-rule: var(--c-amber-500);
+  --shadow-form: 2px 3px 0 rgba(18, 12, 7, 0.45);
+  --shadow-stationery: 3px 4px 0 rgba(18, 12, 7, 0.4);
+  --shadow-control: 0 3px 0 var(--control-edge), inset 0 1px 0 var(--control-highlight);
+  --shadow-control-hover:
+    0 5px 0 var(--control-edge), 0 7px 12px rgba(18, 12, 7, 0.2),
+    inset 0 1px 0 var(--control-highlight);
+  --shadow-pressed: inset 0 2px 0 rgba(0, 0, 0, 0.28);
+  --outline-handmade: color-mix(in srgb, var(--c-bark-900) 84%, black);
+  --material-paper-highlight: rgba(255, 255, 255, 0.38);
+  --material-warm-glow: color-mix(in srgb, var(--gold) 24%, transparent);
+
+  /* motion — one tactile rhythm shared by controls, stationery and rewards */
+  --dur-instant: 0.06s;
+  --dur-fast: 0.1s;
+  --dur: 0.18s;
+  --dur-slow: 0.34s;
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-pop: cubic-bezier(0.18, 0.89, 0.32, 1.28);
+  --ease-settle: cubic-bezier(0.34, 1.32, 0.64, 1);
+
+  /* scaling (driven by settings) */
+  --font-scale: 1;
+  --ui-scale: 1;
+  --asset-scale: 1;
+
+  /* --- typography system ---------------------------------------------------
+     DynaPuff supplies the handmade animal-office voice for prominent display
+     roles; Nunito keeps body copy, tiny controls and numeric data calm and
+     readable. Both faces are bundled as Latin subsets for offline use and
+     Portuguese accents. Canvas exports mirror these stacks in fontStacks.ts. */
+  --font-logo:
+    'DynaPuff', 'Cooper Black', 'Arial Rounded MT Bold', 'Segoe UI', system-ui, sans-serif;
+  --font-display: 'DynaPuff', 'Arial Rounded MT Bold', 'Segoe UI', system-ui, sans-serif;
+  --font-body: 'Nunito', 'Avenir Next', 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+  --font-numeric: 'Nunito', ui-rounded, 'Segoe UI', system-ui, sans-serif;
+  --font-compact: var(--font-body);
+  /* Compatibility aliases for existing component rules. */
+  --font-num: var(--font-numeric);
+
+  /* weights — DynaPuff covers 400–700; Nunito covers 400/600/700/800 */
+  --fw-normal: 400;
+  --fw-medium: 500;
+  --fw-bold: 600;
+  --fw-heavy: 700;
+  --fw-body-strong: 700;
+  --fw-numeric: 700;
+
+  /* line-heights & tracking */
+  --lh-tight: 1.15;
+  --lh-snug: 1.3;
+  --lh-normal: 1.5;
+  --tracking-tight: -0.01em;
+  --tracking-wide: 0.06em;
+
+  /* Fluid type scale. Each step scales gently with the viewport and with the
+     player's font-size preference. */
+  --fs-2xs: calc(clamp(11px, 0.55vw + 0.5vh, 12px) * var(--font-scale));
+  --fs-xs: calc(clamp(12px, 0.6vw + 0.55vh, 13.5px) * var(--font-scale));
+  --fs-sm: calc(clamp(12.5px, 0.65vw + 0.6vh, 14.5px) * var(--font-scale));
+  --fs-base: calc(clamp(13px, 0.7vw + 0.65vh, 16.5px) * var(--font-scale));
+  --fs-lg: calc(clamp(15px, 0.8vw + 0.7vh, 19px) * var(--font-scale));
+  --fs-xl: calc(clamp(18px, 1vw + 0.9vh, 24px) * var(--font-scale));
+  --fs-2xl: calc(clamp(22px, 1.4vw + 1.1vh, 32px) * var(--font-scale));
+
+  /* Semantic role tokens. Tiny labels deliberately stay in Nunito: DynaPuff's
+     lively shapes become crowded below normal control sizes. */
+  --type-caption-family: var(--font-compact);
+  --type-caption-size: var(--fs-2xs);
+  --type-caption-weight: var(--fw-body-strong);
+  --type-caption-line: var(--lh-snug);
+  --type-small-family: var(--font-compact);
+  --type-small-size: var(--fs-xs);
+  --type-small-weight: var(--fw-body-strong);
+  --type-small-line: var(--lh-snug);
+  --type-body-family: var(--font-body);
+  --type-body-size: var(--fs-base);
+  --type-body-weight: var(--fw-normal);
+  --type-body-line: var(--lh-normal);
+  --type-button-family: var(--font-display);
+  --type-button-size: var(--fs-sm);
+  --type-button-weight: var(--fw-bold);
+  --type-button-line: var(--lh-snug);
+  --type-section-family: var(--font-display);
+  --type-section-size: var(--fs-lg);
+  --type-section-weight: var(--fw-heavy);
+  --type-section-line: var(--lh-tight);
+  --type-panel-family: var(--font-display);
+  --type-panel-size: var(--fs-xl);
+  --type-panel-weight: var(--fw-heavy);
+  --type-panel-line: var(--lh-tight);
+  --type-event-family: var(--font-display);
+  --type-event-size: var(--fs-lg);
+  --type-event-weight: var(--fw-bold);
+  --type-event-line: var(--lh-snug);
+  --type-hero-family: var(--font-logo);
+  --type-hero-size: calc(clamp(28px, 2vw + 1.4vh, 44px) * var(--font-scale));
+  --type-hero-weight: var(--fw-heavy);
+  --type-hero-line: 1.08;
+  --type-numeric-family: var(--font-numeric);
+  --type-numeric-weight: var(--fw-numeric);
+
+  /* Size aliases retained for component readability. */
+  --text-xs: var(--fs-xs);
+  --text-sm: var(--fs-sm);
+  --text-base: var(--fs-base);
+  --text-lg: var(--fs-lg);
+  --text-xl: var(--fs-xl);
+  --text-title: var(--fs-2xl);
+  --text-hero: var(--type-hero-size);
+}
+
+/* High-contrast overrides only need to touch semantic tokens. */
+[data-high-contrast='true'] {
+  --bg: #000000;
+  --bg-app-top: #000000;
+  --surface: #0a0a0a;
+  --surface-raised: #141414;
+  --surface-sunken: #000000;
+  --border: #ffffff;
+  --border-strong: #ffffff;
+  --text: #ffffff;
+  --text-secondary: #f0f0f0;
+  --text-muted: #d0d0d0;
+  --text-disabled: #999999;
+  --primary: #2fbf5f;
+  --accent: #ffd54a;
+  --interactive-hover: rgba(255, 255, 255, 0.2);
+  --paper: #ffffff;
+  --paper-muted: #ffffff;
+  --paper-edge: #ffffff;
+  --ink: #000000;
+  --stationery-rule: #000000;
+  --stationery-stitch: #ffffff;
+  --brand-mark: #ffd54a;
+  --panel-surface: #000000;
+  --panel-surface-raised: #141414;
+  --panel-texture: none;
+  --chrome-surface: #000000;
+  --chrome-texture: none;
+  --control-surface: #000000;
+  --control-edge: #ffffff;
+  --control-highlight: transparent;
+}

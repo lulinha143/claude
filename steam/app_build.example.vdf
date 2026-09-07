@@ -1,0 +1,30 @@
+// Example Steam app build script for SteamPipe (steamcmd).
+// COPY this file to app_build.vdf and replace every <PLACEHOLDER>.
+// Do NOT commit your real app_build.vdf or any credentials.
+//
+// Usage (from the Steamworks SDK content builder):
+//   steamcmd +login <YOUR_STEAM_USERNAME> +run_app_build ..\scripts\app_build.vdf +quit
+//
+// Verify field names against the current official docs:
+//   https://partner.steamgames.com/doc/sdk/uploading
+"appbuild"
+{
+  "appid"   "<YOUR_APP_ID>"          // e.g. 1234567 — from your Steamworks app
+  "desc"    "WMNO v1.0.0 windows"    // build description shown in Steamworks
+
+  // Where steamcmd writes logs and its own cache (relative to this file):
+  "buildoutput" "..\\output\\"
+
+  // Root of the content to upload. Point this at your Steam-ready folder:
+  "contentroot" "..\\..\\release\\steam\\windows\\"
+
+  // Leave setlive empty to upload WITHOUT publishing; set a beta branch name
+  // (e.g. "beta") to push straight to a private branch. Never auto-publish to
+  // "default" from a script.
+  "setlive" ""
+
+  "depots"
+  {
+    "<YOUR_WINDOWS_DEPOT_ID>" "depot_windows.vdf"
+  }
+}

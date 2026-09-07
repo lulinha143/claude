@@ -1,0 +1,7 @@
+{
+  "_meta": { "name": "Polski", "complete": false, "note": "Draft / machine-assisted. Falls back to English for missing keys." },
+  "common": { "ok": "OK", "cancel": "Anuluj", "close": "Zamknij", "buy": "Kup", "save": "Zapisz", "back": "Wstecz" },
+  "app": { "title": "ZooWorkers", "subtitle": "Przytulna gra idle o zwierzęcym biurze", "tagline": "Całe biuro uroczych zwierząt prowadzi bardzo małą firmę." },
+  "nav": { "office": "Biuro", "shop": "Ulepszenia", "employees": "Zespół", "company": "Firma", "collections": "Kolekcje", "achievements": "Osiągnięcia", "focus": "Skupienie", "decorate": "Dekoruj", "settings": "Ustawienia", "stats": "Statystyki", "prestige": "Prestiż" },
+  "resource": { "nuts": "Orzechy", "goldenNuts": "Złote Orzechy", "morale": "Morale", "reputation": "Reputacja" }
+}

@@ -1,0 +1,7 @@
+{
+  "_meta": { "name": "Русский", "complete": false, "note": "Draft / machine-assisted. Falls back to English for missing keys." },
+  "common": { "ok": "OK", "cancel": "Отмена", "close": "Закрыть", "buy": "Купить", "save": "Сохранить", "back": "Назад" },
+  "app": { "title": "ZooWorkers", "subtitle": "Уютная idle-игра про офис зверей", "tagline": "Целый офис очаровательных зверей управляет крошечной компанией." },
+  "nav": { "office": "Офис", "shop": "Улучшения", "employees": "Команда", "company": "Компания", "collections": "Коллекции", "achievements": "Достижения", "focus": "Фокус", "decorate": "Декор", "settings": "Настройки", "stats": "Статистика", "prestige": "Престиж" },
+  "resource": { "nuts": "Орехи", "goldenNuts": "Золотые Орехи", "morale": "Мораль", "reputation": "Репутация" }
+}

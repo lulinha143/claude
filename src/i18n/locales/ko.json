@@ -1,0 +1,7 @@
+{
+  "_meta": { "name": "한국어", "complete": false, "note": "Draft / machine-assisted. Falls back to English for missing keys." },
+  "common": { "ok": "확인", "cancel": "취소", "close": "닫기", "buy": "구매", "save": "저장", "back": "뒤로" },
+  "app": { "title": "ZooWorkers", "subtitle": "아늑한 동물 사무실 방치형 게임", "tagline": "사랑스러운 동물들의 사무실이 아주 작은 회사를 운영합니다." },
+  "nav": { "office": "사무실", "shop": "업그레이드", "employees": "팀", "company": "회사", "collections": "컬렉션", "achievements": "업적", "focus": "집중", "decorate": "꾸미기", "settings": "설정", "stats": "통계", "prestige": "프레스티지" },
+  "resource": { "nuts": "너트", "goldenNuts": "황금 너트", "morale": "사기", "reputation": "평판" }
+}
