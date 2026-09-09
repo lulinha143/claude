@@ -22,6 +22,7 @@ import { UPGRADES_BY_ID } from '../content/upgrades';
 import type { EventEffect, GameEventDef } from '../content/types';
 import { GAME_EVENTS, GAME_EVENTS_BY_ID } from '../content/events';
 import { eventChoicesForState } from './eventChoices';
+import { chooseAutoResolution } from './eventAutoResolve';
 import { CLICK_STATIONS_BY_ID } from '../content/clickStations';
 import {
   CLICK,
@@ -110,6 +111,22 @@ export interface EventChoiceContext {
   step: string | null;
 }
 
+/** One decision taken on the player's behalf while popups are disabled. */
+interface AutoResolvedDecision {
+  def: GameEventDef;
+  choice: { id: string; labelKey: string };
+}
+
+/**
+ * Summary of the most recent auto-resolved event, so the UI can tell the player
+ * what the department decided. Transient: it is a notification, not saved state.
+ */
+export interface AutoResolvedEvent {
+  titleKey: string;
+  choiceLabelKey: string;
+  at: number;
+}
+
 export interface EngineOptions {
   now?: () => number;
   seed?: number;
@@ -147,6 +164,11 @@ export class GameEngine {
    * when the player stops tapping. Lifetime totals live in `state.clicker`.
    */
   combo: ComboTracker | null = null;
+  /**
+   * transient: the last event the department handled on its own (only set while
+   * `settings.autoResolveEvents` is on), for the notification feed.
+   */
+  lastAutoResolved: AutoResolvedEvent | null = null;
 
   private listeners = new Set<EngineListener>();
   private now: () => number;
@@ -570,7 +592,60 @@ export class GameEngine {
     this.activeEvent = { def, step: null, instanceId: this.nextEventInstanceId++ };
     this.state.stats.eventsSeen += 1;
     this.progressDaily('employeeConversations', def.employeeId ? 1 : 0);
+
+    // The player has asked not to be interrupted: handle the whole event now,
+    // consequences and all, and report it instead of showing a popup.
+    if (this.state.settings.autoResolveEvents) {
+      const handled = this.autoResolveActiveEvent();
+      this.emit();
+      return handled;
+    }
+
     this.emit();
+    return true;
+  }
+
+  /**
+   * Resolve the active event (and any chain it leads into) without a popup.
+   *
+   * Runs the real `resolveEventChoice` path so effects, the measured consequence
+   * report, event history and cooldowns behave exactly as they do when the player
+   * decides by hand — the only difference is who picked. The decisions taken are
+   * returned so the UI can summarise them in the notification feed.
+   */
+  private autoResolveActiveEvent(): boolean {
+    const decisions: AutoResolvedDecision[] = [];
+    // A chain cannot legitimately be longer than its authored steps; the guard
+    // stops malformed content (a step pointing at itself) from spinning forever.
+    const guard = Object.keys(this.activeEvent?.def.steps ?? {}).length + 2;
+
+    for (let i = 0; i < guard; i += 1) {
+      const active = this.activeEvent;
+      if (!active) break;
+      const picked = chooseAutoResolution(this.state, active.def, active.step);
+      if (!picked) break;
+      decisions.push({ def: active.def, choice: picked.choice });
+      const resolved = this.resolveEventChoice(picked.choice.id, {
+        eventInstanceId: active.instanceId,
+        step: active.step,
+      });
+      if (!resolved) break;
+    }
+
+    if (decisions.length === 0) {
+      // Nothing actionable (malformed content): do not leave a popup stranded.
+      this.activeEvent = null;
+      return false;
+    }
+
+    // The result panel is an interruption too, so it is suppressed; the summary
+    // below is what the player sees.
+    this.lastConsequence = null;
+    this.lastAutoResolved = {
+      titleKey: decisions[0].def.titleKey,
+      choiceLabelKey: decisions[decisions.length - 1].choice.labelKey,
+      at: this.now(),
+    };
     return true;
   }
 

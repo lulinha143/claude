@@ -86,7 +86,9 @@ export function SettingsView() {
 
   function exportSave() {
     const data = engine.state;
-    const blob = new Blob([useStore.getState().save.exportSave(data)], { type: 'application/json' });
+    const blob = new Blob([useStore.getState().save.exportSave(data)], {
+      type: 'application/json',
+    });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = 'zooworkers-save.json';
@@ -109,7 +111,11 @@ export function SettingsView() {
 
       <div className="panel">
         <h3>{t('settings.language')}</h3>
-        <select value={i18n.language} onChange={(e) => changeLanguage(e.target.value)} className="select">
+        <select
+          value={i18n.language}
+          onChange={(e) => changeLanguage(e.target.value)}
+          className="select"
+        >
           {SUPPORTED_LANGUAGES.map((l) => (
             <option key={l} value={l}>
               {languageDisplayName(l)}
@@ -121,7 +127,11 @@ export function SettingsView() {
       <div className="panel">
         <h3>{t('settings.audio')}</h3>
         <p className="muted small">{t('settings.audioNote')}</p>
-        <Toggle label={t('settings.mute')} checked={s.masterMuted} onChange={(v) => set({ masterMuted: v })} />
+        <Toggle
+          label={t('settings.mute')}
+          checked={s.masterMuted}
+          onChange={(v) => set({ masterMuted: v })}
+        />
         <label className="slider-row">
           <span>{t('settings.master')}</span>
           <input
@@ -169,15 +179,63 @@ export function SettingsView() {
       </div>
 
       <div className="panel">
+        <h3>{t('settings.gameplay')}</h3>
+        <Toggle
+          label={t('settings.autoResolveEvents')}
+          checked={s.autoResolveEvents}
+          onChange={(v) => set({ autoResolveEvents: v })}
+        />
+        {/* Say plainly what the setting does, so "no popups" never reads as
+            "events silently stop happening". */}
+        <p className="settings-note">
+          {s.autoResolveEvents
+            ? t('settings.autoResolveEventsOn')
+            : t('settings.autoResolveEventsOff')}
+        </p>
+      </div>
+
+      <div className="panel">
         <h3>{t('settings.accessibility')}</h3>
-        <Toggle label={t('settings.reducedMotion')} checked={s.reducedMotion} onChange={(v) => set({ reducedMotion: v })} />
-        <Toggle label={t('settings.disableShake')} checked={s.disableShake} onChange={(v) => set({ disableShake: v })} />
-        <Toggle label={t('settings.disableFlashing')} checked={s.disableFlashing} onChange={(v) => set({ disableFlashing: v })} />
-        <Toggle label={t('settings.highContrast')} checked={s.highContrast} onChange={(v) => set({ highContrast: v })} />
-        <Toggle label={t('settings.dyslexiaFont')} checked={s.dyslexiaFont} onChange={(v) => set({ dyslexiaFont: v })} />
-        <Toggle label={t('settings.subtitles')} checked={s.subtitles} onChange={(v) => set({ subtitles: v })} />
-        <Toggle label={t('settings.pauseInMenus')} checked={s.pauseAnimationsInMenus} onChange={(v) => set({ pauseAnimationsInMenus: v })} />
-        <Toggle label={t('settings.showHints')} checked={s.showHints} onChange={(v) => set({ showHints: v })} />
+        <Toggle
+          label={t('settings.reducedMotion')}
+          checked={s.reducedMotion}
+          onChange={(v) => set({ reducedMotion: v })}
+        />
+        <Toggle
+          label={t('settings.disableShake')}
+          checked={s.disableShake}
+          onChange={(v) => set({ disableShake: v })}
+        />
+        <Toggle
+          label={t('settings.disableFlashing')}
+          checked={s.disableFlashing}
+          onChange={(v) => set({ disableFlashing: v })}
+        />
+        <Toggle
+          label={t('settings.highContrast')}
+          checked={s.highContrast}
+          onChange={(v) => set({ highContrast: v })}
+        />
+        <Toggle
+          label={t('settings.dyslexiaFont')}
+          checked={s.dyslexiaFont}
+          onChange={(v) => set({ dyslexiaFont: v })}
+        />
+        <Toggle
+          label={t('settings.subtitles')}
+          checked={s.subtitles}
+          onChange={(v) => set({ subtitles: v })}
+        />
+        <Toggle
+          label={t('settings.pauseInMenus')}
+          checked={s.pauseAnimationsInMenus}
+          onChange={(v) => set({ pauseAnimationsInMenus: v })}
+        />
+        <Toggle
+          label={t('settings.showHints')}
+          checked={s.showHints}
+          onChange={(v) => set({ showHints: v })}
+        />
         <label className="slider-row">
           <span>{t('settings.colorblind')}</span>
           <select
@@ -193,15 +251,33 @@ export function SettingsView() {
         </label>
         <label className="slider-row">
           <span>{t('settings.fontScale')}</span>
-          <input type="range" min={0.8} max={1.5} step={0.1} value={s.fontScale} onChange={(e) => set({ fontScale: Number(e.target.value) })} />
+          <input
+            type="range"
+            min={0.8}
+            max={1.5}
+            step={0.1}
+            value={s.fontScale}
+            onChange={(e) => set({ fontScale: Number(e.target.value) })}
+          />
         </label>
         <label className="slider-row">
           <span>{t('settings.uiScale')}</span>
-          <input type="range" min={0.8} max={1.5} step={0.1} value={s.uiScale} onChange={(e) => set({ uiScale: Number(e.target.value) })} />
+          <input
+            type="range"
+            min={0.8}
+            max={1.5}
+            step={0.1}
+            value={s.uiScale}
+            onChange={(e) => set({ uiScale: Number(e.target.value) })}
+          />
         </label>
         <label className="slider-row">
           <span>{t('settings.fpsLimit')}</span>
-          <select className="select" value={s.fpsLimit} onChange={(e) => set({ fpsLimit: Number(e.target.value) as 30 | 60 })}>
+          <select
+            className="select"
+            value={s.fpsLimit}
+            onChange={(e) => set({ fpsLimit: Number(e.target.value) as 30 | 60 })}
+          >
             <option value={30}>30</option>
             <option value={60}>60</option>
           </select>
@@ -211,7 +287,11 @@ export function SettingsView() {
       <div className="panel">
         <h3>{t('settings.bg.title')}</h3>
         <p className="muted small">{t('settings.bg.note')}</p>
-        <Toggle label={t('settings.bg.enabled')} checked={s.background.enabled} onChange={(v) => setBg({ enabled: v })} />
+        <Toggle
+          label={t('settings.bg.enabled')}
+          checked={s.background.enabled}
+          onChange={(v) => setBg({ enabled: v })}
+        />
         <Toggle
           label={t('settings.bg.blurPanels')}
           checked={s.background.blurBehindPanels}
@@ -317,7 +397,11 @@ export function SettingsView() {
           </label>
           <label className="slider-row">
             <span>{t('settings.scale')}</span>
-            <select className="select" value={win?.scale ?? 1} onChange={(e) => updateWin({ scale: Number(e.target.value) })}>
+            <select
+              className="select"
+              value={win?.scale ?? 1}
+              onChange={(e) => updateWin({ scale: Number(e.target.value) })}
+            >
               {SCALES.map((sc) => (
                 <option key={sc} value={sc}>
                   {Math.round(sc * 100)}%
@@ -325,7 +409,11 @@ export function SettingsView() {
               ))}
             </select>
           </label>
-          <button className="ghost-btn" disabled={!platform.isDesktop} onClick={() => platform.hideToTray()}>
+          <button
+            className="ghost-btn"
+            disabled={!platform.isDesktop}
+            onClick={() => platform.hideToTray()}
+          >
             {t('settings.hideToTray')}
           </button>
         </fieldset>
@@ -335,22 +423,34 @@ export function SettingsView() {
       <div className="panel">
         <h3>{t('settings.save')}</h3>
         <div className="button-row">
-          <button className="ghost-btn" onClick={() => engine.save()}>{t('settings.manualSave')}</button>
-          <button className="ghost-btn" onClick={exportSave}>{t('settings.export')}</button>
+          <button className="ghost-btn" onClick={() => engine.save()}>
+            {t('settings.manualSave')}
+          </button>
+          <button className="ghost-btn" onClick={exportSave}>
+            {t('settings.export')}
+          </button>
           <label className="ghost-btn file-btn">
             {t('settings.import')}
             <input type="file" accept="application/json" onChange={onImport} hidden />
           </label>
-          <button className="ghost-btn" onClick={replayOnboarding}>{t('settings.replayTutorial')}</button>
+          <button className="ghost-btn" onClick={replayOnboarding}>
+            {t('settings.replayTutorial')}
+          </button>
         </div>
         {confirmReset ? (
           <div className="confirm-row">
             <span>{t('settings.resetConfirm')}</span>
-            <button className="danger-btn" onClick={hardReset}>{t('common.confirm')}</button>
-            <button className="ghost-btn" onClick={() => setConfirmReset(false)}>{t('common.cancel')}</button>
+            <button className="danger-btn" onClick={hardReset}>
+              {t('common.confirm')}
+            </button>
+            <button className="ghost-btn" onClick={() => setConfirmReset(false)}>
+              {t('common.cancel')}
+            </button>
           </div>
         ) : (
-          <button className="danger-btn" onClick={() => setConfirmReset(true)}>{t('settings.reset')}</button>
+          <button className="danger-btn" onClick={() => setConfirmReset(true)}>
+            {t('settings.reset')}
+          </button>
         )}
       </div>
     </section>

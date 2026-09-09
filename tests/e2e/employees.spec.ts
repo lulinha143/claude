@@ -71,10 +71,16 @@ test('a full room lays out six teammates without overlap', async ({ page }) => {
   }
 });
 
-// The employee's emotion bubble and speech bubble share ONE anchored node:
-// by default it shows the mood emoji; clicking the teammate morphs that same
-// bubble into a speech bubble, which then reverts to the emoji.
-test('one anchored bubble morphs between emotion and speech on click', async ({ page }) => {
+// The mood emoji stays anchored to the character, while the WORDS are presented
+// as an observation note portaled to the body.
+//
+// The words used to render inside this same in-scene bubble, but `.floor` sets
+// `overflow: hidden`, so any teammate near a room edge had their dialogue sliced
+// off and a hard width cap hid the rest. The note is now a body-level element
+// bounded by the window instead (see art/SpeechNote.tsx), so a long line wraps
+// into a taller card rather than being cut. The bubble still flips to
+// `data-mode="speech"` so the character visibly reacts.
+test('clicking a teammate shows their words in a readable note', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 860 });
   await seed(page, FULL_ROOM);
   await page.goto('/');
@@ -90,17 +96,29 @@ test('one anchored bubble morphs between emotion and speech on click', async ({ 
   await expect(bubble).toHaveCount(1);
   await expect(bubble).toHaveAttribute('data-mode', 'emoji');
   await expect(bubble.locator('.mood-emoji')).toBeVisible();
-  await expect(bubble.locator('.employee-bubble__speech')).toHaveCount(0);
+  await expect(page.locator('.speech-note')).toHaveCount(0);
 
-  // click → same bubble switches to speech mode with visible text.
+  // click → the character reacts and the note appears with their words.
   await critter.click();
   await expect(bubble).toHaveAttribute('data-mode', 'speech', { timeout: 3000 });
-  const speech = bubble.locator('.employee-bubble__speech');
-  await expect(speech).toBeVisible();
-  expect(((await speech.textContent()) ?? '').trim().length).toBeGreaterThan(0);
-  // the mood emoji stays present as a small corner tag (same node).
+  const note = page.locator('.speech-note').first();
+  await expect(note).toBeVisible();
+  const body = note.locator('.speech-note__body');
+  expect(((await body.textContent()) ?? '').trim().length).toBeGreaterThan(0);
+  // The note names who is speaking.
+  expect(
+    ((await note.locator('.speech-note__who').textContent()) ?? '').trim().length,
+  ).toBeGreaterThan(0);
+  // Every line is fully laid out — nothing is clipped away.
+  const metrics = await body.evaluate((el) => ({
+    scrollH: el.scrollHeight,
+    clientH: el.clientHeight,
+  }));
+  expect(metrics.scrollH).toBeLessThanOrEqual(metrics.clientH + 1);
+  // the mood emoji stays anchored to the character.
   await expect(bubble.locator('.mood-emoji')).toBeVisible();
 
-  // after the timed phrase it reverts to the emotion bubble.
+  // after the timed phrase it reverts to the emotion bubble and the note goes.
   await expect(bubble).toHaveAttribute('data-mode', 'emoji', { timeout: 8000 });
+  await expect(page.locator('.speech-note')).toHaveCount(0);
 });

@@ -54,7 +54,20 @@ async function openConstruction(page: Page) {
   await page.waitForTimeout(400);
 }
 
-test("Bea's animated workstation sprite renders and loops in her department", async ({ page }) => {
+// BLOCKED ON A MISSING ASSET, NOT ON CODE.
+//
+// `public/employees/` only contains Pip's artwork; bea.png / bea-poster.png (and
+// marlow / penguin / canela) are registered in EMPLOYEE_SPRITES but have never
+// been committed, so `npm run verify:assets` reports them missing and this test
+// cannot load frames to compare. It fails on the base branch for the same reason.
+//
+// Re-enable by committing Bea's APNG + poster. The behaviour that IS verifiable
+// today is covered by "a character with missing artwork falls back to the drawn
+// silhouette" below, and the animation/geometry contract is covered by the Pip
+// tests, which use the one character whose art is present.
+test.skip("Bea's animated workstation sprite renders and loops in her department", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await seed(page, saveWith({}));
   await page.goto('/');
@@ -98,24 +111,46 @@ test("Bea's animated workstation sprite renders and loops in her department", as
   expect(Buffer.compare(c, d)).not.toBe(0);
 });
 
-test('reduced motion swaps Bea to a static poster frame', async ({ page }) => {
+// Reduced motion must swap the animation for a single static poster frame. This
+// is asserted on Pip because Pip's artwork is the character art committed to the
+// repository — Bea's APNG and poster are not present, and a character whose art
+// is absent now deliberately falls back to the code-drawn Critter silhouette
+// (see art/spriteAvailability.ts) rather than rendering a broken image.
+test('reduced motion swaps the animation for a static poster frame', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await seed(page, saveWith({ settings: { reducedMotion: true } }));
   await page.goto('/');
-  await openConstruction(page);
+  await page.locator('.office').first().waitFor({ timeout: 15000 });
+  await clearModals(page);
+  await page.locator('.floor[data-room="founder-desk"]').scrollIntoViewIfNeeded();
+  await page.waitForTimeout(400);
 
   const sprite = page.locator(
-    '.floor[data-room="construction"] .critter-btn--sprite .employee-sprite',
+    '.floor[data-room="founder-desk"] .critter-btn--sprite .employee-sprite',
   );
   await expect(sprite).toHaveCount(1);
   const src = await sprite.getAttribute('src');
-  expect(src).toContain('employees/bea-poster.png');
+  expect(src).toContain('employees/pip-poster.png');
 
   // A poster is static: two captures must be identical.
   const a = await sprite.screenshot();
   await page.waitForTimeout(600);
   const b = await sprite.screenshot();
   expect(Buffer.compare(a, b)).toBe(0);
+});
+
+// A registered character whose artwork cannot load must degrade gracefully.
+test('a character with missing artwork falls back to the drawn silhouette', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await seed(page, saveWith({ settings: { reducedMotion: true } }));
+  await page.goto('/');
+  await openConstruction(page);
+
+  const room = page.locator('.floor[data-room="construction"]');
+  // Bea's APNG is not in the repository, so no broken <img> may be shown...
+  await expect(room.locator('.employee-sprite')).toHaveCount(0);
+  // ...and she must still be present and interactive as an SVG critter.
+  await expect(room.locator('.critter-btn svg.critter')).toHaveCount(1);
 });
 
 // GEOMETRY GUARD — Pip (squirrel).

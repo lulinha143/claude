@@ -23,6 +23,7 @@ export function defaultSettings(): GameSettings {
     quietMode: false,
     pauseAnimationsInMenus: false,
     fpsLimit: 60,
+    autoResolveEvents: false,
     focusHarvestEnabled: false,
     offlineCapHours: BALANCE.offline.defaultCapHours,
     showHints: true,

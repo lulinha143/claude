@@ -1,7 +1,12 @@
 import { create } from 'zustand';
 import { GameEngine } from '../sim/engine';
 import { SaveManager } from '../save/saveManager';
-import { computeOffline, applyOffline, shouldShowOfflineModal, type OfflineResult } from '../sim/offline';
+import {
+  computeOffline,
+  applyOffline,
+  shouldShowOfflineModal,
+  type OfflineResult,
+} from '../sim/offline';
 import { performPrestige, buyPrestigeSkill } from '../sim/prestige';
 import type { GameState, PrestigeBranchId } from '../sim/types';
 import { getPlatform } from '../platform/adapter';
@@ -20,7 +25,8 @@ import i18n from '../i18n';
 // rendered mute button actually drives every audio bus to zero (not just the
 // AudioManager methods in isolation). Harmless: exposes only effective gains.
 if (typeof window !== 'undefined') {
-  (window as unknown as { __wmnoAudioDiag?: () => unknown }).__wmnoAudioDiag = () => audio.getDiagnostics();
+  (window as unknown as { __wmnoAudioDiag?: () => unknown }).__wmnoAudioDiag = () =>
+    audio.getDiagnostics();
 }
 
 export type ViewId =
@@ -223,15 +229,30 @@ export const useStore = create<StoreState>((set) => {
 function unlockedRoomIdSet(state: GameState): Set<string> {
   return new Set(unlockedRooms(state).map((r) => r.id));
 }
-let prevAch = new Set(Object.entries(engine.state.achievements).filter(([, v]) => v > 0).map(([k]) => k));
-let prevHired = new Set(Object.keys(engine.state.employees).filter((id) => engine.state.employees[id]?.hired));
+let prevAch = new Set(
+  Object.entries(engine.state.achievements)
+    .filter(([, v]) => v > 0)
+    .map(([k]) => k),
+);
+let prevHired = new Set(
+  Object.keys(engine.state.employees).filter((id) => engine.state.employees[id]?.hired),
+);
 let prevRooms = unlockedRoomIdSet(engine.state);
+/** Timestamp of the last auto-resolved event already announced. */
+let prevAutoResolvedAt = engine.lastAutoResolved?.at ?? 0;
 
 let suppressNotify = false;
 function resetChangeTracking(): void {
-  prevAch = new Set(Object.entries(engine.state.achievements).filter(([, v]) => v > 0).map(([k]) => k));
-  prevHired = new Set(Object.keys(engine.state.employees).filter((id) => engine.state.employees[id]?.hired));
+  prevAch = new Set(
+    Object.entries(engine.state.achievements)
+      .filter(([, v]) => v > 0)
+      .map(([k]) => k),
+  );
+  prevHired = new Set(
+    Object.keys(engine.state.employees).filter((id) => engine.state.employees[id]?.hired),
+  );
   prevRooms = unlockedRoomIdSet(engine.state);
+  prevAutoResolvedAt = engine.lastAutoResolved?.at ?? 0;
 }
 
 /** Replace state (prestige/import/reset) without flooding toasts for the whole company. */
@@ -261,7 +282,8 @@ engine.subscribe(() => {
     if (st.employees[id]?.hired && !prevHired.has(id)) {
       prevHired.add(id);
       const def = EMPLOYEES_BY_ID[id];
-      if (def) notify('employees', i18n.t('notify.hired', { name: i18n.t(def.nameKey) }), 'positive');
+      if (def)
+        notify('employees', i18n.t('notify.hired', { name: i18n.t(def.nameKey) }), 'positive');
     }
   }
 
@@ -271,8 +293,25 @@ engine.subscribe(() => {
     if (!prevRooms.has(rid)) {
       prevRooms.add(rid);
       const def = ROOMS_BY_ID[rid];
-      if (def) notify('rooms', i18n.t('notify.roomUnlocked', { name: i18n.t(def.nameKey) }), 'positive');
+      if (def)
+        notify('rooms', i18n.t('notify.roomUnlocked', { name: i18n.t(def.nameKey) }), 'positive');
     }
+  }
+
+  // Events handled automatically because the player turned choice popups off.
+  // Reporting them is what keeps the setting honest: the system is still running
+  // and the player can see every decision that was taken for them.
+  const auto = engine.lastAutoResolved;
+  if (auto && auto.at !== prevAutoResolvedAt) {
+    prevAutoResolvedAt = auto.at;
+    notify(
+      'moment',
+      i18n.t('notify.eventAutoResolved', {
+        title: i18n.t(auto.titleKey),
+        choice: i18n.t(auto.choiceLabelKey),
+      }),
+      'neutral',
+    );
   }
 });
 

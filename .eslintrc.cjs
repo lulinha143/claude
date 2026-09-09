@@ -37,6 +37,12 @@ module.exports = {
     'release/',
     'coverage/',
     'node_modules/',
+    // Playwright's generated output. These are gitignored build artifacts full of
+    // bundled third-party JS, and linting them made `npm run lint` fail purely
+    // because the e2e suite had been run.
+    'playwright-report/',
+    'test-results/',
+    'visual-artifacts/',
     '*.config.ts',
     '*.config.js',
     'scripts/build-electron.mjs',

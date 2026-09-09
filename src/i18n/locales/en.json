@@ -1722,7 +1722,11 @@
     "resetConfirm": "This erases all progress (cosmetics too). Are you absolutely sure?",
     "idleNote": "Activity detection only checks how long the computer has been inactive. It never records keystrokes, text, app content, screenshots, clipboard, or any private information.",
     "browserNote": "Desktop-window options are only available in the desktop app.",
-    "replayTutorial": "Replay tutorial"
+    "replayTutorial": "Replay tutorial",
+    "gameplay": "Gameplay",
+    "autoResolveEvents": "Disable choice popups",
+    "autoResolveEventsOn": "Choice events will not interrupt you. The department picks the best available option, applies the real consequences, and reports each decision in your notifications.",
+    "autoResolveEventsOff": "Choice events pause the office and ask you to decide."
   },
   "onboarding": {
     "skip": "Skip guide",
@@ -1790,7 +1794,8 @@
     "decoration": "Decoration placed",
     "policy": "Policy changed",
     "additionalUpdates_one": "+{{count}} additional update",
-    "additionalUpdates_other": "+{{count}} additional updates"
+    "additionalUpdates_other": "+{{count}} additional updates",
+    "eventAutoResolved": "Handled for you — {{title}}: {{choice}}"
   },
   "react": {
     "marlowApproves": "Marlow approved of this decision.",

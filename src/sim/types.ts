@@ -165,6 +165,13 @@ export interface GameSettings {
   quietMode: boolean;
   pauseAnimationsInMenus: boolean;
   fpsLimit: 30 | 60;
+  /**
+   * When true, choice events no longer interrupt play: the department resolves
+   * them automatically (picking the best available option) and reports the
+   * decision through the notification feed. Events, their consequences, their
+   * history and their cooldowns all keep working — see sim/eventAutoResolve.ts.
+   */
+  autoResolveEvents: boolean;
   focusHarvestEnabled: boolean;
   offlineCapHours: number;
   /** show the "recommended next step" hint banner. */

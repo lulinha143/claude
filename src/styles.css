@@ -1669,6 +1669,16 @@ h4 {
   animation: roll 6s linear infinite;
   opacity: 0.7;
 }
+/* Explanatory copy under a setting, so a toggle can state its actual policy
+   rather than leaving the player to guess what "disabled" means. */
+.settings-note {
+  margin: 2px 0 0;
+  color: color-mix(in srgb, var(--ink, #3b2a18) 62%, transparent);
+  font-size: 0.66em;
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
 /* ------- critter animation ------- */
 .critter {
   display: block;

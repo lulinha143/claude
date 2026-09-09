@@ -1722,7 +1722,11 @@
     "resetConfirm": "Isso apaga todo o progresso (cosméticos também). Você tem certeza absoluta?",
     "idleNote": "A detecção de atividade só verifica há quanto tempo o computador está inativo. Nunca registra teclas, texto, conteúdo de apps, capturas de tela, área de transferência ou qualquer informação privada.",
     "browserNote": "As opções de janela de desktop só estão disponíveis no app de desktop.",
-    "replayTutorial": "Repetir tutorial"
+    "replayTutorial": "Repetir tutorial",
+    "gameplay": "Jogabilidade",
+    "autoResolveEvents": "Desativar janelas de escolha",
+    "autoResolveEventsOn": "Os eventos de escolha não vão te interromper. O departamento escolhe a melhor opção disponível, aplica as consequências reais e informa cada decisão nas suas notificações.",
+    "autoResolveEventsOff": "Os eventos de escolha pausam o escritório e pedem sua decisão."
   },
   "onboarding": {
     "skip": "Pular guia",
@@ -1790,7 +1794,8 @@
     "decoration": "Decoração posicionada",
     "policy": "Política alterada",
     "additionalUpdates_one": "+{{count}} atualização adicional",
-    "additionalUpdates_other": "+{{count}} atualizações adicionais"
+    "additionalUpdates_other": "+{{count}} atualizações adicionais",
+    "eventAutoResolved": "Resolvido para você — {{title}}: {{choice}}"
   },
   "react": {
     "marlowApproves": "Bento aprovou esta decisão.",

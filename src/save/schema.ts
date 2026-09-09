@@ -95,6 +95,7 @@ const settingsSchema = z
     quietMode: z.boolean().catch(false),
     pauseAnimationsInMenus: z.boolean().catch(false),
     fpsLimit: z.union([z.literal(30), z.literal(60)]).catch(60),
+    autoResolveEvents: z.boolean().catch(false),
     focusHarvestEnabled: z.boolean().catch(false),
     offlineCapHours: z.number().catch(8),
     showHints: z.boolean().catch(true),
