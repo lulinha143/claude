@@ -118,6 +118,10 @@
   --stationery-rule: rgba(128, 87, 40, 0.2);
   --stationery-stitch: color-mix(in srgb, var(--c-cream-300) 42%, transparent);
   --brand-mark: var(--c-amber-400);
+  /* Rubber-stamp ink: a desaturated violet that reads as "applied by a department",
+     distinct from every semantic colour so a stamp is never mistaken for a warning
+     or a reward. Used only by the letterhead's standing stamp. */
+  --stamp-ink: #a8879f;
   --panel-surface: color-mix(in srgb, var(--c-bark-700) 94%, var(--c-wood-500));
   --panel-surface-raised: color-mix(in srgb, var(--c-bark-600) 90%, var(--c-wood-400));
   --panel-texture:
@@ -274,6 +278,7 @@
   --ink: #000000;
   --stationery-rule: #000000;
   --stationery-stitch: #ffffff;
+  --stamp-ink: #ffffff;
   --brand-mark: #ffd54a;
   --panel-surface: #000000;
   --panel-surface-raised: #141414;

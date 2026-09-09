@@ -52,7 +52,8 @@
       "nuts": "Nuts",
       "golden": "Golden",
       "morale": "Morale",
-      "reputation": "Standing"
+      "reputation": "Standing",
+      "kernels": "Kernels"
     }
   },
   "nav": {
@@ -137,6 +138,10 @@
       "prestige": "Reset for permanent bonuses.",
       "settings": "Options, audio and accessibility.",
       "more": "Open every other company destination."
+    },
+    "kernels": {
+      "t": "Permanent Kernels",
+      "d": "Banked through restructuring. They persist through every cycle and fund permanent skills."
     }
   },
   "office": {
@@ -2393,6 +2398,9 @@
     "secret-requisition": "Form 12-B"
   },
   "header": {
-    "department": "Behavioural Research"
+    "department": "Behavioural Research",
+    "departmentFull": "Behavioural Research Department",
+    "cycle": "Cycle {{n}}",
+    "cycleTip": "Operating cycle {{n}}. Each restructure begins a new one."
   }
 }

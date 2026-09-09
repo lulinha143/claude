@@ -1,26 +1,35 @@
-// The Nutshell Inc. masthead.
+// The Nutshell Inc. letterhead.
 //
-// The old header packed the company name, the production rate, four resources and
-// three buttons into one cramped row of icons with no hierarchy. This is the same
-// information — plus more — arranged as a company letterhead:
+// This is the top of a document, not a game HUD. The company identifies itself,
+// the department under it, and the company's current standing is stamped across
+// the corner the way an internal record would be — then, ruled off below, the
+// figures for the period as fields on a form:
 //
-//   ● NUTSHELL INC.                              − □ ×
-//     Established Institution · Behavioural Research
-//   ┌──────────────┬──────────┬──────────┬──────────────┐
-//   │ NUTS 7.67M   │ GOLDEN 36│ MORALE 82│ STANDING 167 │
-//   │ +12.4/s      │          │  +14%    │ next 260     │
-//   └──────────────┴──────────┴──────────┴──────────────┘
+//   ⬢  NUTSHELL INC.                        ╔══════════════╗   − □ ×
+//      BEHAVIOURAL RESEARCH DEPARTMENT      ║  ESTABLISHED ║
+//                                           ║  INSTITUTION ║
+//                                           ║   CYCLE 01   ║
+//   ══════════════════════════════════════════╚═════════════╝════════
+//    NUTS        GOLDEN    MORALE    STANDING   KERNELS
+//    7.67M       36        82        167        3
+//    +12.4/s               +14%      next 260
 //
-// Two deliberate choices:
+// Three decisions carry it:
 //
-//  - The subtitle is the company's REPUTATION TIER, not a fixed tagline. It costs
-//    no extra space, and it means the masthead quietly narrates the company's
-//    slide from "Unlisted Entity" to something far less reassuring.
-//  - Each resource cell carries a small label and a secondary line. Labels make
-//    the strip self-describing so it needs less icon-reading, and the secondary
-//    line is where "what is happening to this number" lives (production rate,
-//    morale's effect on output, the next standing threshold). That is how the HUD
-//    holds MORE information while reading calmer.
+//  - The DEPARTMENT is the subtitle, fixed and quiet, because that is what the
+//    company calls itself. The company's standing used to occupy that line, which
+//    put a changing value where an identity belongs. It now sits in the stamp,
+//    where a changing status actually belongs, and gets far more emphasis for it.
+//  - The stamp is the only rotated, double-ruled, letterpressed thing in the
+//    interface, so "how the outside world sees Nutshell Inc." reads at a glance
+//    and never competes with the numbers.
+//  - The figures are FIELDS: a label above, the value, and underneath it what is
+//    happening to that value. Ruled columns rather than floating pills, so the
+//    strip carries more information while reading calmer.
+//
+// Everything here is live state. The cycle is the prestige count, the standing is
+// the reputation tier, and the kernels field appears only once the company has
+// actually been through a cycle and has any.
 
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -51,6 +60,8 @@ export function Header() {
   const tier = reputationTier(state.resources.reputation);
   const moraleBonus = moraleProductionBonusPct(state.resources.morale);
   const nextRep = nextReputationUnlock(state);
+  const cycle = state.prestige.count + 1;
+  const kernels = state.resources.permanentKernels;
 
   // Rich, informative tooltips for every header element.
   const tipNuts = useTooltip(
@@ -93,6 +104,18 @@ export function Header() {
       ]}
     />,
   );
+  const tipKernels = useTooltip(
+    <TipContent
+      title={t('tip.kernels.t')}
+      lines={[t('tip.kernels.d'), t('tip.current', { value: fmt.num(kernels) })]}
+    />,
+  );
+  const tipStamp = useTooltip(
+    <TipContent
+      title={t(tier.nameKey)}
+      lines={[t(tier.blurbKey), t('header.cycleTip', { n: cycle })]}
+    />,
+  );
   const tipMute = useTooltip(
     <TipContent
       title={muted ? t('office.restoreAll') : t('office.muteAll')}
@@ -125,15 +148,15 @@ export function Header() {
         </button>
         <div className="header__title">
           <h1 className="header__company">{state.company.name}</h1>
-          {/* Live standing, doubling as the department line. */}
-          <p className="header__department">
-            <span className="header__tier">{t(tier.nameKey)}</span>
-            <span className="header__divider" aria-hidden>
-              ·
-            </span>
-            <span className="header__department-name">{t('header.department')}</span>
-          </p>
+          <p className="header__department">{t('header.departmentFull')}</p>
         </div>
+
+        {/* The company's standing, stamped on the record. */}
+        <div className="header__stamp" {...tipStamp}>
+          <span className="header__stamp-tier">{t(tier.nameKey)}</span>
+          <span className="header__stamp-cycle">{t('header.cycle', { n: cycle })}</span>
+        </div>
+
         <div className="header__controls">
           <button
             className={`mute-toggle ${muted ? 'is-muted' : ''}`}
@@ -159,7 +182,7 @@ export function Header() {
         </div>
       </div>
 
-      {/* --- resource strip -------------------------------------------------- */}
+      {/* --- the period's figures, as fields on a form ------------------------ */}
       <div className="header__strip">
         <div className="res-cell res-cell--nuts" {...tipNuts}>
           <span className="res-cell__label">
@@ -207,6 +230,17 @@ export function Header() {
             </span>
           ) : null}
         </div>
+
+        {/* Only once the company has actually banked something permanent. */}
+        {kernels > 0 ? (
+          <div className="res-cell res-cell--kernels" {...tipKernels}>
+            <span className="res-cell__label">
+              <Icon name="prestige" size={12} />
+              {t('resource.short.kernels')}
+            </span>
+            <span className="res-cell__value tabular">{fmt.num(kernels)}</span>
+          </div>
+        ) : null}
       </div>
 
       {iconPicker ? <CompanyIconPicker onClose={() => setIconPicker(false)} /> : null}

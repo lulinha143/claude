@@ -52,7 +52,8 @@
       "nuts": "Nozes",
       "golden": "Douradas",
       "morale": "Ânimo",
-      "reputation": "Posição"
+      "reputation": "Posição",
+      "kernels": "Sementes"
     }
   },
   "nav": {
@@ -137,6 +138,10 @@
       "prestige": "Reinicie para bônus permanentes.",
       "settings": "Opções, áudio e acessibilidade.",
       "more": "Abra todos os outros destinos da empresa."
+    },
+    "kernels": {
+      "t": "Sementes Permanentes",
+      "d": "Guardadas ao reestruturar. Sobrevivem a todos os ciclos e financiam habilidades permanentes."
     }
   },
   "office": {
@@ -2393,6 +2398,9 @@
     "secret-requisition": "Formulário 12-B"
   },
   "header": {
-    "department": "Pesquisa Comportamental"
+    "department": "Pesquisa Comportamental",
+    "departmentFull": "Departamento de Pesquisa Comportamental",
+    "cycle": "Ciclo {{n}}",
+    "cycleTip": "Ciclo operacional {{n}}. Cada reestruturação inicia um novo."
   }
 }
