@@ -122,6 +122,8 @@ export function createInitialState(now = Date.now(), settings?: Partial<GameSett
     settings: { ...defaultSettings(), ...settings },
     onboardingComplete: false,
     eventCooldowns: {},
+    flags: {},
+    scheduled: [],
     pendingChain: null,
     eventHistory: [],
   };

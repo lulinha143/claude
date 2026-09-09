@@ -102,7 +102,14 @@ export interface EventChoice {
   /** optional localization keys for employee reactions shown on the result panel. */
   reactions?: string[];
   /** optional gating so a choice can require a resource/employee/etc. */
-  requires?: { nuts?: number; goldenNuts?: number; reputation?: number; hiredEmployee?: string };
+  requires?: {
+    nuts?: number;
+    goldenNuts?: number;
+    reputation?: number;
+    hiredEmployee?: string;
+    /** only offer this choice once the company has left this mark. */
+    flag?: string;
+  };
   /** optional localization key describing why a disabled choice is unavailable. */
   disabledKey?: string;
 }
@@ -117,6 +124,9 @@ export interface EventEffect {
     | 'friendship'
     | 'emotion' // set a specific employee's emotion (optionally temporary)
     | 'momentCard'
+    | 'setFlag' // leave a durable mark later content can read
+    | 'clearFlag'
+    | 'schedule' // promise effects that land later
     | 'unlockSecret'
     | 'collectNut';
   value?: number;
@@ -126,6 +136,15 @@ export interface EventEffect {
   emotion?: EmployeeMood;
   nutId?: string;
   secretId?: string;
+  /** for `setFlag` / `clearFlag`: the consequence-memory mark to write. */
+  flagId?: string;
+  /** for `schedule`: how far in the future the promised effects land. */
+  delaySeconds?: number;
+  /** for `schedule`: presentation for the callback notice when it fires. */
+  scheduleTitleKey?: string;
+  scheduleBodyKey?: string;
+  /** for `schedule`: the effects to apply then. */
+  scheduled?: EventEffect[];
 }
 
 export interface GameEventDef {
@@ -135,7 +154,21 @@ export interface GameEventDef {
   rarity: EventRarity;
   weight: number;
   cooldownSeconds: number;
-  requires?: { reputation?: number; hiredEmployee?: string; prestige?: number };
+  requires?: {
+    reputation?: number;
+    hiredEmployee?: string;
+    prestige?: number;
+    /** only offer this event once the company has left this mark. */
+    flag?: string;
+    /** only offer this event while the company has NOT left this mark. */
+    missingFlag?: string;
+    /** only offer this event once the named room is unlocked. */
+    room?: string;
+    /** only offer this event while morale is at or below this value. */
+    moraleBelow?: number;
+    /** only offer this event while morale is at or above this value. */
+    moraleAbove?: number;
+  };
   employeeId?: string | null;
   choices: EventChoice[];
   /** true when this event is worth a shareable Moment Card automatically. */

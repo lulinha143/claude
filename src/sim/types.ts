@@ -1,4 +1,5 @@
 import type { DecorationPlacement } from './surfaces';
+import type { EventEffect } from '../content/types';
 
 // Shared simulation types. These describe the persisted game state and the
 // runtime shapes the engine works with. Content *definitions* (the catalogue
@@ -71,6 +72,26 @@ export interface EmployeeEmotion {
 }
 
 /** A compact, persisted record of a resolved event decision (company timeline). */
+/**
+ * A consequence that was deferred when a choice was made and fires later.
+ *
+ * Deliberately carries its own presentation keys: when it lands, the player has
+ * usually forgotten the decision, so the notice has to say what it is settling up
+ * for. Effects are stored as authored data rather than resolved numbers so a
+ * delayed morale hit still respects the caps in force when it actually applies.
+ */
+export interface ScheduledConsequence {
+  id: string;
+  /** epoch ms at which the effects apply. */
+  at: number;
+  /** the event that promised this, for the callback notice. */
+  sourceEventId: string;
+  titleKey: string;
+  bodyKey: string;
+  /** authored effects, applied through the ordinary effect pipeline. */
+  effects: EventEffect[];
+}
+
 export interface EventHistoryEntry {
   eventId: string;
   choiceId: string;
@@ -252,6 +273,20 @@ export interface GameState {
   pendingChain: { eventId: string; step: number } | null;
   /** Chronological record of resolved event decisions (most recent last). */
   eventHistory: EventHistoryEntry[];
+  /**
+   * Consequence memory: durable marks left by the player's decisions.
+   *
+   * flagId -> the epoch ms it was set (so content can also ask "how long ago?").
+   * Events read these to remember what the company already did — who was turned
+   * away, which favour is still owed, which crisis was caused — which is what
+   * lets later content refer back to a specific save's history.
+   */
+  flags: Record<string, number>;
+  /**
+   * Effects that were promised earlier and land later. This is how a choice can
+   * look profitable now and bill the company afterwards.
+   */
+  scheduled: ScheduledConsequence[];
 }
 
 export interface ProductionBreakdownEntry {

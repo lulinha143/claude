@@ -44,7 +44,21 @@ const EFFECT_WEIGHT: Record<EventEffect['type'], number> = {
   momentCard: 2,
   unlockSecret: 3,
   collectNut: 2,
+  // Marks are bookkeeping, not value in themselves.
+  setFlag: 0,
+  clearFlag: 0,
+  // Scored from its CONTENTS below, not from a flat weight.
+  schedule: 0,
 };
+
+/**
+ * How much a deferred consequence counts toward a choice's score.
+ *
+ * Less than 1, because a cost paid later really is preferable to the same cost
+ * paid now — but well above 0, so the department cannot be tricked by an option
+ * that looks free and quietly bills the company afterwards.
+ */
+const DEFERRED_DISCOUNT = 0.7;
 
 /** Net score for a single effect. Higher is better for the company. */
 function scoreEffect(effect: EffectLike): number {
@@ -89,9 +103,22 @@ const NEGATIVE_EMOTIONS = new Set([
   'suspicious',
 ]);
 
-/** Net score for a choice: the sum of what it does to the company. */
+/**
+ * Net score for a choice: the sum of what it does to the company, INCLUDING what
+ * it has promised to do later. Without the deferred term, "take the money now"
+ * options with a delayed penalty would always win.
+ */
 export function scoreChoice(choice: EventChoice): number {
-  return choice.effects.reduce((total, effect) => total + scoreEffect(effect), 0);
+  let total = 0;
+  for (const effect of choice.effects) {
+    total += scoreEffect(effect);
+    if (effect.type === 'schedule' && effect.scheduled?.length) {
+      for (const later of effect.scheduled) {
+        total += scoreEffect(later) * DEFERRED_DISCOUNT;
+      }
+    }
+  }
+  return total;
 }
 
 export interface AutoResolution {

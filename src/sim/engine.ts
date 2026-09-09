@@ -1,6 +1,12 @@
 import { BALANCE } from './config';
 import { createRng, hashStringToSeed, type Rng } from './rng';
-import type { DecorationInstance, EmployeeMood, GameState, MomentCard } from './types';
+import type {
+  DecorationInstance,
+  EmployeeMood,
+  GameState,
+  MomentCard,
+  ScheduledConsequence,
+} from './types';
 import {
   aggregatePassives,
   autoCollectRate,
@@ -171,6 +177,11 @@ export class GameEngine {
    * `settings.autoResolveEvents` is on), for the notification feed.
    */
   lastAutoResolved: AutoResolvedEvent | null = null;
+  /**
+   * transient: delayed consequences that have just landed, for the notification
+   * feed. Drained by the UI; the authoritative queue lives in `state.scheduled`.
+   */
+  settledConsequences: ScheduledConsequence[] = [];
 
   private listeners = new Set<EngineListener>();
   private now: () => number;
@@ -280,6 +291,8 @@ export class GameEngine {
     }
 
     // random events
+    this.settleScheduled();
+
     this.eventAccum += deltaSeconds;
     if (this.eventAccum >= BALANCE.eventRollIntervalSeconds) {
       this.eventAccum = 0;
@@ -416,6 +429,50 @@ export class GameEngine {
 
     this.emit();
     return result;
+  }
+
+  /**
+   * Apply any promised consequences that have come due.
+   *
+   * Run every tick, which also means a player who was away gets their bill on
+   * return rather than having it silently skipped: `tick` catches up elapsed time,
+   * so anything whose moment passed offline settles on the next tick.
+   */
+  private settleScheduled(): void {
+    if (this.state.scheduled.length === 0) return;
+    const now = this.now();
+    const due = this.state.scheduled.filter((s) => s.at <= now);
+    if (due.length === 0) return;
+    this.state.scheduled = this.state.scheduled.filter((s) => s.at > now);
+
+    for (const item of due) {
+      const def = GAME_EVENTS_BY_ID[item.sourceEventId];
+      for (const effect of item.effects) {
+        // Reuse the ordinary effect pipeline so a delayed change is clamped and
+        // recorded exactly like an immediate one.
+        this.applyEffect(effect, def ?? this.syntheticEventFor(item));
+      }
+      // Surfaced so the callback never feels like an unexplained swing.
+      this.settledConsequences.push(item);
+      if (this.settledConsequences.length > 8) this.settledConsequences.shift();
+    }
+  }
+
+  /**
+   * A minimal event stand-in for a scheduled consequence whose source event no
+   * longer exists (content removed between versions). Keeps `applyEffect`'s
+   * employee fallbacks working without special-casing them.
+   */
+  private syntheticEventFor(item: ScheduledConsequence): GameEventDef {
+    return {
+      id: item.sourceEventId,
+      titleKey: item.titleKey,
+      bodyKey: item.bodyKey,
+      rarity: 'common',
+      weight: 0,
+      cooldownSeconds: 0,
+      choices: [],
+    };
   }
 
   /** The live combo streak on a station, or 0 if it has lapsed. */
@@ -574,7 +631,13 @@ export class GameEngine {
   }
 
   // -- events ---------------------------------------------------------------
-  private eligibleEvents(): GameEventDef[] {
+  /** Ids of the events that could fire right now. Useful for diagnostics. */
+  eligibleEventIds(): string[] {
+    return this.eligibleEvents().map((ev) => ev.id);
+  }
+
+  /** Every event whose cooldown has expired and whose requirements are met. */
+  eligibleEvents(): GameEventDef[] {
     const t = this.now();
     return GAME_EVENTS.filter((ev) => {
       const cd = this.state.eventCooldowns[ev.id] ?? 0;
@@ -583,6 +646,22 @@ export class GameEngine {
         return false;
       if (ev.requires?.prestige && this.state.prestige.count < ev.requires.prestige) return false;
       if (ev.requires?.hiredEmployee && !this.state.employees[ev.requires.hiredEmployee]?.hired)
+        return false;
+      // Consequence memory: content can be gated on what this company has
+      // already done, which is how a decision made an hour ago comes back.
+      if (ev.requires?.flag && !(ev.requires.flag in this.state.flags)) return false;
+      if (ev.requires?.missingFlag && ev.requires.missingFlag in this.state.flags) return false;
+      if (ev.requires?.room && !isRoomIdUnlocked(this.state, ev.requires.room)) return false;
+      // Situational events: a morale crisis should only turn up when there IS one.
+      if (
+        ev.requires?.moraleBelow !== undefined &&
+        this.state.resources.morale > ev.requires.moraleBelow
+      )
+        return false;
+      if (
+        ev.requires?.moraleAbove !== undefined &&
+        this.state.resources.morale < ev.requires.moraleAbove
+      )
         return false;
       return true;
     });
@@ -812,7 +891,15 @@ export class GameEngine {
     };
   }
 
-  private applyEffect(effect: EventEffect, def: GameEventDef): void {
+  /**
+   * Apply one authored effect. This is the SINGLE funnel every effect goes
+   * through — event choices, delayed consequences, and the dev panel — so all of
+   * them share the same clamping, employee fallbacks and caps.
+   *
+   * `def` supplies the contextual employee for effects that omit one; it is
+   * optional because a delayed consequence can outlive the event that promised it.
+   */
+  applyEffect(effect: EventEffect, def?: GameEventDef): void {
     switch (effect.type) {
       case 'nuts':
         if ((effect.value ?? 0) >= 0) this.addNuts(effect.value ?? 0, false);
@@ -841,13 +928,13 @@ export class GameEngine {
         this.addBoost(effect.value ?? 1.5, effect.durationSeconds ?? 60);
         break;
       case 'friendship': {
-        const rt = this.state.employees[effect.employeeId ?? def.employeeId ?? ''];
+        const rt = this.state.employees[effect.employeeId ?? def?.employeeId ?? ''];
         // Only unlocked employees participate in the simulation.
         if (rt && rt.hired) rt.friendship = Math.min(100, rt.friendship + (effect.value ?? 5));
         break;
       }
       case 'emotion': {
-        const id = effect.employeeId ?? def.employeeId ?? '';
+        const id = effect.employeeId ?? def?.employeeId ?? '';
         if (effect.emotion) this.setEmployeeEmotion(id, effect.emotion, effect.durationSeconds);
         break;
       }
@@ -859,8 +946,36 @@ export class GameEngine {
         if (effect.secretId && !this.state.collections.secrets.includes(effect.secretId))
           this.state.collections.secrets.push(effect.secretId);
         break;
+      // Consequence memory. Stamped with WHEN so later content can distinguish
+      // "this happened" from "this happened recently".
+      case 'setFlag':
+        if (effect.flagId && !(effect.flagId in this.state.flags)) {
+          this.state.flags[effect.flagId] = this.now();
+        }
+        break;
+      case 'clearFlag':
+        if (effect.flagId) delete this.state.flags[effect.flagId];
+        break;
+      // A promise to be settled later. Stored as authored effects so the delayed
+      // change still respects whatever caps are in force when it lands.
+      case 'schedule': {
+        if (!effect.scheduled?.length) break;
+        const delay = Math.max(1, effect.delaySeconds ?? 300);
+        this.state.scheduled.push({
+          id: `${def?.id ?? 'manual'}:${effect.flagId ?? 'delayed'}:${this.now()}`,
+          at: this.now() + delay * 1000,
+          sourceEventId: def?.id ?? 'manual',
+          titleKey: effect.scheduleTitleKey ?? def?.titleKey ?? 'notify.consequenceSettled',
+          bodyKey: effect.scheduleBodyKey ?? def?.bodyKey ?? 'notify.consequenceSettled',
+          effects: effect.scheduled,
+        });
+        // Keep the queue bounded; a save should never accumulate promises forever.
+        if (this.state.scheduled.length > 24) this.state.scheduled.shift();
+        break;
+      }
       case 'momentCard':
-        this.createMomentCard(def);
+        // A moment card is a souvenir OF an event, so it needs a real source.
+        if (def) this.createMomentCard(def);
         break;
     }
   }

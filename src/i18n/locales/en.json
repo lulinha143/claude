@@ -990,6 +990,50 @@
       "body": "The (now sentient) coffee machine has requested a well-earned vacation. It has been working overtime.",
       "approve": "Approve its leave",
       "deny": "Ask it to stay one more week"
+    },
+    "ledgerDiscrepancy": {
+      "title": "Ledger Discrepancy",
+      "body": "Procurement has found 400 nuts that exist in two places at once. The paperwork is immaculate. That is the concerning part.",
+      "report": "Report it upward (cost: 400 nuts)",
+      "quiet": "Ask around quietly first",
+      "accountantBody": "The accountant finds you before you find them. They can make the second entry go away. They mention, unprompted, that they have a family.",
+      "pay": "Pay the 1,200 and owe them one",
+      "payLocked": "Not enough nuts to make this quietly disappear.",
+      "refuse": "Refuse, and keep the 900 that never existed",
+      "laterTitle": "The Discrepancy Returns",
+      "laterBody": "An external reviewer has found the entry you buried. They found it easily. They seem almost disappointed."
+    },
+    "accountantRemembers": {
+      "title": "The Accountant Remembers",
+      "body": "A folder appears on your desk with no covering note. Inside: three golden nuts, and a single line reading \"for the thing we did not discuss.\"",
+      "accept": "Accept the folder",
+      "decline": "Return it, formally, in writing"
+    },
+    "moralePetition": {
+      "title": "Petition from the Floor",
+      "body": "Every employee has signed the same document. It is a good document. It is better written than anything the company has ever published.",
+      "concede": "Grant it in full (cost: 2,500 nuts)",
+      "partial": "Grant the reasonable half",
+      "refuse": "Thank them for their feedback",
+      "laterTitle": "The Petition, Externally",
+      "laterBody": "The document you declined to read has been published somewhere you cannot decline to read it."
+    },
+    "goodWeek": {
+      "title": "An Unusually Good Week",
+      "body": "Nothing went wrong. Nobody can explain it. Two employees have independently described the atmosphere as \"suspiciously pleasant.\"",
+      "celebrate": "Let it run — cancel all meetings",
+      "document": "Document the conditions for replication",
+      "bank": "Quietly bank the surplus"
+    },
+    "basementRequisition": {
+      "title": "Requisition Form 12-B",
+      "body": "A supply request has come up from the basement. It is correctly filled in. It is signed. Nobody in the basement is on the payroll.",
+      "approve": "Approve it and ask nothing",
+      "query": "Query the signature",
+      "deny": "Deny the request",
+      "replyBody": "A second form arrives within the hour. Under \"clarification of signatory\" someone has written, in the same neat hand, \"yes\".",
+      "sign": "Countersign it",
+      "file": "File both forms and move on"
     }
   },
   "ach": {
@@ -1797,7 +1841,8 @@
     "additionalUpdates_one": "+{{count}} additional update",
     "additionalUpdates_other": "+{{count}} additional updates",
     "eventAutoResolved": "Handled for you — {{title}}: {{choice}}",
-    "repTierUp": "{{name}} — {{blurb}}"
+    "repTierUp": "{{name}} — {{blurb}}",
+    "consequenceSettled": "{{title}} — {{body}}"
   },
   "react": {
     "marlowApproves": "Marlow approved of this decision.",
@@ -1815,7 +1860,8 @@
     "hazelApproves": "Hazel nods — legally sound.",
     "junieReady": "Junie already rescheduled everything around it.",
     "mossKnowing": "Moss says nothing, but seems to have known.",
-    "fennGrin": "Fenn grins like the deal was always going to close."
+    "fennGrin": "Fenn grins like the deal was always going to close.",
+    "ottoImpressed": "Otto counts something twice and says nothing."
   },
   "daily": {
     "title": "Daily Challenges",
@@ -2256,5 +2302,9 @@
     "costReduction": "Costs",
     "eventLuck": "Event luck",
     "automation": "Automation"
+  },
+  "secret": {
+    "secret-ledger": "The Second Entry",
+    "secret-requisition": "Form 12-B"
   }
 }

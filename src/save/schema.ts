@@ -124,6 +124,28 @@ const settingsSchema = z
   .default({})
   .catch({} as never);
 
+export /**
+ * One authored effect inside a promised consequence. Kept permissive
+ * (`passthrough`) so a save written by a newer build that added an effect field
+ * survives a downgrade instead of having its promises silently dropped.
+ */
+const effectSchema = z
+  .object({
+    type: z.string(),
+  })
+  .passthrough();
+
+const scheduledConsequenceSchema = z.object({
+  id: z.string(),
+  at: z.number().finite(),
+  sourceEventId: z.string(),
+  titleKey: z.string(),
+  bodyKey: z.string(),
+  effects: z.array(effectSchema),
+});
+
+type ScheduledParsed = z.infer<typeof scheduledConsequenceSchema>;
+
 export const gameStateSchema = z.object({
   version: z.number().catch(SAVE_VERSION),
   createdAt: z.number().catch(() => Date.now()),
@@ -224,6 +246,23 @@ export const gameStateSchema = z.object({
   eventHistory: z
     .array(z.object({ eventId: z.string(), choiceId: z.string(), at: z.number() }))
     .catch([]),
+  /** Consequence memory: flagId -> epoch ms it was set. */
+  flags: z.record(z.number().finite()).catch({}),
+  /**
+   * Promised consequences awaiting their moment. Individually validated and bad
+   * entries dropped, matching the decorationInstances convention: one malformed
+   * promise must not cost the player their whole save.
+   */
+  scheduled: z
+    .array(z.unknown())
+    .catch([])
+    .transform((items) =>
+      items
+        .map((item) => scheduledConsequenceSchema.safeParse(item))
+        .filter((r): r is { success: true; data: ScheduledParsed } => r.success)
+        .map((r) => r.data),
+    ),
 });
 
 export type ParsedGameState = z.infer<typeof gameStateSchema>;
+export type { ScheduledParsed };

@@ -990,6 +990,50 @@
       "body": "A cafeteira (agora consciente) pediu umas merecidas férias. Ela tem feito hora extra.",
       "approve": "Aprovar as férias",
       "deny": "Pedir que fique mais uma semana"
+    },
+    "ledgerDiscrepancy": {
+      "title": "Divergência no Livro",
+      "body": "Compras encontrou 400 nozes que existem em dois lugares ao mesmo tempo. A papelada está impecável. Essa é a parte preocupante.",
+      "report": "Reportar para cima (custo: 400 nozes)",
+      "quiet": "Primeiro perguntar discretamente",
+      "accountantBody": "O contador te encontra antes que você o encontre. Ele pode fazer o segundo lançamento desaparecer. Menciona, sem que ninguém pergunte, que tem família.",
+      "pay": "Pagar as 1.200 e ficar devendo um favor",
+      "payLocked": "Nozes insuficientes para fazer isso desaparecer.",
+      "refuse": "Recusar, e ficar com as 900 que nunca existiram",
+      "laterTitle": "A Divergência Retorna",
+      "laterBody": "Um revisor externo achou o lançamento que você enterrou. Achou facilmente. Parece quase decepcionado."
+    },
+    "accountantRemembers": {
+      "title": "O Contador Lembra",
+      "body": "Uma pasta aparece na sua mesa sem qualquer nota. Dentro: três nozes douradas e uma única linha: \"pelo que não discutimos.\"",
+      "accept": "Aceitar a pasta",
+      "decline": "Devolver, formalmente, por escrito"
+    },
+    "moralePetition": {
+      "title": "Petição do Andar",
+      "body": "Todos os funcionários assinaram o mesmo documento. É um bom documento. Melhor escrito que qualquer coisa que a empresa já publicou.",
+      "concede": "Conceder integralmente (custo: 2.500 nozes)",
+      "partial": "Conceder a metade razoável",
+      "refuse": "Agradecer pelo retorno",
+      "laterTitle": "A Petição, Externamente",
+      "laterBody": "O documento que você optou por não ler foi publicado em um lugar onde você não pode optar por não ler."
+    },
+    "goodWeek": {
+      "title": "Uma Semana Boa Demais",
+      "body": "Nada deu errado. Ninguém explica. Dois funcionários descreveram o clima, de forma independente, como \"suspeitosamente agradável\".",
+      "celebrate": "Deixar acontecer — cancelar todas as reuniões",
+      "document": "Documentar as condições para replicação",
+      "bank": "Guardar o excedente discretamente"
+    },
+    "basementRequisition": {
+      "title": "Formulário de Requisição 12-B",
+      "body": "Um pedido de suprimentos subiu do subsolo. Está preenchido corretamente. Está assinado. Ninguém no subsolo está na folha de pagamento.",
+      "approve": "Aprovar e não perguntar nada",
+      "query": "Questionar a assinatura",
+      "deny": "Negar o pedido",
+      "replyBody": "Um segundo formulário chega em uma hora. Em \"esclarecimento do signatário\" alguém escreveu, na mesma letra caprichada, \"sim\".",
+      "sign": "Assinar em conjunto",
+      "file": "Arquivar os dois formulários e seguir"
     }
   },
   "ach": {
@@ -1797,7 +1841,8 @@
     "additionalUpdates_one": "+{{count}} atualização adicional",
     "additionalUpdates_other": "+{{count}} atualizações adicionais",
     "eventAutoResolved": "Resolvido para você — {{title}}: {{choice}}",
-    "repTierUp": "{{name}} — {{blurb}}"
+    "repTierUp": "{{name}} — {{blurb}}",
+    "consequenceSettled": "{{title}} — {{body}}"
   },
   "react": {
     "marlowApproves": "Bento aprovou esta decisão.",
@@ -1815,7 +1860,8 @@
     "hazelApproves": "Avelã assente — juridicamente sólido.",
     "junieReady": "Juju já reagendou tudo em volta disso.",
     "mossKnowing": "Mocho não diz nada, mas parece já saber.",
-    "fennGrin": "Fael sorri como se o negócio já estivesse fechado."
+    "fennGrin": "Fael sorri como se o negócio já estivesse fechado.",
+    "ottoImpressed": "Otto conta algo duas vezes e não diz nada."
   },
   "daily": {
     "title": "Desafios Diários",
@@ -2256,5 +2302,9 @@
     "costReduction": "Custos",
     "eventLuck": "Sorte em eventos",
     "automation": "Automação"
+  },
+  "secret": {
+    "secret-ledger": "O Segundo Lançamento",
+    "secret-requisition": "Formulário 12-B"
   }
 }

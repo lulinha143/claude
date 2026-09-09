@@ -210,6 +210,17 @@ const v8ToV9: Migration = (raw) => {
   return { ...raw, clicker, decorationInstances: instances, version: 9 };
 };
 
+// v9 -> v10: consequence memory (`flags`) and deferred consequences
+// (`scheduled`). Both start empty: an existing company has no recorded decisions
+// to remember and owes nothing yet, so there is nothing to derive. The schema
+// would backfill these anyway; the migration is here to make the intent explicit.
+const v9ToV10: Migration = (raw) => ({
+  ...raw,
+  flags: isRawSave(raw.flags) ? raw.flags : {},
+  scheduled: Array.isArray(raw.scheduled) ? raw.scheduled : [],
+  version: 10,
+});
+
 const MIGRATIONS: Record<number, Migration> = {
   1: v1ToV2,
   2: v2ToV3,
@@ -219,6 +230,7 @@ const MIGRATIONS: Record<number, Migration> = {
   6: v6ToV7,
   7: v7ToV8,
   8: v8ToV9,
+  9: v9ToV10,
 };
 
 export function migrate(raw: RawSave): RawSave {

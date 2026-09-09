@@ -319,6 +319,23 @@ engine.subscribe(() => {
     }
   }
 
+  // Promised consequences that have just come due. Announcing these is what keeps
+  // a delayed penalty fair: the player sees the bill AND what it is settling up
+  // for, rather than an unexplained swing minutes after the decision.
+  if (engine.settledConsequences.length > 0) {
+    const settled = engine.settledConsequences.splice(0, engine.settledConsequences.length);
+    for (const item of settled) {
+      notify(
+        'moment',
+        i18n.t('notify.consequenceSettled', {
+          title: i18n.t(item.titleKey),
+          body: i18n.t(item.bodyKey),
+        }),
+        'negative',
+      );
+    }
+  }
+
   // Events handled automatically because the player turned choice popups off.
   // Reporting them is what keeps the setting honest: the system is still running
   // and the player can see every decision that was taken for them.
