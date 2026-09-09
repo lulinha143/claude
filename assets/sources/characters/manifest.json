@@ -1,0 +1,99 @@
+{
+  "_comment": [
+    "Provenance for the character master artwork.",
+    "",
+    "The masters are 80-210 MB each (~1.3 GB total) and are deliberately NOT in the",
+    "repository: `assets/sources/characters/*.png` is gitignored. This manifest is",
+    "what makes them recoverable without archaeology through git history — re-fetch",
+    "by driveId, check the sha256, then run scripts/import-character-assets.py.",
+    "",
+    "`employee` is the authoritative link. Asset files are never matched to animals",
+    "by filename: every entry names the employee id from src/content/employees.ts and",
+    "the species recorded in src/art/critterShapes.ts, and a test asserts the two",
+    "agree so a cat can never end up wearing the owl's artwork.",
+    "",
+    "`officeHeight` is the authored CSS height for that animal in the office diorama",
+    "BEFORE the global presence multiplier in src/content/characterScale.ts. The",
+    "importer encodes @1x at exactly this height so it maps 1:1 to CSS pixels."
+  ],
+  "fetch": {
+    "urlTemplate": "https://drive.usercontent.google.com/download?id={driveId}&export=download&confirm=t",
+    "note": "Large files may be throttled; retry until the payload starts with the PNG signature and ends with IEND."
+  },
+  "characters": [
+    {
+      "employee": "pip",
+      "species": "squirrel",
+      "asset": "pip",
+      "sourceFile": "ESQUILO.png",
+      "driveId": "1X77WSvFPBF41XB-O1BpqhnMvSsyr90tA",
+      "officeHeight": 93,
+      "skipImport": true,
+      "skipReason": "The shipped pip.png is the REPAIRED build. This master still carries the alpha defect that made the halo shimmer (measured peak-to-peak 16.95 vs 2.10 for the repaired asset), so re-importing it would reintroduce a bug that was fixed and verified on real hardware. Kept here as the master of record only."
+    },
+    {
+      "employee": "bea",
+      "species": "beaver",
+      "asset": "bea",
+      "sourceFile": "CASTOR.png",
+      "driveId": "1LozAAzVeAMsMaN7sMQOqJ8xPfR33qplT",
+      "officeHeight": 116
+    },
+    {
+      "employee": "rizzo",
+      "species": "raccoon",
+      "asset": "rizzo",
+      "sourceFile": "GUAXINIM.png",
+      "driveId": "1U6PNNGbKXX4ag9rOF9DZn3SUSroDDIHW",
+      "officeHeight": 104
+    },
+    {
+      "employee": "corvus",
+      "species": "crow",
+      "asset": "corvus",
+      "sourceFile": "CORVO.png",
+      "driveId": "102L-d1kr9lefslKOSQotaDmYJv3s0QHf",
+      "officeHeight": 100
+    },
+    {
+      "employee": "junie",
+      "species": "rabbit",
+      "asset": "junie",
+      "sourceFile": "COELHA.png",
+      "driveId": "151uQ589EGDqby0gI9Srh2rHy4fo_8TXj",
+      "officeHeight": 99
+    },
+    {
+      "employee": "moss",
+      "species": "owl",
+      "asset": "moss",
+      "sourceFile": "CORUJA.png",
+      "driveId": "1sYS-Q7XT4WsXdKsrvoUmkycWJr9ZCeoU",
+      "officeHeight": 102
+    },
+    {
+      "employee": "nino",
+      "species": "cat",
+      "asset": "nino",
+      "sourceFile": "GATO.png",
+      "driveId": "1c4Wh24_7EAwV4jFWjFd9SS67Tebm_7O4",
+      "officeHeight": 98
+    },
+    {
+      "employee": "rosa",
+      "species": "flamingo",
+      "asset": "rosa",
+      "sourceFile": "FLAMINGO.png",
+      "driveId": "1ZB0vC1cC1de5x_-y3EvrImVQgsNyDv0N",
+      "officeHeight": 108
+    },
+    {
+      "employee": "axel",
+      "species": "axolotl",
+      "asset": "axel",
+      "sourceFile": "AXOLOT.png",
+      "driveId": "1rgHaJejlr6TABFtxVFfJKWqu7ByinAce",
+      "officeHeight": 96
+    }
+  ]
+}
