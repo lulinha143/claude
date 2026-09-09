@@ -9,6 +9,8 @@ import { teamMoodMultiplier } from './mood';
 import { affinityMultiplier } from './affinity';
 import { resolveEmployeeRoom } from './rooms';
 import { aggregateCompanyModifiers } from './companyModifiers';
+// Re-exported so existing callers can keep importing it from the economy module.
+export { upgradeBonus } from './upgradeEffects';
 import { nextReputationTier } from '../content/reputationTiers';
 
 /** An employee's output = their base contribution × room-specialization bonus. */

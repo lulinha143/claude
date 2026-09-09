@@ -128,11 +128,35 @@ describe('full-surface placement regions', () => {
 });
 
 describe('decoration surface metadata', () => {
-  it('keeps the audited 23 floor / 6 wall / 3 ceiling split', () => {
+  // A tripwire, not a snapshot: the exact numbers move whenever the catalogue
+  // grows, but the SHAPE of the catalogue should not. Floor props dominate because
+  // that is where a room reads; wall and ceiling exist to frame it. If a batch of
+  // new items ever inverts that, the rooms will have quietly become cluttered
+  // above eye level and empty at floor height.
+  it('keeps a floor-led balance across the three surfaces', () => {
     const counts = { floor: 0, wall: 0, ceiling: 0 };
     for (const decoration of DECORATIONS) counts[decorationSurface(decoration.id)] += 1;
-    expect(counts).toEqual({ floor: 23, wall: 6, ceiling: 3 });
+    const total = counts.floor + counts.wall + counts.ceiling;
+    expect(total).toBe(DECORATIONS.length);
+    expect(counts.floor / total, 'floor share').toBeGreaterThan(0.6);
+    expect(counts.wall, 'wall props').toBeGreaterThanOrEqual(6);
+    expect(counts.ceiling, 'ceiling props').toBeGreaterThanOrEqual(3);
     expect(DECORATIONS.filter((decoration) => isRug(decoration.id))).toHaveLength(2);
+  });
+
+  // Every room the player can unlock must be decoratable with something made for
+  // it. The five newest departments shipped with an empty catalogue: openable,
+  // and then nothing to put in them.
+  it('gives every room its own decorations', () => {
+    const byRoom = new Map<string, number>();
+    for (const decoration of DECORATIONS) {
+      byRoom.set(decoration.room, (byRoom.get(decoration.room) ?? 0) + 1);
+    }
+    for (const room of ROOMS) {
+      expect(byRoom.get(room.id) ?? 0, `${room.id} has no decorations of its own`).toBeGreaterThan(
+        0,
+      );
+    }
   });
 
   it('assigns every asset to exactly one of the three surfaces', () => {

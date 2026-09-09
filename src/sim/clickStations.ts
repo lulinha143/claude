@@ -19,6 +19,7 @@ import {
   type ClickStationDef,
 } from '../content/clickStations';
 import { clickPower, aggregatePassives } from './economy';
+import { upgradeBonus } from './upgradeEffects';
 import { aggregateCompanyModifiers } from './companyModifiers';
 import { employeesInRoom } from './rooms';
 import { BALANCE } from './config';
@@ -140,8 +141,14 @@ export function critChance(state: GameState, def: ClickStationDef): number {
     CLICK.moraleCritBonus;
   // Research and the rooftop dish exist partly to make tapping sharper.
   const rooms = aggregateCompanyModifiers(state).critChance;
+  const bought = upgradeBonus(state, 'critChance');
   const total =
-    CLICK.baseCritChance + (def.critBonus ?? 0) + passives.resourceFind * 0.5 + moraleShare + rooms;
+    CLICK.baseCritChance +
+    (def.critBonus ?? 0) +
+    passives.resourceFind * 0.5 +
+    moraleShare +
+    rooms +
+    bought;
   return Math.max(0, Math.min(0.75, total));
 }
 
@@ -154,13 +161,17 @@ export function critChance(state: GameState, def: ClickStationDef): number {
  */
 export function goldenTapChance(state: GameState): number {
   const rooms = aggregateCompanyModifiers(state).goldenChance;
-  return Math.max(0, Math.min(0.25, CLICK.goldenTapChance + rooms));
+  return Math.max(
+    0,
+    Math.min(0.25, CLICK.goldenTapChance + rooms + upgradeBonus(state, 'goldenChance')),
+  );
 }
 
 /** The combo window for a station, widened by rooms that reward long streaks. */
 export function stationComboWindowMs(state: GameState, def: ClickStationDef): number {
   const rooms = aggregateCompanyModifiers(state).comboWindow;
-  return Math.max(400, comboWindowMs(def.cadence) * (1 + rooms));
+  const bought = upgradeBonus(state, 'comboWindow');
+  return Math.max(400, comboWindowMs(def.cadence) * (1 + rooms + bought));
 }
 
 /**

@@ -36,6 +36,7 @@ import {
 import { reputationTier } from '../content/reputationTiers';
 import { employeesInRoom, isRoomIdUnlocked } from './rooms';
 import { BALANCE } from './config';
+import { upgradeBonus } from './upgradeEffects';
 
 /** Every company-wide lever, resolved. */
 export interface CompanyModifiers {
@@ -124,7 +125,11 @@ export interface DormantEffect {
 export function roomStaffing(state: GameState, roomId: string): number {
   const assigned = Math.min(ROOM_FULL_STAFF, employeesInRoom(state, roomId).length);
   if (assigned <= 0) return 0;
-  return Math.min(1, Math.pow(assigned / ROOM_FULL_STAFF, 0.48));
+  // Room-efficiency upgrades let a thinly staffed department punch above its
+  // headcount. They cannot conjure a department out of an empty room — nothing
+  // multiplies zero — so they reward spreading out rather than replacing staff.
+  const efficiency = 1 + upgradeBonus(state, 'roomEfficiency');
+  return Math.min(1, Math.pow(assigned / ROOM_FULL_STAFF, 0.48) * efficiency);
 }
 
 /** A room counts as "running" for chain purposes once anyone works in it. */

@@ -670,6 +670,388 @@ function spriteFor(id: string, on: boolean, variant: number, accent: string): Sp
         shadowR: 8,
       };
 
+
+    // --- Second expansion --------------------------------------------------
+    case 'coffee-urn':
+      return {
+        base: [
+          [8, 4, 8, 3, C.ml], // domed lid
+          [7, 7, 10, 14, C.m],
+          [8, 8, 3, 12, C.ml], // left highlight
+          [14, 8, 2, 12, C.ms],
+          [16, 12, 3, 2, C.k], // tap
+          [15, 14, 2, 3, C.ms],
+          [9, 10, 6, 3, C.scrd], // gauge window
+          [10, 11, 4, 1, C.wd],
+          [6, 21, 12, 3, C.ms], // base plate
+          [7, 24, 10, 2, C.k],
+        ],
+        glow: [[9, 10, 6, 3, C.glow]],
+        lit: [[10, 11, 4, 1, C.gold]],
+        shadowR: 8,
+      };
+    case 'tray-stack':
+      return {
+        base: [
+          [4, 15, 16, 2, C.gl],
+          [4, 18, 16, 2, C.bluel],
+          [4, 21, 16, 2, C.redl],
+          [4, 24, 16, 2, C.paper],
+          [4, 15, 16, 1, C.white], // top rim catches the light
+          [3, 17, 1, 9, C.w], // the stack leans on a rail
+          [20, 17, 1, 9, C.w],
+        ],
+        shadowR: 9,
+      };
+    case 'menu-chalkboard':
+      return {
+        base: [
+          [3, 5, 18, 16, C.w], // frame
+          [5, 7, 14, 12, C.scrd],
+          [6, 9, 8, 1, C.paper], // today's list, mostly legible
+          [6, 11, 10, 1, C.paper],
+          [6, 13, 6, 1, C.paper],
+          [6, 15, 9, 1, C.gl],
+          [15, 16, 3, 2, C.gold], // one item circled with real feeling
+        ],
+        shadowR: 0,
+      };
+    case 'pigeonholes':
+      return {
+        base: [
+          [4, 3, 16, 23, C.wd],
+          [4, 3, 16, 1, C.wl],
+          [5, 4, 14, 21, C.w],
+          // rows of compartments, several with post in them
+          [6, 5, 5, 5, C.k],
+          [12, 5, 5, 5, C.k],
+          [6, 11, 5, 5, C.k],
+          [12, 11, 5, 5, C.k],
+          [6, 17, 5, 5, C.k],
+          [12, 17, 5, 5, C.k],
+          [7, 7, 3, 2, C.paper],
+          [13, 6, 3, 3, C.paper],
+          [7, 13, 3, 2, C.paper],
+          [13, 18, 3, 2, C.paper],
+          [3, 26, 18, 1, C.k],
+        ],
+        shadowR: 9,
+      };
+    case 'parcel-stack':
+      return {
+        base: [
+          [4, 14, 11, 8, C.wl],
+          [4, 14, 11, 1, C.wh],
+          [8, 14, 1, 8, C.w], // twine
+          [4, 17, 11, 1, C.w],
+          [13, 11, 8, 6, C.wd],
+          [13, 11, 8, 1, C.wl],
+          [16, 11, 1, 6, C.w],
+          [5, 22, 15, 4, C.wl],
+          [5, 22, 15, 1, C.wh],
+          [11, 22, 1, 4, C.w],
+          [9, 9, 4, 2, C.paper], // one label, upside down
+        ],
+        shadowR: 10,
+      };
+    case 'postal-scale':
+      return {
+        base: [
+          [5, 20, 14, 4, C.ms],
+          [5, 20, 14, 1, C.ml],
+          [6, 24, 12, 2, C.k],
+          [11, 12, 2, 8, C.m], // column
+          [6, 10, 12, 2, C.ml], // pan
+          [7, 12, 10, 1, C.ms],
+          [9, 15, 6, 4, C.scrd], // dial
+          [10, 16, 4, 2, C.paper],
+          [12, 17, 3, 1, C.red], // needle, always a little high
+        ],
+        shadowR: 8,
+      };
+    case 'monitor-stack':
+      return {
+        base: [
+          [4, 4, 16, 9, C.ms],
+          [6, 6, 12, 6, C.scrd],
+          [4, 14, 16, 9, C.ms],
+          [6, 16, 12, 6, C.scrd],
+          [3, 23, 18, 3, C.k],
+          [19, 6, 1, 1, C.red], // record light
+          [19, 16, 1, 1, C.red],
+        ],
+        glow: [
+          [6, 6, 12, 6, C.glowc],
+          [6, 16, 12, 6, C.glowc],
+        ],
+        lit: [
+          [7, 7, 10, 4, C.scr],
+          [7, 17, 10, 4, C.scr],
+          [9, 8, 3, 2, C.scrl],
+          [12, 18, 3, 2, C.scrl],
+        ],
+        unlit: [
+          [7, 7, 10, 4, C.scrd],
+          [7, 17, 10, 4, C.scrd],
+        ],
+        shadowR: 10,
+      };
+    case 'key-cabinet':
+      return {
+        base: [
+          [5, 5, 14, 16, C.ms],
+          [6, 6, 12, 14, C.m],
+          [7, 7, 10, 12, C.scrd],
+          [8, 9, 2, 3, C.gold], // hanging keys, one missing
+          [11, 9, 2, 3, C.gold],
+          [14, 9, 2, 3, C.gy],
+          [8, 14, 2, 3, C.gold],
+          [14, 14, 2, 3, C.gold],
+          [17, 12, 2, 2, C.ml], // lock
+        ],
+        shadowR: 0,
+      };
+    case 'torch-rack':
+      return {
+        base: [
+          [4, 12, 16, 3, C.w],
+          [4, 22, 16, 3, C.w],
+          [4, 25, 16, 1, C.k],
+          [6, 9, 3, 14, C.ms], // three torches, one turned on
+          [11, 9, 3, 14, C.ms],
+          [16, 9, 3, 14, C.ms],
+          [6, 9, 3, 2, C.ml],
+          [11, 9, 3, 2, C.ml],
+          [16, 9, 3, 2, C.ml],
+        ],
+        glow: [[10, 6, 5, 4, C.glow]],
+        lit: [[11, 8, 3, 2, C.goldl]],
+        shadowR: 9,
+      };
+    case 'box-tower':
+      return {
+        base: [
+          [5, 4, 14, 7, C.wl],
+          [5, 4, 14, 1, C.wh],
+          [6, 6, 6, 2, C.paper], // a label per box, none in the same place
+          [4, 12, 16, 7, C.wd],
+          [4, 12, 16, 1, C.wl],
+          [12, 14, 6, 2, C.paper],
+          [5, 20, 14, 6, C.wl],
+          [5, 20, 14, 1, C.wh],
+          [7, 22, 6, 2, C.paper],
+        ],
+        shadowR: 10,
+      };
+    case 'card-catalogue':
+      return {
+        base: [
+          [3, 6, 18, 18, C.wd],
+          [3, 6, 18, 1, C.wl],
+          [4, 8, 16, 4, C.w],
+          [4, 13, 16, 4, C.w],
+          [4, 18, 16, 4, C.w],
+          [10, 9, 4, 2, C.ml], // pulls
+          [10, 14, 4, 2, C.ml],
+          [10, 19, 4, 2, C.ml],
+          [5, 4, 8, 2, C.paper], // one drawer left open, cards fanned
+          [6, 2, 5, 2, C.white],
+          [2, 24, 20, 2, C.k],
+        ],
+        shadowR: 11,
+      };
+    case 'index-board':
+      return {
+        base: [
+          [2, 5, 20, 15, C.w],
+          [4, 7, 16, 11, C.paper],
+          [5, 8, 5, 3, C.white], // index cards, threaded
+          [11, 8, 5, 3, C.white],
+          [17, 8, 2, 3, C.white],
+          [5, 13, 4, 3, C.white],
+          [10, 13, 6, 3, C.gold], // one card matters more than the others
+          [4, 12, 16, 1, C.red], // the thread
+        ],
+        shadowR: 0,
+      };
+    case 'warming-lamp':
+      return {
+        base: [
+          [11, 0, 2, 7, C.ms], // flex
+          [5, 7, 14, 4, C.ms],
+          [7, 11, 10, 3, C.m],
+          [9, 14, 6, 2, C.ml],
+        ],
+        glow: [[6, 14, 12, 9, C.glow]],
+        lit: [[9, 14, 6, 2, C.goldl]],
+        unlit: [[9, 14, 6, 2, C.ms]],
+        shadowR: 0,
+      };
+    case 'seed-tray':
+      return {
+        base: [
+          [3, 19, 18, 6, C.tt],
+          [3, 19, 18, 1, C.t],
+          [4, 21, 16, 3, C.k],
+          [2, 25, 20, 1, C.k],
+        ],
+        leaf: [
+          [6, 14, 1, 5, C.stem],
+          [5, 12, 3, 3, C.gl],
+          [11, 13, 1, 6, C.stem],
+          [10, 11, 3, 3, C.g],
+          [16, 15, 1, 4, C.stem],
+          [15, 13, 3, 3, C.gl],
+        ],
+        shadowR: 10,
+      };
+    case 'glass-dome':
+      return {
+        base: [
+          [5, 22, 14, 3, C.wd],
+          [5, 22, 14, 1, C.wl],
+          [4, 25, 16, 1, C.k],
+          [7, 8, 10, 14, C.scr],
+          [8, 9, 3, 12, C.scrl], // the glass, and a highlight down it
+          [11, 6, 2, 2, C.ml], // the little handle on top
+        ],
+        glow: [[7, 12, 10, 10, C.glowp]],
+        bubble: [
+          [11, 17, 2, 2, C.viol],
+          [13, 14, 1, 1, C.viol],
+          [10, 12, 1, 1, C.viol],
+        ],
+        shadowR: 8,
+      };
+
+    // --- Rooms the original catalogue never covered ------------------------
+    case 'specimen-shelf':
+      return {
+        base: [
+          [4, 4, 16, 22, C.wd],
+          [4, 4, 16, 1, C.wl],
+          [5, 9, 14, 1, C.w],
+          [5, 16, 14, 1, C.w],
+          [7, 5, 3, 4, C.scr],
+          [12, 6, 3, 3, C.scr],
+          [6, 11, 3, 5, C.scrl],
+          [11, 12, 4, 4, C.scr],
+          [16, 11, 2, 5, C.scrl],
+          [7, 18, 4, 4, C.scr],
+          [13, 19, 3, 3, C.scrl],
+          [3, 26, 18, 1, C.k],
+        ],
+        glow: [[5, 10, 14, 12, C.glowc]],
+        shadowR: 10,
+      };
+    case 'data-plotter':
+      return {
+        base: [
+          [4, 12, 16, 10, C.ms],
+          [5, 13, 14, 7, C.paper],
+          [4, 22, 16, 3, C.m],
+          [3, 25, 18, 1, C.k],
+          [6, 18, 2, 1, C.red],
+          [8, 16, 2, 1, C.red],
+          [10, 17, 2, 1, C.red],
+          [12, 14, 2, 1, C.red],
+          [14, 15, 2, 1, C.red],
+          [16, 15, 2, 1, C.red],
+          [11, 9, 2, 3, C.ml],
+        ],
+        lit: [[18, 13, 1, 1, C.gold]],
+        shadowR: 10,
+      };
+    case 'observation-mirror':
+      return {
+        base: [
+          [2, 5, 20, 15, C.ms],
+          [4, 7, 16, 11, C.scrd],
+          [5, 8, 6, 9, C.scr],
+          [5, 8, 3, 9, C.scrl],
+          [12, 9, 7, 7, C.scr],
+        ],
+        glow: [[4, 7, 16, 11, C.glowc]],
+        shadowR: 0,
+      };
+    case 'sump-pump':
+      return {
+        base: [
+          [6, 14, 12, 10, C.ms],
+          [7, 15, 10, 3, C.m],
+          [6, 24, 12, 2, C.k],
+          [11, 8, 2, 6, C.m],
+          [9, 6, 6, 3, C.ml],
+          [17, 17, 4, 2, C.w],
+          [3, 19, 4, 2, C.w],
+          [9, 19, 6, 3, C.scrd],
+        ],
+        glow: [[9, 19, 6, 3, C.glow]],
+        lit: [[10, 20, 4, 1, C.gold]],
+        shadowR: 9,
+      };
+    case 'pipe-cluster':
+      return {
+        base: [
+          [1, 7, 22, 3, C.ms],
+          [1, 7, 22, 1, C.m],
+          [1, 13, 22, 3, C.w],
+          [1, 13, 22, 1, C.wl],
+          [1, 19, 22, 2, C.ms],
+          [5, 6, 2, 5, C.m],
+          [15, 6, 2, 5, C.m],
+          [9, 12, 2, 5, C.wl],
+          [18, 12, 2, 5, C.wl],
+        ],
+        shadowR: 0,
+      };
+    case 'bare-bulb':
+      return {
+        base: [
+          [11, 0, 2, 10, C.k],
+          [10, 10, 4, 2, C.ms],
+          [9, 12, 6, 6, C.gy],
+        ],
+        glow: [[6, 11, 12, 10, C.glow]],
+        lit: [[9, 12, 6, 6, C.goldl]],
+        unlit: [[9, 12, 6, 6, C.ms]],
+        shadowR: 0,
+      };
+    case 'weather-vane':
+      return {
+        base: [
+          [8, 24, 8, 2, C.k],
+          [10, 22, 4, 2, C.ms],
+          [11, 8, 2, 14, C.ms],
+          [5, 6, 14, 2, C.m],
+          [11, 2, 2, 6, C.m],
+        ],
+        spin: [
+          [15, 3, 5, 4, C.gold],
+          [4, 4, 5, 3, C.gy],
+        ],
+        shadowR: 6,
+      };
+    case 'planter-row':
+      return {
+        base: [
+          [1, 18, 22, 7, C.tt],
+          [1, 18, 22, 1, C.t],
+          [2, 20, 20, 4, C.k],
+          [0, 25, 24, 1, C.k],
+        ],
+        leaf: [
+          [4, 12, 1, 6, C.stem],
+          [3, 9, 3, 4, C.g],
+          [9, 11, 1, 7, C.stem],
+          [8, 8, 4, 4, C.gl],
+          [15, 13, 1, 5, C.stem],
+          [14, 10, 3, 4, C.g],
+          [19, 12, 1, 6, C.stem],
+          [18, 9, 3, 4, C.gl],
+        ],
+        shadowR: 12,
+      };
     default:
       // generic crate fallback
       return {

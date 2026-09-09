@@ -133,6 +133,33 @@ export const DECORATION_PLACEMENT: Record<string, DecorationPlacementSpec> = {
   'star-ceiling': spec({ w: 0.34, h: 0.1, anchor: 'hanging', baseline: 0.12 }),
   // Rooftop
   'rooftop-garden-bed': spec({ w: 0.3, h: 0.12, anchor: 'base', baseline: 0.9, clearance: 0.03 }),
+
+  // --- Second expansion ----------------------------------------------------
+  'coffee-urn': spec({ w: 0.1, h: 0.19, anchor: 'base', mirror: true }),
+  'tray-stack': spec({ w: 0.13, h: 0.11, anchor: 'base', mirror: true }),
+  'menu-chalkboard': spec({ w: 0.15, h: 0.16, anchor: 'center' }),
+  pigeonholes: spec({ w: 0.15, h: 0.22, anchor: 'base' }),
+  'parcel-stack': spec({ w: 0.13, h: 0.13, anchor: 'base', mirror: true }),
+  'postal-scale': spec({ w: 0.1, h: 0.13, anchor: 'base', mirror: true }),
+  'monitor-stack': spec({ w: 0.14, h: 0.2, anchor: 'base' }),
+  'key-cabinet': spec({ w: 0.11, h: 0.14, anchor: 'center' }),
+  'torch-rack': spec({ w: 0.11, h: 0.15, anchor: 'base', mirror: true }),
+  'box-tower': spec({ w: 0.14, h: 0.21, anchor: 'base', mirror: true }),
+  'card-catalogue': spec({ w: 0.15, h: 0.19, anchor: 'base' }),
+  'index-board': spec({ w: 0.16, h: 0.15, anchor: 'center' }),
+  'warming-lamp': spec({ w: 0.12, h: 0.16, anchor: 'hanging' }),
+  'seed-tray': spec({ w: 0.15, h: 0.1, anchor: 'base', mirror: true }),
+  'glass-dome': spec({ w: 0.11, h: 0.17, anchor: 'base' }),
+
+  // --- Rooms the original catalogue never covered --------------------------
+  'specimen-shelf': spec({ w: 0.14, h: 0.2, anchor: 'base' }),
+  'data-plotter': spec({ w: 0.13, h: 0.15, anchor: 'base', mirror: true }),
+  'observation-mirror': spec({ w: 0.18, h: 0.16, anchor: 'center' }),
+  'sump-pump': spec({ w: 0.12, h: 0.14, anchor: 'base', mirror: true }),
+  'pipe-cluster': spec({ w: 0.2, h: 0.14, anchor: 'center' }),
+  'bare-bulb': spec({ w: 0.07, h: 0.14, anchor: 'hanging' }),
+  'weather-vane': spec({ w: 0.09, h: 0.21, anchor: 'base' }),
+  'planter-row': spec({ w: 0.24, h: 0.11, anchor: 'base', mirror: true }),
 };
 
 /** A safe fallback derived from the decoration's single placement surface. */

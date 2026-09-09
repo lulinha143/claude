@@ -21,6 +21,7 @@ import {
   reputationRate,
   upgradeCost,
 } from './economy';
+import { upgradeBonus } from './upgradeEffects';
 import { employeeMood, moodProductivityMultiplier } from './mood';
 import { repairEmployees } from './state';
 import { EMPLOYEES_BY_ID } from '../content/employees';
@@ -984,9 +985,18 @@ export class GameEngine {
    * optional because a delayed consequence can outlive the event that promised it.
    */
   applyEffect(effect: EventEffect, def?: GameEventDef): void {
+    // Upgrades in the "negotiation" line make favourable outcomes pay MORE without
+    // softening the unfavourable ones — so investing in decision-making changes
+    // which choices are worth taking, rather than removing the risk from all of
+    // them. Penalties are deliberately untouched.
+    const rewardBonus = 1 + upgradeBonus(this.state, 'eventReward');
+    const gain = (value: number | undefined): number => {
+      const raw = value ?? 0;
+      return raw > 0 ? raw * rewardBonus : raw;
+    };
     switch (effect.type) {
       case 'nuts':
-        if ((effect.value ?? 0) >= 0) this.addNuts(effect.value ?? 0, false);
+        if ((effect.value ?? 0) >= 0) this.addNuts(gain(effect.value), false);
         else
           this.state.resources.nuts = Math.max(0, this.state.resources.nuts + (effect.value ?? 0));
         break;
@@ -1005,7 +1015,7 @@ export class GameEngine {
       case 'reputation':
         this.state.resources.reputation = Math.max(
           0,
-          this.state.resources.reputation + (effect.value ?? 0),
+          this.state.resources.reputation + gain(effect.value),
         );
         break;
       case 'productionBoost':

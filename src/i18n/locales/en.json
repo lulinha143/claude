@@ -761,6 +761,46 @@
         "name": "Open the Records Archive",
         "desc": "Somewhere to put the paperwork. Findings start turning up in it."
       }
+    },
+    "calibratedTools": {
+      "name": "Calibrated Tools",
+      "desc": "Every workstation is trued up and re-balanced. Critical taps land more often, everywhere in the building."
+    },
+    "techniqueManual": {
+      "name": "Technique Manual",
+      "desc": "Somebody wrote down how the good days feel and had it bound. A sharper edge on every tap, in exchange for golden nuts."
+    },
+    "muscleMemory": {
+      "name": "Muscle Memory",
+      "desc": "Staff stop looking at their hands. Combo streaks survive a longer pause before they break."
+    },
+    "shiftRhythm": {
+      "name": "Shift Rhythm",
+      "desc": "The whole floor works to one unspoken tempo. Streaks hold through interruptions that used to end them."
+    },
+    "assayDesk": {
+      "name": "Assay Desk",
+      "desc": "A desk whose only job is noticing value. Slightly more taps turn up a golden nut."
+    },
+    "gildingProgramme": {
+      "name": "Gilding Programme",
+      "desc": "Officially, a quality initiative. In practice, golden nuts appear where they did not before."
+    },
+    "legalReview": {
+      "name": "Legal Review",
+      "desc": "Favourable outcomes are drafted properly. Decisions that go the company’s way pay more; the ones that do not are unchanged."
+    },
+    "negotiationTraining": {
+      "name": "Negotiation Training",
+      "desc": "The company stops accepting first offers. A much larger share of every good decision."
+    },
+    "standardProcedures": {
+      "name": "Standard Procedures",
+      "desc": "Written down once, followed everywhere. Every department performs as though better staffed than it is."
+    },
+    "internalAudit": {
+      "name": "Internal Audit",
+      "desc": "A department that improves other departments by reading them. Substantially more from every room, staffed or thin."
     }
   },
   "event": {
@@ -1094,6 +1134,118 @@
       "replyBody": "A second form arrives within the hour. Under \"clarification of signatory\" someone has written, in the same neat hand, \"yes\".",
       "sign": "Countersign it",
       "file": "File both forms and move on"
+    },
+    "vending": {
+      "title": "Unstocked Inventory",
+      "body": "The cafeteria vending machine is dispensing items that appear on no order form: unbranded biscuits, a small brass key, and what the label calls SOUP (ASSORTED). It has taken no money for any of them.",
+      "audit": "Audit the machine properly",
+      "sell": "Sell the surplus to the staff",
+      "leave": "Leave it. It seems happy.",
+      "laterTitle": "Vending Machine Follow-up",
+      "laterBody": "An external supplier has asked, politely, why we have been distributing their product for free."
+    },
+    "misdirected": {
+      "title": "Misdirected Post",
+      "body": "A crate has arrived addressed to NUTSHELL INC. (RESEARCH ANNEXE 2). We do not have an annexe. We have never had an annexe. The courier has already left and the paperwork is signed in our own handwriting.",
+      "return": "Return to sender, unopened",
+      "open": "Open the crate",
+      "contentsBody": "Inside: forty identical clipboards, a coffee machine still warm, and a staff photograph in which everyone is recognisable and nobody is anyone we employ.",
+      "file": "File all of it and log the discrepancy",
+      "keep": "Keep the equipment. It is good equipment.",
+      "laterTitle": "Annexe 2 Correspondence",
+      "laterBody": "Research Annexe 2 has invoiced us for equipment retention. The invoice is addressed to a department head we do not have, and is itemised correctly."
+    },
+    "nightFootage": {
+      "title": "Camera Four",
+      "body": "Overnight footage shows the corridor at 03:14. Someone is sitting at a desk, working steadily. The desk is not in that corridor during the day. Attendance records confirm the building was empty.",
+      "review": "Review the whole night, frame by frame",
+      "delete": "Delete the footage and say nothing",
+      "noticeboard": "Print a still and pin it to the noticeboard",
+      "laterTitle": "Retention Policy Enquiry",
+      "laterBody": "An audit of the security archive has found a gap of exactly one night. The gap is the only thing in the archive that has been catalogued twice."
+    },
+    "futureBox": {
+      "title": "Filed In Advance",
+      "body": "A records box has surfaced in the Archive bearing next quarter's reference number, in the correct format, in the Archive's own labelling hand. The seal has not been broken.",
+      "openNow": "Open it now",
+      "reshelve": "Re-shelve it and wait for its quarter",
+      "insideBody": "It contains minutes of a meeting that has not happened, attended by people who work here, about a decision the company has not yet made. The minutes are unanimous. There is a note in the margin: THIS WENT WELL.",
+      "act": "Make the decision the minutes describe",
+      "shred": "Shred the minutes and hold the meeting anyway"
+    },
+    "hatched": {
+      "title": "Programme Update",
+      "body": "Something in the Incubator has hatched. Reports agree it is small, warm, and pleased to see everyone. Nothing was scheduled to hatch. Nothing was scheduled at all.",
+      "mascot": "Adopt it as the company mascot",
+      "observe": "Log it properly and observe",
+      "return": "Return it to the programme"
+    },
+    "walkout": {
+      "title": "Informal Work Stoppage",
+      "body": "Nobody has declared anything. The corridors are simply full of people standing in them, holding mugs, waiting to see what happens. It is extremely polite and completely total.",
+      "dayOff": "Close the building for the day, fully paid",
+      "dayOffLocked": "Needs 900 nuts to cover a paid closure.",
+      "address": "Go out there and hear them out",
+      "ignore": "Carry on as though it is a scheduled break",
+      "laterTitle": "Exit Interviews",
+      "laterBody": "Three exit interviews were conducted this morning. All three used the phrase \\u201cnobody came out\\u201d, unprompted, and all three asked that it be minuted."
+    },
+    "party": {
+      "title": "Unscheduled Celebration",
+      "body": "There is a party in the corridor. It has a cake, a banner, and a reason nobody can now remember. The banner is professionally printed, which means somebody planned this far enough ahead to use the budget.",
+      "fund": "Fund it properly and put it in the minutes",
+      "join": "Join in for twenty minutes",
+      "backToWork": "Thank everyone and reopen the floor"
+    },
+    "corridor": {
+      "title": "Dimensional Discrepancy",
+      "body": "Facilities have measured the east corridor at 1.2 metres longer than the floor plan allows. The floor plan is correct. The corridor is also correct. Both were checked twice, by different people, who then checked each other.",
+      "remeasure": "Commission a proper survey",
+      "amend": "Amend the floor plan to match the building",
+      "ignore": "It is 1.2 metres. Move on.",
+      "laterTitle": "Corridor Follow-up",
+      "laterBody": "The east corridor now measures 1.4 metres longer than the plan. Nobody has requested a remeasurement. Somebody has been doing them anyway, and leaving the results on the noticeboard."
+    },
+    "grant": {
+      "title": "Grant Application",
+      "body": "A behavioural-research fund is accepting applications. The form asks for our subject count, our published findings, and a one-line summary of our methodology. Two of the three are straightforward.",
+      "honest": "Submit exactly what we have",
+      "embellish": "Round everything generously upward",
+      "awardedBody": "The application was successful, at four times the amount we expected. A congratulatory letter asks when the review panel may visit the facilities described in section three. We did not describe any facilities in section three. Section three is a diagram.",
+      "spend": "Bank it and worry about section three later",
+      "withdraw": "Withdraw the application and explain",
+      "laterTitle": "Review Panel Visit",
+      "laterBody": "The review panel visited. They were shown the diagram. They have asked for their money back and for the diagram to be destroyed, in that order."
+    },
+    "intern": {
+      "title": "A Reasonable Question",
+      "body": "An intern has asked what the company actually does. They are not being difficult. They have read the brochure, the mission statement and two years of internal notices, and they have arrived at this question honestly.",
+      "honest": "Tell them the truth, as far as we know it",
+      "brochure": "Recite the brochure with real conviction",
+      "deflect": "Give them something urgent to file"
+    },
+    "internReturns": {
+      "title": "A Familiar Name",
+      "body": "The intern who asked what we do now runs a department somewhere serious, and has written to propose a joint study. The letter quotes our answer back to us, word for word, as the reason.",
+      "partner": "Accept the partnership",
+      "decline": "Decline warmly and wish them well"
+    },
+    "goldenBuyer": {
+      "title": "An Unsolicited Offer",
+      "body": "A caller has offered a very serious sum for a single golden nut. They are not interested in any other quantity, will not say what it is for, and have already had the paperwork drawn up with our details correctly filled in.",
+      "sell": "Sell them one and take the money",
+      "sellLocked": "Requires a golden nut to sell.",
+      "refuse": "Refuse, politely and permanently",
+      "ask": "Ask what it is for before answering"
+    },
+    "unaccounted": {
+      "title": "Headcount Variance",
+      "body": "Payroll lists one more desk than the building contains. The desk has an occupant, a name badge, and eleven months of filed reports of a consistently high standard. Nobody can say which room it is in.",
+      "investigate": "Fund a full reconciliation",
+      "keepPaying": "The reports are good. Keep paying.",
+      "remove": "Strike the entry from payroll",
+      "laterTitle": "Reporting Gap",
+      "laterBody": "The reports have stopped. Several departments have noticed, because they had come to rely on them, and have asked who used to write them."
     }
   },
   "ach": {
@@ -1461,6 +1613,75 @@
     },
     "rooftop-garden-bed": {
       "name": "Rooftop Garden Bed"
+    },
+    "coffee-urn": {
+      "name": "Coffee Urn"
+    },
+    "tray-stack": {
+      "name": "Tray Stack"
+    },
+    "menu-chalkboard": {
+      "name": "Menu Board"
+    },
+    "pigeonholes": {
+      "name": "Pigeonholes"
+    },
+    "parcel-stack": {
+      "name": "Parcel Stack"
+    },
+    "postal-scale": {
+      "name": "Postal Scale"
+    },
+    "monitor-stack": {
+      "name": "Monitor Stack"
+    },
+    "key-cabinet": {
+      "name": "Key Cabinet"
+    },
+    "torch-rack": {
+      "name": "Torch Rack"
+    },
+    "box-tower": {
+      "name": "Box Tower"
+    },
+    "card-catalogue": {
+      "name": "Card Catalogue"
+    },
+    "index-board": {
+      "name": "Index Board"
+    },
+    "warming-lamp": {
+      "name": "Warming Lamp"
+    },
+    "seed-tray": {
+      "name": "Seed Tray"
+    },
+    "glass-dome": {
+      "name": "Glass Dome"
+    },
+    "specimen-shelf": {
+      "name": "Specimen Shelf"
+    },
+    "data-plotter": {
+      "name": "Data Plotter"
+    },
+    "observation-mirror": {
+      "name": "Observation Mirror"
+    },
+    "sump-pump": {
+      "name": "Sump Pump"
+    },
+    "pipe-cluster": {
+      "name": "Pipe Cluster"
+    },
+    "bare-bulb": {
+      "name": "Bare Bulb"
+    },
+    "weather-vane": {
+      "name": "Weather Vane"
+    },
+    "planter-row": {
+      "name": "Planter Row"
     }
   },
   "prestige": {
@@ -1719,7 +1940,17 @@
         "moon": "Moon",
         "sun": "Sun",
         "gem": "Gem",
-        "crown": "Crown"
+        "crown": "Crown",
+        "acorn": "Acorn",
+        "nutshell": "Opened nutshell",
+        "clipboard": "Observation clipboard",
+        "folder": "Department file",
+        "stamp": "Approval stamp",
+        "flask": "Research flask",
+        "magnifier": "Magnifier",
+        "maze": "Behavioural maze",
+        "observer": "Observer",
+        "keyhole": "Keyhole"
       }
     }
   },
@@ -1921,7 +2152,12 @@
     "junieReady": "Junie already rescheduled everything around it.",
     "mossKnowing": "Moss says nothing, but seems to have known.",
     "fennGrin": "Fenn grins like the deal was always going to close.",
-    "ottoImpressed": "Otto counts something twice and says nothing."
+    "ottoImpressed": "Otto counts something twice and says nothing.",
+    "beaSuspicious": "Bea measures it again, twice, and writes both numbers down.",
+    "minaFascinated": "Mina has already started a new logbook for this.",
+    "teamCheers": "A cheer goes up somewhere near the sorting line and spreads without explanation.",
+    "teamRelieved": "The floor lets out a breath it had apparently been holding all morning.",
+    "teamDelighted": "Work stops. Nobody minds. Somebody fetches the good mugs."
   },
   "daily": {
     "title": "Daily Challenges",

@@ -1538,6 +1538,651 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
       },
     },
   },
+
+  // ==========================================================================
+  //  DEPARTMENT CONTENT AND CONSEQUENCE CHAINS
+  // ==========================================================================
+  // Events that belong to a specific part of the building, so opening a room
+  // opens its stories too, plus situational content that only appears when the
+  // company is in the state it describes (a walkout needs a morale crisis; a
+  // celebration needs the opposite). Several set flags that later events read,
+  // so a decision can be referred back to rather than merely scored.
+
+  // --- The vending machine has opinions -------------------------------------
+  {
+    id: 'cafeteria-vending',
+    titleKey: 'event.vending.title',
+    bodyKey: 'event.vending.body',
+    rarity: 'common',
+    weight: 9,
+    cooldownSeconds: 700,
+    requires: { room: 'cafeteria' },
+    choices: [
+      {
+        id: 'audit',
+        labelKey: 'event.vending.audit',
+        effects: [
+          { type: 'nuts', value: -160 },
+          { type: 'reputation', value: 5 },
+          { type: 'setFlag', flagId: 'vending-audited' },
+        ],
+        reactions: ['react.teamRelieved'],
+      },
+      {
+        id: 'sell',
+        labelKey: 'event.vending.sell',
+        effects: [
+          { type: 'nuts', value: 520 },
+          { type: 'morale', value: -4 },
+        ],
+        reactions: ['react.teamNervous'],
+      },
+      {
+        id: 'leave',
+        labelKey: 'event.vending.leave',
+        effects: [
+          { type: 'morale', value: 4 },
+          {
+            type: 'schedule',
+            flagId: 'vending-ignored',
+            delaySeconds: 780,
+            scheduleTitleKey: 'event.vending.laterTitle',
+            scheduleBodyKey: 'event.vending.laterBody',
+            scheduled: [{ type: 'reputation', value: -4 }],
+          },
+        ],
+      },
+    ],
+  },
+  // --- Post for a company that does not exist -------------------------------
+  {
+    id: 'mailroom-misdirected',
+    titleKey: 'event.misdirected.title',
+    bodyKey: 'event.misdirected.body',
+    rarity: 'uncommon',
+    weight: 7,
+    cooldownSeconds: 1100,
+    requires: { room: 'mailroom' },
+    momentWorthy: true,
+    choices: [
+      {
+        id: 'return',
+        labelKey: 'event.misdirected.return',
+        effects: [
+          { type: 'reputation', value: 7 },
+          { type: 'morale', value: 2 },
+        ],
+        reactions: ['react.teamRelieved'],
+      },
+      {
+        id: 'open',
+        labelKey: 'event.misdirected.open',
+        effects: [],
+        next: 'contents',
+      },
+    ],
+    steps: {
+      contents: {
+        bodyKey: 'event.misdirected.contentsBody',
+        choices: [
+          {
+            id: 'file',
+            labelKey: 'event.misdirected.file',
+            effects: [
+              { type: 'reputation', value: 4 },
+              { type: 'setFlag', flagId: 'filed-the-parcel' },
+              { type: 'momentCard' },
+            ],
+          },
+          {
+            id: 'keep',
+            labelKey: 'event.misdirected.keep',
+            effects: [
+              { type: 'nuts', value: 1400 },
+              { type: 'morale', value: -6 },
+              { type: 'setFlag', flagId: 'kept-the-parcel' },
+              {
+                type: 'schedule',
+                flagId: 'kept-the-parcel',
+                delaySeconds: 1200,
+                scheduleTitleKey: 'event.misdirected.laterTitle',
+                scheduleBodyKey: 'event.misdirected.laterBody',
+                scheduled: [
+                  { type: 'reputation', value: -12 },
+                  { type: 'nuts', value: -600 },
+                ],
+              },
+            ],
+            reactions: ['react.teamNervous'],
+          },
+        ],
+      },
+    },
+  },
+  // --- Camera four, at three in the morning ---------------------------------
+  {
+    id: 'security-night-footage',
+    titleKey: 'event.nightFootage.title',
+    bodyKey: 'event.nightFootage.body',
+    rarity: 'rare',
+    weight: 5,
+    cooldownSeconds: 1600,
+    requires: { room: 'security' },
+    momentWorthy: true,
+    choices: [
+      {
+        id: 'review',
+        labelKey: 'event.nightFootage.review',
+        effects: [
+          { type: 'reputation', value: 9 },
+          { type: 'morale', value: -3 },
+          { type: 'setFlag', flagId: 'watched-the-tape' },
+          { type: 'momentCard' },
+        ],
+        reactions: ['react.teamNervous'],
+      },
+      {
+        id: 'delete',
+        labelKey: 'event.nightFootage.delete',
+        effects: [
+          { type: 'morale', value: 6 },
+          {
+            type: 'schedule',
+            flagId: 'deleted-the-tape',
+            delaySeconds: 1500,
+            scheduleTitleKey: 'event.nightFootage.laterTitle',
+            scheduleBodyKey: 'event.nightFootage.laterBody',
+            scheduled: [
+              { type: 'reputation', value: -10 },
+              { type: 'morale', value: -6 },
+            ],
+          },
+          { type: 'setFlag', flagId: 'deleted-the-tape' },
+        ],
+      },
+      {
+        id: 'noticeboard',
+        labelKey: 'event.nightFootage.noticeboard',
+        effects: [
+          { type: 'nuts', value: -220 },
+          { type: 'morale', value: 9 },
+          { type: 'reputation', value: 3 },
+        ],
+        reactions: ['react.teamDelighted'],
+      },
+    ],
+  },
+  // --- A box filed ahead of time --------------------------------------------
+  {
+    id: 'archive-future-box',
+    titleKey: 'event.futureBox.title',
+    bodyKey: 'event.futureBox.body',
+    rarity: 'rare',
+    weight: 4,
+    cooldownSeconds: 1800,
+    requires: { room: 'archive' },
+    momentWorthy: true,
+    choices: [
+      {
+        id: 'open-now',
+        labelKey: 'event.futureBox.openNow',
+        effects: [],
+        next: 'inside',
+      },
+      {
+        id: 'reshelve',
+        labelKey: 'event.futureBox.reshelve',
+        effects: [
+          { type: 'reputation', value: 6 },
+          { type: 'setFlag', flagId: 'box-reshelved' },
+        ],
+        reactions: ['react.teamRelieved'],
+      },
+    ],
+    steps: {
+      inside: {
+        bodyKey: 'event.futureBox.insideBody',
+        choices: [
+          {
+            id: 'act',
+            labelKey: 'event.futureBox.act',
+            effects: [
+              { type: 'goldenNuts', value: 2 },
+              { type: 'reputation', value: 12 },
+              { type: 'setFlag', flagId: 'acted-on-the-box' },
+              { type: 'momentCard' },
+            ],
+            reactions: ['react.minaFascinated'],
+          },
+          {
+            id: 'shred',
+            labelKey: 'event.futureBox.shred',
+            effects: [
+              { type: 'morale', value: 7 },
+              { type: 'reputation', value: -3 },
+            ],
+          },
+        ],
+      },
+    },
+  },
+  // --- Something in the incubator is fine and friendly ----------------------
+  {
+    id: 'incubator-hatched',
+    titleKey: 'event.hatched.title',
+    bodyKey: 'event.hatched.body',
+    rarity: 'uncommon',
+    weight: 6,
+    cooldownSeconds: 1500,
+    requires: { room: 'incubator' },
+    momentWorthy: true,
+    choices: [
+      {
+        id: 'mascot',
+        labelKey: 'event.hatched.mascot',
+        effects: [
+          { type: 'morale', value: 14 },
+          { type: 'reputation', value: 4 },
+          { type: 'setFlag', flagId: 'adopted-the-hatchling' },
+          { type: 'momentCard' },
+        ],
+        reactions: ['react.teamDelighted'],
+      },
+      {
+        id: 'observe',
+        labelKey: 'event.hatched.observe',
+        effects: [
+          { type: 'reputation', value: 11 },
+          { type: 'goldenNuts', value: 1 },
+        ],
+        reactions: ['react.minaFascinated'],
+      },
+      {
+        id: 'return',
+        labelKey: 'event.hatched.return',
+        effects: [
+          { type: 'nuts', value: 700 },
+          { type: 'morale', value: -5 },
+        ],
+      },
+    ],
+  },
+  // --- A real morale crisis, and three real ways out ------------------------
+  {
+    id: 'morale-walkout',
+    titleKey: 'event.walkout.title',
+    bodyKey: 'event.walkout.body',
+    rarity: 'uncommon',
+    weight: 12,
+    cooldownSeconds: 1200,
+    requires: { moraleBelow: 26 },
+    momentWorthy: true,
+    choices: [
+      {
+        id: 'day-off',
+        labelKey: 'event.walkout.dayOff',
+        requires: { nuts: 900 },
+        disabledKey: 'event.walkout.dayOffLocked',
+        effects: [
+          { type: 'nuts', value: -900 },
+          { type: 'morale', value: 26 },
+          { type: 'setFlag', flagId: 'gave-the-day-off' },
+        ],
+        reactions: ['react.teamDelighted'],
+      },
+      {
+        id: 'address',
+        labelKey: 'event.walkout.address',
+        effects: [
+          { type: 'morale', value: 13 },
+          { type: 'reputation', value: 3 },
+          { type: 'setFlag', flagId: 'listened-to-staff' },
+        ],
+        reactions: ['react.teamRelieved'],
+      },
+      {
+        id: 'ignore',
+        labelKey: 'event.walkout.ignore',
+        effects: [
+          { type: 'nuts', value: 400 },
+          { type: 'setFlag', flagId: 'ignored-walkout' },
+          {
+            type: 'schedule',
+            flagId: 'ignored-walkout',
+            delaySeconds: 600,
+            scheduleTitleKey: 'event.walkout.laterTitle',
+            scheduleBodyKey: 'event.walkout.laterBody',
+            scheduled: [
+              { type: 'morale', value: -14 },
+              { type: 'reputation', value: -16 },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  // --- The opposite problem -------------------------------------------------
+  {
+    id: 'morale-spontaneous-party',
+    titleKey: 'event.party.title',
+    bodyKey: 'event.party.body',
+    rarity: 'uncommon',
+    weight: 8,
+    cooldownSeconds: 1300,
+    requires: { moraleAbove: 88 },
+    choices: [
+      {
+        id: 'fund',
+        labelKey: 'event.party.fund',
+        effects: [
+          { type: 'nuts', value: -450 },
+          { type: 'morale', value: 8 },
+          { type: 'reputation', value: 6 },
+        ],
+        reactions: ['react.teamDelighted'],
+      },
+      {
+        id: 'join',
+        labelKey: 'event.party.join',
+        effects: [
+          { type: 'morale', value: 5 },
+          { type: 'friendship', value: 4 },
+        ],
+        reactions: ['react.teamDelighted'],
+      },
+      {
+        id: 'back-to-work',
+        labelKey: 'event.party.backToWork',
+        effects: [
+          { type: 'nuts', value: 520 },
+          { type: 'morale', value: -8 },
+        ],
+        reactions: ['react.teamNervous'],
+      },
+    ],
+  },
+  // --- The building disagrees with its own floor plan -----------------------
+  {
+    id: 'anomaly-corridor',
+    titleKey: 'event.corridor.title',
+    bodyKey: 'event.corridor.body',
+    rarity: 'rare',
+    weight: 4,
+    cooldownSeconds: 2000,
+    requires: { reputation: 60 },
+    momentWorthy: true,
+    choices: [
+      {
+        id: 'remeasure',
+        labelKey: 'event.corridor.remeasure',
+        effects: [
+          { type: 'nuts', value: -300 },
+          { type: 'reputation', value: 10 },
+          { type: 'setFlag', flagId: 'remeasured-the-corridor' },
+        ],
+        reactions: ['react.beaSuspicious'],
+      },
+      {
+        id: 'amend',
+        labelKey: 'event.corridor.amend',
+        effects: [
+          { type: 'morale', value: 7 },
+          { type: 'reputation', value: 2 },
+          { type: 'setFlag', flagId: 'amended-the-plan' },
+        ],
+      },
+      {
+        id: 'ignore',
+        labelKey: 'event.corridor.ignore',
+        effects: [
+          { type: 'nuts', value: 250 },
+          {
+            type: 'schedule',
+            flagId: 'ignored-the-corridor',
+            delaySeconds: 1700,
+            scheduleTitleKey: 'event.corridor.laterTitle',
+            scheduleBodyKey: 'event.corridor.laterBody',
+            scheduled: [{ type: 'morale', value: -9 }],
+          },
+        ],
+      },
+    ],
+  },
+  // --- A grant, and the temptation to round upward --------------------------
+  {
+    id: 'research-grant',
+    titleKey: 'event.grant.title',
+    bodyKey: 'event.grant.body',
+    rarity: 'uncommon',
+    weight: 7,
+    cooldownSeconds: 1600,
+    requires: { reputation: 40 },
+    choices: [
+      {
+        id: 'honest',
+        labelKey: 'event.grant.honest',
+        effects: [
+          { type: 'nuts', value: 900 },
+          { type: 'reputation', value: 8 },
+          { type: 'setFlag', flagId: 'grant-honest' },
+        ],
+        reactions: ['react.teamRelieved'],
+      },
+      {
+        id: 'embellish',
+        labelKey: 'event.grant.embellish',
+        effects: [],
+        next: 'awarded',
+      },
+    ],
+    steps: {
+      awarded: {
+        bodyKey: 'event.grant.awardedBody',
+        choices: [
+          {
+            id: 'spend',
+            labelKey: 'event.grant.spend',
+            effects: [
+              { type: 'nuts', value: 3200 },
+              { type: 'setFlag', flagId: 'grant-embellished' },
+              {
+                type: 'schedule',
+                flagId: 'grant-embellished',
+                delaySeconds: 1500,
+                scheduleTitleKey: 'event.grant.laterTitle',
+                scheduleBodyKey: 'event.grant.laterBody',
+                scheduled: [
+                  { type: 'reputation', value: -18 },
+                  { type: 'nuts', value: -1400 },
+                ],
+              },
+            ],
+            reactions: ['react.teamNervous'],
+          },
+          {
+            id: 'withdraw',
+            labelKey: 'event.grant.withdraw',
+            effects: [
+              { type: 'reputation', value: 6 },
+              { type: 'morale', value: 4 },
+              { type: 'setFlag', flagId: 'grant-withdrawn' },
+            ],
+            reactions: ['react.teamRelieved'],
+          },
+        ],
+      },
+    },
+  },
+  // --- The question, and the callback that remembers the answer -------------
+  {
+    id: 'intern-question',
+    titleKey: 'event.intern.title',
+    bodyKey: 'event.intern.body',
+    rarity: 'common',
+    weight: 9,
+    cooldownSeconds: 900,
+    requires: { missingFlag: 'answered-the-intern' },
+    choices: [
+      {
+        id: 'honest',
+        labelKey: 'event.intern.honest',
+        effects: [
+          { type: 'morale', value: 6 },
+          { type: 'reputation', value: 3 },
+          { type: 'setFlag', flagId: 'answered-the-intern' },
+          { type: 'setFlag', flagId: 'intern-told-truth' },
+        ],
+        reactions: ['react.teamRelieved'],
+      },
+      {
+        id: 'brochure',
+        labelKey: 'event.intern.brochure',
+        effects: [
+          { type: 'reputation', value: 6 },
+          { type: 'morale', value: -2 },
+          { type: 'setFlag', flagId: 'answered-the-intern' },
+          { type: 'setFlag', flagId: 'intern-told-brochure' },
+        ],
+      },
+      {
+        id: 'deflect',
+        labelKey: 'event.intern.deflect',
+        effects: [
+          { type: 'nuts', value: 180 },
+          { type: 'morale', value: -4 },
+          { type: 'setFlag', flagId: 'answered-the-intern' },
+          { type: 'setFlag', flagId: 'intern-deflected' },
+        ],
+        reactions: ['react.teamNervous'],
+      },
+    ],
+  },
+
+  // --- Years later. Which version of us they repeat is the player's doing. ---
+  {
+    id: 'intern-returns',
+    titleKey: 'event.internReturns.title',
+    bodyKey: 'event.internReturns.body',
+    rarity: 'rare',
+    weight: 5,
+    cooldownSeconds: 2400,
+    requires: { flag: 'answered-the-intern', reputation: 120 },
+    momentWorthy: true,
+    choices: [
+      {
+        id: 'partner',
+        labelKey: 'event.internReturns.partner',
+        effects: [
+          { type: 'reputation', value: 16 },
+          { type: 'nuts', value: 1500 },
+          { type: 'momentCard' },
+        ],
+        reactions: ['react.teamDelighted'],
+      },
+      {
+        id: 'decline',
+        labelKey: 'event.internReturns.decline',
+        effects: [
+          { type: 'morale', value: 8 },
+          { type: 'reputation', value: 4 },
+        ],
+      },
+    ],
+  },
+  // --- Somebody wants to buy a golden nut, and will not say why ------------
+  {
+    id: 'golden-buyer',
+    titleKey: 'event.goldenBuyer.title',
+    bodyKey: 'event.goldenBuyer.body',
+    rarity: 'rare',
+    weight: 5,
+    cooldownSeconds: 1900,
+    requires: { reputation: 70 },
+    choices: [
+      {
+        id: 'sell',
+        labelKey: 'event.goldenBuyer.sell',
+        requires: { goldenNuts: 1 },
+        disabledKey: 'event.goldenBuyer.sellLocked',
+        effects: [
+          { type: 'goldenNuts', value: -1 },
+          { type: 'nuts', value: 6000 },
+          { type: 'setFlag', flagId: 'sold-a-golden' },
+        ],
+        reactions: ['react.ottoImpressed'],
+      },
+      {
+        id: 'refuse',
+        labelKey: 'event.goldenBuyer.refuse',
+        effects: [
+          { type: 'reputation', value: 9 },
+          { type: 'morale', value: 3 },
+          { type: 'setFlag', flagId: 'refused-the-buyer' },
+        ],
+        reactions: ['react.teamRelieved'],
+      },
+      {
+        id: 'ask',
+        labelKey: 'event.goldenBuyer.ask',
+        effects: [
+          { type: 'reputation', value: 4 },
+          { type: 'goldenNuts', value: 1 },
+          { type: 'morale', value: -3 },
+          { type: 'momentCard' },
+        ],
+        reactions: ['react.beaSuspicious'],
+      },
+    ],
+  },
+  // --- Payroll has one more entry than the building does -------------------
+  {
+    id: 'unaccounted-desk',
+    titleKey: 'event.unaccounted.title',
+    bodyKey: 'event.unaccounted.body',
+    rarity: 'rare',
+    weight: 4,
+    cooldownSeconds: 2100,
+    requires: { reputation: 90, missingFlag: 'desk-resolved' },
+    momentWorthy: true,
+    choices: [
+      {
+        id: 'investigate',
+        labelKey: 'event.unaccounted.investigate',
+        effects: [
+          { type: 'nuts', value: -500 },
+          { type: 'reputation', value: 13 },
+          { type: 'setFlag', flagId: 'desk-resolved' },
+          { type: 'momentCard' },
+        ],
+        reactions: ['react.beaSuspicious'],
+      },
+      {
+        id: 'keep-paying',
+        labelKey: 'event.unaccounted.keepPaying',
+        effects: [
+          { type: 'morale', value: 6 },
+          { type: 'nuts', value: -140 },
+        ],
+      },
+      {
+        id: 'remove',
+        labelKey: 'event.unaccounted.remove',
+        effects: [
+          { type: 'nuts', value: 900 },
+          { type: 'morale', value: -7 },
+          { type: 'setFlag', flagId: 'desk-removed' },
+          {
+            type: 'schedule',
+            flagId: 'desk-removed',
+            delaySeconds: 1400,
+            scheduleTitleKey: 'event.unaccounted.laterTitle',
+            scheduleBodyKey: 'event.unaccounted.laterBody',
+            scheduled: [{ type: 'morale', value: -8 }],
+          },
+        ],
+      },
+    ],
+  },
 ];
 
 export const EVENT_CONTENT_REPAIRS: EventContentRepair[] = [];

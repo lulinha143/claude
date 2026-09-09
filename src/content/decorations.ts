@@ -79,6 +79,41 @@ export const DECORATIONS: DecorationDef[] = [
   deco('star-ceiling', 'ceiling', 'nap', 5, 'goldenNuts', 3),
   // Rooftop
   deco('rooftop-garden-bed', 'floor', 'rooftop', 6, 'goldenNuts', 4),
+
+  // --- Second expansion: the five newest departments -----------------------
+  // cafeteria
+  deco('coffee-urn', 'floor', 'cafeteria', 3, 'nuts', 1400),
+  deco('tray-stack', 'floor', 'cafeteria', 2, 'nuts', 700),
+  deco('menu-chalkboard', 'wall', 'cafeteria', 2, 'nuts', 900),
+  // mailroom
+  deco('pigeonholes', 'floor', 'mailroom', 2, 'nuts', 1800),
+  deco('parcel-stack', 'floor', 'mailroom', 1, 'nuts', 600),
+  deco('postal-scale', 'floor', 'mailroom', 2, 'nuts', 1100),
+  // security
+  deco('monitor-stack', 'floor', 'security', 3, 'nuts', 2600),
+  deco('key-cabinet', 'wall', 'security', 2, 'nuts', 1300),
+  deco('torch-rack', 'floor', 'security', 1, 'nuts', 800),
+  // archive
+  deco('box-tower', 'floor', 'archive', 2, 'nuts', 1500),
+  deco('card-catalogue', 'floor', 'archive', 3, 'nuts', 3200),
+  deco('index-board', 'wall', 'archive', 2, 'nuts', 1000),
+  // incubator
+  deco('warming-lamp', 'ceiling', 'incubator', 3, 'nuts', 2200),
+  deco('seed-tray', 'floor', 'incubator', 2, 'nuts', 900),
+  deco('glass-dome', 'floor', 'incubator', 4, 'goldenNuts', 3),
+
+  // --- Rooms the original catalogue never covered --------------------------
+  // research
+  deco('specimen-shelf', 'floor', 'research', 2, 'nuts', 2800),
+  deco('data-plotter', 'floor', 'research', 3, 'nuts', 3600),
+  deco('observation-mirror', 'wall', 'research', 2, 'nuts', 2400),
+  // basement
+  deco('sump-pump', 'floor', 'basement', 1, 'nuts', 1200),
+  deco('pipe-cluster', 'wall', 'basement', 1, 'nuts', 700),
+  deco('bare-bulb', 'ceiling', 'basement', 1, 'nuts', 500),
+  // rooftop
+  deco('weather-vane', 'floor', 'rooftop', 2, 'nuts', 1600),
+  deco('planter-row', 'floor', 'rooftop', 3, 'nuts', 2000),
 ];
 
 export const DECORATIONS_BY_ID: Record<string, DecorationDef> = Object.fromEntries(

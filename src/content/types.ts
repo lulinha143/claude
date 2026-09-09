@@ -89,6 +89,14 @@ export interface UpgradeDef {
     | { kind: 'offlineCapHours'; perLevel: number }
     | { kind: 'autoCollect'; perLevel: number }
     | { kind: 'reputationRate'; perLevel: number }
+    // Upgrades that change how the game BEHAVES rather than scaling a number:
+    // sharper taps, longer combos, richer decisions, denser rooms. Each feeds the
+    // same seam the room network already uses, so they compose with it.
+    | { kind: 'critChance'; perLevel: number }
+    | { kind: 'goldenChance'; perLevel: number }
+    | { kind: 'comboWindow'; perLevel: number }
+    | { kind: 'eventReward'; perLevel: number }
+    | { kind: 'roomEfficiency'; perLevel: number }
     | { kind: 'unlockRoom'; roomId: string };
   unlock?: { reputation?: number; prestige?: number; upgradeId?: string };
 }

@@ -761,6 +761,46 @@
         "name": "Abrir o Arquivo de Registros",
         "desc": "Um lugar para a papelada. Descobertas começam a aparecer nela."
       }
+    },
+    "calibratedTools": {
+      "name": "Ferramentas Calibradas",
+      "desc": "Cada estação é alinhada e reequilibrada. Toques críticos acontecem com mais frequência, em todo o prédio."
+    },
+    "techniqueManual": {
+      "name": "Manual de Técnica",
+      "desc": "Alguém escreveu como são os dias bons e mandou encadernar. Mais precisão em cada toque, em troca de nozes douradas."
+    },
+    "muscleMemory": {
+      "name": "Memória Muscular",
+      "desc": "A equipe para de olhar as próprias mãos. Sequências de combo sobrevivem a pausas mais longas."
+    },
+    "shiftRhythm": {
+      "name": "Ritmo de Turno",
+      "desc": "O andar inteiro trabalha num compasso não dito. Sequências resistem a interrupções que antes as encerravam."
+    },
+    "assayDesk": {
+      "name": "Mesa de Ensaio",
+      "desc": "Uma mesa cuja única função é notar valor. Um pouco mais de toques revelam uma noz dourada."
+    },
+    "gildingProgramme": {
+      "name": "Programa de Douramento",
+      "desc": "Oficialmente, uma iniciativa de qualidade. Na prática, nozes douradas aparecem onde não apareciam."
+    },
+    "legalReview": {
+      "name": "Revisão Jurídica",
+      "desc": "Os bons resultados são redigidos como se deve. Decisões a favor da empresa pagam mais; as contrárias seguem iguais."
+    },
+    "negotiationTraining": {
+      "name": "Treinamento de Negociação",
+      "desc": "A empresa para de aceitar a primeira oferta. Uma fatia bem maior de cada boa decisão."
+    },
+    "standardProcedures": {
+      "name": "Procedimentos Padrão",
+      "desc": "Escritos uma vez, seguidos em todo lugar. Cada departamento rende como se tivesse mais gente."
+    },
+    "internalAudit": {
+      "name": "Auditoria Interna",
+      "desc": "Um departamento que melhora os outros lendo-os. Bem mais de cada sala, cheia ou magra."
     }
   },
   "event": {
@@ -1094,6 +1134,118 @@
       "replyBody": "Um segundo formulário chega em uma hora. Em \"esclarecimento do signatário\" alguém escreveu, na mesma letra caprichada, \"sim\".",
       "sign": "Assinar em conjunto",
       "file": "Arquivar os dois formulários e seguir"
+    },
+    "vending": {
+      "title": "Estoque Não Registrado",
+      "body": "A máquina de venda do refeitório está entregando itens que não constam em nenhum pedido: biscoitos sem marca, uma pequena chave de latão e algo rotulado como SOPA (VARIADA). Não cobrou nada por nenhum deles.",
+      "audit": "Auditar a máquina como se deve",
+      "sell": "Vender o excedente para a equipe",
+      "leave": "Deixar. Ela parece contente.",
+      "laterTitle": "Retorno Sobre a Máquina",
+      "laterBody": "Um fornecedor externo perguntou, com toda a educação, por que andamos distribuindo o produto dele de graça."
+    },
+    "misdirected": {
+      "title": "Correspondência Extraviada",
+      "body": "Chegou um engradado endereçado a NUTSHELL INC. (ANEXO DE PESQUISA 2). Não temos anexo. Nunca tivemos anexo. O entregador já foi e a papelada está assinada com a nossa própria letra.",
+      "return": "Devolver ao remetente, sem abrir",
+      "open": "Abrir o engradado",
+      "contentsBody": "Dentro: quarenta pranchetas idênticas, uma cafeteira ainda quente e uma foto da equipe em que todos são reconhecíveis e ninguém é alguém que empregamos.",
+      "file": "Arquivar tudo e registrar a divergência",
+      "keep": "Ficar com os equipamentos. São bons equipamentos.",
+      "laterTitle": "Correspondência do Anexo 2",
+      "laterBody": "O Anexo de Pesquisa 2 nos cobrou pela retenção dos equipamentos. A fatura está endereçada a um chefe de departamento que não temos, e está corretamente detalhada."
+    },
+    "nightFootage": {
+      "title": "Câmera Quatro",
+      "body": "A gravação noturna mostra o corredor às 03:14. Alguém está sentado a uma mesa, trabalhando com calma. A mesa não fica naquele corredor durante o dia. O registro de presença confirma que o prédio estava vazio.",
+      "review": "Revisar a noite inteira, quadro por quadro",
+      "delete": "Apagar a gravação e não comentar",
+      "noticeboard": "Imprimir um quadro e pregar no mural",
+      "laterTitle": "Consulta Sobre Retenção",
+      "laterBody": "Uma auditoria do arquivo de segurança encontrou uma lacuna de exatamente uma noite. A lacuna é a única coisa no arquivo catalogada duas vezes."
+    },
+    "futureBox": {
+      "title": "Arquivado Com Antecedência",
+      "body": "Uma caixa de registros apareceu no Arquivo com o número de referência do próximo trimestre, no formato correto, na própria letra de etiquetagem do Arquivo. O selo está intacto.",
+      "openNow": "Abrir agora",
+      "reshelve": "Devolver à estante e esperar o trimestre dela",
+      "insideBody": "Contém a ata de uma reunião que não aconteceu, com pessoas que trabalham aqui, sobre uma decisão que a empresa ainda não tomou. A ata é unânime. Há uma nota na margem: DEU CERTO.",
+      "act": "Tomar a decisão que a ata descreve",
+      "shred": "Destruir a ata e fazer a reunião de todo modo"
+    },
+    "hatched": {
+      "title": "Atualização do Programa",
+      "body": "Algo na Incubadora eclodiu. Os relatos concordam: é pequeno, quentinho e feliz em ver todo mundo. Nada estava previsto para eclodir. Nada estava previsto, na verdade.",
+      "mascot": "Adotar como mascote da empresa",
+      "observe": "Registrar direito e observar",
+      "return": "Devolver ao programa"
+    },
+    "walkout": {
+      "title": "Parada Informal de Trabalho",
+      "body": "Ninguém declarou nada. Os corredores estão simplesmente cheios de gente parada, segurando canecas, esperando para ver o que acontece. É extremamente educado e completamente total.",
+      "dayOff": "Fechar o prédio por hoje, com salário integral",
+      "dayOffLocked": "Precisa de 900 nozes para cobrir o fechamento pago.",
+      "address": "Ir até lá e ouvir o que têm a dizer",
+      "ignore": "Seguir como se fosse uma pausa programada",
+      "laterTitle": "Entrevistas de Desligamento",
+      "laterBody": "Três entrevistas de desligamento foram feitas hoje. Todas as três usaram a frase \\u201cninguém apareceu\\u201d, sem serem perguntadas, e todas pediram que constasse em ata."
+    },
+    "party": {
+      "title": "Celebração Não Programada",
+      "body": "Há uma festa no corredor. Tem bolo, faixa e um motivo que ninguém mais consegue lembrar. A faixa foi impressa profissionalmente, o que significa que alguém planejou isso com antecedência suficiente para usar o orçamento.",
+      "fund": "Financiar direito e registrar em ata",
+      "join": "Participar por vinte minutos",
+      "backToWork": "Agradecer a todos e reabrir o andar"
+    },
+    "corridor": {
+      "title": "Divergência Dimensional",
+      "body": "A manutenção mediu o corredor leste 1,2 metro mais longo do que a planta permite. A planta está correta. O corredor também está correto. Ambos foram verificados duas vezes, por pessoas diferentes, que depois verificaram uma à outra.",
+      "remeasure": "Encomendar um levantamento formal",
+      "amend": "Corrigir a planta para bater com o prédio",
+      "ignore": "São 1,2 metro. Seguir adiante.",
+      "laterTitle": "Retorno Sobre o Corredor",
+      "laterBody": "O corredor leste agora mede 1,4 metro mais que a planta. Ninguém pediu nova medição. Alguém andou fazendo de todo jeito, e deixando os resultados no mural."
+    },
+    "grant": {
+      "title": "Pedido de Subsídio",
+      "body": "Um fundo de pesquisa comportamental está aceitando propostas. O formulário pede nosso número de sujeitos, nossos achados publicados e um resumo em uma linha da metodologia. Dois dos três são simples.",
+      "honest": "Enviar exatamente o que temos",
+      "embellish": "Arredondar tudo generosamente para cima",
+      "awardedBody": "A proposta foi aprovada, por quatro vezes o valor esperado. Uma carta de parabéns pergunta quando a banca pode visitar as instalações descritas na seção três. Não descrevemos instalações na seção três. A seção três é um diagrama.",
+      "spend": "Guardar o dinheiro e pensar na seção três depois",
+      "withdraw": "Retirar a proposta e explicar",
+      "laterTitle": "Visita da Banca",
+      "laterBody": "A banca visitou. Mostramos o diagrama. Pediram o dinheiro de volta e a destruição do diagrama, nessa ordem."
+    },
+    "intern": {
+      "title": "Uma Pergunta Razoável",
+      "body": "Um estagiário perguntou o que a empresa faz, de fato. Não está sendo difícil. Leu o folheto, a declaração de missão e dois anos de avisos internos, e chegou a essa pergunta com honestidade.",
+      "honest": "Contar a verdade, na medida em que a sabemos",
+      "brochure": "Recitar o folheto com convicção genuína",
+      "deflect": "Dar algo urgente para arquivar"
+    },
+    "internReturns": {
+      "title": "Um Nome Familiar",
+      "body": "O estagiário que perguntou o que fazemos agora chefia um departamento em algum lugar sério, e escreveu propondo um estudo conjunto. A carta cita nossa resposta de volta, palavra por palavra, como o motivo.",
+      "partner": "Aceitar a parceria",
+      "decline": "Recusar com carinho e desejar boa sorte"
+    },
+    "goldenBuyer": {
+      "title": "Uma Oferta Não Solicitada",
+      "body": "Um interessado ofereceu uma quantia bem séria por uma única noz dourada. Não quer nenhuma outra quantidade, não diz para que serve, e já mandou preparar a papelada com nossos dados corretamente preenchidos.",
+      "sell": "Vender uma e ficar com o dinheiro",
+      "sellLocked": "Precisa de uma noz dourada para vender.",
+      "refuse": "Recusar, com educação e em definitivo",
+      "ask": "Perguntar para que serve antes de responder"
+    },
+    "unaccounted": {
+      "title": "Divergência de Quadro",
+      "body": "A folha de pagamento lista uma mesa a mais do que o prédio contém. A mesa tem ocupante, crachá e onze meses de relatórios arquivados de padrão consistentemente alto. Ninguém sabe dizer em qual sala ela fica.",
+      "investigate": "Financiar uma reconciliação completa",
+      "keepPaying": "Os relatórios são bons. Continuar pagando.",
+      "remove": "Retirar o registro da folha",
+      "laterTitle": "Lacuna nos Relatórios",
+      "laterBody": "Os relatórios pararam. Vários departamentos notaram, porque tinham passado a depender deles, e perguntaram quem os escrevia."
     }
   },
   "ach": {
@@ -1461,6 +1613,75 @@
     },
     "rooftop-garden-bed": {
       "name": "Canteiro no Telhado"
+    },
+    "coffee-urn": {
+      "name": "Cafeteira Grande"
+    },
+    "tray-stack": {
+      "name": "Pilha de Bandejas"
+    },
+    "menu-chalkboard": {
+      "name": "Quadro do Menu"
+    },
+    "pigeonholes": {
+      "name": "Escaninhos"
+    },
+    "parcel-stack": {
+      "name": "Pilha de Encomendas"
+    },
+    "postal-scale": {
+      "name": "Balança Postal"
+    },
+    "monitor-stack": {
+      "name": "Torre de Monitores"
+    },
+    "key-cabinet": {
+      "name": "Armário de Chaves"
+    },
+    "torch-rack": {
+      "name": "Suporte de Lanternas"
+    },
+    "box-tower": {
+      "name": "Torre de Caixas"
+    },
+    "card-catalogue": {
+      "name": "Catálogo de Fichas"
+    },
+    "index-board": {
+      "name": "Quadro de Índice"
+    },
+    "warming-lamp": {
+      "name": "Lâmpada de Aquecimento"
+    },
+    "seed-tray": {
+      "name": "Bandeja de Sementes"
+    },
+    "glass-dome": {
+      "name": "Cúpula de Vidro"
+    },
+    "specimen-shelf": {
+      "name": "Estante de Amostras"
+    },
+    "data-plotter": {
+      "name": "Plotter de Dados"
+    },
+    "observation-mirror": {
+      "name": "Espelho de Observação"
+    },
+    "sump-pump": {
+      "name": "Bomba de Porão"
+    },
+    "pipe-cluster": {
+      "name": "Feixe de Tubos"
+    },
+    "bare-bulb": {
+      "name": "Lâmpada Nua"
+    },
+    "weather-vane": {
+      "name": "Biruta"
+    },
+    "planter-row": {
+      "name": "Fileira de Canteiros"
     }
   },
   "prestige": {
@@ -1719,7 +1940,17 @@
         "moon": "Lua",
         "sun": "Sol",
         "gem": "Joia",
-        "crown": "Coroa"
+        "crown": "Coroa",
+        "acorn": "Noz",
+        "nutshell": "Casca aberta",
+        "clipboard": "Prancheta de observação",
+        "folder": "Pasta do departamento",
+        "stamp": "Carimbo de aprovação",
+        "flask": "Frasco de pesquisa",
+        "magnifier": "Lupa",
+        "maze": "Labirinto comportamental",
+        "observer": "Observador",
+        "keyhole": "Buraco de fechadura"
       }
     }
   },
@@ -1921,7 +2152,12 @@
     "junieReady": "Juju já reagendou tudo em volta disso.",
     "mossKnowing": "Mocho não diz nada, mas parece já saber.",
     "fennGrin": "Fael sorri como se o negócio já estivesse fechado.",
-    "ottoImpressed": "Otto conta algo duas vezes e não diz nada."
+    "ottoImpressed": "Otto conta algo duas vezes e não diz nada.",
+    "beaSuspicious": "Bea mede outra vez, duas vezes, e anota os dois números.",
+    "minaFascinated": "Mina já começou um novo caderno de registros para isso.",
+    "teamCheers": "Um grito de comemoração sai perto da linha de triagem e se espalha sem explicação.",
+    "teamRelieved": "O andar solta um suspiro que aparentemente prendia desde a manhã.",
+    "teamDelighted": "O trabalho para. Ninguém se incomoda. Alguém vai buscar as canecas boas."
   },
   "daily": {
     "title": "Desafios Diários",
