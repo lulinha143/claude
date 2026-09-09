@@ -47,7 +47,13 @@
     "permanentKernels": "Permanent Kernels",
     "morale": "Morale",
     "reputation": "Reputation",
-    "perSecond": "{{value}}/s"
+    "perSecond": "{{value}}/s",
+    "short": {
+      "nuts": "Nuts",
+      "golden": "Golden",
+      "morale": "Morale",
+      "reputation": "Standing"
+    }
   },
   "nav": {
     "mainNavigation": "Main navigation",
@@ -1505,7 +1511,7 @@
       "ticket": "Bug queue",
       "scanning": "Scanning desk…",
       "hit": "Bug fixed · +{{value}} points",
-      "penalty": "Empty drawer · −{{value}} points",
+      "penalty": "Empty drawer · -{{value}} points",
       "empty": "Empty drawer — no points to deduct"
     },
     "cableUntangle": {
@@ -2262,7 +2268,8 @@
     },
     "progressLabel": "Progress to the next tier",
     "nextAt": "Next: {{name}} at {{at}}",
-    "maxed": "Highest standing reached."
+    "maxed": "Highest standing reached.",
+    "nextShort": "next {{at}}"
   },
   "synergy": {
     "title": "Department Network",
@@ -2306,5 +2313,8 @@
   "secret": {
     "secret-ledger": "The Second Entry",
     "secret-requisition": "Form 12-B"
+  },
+  "header": {
+    "department": "Behavioural Research"
   }
 }

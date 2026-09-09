@@ -84,7 +84,7 @@ async function expectShellContained(page: Page) {
       '#root',
       '.app',
       '.header',
-      '.header__resources',
+      '.header__strip',
       '.nav',
       '.next-step',
       '.app__main',
@@ -108,9 +108,7 @@ async function expectShellContained(page: Page) {
   for (const metric of metrics) {
     if (metric.missing && metric.selector === '.next-step') continue;
     expect(metric.missing, `${metric.selector} missing`).toBe(false);
-    const roundingSafe = ['.app', '.header', '.header__resources', '.nav'].includes(
-      metric.selector,
-    );
+    const roundingSafe = ['.app', '.header', '.header__strip', '.nav'].includes(metric.selector);
     expect(metric.overflow, `${metric.selector} horizontally overflows`).toBeLessThanOrEqual(
       roundingSafe ? 6 : 2,
     );

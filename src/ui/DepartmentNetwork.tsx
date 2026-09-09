@@ -48,7 +48,7 @@ function formatEffect(kind: RoomEffectKind, value: number): string {
   // down, otherwise "Costs +18%" looks like the room made everything pricier.
   if (kind === 'costReduction') {
     const pct = Math.abs(value) * 100;
-    return `${value > 0 ? '\u2212' : '+'}${pct.toFixed(pct < 10 ? 1 : 0)}%`;
+    return `${value > 0 ? '-' : '+'}${pct.toFixed(pct < 10 ? 1 : 0)}%`;
   }
   if (kind === 'reputationRate') {
     // Per-second rates are tiny; per-minute is the readable unit.

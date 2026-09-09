@@ -47,7 +47,13 @@
     "permanentKernels": "Grãos Permanentes",
     "morale": "Moral",
     "reputation": "Reputação",
-    "perSecond": "{{value}}/s"
+    "perSecond": "{{value}}/s",
+    "short": {
+      "nuts": "Nozes",
+      "golden": "Douradas",
+      "morale": "Ânimo",
+      "reputation": "Posição"
+    }
   },
   "nav": {
     "mainNavigation": "Navegação principal",
@@ -1505,7 +1511,7 @@
       "ticket": "Fila de insetos",
       "scanning": "Vasculhando a mesa…",
       "hit": "Inseto corrigido · +{{value}} pontos",
-      "penalty": "Gaveta vazia · −{{value}} pontos",
+      "penalty": "Gaveta vazia · -{{value}} pontos",
       "empty": "Gaveta vazia — sem pontos para descontar"
     },
     "cableUntangle": {
@@ -2262,7 +2268,8 @@
     },
     "progressLabel": "Progresso para o próximo nível",
     "nextAt": "Próximo: {{name}} em {{at}}",
-    "maxed": "Nível máximo alcançado."
+    "maxed": "Nível máximo alcançado.",
+    "nextShort": "próx. {{at}}"
   },
   "synergy": {
     "title": "Rede de Departamentos",
@@ -2306,5 +2313,8 @@
   "secret": {
     "secret-ledger": "O Segundo Lançamento",
     "secret-requisition": "Formulário 12-B"
+  },
+  "header": {
+    "department": "Pesquisa Comportamental"
   }
 }

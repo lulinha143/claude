@@ -89,7 +89,9 @@ export function ClickStation({
       play(sfx, { pitch: 1 + Math.min(0.6, (result.streak - 1) * 0.03) });
 
       // Number + punch, both imperative.
-      const prefix = result.resource === 'goldenNuts' ? '\u2726' : '+';
+      // Golden payouts are distinguished by the popup's tone class, not by a glyph:
+      // decorative symbols outside the bundled Latin subset render as tofu boxes.
+      const prefix = '+';
       tapPop({
         x: event.clientX,
         y: event.clientY,

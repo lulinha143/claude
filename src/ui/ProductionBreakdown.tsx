@@ -16,7 +16,7 @@ export function ProductionBreakdown() {
 
   const pct = (frac: number) => `+${Math.round(frac * 100)}%`;
   const signedPct = (frac: number) =>
-    `${frac >= 0 ? '+' : '\u2212'}${Math.abs(Math.round(frac * 100))}%`;
+    `${frac >= 0 ? '+' : '-'}${Math.abs(Math.round(frac * 100))}%`;
   const mult = (m: number) => `×${m.toFixed(2)}`;
 
   return (

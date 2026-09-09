@@ -27,7 +27,7 @@ function perkLines(
   const pct = (v: number) => `+${Math.round(v * 100)}%`;
   if (perk.automation) lines.push(`${t('effect.automation')} ${pct(perk.automation)}`);
   if (perk.costReduction)
-    lines.push(`${t('effect.costReduction')} \u2212${Math.round(perk.costReduction * 100)}%`);
+    lines.push(`${t('effect.costReduction')} -${Math.round(perk.costReduction * 100)}%`);
   if (perk.eventLuck) lines.push(`${t('effect.eventLuck')} ${pct(perk.eventLuck)}`);
   if (perk.goldenChance)
     lines.push(`${t('effect.goldenChance')} +${(perk.goldenChance * 100).toFixed(2)}%`);
