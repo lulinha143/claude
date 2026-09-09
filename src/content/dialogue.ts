@@ -30,6 +30,10 @@ export const DIALOGUE_COUNTS: Record<string, number> = {
   idle: 12,
   upgrade: 8,
   lowMorale: 8,
+  // Contextual voices chosen from world state by sim/employeeVoice.ts.
+  highMorale: 6,
+  roomPride: 6,
+  roomGrumble: 6,
   focus: 6,
   prestige: 6,
   interaction: 8,

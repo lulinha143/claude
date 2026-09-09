@@ -2212,6 +2212,30 @@
       "Me sinto visto. E cafeinado.",
       "Pronto pra trabalhar pra caramba!",
       "Melhor. Empresa. De todas."
+    ],
+    "highMorale": [
+      "Tudo vai bem. Anotei, caso pare.",
+      "Ninguém reclamou há dias. A gente acha que é bom?",
+      "Trouxe biscoitos e eles simplesmente foram comidos. Sem incidentes.",
+      "Alguém organizou o armário de suprimentos. Anonimamente. Belíssimo.",
+      "Gosto daqui. Por favor, não coloque isso no informativo.",
+      "A produtividade subiu e eu me sinto BEM com isso, o que é novo."
+    ],
+    "roomPride": [
+      "Este é o meu departamento. Sei onde fica tudo. Até a gaveta estranha.",
+      "Fui feito para esta sala. Metaforicamente. Provavelmente.",
+      "Me coloque em outro lugar e os números pioram. Já mostrei os cálculos.",
+      "Tudo aqui faz sentido para mim. Isso é mais raro do que parece.",
+      "Eu tenho um sistema. O sistema é bom. Não reorganize o sistema.",
+      "Melhor mesa do prédio. Não vou responder perguntas."
+    ],
+    "roomGrumble": [
+      "Não sei bem por que estou neste departamento. Ninguém falou.",
+      "Consigo trabalhar aqui. Só estou trabalhando pior.",
+      "Nenhuma dessas gavetas está etiquetada para o que eu faço.",
+      "Vivem me entregando coisas que não são meu trabalho. Eu faço. Mal.",
+      "Existe um formulário para pedir outra sala? Existe formulário para todo o resto.",
+      "Sinto falta do meu departamento. Da minha cadeira, especificamente."
     ]
   },
   "roomProfile": {

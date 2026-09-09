@@ -2212,6 +2212,30 @@
       "I feel seen. And caffeinated.",
       "Ready to work my nuts off!",
       "Best. Company. Ever."
+    ],
+    "highMorale": [
+      "Everything is going well. I have written it down in case it stops.",
+      "Nobody has filed a complaint in days. We think that is good?",
+      "I brought in biscuits and they were simply eaten. No incident.",
+      "Someone tidied the supply cupboard. Anonymously. Beautiful.",
+      "I like it here. Please do not put that in the newsletter.",
+      "Productivity is up and I feel FINE about it, which is new."
+    ],
+    "roomPride": [
+      "This is my department. I know where everything is. Even the odd drawer.",
+      "I was built for this room. Metaphorically. Probably.",
+      "Put me anywhere else and the numbers get worse. I have shown my work.",
+      "Everything in here makes sense to me. That is rarer than you think.",
+      "I have a system. The system is good. Do not reorganise the system.",
+      "Best desk in the building. I will not be taking questions."
+    ],
+    "roomGrumble": [
+      "I am not sure why I am in this department. Nobody has said.",
+      "I can work here. I am simply working here worse.",
+      "None of these drawers are labelled for anything I do.",
+      "I keep being handed things that are not my job. I do them. Badly.",
+      "Is there a form for requesting a different room? There is a form for everything else.",
+      "I miss my own department. I miss my own chair, specifically."
     ]
   },
   "roomProfile": {

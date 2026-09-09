@@ -22,6 +22,7 @@ import {
   type ClickStationDef,
 } from '../content/clickStations';
 import { previewClickValue, synergyEmployees } from '../sim/clickStations';
+import { chooseVoice } from '../sim/employeeVoice';
 import { clearTapFeedback } from '../ui/tapFeedback';
 import { useFmt } from '../ui/useFmt';
 import { Icon } from './UiIcon';
@@ -400,8 +401,9 @@ export function OfficeScene() {
     }
 
     const [id] = hired[Math.floor(Math.random() * hired.length)];
-    const def = EMPLOYEES_BY_ID[id];
-    speak(id, def?.dialogueCategory ?? 'idle');
+    // Ambient chatter reads the room too, so overhearing the office tells the
+    // player something about it.
+    speak(id, chooseVoice(state, id).category);
   }
 
   function speak(employeeId: string, category: string) {
@@ -418,13 +420,17 @@ export function OfficeScene() {
       if (recentReactionGenerationRef.current !== reactionGeneration) return;
       setRecentEmployee((current) => (current === employeeId ? null : current));
     }, 1400);
-    const def = EMPLOYEES_BY_ID[employeeId];
     if (employeeId === 'pip') {
       engine.petPip();
       audio.play('click');
-      speak('pip', 'interaction');
+      // Petting the founder is its own interaction, but she still notices a
+      // company-wide mood or a bad assignment before falling back to it.
+      const voice = chooseVoice(state, 'pip');
+      speak('pip', voice.reason === 'personal' ? 'interaction' : voice.category);
     } else {
-      speak(employeeId, def?.dialogueCategory ?? 'idle');
+      // Everyone else comments on what is actually happening to them: the company
+      // mood, or the department they have been put in.
+      speak(employeeId, chooseVoice(state, employeeId).category);
       audio.play('footstep');
     }
   }
