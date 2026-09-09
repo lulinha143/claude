@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { characterSlots } from '../src/content/roomLayout';
+import { ROOM_CAP } from '../src/sim/rooms';
 
 function avg(ns: number[]): number {
   return ns.reduce((s, n) => s + n, 0) / ns.length;
@@ -37,7 +38,9 @@ describe('character slots', () => {
     }
   });
 
-  it('packs a large crowd tighter than a small one', () => {
+  // Above the cap the generated spread takes over. Only a save written before the
+  // cap existed can get here, but it must still be readable.
+  it('packs an over-capacity legacy crowd tighter than a small one', () => {
     const small = characterSlots(3).map((s) => s.x);
     const large = characterSlots(8).map((s) => s.x);
     expect(minGap(large)).toBeLessThan(minGap(small));
@@ -65,13 +68,50 @@ describe('curated per-room slot styles', () => {
     for (const room of [...ROOMS, undefined]) {
       for (let n = 2; n <= 6; n += 1) {
         const xs = characterSlots(n, room).map((s) => s.x);
-        expect(minGap(xs)).toBeGreaterThanOrEqual(0.12);
+        expect(minGap(xs), `${room ?? 'default'} n=${n}`).toBeGreaterThanOrEqual(0.12);
       }
     }
   });
 
-  it("puts the Founder's Desk focal character front-and-centre", () => {
-    expect(characterSlots(3, 'founder-desk')[0]).toEqual({ x: 0.5, bottom: 0 });
+  // What makes a focal character focal is being FRONTMOST: bottom 0 is the floor
+  // line, and characterDepth() turns that into the highest z of the group, so
+  // occupant 0 paints over everyone else. Asserting the behaviour rather than one
+  // hand-authored x leaves the formations free to be composed.
+  it('puts occupant zero at the front of every room at every count', () => {
+    for (const room of [...ROOMS, undefined]) {
+      for (let n = 1; n <= ROOM_CAP; n += 1) {
+        const slots = characterSlots(n, room);
+        expect(slots[0].bottom, `${room ?? 'default'} n=${n} focal depth`).toBe(0);
+        for (const slot of slots.slice(1)) {
+          expect(slot.bottom, `${room ?? 'default'} n=${n}`).toBeGreaterThanOrEqual(0);
+        }
+      }
+    }
+  });
+
+  // The point of authoring 1..4 by hand: each count is its own composition, not
+  // the same line with people removed.
+  it('composes each occupant count differently', () => {
+    for (const room of ROOMS) {
+      const shapes = new Set<string>();
+      for (let n = 1; n <= ROOM_CAP; n += 1) {
+        shapes.add(JSON.stringify(characterSlots(n, room)));
+      }
+      expect(shapes.size, `${room} distinct formations`).toBe(ROOM_CAP);
+    }
+  });
+
+  // A formation for two should not simply be the first two slots of the formation
+  // for four — that is what "adapt to the count" actually means.
+  it('re-spaces the group as a room fills rather than leaving gaps', () => {
+    for (const room of ROOMS) {
+      const two = characterSlots(2, room).map((s) => s.x);
+      const four = characterSlots(4, room).map((s) => s.x);
+      expect(two, `${room} two-up`).not.toEqual(four.slice(0, 2));
+      // Four people occupy a wider footprint than two.
+      const spread = (xs: number[]) => Math.max(...xs) - Math.min(...xs);
+      expect(spread(four), `${room} spread`).toBeGreaterThan(spread(two));
+    }
   });
 
   it('gives labs a distinct depth rhythm from the generic cluster', () => {

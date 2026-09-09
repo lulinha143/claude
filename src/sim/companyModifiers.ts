@@ -112,10 +112,19 @@ export interface DormantEffect {
   requiresRoom?: string;
 }
 
-/** How fully a room is staffed, 0..1. */
+/**
+ * How fully a room is staffed, 0..1, with diminishing returns.
+ *
+ * Linear staffing over a capacity of four would have made the first teammate in a
+ * room worth only a quarter of its effects, which punishes exactly the spread-out
+ * play the department network is meant to encourage. The curve keeps the same two
+ * endpoints (empty is nothing, full is everything) while front-loading the value:
+ * roughly 0.51 / 0.79 / 0.93 / 1.00 for one through four.
+ */
 export function roomStaffing(state: GameState, roomId: string): number {
-  const assigned = employeesInRoom(state, roomId).length;
-  return Math.min(1, assigned / ROOM_FULL_STAFF);
+  const assigned = Math.min(ROOM_FULL_STAFF, employeesInRoom(state, roomId).length);
+  if (assigned <= 0) return 0;
+  return Math.min(1, Math.pow(assigned / ROOM_FULL_STAFF, 0.48));
 }
 
 /** A room counts as "running" for chain purposes once anyone works in it. */

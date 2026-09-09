@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { ROOM_CAP } from '../../src/sim/rooms';
 
 // Employee-overlap hardening proof. Seeds a full room (six hires — the soft
 // cap) and asserts, from the RENDERED DOM, that no two critters overlap; also
@@ -42,8 +43,13 @@ async function clearModals(page: Page) {
   await page.waitForTimeout(200);
 }
 
-test('a full room lays out six teammates without overlap', async ({ page }) => {
-  await page.setViewportSize({ width: 1280, height: 860 });
+test('an over-full legacy room is reduced to the cap and the overflow rehomed', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 1000 });
+  // This save assigns SIX teammates to one room, which predates the four-per-room
+  // cap. Loading it must not render a six-person room: two of them get desks
+  // elsewhere, and nobody vanishes.
   await seed(page, FULL_ROOM);
   await page.goto('/');
   await page.locator('.office').first().waitFor({ timeout: 15000 });
@@ -52,10 +58,12 @@ test('a full room lays out six teammates without overlap', async ({ page }) => {
   await page.waitForTimeout(400);
 
   const critters = page.locator('.floor[data-room="founder-desk"] .critter-btn');
-  await expect(critters).toHaveCount(6);
+  await expect(critters).toHaveCount(ROOM_CAP);
+  // All six are still employed and on screen somewhere in the building.
+  await expect(page.locator('.office .critter-btn')).toHaveCount(6);
 
   const boxes = [];
-  for (let i = 0; i < 6; i += 1) {
+  for (let i = 0; i < ROOM_CAP; i += 1) {
     const b = await critters.nth(i).boundingBox();
     if (b) boxes.push(b);
   }

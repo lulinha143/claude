@@ -42,7 +42,16 @@ import {
 import { aggregateCompanyModifiers } from './companyModifiers';
 import { evaluateAchievements } from './achievements';
 import { ensureDailyForDate } from './dailyChallenges';
-import { isRoomIdUnlocked, repairPlacements, unlockedRooms } from './rooms';
+import {
+  ROOM_CAP,
+  bestRoomWithSpace,
+  enforceRoomCapacity,
+  isRoomIdUnlocked,
+  repairPlacements,
+  resolveEmployeeRoom,
+  roomHasSpace,
+  unlockedRooms,
+} from './rooms';
 import {
   repairDecorations,
   repairDecorationInstances,
@@ -191,6 +200,8 @@ export class GameEngine {
   private saveCallback: ((state: GameState) => void) | null = null;
   private version = 0;
   private nextEventInstanceId = 1;
+  /** Rooms unlocked as of the last check, so a new one can re-seat the team. */
+  private unlockedRoomCount = 0;
   private resolvingEventInstanceId: number | null = null;
 
   constructor(state: GameState, opts: EngineOptions = {}) {
@@ -203,6 +214,11 @@ export class GameEngine {
     repairEmployees(this.state);
     // Repair any invalid employee placement data on load so no one is lost.
     this.repairedOnLoad = repairPlacements(this.state);
+    // Older saves predate the four-per-room cap, and the fallback resolution can
+    // pile unassigned teammates into one room regardless of when the save was
+    // written, so the invariant is established before anything renders.
+    enforceRoomCapacity(this.state);
+    this.unlockedRoomCount = unlockedRooms(this.state).length;
     // Repair the source instance model before its legacy placement projection,
     // then mirror any coordinate clamping back into the instances.
     repairDecorationInstances(this.state);
@@ -276,6 +292,16 @@ export class GameEngine {
     this.state.stats.playTimeSeconds += Math.min(deltaSeconds, 3600);
     this.tickFocus();
     this.rolloverDaily();
+
+    // A room opening is the one thing that can change where the team fits without
+    // the player touching anything: reputation crosses a threshold mid-tick and a
+    // new department appears. Re-seat anyone the fallback had crowded, and give the
+    // newly opened room its first occupants.
+    const openRooms = unlockedRooms(this.state).length;
+    if (openRooms !== this.unlockedRoomCount) {
+      this.unlockedRoomCount = openRooms;
+      enforceRoomCapacity(this.state);
+    }
 
     // prune expired boosts to avoid unbounded growth
     const t = this.now();
@@ -520,8 +546,19 @@ export class GameEngine {
     const cost = employeeLevelCost(def, rt.level, reduction);
     if (!this.canAfford(def.hireCost.resource, cost)) return false;
     this.state.resources[def.hireCost.resource] -= cost;
+    const firstDay = !rt.hired;
     rt.hired = true;
     rt.level += 1;
+    // A new hire needs a desk that exists. Without this they resolve to their
+    // department (or the Founder's Desk) no matter how full it already is.
+    if (firstDay && !rt.room) {
+      const home = def.room;
+      rt.room =
+        home && isRoomIdUnlocked(this.state, home) && roomHasSpace(this.state, home)
+          ? home
+          : bestRoomWithSpace(this.state, id);
+      enforceRoomCapacity(this.state);
+    }
     this.emit();
     return true;
   }
@@ -571,7 +608,20 @@ export class GameEngine {
     const rt = this.state.employees[id];
     if (!rt) return false;
     if (roomId !== null && !isRoomIdUnlocked(this.state, roomId)) return false;
+    // A full room refuses the move outright rather than accepting it and letting
+    // the capacity pass silently bounce them somewhere else — the player asked for
+    // a specific desk, so "no" is the honest answer.
+    if (
+      roomId !== null &&
+      resolveEmployeeRoom(this.state, id) !== roomId &&
+      !roomHasSpace(this.state, roomId)
+    ) {
+      return false;
+    }
     rt.room = roomId;
+    // Clearing an assignment hands them back to the fallback, which can overfill a
+    // room; re-seat whoever that displaces.
+    if (roomId === null) enforceRoomCapacity(this.state);
     this.emit();
     this.save(); // a room move is a deliberate action — persist it immediately
     return true;
@@ -587,27 +637,61 @@ export class GameEngine {
   autoArrangeEmployees(strategy: 'department' | 'balanced'): number {
     const hired = Object.entries(this.state.employees).filter(([, rt]) => rt.hired);
     let changes = 0;
+    // Both strategies fill rooms against a live occupancy count, so neither can
+    // produce a five-person room. 'department' used to send a whole department to
+    // one room regardless, and 'balanced' round-robined over however many rooms
+    // happened to be unlocked.
+    const occupancy = new Map<string, number>(unlockedRooms(this.state).map((r) => [r.id, 0]));
+    const take = (roomId: string): boolean => {
+      const seated = occupancy.get(roomId);
+      if (seated === undefined || seated >= ROOM_CAP) return false;
+      occupancy.set(roomId, seated + 1);
+      return true;
+    };
+    const place = (rt: (typeof hired)[number][1], roomId: string | null) => {
+      if (!roomId) return;
+      if (rt.room !== roomId) {
+        rt.room = roomId;
+        changes += 1;
+      }
+    };
+
     if (strategy === 'department') {
+      const spill: [string, (typeof hired)[number][1]][] = [];
       for (const [id, rt] of hired) {
         const home = EMPLOYEES_BY_ID[id]?.room ?? null;
-        if (home && isRoomIdUnlocked(this.state, home) && rt.room !== home) {
-          rt.room = home;
-          changes += 1;
-        }
+        if (home && isRoomIdUnlocked(this.state, home) && take(home)) place(rt, home);
+        else spill.push([id, rt]);
+      }
+      // Anyone whose department is full or locked gets the room they next prefer.
+      for (const [id, rt] of spill) {
+        const target = bestRoomWithSpace(this.state, id, occupancy);
+        if (target && take(target)) place(rt, target);
       }
     } else {
       const rooms = unlockedRooms(this.state).map((r) => r.id);
       if (rooms.length > 0) {
-        hired.forEach(([, rt], i) => {
-          const target = rooms[i % rooms.length];
-          if (rt.room !== target) {
-            rt.room = target;
-            changes += 1;
+        // Deal round-robin, skipping rooms that have reached the cap so a small
+        // office packs evenly instead of overfilling the first few rooms.
+        let cursor = 0;
+        for (const [, rt] of hired) {
+          let target: string | null = null;
+          for (let step = 0; step < rooms.length; step += 1) {
+            const candidate = rooms[(cursor + step) % rooms.length];
+            if (take(candidate)) {
+              target = candidate;
+              cursor = (cursor + step + 1) % rooms.length;
+              break;
+            }
           }
-        });
+          place(rt, target);
+        }
       }
     }
-    if (changes > 0) this.emit();
+    if (changes > 0) {
+      enforceRoomCapacity(this.state);
+      this.emit();
+    }
     return changes;
   }
 

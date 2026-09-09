@@ -65,11 +65,20 @@ function EmployeeSpriteImpl({ config, reducedMotion, height, className }: Employ
   // Push any authored bottom padding below the floor line so the character's
   // real contact point sits exactly on its slot (baseline 0 = no shift).
   const baselineShift = config.baseline > 0 ? `translateY(${config.baseline * 100}%)` : '';
+  // Slide the figure so ITS centre — not the centre of its transparent padding —
+  // lands on the slot the layout chose. Several animals sit 1.5-2.5% right of
+  // their canvas centre, which is enough to read as standing beside the desk
+  // rather than at it. The wrapper button is already centred on the slot, so the
+  // correction is the difference between the two centres.
+  const anchorShift =
+    Math.abs(config.anchorX - 0.5) > 0.002
+      ? `translateX(${((0.5 - config.anchorX) * 100).toFixed(2)}%)`
+      : '';
   // Keep a `translateZ(0)` so the sprite stays on its OWN compositor layer (see
   // `.employee-sprite` in styles.css), so the halo's semi-transparent edge is
   // composited from an independently-rasterised texture instead of being
   // re-blended whenever an ancestor repaints.
-  const transform = `${baselineShift} translateZ(0)`.trim();
+  const transform = `${anchorShift} ${baselineShift} translateZ(0)`.trim();
 
   // Serve the animation at the resolution it is actually displayed at, so on an
   // integer device pixel ratio the frame maps 1:1 to device pixels (DPR 1 -> @1x,

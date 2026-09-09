@@ -91,7 +91,9 @@ function makeRegion(
 function buildRoomRegions(roomId: string): readonly PlacementRegion[] {
   return [
     // The entire walkable floor.
-    makeRegion(roomId, 'floor', placementPlane(0.04, 0.96, 0.01, 0.35, 0.1), {
+    // Far edge matches SURFACE_BANDS.floor.max, which matches the drawn junction.
+    // These three numbers were 0.35 / 0.34 / 0.32 and disagreed with each other.
+    makeRegion(roomId, 'floor', placementPlane(0.04, 0.96, 0.01, 0.3, 0.1), {
       anchorMode: 'base',
       depth: regionDepth('floor'),
       priority: 10,

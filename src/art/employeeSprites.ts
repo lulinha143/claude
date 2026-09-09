@@ -18,7 +18,12 @@ import { CHARACTER_ART, characterArt, type CharacterArtFiles } from './character
 // The presence scale is authored data shared with the framework-free layout layer,
 // so it lives in `content/`. Re-exported here because this module is where
 // renderers look for character sizing.
-export { CHARACTER_PRESENCE_SCALE, presenceSize } from '../content/characterScale';
+export {
+  CHARACTER_PRESENCE_SCALE,
+  presenceSize,
+  VECTOR_CRITTER_OFFICE_SIZE,
+  VECTOR_CRITTER_CARD_SIZE,
+} from '../content/characterScale';
 
 export interface EmployeeSpriteConfig {
   /** Animated APNG (autoplay + infinite loop), path relative to BASE_URL. This
@@ -53,6 +58,8 @@ export interface EmployeeSpriteConfig {
   officeHeight: number;
   /** Rendered height (px) inside the employee roster card portrait. */
   cardHeight: number;
+  /** Dead transparent margin above the animal, as a fraction of canvas height. */
+  figureTop: number;
   /**
    * Fraction of the sprite width (0..1) that lines up with the character's
    * visual centre. The office anchors sprites by this point so a teammate
@@ -90,6 +97,7 @@ function configFor(files: CharacterArtFiles): EmployeeSpriteConfig {
     cardHeight: presenceSize(files.cardHeight),
     anchorX: files.anchorX,
     baseline: files.baseline,
+    figureTop: files.figureTop,
   };
 }
 

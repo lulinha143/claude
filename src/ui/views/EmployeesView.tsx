@@ -4,10 +4,10 @@ import { useStore } from '../../state/store';
 import { useFmt } from '../useFmt';
 import { EMPLOYEES } from '../../content/employees';
 import { aggregatePassives, employeeLevelCost, isEmployeeUnlocked } from '../../sim/economy';
-import { unlockedRooms, resolveEmployeeRoom } from '../../sim/rooms';
+import { unlockedRooms, resolveEmployeeRoom, roomHasSpace } from '../../sim/rooms';
 import { Critter } from '../../art/Critter';
 import { shapeFor } from '../../art/critterShapes';
-import { employeeSprite, presenceSize } from '../../art/employeeSprites';
+import { employeeSprite, VECTOR_CRITTER_CARD_SIZE } from '../../art/employeeSprites';
 import { useSpriteAvailabilityRevision } from '../../art/spriteAvailability';
 import { EmployeeSprite } from '../../art/EmployeeSprite';
 import { Acorn, GoldenNut } from '../../art/Icons';
@@ -91,7 +91,7 @@ export function EmployeesView() {
                     accent={accent}
                     state={rt.hired ? 'idle' : 'sleep'}
                     hasGlasses={shape.hasGlasses}
-                    size={presenceSize(78)}
+                    size={VECTOR_CRITTER_CARD_SIZE}
                     reducedMotion={state.settings.reducedMotion}
                   />
                 )}
@@ -200,10 +200,16 @@ export function EmployeesView() {
                         {unlockedRooms(state).map((r) => {
                           const pct = affinityPercent(def.id, r.id);
                           const tag = pct > 0 ? `  (+${pct}%)` : pct < 0 ? `  (${pct}%)` : '';
+                          // A full room is shown but not selectable, so the roster
+                          // explains why a desk is unavailable instead of accepting
+                          // the choice and quietly putting them somewhere else.
+                          const here = resolveEmployeeRoom(state, def.id) === r.id;
+                          const full = !here && !roomHasSpace(state, r.id);
                           return (
-                            <option key={r.id} value={r.id}>
+                            <option key={r.id} value={r.id} disabled={full}>
                               {t(r.nameKey)}
                               {tag}
+                              {full ? `  — ${t('office.roomFullShort')}` : ''}
                             </option>
                           );
                         })}

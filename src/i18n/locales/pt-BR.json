@@ -151,7 +151,8 @@
     "decorateHint": "Arraste uma decoração para movê-la, ou solte na bandeja para guardá-la. Compre mais na aba Decorar.",
     "dragHint": "Arraste um colega para uma sala para movê-lo para lá.",
     "roomFull": "{{room}} está cheia.",
-    "roomFullSuggest": "{{room}} está cheia — tente {{other}}."
+    "roomFullSuggest": "{{room}} está cheia — tente {{other}}.",
+    "roomFullShort": "lotada"
   },
   "decorate": {
     "searchPlaceholder": "Buscar decorações…",
@@ -1615,7 +1616,7 @@
     "workers": "{{count}} trabalhando aqui",
     "comfort": "Conforto da sala +{{value}}",
     "capacityTitle": "Capacidade da sala",
-    "capacityTip": "Colegas trabalhando aqui. Cada sala comporta até seis antes de lotar.",
+    "capacityTip": "Colegas trabalhando aqui. Cada sala é planejada para até quatro; um quinto não teria onde ficar.",
     "comfortTitle": "Conforto da sala",
     "comfortTip": "Moral extra das decorações desta sala.",
     "autoRoom": "Padrão (departamento)"

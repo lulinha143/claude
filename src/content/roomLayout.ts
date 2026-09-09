@@ -58,9 +58,8 @@ const ROOM_STYLE: Record<string, SlotStyle> = {
   incubator: 'pairs',
 };
 
-// Per-style depth (px up from the floor), cycled across occupants. The values
-// are purely cosmetic — horizontal spacing already guarantees no overlap — but
-// they give each room a recognisable silhouette.
+// Per-style depth (px up from the floor), cycled across occupants. Used only for
+// crowds above the room capacity, i.e. legacy saves written before the cap.
 const depths = (values: number[]): number[] => values.map((v) => Math.round(v * PRESENCE));
 
 const DEPTH_PATTERN: Record<SlotStyle, number[]> = {
@@ -71,11 +70,157 @@ const DEPTH_PATTERN: Record<SlotStyle, number[]> = {
   cluster: depths([0, 9, 3, 12, 3, 9]), // gentle zig-zag
 };
 
+/* ---------------------------------------------------------------------------
+ * Authored formations for one to four occupants.
+ *
+ * A room holds at most four teammates (ROOM_CAP), so every arrangement a player
+ * can actually see is worth composing by hand rather than deriving. Evenly
+ * spacing N bodies on a line and varying only their depth made a room of two
+ * look like a room of four with people missing; these read as arrangements
+ * somebody chose.
+ *
+ * Index 0 is always the room's focal occupant and always stands at bottom 0 —
+ * frontmost, so it paints over the others (see characterDepth in sim/depth.ts).
+ *
+ * `bottom` values are authored pre-presence and scaled with the cast, because
+ * they are pixel depths and would otherwise flatten as the characters grew.
+ * ------------------------------------------------------------------------- */
+type Formation = readonly (readonly [x: number, bottom: number])[];
+
+const FORMATIONS: Record<SlotStyle, readonly Formation[]> = {
+  // The founder holds the front of the room; everyone else arranges around them.
+  founder: [
+    [[0.5, 0]],
+    [
+      [0.44, 0],
+      [0.68, 16],
+    ],
+    [
+      [0.42, 0],
+      [0.22, 13],
+      [0.72, 22],
+    ],
+    [
+      [0.4, 0],
+      [0.2, 12],
+      [0.62, 20],
+      [0.84, 29],
+    ],
+  ],
+  // Facing workstations: benches squared off against each other, front and back.
+  pairs: [
+    [[0.5, 0]],
+    [
+      [0.32, 0],
+      [0.68, 0],
+    ],
+    [
+      [0.24, 0],
+      [0.55, 22],
+      [0.8, 4],
+    ],
+    [
+      [0.2, 0],
+      [0.44, 24],
+      [0.64, 0],
+      [0.86, 24],
+    ],
+  ],
+  // A hang-out. Nobody is squared up to anybody; the group opens toward the room.
+  social: [
+    [[0.5, 0]],
+    [
+      [0.38, 0],
+      [0.62, 11],
+    ],
+    [
+      [0.3, 0],
+      [0.52, 15],
+      [0.74, 5],
+    ],
+    [
+      [0.24, 0],
+      [0.44, 17],
+      [0.64, 10],
+      [0.84, 4],
+    ],
+  ],
+  // A tidy line, barely staggered — records, mail, money: places that queue.
+  row: [
+    [[0.5, 0]],
+    [
+      [0.36, 0],
+      [0.64, 4],
+    ],
+    [
+      [0.26, 0],
+      [0.5, 4],
+      [0.74, 0],
+    ],
+    [
+      [0.18, 0],
+      [0.39, 5],
+      [0.61, 0],
+      [0.82, 5],
+    ],
+  ],
+  // Gentle zig-zag huddle for rooms without a stronger idea of themselves.
+  cluster: [
+    [[0.5, 0]],
+    [
+      [0.38, 0],
+      [0.63, 9],
+    ],
+    [
+      [0.28, 0],
+      [0.5, 12],
+      [0.73, 3],
+    ],
+    [
+      [0.22, 0],
+      [0.43, 13],
+      [0.63, 4],
+      [0.83, 12],
+    ],
+  ],
+};
+
 /**
- * Evenly spread `count` horizontal positions, symmetric around the centre. The
- * group is tight for a few teammates (a cosy huddle) and widens as the room
- * fills, but the minimum gap never drops below what keeps critters readable at
- * the six-per-room soft cap. Always within [MIN_X, MAX_X].
+ * The floor band, in the same pixel units `CharacterSlot.bottom` uses: the drawn
+ * wood plane is 40px tall before the cast scale is applied.
+ */
+const FLOOR_BAND_PX = Math.round(40 * PRESENCE);
+
+/**
+ * How much of its size a character loses standing at the very back of the floor.
+ *
+ * Depth used to be conveyed by raising a character up the floor band and nothing
+ * else, which is geometrically right and reads completely wrong: an identically
+ * sized figure sitting higher up looks like it is HOVERING, not standing further
+ * away. That is what "the desks float" was — the artwork carries its own desk, so
+ * lifting the character lifts a desk into mid-air with it.
+ *
+ * Shrinking with distance is the missing cue. It is a positional effect applied by
+ * the same rule to everybody, so it does not disturb the one-cast-one-scale
+ * guarantee: a character at the front of the room is always exactly cast scale.
+ */
+const DEPTH_SHRINK = 0.12;
+
+/**
+ * Perspective multiplier for a character standing `bottom` pixels back.
+ * 1 at the floor line, falling to `1 - DEPTH_SHRINK` at the back of the band.
+ */
+export function depthScale(bottom: number): number {
+  const t = Math.max(0, Math.min(1, bottom / FLOOR_BAND_PX));
+  return 1 - t * DEPTH_SHRINK;
+}
+
+/**
+ * Evenly spread `count` horizontal positions, symmetric around the centre.
+ *
+ * Only reached for crowds ABOVE the room capacity, which today means a save
+ * written before the cap existed. It keeps such a room readable (no overlap, all
+ * on-screen) until the capacity pass rehomes the overflow.
  */
 function spreadX(count: number): number[] {
   if (count <= 1) return [0.5];
@@ -88,56 +233,26 @@ function spreadX(count: number): number[] {
 }
 
 /**
- * Positions for `count` hired employees. A `roomId` selects a curated depth
- * style (founder focal point, facing pairs, social huddle, or a tidy row);
- * otherwise a centred cluster. Every layout is generated per employee count and
- * is guaranteed overlap-free and on-screen.
+ * Positions for `count` hired employees in a given room.
+ *
+ * One to four occupants — every arrangement reachable under the room capacity —
+ * uses the hand-authored formation for that room's style, so a room of two is
+ * composed as a room of two rather than as a sparse room of four. Anything larger
+ * falls back to the generated spread.
  */
 export function characterSlots(count: number, roomId?: string): CharacterSlot[] {
   if (count <= 0) return [];
-  if (count === 1) return [{ x: 0.5, bottom: 0 }];
   const style: SlotStyle = (roomId && ROOM_STYLE[roomId]) || 'cluster';
-  const depth = DEPTH_PATTERN[style];
-  const xs = spreadX(count);
 
-  if (style === 'founder') {
-    // Occupant 0 is the focal character, front-and-centre; the rest fan out
-    // symmetrically to the evenly-spread slots on either side, a step back.
-    const mid = Math.floor((count - 1) / 2);
-    const order: number[] = [mid];
-    let l = mid - 1;
-    let r = mid + 1;
-    let takeRight = true;
-    while (l >= 0 || r < count) {
-      if (takeRight && r < count) {
-        order.push(r);
-        r += 1;
-      } else if (!takeRight && l >= 0) {
-        order.push(l);
-        l -= 1;
-      } else if (r < count) {
-        order.push(r);
-        r += 1;
-      } else {
-        order.push(l);
-        l -= 1;
-      }
-      takeRight = !takeRight;
-    }
-    const slots: CharacterSlot[] = new Array(count);
-    order.forEach((slotIdx, empIdx) => {
-      // Keep the evenly-spread x (the middle slot is exactly 0.5 for odd counts,
-      // near-centre for even) so the guaranteed gap is never broken.
-      slots[empIdx] = {
-        x: xs[slotIdx],
-        bottom:
-          empIdx === 0
-            ? 0
-            : DEPTH_PATTERN.founder[Math.min(empIdx, DEPTH_PATTERN.founder.length - 1)],
-      };
-    });
-    return slots;
+  const formation = FORMATIONS[style][count - 1];
+  if (formation) {
+    return formation.map(([x, bottom]) => ({
+      x: clampX(x),
+      bottom: Math.round(bottom * PRESENCE),
+    }));
   }
 
-  return xs.map((x, i) => ({ x, bottom: depth[i % depth.length] }));
+  // Above the cap: generated, so an over-full legacy room still reads clearly.
+  const depth = DEPTH_PATTERN[style];
+  return spreadX(count).map((x, i) => ({ x, bottom: depth[i % depth.length] }));
 }

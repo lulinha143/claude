@@ -1326,7 +1326,10 @@ h4 {
   /* The animal's head sits roughly three-quarters up a seated-at-desk composition,
      so the mood bubble reads as belonging to them instead of hovering above the
      furniture. */
-  --bubble-anchor: 74%;
+  /* Fallback only: OfficeScene sets this per character from the measured headroom
+     of that animal's artwork, so the balloon's tail always meets the same point on
+     every head instead of a shared guess at where heads are. */
+  --bubble-anchor: 92%;
 }
 
 /* ===================================================================
@@ -1347,7 +1350,8 @@ h4 {
      the default 100% is right. The photographic workstation sprites include the
      desk, lamps and shelves above the animal, so anchoring to the box top left the
      bubble floating near the ceiling with its tail pointing at nothing. */
-  bottom: calc(var(--bubble-anchor, 100%) + 8px);
+  /* A small overlap, so the tail visibly touches the head rather than hovering. */
+  bottom: calc(var(--bubble-anchor, 100%) - 13px);
   z-index: 8;
   display: grid;
   place-items: center;
@@ -1640,7 +1644,9 @@ h4 {
 .station-btn {
   position: absolute;
   transform: translateX(-50%);
-  transform-origin: 50% 92%;
+  /* The press scales about the point where the machine meets the floor, which the
+     art puts at 96.4% down the box (the 24x28 grid's contact row), not 92%. */
+  transform-origin: 50% 96.4%;
   background: none;
   border: none;
   padding: 0;
@@ -1650,6 +1656,14 @@ h4 {
   transition:
     transform 90ms var(--ease),
     filter 120ms var(--ease);
+}
+/* Sink the sprite by its own empty bottom row so the machine rests ON the boards.
+   Stations are drawn on the shared 24x28 grid and contact their support at y=27,
+   so the last 1/28 of the box is padding; resting the BOX on the floor line left
+   every station hovering ~2px above it. Applied to the sprite rather than the
+   button so the button's hover/press/idle transforms still compose cleanly. */
+.station-btn > svg {
+  transform: translateY(calc((1 - 27 / 28) * 100%));
 }
 .station-btn:hover {
   transform: translateX(-50%) scale(1.05);

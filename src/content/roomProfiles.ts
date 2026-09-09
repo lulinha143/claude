@@ -115,11 +115,19 @@ export interface RoomProfile {
 }
 
 /**
- * Employees needed for a room's staffed effects to reach full strength. Below
- * this the effects scale down proportionally, so a half-staffed room is worth
- * roughly half as much — assignment is a real decision, not a checkbox.
+ * Employees needed for a room's staffed effects to reach full strength.
+ *
+ * This equals the room capacity on purpose: filling a room completely has to be
+ * worth something, or the fourth desk is decoration. Saturating at three left the
+ * last slot doing literally nothing for the room's effects.
+ *
+ * The approach to full strength is deliberately CONCAVE (see `roomStaffing`), so
+ * the first teammate in a room is the most valuable one and the fourth is a
+ * top-up. That keeps a wide, thinly-staffed company competitive with a narrow,
+ * deeply-staffed one instead of forcing the player to fill rooms to the brim
+ * before opening the next.
  */
-export const ROOM_FULL_STAFF = 3;
+export const ROOM_FULL_STAFF = 4;
 
 /** How much one specialist adds to the room's own staffed effects. */
 export const SPECIALIST_BONUS = 0.25;

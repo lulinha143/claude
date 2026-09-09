@@ -151,7 +151,8 @@
     "decorateHint": "Drag a decoration to move it, or drop it on the tray to stow it. Buy more in the Decorate tab.",
     "dragHint": "Drag a teammate onto a room to move them there.",
     "roomFull": "{{room}} is full.",
-    "roomFullSuggest": "{{room}} is full — try {{other}} instead."
+    "roomFullSuggest": "{{room}} is full — try {{other}} instead.",
+    "roomFullShort": "full"
   },
   "decorate": {
     "searchPlaceholder": "Search decorations…",
@@ -1615,7 +1616,7 @@
     "workers": "{{count}} working here",
     "comfort": "Room comfort +{{value}}",
     "capacityTitle": "Room capacity",
-    "capacityTip": "Teammates working here. Every room holds up to six before it's full.",
+    "capacityTip": "Teammates working here. Every room is laid out for up to four; a fifth has nowhere to stand.",
     "comfortTitle": "Room comfort",
     "comfortTip": "Bonus morale from this room's decorations.",
     "autoRoom": "Default (department)"

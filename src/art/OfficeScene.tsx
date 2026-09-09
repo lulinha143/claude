@@ -3,14 +3,20 @@ import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { useGame } from '../state/hooks';
 import { useStore } from '../state/store';
-import { unlockedRooms, isRoomUnlocked, resolveEmployeeRoom, employeesInRoom } from '../sim/rooms';
+import {
+  ROOM_CAP,
+  unlockedRooms,
+  isRoomUnlocked,
+  resolveEmployeeRoom,
+  employeesInRoom,
+} from '../sim/rooms';
 import { ROOMS, ROOMS_BY_ID } from '../content/rooms';
 import { EMPLOYEES_BY_ID } from '../content/employees';
 import { DECORATIONS_BY_ID } from '../content/decorations';
 import { Critter } from './Critter';
 import { CritterStateMachine, type CritterState } from './animation';
 import { shapeFor } from './critterShapes';
-import { employeeSprite, presenceSize } from './employeeSprites';
+import { employeeSprite, VECTOR_CRITTER_OFFICE_SIZE } from './employeeSprites';
 import { useSpriteAvailabilityRevision } from './spriteAvailability';
 import { EmployeeSprite } from './EmployeeSprite';
 import { EmployeeBubble } from './EmployeeMoodBadge';
@@ -40,7 +46,7 @@ import { DECORATION_DEPTH_CEILING, SCENE_DEPTH, characterDepth } from '../sim/de
 import { pointerRegionPlacement } from '../sim/placement';
 import { placementRegionById } from '../content/roomSurfaces';
 import { type PlacementAnchorMode, type PlacementRegionKind } from '../sim/placementRegions';
-import { characterSlots } from '../content/roomLayout';
+import { characterSlots, depthScale } from '../content/roomLayout';
 import { placementSpec } from '../content/placementSpecs';
 import { pickOfficeInteraction } from '../sim/officeLife';
 import { DecorationTray } from '../ui/DecorationTray';
@@ -53,9 +59,6 @@ import { notify } from '../ui/notificationsStore';
 import { dustPuff } from '../ui/sparkle';
 import { INTERACTION_CANCEL_EVENT, INTERACTION_FOCUS_EVENT } from '../ui/interactionLifecycle';
 
-// A soft visual capacity per room — dragging a teammate into a fuller room is
-// gently refused with a suggestion, keeping each room readable and cozy.
-const ROOM_CAP = 6;
 const DRAG_THRESHOLD = 7; // px before a press becomes a drag (vs a tap)
 
 interface DecorationDragPreview {
@@ -157,7 +160,7 @@ function GhostCritter({ id, reducedMotion }: { id: string; reducedMotion: boolea
       state="idle"
       hasGlasses={sh.hasGlasses}
       reducedMotion={reducedMotion}
-      size={presenceSize(68)}
+      size={VECTOR_CRITTER_OFFICE_SIZE}
     />
   );
 }
@@ -1160,6 +1163,9 @@ export function OfficeScene() {
                   const shape = shapeFor(id);
                   const sprite = employeeSprite(id);
                   const slot = slots[idx] ?? { x: 0.5, bottom: 0 };
+                  // How far back this teammate stands, as a size cue. Without it a
+                  // raised character reads as hovering rather than as distant.
+                  const perspective = depthScale(slot.bottom);
                   const visiting = interaction?.employeeId === id;
                   const ex = visiting
                     ? slot.x * 0.55 + (interaction?.targetX ?? slot.x) * 0.45
@@ -1198,6 +1204,15 @@ export function OfficeScene() {
                       style={{
                         left: `${ex * 100}%`,
                         bottom: `${slot.bottom}px`,
+                        // Hang the mood bubble off the top of the HEAD. Sprite
+                        // canvases carry between 0% and 11% dead headroom, so a
+                        // single shared percentage sat a different distance above
+                        // every animal.
+                        ...(sprite
+                          ? {
+                              ['--bubble-anchor' as string]: `${((1 - sprite.figureTop) * 100).toFixed(1)}%`,
+                            }
+                          : null),
                         // Characters occupy the band above every decoration, and
                         // sort among themselves by how near the camera they
                         // stand, so the whole team stays readable.
@@ -1221,7 +1236,12 @@ export function OfficeScene() {
                         <EmployeeSprite
                           config={sprite}
                           reducedMotion={reducedMotion}
-                          height={sprite.officeHeight}
+                          // Scaled by distance, not by character: a teammate at the
+                          // front of the room is always exactly cast scale, and one
+                          // standing further back is smaller because it is further
+                          // back. Height only — EmployeeSprite derives width, so the
+                          // aspect ratio is untouched.
+                          height={Math.round(sprite.officeHeight * perspective)}
                         />
                       ) : (
                         <Critter
@@ -1231,7 +1251,7 @@ export function OfficeScene() {
                           state={anim}
                           hasGlasses={shape.hasGlasses}
                           reducedMotion={reducedMotion}
-                          size={presenceSize(74)}
+                          size={Math.round(VECTOR_CRITTER_OFFICE_SIZE * perspective)}
                           title={label}
                           seed={idx + room.floor}
                         />

@@ -161,12 +161,33 @@ function insetClampToPlane(
   const halfDepth = Math.min(size.depth / 2, Math.max(0, height / 2 - 1e-4));
   const y = Math.max(minY + halfDepth, Math.min(maxY - halfDepth, point.y));
   const v = height < Number.EPSILON ? 0 : (y - minY) / height;
-  const leftX = lerp(plane.bottomLeft.x, plane.topLeft.x, v);
-  const rightX = lerp(plane.bottomRight.x, plane.topRight.x, v);
+  const spanAt = (t: number): { left: number; right: number } => ({
+    left: lerp(plane.bottomLeft.x, plane.topLeft.x, t),
+    right: lerp(plane.bottomRight.x, plane.topRight.x, t),
+  });
+  const centre = spanAt(v);
+
+  // A floor plane TAPERS: it is narrower at the back. The footprint occupies
+  // `y ± halfDepth`, so its back corners sit in a narrower span than its centre —
+  // insetting only against the centre span let a prop's back corners fall outside
+  // the plane, which failed the footprint test and dropped the drag into the
+  // discrete fallback search. That search snaps to a grid, so the prop visibly
+  // hopped ~2% of the room width as it approached an edge. Inset against the
+  // NARROWEST span the footprint touches and the fast path always succeeds.
+  const backV = height < Number.EPSILON ? 0 : clamp01((y + halfDepth - minY) / height);
+  const frontV = height < Number.EPSILON ? 0 : clamp01((y - halfDepth - minY) / height);
+  const back = spanAt(backV);
+  const front = spanAt(frontV);
+  const leftX = Math.max(centre.left, back.left, front.left);
+  const rightX = Math.min(centre.right, back.right, front.right);
+
   const width = rightX - leftX;
   const halfWidth = Math.min(size.width / 2, Math.max(0, width / 2 - 1e-4));
   const x = Math.max(leftX + halfWidth, Math.min(rightX - halfWidth, point.x));
-  const u = width < Number.EPSILON ? 0 : (x - leftX) / width;
+  // `u` stays measured against the centre span, which is the row the anchor
+  // actually sits on and what callers store.
+  const centreWidth = centre.right - centre.left;
+  const u = centreWidth < Number.EPSILON ? 0 : (x - centre.left) / centreWidth;
   return { point: { x, y }, u: clamp01(u), v: clamp01(v) };
 }
 

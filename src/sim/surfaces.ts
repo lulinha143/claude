@@ -44,7 +44,11 @@ export const SURFACE_BANDS: Record<
   DecorationSurface,
   { min: number; max: number; default: number }
 > = {
-  floor: { min: 0.0, max: 0.34, default: 0.06 },
+  // 0.30 is just short of the drawn wall/floor junction, which sits at 0.32 of the
+  // stage (`.room-dressing__wall` ends at `bottom: 32%`). The band used to reach
+  // 0.34, so a prop dropped at the back of the floor was painted ON THE WALL while
+  // still carrying its floor contact shadow -- the classic "it's floating" read.
+  floor: { min: 0.0, max: 0.3, default: 0.06 },
   wall: { min: 0.44, max: 0.82, default: 0.62 },
   ceiling: { min: 0.84, max: 0.99, default: 0.92 },
 };

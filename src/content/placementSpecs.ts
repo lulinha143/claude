@@ -53,7 +53,12 @@ export interface DecorationPlacementSpec {
 
 // Baseline defaults per anchor mode; individual items may override.
 const BASELINE: Record<PlacementAnchorMode, number> = {
-  base: 0.94,
+  // 27/28 of the shared 24x28 art grid: the row every standing prop is drawn to
+  // contact its support on (see the grid contract at the top of art/decoArt.tsx).
+  // This was 0.94, which put the contact point 2.4% of the sprite's height below
+  // where the artwork actually touches down, so every floor prop sat very slightly
+  // sunk into the boards and every drag preview landed a pixel off its drop.
+  base: 27 / 28,
   center: 0.5,
   hanging: 0.08,
 };
