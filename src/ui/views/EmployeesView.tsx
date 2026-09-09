@@ -7,7 +7,8 @@ import { aggregatePassives, employeeLevelCost, isEmployeeUnlocked } from '../../
 import { unlockedRooms, resolveEmployeeRoom } from '../../sim/rooms';
 import { Critter } from '../../art/Critter';
 import { shapeFor } from '../../art/critterShapes';
-import { employeeSprite } from '../../art/employeeSprites';
+import { employeeSprite, presenceSize } from '../../art/employeeSprites';
+import { useSpriteAvailabilityRevision } from '../../art/spriteAvailability';
 import { EmployeeSprite } from '../../art/EmployeeSprite';
 import { Acorn, GoldenNut } from '../../art/Icons';
 import { Tip, TipContent } from '../Tooltip';
@@ -22,6 +23,8 @@ export function EmployeesView() {
   const fmt = useFmt();
   const audio = useStore((s) => s.audio);
   const passives = aggregatePassives(state);
+  // Fall back to the drawn silhouette if a portrait's artwork is missing.
+  useSpriteAvailabilityRevision();
 
   const hiredCount = Object.values(state.employees).filter((e) => e.hired).length;
 
@@ -36,12 +39,23 @@ export function EmployeesView() {
         <h2>{t('nav.employees')}</h2>
         {hiredCount > 1 ? (
           <div className="arrange-bar" role="group" aria-label={t('employee.autoArrange')}>
-            <Tip content={<TipContent title={t('employee.byDepartment')} lines={[t('employee.byDepartmentTip')]} />}>
+            <Tip
+              content={
+                <TipContent
+                  title={t('employee.byDepartment')}
+                  lines={[t('employee.byDepartmentTip')]}
+                />
+              }
+            >
               <button className="chip-btn" onClick={() => arrange('department')}>
                 {t('employee.byDepartment')}
               </button>
             </Tip>
-            <Tip content={<TipContent title={t('employee.spread')} lines={[t('employee.spreadTip')]} />}>
+            <Tip
+              content={
+                <TipContent title={t('employee.spread')} lines={[t('employee.spreadTip')]} />
+              }
+            >
               <button className="chip-btn" onClick={() => arrange('balanced')}>
                 {t('employee.spread')}
               </button>
@@ -77,7 +91,7 @@ export function EmployeesView() {
                     accent={accent}
                     state={rt.hired ? 'idle' : 'sleep'}
                     hasGlasses={shape.hasGlasses}
-                    size={78}
+                    size={presenceSize(78)}
                     reducedMotion={state.settings.reducedMotion}
                   />
                 )}
@@ -85,7 +99,9 @@ export function EmployeesView() {
               <div className="employee-card__info">
                 <div className="employee-card__name">
                   {rt.nickname ?? t(def.nameKey)}
-                  {rt.hired ? <span className="pill">{t('common.level', { level: rt.level })}</span> : null}
+                  {rt.hired ? (
+                    <span className="pill">{t('common.level', { level: rt.level })}</span>
+                  ) : null}
                 </div>
                 <div className="employee-card__fullname">{t(def.fullNameKey)}</div>
                 <div className="employee-card__role">{t(def.roleKey)}</div>
@@ -121,7 +137,11 @@ export function EmployeesView() {
                           ? t('mood.effectNeutral')
                           : t('mood.effect', { value: `${delta > 0 ? '+' : ''}${delta}` });
                       return (
-                        <Tip content={<TipContent title={t(`mood.${mood}`)} lines={[t('tip.mood'), effect]} />}>
+                        <Tip
+                          content={
+                            <TipContent title={t(`mood.${mood}`)} lines={[t('tip.mood'), effect]} />
+                          }
+                        >
                           <span
                             className={`mood-chip ${MOOD_POSITIVE[mood] ? 'mood-chip--positive' : 'mood-chip--negative'}`}
                             data-mood={mood}
@@ -205,7 +225,11 @@ export function EmployeesView() {
                             {t(o.nameKey)}
                             {!owns && o.cost.amount > 0 ? (
                               <span className="outfit-cost">
-                                {o.cost.resource === 'goldenNuts' ? <GoldenNut size={12} /> : <Acorn size={12} />}
+                                {o.cost.resource === 'goldenNuts' ? (
+                                  <GoldenNut size={12} />
+                                ) : (
+                                  <Acorn size={12} />
+                                )}
                                 {o.cost.amount}
                               </span>
                             ) : null}
@@ -226,14 +250,28 @@ export function EmployeesView() {
                     <button
                       className="buy-btn"
                       disabled={!afford}
-                      onClick={() => (engine.hireOrLevelEmployee(def.id) ? audio.play('upgrade') : audio.play('error'))}
+                      onClick={() =>
+                        engine.hireOrLevelEmployee(def.id)
+                          ? audio.play('upgrade')
+                          : audio.play('error')
+                      }
                     >
-                      {def.hireCost.resource === 'goldenNuts' ? <GoldenNut size={16} /> : <Acorn size={16} />}
+                      {def.hireCost.resource === 'goldenNuts' ? (
+                        <GoldenNut size={16} />
+                      ) : (
+                        <Acorn size={16} />
+                      )}
                       <span>{fmt.num(cost)}</span>
                       <em>{rt.hired ? t('employee.promote') : t('employee.hire')}</em>
                     </button>
                     {rt.hired ? (
-                      <button className="ghost-btn" onClick={() => { engine.giveCoffee(def.id); audio.play('coffee'); }}>
+                      <button
+                        className="ghost-btn"
+                        onClick={() => {
+                          engine.giveCoffee(def.id);
+                          audio.play('coffee');
+                        }}
+                      >
                         {t('employee.give_coffee')}
                       </button>
                     ) : null}

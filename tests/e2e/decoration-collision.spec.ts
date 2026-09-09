@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { SCENE_DEPTH } from '../../src/sim/depth';
 
 // Proves the composition rules on the RENDERED scene: an invalid drop is
 // rejected with a message and leaves the piece put; valid neighbours, a big
@@ -32,15 +33,96 @@ const SAVE = {
     'mood-lighting': { surface: 'wall', x: 0.5, y: 0.62 },
   },
   decorationInstances: [
-    { instanceId: 'deco-potted-fern-1', decorationId: 'potted-fern', roomId: 'founder-desk', surfaceType: 'floor', normalizedX: 0.18, normalizedY: 0.1, depth: 3, interactionState: {} },
-    { instanceId: 'deco-desk-lamp-1', decorationId: 'desk-lamp', roomId: 'founder-desk', surfaceType: 'floor', normalizedX: 0.34, normalizedY: 0.1, depth: 3, interactionState: {} },
-    { instanceId: 'deco-motivational-poster-1', decorationId: 'motivational-poster', roomId: 'founder-desk', surfaceType: 'wall', normalizedX: 0.3, normalizedY: 0.62, depth: 1, interactionState: {} },
-    { instanceId: 'deco-window-view-1', decorationId: 'window-view', roomId: 'founder-desk', surfaceType: 'wall', normalizedX: 0.7, normalizedY: 0.62, depth: 1, interactionState: {} },
-    { instanceId: 'deco-tiny-rug-1', decorationId: 'tiny-rug', roomId: 'founder-desk', surfaceType: 'floor', normalizedX: 0.5, normalizedY: 0.14, depth: 0, interactionState: {} },
-    { instanceId: 'deco-aquarium-1', decorationId: 'aquarium', roomId: 'morale', surfaceType: 'floor', normalizedX: 0.14, normalizedY: 0.1, depth: 3, interactionState: {} },
-    { instanceId: 'deco-beanbag-chairs-1', decorationId: 'beanbag-chairs', roomId: 'morale', surfaceType: 'floor', normalizedX: 0.34, normalizedY: 0.1, depth: 3, interactionState: {} },
-    { instanceId: 'deco-snack-bar-1', decorationId: 'snack-bar', roomId: 'morale', surfaceType: 'floor', normalizedX: 0.82, normalizedY: 0.1, depth: 3, interactionState: {} },
-    { instanceId: 'deco-mood-lighting-1', decorationId: 'mood-lighting', roomId: 'morale', surfaceType: 'wall', normalizedX: 0.5, normalizedY: 0.62, depth: 1, interactionState: {} },
+    {
+      instanceId: 'deco-potted-fern-1',
+      decorationId: 'potted-fern',
+      roomId: 'founder-desk',
+      surfaceType: 'floor',
+      normalizedX: 0.18,
+      normalizedY: 0.1,
+      depth: 3,
+      interactionState: {},
+    },
+    {
+      instanceId: 'deco-desk-lamp-1',
+      decorationId: 'desk-lamp',
+      roomId: 'founder-desk',
+      surfaceType: 'floor',
+      normalizedX: 0.34,
+      normalizedY: 0.1,
+      depth: 3,
+      interactionState: {},
+    },
+    {
+      instanceId: 'deco-motivational-poster-1',
+      decorationId: 'motivational-poster',
+      roomId: 'founder-desk',
+      surfaceType: 'wall',
+      normalizedX: 0.3,
+      normalizedY: 0.62,
+      depth: 1,
+      interactionState: {},
+    },
+    {
+      instanceId: 'deco-window-view-1',
+      decorationId: 'window-view',
+      roomId: 'founder-desk',
+      surfaceType: 'wall',
+      normalizedX: 0.7,
+      normalizedY: 0.62,
+      depth: 1,
+      interactionState: {},
+    },
+    {
+      instanceId: 'deco-tiny-rug-1',
+      decorationId: 'tiny-rug',
+      roomId: 'founder-desk',
+      surfaceType: 'floor',
+      normalizedX: 0.5,
+      normalizedY: 0.14,
+      depth: 0,
+      interactionState: {},
+    },
+    {
+      instanceId: 'deco-aquarium-1',
+      decorationId: 'aquarium',
+      roomId: 'morale',
+      surfaceType: 'floor',
+      normalizedX: 0.14,
+      normalizedY: 0.1,
+      depth: 3,
+      interactionState: {},
+    },
+    {
+      instanceId: 'deco-beanbag-chairs-1',
+      decorationId: 'beanbag-chairs',
+      roomId: 'morale',
+      surfaceType: 'floor',
+      normalizedX: 0.34,
+      normalizedY: 0.1,
+      depth: 3,
+      interactionState: {},
+    },
+    {
+      instanceId: 'deco-snack-bar-1',
+      decorationId: 'snack-bar',
+      roomId: 'morale',
+      surfaceType: 'floor',
+      normalizedX: 0.82,
+      normalizedY: 0.1,
+      depth: 3,
+      interactionState: {},
+    },
+    {
+      instanceId: 'deco-mood-lighting-1',
+      decorationId: 'mood-lighting',
+      roomId: 'morale',
+      surfaceType: 'wall',
+      normalizedX: 0.5,
+      normalizedY: 0.62,
+      depth: 1,
+      interactionState: {},
+    },
   ],
   collections: {
     nuts: [],
@@ -72,7 +154,8 @@ async function seed(page: Page, save: Record<string, unknown>) {
     }
   });
   await page.addInitScript((data) => {
-    if (!localStorage.getItem('wmno.save.v1')) localStorage.setItem('wmno.save.v1', JSON.stringify(data));
+    if (!localStorage.getItem('wmno.save.v1'))
+      localStorage.setItem('wmno.save.v1', JSON.stringify(data));
   }, save);
 }
 
@@ -127,7 +210,9 @@ test.describe('decoration composition protection', () => {
     await enterDecorateMode(page);
   });
 
-  test('allows exact overlap and keeps every layer selectable from the arrangement tray', async ({ page }) => {
+  test('allows exact overlap and keeps every layer selectable from the arrangement tray', async ({
+    page,
+  }) => {
     await page.locator('.floor[data-room="founder-desk"]').scrollIntoViewIfNeeded();
     await page.waitForTimeout(300);
 
@@ -136,23 +221,25 @@ test.describe('decoration composition protection', () => {
     await expect(fern).toBeVisible();
     const lampBox = (await lamp.boundingBox())!;
 
-    await dragTo(
-      page,
-      fern,
-      lampBox.x + lampBox.width / 2,
-      lampBox.y + lampBox.height * (54 / 56),
-    );
+    await dragTo(page, fern, lampBox.x + lampBox.width / 2, lampBox.y + lampBox.height * (54 / 56));
 
     const fernAfter = (await fern.boundingBox())!;
     const lampAfter = (await lamp.boundingBox())!;
-    expect(Math.abs(fernAfter.x + fernAfter.width / 2 - (lampAfter.x + lampAfter.width / 2))).toBeLessThan(12);
+    expect(
+      Math.abs(fernAfter.x + fernAfter.width / 2 - (lampAfter.x + lampAfter.width / 2)),
+    ).toBeLessThan(12);
 
     // Every owned item—including a buried placed item—has a direct tray entry.
     const lampCard = page.locator('.deco-tray__card[data-decoration="desk-lamp"]');
     await expect(lampCard).toHaveAttribute('data-placement', 'placed');
     await lampCard.locator('.decor').click();
     await expect(lamp).toHaveClass(/is-selected/);
-    expect(await lamp.evaluate((element) => getComputedStyle(element).zIndex)).toBe('20');
+    // The piece being arranged is lifted above EVERYTHING (characters included)
+    // so it can never be lost mid-drag. Assert the intent via the shared depth
+    // bands rather than a magic number that goes stale when the bands move.
+    const selectedZ = Number(await lamp.evaluate((element) => getComputedStyle(element).zIndex));
+    expect(selectedZ).toBe(SCENE_DEPTH.arranging);
+    expect(selectedZ).toBeGreaterThan(SCENE_DEPTH.character.max);
     await page.screenshot({ path: `${DIR}/collide-02-dense-overlap.png` });
   });
 

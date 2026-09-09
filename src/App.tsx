@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStore, startGameLoop, getGameState, type ViewId } from './state/store';
 import { ambientState } from './art/ambient';
+import { CHARACTER_PRESENCE_SCALE } from './art/employeeSprites';
 import { toggleHaloTest } from './art/haloTest'; // TEMP halo-isolation A/B (Ctrl+Alt+H)
 import { useGame } from './state/hooks';
 import { Header } from './ui/Header';
@@ -77,7 +78,9 @@ export function App() {
       } else if (e.key === 'h' || e.key === 'H') {
         const off = toggleHaloTest();
         // eslint-disable-next-line no-console
-        console.info(`[halo-test] squirrel halo ${off ? 'REMOVED (binary alpha)' : 'restored (normal art)'}`);
+        console.info(
+          `[halo-test] squirrel halo ${off ? 'REMOVED (binary alpha)' : 'restored (normal art)'}`,
+        );
       }
     };
     window.addEventListener('keydown', onKey);
@@ -105,6 +108,9 @@ export function App() {
       s.uiScale >= 1.5 ? '150' : s.uiScale >= 1.25 ? '125' : s.uiScale <= 0.75 ? '75' : '100';
     root.style.setProperty('--font-scale', String(s.fontScale));
     root.style.setProperty('--ui-scale', String(s.uiScale));
+    // Keep the CSS mirror of the character presence scale in lockstep with the
+    // TS constant, so room geometry always matches the rendered sprite size.
+    root.style.setProperty('--character-presence', String(CHARACTER_PRESENCE_SCALE));
     audio.setVolumes(s.volumes);
     audio.setFlags({ muted: s.masterMuted, quiet: s.quietMode, focus: state.focus.active });
     audio.setChannelMutes(s.channelMuted);

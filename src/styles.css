@@ -577,7 +577,7 @@ h4 {
   border: 1px solid rgba(90, 63, 31, 0.35);
   border-left: 4px solid var(--dept);
   border-radius: var(--r-md);
-  min-height: calc(158px * var(--asset-scale));
+  min-height: calc(158px * var(--asset-scale) * var(--character-presence));
   padding: 5px 8px 6px;
   box-shadow:
     0 2px 7px rgba(40, 26, 12, 0.22),
@@ -633,7 +633,9 @@ h4 {
 .floor__stage {
   position: relative;
   z-index: 2;
-  height: calc(118px * var(--asset-scale));
+  /* Grows with the characters so the tallest sprite is never clipped by the
+     `overflow: hidden` on `.floor` (Bea, the tallest, is the binding case). */
+  height: calc(118px * var(--asset-scale) * var(--character-presence));
 }
 /* --- built-in room architecture (walls, flooring, wall identity) ---
    Rooms retain department-tinted walls, floor materials, baseboards, windows,
@@ -1049,8 +1051,8 @@ h4 {
   position: absolute;
   left: 50%;
   bottom: 1px;
-  width: calc(46px * var(--asset-scale));
-  height: calc(11px * var(--asset-scale));
+  width: calc(46px * var(--asset-scale) * var(--character-presence));
+  height: calc(11px * var(--asset-scale) * var(--character-presence));
   transform: translateX(-50%);
   background: radial-gradient(ellipse at center, rgba(40, 26, 12, 0.38), transparent 70%);
   z-index: -1;
@@ -1167,9 +1169,10 @@ h4 {
     employee-bubble-arrive 240ms var(--ease-pop) both,
     employee-bubble-float 4.2s ease-in-out 240ms infinite;
 }
+/* While speaking, the in-scene bubble keeps its compact emoji shape — the words
+   now live in the portaled observation note, so this no longer widens. It only
+   gives a small acknowledging pop so the character still reacts. */
 .employee-bubble[data-mode='speech'] {
-  padding: 7px 11px;
-  border-radius: 14px 14px 14px 5px;
   animation: employee-bubble-pop 260ms var(--ease-pop) both;
 }
 .employee-bubble__emoji {
@@ -1182,36 +1185,112 @@ h4 {
     height 180ms var(--ease-settle),
     opacity 140ms ease;
 }
-/* in speech mode the emoji tucks into the corner as a tiny mood tag */
-.employee-bubble[data-mode='speech'] .employee-bubble__emoji {
+
+/* ------- employee speech: the observation note ---------------------------
+   Presented as a small internal record from the company that is watching these
+   animals: a ruled paper card, a stamped name strip, and the line itself set for
+   reading rather than for fitting. It is portaled to the body (see SpeechNote)
+   because `.floor` clips its contents, which used to slice dialogue off for any
+   teammate standing near a room edge.
+
+   Sizing rule: the note is bounded by the WINDOW, never by a fixed pixel cap, so
+   a long line wraps into a taller note instead of being hidden. `min()` keeps it
+   comfortable on a wide desktop and safe in a narrow companion window, and both
+   terms scale with the player's UI/font scale. */
+.speech-anchor {
   position: absolute;
-  top: -9px;
-  left: -9px;
-  width: 20px;
-  height: 20px;
-  padding: 1px;
-  border-radius: 50%;
-  background: var(--bubble-fill);
-  border: 1.5px solid var(--bubble-edge);
-  box-shadow: 0 1px 3px rgba(40, 26, 12, 0.28);
-  z-index: 2;
+  left: 50%;
+  bottom: 100%;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
 }
-.employee-bubble[data-mode='speech'] .employee-bubble__emoji svg {
-  width: 15px;
-  height: 15px;
-}
-.employee-bubble__speech {
-  display: block;
+.speech-note {
+  --note-edge: color-mix(in srgb, var(--mood-color, #d9b65d) 46%, #6b4a28);
+  --note-fill: color-mix(in srgb, var(--mood-color, #d9b65d) 9%, #fdf6e6);
+  position: fixed;
+  /* Above the office scene and its in-room bubbles (the note is portaled to the
+     body, so it must out-rank the whole scene's stacking context), but below
+     modals (9997+) and tooltips (9999) which are genuinely on top of everything. */
+  z-index: 9000;
   width: max-content;
-  max-width: 150px;
-  color: var(--bubble-ink);
+  max-width: min(26rem, calc(100vw - 24px));
+  padding: 7px 11px 8px;
+  border: 1.5px solid var(--note-edge);
+  border-radius: 4px 4px 4px 10px;
+  background:
+    /* faint ruled lines, like a real observation pad */
+    repeating-linear-gradient(
+      180deg,
+      transparent 0 15px,
+      color-mix(in srgb, var(--note-edge) 12%, transparent) 15px 16px
+    ),
+    linear-gradient(170deg, #fffdf6, var(--note-fill));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.75),
+    0 2px 0 rgba(58, 42, 24, 0.16),
+    0 7px 16px rgba(40, 26, 12, 0.26);
+  pointer-events: none;
+  animation: speech-note-arrive 200ms var(--ease-pop) both;
+}
+/* tail, tracking the character even after the note clamps to the window edge */
+.speech-note::after {
+  content: '';
+  position: absolute;
+  left: var(--note-tail, 20px);
+  bottom: -6px;
+  width: 10px;
+  height: 10px;
+  border-right: 1.5px solid var(--note-edge);
+  border-bottom: 1.5px solid var(--note-edge);
+  border-bottom-right-radius: 3px;
+  background: linear-gradient(135deg, transparent 40%, var(--note-fill) 41%);
+  transform: translateX(-50%) rotate(45deg);
+}
+.speech-note--below::after {
+  top: -6px;
+  bottom: auto;
+  border: 0;
+  border-left: 1.5px solid var(--note-edge);
+  border-top: 1.5px solid var(--note-edge);
+  border-top-left-radius: 3px;
+  background: linear-gradient(315deg, transparent 40%, var(--note-fill) 41%);
+}
+/* the name strip reads as a stamped field on a form */
+.speech-note__who {
+  display: block;
+  margin-bottom: 3px;
+  color: color-mix(in srgb, var(--note-edge) 82%, #2c1d0f);
   font-family: var(--font-body, inherit);
-  font-size: 0.7em;
-  font-weight: 700;
-  line-height: 1.25;
-  text-align: center;
-  text-wrap: balance;
-  animation: employee-bubble-text 220ms ease both;
+  font-size: 0.56em;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+.speech-note__body {
+  margin: 0;
+  color: #3b2a18;
+  font-family: var(--font-body, inherit);
+  font-size: 0.74em;
+  font-weight: 600;
+  line-height: 1.42;
+  /* Wrap reliably: long words and URLs must not force a horizontal overflow. */
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+@keyframes speech-note-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+[data-reduced-motion='true'] .speech-note {
+  animation: none;
 }
 @keyframes employee-bubble-arrive {
   from {
@@ -1326,36 +1405,227 @@ h4 {
   border-radius: 3px 3px 0 0;
   z-index: 2;
 }
-.crate-btn {
+/* ------- click stations (the game's primary active-play verb) -------------
+   Every room has equipment the player taps. The feedback here is deliberately
+   TACTILE rather than flashy: a short compression on the press, a warm rim light
+   on hover, and a brief accent flash. All of it is CSS keyed off classes the tap
+   handler toggles imperatively, so a fast player never waits on a React render
+   to see their tap land. Nothing here animates continuously except a very slow
+   idle breath, so a room full of stations stays calm. */
+.station-btn {
   position: absolute;
-  right: 6px;
-  bottom: 2px;
+  transform: translateX(-50%);
+  transform-origin: 50% 92%;
   background: none;
   border: none;
+  padding: 0;
+  line-height: 0;
   cursor: pointer;
-  animation: bob 1.6s ease-in-out infinite;
-  transition: transform var(--dur-fast) var(--ease);
+  /* A short, snappy curve: the press must read as mechanical, not springy. */
+  transition:
+    transform 90ms var(--ease),
+    filter 120ms var(--ease);
 }
-.crate-btn:hover {
-  transform: scale(1.08);
+.station-btn:hover {
+  transform: translateX(-50%) scale(1.05);
+  filter: brightness(1.06) drop-shadow(0 2px 4px rgba(40, 26, 12, 0.34));
 }
-.crate-btn:active {
-  transform: scale(0.92);
+.station-btn:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+  border-radius: 4px;
 }
-.crate-btn__glow {
+/* Held down: compress toward the contact point so it feels like a real switch. */
+.station-btn:active {
+  transform: translateX(-50%) scale(0.93);
+  transition-duration: 40ms;
+}
+/* Tap acknowledgement, retriggered per tap by ui/tapFeedback.ts. */
+.station-btn.is-tapped {
+  animation: station-tap 140ms var(--ease);
+}
+.station-btn.is-tapped-crit {
+  animation: station-tap-crit 260ms var(--ease-pop);
+}
+@keyframes station-tap {
+  0% {
+    transform: translateX(-50%) scale(0.9);
+  }
+  60% {
+    transform: translateX(-50%) scale(1.06);
+  }
+  100% {
+    transform: translateX(-50%) scale(1);
+  }
+}
+@keyframes station-tap-crit {
+  0% {
+    transform: translateX(-50%) scale(0.86);
+    filter: brightness(1.5);
+  }
+  45% {
+    transform: translateX(-50%) scale(1.16);
+    filter: brightness(1.28);
+  }
+  100% {
+    transform: translateX(-50%) scale(1);
+    filter: brightness(1);
+  }
+}
+/* The small lit part of each sprite breathes so a station reads as powered. */
+.station__accent {
+  animation: station-breathe 3.4s ease-in-out infinite;
+}
+@keyframes station-breathe {
+  0%,
+  100% {
+    opacity: 0.82;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.station-btn.is-tapped .station__accent,
+.station-btn.is-tapped-crit .station__accent {
+  animation: none;
+  opacity: 1;
+}
+/* Live combo counter, pinned above the equipment. */
+.station-btn__combo {
   position: absolute;
-  inset: 6px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 213, 74, 0.5), transparent 70%);
-  animation: pulse 1.6s ease-in-out infinite;
-  z-index: -1;
+  top: -6px;
+  right: -4px;
+  font-family: var(--font-numeric);
+  font-size: 0.62em;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: #3a2a18;
+  background: var(--gold);
+  border: 1px solid rgba(90, 63, 31, 0.55);
+  border-radius: 999px;
+  padding: 2px 5px;
+  box-shadow: 0 1px 2px rgba(40, 26, 12, 0.3);
+  pointer-events: none;
 }
-.crate-btn__hint {
-  display: block;
-  font-size: 0.6em;
-  font-weight: 700;
+[data-reduced-motion='true'] .station-btn,
+[data-reduced-motion='true'] .station__accent {
+  animation: none;
+  transition: none;
+}
+
+/* ------- tap payout popups (imperative layer, body-parented) -------------- */
+.tap-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  /* Above the office, below modals/tooltips. */
+  z-index: 60;
+}
+.tap-pop {
+  position: absolute;
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+  transform: translate(-50%, -100%);
+  font-family: var(--font-numeric);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: tap-float 900ms var(--ease) forwards;
+}
+.tap-pop__value {
+  font-size: 0.88em;
   color: var(--gold);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  text-shadow:
+    0 1px 0 rgba(40, 26, 12, 0.85),
+    0 2px 5px rgba(0, 0, 0, 0.5);
+}
+.tap-pop__combo {
+  font-size: 0.68em;
+  font-style: normal;
+  color: #ffe9a8;
+  opacity: 0.9;
+  text-shadow: 0 1px 2px rgba(40, 26, 12, 0.8);
+}
+.tap-pop--critical .tap-pop__value {
+  font-size: 1.14em;
+  color: #ffe07a;
+  text-shadow:
+    0 1px 0 rgba(70, 34, 8, 0.9),
+    0 0 10px rgba(255, 200, 90, 0.65);
+}
+.tap-pop--golden .tap-pop__value {
+  font-size: 1.14em;
+  color: #f0dcff;
+  text-shadow:
+    0 1px 0 rgba(58, 28, 82, 0.9),
+    0 0 10px rgba(196, 150, 240, 0.7);
+}
+@keyframes tap-float {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -100%) scale(0.85);
+  }
+  18% {
+    opacity: 1;
+    transform: translate(calc(-50% + var(--tap-drift, 0px) * 0.3), -115%) scale(1.06);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--tap-drift, 0px)), calc(-100% - var(--tap-rise, 38px)))
+      scale(1);
+  }
+}
+/* Reduced motion still gets the number, it just fades in place. */
+.tap-pop--still {
+  animation: tap-fade 700ms linear forwards;
+}
+@keyframes tap-fade {
+  0% {
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ------- station tooltip body -------------------------------------------- */
+.station-tip {
+  display: grid;
+  gap: 4px;
+  max-width: 15rem;
+}
+.station-tip__name {
+  font-family: var(--font-display);
+  font-size: 0.95em;
+}
+.station-tip__hint {
+  color: var(--ink-soft, #6b5b46);
+  font-style: italic;
+  line-height: 1.35;
+}
+.station-tip__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+.station-tip__label {
+  opacity: 0.75;
+}
+.station-tip__value {
+  font-family: var(--font-numeric);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.station-tip__synergy {
+  color: var(--green, #4f9d5a);
+  font-weight: 700;
+  line-height: 1.35;
 }
 .floor__ambient--desk::before {
   width: 18px;
@@ -1399,15 +1669,6 @@ h4 {
   animation: roll 6s linear infinite;
   opacity: 0.7;
 }
-.floating-pop {
-  position: absolute;
-  color: var(--gold);
-  font-weight: 800;
-  pointer-events: none;
-  animation: pop-up 0.9s ease-out forwards;
-  z-index: 10;
-}
-
 /* ------- critter animation ------- */
 .critter {
   display: block;
@@ -2396,7 +2657,7 @@ select,
 }
 /* hide interactive chrome so the shot is clean */
 .photo-mode__stage .office__toolbar,
-.photo-mode__stage .crate-btn {
+.photo-mode__stage .station-btn {
   display: none !important;
 }
 .photo-mode__caption {

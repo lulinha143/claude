@@ -571,6 +571,72 @@
       "desc": "Fresh air, actual grass, and a great view."
     }
   },
+  "station": {
+    "cadence": {
+      "steady": "Steady — pays every tap",
+      "charge": "Charged — pays more with a beat between taps",
+      "burst": "Burst — rewards long, fast streaks"
+    },
+    "tip": {
+      "perTap": "Per tap",
+      "cadence": "Rhythm",
+      "synergy": "Boosted by {{names}} working in this room.",
+      "nutAmount": "{{amount}} nuts",
+      "goldenAmount": "{{amount}} golden"
+    },
+    "nutCrate": {
+      "name": "Nut Crate",
+      "hint": "The original revenue stream. Pry it open, take the nuts."
+    },
+    "sortingChute": {
+      "name": "Sorting Chute",
+      "hint": "Feed it steadily and it never jams. Probably."
+    },
+    "coffeeUrn": {
+      "name": "Communal Urn",
+      "hint": "Refills itself. Nobody has admitted to refilling it."
+    },
+    "purchaseLedger": {
+      "name": "Purchase Ledger",
+      "hint": "Every line signed twice. One signature is not yours."
+    },
+    "shellPress": {
+      "name": "Shell Press",
+      "hint": "Heavy work. Let the ram reset before the next pull."
+    },
+    "centrifuge": {
+      "name": "Behaviour Centrifuge",
+      "hint": "Spins a sample until it admits something."
+    },
+    "announcementHorn": {
+      "name": "Announcement Horn",
+      "hint": "Volume is a marketing strategy."
+    },
+    "depositWheel": {
+      "name": "Deposit Wheel",
+      "hint": "Turns smoothly. Sounds like it is counting."
+    },
+    "observationTerminal": {
+      "name": "Observation Terminal",
+      "hint": "Logs a finding each time. Some findings log themselves."
+    },
+    "agendaBell": {
+      "name": "Agenda Bell",
+      "hint": "Rings to advance the agenda. The agenda has no final item."
+    },
+    "dreamLog": {
+      "name": "Dream Log",
+      "hint": "Records what the nap room hears. Please do not read page 4."
+    },
+    "furnaceValve": {
+      "name": "Furnace Valve",
+      "hint": "Pays in gold. Asks no questions. Neither should you."
+    },
+    "signalDish": {
+      "name": "Signal Dish",
+      "hint": "Aimed at the car park. Receiving anyway."
+    }
+  },
   "upgrade": {
     "family": {
       "production": {

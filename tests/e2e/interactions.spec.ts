@@ -144,7 +144,9 @@ test('employee hover, focus, activation, movement, and celebration states keep t
   await page.mouse.up();
 
   // Collection celebration has the highest authored life-state priority.
-  await founder.locator('.crate-btn').dispatchEvent('click');
+  // Stations tap on pointerdown (not click) so a mashed button responds on the
+  // first frame rather than waiting for pointerup.
+  await founder.locator('.station-btn').first().dispatchEvent('pointerdown', { button: 0 });
   await expect(pipCritter).toHaveClass(/critter--celebrate/);
 });
 
@@ -412,9 +414,8 @@ test('blur, focus, lost pointer streams, popups, and arrange mode never leave in
       value: 'hidden',
     });
     document.dispatchEvent(new Event('visibilitychange')); // production save hook
-    const friendship = JSON.parse(
-      localStorage.getItem('wmno.save.v1') ?? '{}',
-    ).employees?.pip?.friendship;
+    const friendship = JSON.parse(localStorage.getItem('wmno.save.v1') ?? '{}').employees?.pip
+      ?.friendship;
     delete (document as unknown as { visibilityState?: DocumentVisibilityState }).visibilityState;
     return friendship;
   });
@@ -566,9 +567,7 @@ test('event choices recover across chain steps, focus return, and repeated popup
     window.dispatchEvent(new Event('focus'));
   });
   const actionableFireChoice = page
-    .locator(
-      '.event-choice[data-event-id="technically-on-fire"][aria-disabled="false"]',
-    )
+    .locator('.event-choice[data-event-id="technically-on-fire"][aria-disabled="false"]')
     .first();
   await expect(actionableFireChoice).toBeEnabled();
   await actionableFireChoice.click();

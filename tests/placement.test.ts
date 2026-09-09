@@ -59,7 +59,7 @@ describe('decoration composition rules', () => {
     expect(evaluatePlacement(engine.state, 'potted-fern', 0.5, 0.06).ok).toBe(true);
   });
 
-  it('rejects a large floor object dropped on top of a teammate', () => {
+  it('allows a large floor object to share a teammate\u2019s spot (the character paints in front)', () => {
     const engine = new GameEngine(createInitialState(0), { deterministic: true });
     // Put two teammates in the morale room (which owns the large 'aquarium').
     engine.state.resources.reputation = 100; // unlock the morale room
@@ -69,10 +69,13 @@ describe('decoration composition rules', () => {
       engine.state.employees[id].room = 'morale';
     }
     const slots = characterSlots(2, 'morale');
-    // Right on a teammate's slot → covered.
+    // Dropping right on a teammate's slot used to be rejected to stop a prop
+    // hiding their face. Stacking order now guarantees the character draws in
+    // front (see sim/depth.ts), so dense arrangements around a teammate are
+    // legal and the invisible exclusion zone is gone.
     const onTeammate = evaluatePlacement(engine.state, 'aquarium', slots[0].x, 0.06);
-    expect(onTeammate.ok).toBe(false);
-    expect(onTeammate.reasonKey).toBe('decorate.reject.coversTeammate');
+    expect(onTeammate.ok).toBe(true);
+    expect(onTeammate.reasonKey).toBeUndefined();
   });
 
   it('allows a large floor object in a clear part of an occupied room', () => {
@@ -102,8 +105,6 @@ describe('decoration composition rules', () => {
     expect(footprint('billboard').w).toBeGreaterThan(footprint('motivational-poster').w);
   });
 });
-
-
 
 describe('semantic floor and rug placement previews', () => {
   it('keeps the complete floor footprint inside the perspective polygon', () => {
@@ -197,8 +198,12 @@ describe('semantic floor and rug placement previews', () => {
     expect(engine.buyDecoration('tiny-rug')).toBe(true);
     expect(engine.buyDecoration('gold-carpet')).toBe(true);
     // Two rugs can coexist on the floor (flat underlays pass through collision).
-    expect(engine.moveDecorationToRoom('tiny-rug', 'founder-desk', 0.35, 0.12, 0, 'floor')).toBe(true);
-    expect(engine.moveDecorationToRoom('gold-carpet', 'founder-desk', 0.6, 0.12, 0, 'floor')).toBe(true);
+    expect(engine.moveDecorationToRoom('tiny-rug', 'founder-desk', 0.35, 0.12, 0, 'floor')).toBe(
+      true,
+    );
+    expect(engine.moveDecorationToRoom('gold-carpet', 'founder-desk', 0.6, 0.12, 0, 'floor')).toBe(
+      true,
+    );
     // A standing prop drops fine on top of a rug.
     expect(engine.buyDecoration('potted-fern')).toBe(true);
     const check = evaluatePlacement(engine.state, 'potted-fern', 0.35, 0.12, 'founder-desk');

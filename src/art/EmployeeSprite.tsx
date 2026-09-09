@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import type { EmployeeSpriteConfig } from './employeeSprites';
 import { useHaloOff } from './haloTest';
+import { markSpriteUnavailable } from './spriteAvailability';
 
 // Renders an employee's FINAL animated artwork as a looping APNG.
 //
@@ -91,6 +92,10 @@ function EmployeeSpriteImpl({ config, reducedMotion, height, className }: Employ
       height={height}
       draggable={false}
       decoding="async"
+      // If the artwork cannot load, record it so this animal falls back to the
+      // code-drawn Critter silhouette instead of leaving a broken image (and an
+      // orphaned mood bubble) standing at the workstation.
+      onError={() => markSpriteUnavailable(config.src)}
       style={{
         width: `calc(${width}px * var(--asset-scale))`,
         height: `calc(${height}px * var(--asset-scale))`,

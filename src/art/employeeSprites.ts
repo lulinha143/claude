@@ -11,6 +11,9 @@
 // animal's art is purely additive: drop the files in `public/employees/` and
 // register a config here — no per-employee code anywhere else.
 
+import { isSpriteUnavailable } from './spriteAvailability';
+import { presenceSize } from '../content/characterScale';
+
 export interface EmployeeSpriteConfig {
   /** Animated APNG (autoplay + infinite loop), path relative to BASE_URL. This
    * is the @2x asset (twice the slot size); see `src1x`. */
@@ -74,10 +77,34 @@ export interface EmployeeSpriteConfig {
 // Follow-up presence pass: Marlow, Pingo and Canela raised a further ~20% so
 // they read as more present at their workstations, re-checked side-by-side in
 // the office so they stay harmonious and never dominate the room.
+
+// The presence scale is authored data shared with the framework-free layout
+// layer, so it lives in `content/`. Re-exported here because this module is the
+// natural place renderers look for character sizing.
+export { CHARACTER_PRESENCE_SCALE, presenceSize } from '../content/characterScale';
+
+/**
+ * Build a sprite config from its AUTHORED (pre-presence-scale) rendered heights.
+ * Keeping the authored numbers in the table means the artwork-derived tuning
+ * above stays readable and the presence pass remains a single reversible knob.
+ */
+function sprite(
+  config: Omit<EmployeeSpriteConfig, 'officeHeight' | 'cardHeight'> & {
+    officeHeight: number;
+    cardHeight: number;
+  },
+): EmployeeSpriteConfig {
+  return {
+    ...config,
+    officeHeight: presenceSize(config.officeHeight),
+    cardHeight: presenceSize(config.cardHeight),
+  };
+}
+
 export const EMPLOYEE_SPRITES: Record<string, EmployeeSpriteConfig> = {
   // Bea — Beaver, Construction. Refreshed workstation art (overalls, bonsai,
   // toolbox). Sized to the shared ~115px desk width.
-  bea: {
+  bea: sprite({
     src: 'employees/bea.png',
     poster: 'employees/bea-poster.png',
     frameWidth: 335,
@@ -86,7 +113,7 @@ export const EMPLOYEE_SPRITES: Record<string, EmployeeSpriteConfig> = {
     cardHeight: 164,
     anchorX: 0.5,
     baseline: 0,
-  },
+  }),
   // Pip — Squirrel, Founder. FINAL animated workstation art (bespectacled
   // squirrel typing at a wooden desk: laptop, cocoa, pencil cup, books, sticky
   // notes, cactus). Source is a 960x960 / 242-frame / 30fps APNG; all frames +
@@ -108,7 +135,7 @@ export const EMPLOYEE_SPRITES: Record<string, EmployeeSpriteConfig> = {
   // 1:1 to device pixels at integer DPR. It is NOT a shimmer fix, and it cannot
   // affect geometry: EmployeeSprite always sets the <img>'s CSS width AND height
   // from frameWidth/frameHeight, which are the @1x dimensions.
-  pip: {
+  pip: sprite({
     src: 'employees/pip.png', // @2x (206x186)
     src1x: 'employees/pip-1x.png', // @1x (103x93) — exact slot size
     srcNoHalo: '_diag/pip-nohalo.png', // TEMP halo-isolation A/B (Ctrl+Alt+H)
@@ -119,11 +146,11 @@ export const EMPLOYEE_SPRITES: Record<string, EmployeeSpriteConfig> = {
     cardHeight: 133,
     anchorX: 0.5,
     baseline: 0,
-  },
+  }),
   // Marlow — Capybara slot, refreshed test workstation art (all frames kept,
   // single premultiplied downscale to ~180px for sharp, stable animation).
   // Reduced ~20% from the previous rendered desk width.
-  marlow: {
+  marlow: sprite({
     src: 'employees/marlow.png',
     poster: 'employees/marlow-poster.png',
     frameWidth: 216,
@@ -132,10 +159,10 @@ export const EMPLOYEE_SPRITES: Record<string, EmployeeSpriteConfig> = {
     cardHeight: 119,
     anchorX: 0.5,
     baseline: 0,
-  },
+  }),
   // Pingo — Penguin, Logistics. Refreshed workstation art (cocoa, snow globe,
   // fan). Sized to the shared ~115px desk width.
-  pingo: {
+  pingo: sprite({
     src: 'employees/penguin.png',
     poster: 'employees/penguin-poster.png',
     frameWidth: 356,
@@ -144,10 +171,10 @@ export const EMPLOYEE_SPRITES: Record<string, EmployeeSpriteConfig> = {
     cardHeight: 149,
     anchorX: 0.5,
     baseline: 0,
-  },
+  }),
   // Canela — Red Panda, Research/Naturalist. Desk lamp, "OBSERVATIONS" pad.
   // Raised ~20%, then a further ~20% (81->97 / 117->140).
-  canela: {
+  canela: sprite({
     src: 'employees/canela.png',
     poster: 'employees/canela-poster.png',
     frameWidth: 374,
@@ -156,11 +183,21 @@ export const EMPLOYEE_SPRITES: Record<string, EmployeeSpriteConfig> = {
     cardHeight: 140,
     anchorX: 0.5,
     baseline: 0,
-  },
+  }),
 };
 
+/**
+ * The sprite to render for an employee, or `undefined` when they should fall back
+ * to the code-drawn `Critter` SVG.
+ *
+ * A registered sprite whose artwork failed to load counts as unavailable, so a
+ * missing asset degrades to the hand-drawn silhouette instead of leaving a broken
+ * image standing at the workstation.
+ */
 export function employeeSprite(id: string): EmployeeSpriteConfig | undefined {
-  return EMPLOYEE_SPRITES[id];
+  const config = EMPLOYEE_SPRITES[id];
+  if (!config) return undefined;
+  return isSpriteUnavailable(config.src) ? undefined : config;
 }
 
 export function hasEmployeeSprite(id: string): boolean {

@@ -571,6 +571,72 @@
       "desc": "Ar fresco, grama de verdade e uma bela vista."
     }
   },
+  "station": {
+    "cadence": {
+      "steady": "Constante — paga a cada toque",
+      "charge": "Carregada — paga mais com uma pausa entre toques",
+      "burst": "Rajada — recompensa sequências longas e rápidas"
+    },
+    "tip": {
+      "perTap": "Por toque",
+      "cadence": "Ritmo",
+      "synergy": "Impulsionada por {{names}} trabalhando nesta sala.",
+      "nutAmount": "{{amount}} nozes",
+      "goldenAmount": "{{amount}} douradas"
+    },
+    "nutCrate": {
+      "name": "Caixote de Nozes",
+      "hint": "A receita original. Abra à força e pegue as nozes."
+    },
+    "sortingChute": {
+      "name": "Calha de Triagem",
+      "hint": "Alimente sem parar e ela nunca trava. Provavelmente."
+    },
+    "coffeeUrn": {
+      "name": "Garrafão Coletivo",
+      "hint": "Se reabastece sozinho. Ninguém admitiu reabastecer."
+    },
+    "purchaseLedger": {
+      "name": "Livro de Compras",
+      "hint": "Cada linha assinada duas vezes. Uma assinatura não é sua."
+    },
+    "shellPress": {
+      "name": "Prensa de Cascas",
+      "hint": "Trabalho pesado. Deixe o pistão voltar antes do próximo puxão."
+    },
+    "centrifuge": {
+      "name": "Centrífuga Comportamental",
+      "hint": "Gira uma amostra até ela confessar algo."
+    },
+    "announcementHorn": {
+      "name": "Corneta de Avisos",
+      "hint": "Volume é uma estratégia de marketing."
+    },
+    "depositWheel": {
+      "name": "Roda do Cofre",
+      "hint": "Gira macio. Parece que está contando."
+    },
+    "observationTerminal": {
+      "name": "Terminal de Observação",
+      "hint": "Registra uma descoberta por vez. Algumas se registram sozinhas."
+    },
+    "agendaBell": {
+      "name": "Sino da Pauta",
+      "hint": "Toca para avançar a pauta. A pauta não tem último item."
+    },
+    "dreamLog": {
+      "name": "Diário de Sonhos",
+      "hint": "Registra o que a sala de soneca ouve. Não leia a página 4."
+    },
+    "furnaceValve": {
+      "name": "Válvula da Fornalha",
+      "hint": "Paga em ouro. Não faz perguntas. Você também não deveria."
+    },
+    "signalDish": {
+      "name": "Antena Parabólica",
+      "hint": "Apontada para o estacionamento. Recebendo mesmo assim."
+    }
+  },
   "upgrade": {
     "family": {
       "production": {

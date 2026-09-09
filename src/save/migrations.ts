@@ -1,5 +1,12 @@
 import { SAVE_VERSION } from '../sim/config';
-import { defaultPlacement, decorationSurface, surfaceZ, type DecorationSurface } from '../sim/surfaces';
+import {
+  defaultPlacement,
+  decorationSurface,
+  projectSurfaceType,
+  surfaceZ,
+  type DecorationSurface,
+} from '../sim/surfaces';
+import type { DecorationSurfaceType } from '../sim/types';
 import { DECORATIONS_BY_ID } from '../content/decorations';
 
 // Ordered migrations that transform a raw save object from an older version up
@@ -168,6 +175,41 @@ const v7ToV8: Migration = (raw) => {
   return { ...raw, decorationInstances: instances, version: 8 };
 };
 
+// v8 -> v9: click stations (`clicker`), and the scene depth rebanding.
+//
+// Two things happen here:
+//  1. The active-play record is seeded. An existing company has been collecting
+//     from the founder's crate all along, so its crate count carries over as that
+//     station's tap total instead of resetting the player's history to zero.
+//  2. Decoration depths are re-derived. Depth used to be a hand-picked 0..7
+//     value; it now comes from the shared bands in `sim/depth.ts`, which reserve
+//     everything at or above 60 for characters. Old values are all below that, so
+//     nothing was ever rendered wrongly, but re-deriving restores the intended
+//     front-to-back ordering *among* props instead of leaving them bunched up.
+const v8ToV9: Migration = (raw) => {
+  const stats = isRawSave(raw.stats) ? raw.stats : {};
+  const crates = typeof stats.cratesCollected === 'number' ? stats.cratesCollected : 0;
+  const clicker = isRawSave(raw.clicker)
+    ? raw.clicker
+    : {
+        stationTaps: crates > 0 ? { 'nut-crate': crates } : {},
+        criticalTaps: 0,
+        goldenTaps: 0,
+        bestStreak: 0,
+      };
+
+  const instances = Array.isArray(raw.decorationInstances) ? raw.decorationInstances : [];
+  for (const instance of instances) {
+    if (!isRawSave(instance)) continue;
+    const decorationId = instance.decorationId;
+    if (typeof decorationId !== 'string') continue;
+    const surface = typeof instance.surfaceType === 'string' ? instance.surfaceType : 'floor';
+    instance.depth = surfaceZ(decorationId, projectSurfaceType(surface as DecorationSurfaceType));
+  }
+
+  return { ...raw, clicker, decorationInstances: instances, version: 9 };
+};
+
 const MIGRATIONS: Record<number, Migration> = {
   1: v1ToV2,
   2: v2ToV3,
@@ -176,6 +218,7 @@ const MIGRATIONS: Record<number, Migration> = {
   5: v5ToV6,
   6: v6ToV7,
   7: v7ToV8,
+  8: v8ToV9,
 };
 
 export function migrate(raw: RawSave): RawSave {

@@ -78,11 +78,7 @@ export interface EventHistoryEntry {
 }
 
 export type PrestigeBranchId =
-  | 'industrial'
-  | 'cooperative'
-  | 'science'
-  | 'marketing'
-  | 'underground';
+  'industrial' | 'cooperative' | 'science' | 'marketing' | 'underground';
 
 export interface PrestigeState {
   count: number;
@@ -131,6 +127,22 @@ export interface StatsState {
   microgamesPlayed: number;
   highestNutsPerSecond: number;
   prestiges: number;
+}
+
+/**
+ * Persisted active-play record. The live combo itself is deliberately transient
+ * (a streak is a moment, not an asset), but the totals below survive a reload so
+ * the player keeps credit for how they have actually been playing.
+ */
+export interface ClickerState {
+  /** stationId -> lifetime taps, so rooms can show how used they are. */
+  stationTaps: Record<string, number>;
+  /** lifetime critical taps. */
+  criticalTaps: number;
+  /** lifetime taps that dropped a golden nut. */
+  goldenTaps: number;
+  /** best combo streak ever reached. */
+  bestStreak: number;
 }
 
 export interface GameSettings {
@@ -223,6 +235,8 @@ export interface GameState {
   focus: FocusState;
   daily: DailyState;
   stats: StatsState;
+  /** active-play (click station) record. */
+  clicker: ClickerState;
   settings: GameSettings;
   onboardingComplete: boolean;
   /** Cooldown bookkeeping for the event system: eventId -> next-eligible epoch ms. */

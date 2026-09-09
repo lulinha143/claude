@@ -158,6 +158,13 @@
   --font-scale: 1;
   --ui-scale: 1;
   --asset-scale: 1;
+  /* Character presence multiplier, mirrored from CHARACTER_PRESENCE_SCALE in
+     art/employeeSprites.ts by App.tsx (this literal is only the pre-hydration
+     fallback). Scene geometry that has to GROW WITH the characters multiplies by
+     it — the room stage, the floor block, the contact ellipse. Character sprite
+     sizes must NOT use it: officeHeight/cardHeight already include the factor,
+     so multiplying again would scale them twice. */
+  --character-presence: 1.2;
 
   /* --- typography system ---------------------------------------------------
      DynaPuff supplies the handmade animal-office voice for prominent display

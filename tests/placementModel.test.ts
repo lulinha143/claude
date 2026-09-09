@@ -5,6 +5,7 @@ import { pointerRegionPlacement } from '../src/sim/placement';
 import { decorationInstance, repairDecorationInstances } from '../src/sim/decorations';
 import { projectSurfaceType } from '../src/sim/surfaces';
 import { migrate } from '../src/save/migrations';
+import { SAVE_VERSION } from '../src/sim/config';
 
 // The unified placement model must guarantee: the preview a player sees during
 // a drag is EXACTLY what gets saved, for each of the three surfaces; items never
@@ -99,7 +100,10 @@ describe('items stay on their one compatible surface while dragging', () => {
   it('does not let floor items block a wall placement (surfaces are independent)', () => {
     const engine = engineWith('potted-fern', 'motivational-poster');
     engine.moveDecorationToRoom('potted-fern', ROOM, 0.4, 0.12, 3, 'floor');
-    const wall = pointerRegionPlacement(engine.state, 'motivational-poster', ROOM, { x: 0.4, y: 0.6 });
+    const wall = pointerRegionPlacement(engine.state, 'motivational-poster', ROOM, {
+      x: 0.4,
+      y: 0.6,
+    });
     expect(wall?.region.kind).toBe('wall');
     expect(wall?.ok).toBe(true);
   });
@@ -176,9 +180,14 @@ describe('v7 -> v8 migration stamps an explicit region kind', () => {
           depth: 2,
         },
       ],
-    }) as { version: number; decorationInstances: Array<{ decorationId: string; regionKind?: string }> };
+    }) as {
+      version: number;
+      decorationInstances: Array<{ decorationId: string; regionKind?: string }>;
+    };
 
-    expect(migrated.version).toBe(8);
+    // `migrate` always runs the chain to the head, so assert against the current
+    // SAVE_VERSION rather than a literal that goes stale on every bump.
+    expect(migrated.version).toBe(SAVE_VERSION);
     const byId = Object.fromEntries(
       migrated.decorationInstances.map((instance) => [instance.decorationId, instance.regionKind]),
     );

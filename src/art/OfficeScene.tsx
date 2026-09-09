@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { useGame } from '../state/hooks';
@@ -10,10 +10,20 @@ import { DECORATIONS_BY_ID } from '../content/decorations';
 import { Critter } from './Critter';
 import { CritterStateMachine, type CritterState } from './animation';
 import { shapeFor } from './critterShapes';
-import { employeeSprite } from './employeeSprites';
+import { employeeSprite, presenceSize } from './employeeSprites';
+import { useSpriteAvailabilityRevision } from './spriteAvailability';
 import { EmployeeSprite } from './EmployeeSprite';
 import { EmployeeBubble } from './EmployeeMoodBadge';
-import { Acorn, Crate } from './Icons';
+import { Acorn } from './Icons';
+import { ClickStation } from './ClickStation';
+import {
+  CLICK_STATIONS_BY_ID,
+  stationsInRoom,
+  type ClickStationDef,
+} from '../content/clickStations';
+import { previewClickValue, synergyEmployees } from '../sim/clickStations';
+import { clearTapFeedback } from '../ui/tapFeedback';
+import { useFmt } from '../ui/useFmt';
 import { Icon } from './UiIcon';
 import { DecorationProp, decorKind, interactSound } from './DecorationProp';
 import { RoomDressing } from './RoomDressing';
@@ -25,6 +35,7 @@ import {
   roomComfort,
 } from '../sim/decorations';
 import { surfaceZ, decorationSurface, isRug } from '../sim/surfaces';
+import { DECORATION_DEPTH_CEILING, SCENE_DEPTH, characterDepth } from '../sim/depth';
 import { pointerRegionPlacement } from '../sim/placement';
 import { placementRegionById } from '../content/roomSurfaces';
 import { type PlacementAnchorMode, type PlacementRegionKind } from '../sim/placementRegions';
@@ -38,7 +49,7 @@ import { pickDialogueIndex, dialogueKey } from '../sim/dialogue';
 import { employeeMood, MOOD_TONE } from '../sim/mood';
 import { createRng } from '../sim/rng';
 import { notify } from '../ui/notificationsStore';
-import { sparkleAt, dustPuff } from '../ui/sparkle';
+import { dustPuff } from '../ui/sparkle';
 import { INTERACTION_CANCEL_EVENT, INTERACTION_FOCUS_EVENT } from '../ui/interactionLifecycle';
 
 // A soft visual capacity per room — dragging a teammate into a fuller room is
@@ -145,7 +156,7 @@ function GhostCritter({ id, reducedMotion }: { id: string; reducedMotion: boolea
       state="idle"
       hasGlasses={sh.hasGlasses}
       reducedMotion={reducedMotion}
-      size={68}
+      size={presenceSize(68)}
     />
   );
 }
@@ -230,8 +241,10 @@ export function OfficeScene() {
   const audio = useStore((s) => s.audio);
   const reducedMotion = state.settings.reducedMotion;
   const [bubble, setBubble] = useState<Bubble | null>(null);
-  const [crateReady, setCrateReady] = useState(true);
-  const [pop, setPop] = useState<{ x: number; y: number; text: string; id: number } | null>(null);
+  const fmt = useFmt();
+  // Re-render if a character's artwork turns out to be missing, so they switch to
+  // the hand-drawn fallback silhouette rather than showing a broken image.
+  useSpriteAvailabilityRevision();
   const [decorMode, setDecorMode] = useState(false);
   // The decoration currently picked up for arranging (its id), or null.
   const [selected, setSelected] = useState<string | null>(null);
@@ -279,13 +292,15 @@ export function OfficeScene() {
   const focusMode = engine.isFocusActive();
   const lowMorale = state.resources.morale < 35;
 
-  function scheduleLife(callback: () => void, delay: number) {
+  // Stable identity so callbacks that schedule office life (station taps, employee
+  // reactions) are not rebuilt on every render.
+  const scheduleLife = useCallback((callback: () => void, delay: number) => {
     const timer = window.setTimeout(() => {
       lifeTimersRef.current.delete(timer);
       callback();
     }, delay);
     lifeTimersRef.current.add(timer);
-  }
+  }, []);
 
   useEffect(
     () => () => {
@@ -414,33 +429,71 @@ export function OfficeScene() {
     }
   }
 
-  function onCollect(e: React.MouseEvent) {
-    const res = engine.collectCrate();
-    const celebrator = stateRef.current.employees.pip?.hired
-      ? 'pip'
-      : Object.entries(stateRef.current.employees).find(([, employee]) => employee.hired)?.[0];
-    if (celebrator) {
-      setCelebratingEmployee(celebrator);
-      const celebrationGeneration = ++celebrationGenerationRef.current;
-      scheduleLife(() => {
-        if (celebrationGenerationRef.current !== celebrationGeneration) return;
-        setCelebratingEmployee((current) => (current === celebrator ? null : current));
-      }, 950);
-    }
-    audio.play('collect');
-    sparkleAt(e);
-    const el = e.currentTarget as HTMLElement;
-    const rect = el.getBoundingClientRect();
-    const parent = el.offsetParent as HTMLElement | null;
-    const px = parent
-      ? rect.left - parent.getBoundingClientRect().left + rect.width / 2
-      : rect.left;
-    const py = parent ? rect.top - parent.getBoundingClientRect().top : rect.top;
-    setPop({ x: px, y: py, text: `+${Math.round(res.gained)}`, id: Date.now() });
-    setCrateReady(false);
-    setTimeout(() => setCrateReady(true), 850);
-    setTimeout(() => setPop(null), 950);
-  }
+  // -- click stations ---------------------------------------------------------
+  // The tap itself is deliberately cheap: the engine pays out and the imperative
+  // feedback layer draws the number, so nothing here throttles or debounces the
+  // player. The only extra work is an occasional teammate celebration, and that
+  // is rate-limited on its own so a fast streak cannot spam animations.
+  const lastCelebrationRef = useRef(0);
+
+  const onTapStation = useCallback(
+    (stationId: string) => {
+      const result = engine.tapStation(stationId);
+      if (!result) return null;
+
+      // Let a teammate react to the tap, but at most once per celebration so a
+      // fast streak does not turn the room into a strobe. The rate limit is the
+      // whole guard, which is why a plain tap still earns a reaction.
+      const now = Date.now();
+      if (now - lastCelebrationRef.current > 900) {
+        lastCelebrationRef.current = now;
+        const station = CLICK_STATIONS_BY_ID[stationId];
+        const occupants = station ? employeesInRoom(stateRef.current, station.roomId) : [];
+        const celebrator =
+          occupants.find((id) => station?.synergy.includes(id)) ??
+          occupants[0] ??
+          (stateRef.current.employees.pip?.hired ? 'pip' : undefined);
+        if (celebrator) {
+          setCelebratingEmployee(celebrator);
+          const celebrationGeneration = ++celebrationGenerationRef.current;
+          scheduleLife(() => {
+            if (celebrationGenerationRef.current !== celebrationGeneration) return;
+            setCelebratingEmployee((current) => (current === celebrator ? null : current));
+          }, 950);
+        }
+      }
+      return result;
+    },
+    [engine, scheduleLife],
+  );
+
+  const playSfx = useCallback(
+    (name: Parameters<typeof audio.play>[0], opts?: { pitch?: number }) => audio.play(name, opts),
+    [audio],
+  );
+
+  const stationPreview = useCallback(
+    (def: ClickStationDef) => {
+      const value = previewClickValue(state, def.id, engine.combo, Date.now());
+      const amount = def.resource === 'goldenNuts' ? fmt.num(value) : fmt.int(value);
+      return def.resource === 'goldenNuts'
+        ? t('station.tip.goldenAmount', { amount })
+        : t('station.tip.nutAmount', { amount });
+    },
+    [engine, fmt, state, t],
+  );
+
+  const stationSynergyNames = useCallback(
+    (def: ClickStationDef) =>
+      synergyEmployees(state, def).map((id) => {
+        const rt = state.employees[id];
+        return rt?.nickname ?? t(EMPLOYEES_BY_ID[id]?.nameKey ?? id);
+      }),
+    [state, t],
+  );
+
+  // Never leave payout popups floating over the game after the scene goes away.
+  useEffect(() => clearTapFeedback, []);
 
   // -- decoration arranging ---------------------------------------------------
   function toggleDecorMode() {
@@ -1056,11 +1109,18 @@ export function OfficeScene() {
                       ...decorationAnchorStyle(def.id),
                       left: `${placement.x * 100}%`,
                       bottom: `${placement.y * 100}%`,
+                      // Depth comes from the shared scene bands, so a prop can
+                      // never paint over a teammate (see sim/depth.ts). The
+                      // arrange-mode lift is the one deliberate exception: the
+                      // piece being placed must stay visible while dragging.
                       zIndex:
                         decorMode && selected === def.id
-                          ? 20
-                          : (decorationInstance(state, def.id)?.depth ??
-                            surfaceZ(def.id, placement.surface)),
+                          ? SCENE_DEPTH.arranging
+                          : Math.min(
+                              DECORATION_DEPTH_CEILING,
+                              decorationInstance(state, def.id)?.depth ??
+                                surfaceZ(def.id, placement.surface),
+                            ),
                     }}
                   >
                     <DecorationProp
@@ -1132,7 +1192,10 @@ export function OfficeScene() {
                       style={{
                         left: `${ex * 100}%`,
                         bottom: `${slot.bottom}px`,
-                        zIndex: visiting ? 5 : 3 + (idx % 2),
+                        // Characters occupy the band above every decoration, and
+                        // sort among themselves by how near the camera they
+                        // stand, so the whole team stays readable.
+                        zIndex: visiting ? SCENE_DEPTH.characterFocus : characterDepth(slot.bottom),
                       }}
                       onPointerDown={(e) => beginDrag(e, 'employee', id)}
                       onPointerEnter={() => setHoveredEmployee(id)}
@@ -1162,7 +1225,7 @@ export function OfficeScene() {
                           state={anim}
                           hasGlasses={shape.hasGlasses}
                           reducedMotion={reducedMotion}
-                          size={74}
+                          size={presenceSize(74)}
                           title={label}
                           seed={idx + room.floor}
                         />
@@ -1171,22 +1234,27 @@ export function OfficeScene() {
                         mood={mood}
                         color={MOOD_TONE[mood]}
                         label={moodLabel}
+                        name={label}
                         speech={bubble?.employeeId === id ? bubble.text : null}
                       />
                     </button>
                   );
                 })}
-                {room.id === 'founder-desk' && crateReady && !decorMode ? (
-                  <button
-                    className="crate-btn"
-                    onClick={onCollect}
-                    aria-label={t('office.collect')}
-                  >
-                    <span className="crate-btn__glow" aria-hidden />
-                    <Crate size={58} />
-                    <span className="crate-btn__hint">{t('office.collect')}</span>
-                  </button>
-                ) : null}
+                {/* Every room has its own equipment to work. Stations are hidden
+                    while arranging so a drag can never be eaten by a tap. */}
+                {!decorMode
+                  ? stationsInRoom(room.id).map((stationDef) => (
+                      <ClickStation
+                        key={stationDef.id}
+                        def={stationDef}
+                        onTap={onTapStation}
+                        previewText={stationPreview(stationDef)}
+                        synergyNames={stationSynergyNames(stationDef)}
+                        play={playSfx}
+                        formatAmount={fmt.int}
+                      />
+                    ))
+                  : null}
               </div>
 
               {/* arrange-mode per-room actions (inventory lives in the bottom tray) */}
@@ -1252,12 +1320,6 @@ export function OfficeScene() {
       <div className="office__floating" aria-hidden>
         <Acorn size={24} />
       </div>
-
-      {pop ? (
-        <span className="floating-pop" style={{ left: pop.x, top: pop.y }} key={pop.id}>
-          {pop.text}
-        </span>
-      ) : null}
 
       {drag && typeof document !== 'undefined'
         ? createPortal(

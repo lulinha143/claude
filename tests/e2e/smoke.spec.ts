@@ -28,18 +28,21 @@ async function seedReducedMotion(page: Page) {
 // game's OWN persisted state rather than re-injecting the starting snapshot.
 async function seedSave(page: Page, extra: Record<string, unknown> = {}) {
   await seedReducedMotion(page);
-  await page.addInitScript((data) => {
-    if (!localStorage.getItem('wmno.save.v1')) {
-      localStorage.setItem('wmno.save.v1', JSON.stringify(data));
-    }
-  }, {
-    version: 3,
-    onboardingComplete: true,
-    lastSaved: Date.now(),
-    resources: { nuts: 100000, goldenNuts: 5, reputation: 100, morale: 80, permanentKernels: 0 },
-    settings: { reducedMotion: true },
-    ...extra,
-  });
+  await page.addInitScript(
+    (data) => {
+      if (!localStorage.getItem('wmno.save.v1')) {
+        localStorage.setItem('wmno.save.v1', JSON.stringify(data));
+      }
+    },
+    {
+      version: 3,
+      onboardingComplete: true,
+      lastSaved: Date.now(),
+      resources: { nuts: 100000, goldenNuts: 5, reputation: 100, morale: 80, permanentKernels: 0 },
+      settings: { reducedMotion: true },
+      ...extra,
+    },
+  );
 }
 
 test('new game onboarding flow can be completed', async ({ page }) => {
@@ -78,8 +81,8 @@ test('collect, purchase an upgrade, settings, language, persistence', async ({ p
   // No opening/onboarding because the save is not new and onboarding is done.
   await expect(page.locator('.office')).toBeVisible();
 
-  // Collect a crate (nuts should not decrease).
-  await page.locator('.crate-btn').click();
+  // Tap the founder's nut crate station (nuts should not decrease).
+  await page.locator('.station-btn').first().dispatchEvent('pointerdown', { button: 0 });
 
   // Go to the Upgrades shop and buy the first upgrade.
   await page.getByRole('button', { name: 'Upgrades' }).click();

@@ -44,20 +44,22 @@ const dailyChallengeSchema = z.object({
   claimed: z.boolean().catch(false),
 });
 
-const decorationInstanceSchema = z.object({
-  instanceId: z.string().min(1),
-  decorationId: z.string().min(1),
-  roomId: z.string().nullable().catch(null),
-  surfaceType: z.enum(['floor', 'wall', 'ceiling']).catch('floor'),
-  regionKind: z.enum(['floor', 'wall', 'ceiling']).optional().catch(undefined),
-  normalizedX: z.number().min(0).max(1).catch(0.5),
-  normalizedY: z.number().min(0).max(1).catch(0.1),
-  depth: z.number().finite().catch(0),
-  variantId: z.string().optional().catch(undefined),
-  flipped: z.boolean().optional().catch(undefined),
-  rotation: z.number().finite().optional().catch(undefined),
-  interactionState: z.record(z.unknown()).optional().catch(undefined),
-}).passthrough();
+const decorationInstanceSchema = z
+  .object({
+    instanceId: z.string().min(1),
+    decorationId: z.string().min(1),
+    roomId: z.string().nullable().catch(null),
+    surfaceType: z.enum(['floor', 'wall', 'ceiling']).catch('floor'),
+    regionKind: z.enum(['floor', 'wall', 'ceiling']).optional().catch(undefined),
+    normalizedX: z.number().min(0).max(1).catch(0.5),
+    normalizedY: z.number().min(0).max(1).catch(0.1),
+    depth: z.number().finite().catch(0),
+    variantId: z.string().optional().catch(undefined),
+    flipped: z.boolean().optional().catch(undefined),
+    rotation: z.number().finite().optional().catch(undefined),
+    interactionState: z.record(z.unknown()).optional().catch(undefined),
+  })
+  .passthrough();
 
 const settingsSchema = z
   .object({
@@ -206,13 +208,18 @@ export const gameStateSchema = z.object({
       highestNutsPerSecond: 0,
       prestiges: 0,
     }),
+  clicker: z
+    .object({
+      stationTaps: z.record(z.number().finite().nonnegative()).catch({}),
+      criticalTaps: z.number().finite().nonnegative().catch(0),
+      goldenTaps: z.number().finite().nonnegative().catch(0),
+      bestStreak: z.number().finite().nonnegative().catch(0),
+    })
+    .catch({ stationTaps: {}, criticalTaps: 0, goldenTaps: 0, bestStreak: 0 }),
   settings: settingsSchema,
   onboardingComplete: z.boolean().catch(false),
   eventCooldowns: z.record(z.number()).catch({}),
-  pendingChain: z
-    .object({ eventId: z.string(), step: z.number() })
-    .nullable()
-    .catch(null),
+  pendingChain: z.object({ eventId: z.string(), step: z.number() }).nullable().catch(null),
   eventHistory: z
     .array(z.object({ eventId: z.string(), choiceId: z.string(), at: z.number() }))
     .catch([]),

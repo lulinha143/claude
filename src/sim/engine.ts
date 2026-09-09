@@ -22,6 +22,15 @@ import { UPGRADES_BY_ID } from '../content/upgrades';
 import type { EventEffect, GameEventDef } from '../content/types';
 import { GAME_EVENTS, GAME_EVENTS_BY_ID } from '../content/events';
 import { eventChoicesForState } from './eventChoices';
+import { CLICK_STATIONS_BY_ID } from '../content/clickStations';
+import {
+  CLICK,
+  comboWindowMs,
+  critChance,
+  resolveClick,
+  type ClickResolution,
+  type ComboTracker,
+} from './clickStations';
 import { evaluateAchievements } from './achievements';
 import { ensureDailyForDate } from './dailyChallenges';
 import { isRoomIdUnlocked, repairPlacements, unlockedRooms } from './rooms';
@@ -132,6 +141,12 @@ export class GameEngine {
   /** transient: the result of the most recent event choice, for the result panel. */
   lastConsequence: Consequence | null = null;
   tempBoosts: TempBoost[] = [];
+  /**
+   * transient: the live click-station combo. A streak is a moment, not an asset,
+   * so it is intentionally NOT persisted — it lapses on reload just as it lapses
+   * when the player stops tapping. Lifetime totals live in `state.clicker`.
+   */
+  combo: ComboTracker | null = null;
 
   private listeners = new Set<EngineListener>();
   private now: () => number;
@@ -146,7 +161,7 @@ export class GameEngine {
   constructor(state: GameState, opts: EngineOptions = {}) {
     this.state = state;
     this.now = opts.now ?? (() => Date.now());
-    const seed = opts.deterministic ? (opts.seed ?? 12345) : (opts.seed ?? (Date.now() & 0xffffffff));
+    const seed = opts.deterministic ? (opts.seed ?? 12345) : (opts.seed ?? Date.now() & 0xffffffff);
     this.rng = createRng(seed);
     // Backfill any employees added to the game since this save was written, so
     // screens that map over all employees never read `undefined` and crash.
@@ -312,6 +327,65 @@ export class GameEngine {
     this.progressDaily('collectCrates', 1);
     this.emit();
     return { gained, bonus };
+  }
+
+  /**
+   * Tap a click station. This is the game's primary active-play verb.
+   *
+   * There is deliberately NO cooldown or debounce: every call pays out, so
+   * repeated clicking is always honoured and never silently dropped. Stations
+   * that want a rhythm express it through their `charge` cadence (a reduced —
+   * never zero — payout for tapping early), which is a balancing choice the
+   * player can see and learn, not an input limiter.
+   */
+  tapStation(stationId: string): ClickResolution | null {
+    const def = CLICK_STATIONS_BY_ID[stationId];
+    if (!def) return null;
+    // A station is available exactly when its room is.
+    if (!isRoomIdUnlocked(this.state, def.roomId)) return null;
+
+    const now = this.now();
+    const rolls = {
+      critical: this.rng.chance(critChance(this.state, def)),
+      golden: this.rng.chance(CLICK.goldenTapChance),
+    };
+    const result = resolveClick(this.state, def, this.combo, now, rolls);
+
+    // Advance the transient combo tracker.
+    this.combo = { stationId: def.id, streak: result.streak, lastTapAt: now };
+
+    if (result.resource === 'goldenNuts') {
+      this.state.resources.goldenNuts += result.amount;
+      // Taps still count as clicks for stats/dailies even when paid in gold.
+      this.state.stats.totalClicks += 1;
+    } else {
+      this.addNuts(result.amount, true);
+    }
+    if (result.golden) this.state.resources.goldenNuts += 1;
+
+    const clicker = this.state.clicker;
+    clicker.stationTaps[def.id] = (clicker.stationTaps[def.id] ?? 0) + 1;
+    if (result.critical) clicker.criticalTaps += 1;
+    if (result.golden) clicker.goldenTaps += 1;
+    clicker.bestStreak = Math.max(clicker.bestStreak, result.streak);
+
+    // The crate is the founder's station, so keep its long-standing counters and
+    // daily challenge wired up rather than stranding them.
+    if (def.kind === 'crate') {
+      this.state.stats.cratesCollected += 1;
+      this.progressDaily('collectCrates', 1);
+    }
+
+    this.emit();
+    return result;
+  }
+
+  /** The live combo streak on a station, or 0 if it has lapsed. */
+  comboStreak(stationId: string): number {
+    const def = CLICK_STATIONS_BY_ID[stationId];
+    if (!def || !this.combo || this.combo.stationId !== stationId) return 0;
+    if (this.now() - this.combo.lastTapAt > comboWindowMs(def.cadence)) return 0;
+    return this.combo.streak;
   }
 
   canAfford(resource: 'nuts' | 'goldenNuts' | 'permanentKernels', amount: number): boolean {
@@ -642,10 +716,14 @@ export class GameEngine {
     switch (effect.type) {
       case 'nuts':
         if ((effect.value ?? 0) >= 0) this.addNuts(effect.value ?? 0, false);
-        else this.state.resources.nuts = Math.max(0, this.state.resources.nuts + (effect.value ?? 0));
+        else
+          this.state.resources.nuts = Math.max(0, this.state.resources.nuts + (effect.value ?? 0));
         break;
       case 'goldenNuts':
-        this.state.resources.goldenNuts = Math.max(0, this.state.resources.goldenNuts + (effect.value ?? 0));
+        this.state.resources.goldenNuts = Math.max(
+          0,
+          this.state.resources.goldenNuts + (effect.value ?? 0),
+        );
         break;
       case 'morale':
         this.state.resources.morale = Math.max(
@@ -654,7 +732,10 @@ export class GameEngine {
         );
         break;
       case 'reputation':
-        this.state.resources.reputation = Math.max(0, this.state.resources.reputation + (effect.value ?? 0));
+        this.state.resources.reputation = Math.max(
+          0,
+          this.state.resources.reputation + (effect.value ?? 0),
+        );
         break;
       case 'productionBoost':
         this.addBoost(effect.value ?? 1.5, effect.durationSeconds ?? 60);
@@ -836,12 +917,7 @@ export class GameEngine {
     );
   }
 
-  private canApplyDecorationPlacement(
-    id: string,
-    roomId: string,
-    x: number,
-    y: number,
-  ): boolean {
+  private canApplyDecorationPlacement(id: string, roomId: string, x: number, y: number): boolean {
     if (!this.canMoveDecorationToRoom(id, roomId)) return false;
     const def = DECORATIONS_BY_ID[id];
     if (!def || def.defaultRegionKind !== 'floor') {
@@ -874,7 +950,8 @@ export class GameEngine {
     // back to the coarse surface→kind mapping.
     const legacyDef = DECORATIONS_BY_ID[id];
     instance.regionKind =
-      legacyDef && projectSurfaceType(REGION_KIND_SURFACE[legacyDef.defaultRegionKind]) === placement.surface
+      legacyDef &&
+      projectSurfaceType(REGION_KIND_SURFACE[legacyDef.defaultRegionKind]) === placement.surface
         ? legacyDef.defaultRegionKind
         : regionKindForSurface(placement.surface);
     if (depth !== undefined) {
@@ -1109,7 +1186,10 @@ export class GameEngine {
   }
 
   addMoraleFromDecoration(amount: number): void {
-    this.state.resources.morale = Math.min(moraleCap(this.state), this.state.resources.morale + amount);
+    this.state.resources.morale = Math.min(
+      moraleCap(this.state),
+      this.state.resources.morale + amount,
+    );
   }
 
   replaceState(next: GameState): void {
