@@ -19,6 +19,7 @@ import {
   type ClickStationDef,
 } from '../content/clickStations';
 import { clickPower, aggregatePassives } from './economy';
+import { aggregateCompanyModifiers } from './companyModifiers';
 import { employeesInRoom } from './rooms';
 import { BALANCE } from './config';
 
@@ -137,9 +138,29 @@ export function critChance(state: GameState, def: ClickStationDef): number {
   const moraleShare =
     Math.max(0, Math.min(1, state.resources.morale / BALANCE.morale.baseCap)) *
     CLICK.moraleCritBonus;
+  // Research and the rooftop dish exist partly to make tapping sharper.
+  const rooms = aggregateCompanyModifiers(state).critChance;
   const total =
-    CLICK.baseCritChance + (def.critBonus ?? 0) + passives.resourceFind * 0.5 + moraleShare;
+    CLICK.baseCritChance + (def.critBonus ?? 0) + passives.resourceFind * 0.5 + moraleShare + rooms;
   return Math.max(0, Math.min(0.75, total));
+}
+
+/**
+ * Chance a nut-paying tap also drops a golden nut.
+ *
+ * The base rate is deliberately tiny: golden nuts are supposed to be an event.
+ * The Vault and the basement are the rooms that turn that into a real income, so
+ * building for premium currency is a decision the player makes on purpose.
+ */
+export function goldenTapChance(state: GameState): number {
+  const rooms = aggregateCompanyModifiers(state).goldenChance;
+  return Math.max(0, Math.min(0.25, CLICK.goldenTapChance + rooms));
+}
+
+/** The combo window for a station, widened by rooms that reward long streaks. */
+export function stationComboWindowMs(state: GameState, def: ClickStationDef): number {
+  const rooms = aggregateCompanyModifiers(state).comboWindow;
+  return Math.max(400, comboWindowMs(def.cadence) * (1 + rooms));
 }
 
 /**

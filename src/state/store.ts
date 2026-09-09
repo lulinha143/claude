@@ -16,6 +16,7 @@ import { DECORATIONS_BY_ID } from '../content/decorations';
 import { evaluateAchievements } from '../sim/achievements';
 import { unlockedRooms } from '../sim/rooms';
 import { ROOMS_BY_ID } from '../content/rooms';
+import { REPUTATION_TIERS, reputationTier } from '../content/reputationTiers';
 import { EMPLOYEES_BY_ID } from '../content/employees';
 import { ACHIEVEMENTS_BY_ID } from '../content/achievements';
 import { notify } from '../ui/notificationsStore';
@@ -240,6 +241,8 @@ let prevHired = new Set(
 let prevRooms = unlockedRoomIdSet(engine.state);
 /** Timestamp of the last auto-resolved event already announced. */
 let prevAutoResolvedAt = engine.lastAutoResolved?.at ?? 0;
+/** The standing tier already announced, so a tier-up fires exactly once. */
+let prevRepTier = reputationTier(engine.state.resources.reputation).id;
 
 let suppressNotify = false;
 function resetChangeTracking(): void {
@@ -253,6 +256,7 @@ function resetChangeTracking(): void {
   );
   prevRooms = unlockedRoomIdSet(engine.state);
   prevAutoResolvedAt = engine.lastAutoResolved?.at ?? 0;
+  prevRepTier = reputationTier(engine.state.resources.reputation).id;
 }
 
 /** Replace state (prestige/import/reset) without flooding toasts for the whole company. */
@@ -295,6 +299,23 @@ engine.subscribe(() => {
       const def = ROOMS_BY_ID[rid];
       if (def)
         notify('rooms', i18n.t('notify.roomUnlocked', { name: i18n.t(def.nameKey) }), 'positive');
+    }
+  }
+
+  // Climbing the standing ladder is one of the game's real milestones, so it is
+  // announced with the tier's own name and flavour line rather than passing by as
+  // a number ticking over.
+  const tier = reputationTier(st.resources.reputation);
+  if (tier.id !== prevRepTier) {
+    const climbed =
+      REPUTATION_TIERS.indexOf(tier) > REPUTATION_TIERS.findIndex((t) => t.id === prevRepTier);
+    prevRepTier = tier.id;
+    if (climbed) {
+      notify(
+        'reputation',
+        i18n.t('notify.repTierUp', { name: i18n.t(tier.nameKey), blurb: i18n.t(tier.blurbKey) }),
+        'gold',
+      );
     }
   }
 

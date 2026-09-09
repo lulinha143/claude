@@ -1630,7 +1630,8 @@
     "focus": "Modo Foco",
     "mood": "Humor da equipe",
     "boost": "Bônus ativo",
-    "total": "Total"
+    "total": "Total",
+    "fromRooms": "Dos seus departamentos"
   },
   "stats": {
     "title": "Estatísticas",
@@ -1795,7 +1796,8 @@
     "policy": "Política alterada",
     "additionalUpdates_one": "+{{count}} atualização adicional",
     "additionalUpdates_other": "+{{count}} atualizações adicionais",
-    "eventAutoResolved": "Resolvido para você — {{title}}: {{choice}}"
+    "eventAutoResolved": "Resolvido para você — {{title}}: {{choice}}",
+    "repTierUp": "{{name}} — {{blurb}}"
   },
   "react": {
     "marlowApproves": "Bento aprovou esta decisão.",
@@ -2159,5 +2161,100 @@
       "Pronto pra trabalhar pra caramba!",
       "Melhor. Empresa. De todas."
     ]
+  },
+  "roomProfile": {
+    "founderDesk": "Onde a empresa começou. Deixa cada toque mais forte.",
+    "sorting": "Produção bruta. Repetitivo, e desgasta as pessoas.",
+    "construction": "Constrói as máquinas que trabalham por você.",
+    "lab": "A maior produção do prédio, e a mais infeliz.",
+    "morale": "Mantém a empresa habitável. Compensa as salas duras.",
+    "nap": "Recuperação profunda. Ninguém aqui trabalha, e é isso mesmo.",
+    "marketing": "Transforma uma empresa feliz em reputação pública.",
+    "procurement": "Compras mais baratas. Combina com a oficina.",
+    "meeting": "Coordenação. Estabiliza tudo, produz nada.",
+    "research": "Descobertas se somam ao Laboratório. Afia toques críticos.",
+    "rooftop": "Sequências longas e um sinal apontado para nada.",
+    "vault": "Onde as nozes douradas acumulam. Gosta de estoque cheio.",
+    "basement": "Extremamente produtivo. Por favor, não pergunte."
+  },
+  "repTier": {
+    "unlisted": {
+      "name": "Entidade Não Listada",
+      "blurb": "Sem registros. Sem endereço. Tecnicamente tudo bem."
+    },
+    "registered": {
+      "name": "Escritório Registrado",
+      "blurb": "Um formulário foi enviado. Ninguém leu."
+    },
+    "local": {
+      "name": "Empresa Local",
+      "blurb": "Os vizinhos já sabem o nome."
+    },
+    "emerging": {
+      "name": "Grupo de Pesquisa Emergente",
+      "blurb": "Alguém nos chamou de promissores. Por escrito."
+    },
+    "recognized": {
+      "name": "Instituição Reconhecida",
+      "blurb": "Os convites chegam no nome da empresa."
+    },
+    "institution": {
+      "name": "Instituição Estabelecida",
+      "blurb": "Somos citados. Não sempre lidos."
+    },
+    "leader": {
+      "name": "Autoridade do Setor",
+      "blurb": "Nossos métodos agora são o padrão. Preocupante."
+    },
+    "unaccountable": {
+      "name": "Órgão Sem Supervisão",
+      "blurb": "A fiscalização foi reorganizada dentro de nós."
+    },
+    "irregular": {
+      "name": "Instituição Global Irregular",
+      "blurb": "Vários países nos classificam como clima."
+    },
+    "progressLabel": "Progresso para o próximo nível",
+    "nextAt": "Próximo: {{name}} em {{at}}",
+    "maxed": "Nível máximo alcançado."
+  },
+  "synergy": {
+    "title": "Rede de Departamentos",
+    "subtitle": "O que cada departamento contribui, e o que custa.",
+    "idle": "Sem equipe — não contribui nada",
+    "idleHint": "Aloque um colega aqui para ligar este departamento.",
+    "staffed": "{{count}} na equipe",
+    "specialists": "Especialista no local: {{names}}",
+    "contributes": "Contribui",
+    "costs": "Custa",
+    "dormant": "Inativo",
+    "dormantUnstaffed": "precisa de equipe",
+    "dormantMissingRoom": "precisa de {{room}} ativo",
+    "dormantLowMorale": "precisa de mais ânimo",
+    "locked": "Ainda não desbloqueado",
+    "netEffect": "Efeito líquido na empresa",
+    "feeds": "Apoia {{rooms}}",
+    "noRooms": "Desbloqueie um departamento para começar a montar a rede.",
+    "temper": {
+      "operational": "Operações",
+      "social": "Pessoas",
+      "analytical": "Pesquisa",
+      "industrial": "Produção",
+      "secure": "Reservas",
+      "irregular": "Irregular"
+    }
+  },
+  "effect": {
+    "production": "Produção",
+    "clickPower": "Valor do toque",
+    "moraleTarget": "Ânimo",
+    "moraleRegen": "Recuperação de ânimo",
+    "reputationRate": "Reputação",
+    "goldenChance": "Chance de noz dourada",
+    "critChance": "Chance de toque crítico",
+    "comboWindow": "Janela de combo",
+    "costReduction": "Custos",
+    "eventLuck": "Sorte em eventos",
+    "automation": "Automação"
   }
 }

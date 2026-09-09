@@ -1630,7 +1630,8 @@
     "focus": "Focus Mode",
     "mood": "Team mood",
     "boost": "Active boost",
-    "total": "Total"
+    "total": "Total",
+    "fromRooms": "From your departments"
   },
   "stats": {
     "title": "Statistics",
@@ -1795,7 +1796,8 @@
     "policy": "Policy changed",
     "additionalUpdates_one": "+{{count}} additional update",
     "additionalUpdates_other": "+{{count}} additional updates",
-    "eventAutoResolved": "Handled for you — {{title}}: {{choice}}"
+    "eventAutoResolved": "Handled for you — {{title}}: {{choice}}",
+    "repTierUp": "{{name}} — {{blurb}}"
   },
   "react": {
     "marlowApproves": "Marlow approved of this decision.",
@@ -2159,5 +2161,100 @@
       "Ready to work my nuts off!",
       "Best. Company. Ever."
     ]
+  },
+  "roomProfile": {
+    "founderDesk": "Where the company started. Sharpens every tap.",
+    "sorting": "Raw throughput. Repetitive, and it wears people down.",
+    "construction": "Builds the machines that run the company for you.",
+    "lab": "The biggest output in the building, and the unhappiest.",
+    "morale": "Keeps the company liveable. Offsets the hard rooms.",
+    "nap": "Deep recovery. Nobody here is working, and that is the point.",
+    "marketing": "Turns a happy company into public standing.",
+    "procurement": "Cheaper supply lines. Pairs with the workshop.",
+    "meeting": "Coordination. Steadies everything, produces nothing.",
+    "research": "Findings compound on the Lab. Sharpens critical taps.",
+    "rooftop": "Long streaks and a signal aimed at nothing in particular.",
+    "vault": "Where golden nuts accumulate. Likes a full supply chain.",
+    "basement": "Extremely productive. Please do not ask about it."
+  },
+  "repTier": {
+    "unlisted": {
+      "name": "Unlisted Entity",
+      "blurb": "No filings. No address. Technically fine."
+    },
+    "registered": {
+      "name": "Registered Office",
+      "blurb": "A form was submitted. Nobody read it."
+    },
+    "local": {
+      "name": "Local Concern",
+      "blurb": "The neighbours know the name now."
+    },
+    "emerging": {
+      "name": "Emerging Research Group",
+      "blurb": "Someone called us promising. In writing."
+    },
+    "recognized": {
+      "name": "Recognised Institution",
+      "blurb": "Invitations arrive addressed to the company."
+    },
+    "institution": {
+      "name": "Established Institution",
+      "blurb": "We are cited. We are not always read."
+    },
+    "leader": {
+      "name": "Sector Authority",
+      "blurb": "Our methods are now the standard. Concerning."
+    },
+    "unaccountable": {
+      "name": "Unaccountable Body",
+      "blurb": "Oversight has been reorganised into us."
+    },
+    "irregular": {
+      "name": "Irregular Global Institution",
+      "blurb": "Several countries list us as weather."
+    },
+    "progressLabel": "Progress to the next tier",
+    "nextAt": "Next: {{name}} at {{at}}",
+    "maxed": "Highest standing reached."
+  },
+  "synergy": {
+    "title": "Department Network",
+    "subtitle": "What each department contributes, and what it costs.",
+    "idle": "No staff — contributing nothing",
+    "idleHint": "Assign a teammate here to switch this department on.",
+    "staffed": "{{count}} staffed",
+    "specialists": "Specialist on site: {{names}}",
+    "contributes": "Contributes",
+    "costs": "Costs",
+    "dormant": "Dormant",
+    "dormantUnstaffed": "needs staff",
+    "dormantMissingRoom": "needs {{room}} running",
+    "dormantLowMorale": "needs higher morale",
+    "locked": "Not yet unlocked",
+    "netEffect": "Net effect on the company",
+    "feeds": "Supports {{rooms}}",
+    "noRooms": "Unlock a department to start building a network.",
+    "temper": {
+      "operational": "Operations",
+      "social": "People",
+      "analytical": "Research",
+      "industrial": "Production",
+      "secure": "Holdings",
+      "irregular": "Irregular"
+    }
+  },
+  "effect": {
+    "production": "Production",
+    "clickPower": "Tap value",
+    "moraleTarget": "Morale",
+    "moraleRegen": "Morale recovery",
+    "reputationRate": "Reputation",
+    "goldenChance": "Golden nut chance",
+    "critChance": "Critical tap chance",
+    "comboWindow": "Combo window",
+    "costReduction": "Costs",
+    "eventLuck": "Event luck",
+    "automation": "Automation"
   }
 }

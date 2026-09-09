@@ -9,6 +9,8 @@ import { CompanyIcon } from '../../art/companyIcons';
 import { CompanyIconPicker } from '../modals/CompanyIconPicker';
 import { GAME_EVENTS_BY_ID } from '../../content/events';
 import { ProductionBreakdown } from '../ProductionBreakdown';
+import { DepartmentNetwork } from '../DepartmentNetwork';
+import { ReputationLadder } from '../ReputationLadder';
 
 export function CompanyView() {
   const { t } = useTranslation();
@@ -55,17 +57,27 @@ export function CompanyView() {
         <div className="meter">
           <span>{t('resource.morale')}</span>
           <div className="bar">
-            <div className="bar__fill bar__fill--morale" style={{ width: `${(state.resources.morale / cap) * 100}%` }} />
+            <div
+              className="bar__fill bar__fill--morale"
+              style={{ width: `${(state.resources.morale / cap) * 100}%` }}
+            />
           </div>
-          <span>{Math.round(state.resources.morale)}/{cap}</span>
+          <span>
+            {Math.round(state.resources.morale)}/{cap}
+          </span>
         </div>
-        <div className="meter">
-          <span>{t('resource.reputation')}</span>
-          <div className="bar">
-            <div className="bar__fill bar__fill--rep" style={{ width: `${Math.min(100, state.resources.reputation / 3)}%` }} />
-          </div>
-          <span>{fmt.num(state.resources.reputation)}</span>
-        </div>
+        {/* Reputation is a named ladder now, not a bar scaled to an arbitrary
+            maximum, so the player can see which rung they hold and what is next. */}
+        <ReputationLadder />
+      </div>
+
+      <div className="panel">
+        <h3 className="panel__title">
+          <span className="panel__marker" aria-hidden />
+          {t('synergy.title')}
+        </h3>
+        <p className="muted small">{t('synergy.subtitle')}</p>
+        <DepartmentNetwork />
       </div>
 
       <div className="panel">
@@ -78,15 +90,27 @@ export function CompanyView() {
                 <div className="daily__info">
                   <span>{t(`daily.${challengeKey(ch.id)}`, { goal: fmt.int(ch.goal) })}</span>
                   <div className="bar">
-                    <div className="bar__fill" style={{ width: `${Math.min(100, (ch.progress / ch.goal) * 100)}%` }} />
+                    <div
+                      className="bar__fill"
+                      style={{ width: `${Math.min(100, (ch.progress / ch.goal) * 100)}%` }}
+                    />
                   </div>
                 </div>
                 <button
                   className="buy-btn"
                   disabled={!done || ch.claimed}
-                  onClick={() => { if (engine.claimDaily(ch.id)) audio.play('celebrate'); }}
+                  onClick={() => {
+                    if (engine.claimDaily(ch.id)) audio.play('celebrate');
+                  }}
                 >
-                  {ch.claimed ? t('common.claimed') : <><GoldenNut size={14} />{t('common.claim')}</>}
+                  {ch.claimed ? (
+                    t('common.claimed')
+                  ) : (
+                    <>
+                      <GoldenNut size={14} />
+                      {t('common.claim')}
+                    </>
+                  )}
                 </button>
               </li>
             );
@@ -110,7 +134,9 @@ export function CompanyView() {
                 return (
                   <li key={`${h.at}-${i}`} className="timeline__row">
                     <span className="timeline__title">{def ? t(def.titleKey) : h.eventId}</span>
-                    <span className="timeline__choice">{choice ? t(choice.labelKey) : h.choiceId}</span>
+                    <span className="timeline__choice">
+                      {choice ? t(choice.labelKey) : h.choiceId}
+                    </span>
                     <span className="timeline__date">{fmt.date(h.at)}</span>
                   </li>
                 );

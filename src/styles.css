@@ -12189,3 +12189,318 @@ button:disabled,
 [data-reduced-motion='true'] :is(.bug.is-squashed, .burrow.is-wrong, .burrow__miss b) {
   animation: none !important;
 }
+
+/* ==========================================================================
+   NUTSHELL INC. — DEPARTMENT REPORTS
+   ==========================================================================
+   The synergy network and the standing ladder are presented as internal company
+   paperwork, which is the house style: a stamped header strip, ruled body, and
+   the small circular section marker that recurs across the whole interface.
+
+   Restraint is deliberate. Each department gets exactly ONE accent (its existing
+   `--dept-*` colour) used on the marker and the header rule, and nothing else —
+   no per-card gradients, no glows, no competing borders. Meaning is carried by
+   the semantic colours instead: green contributes, red costs, muted is dormant. */
+
+/* The recurring section marker: ● SECTION TITLE, used on every panel heading. */
+.panel__title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 2px;
+}
+.panel__marker,
+.dept-card__marker,
+.rep-ladder__marker {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--brand-mark, var(--gold));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand-mark, var(--gold)) 22%, transparent);
+}
+
+/* --- department network --------------------------------------------------- */
+.dept-network {
+  display: grid;
+  gap: var(--sp-2);
+  /* Auto-fit keeps this readable from a narrow companion window up to a wide
+     desktop without any fixed breakpoints. */
+  /* 16rem keeps a card wide enough for "Morale recovery  +60%" plus a wrapped
+     reason line without the columns collapsing into slivers. */
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+}
+
+.dept-card {
+  --dept-accent: var(--dept-founder);
+  /* This card sits on PAPER, while the surrounding app chrome is dark. The global
+     text colours are tuned for the dark chrome, so ink tones are set explicitly
+     here and inherited by every child — otherwise headings render light-on-cream
+     and disappear. */
+  --card-ink: var(--ink);
+  --card-ink-soft: color-mix(in srgb, var(--ink) 62%, transparent);
+  --card-ink-faint: color-mix(in srgb, var(--ink) 42%, transparent);
+  color: var(--card-ink);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 8px 10px 9px;
+  background:
+    repeating-linear-gradient(180deg, transparent 0 17px, var(--stationery-rule) 17px 18px),
+    var(--paper);
+  border: var(--border-thin) solid var(--paper-edge);
+  border-top: 2px solid var(--dept-accent);
+  border-radius: var(--corner-panel);
+  box-shadow: var(--shadow-contact);
+}
+/* Each department keeps the accent it already uses in the office scene, so the
+   report and the room itself are recognisably the same place. */
+.dept-card--operational {
+  --dept-accent: var(--dept-meeting);
+}
+.dept-card--social {
+  --dept-accent: var(--dept-morale);
+}
+.dept-card--analytical {
+  --dept-accent: var(--dept-lab);
+}
+.dept-card--industrial {
+  --dept-accent: var(--dept-construction);
+}
+.dept-card--secure {
+  --dept-accent: var(--dept-vault);
+}
+.dept-card--irregular {
+  --dept-accent: var(--dept-basement);
+}
+/* An idle department is the most common reason a company has stalled, so it is
+   visibly dimmed rather than looking like a working one. */
+.dept-card.is-idle {
+  opacity: 0.74;
+}
+
+.dept-card__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.dept-card__marker {
+  background: var(--dept-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--dept-accent) 22%, transparent);
+}
+.dept-card__name {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  color: var(--card-ink);
+  font-family: var(--font-display);
+  font-size: 0.86em;
+  line-height: 1.2;
+}
+/* The temper reads as a stamped classification field on a form. */
+.dept-card__temper {
+  flex: none;
+  padding: 1px 5px;
+  color: color-mix(in srgb, var(--dept-accent) 70%, var(--ink));
+  background: color-mix(in srgb, var(--dept-accent) 13%, transparent);
+  border: 1px solid color-mix(in srgb, var(--dept-accent) 38%, transparent);
+  border-radius: var(--r-sm);
+  font-size: 0.54em;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.dept-card__summary {
+  margin: 1px 0 3px;
+  color: var(--card-ink-soft);
+  font-size: 0.66em;
+  font-style: italic;
+  line-height: 1.4;
+  text-wrap: pretty;
+}
+
+.dept-card__staff {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  font-size: 0.62em;
+}
+.dept-card__count {
+  font-weight: 700;
+}
+.dept-card__idle {
+  /* Darkened against the cream card so the warning still reads as a warning. */
+  color: color-mix(in srgb, var(--negative) 72%, var(--ink));
+  font-weight: 800;
+  cursor: help;
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
+}
+.dept-card__specialists {
+  color: var(--positive);
+  font-weight: 700;
+}
+
+.dept-card__section {
+  margin: 5px 0 1px;
+  color: var(--positive);
+  font-size: 0.55em;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+.dept-card__section--cost {
+  color: var(--negative);
+}
+.dept-card__section--dormant {
+  color: var(--card-ink-faint);
+}
+
+.dept-effects {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 1px;
+}
+/* Grid rather than flex: at narrow card widths a three-child flex row squeezed the
+   label until it wrapped one letter per line. The explicit two-column track keeps
+   label and value on the first line and drops the reason onto its own. */
+.dept-effect {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: 6px;
+  align-items: baseline;
+  font-size: 0.64em;
+  line-height: 1.35;
+}
+.dept-effect__label {
+  min-width: 0;
+  /* Never break a word like "Production" mid-letter to fit. */
+  overflow-wrap: normal;
+  hyphens: none;
+}
+.dept-effect__value {
+  font-family: var(--font-numeric);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.dept-effect--good .dept-effect__value {
+  color: var(--positive);
+}
+.dept-effect--bad .dept-effect__value {
+  color: var(--negative);
+}
+/* A dormant line is a LEAD, not a failure: muted, but the reason is legible so
+   the player knows exactly what to go and do about it. */
+.dept-effect--dormant {
+  color: var(--card-ink-faint);
+}
+.dept-effect--dormant .dept-effect__value {
+  color: var(--card-ink-faint);
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+/* The reason spans both columns on its own line so it can never compress the
+   effect name next to it. */
+.dept-effect__reason {
+  grid-column: 1 / -1;
+  font-size: 0.86em;
+  font-style: italic;
+  line-height: 1.3;
+  opacity: 0.95;
+}
+
+.dept-card__feeds {
+  margin: 4px 0 0;
+  padding-top: 4px;
+  border-top: 1px dashed var(--paper-edge);
+  color: var(--card-ink-faint);
+  font-size: 0.58em;
+  line-height: 1.35;
+}
+
+/* --- reputation ladder ---------------------------------------------------- */
+.rep-ladder {
+  display: grid;
+  gap: 4px;
+}
+.rep-ladder__head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.rep-ladder__titles {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: baseline;
+  gap: 7px;
+  min-width: 0;
+}
+.rep-ladder__tier {
+  font-family: var(--font-display);
+  font-size: 0.92em;
+  line-height: 1.2;
+}
+.rep-ladder__step {
+  flex: none;
+  font-family: var(--font-numeric);
+  font-size: 0.6em;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-disabled);
+}
+.rep-ladder__blurb {
+  margin: 0;
+  color: var(--text-secondary, color-mix(in srgb, var(--ink) 68%, transparent));
+  font-size: 0.66em;
+  font-style: italic;
+  line-height: 1.4;
+  text-wrap: pretty;
+}
+.rep-ladder__track {
+  position: relative;
+  height: 7px;
+  background: var(--paper-muted);
+  border: var(--border-thin) solid var(--paper-edge);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+}
+.rep-ladder__fill {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--gold) 70%, transparent), var(--gold));
+  transition: width var(--dur-slow) var(--ease);
+}
+[data-reduced-motion='true'] .rep-ladder__fill {
+  transition: none;
+}
+.rep-ladder__foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.62em;
+}
+.rep-ladder__now {
+  font-family: var(--font-numeric);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.rep-ladder__next {
+  color: var(--text-disabled);
+  text-align: right;
+}
+.rep-ladder__perks {
+  margin: 2px 0 0;
+  padding: 4px 0 0;
+  border-top: 1px dashed var(--paper-edge);
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 10px;
+  font-size: 0.6em;
+  font-weight: 700;
+  color: var(--positive);
+}

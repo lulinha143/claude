@@ -15,6 +15,8 @@ export function ProductionBreakdown() {
   const boost = engine.currentBoostMultiplier();
 
   const pct = (frac: number) => `+${Math.round(frac * 100)}%`;
+  const signedPct = (frac: number) =>
+    `${frac >= 0 ? '+' : '\u2212'}${Math.abs(Math.round(frac * 100))}%`;
   const mult = (m: number) => `×${m.toFixed(2)}`;
 
   return (
@@ -47,6 +49,16 @@ export function ProductionBreakdown() {
           <li>
             <span>{t('prod.passives')}</span>
             <span className="prod-pos">{pct(b.passiveBonus)}</span>
+          </li>
+        ) : null}
+        {/* The room network can be a net NEGATIVE (a building of nothing but Nap
+            Rooms and meetings), so this line has to be able to say so. */}
+        {Math.abs(b.roomBonus) > 0.0005 ? (
+          <li>
+            <span>{t('prod.fromRooms')}</span>
+            <span className={b.roomBonus >= 0 ? 'prod-pos' : 'prod-neg'}>
+              {signedPct(b.roomBonus)}
+            </span>
           </li>
         ) : null}
         <li>

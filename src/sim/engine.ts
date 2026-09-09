@@ -26,12 +26,14 @@ import { chooseAutoResolution } from './eventAutoResolve';
 import { CLICK_STATIONS_BY_ID } from '../content/clickStations';
 import {
   CLICK,
-  comboWindowMs,
   critChance,
+  goldenTapChance,
   resolveClick,
+  stationComboWindowMs,
   type ClickResolution,
   type ComboTracker,
 } from './clickStations';
+import { aggregateCompanyModifiers } from './companyModifiers';
 import { evaluateAchievements } from './achievements';
 import { ensureDailyForDate } from './dailyChallenges';
 import { isRoomIdUnlocked, repairPlacements, unlockedRooms } from './rooms';
@@ -307,12 +309,26 @@ export class GameEngine {
 
     this.state.stats.highestNutsPerSecond = Math.max(this.state.stats.highestNutsPerSecond, nps);
 
-    // Morale drifts toward equilibrium influenced by passives, with a floor.
+    // Morale drifts toward an equilibrium set by passives AND by the building.
+    //
+    // The room network drives both ends: the Lab, the basement and the production
+    // floors drag the target down, while the Break Room and the Nap Room raise it
+    // and speed up recovery. This is the causal chain the player feels — an
+    // unbalanced building settles at low morale, low morale cuts production via
+    // `moraleMultiplier`, and weaker production slows every other system.
+    const rooms = aggregateCompanyModifiers(this.state);
     const cap = moraleCap(this.state);
     const floor = Math.max(BALANCE.morale.min, moraleFloor(this.state));
-    const target = Math.min(cap, BALANCE.morale.start + passives.moraleBonus);
+    const target = Math.min(
+      cap,
+      Math.max(
+        BALANCE.morale.min,
+        BALANCE.morale.start + passives.moraleBonus + rooms.moraleTarget,
+      ),
+    );
     const m = this.state.resources.morale;
-    const drift = (target - m) * Math.min(1, BALANCE.morale.driftPerSecond * dt);
+    const regen = Math.max(0.1, BALANCE.morale.driftPerSecond * (1 + rooms.moraleRegen));
+    const drift = (target - m) * Math.min(1, regen * dt);
     this.state.resources.morale = Math.max(floor, Math.min(cap, m + drift));
 
     // Reputation grows slowly with company size.
@@ -369,7 +385,7 @@ export class GameEngine {
     const now = this.now();
     const rolls = {
       critical: this.rng.chance(critChance(this.state, def)),
-      golden: this.rng.chance(CLICK.goldenTapChance),
+      golden: this.rng.chance(goldenTapChance(this.state)),
     };
     const result = resolveClick(this.state, def, this.combo, now, rolls);
 
@@ -406,8 +422,14 @@ export class GameEngine {
   comboStreak(stationId: string): number {
     const def = CLICK_STATIONS_BY_ID[stationId];
     if (!def || !this.combo || this.combo.stationId !== stationId) return 0;
-    if (this.now() - this.combo.lastTapAt > comboWindowMs(def.cadence)) return 0;
+    if (this.now() - this.combo.lastTapAt > stationComboWindowMs(this.state, def)) return 0;
     return this.combo.streak;
+  }
+
+  /** The combo window currently in force for a station (rooms can widen it). */
+  comboWindowFor(stationId: string): number {
+    const def = CLICK_STATIONS_BY_ID[stationId];
+    return def ? stationComboWindowMs(this.state, def) : CLICK.comboWindowMs;
   }
 
   canAfford(resource: 'nuts' | 'goldenNuts' | 'permanentKernels', amount: number): boolean {
@@ -569,7 +591,10 @@ export class GameEngine {
   maybeRollEvent(force = false): void {
     if (this.activeEvent) return;
     const passives = aggregatePassives(this.state);
-    const chance = BALANCE.eventBaseChance + passives.rareChance;
+    // Rooms that deal in the strange — the Lab, Research, the basement — make
+    // something interesting happen more often, which is their real reward.
+    const luck = aggregateCompanyModifiers(this.state).eventLuck;
+    const chance = BALANCE.eventBaseChance + passives.rareChance + luck;
     if (!force && !this.rng.chance(chance)) return;
     const pool = this.eligibleEvents();
     if (pool.length === 0) return;
