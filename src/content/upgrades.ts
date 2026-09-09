@@ -131,8 +131,13 @@ const automationUpgrades: UpgradeDef[] = [
 
 const roomUpgrades: UpgradeDef[] = [
   ['room-sorting', 'sorting', 500],
+  // The mail room is cheap and early: it is the first room that makes the REST of
+  // the building cheaper, so finding it early is its own reward.
+  ['room-mailroom', 'mailroom', 4000],
   ['room-lab', 'lab', 20000],
   ['room-vault', 'vault', 150000],
+  // The archive turns the company's own paperwork into discoveries.
+  ['room-archive', 'archive', 400000],
   ['room-meeting', 'meeting', 1000000],
   ['room-basement', 'basement', 3000000],
 ].map(([id, roomId, cost]) => ({

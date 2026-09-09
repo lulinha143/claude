@@ -488,169 +488,240 @@ h4 {
   outline-offset: 2px;
 }
 
-/* ------- compact all-destination icon navigation ------- */
+/* ------- navigation: a filing rail of folder tabs -------
+   The active tab drops its bottom border and shares the content surface below, so
+   it reads as physically attached to what it opened. That attachment IS the
+   selected state — no highlight fill needed, which keeps the strip calm. */
 .nav {
   position: relative;
   z-index: 50;
   display: flex;
   justify-content: center;
-  align-items: center;
-  min-height: 42px;
-  padding: 4px 6px;
+  min-height: 34px;
+  /* Constant padding: the tab bands below are CONTAINER queries against this
+     element, so its own inline padding must not change inside them or the query
+     would feed back into the size it is querying. */
+  padding: 5px 6px 0;
   background: rgba(0, 0, 0, 0.15);
   overflow: visible;
+  /* Queried instead of the viewport because the shell is `zoom`ed by the UI-scale
+     setting and capped at 1200px. A viewport media query sees neither, so it would
+     show labels the strip has no room for — the exact cause of the wrapped rows
+     this replaces. The container reports the space the tabs actually get. */
+  container: navstrip / inline-size;
 }
-.nav__primary {
+.nav__rail {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
+  align-items: flex-end;
   justify-content: center;
   gap: 2px;
   min-width: 0;
+  /* The rail the tabs hang on. The active tab paints over it to merge with the
+     content, which is what sells the attachment. */
+  border-bottom: 1px solid color-mix(in srgb, var(--paper-edge) 34%, transparent);
 }
-.nav__item {
+.nav__item,
+.nav__tab {
   position: relative;
-  flex: 0 0 33px;
-  width: 33px;
-  height: 33px;
-  min-width: 33px;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  padding: 0;
-  background: color-mix(in srgb, var(--panel-surface) 38%, transparent);
-  border: 1px solid transparent;
-  border-radius: 10px 8px 11px 9px;
+  gap: 5px;
+  padding: 5px 10px 6px;
+  /* Closed folders sit BEHIND the drawer front, so they are recessed rather than
+     tinted. Depth is what separates them from the open one; a colour highlight on
+     the active tab would be saying the same thing twice, less convincingly. */
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid color-mix(in srgb, var(--paper-edge) 16%, transparent);
+  /* Folder tab: rounded shoulders on top, square where it meets the rail. */
+  border-radius: var(--corner-panel) var(--corner-panel) 0 0;
+  border-bottom-color: transparent;
   color: var(--text-secondary);
   cursor: pointer;
   font: inherit;
   line-height: 1;
+  white-space: nowrap;
+  /* No lift, scale or drop shadow anywhere in this strip. A tab is a piece of card
+     in a drawer; the moment it floats it stops reading as attached to anything. */
+  box-shadow: none;
+  transform: none;
   transition:
-    transform var(--dur-fast) var(--ease),
     background var(--dur-fast) var(--ease),
     border-color var(--dur-fast) var(--ease),
-    box-shadow var(--dur-fast) var(--ease),
     color var(--dur-fast) var(--ease);
 }
-.nav__item .ui-icon {
-  width: 19px;
-  height: 19px;
+/* A gap plus a hairline separates the filing sections. */
+.nav__tab.starts-group {
+  margin-left: 10px;
+}
+.nav__tab.starts-group::before {
+  content: '';
+  position: absolute;
+  left: -6px;
+  bottom: 2px;
+  width: 1px;
+  height: 60%;
+  background: color-mix(in srgb, var(--paper-edge) 30%, transparent);
+}
+/* Names are opt-in, switched on by the container band that can afford all eleven. */
+.nav__tab-label {
+  display: none;
+  font-size: 0.62em;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+/* The marker rides only on the OPEN tab. Eleven dim dots cost ~110px of strip for
+   no information, and the one that means something gets lost among them. */
+.nav__tab-marker {
+  display: none;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--gold);
   flex: 0 0 auto;
-  opacity: 0.88;
-  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.28));
+}
+.nav__item .ui-icon {
+  flex: 0 0 auto;
+  opacity: 0.82;
 }
 .nav__item:hover {
-  transform: translateY(-1px);
   background: var(--interactive-hover);
-  border-color: color-mix(in srgb, var(--gold) 34%, transparent);
+  border-color: color-mix(in srgb, var(--gold) 30%, transparent);
+  border-bottom-color: transparent;
   color: var(--text);
-}
-.nav__item:active {
-  transform: translateY(1px) scale(0.97);
-  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.28);
 }
 .nav__item:focus-visible {
   outline: 2px solid var(--gold);
   outline-offset: 1px;
-  z-index: 1;
+  z-index: 2;
 }
 .nav__item:disabled {
   opacity: 0.45;
   cursor: not-allowed;
-  transform: none;
 }
-.nav__item.is-active {
-  background: color-mix(in srgb, var(--primary) 86%, var(--c-bark-900));
-  border-color: var(--gold);
-  color: var(--text-on-accent);
-  box-shadow:
-    inset 0 2px 4px rgba(0, 0, 0, 0.32),
-    0 0 0 1px color-mix(in srgb, var(--gold) 25%, transparent);
+/* The open drawer: same surface as the content, with the rail erased beneath it.
+   The erasure is a 1px overlay rather than a negative margin or extra padding, so
+   EVERY tab keeps identical geometry. An active tab that is a pixel taller makes
+   the whole strip's baseline jitter as the player moves between destinations. */
+.nav__item.is-active,
+.nav__tab.is-active {
+  /* Exactly the surface the content panels use, so the open tab is made of the same
+     paper as the page it belongs to. */
+  background: var(--panel-texture), var(--panel-surface);
+  border-color: color-mix(in srgb, var(--paper-edge) 46%, transparent);
+  /* A lit top shoulder is the only lighting cue: the tab is the one card pulled
+     forward into the light. */
+  box-shadow: inset 0 1px 0 rgba(255, 244, 224, 0.14);
+  color: var(--text);
+  z-index: 1;
 }
-.nav__item.is-active::after {
+/* The join. This overlay is the entire attachment effect, and its depth is measured,
+   not chosen: it has to cover the tab's own 1px bottom border AND the rail's 1px
+   hairline directly beneath it, then spill 1px into the content below so no seam
+   survives. Hence 3px starting 2px below the padding box. Doing this with a negative
+   margin instead would drop the open tab a pixel below its neighbours and make the
+   whole strip's baseline jump every time the player changed destination. */
+.nav__tab.is-active::after {
   content: '';
   position: absolute;
-  left: 50%;
-  bottom: 1px;
-  width: 7px;
+  left: 0;
+  right: 0;
+  bottom: -2px;
   height: 3px;
-  transform: translateX(-50%);
-  border-radius: 60% 60% 45% 45%;
-  background: currentColor;
-  border-top: 1px solid color-mix(in srgb, currentColor 55%, var(--gold));
-  opacity: 0.9;
+  background: var(--panel-surface);
+  /* It reaches a pixel past the tab into the content; it must not intercept a click
+     meant for whatever is under there. */
+  pointer-events: none;
+}
+.nav__tab.is-active .nav__tab-marker {
+  display: block;
+}
+.nav__tab.is-active .nav__tab-label {
+  font-weight: 800;
 }
 .nav__item.is-active .ui-icon {
   opacity: 1;
 }
 
-@media (max-width: 399px) {
-  .nav {
-    padding-inline: 5px;
+/* ---- how much of the tab survives at a given strip width ----
+   Every destination stays on ONE row at every supported size, because a wrapped
+   strip steals height from a 420px-tall window and a scrolled one hides
+   destinations behind a gesture nobody expects. What gives way instead, in order,
+   is: names, then breathing room, then the section dividers.
+
+   The numbers are not guesses. Eleven named tabs measure ~800px of strip in the
+   widest locale, so names appear only from 840px up; below that the shape, the
+   rail, the grouping and the attachment still carry the metaphor. */
+
+/* Wide enough for the whole filing strip to be legible: names on. */
+@container navstrip (min-width: 840px) {
+  .nav__tab-label {
+    display: inline;
   }
-  .nav__primary {
+  .nav__item,
+  .nav__tab {
+    padding-inline: 9px;
+  }
+}
+
+/* Icon tabs, comfortably spaced. */
+@container navstrip (max-width: 560px) {
+  .nav__item,
+  .nav__tab {
+    padding-inline: 7px;
+  }
+  .nav__tab.starts-group {
+    margin-left: 8px;
+  }
+}
+
+/* Companion-window territory — this is the size the app actually opens at. */
+@container navstrip (max-width: 460px) {
+  .nav__rail {
     gap: 1px;
   }
-  .nav__item {
-    flex-basis: 30px;
-    width: 30px;
-    min-width: 30px;
-    height: 30px;
+  .nav__item,
+  .nav__tab {
+    padding-inline: 5px;
   }
-  .nav__item .ui-icon {
-    width: 18px;
-    height: 18px;
+  .nav__tab.starts-group {
+    margin-left: 5px;
+  }
+  .nav__tab.starts-group::before {
+    left: -3px;
   }
 }
 
-@media (max-width: 359px) {
-  .nav {
-    min-height: 38px;
+/* The 320px floor. Dividers are the last thing to go: grouping is a luxury when
+   eleven tap targets have to share 308px. */
+@container navstrip (max-width: 330px) {
+  .nav__rail {
+    gap: 0;
+  }
+  .nav__item,
+  .nav__tab {
     padding-inline: 4px;
   }
-  .nav__primary {
-    gap: 0;
+  .nav__tab.starts-group {
+    margin-left: 0;
   }
-  .nav__item {
-    flex-basis: 27px;
-    width: 27px;
-    min-width: 27px;
-    height: 29px;
+  .nav__tab.starts-group::before {
+    display: none;
+  }
+}
+
+/* Deeply constrained: a 320px window at 150% scale leaves ~200px of strip. */
+@container navstrip (max-width: 270px) {
+  .nav__item,
+  .nav__tab {
+    padding-inline: 1px;
   }
   .nav__item .ui-icon {
-    width: 17px;
-    height: 17px;
+    width: 14px;
+    height: 14px;
   }
-}
-
-[data-ui-scale='125'] .nav__primary,
-[data-ui-scale='150'] .nav__primary {
-  gap: 1px;
-}
-[data-ui-scale='125'] .nav__item {
-  flex-basis: 29px;
-  width: 29px;
-  min-width: 29px;
-  height: 30px;
-}
-[data-ui-scale='150'] .nav__item {
-  flex-basis: 18px;
-  width: 18px;
-  min-width: 18px;
-  height: 22px;
-}
-[data-ui-scale='125'] .nav__item .ui-icon {
-  width: 17px;
-  height: 17px;
-}
-[data-ui-scale='150'] .nav__item .ui-icon {
-  width: 15px;
-  height: 15px;
-}
-
-@media (max-width: 359px) {
-  [data-ui-scale='125'] .nav__primary,
-  [data-ui-scale='150'] .nav__primary {
-    gap: 0;
+  .nav__tab.is-active .nav__tab-marker {
+    display: none;
   }
 }
 
@@ -1252,6 +1323,10 @@ h4 {
 /* keep hover-lift / drag scaling anchored to the character's feet */
 .critter-btn--sprite {
   transform-origin: 50% 100%;
+  /* The animal's head sits roughly three-quarters up a seated-at-desk composition,
+     so the mood bubble reads as belonging to them instead of hovering above the
+     furniture. */
+  --bubble-anchor: 74%;
 }
 
 /* ===================================================================
@@ -1267,7 +1342,12 @@ h4 {
   --bubble-fill: color-mix(in srgb, var(--mood-color) 15%, #fff8ea);
   position: absolute;
   left: 50%;
-  bottom: calc(100% + 8px);
+  /* Anchored to a fraction of the character's height rather than the top of their
+     box. The SVG critters are a bare silhouette, so their box top IS the head and
+     the default 100% is right. The photographic workstation sprites include the
+     desk, lamps and shelves above the animal, so anchoring to the box top left the
+     bubble floating near the ceiling with its tail pointing at nothing. */
+  bottom: calc(var(--bubble-anchor, 100%) + 8px);
   z-index: 8;
   display: grid;
   place-items: center;
@@ -1343,7 +1423,9 @@ h4 {
 .speech-anchor {
   position: absolute;
   left: 50%;
-  bottom: 100%;
+  /* Matches the mood bubble's anchor so a teammate's words come from the same
+     place their emoji does. */
+  bottom: var(--bubble-anchor, 100%);
   width: 1px;
   height: 1px;
   pointer-events: none;
@@ -4947,8 +5029,7 @@ img {
 .chip-btn,
 .tag-btn,
 .mini-btn,
-.ghost-btn,
-.nav__item {
+.ghost-btn {
   transition:
     transform var(--dur-fast, 0.12s) var(--ease),
     background var(--dur, 0.2s) var(--ease),
@@ -4965,8 +5046,7 @@ img {
 .chip-btn:not(:disabled):active,
 .tag-btn:not(:disabled):active,
 .mini-btn:not(:disabled):active,
-.ghost-btn:not(:disabled):active,
-.nav__item:active {
+.ghost-btn:not(:disabled):active {
   transform: translateY(1px) scale(0.97);
 }
 .critter-btn {
@@ -5114,11 +5194,10 @@ img {
   box-shadow: 0 2px 9px color-mix(in srgb, var(--gold) 40%, transparent);
 }
 
-/* Nav: preserve the compact navigation geometry while retaining identity corners. */
-.nav__item {
-  position: relative;
-  border-radius: 10px;
-}
+/* Nav geometry, shape and selected state are owned in full by the navigation block
+   above. This identity layer deliberately declares nothing for `.nav__item`: an
+   all-corners radius here is what previously turned the folder tabs back into
+   free-floating pills. */
 
 /* ==========================================================================
    Bug Squash minigame
@@ -5858,16 +5937,13 @@ img {
 }
 .nav {
   background: color-mix(in srgb, var(--chrome-surface) 88%, transparent);
-  border-bottom: var(--border-thin) solid color-mix(in srgb, var(--accent-rule) 35%, transparent);
+  /* No bottom border: the rail the tabs hang on IS the strip's closing line, and a
+     second rule below it would be a line the open tab cannot punch through. */
 }
-.nav__item,
 .res,
 .quiet-toggle,
 .mute-toggle {
   border-radius: var(--corner-control);
-}
-.nav__item.is-active {
-  box-shadow: inset 0 -3px 0 var(--accent-rule);
 }
 .res {
   border: var(--border-thin) solid color-mix(in srgb, var(--c-cream-300) 22%, transparent);
@@ -6089,8 +6165,10 @@ textarea {
     inset 0 -1px 0 rgba(255, 244, 224, 0.07),
     0 3px 0 rgba(18, 12, 7, 0.28);
 }
-.header::after,
-.nav::after {
+/* The stitch motif stops at the header. On the tab rail it ran a dashed line straight
+   across the join between the open tab and its content — the one edge in the whole
+   interface that has to read as uninterrupted. */
+.header::after {
   content: '';
   position: absolute;
   left: 8px;
@@ -6391,22 +6469,12 @@ textarea {
   position: relative;
   background:
     var(--chrome-texture), color-mix(in srgb, var(--chrome-surface) 92%, var(--c-wood-500));
-  box-shadow: inset 0 -1px 0 rgba(255, 244, 224, 0.045);
+  /* Deliberately no bottom inset highlight — see the border note above. */
 }
-.nav__item {
-  border: 1px solid transparent;
-}
-.nav__item:hover {
-  border-color: color-mix(in srgb, var(--paper-edge) 28%, transparent);
-  box-shadow: inset 0 1px 0 var(--control-highlight);
-}
-.nav__item.is-active {
-  border-color: color-mix(in srgb, var(--paper-edge) 48%, var(--primary));
-  box-shadow:
-    inset 0 -3px 0 var(--accent-rule),
-    0 2px 0 color-mix(in srgb, var(--primary-press) 76%, black),
-    inset 0 1px 0 rgba(255, 255, 255, 0.16);
-}
+/* Nav tabs are intentionally excluded from this chrome pass. The `inset 0 -3px` bar
+   it used to paint on the open tab drew a hard line across the one edge that has to
+   read as continuous with the panel below, and the `0 2px` drop shadow lifted the
+   tab off the rail. Both undid the attachment the tab metaphor depends on. */
 
 .panel,
 .card,
@@ -6616,7 +6684,14 @@ textarea {
   box-shadow: none;
   text-shadow: none;
 }
-[data-high-contrast='true'] .nav__item.is-active,
+/* High contrast marks the open tab on its top shoulder, not its bottom edge, so the
+   join with the content panel stays unbroken. */
+[data-high-contrast='true'] .nav__tab.is-active {
+  color: #000;
+  background: #fff;
+  border-color: #fff;
+  box-shadow: inset 0 4px 0 var(--accent);
+}
 [data-high-contrast='true'] .tab.is-active,
 [data-high-contrast='true'] .tag-btn.is-on,
 [data-high-contrast='true'] .chip-btn.is-on,
@@ -6879,9 +6954,6 @@ textarea {
     padding-inline: 2px;
     font-size: 0.78em;
   }
-  .nav__item {
-    padding-inline: 2px;
-  }
   .app__main {
     padding: 6px;
   }
@@ -6906,28 +6978,20 @@ textarea {
     height: 100%;
     zoom: 1;
   }
-  [data-ui-scale='150'] .nav__item {
-    flex-basis: 27px;
-    width: 27px;
-    min-width: 27px;
-    height: 29px;
-  }
-  [data-ui-scale='150'] .nav__item .ui-icon {
-    width: 17px;
-    height: 17px;
-  }
 }
 
-/* Wide-but-short companion strips tighten chrome while keeping the localized
-   labels visible; the flex navigation wraps to additional readable rows. */
+/* Wide-but-short companion strips tighten chrome to buy back vertical space. The
+   tab strip keeps its single row here; only its block padding gives way. */
 @media (max-height: 520px) and (min-width: 521px) {
   .header {
     padding-block: 5px;
   }
   .nav {
-    padding-block: 3px 4px;
+    /* Bottom padding stays zero: any gap here would separate the open tab from the
+       content it is supposed to be joined to. */
+    padding-block: 3px 0;
   }
-  .nav__item {
+  .nav__tab {
     min-height: 28px;
     padding-block: 4px;
   }

@@ -1,4 +1,5 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Locator, type Page } from '@playwright/test';
+import { ROOMS_BY_ID } from '../../src/content/rooms';
 
 // Decoration surface-category + controlled free-placement E2E.
 //
@@ -109,6 +110,34 @@ async function dragFromElementTo(
   await page.waitForTimeout(200);
 }
 
+// Asserts a target can actually receive a pointer gesture: inside the office's
+// scroll window and not underneath the decoration tray. Failures here mean the
+// scene outgrew the test window, which is a far more useful message than a drop
+// that quietly lands on the navigation bar.
+async function expectReachableForPointer(target: Locator) {
+  const probe = await target.evaluate((element) => {
+    const box = element.getBoundingClientRect();
+    const main = document.querySelector<HTMLElement>('.app__main')!.getBoundingClientRect();
+    const tray = document.querySelector<HTMLElement>('.deco-tray')?.getBoundingClientRect();
+    return {
+      top: box.top,
+      bottom: box.bottom,
+      mainTop: main.top,
+      mainBottom: main.bottom,
+      trayTop: tray ? tray.top : Number.POSITIVE_INFINITY,
+    };
+  });
+  const usableBottom = Math.min(probe.mainBottom, probe.trayTop);
+  const overlap = Math.min(probe.bottom, usableBottom) - Math.max(probe.top, probe.mainTop);
+  expect(
+    overlap,
+    `target is clipped out of the office scroll window (box ${Math.round(probe.top)}..${Math.round(
+      probe.bottom,
+    )}, usable ${Math.round(probe.mainTop)}..${Math.round(usableBottom)}); the scene is probably ` +
+      `taller than this viewport now that more rooms exist`,
+  ).toBeGreaterThan(16);
+}
+
 function styleNumbers(style: string) {
   const left = /left:\s*([\d.]+)%/.exec(style)?.[1];
   const bottom = /bottom:\s*([\d.]+)%/.exec(style)?.[1];
@@ -117,7 +146,12 @@ function styleNumbers(style: string) {
 
 test.describe('decoration free-placement', () => {
   test.beforeEach(async ({ page }) => {
-    await page.setViewportSize({ width: 1280, height: 860 });
+    // Tall enough that the Founder's Desk AND a room on the floor above are both
+    // inside the scrollable band at once, which the cross-floor drag needs. The
+    // building has grown two rooms taller on the ground floors, and at 860px the
+    // upstairs room ended up scrolled behind the letterhead — still "visible" to
+    // Playwright, but clipped, so the drop landed on the navigation instead.
+    await page.setViewportSize({ width: 1280, height: 1100 });
     await seed(page, SAVE);
     await page.goto('/');
     await page.locator('.office').first().waitFor({ timeout: 15000 });
@@ -228,10 +262,21 @@ test.describe('decoration free-placement', () => {
   });
 
   test('dragging highlights compatible rooms and moves the instance across floors', async ({ page }) => {
+    // Morale is upstairs from the Founder's Desk; that difference is the point of
+    // this test, so it is asserted rather than assumed.
+    expect(ROOMS_BY_ID.morale.floor).not.toBe(ROOMS_BY_ID['founder-desk'].floor);
+
     const source = page.locator('.floor[data-room="founder-desk"] [data-deco="potted-fern"]');
     const destination = page.locator('.floor[data-room="morale"] .floor__stage');
     await expect(source).toBeVisible();
     await expect(destination).toBeVisible();
+    // `toBeVisible` only means "rendered and non-empty"; a room scrolled up behind
+    // the letterhead still passes it. The drop is a real pointer gesture, so both
+    // ends have to be inside the office's scroll window and clear of the tray, or
+    // the pointer silently lands on whatever chrome is in the way.
+    await expectReachableForPointer(source);
+    await expectReachableForPointer(destination);
+
     const sourceBox = (await source.boundingBox())!;
     const destinationBox = (await destination.boundingBox())!;
     const sx = sourceBox.x + sourceBox.width / 2;

@@ -297,6 +297,96 @@ const SPRITES: Record<ClickStationKind, StationSprite> = {
     ],
   },
 
+  // A cafeteria serving line: heated trays under a sneeze guard.
+  servery: {
+    base: [
+      ...housing(3, 16, 18, 6),
+      [3, 22, 18, 3, C.k],
+      ...legs(3, 18, 25),
+      [5, 12, 14, 1, C.ml],
+      [5, 8, 1, 5, C.ml],
+      [18, 8, 1, 5, C.ml],
+      [5, 7, 14, 1, C.m],
+    ],
+    accent: [
+      [5, 17, 4, 3, C.t],
+      [10, 17, 4, 3, C.gold],
+      [15, 17, 4, 3, C.tl],
+    ],
+  },
+
+  // A pneumatic tube station: a canister waiting in a glass column.
+  tube: {
+    base: [
+      [8, 4, 8, 20, C.ms],
+      [9, 5, 6, 18, C.scrd],
+      [10, 6, 4, 16, C.scr],
+      [6, 24, 12, 3, C.m],
+      [6, 27, 12, 1, C.k],
+      [5, 3, 14, 2, C.ml],
+    ],
+    accent: [
+      [10, 14, 4, 6, C.gold],
+      [11, 15, 2, 2, C.goldl],
+    ],
+  },
+
+  // A wall of security monitors on a stand.
+  monitors: {
+    base: [
+      [11, 22, 2, 4, C.ms],
+      [7, 26, 10, 1, C.k],
+      [3, 6, 8, 7, C.k],
+      [4, 7, 6, 5, C.scrd],
+      [13, 6, 8, 7, C.k],
+      [14, 7, 6, 5, C.scrd],
+      [3, 14, 8, 7, C.k],
+      [4, 15, 6, 5, C.scrd],
+      [13, 14, 8, 7, C.k],
+      [14, 15, 6, 5, C.scrd],
+    ],
+    accent: [
+      [4, 7, 6, 5, C.scr],
+      [14, 15, 6, 5, C.scr],
+      [5, 16, 2, 1, C.gl],
+    ],
+  },
+
+  // A flatbed document scanner mid-pass.
+  scanner: {
+    base: [
+      ...housing(3, 14, 18, 7),
+      [3, 21, 18, 3, C.k],
+      ...legs(3, 18, 24),
+      [5, 10, 14, 4, C.paper],
+      [6, 11, 12, 1, C.w],
+      [6, 13, 8, 1, C.w],
+      [3, 13, 18, 1, C.ml],
+    ],
+    accent: [
+      [4, 17, 16, 2, C.scrl],
+      [4, 16, 16, 1, C.scr],
+    ],
+  },
+
+  // A behavioural incubation pod. Nobody is entirely sure what is inside.
+  pod: {
+    base: [
+      ...housing(6, 20, 12, 5),
+      [6, 25, 12, 2, C.k],
+      [7, 6, 10, 14, C.scrd],
+      [8, 7, 8, 12, C.scr],
+      [6, 4, 12, 2, C.ml],
+      [5, 5, 2, 15, C.ms],
+      [17, 5, 2, 15, C.ms],
+    ],
+    accent: [
+      [10, 10, 4, 7, C.vio],
+      [11, 11, 2, 4, C.viol],
+      [8, 21, 3, 2, C.gl],
+    ],
+  },
+
   // A rooftop signal dish.
   antenna: {
     base: [

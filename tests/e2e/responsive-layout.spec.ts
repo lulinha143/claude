@@ -123,12 +123,33 @@ async function expectNavigationReadable(page: Page, _width: number) {
   await expect(destinations).toHaveCount(11);
   await expect(nav.locator('.nav__more-toggle, .nav__more-panel')).toHaveCount(0);
 
+  // The strip is folder tabs, so a tab is as wide as what it has to show. Names are
+  // switched on only at the widths where all eleven of them fit; which mode we are
+  // in is read from the DOM rather than restating the breakpoint here, so this stays
+  // honest if the threshold is ever retuned.
+  const labelled = await destinations
+    .first()
+    .locator('.nav__tab-label')
+    .evaluate((element) => getComputedStyle(element).display !== 'none');
+
   for (const control of await destinations.all()) {
     await expect(control.locator('.nav__panel-label, .nav__label')).toHaveCount(0);
     const box = await control.boundingBox();
     expect(box).not.toBeNull();
-    expect(box!.width).toBeGreaterThanOrEqual(27);
-    expect(box!.width).toBeLessThanOrEqual(35);
+    // Whatever the mode, a tab stays a real hit target rather than shrinking to a
+    // sliver in order to make the row fit.
+    expect(box!.width).toBeGreaterThanOrEqual(24);
+    expect(box!.height).toBeGreaterThanOrEqual(22);
+    // The open tab is the only one carrying the section marker, so it is legitimately
+    // a little wider than its closed neighbours.
+    const open = (await control.getAttribute('aria-current')) === 'page';
+    if (labelled) {
+      await expect(control.locator('.nav__tab-label')).toBeVisible();
+      expect(box!.width).toBeLessThanOrEqual(160);
+    } else {
+      // Icon-only: wide enough to hit, tight enough that eleven share one row.
+      expect(box!.width).toBeLessThanOrEqual(open ? 54 : 44);
+    }
   }
 
   const rowCount = await destinations.evaluateAll((elements) => {

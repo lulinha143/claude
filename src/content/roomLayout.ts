@@ -50,6 +50,12 @@ const ROOM_STYLE: Record<string, SlotStyle> = {
   marketing: 'row',
   vault: 'row',
   basement: 'row',
+  // Second expansion.
+  cafeteria: 'social',
+  mailroom: 'row',
+  security: 'pairs',
+  archive: 'row',
+  incubator: 'pairs',
 };
 
 // Per-style depth (px up from the floor), cycled across occupants. The values

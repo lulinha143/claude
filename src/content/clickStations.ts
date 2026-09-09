@@ -33,7 +33,12 @@ export type ClickStationKind =
   | 'agenda'
   | 'dreamlog'
   | 'furnace'
-  | 'antenna';
+  | 'antenna'
+  | 'servery'
+  | 'tube'
+  | 'monitors'
+  | 'scanner'
+  | 'pod';
 
 /**
  * How a station responds to repeated tapping.
@@ -276,6 +281,90 @@ export const CLICK_STATIONS: readonly ClickStationDef[] = [
     resource: 'nuts',
     synergy: ['pingo', 'canela'],
     critBonus: 0.05,
+  }),
+
+  // --- Second expansion: each new room brings its own way of being played -----
+
+  // The friendliest station in the building: fast, forgiving, low payout. It is
+  // what the early game clicks while waiting to afford anything better.
+  station({
+    id: 'serving-line',
+    roomId: 'cafeteria',
+    kind: 'servery',
+    nameKey: 'station.servingLine.name',
+    hintKey: 'station.servingLine.hint',
+    x: 0.82,
+    bottom: 4,
+    cadence: 'burst',
+    payout: 0.55,
+    resource: 'nuts',
+    synergy: ['marlow', 'bia'],
+  }),
+
+  // Pneumatic tubes: a charge station whose rhythm is the point.
+  station({
+    id: 'pneumatic-tube',
+    roomId: 'mailroom',
+    kind: 'tube',
+    nameKey: 'station.pneumaticTube.name',
+    hintKey: 'station.pneumaticTube.hint',
+    x: 0.16,
+    bottom: 8,
+    cadence: 'charge',
+    payout: 1.9,
+    resource: 'nuts',
+    synergy: ['junie', 'perry', 'otto'],
+    critBonus: 0.02,
+  }),
+
+  // The camera bank rewards patient, deliberate taps and crits often — you are
+  // looking for something, and occasionally you find it.
+  station({
+    id: 'camera-bank',
+    roomId: 'security',
+    kind: 'monitors',
+    nameKey: 'station.cameraBank.name',
+    hintKey: 'station.cameraBank.hint',
+    x: 0.84,
+    bottom: 10,
+    cadence: 'steady',
+    payout: 2.2,
+    resource: 'nuts',
+    synergy: ['corvus', 'echo', 'perry'],
+    critBonus: 0.07,
+  }),
+
+  // The document scanner: slow, high value, and the room's whole personality.
+  station({
+    id: 'document-scanner',
+    roomId: 'archive',
+    kind: 'scanner',
+    nameKey: 'station.documentScanner.name',
+    hintKey: 'station.documentScanner.hint',
+    x: 0.18,
+    bottom: 6,
+    cadence: 'charge',
+    payout: 3.6,
+    resource: 'nuts',
+    synergy: ['moss', 'mina', 'nino'],
+    critBonus: 0.05,
+  }),
+
+  // The second golden-nut station, and the better one — it should feel like a
+  // reward for having built the whole building.
+  station({
+    id: 'incubation-pod',
+    roomId: 'incubator',
+    kind: 'pod',
+    nameKey: 'station.incubationPod.name',
+    hintKey: 'station.incubationPod.hint',
+    x: 0.83,
+    bottom: 5,
+    cadence: 'charge',
+    payout: 0.035,
+    resource: 'goldenNuts',
+    synergy: ['axel', 'quincy', 'nixie'],
+    critBonus: 0.06,
   }),
 ];
 

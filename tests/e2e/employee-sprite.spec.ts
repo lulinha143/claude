@@ -139,17 +139,33 @@ test('reduced motion swaps the animation for a static poster frame', async ({ pa
   expect(Buffer.compare(a, b)).toBe(0);
 });
 
-// A registered character whose artwork cannot load must degrade gracefully.
-test('a character with missing artwork falls back to the drawn silhouette', async ({ page }) => {
+// An animal with NO registered artwork must still render — as the hand-drawn
+// Critter silhouette rather than a broken image. Nine animals have final art; the
+// rest of the roster relies on this path, so it is the common case, not an edge one.
+// (Bea used to be the example here; she has real artwork now.)
+test('an animal without registered artwork renders as the drawn silhouette', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
-  await seed(page, saveWith({ settings: { reducedMotion: true } }));
+  await seed(
+    page,
+    saveWith({
+      settings: { reducedMotion: true },
+      // Marlow the capybara has no entry in the character-art registry.
+      employees: {
+        pip: { hired: true, level: 6, friendship: 70, room: 'founder-desk', x: 0.5 },
+        marlow: { hired: true, level: 4, friendship: 50, room: 'morale', x: 0.5 },
+      },
+    }),
+  );
   await page.goto('/');
-  await openConstruction(page);
+  await page.locator('.office').first().waitFor({ timeout: 15000 });
+  await clearModals(page);
+  const room = page.locator('.floor[data-room="morale"]');
+  await room.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(400);
 
-  const room = page.locator('.floor[data-room="construction"]');
-  // Bea's APNG is not in the repository, so no broken <img> may be shown...
+  // No <img> at all, so there is nothing that can render broken...
   await expect(room.locator('.employee-sprite')).toHaveCount(0);
-  // ...and she must still be present and interactive as an SVG critter.
+  // ...and he is still present and interactive as an SVG critter.
   await expect(room.locator('.critter-btn svg.critter')).toHaveCount(1);
 });
 

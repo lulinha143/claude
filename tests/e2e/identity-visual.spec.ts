@@ -152,7 +152,13 @@ test('high-contrast identity preserves marks, states, and compact reachability',
   expect(activeColors.color).toBe('rgb(0, 0, 0)');
   expect(activeColors.background).toBe('rgb(255, 255, 255)');
 
-  for (const selector of ['.header::after', '.nav::after', '.floor__label::before']) {
+  // The nav's decorative pseudo is now the open tab's join overlay, which reaches a
+  // pixel past the tab into the content and so must never intercept a click.
+  for (const selector of [
+    '.header::after',
+    '.nav__tab.is-active::after',
+    '.floor__label::before',
+  ]) {
     const [base, pseudo] = selector.split('::');
     expect(
       await page

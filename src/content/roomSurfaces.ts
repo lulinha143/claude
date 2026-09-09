@@ -41,6 +41,12 @@ export const ROOM_BUILTIN: Record<string, RoomBuiltInKind> = {
   nap: 'plant',
   basement: 'pipes',
   rooftop: 'plant',
+  // Second expansion.
+  cafeteria: 'counter',
+  mailroom: 'shelf',
+  security: 'board',
+  archive: 'cabinet',
+  incubator: 'lab',
 };
 
 export interface RegionCompatibilityProfile {

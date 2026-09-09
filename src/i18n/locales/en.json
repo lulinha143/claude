@@ -575,6 +575,26 @@
     "rooftop": {
       "name": "Rooftop Acorn Garden",
       "desc": "Fresh air, actual grass, and a great view."
+    },
+    "cafeteria": {
+      "name": "Nut Cafeteria",
+      "desc": "Hot food, cold lighting. Everyone leaves happier than they arrived."
+    },
+    "mailroom": {
+      "name": "Internal Mail Room",
+      "desc": "Every form in the building passes through here. Some pass through twice."
+    },
+    "security": {
+      "name": "Security Office",
+      "desc": "Eleven cameras. Twelve monitors. Nobody has explained the twelfth."
+    },
+    "archive": {
+      "name": "Records Archive",
+      "desc": "Everything the company has ever written down, and a little more."
+    },
+    "incubator": {
+      "name": "Behavioural Incubator",
+      "desc": "Six pods. Six clipboards. Please do not tap on the glass."
     }
   },
   "station": {
@@ -641,6 +661,26 @@
     "signalDish": {
       "name": "Signal Dish",
       "hint": "Aimed at the car park. Receiving anyway."
+    },
+    "servingLine": {
+      "name": "Serving Line",
+      "hint": "Keep the trays moving. Nobody minds if you are quick."
+    },
+    "pneumaticTube": {
+      "name": "Pneumatic Tube",
+      "hint": "Let the canister land before you send the next one."
+    },
+    "cameraBank": {
+      "name": "Camera Bank",
+      "hint": "Cycle the feeds. Occasionally one shows something useful."
+    },
+    "documentScanner": {
+      "name": "Document Scanner",
+      "hint": "One page per pass. Page 400 is missing and always has been."
+    },
+    "incubationPod": {
+      "name": "Incubation Pod",
+      "hint": "Log the reading. The reading logs you back."
     }
   },
   "upgrade": {
@@ -706,6 +746,14 @@
       "basement": {
         "name": "Build: Suspicious Basement",
         "desc": "Unlock the definitely-normal basement."
+      },
+      "mailroom": {
+        "name": "Open the Mail Room",
+        "desc": "Internal post. Cuts the cost of everything else in the building."
+      },
+      "archive": {
+        "name": "Open the Records Archive",
+        "desc": "Somewhere to put the paperwork. Findings start turning up in it."
       }
     }
   },
@@ -2251,7 +2299,12 @@
     "research": "Findings compound on the Lab. Sharpens critical taps.",
     "rooftop": "Long streaks and a signal aimed at nothing in particular.",
     "vault": "Where golden nuts accumulate. Likes a full supply chain.",
-    "basement": "Extremely productive. Please do not ask about it."
+    "basement": "Extremely productive. Please do not ask about it.",
+    "cafeteria": "Feeds the company. Cheap morale, early.",
+    "mailroom": "Makes the whole building cheaper and luckier.",
+    "security": "Watches the strange rooms so they cost less standing.",
+    "archive": "Turns the company’s own paperwork into findings.",
+    "incubator": "The strongest golden-nut room, and the least pleasant."
   },
   "repTier": {
     "unlisted": {

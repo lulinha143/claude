@@ -327,6 +327,101 @@ export const ROOM_PROFILES: readonly RoomProfile[] = [
     feeds: ['vault'],
     specialists: ['nixie', 'inky'],
   },
+
+  // --- Second expansion ------------------------------------------------------
+  // Each of these fills a gap the original thirteen left, so the building grows
+  // in CAPABILITY rather than just in room count.
+
+  // The early morale room. Cheap to reach, and the answer to the first
+  // production floors wearing people down before the Break Room exists.
+  {
+    roomId: 'cafeteria',
+    temper: 'social',
+    summaryKey: 'roomProfile.cafeteria',
+    effects: [
+      { kind: 'moraleTarget', value: 7 },
+      { kind: 'moraleRegen', value: 0.3 },
+      // Feeding people is cheaper than replacing them.
+      { kind: 'costReduction', value: 0.04 },
+    ],
+    tradeoffs: [{ kind: 'production', value: -0.03 }],
+    feeds: ['sorting', 'cafeteria'],
+    specialists: ['marlow', 'bia'],
+  },
+
+  // The efficiency room. Its whole identity is making the REST of the building
+  // cheaper and luckier, so it rewards a player who already has rooms to improve.
+  {
+    roomId: 'mailroom',
+    temper: 'operational',
+    summaryKey: 'roomProfile.mailroom',
+    effects: [
+      { kind: 'costReduction', value: 0.08 },
+      { kind: 'eventLuck', value: 0.03 },
+      // Paperwork moves faster when somebody is actually sorting it.
+      { kind: 'production', value: 0.07, requiresRoom: 'sorting' },
+    ],
+    tradeoffs: [],
+    feeds: ['procurement', 'archive'],
+    specialists: ['junie', 'perry', 'otto'],
+  },
+
+  // The risk room. It suppresses the reputation damage the unpleasant rooms cause,
+  // which is what makes running a basement survivable at all.
+  {
+    roomId: 'security',
+    temper: 'secure',
+    summaryKey: 'roomProfile.security',
+    effects: [
+      { kind: 'reputationRate', value: 0.04 },
+      { kind: 'critChance', value: 0.03 },
+      // Watching the strange rooms is only worth staffing if there are any.
+      { kind: 'eventLuck', value: 0.05, requiresRoom: 'basement' },
+    ],
+    tradeoffs: [
+      // Being observed is not relaxing.
+      { kind: 'moraleTarget', value: -4 },
+    ],
+    feeds: ['basement', 'archive'],
+    specialists: ['corvus', 'echo', 'perry'],
+  },
+
+  // The discovery room. Turns the company's own paperwork into findings, and only
+  // pays out properly once there is a Research department to read them.
+  {
+    roomId: 'archive',
+    temper: 'analytical',
+    summaryKey: 'roomProfile.archive',
+    effects: [
+      { kind: 'eventLuck', value: 0.08 },
+      { kind: 'goldenChance', value: 0.004 },
+      { kind: 'production', value: 0.1, requiresRoom: 'research' },
+    ],
+    tradeoffs: [{ kind: 'moraleTarget', value: -2 }],
+    feeds: ['research', 'security'],
+    specialists: ['moss', 'mina', 'nino'],
+  },
+
+  // The late-game golden-nut engine. Deliberately the strongest premium-currency
+  // room in the building and the one that most needs the social rooms propping it
+  // up, so reaching it changes how the whole company has to be arranged.
+  {
+    roomId: 'incubator',
+    temper: 'irregular',
+    summaryKey: 'roomProfile.incubator',
+    effects: [
+      { kind: 'goldenChance', value: 0.014 },
+      { kind: 'production', value: 0.16 },
+      // The pods only behave when somebody is measuring them.
+      { kind: 'goldenChance', value: 0.01, requiresRoom: 'archive' },
+    ],
+    tradeoffs: [
+      { kind: 'moraleTarget', value: -9 },
+      { kind: 'reputationRate', value: -0.015 },
+    ],
+    feeds: ['vault', 'research'],
+    specialists: ['axel', 'quincy', 'nixie'],
+  },
 ];
 
 export const ROOM_PROFILES_BY_ID: Record<string, RoomProfile> = Object.fromEntries(

@@ -575,6 +575,26 @@
     "rooftop": {
       "name": "Jardim de Bolotas no Telhado",
       "desc": "Ar fresco, grama de verdade e uma bela vista."
+    },
+    "cafeteria": {
+      "name": "Cantina de Nozes",
+      "desc": "Comida quente, luz fria. Todos saem mais felizes do que entraram."
+    },
+    "mailroom": {
+      "name": "Sala de Correio Interno",
+      "desc": "Todo formulário do prédio passa por aqui. Alguns passam duas vezes."
+    },
+    "security": {
+      "name": "Sala de Segurança",
+      "desc": "Onze câmeras. Doze monitores. Ninguém explicou o décimo segundo."
+    },
+    "archive": {
+      "name": "Arquivo de Registros",
+      "desc": "Tudo que a empresa já anotou, e um pouco mais."
+    },
+    "incubator": {
+      "name": "Incubadora Comportamental",
+      "desc": "Seis cápsulas. Seis pranchetas. Não bata no vidro."
     }
   },
   "station": {
@@ -641,6 +661,26 @@
     "signalDish": {
       "name": "Antena Parabólica",
       "hint": "Apontada para o estacionamento. Recebendo mesmo assim."
+    },
+    "servingLine": {
+      "name": "Linha de Servir",
+      "hint": "Mantenha as bandejas andando. Ninguém liga se for rápido."
+    },
+    "pneumaticTube": {
+      "name": "Tubo Pneumático",
+      "hint": "Deixe a cápsula chegar antes de mandar a próxima."
+    },
+    "cameraBank": {
+      "name": "Painel de Câmeras",
+      "hint": "Alterne os feeds. De vez em quando um mostra algo útil."
+    },
+    "documentScanner": {
+      "name": "Escâner de Documentos",
+      "hint": "Uma página por passagem. A página 400 falta desde sempre."
+    },
+    "incubationPod": {
+      "name": "Cápsula de Incubação",
+      "hint": "Registre a leitura. A leitura registra você de volta."
     }
   },
   "upgrade": {
@@ -706,6 +746,14 @@
       "basement": {
         "name": "Construir: Porão Suspeito",
         "desc": "Desbloqueie o porão definitivamente normal."
+      },
+      "mailroom": {
+        "name": "Abrir a Sala de Correio",
+        "desc": "Correio interno. Reduz o custo de todo o resto do prédio."
+      },
+      "archive": {
+        "name": "Abrir o Arquivo de Registros",
+        "desc": "Um lugar para a papelada. Descobertas começam a aparecer nela."
       }
     }
   },
@@ -2251,7 +2299,12 @@
     "research": "Descobertas se somam ao Laboratório. Afia toques críticos.",
     "rooftop": "Sequências longas e um sinal apontado para nada.",
     "vault": "Onde as nozes douradas acumulam. Gosta de estoque cheio.",
-    "basement": "Extremamente produtivo. Por favor, não pergunte."
+    "basement": "Extremamente produtivo. Por favor, não pergunte.",
+    "cafeteria": "Alimenta a empresa. Ânimo barato, cedo.",
+    "mailroom": "Deixa todo o prédio mais barato e mais sortudo.",
+    "security": "Vigia as salas estranhas para custarem menos reputação.",
+    "archive": "Transforma a própria papelada da empresa em descobertas.",
+    "incubator": "A sala mais forte em nozes douradas, e a menos agradável."
   },
   "repTier": {
     "unlisted": {
