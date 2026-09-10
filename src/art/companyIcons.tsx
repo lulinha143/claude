@@ -24,27 +24,61 @@ export type CompanyIconId =
   | 'moon'
   | 'sun'
   | 'gem'
-  | 'crown';
+  | 'crown'
+  // --- the Nutshell Inc. core ------------------------------------------------
+  // Marks that could only belong to THIS company: what it pays in, what it is
+  // called, what it does all day, and what it would rather you did not look at.
+  | 'acorn'
+  | 'nutshell'
+  | 'clipboard'
+  | 'flask'
+  | 'magnifier'
+  | 'folder'
+  | 'stamp'
+  | 'maze'
+  | 'keyhole'
+  | 'observer';
 
+/**
+ * Ordered so the picker opens on the marks that actually belong to Nutshell Inc.
+ * — its currency, its name, its paperwork and its research — before the general
+ * emblems. The generic marks stay available (a player may already have chosen
+ * one) but they no longer lead, because a company logo picker whose first row is
+ * stars and crowns tells you nothing about the company.
+ */
 export const COMPANY_ICON_IDS: CompanyIconId[] = [
+  // The company, as it would describe itself.
+  'acorn',
+  'nutshell',
+  'clipboard',
+  'folder',
+  'stamp',
+  'flask',
+  'magnifier',
+  'maze',
+  // The company, as it behaves.
+  'observer',
+  'keyhole',
+  // The staff.
   'paw',
   'fox',
   'beaver',
   'owl',
   'raccoon',
   'crow',
+  // General.
   'coffee',
   'leaf',
   'tree',
+  'briefcase',
+  'gear',
+  'building',
   'heart',
   'star',
   'moon',
   'sun',
   'gem',
   'crown',
-  'briefcase',
-  'gear',
-  'building',
 ];
 
 export const DEFAULT_COMPANY_ICON: CompanyIconId = 'paw';
@@ -54,6 +88,85 @@ const dot = (cx: number, cy: number, r = 0.9) => (
 );
 
 const PATHS: Record<CompanyIconId, JSX.Element> = {
+  // What the company pays in.
+  acorn: (
+    <>
+      <path d="M6.4 8.6 h11.2 a1 1 0 0 0 .9 -1.5 C17.4 5.3 15 4 12 4 S6.6 5.3 5.5 7.1 a1 1 0 0 0 .9 1.5 Z" />
+      <path d="M7.4 9.2 C7.4 15 9.4 20 12 20 s4.6 -5 4.6 -10.8 Z" />
+      <path d="M12 4 V2.4" />
+    </>
+  ),
+  // The company's own name: a shell, opened, with the kernel gone.
+  nutshell: (
+    <>
+      <path d="M3.6 11 C3.6 6.9 7.4 3.6 12 3.6 s8.4 3.3 8.4 7.4 Z" />
+      <path d="M4.6 13.4 C5.6 17.6 8.5 20.4 12 20.4 s6.4 -2.8 7.4 -7 Z" />
+      <path d="M8.4 7.4 q3.6 -1.6 7.2 0" />
+    </>
+  ),
+  // Behavioural research is mostly paperwork about behaviour.
+  clipboard: (
+    <>
+      <rect x="5" y="4.4" width="14" height="16" rx="2" />
+      <path d="M9 4.4 V3.2 a1 1 0 0 1 1 -1 h4 a1 1 0 0 1 1 1 v1.2" />
+      <path d="M8.6 10 h6.8 M8.6 13.4 h6.8 M8.6 16.8 h4.2" />
+    </>
+  ),
+  folder: (
+    <>
+      <path d="M3.4 7.2 a1.6 1.6 0 0 1 1.6 -1.6 h4.2 l1.8 2.2 h7.4 a1.6 1.6 0 0 1 1.6 1.6 v8.4 a1.6 1.6 0 0 1 -1.6 1.6 H5 a1.6 1.6 0 0 1 -1.6 -1.6 Z" />
+      <path d="M8.2 12.4 h7.6" />
+    </>
+  ),
+  // Nothing is real here until it has been stamped.
+  stamp: (
+    <>
+      <path d="M8.6 10.4 V7.6 a3.4 3.4 0 0 1 6.8 0 v2.8" />
+      <rect x="5.4" y="10.4" width="13.2" height="4" rx="1.4" />
+      <path d="M6.6 17 h10.8" />
+      <path d="M5.4 20 h13.2" />
+    </>
+  ),
+  flask: (
+    <>
+      <path d="M9.6 3.4 h4.8" />
+      <path d="M10.4 3.4 v5.2 L5.6 17.4 A1.8 1.8 0 0 0 7.2 20.2 h9.6 a1.8 1.8 0 0 0 1.6 -2.8 L13.6 8.6 V3.4" />
+      <path d="M7.8 14.4 h8.4" />
+      {dot(11, 17, 0.8)}
+      {dot(13.6, 18.2, 0.7)}
+    </>
+  ),
+  magnifier: (
+    <>
+      <circle cx="10.6" cy="10.6" r="5.6" />
+      <path d="M14.8 14.8 L20 20" />
+      <path d="M8.4 9.2 a2.6 2.6 0 0 1 2.4 -1.6" />
+    </>
+  ),
+  // What the subjects are actually in.
+  maze: (
+    <>
+      <rect x="3.6" y="3.6" width="16.8" height="16.8" rx="2" />
+      <path d="M7.4 3.6 v6.6 h6.4 V7.4 h3.2" />
+      <path d="M3.6 14 h6.6 v6.4" />
+      <path d="M14 20.4 v-4.2 h6.4" />
+    </>
+  ),
+  // The company, as it behaves: something is always watching.
+  observer: (
+    <>
+      <circle cx="12" cy="12" r="8.4" />
+      <path d="M5.6 12 C7.6 8.8 9.6 7.4 12 7.4 s4.4 1.4 6.4 4.6 C16.4 15.2 14.4 16.6 12 16.6 S7.6 15.2 5.6 12 Z" />
+      {dot(12, 12, 1.7)}
+    </>
+  ),
+  keyhole: (
+    <>
+      <rect x="4.6" y="3.4" width="14.8" height="17.2" rx="2" />
+      <circle cx="12" cy="10.4" r="2.4" />
+      <path d="M10.8 12.4 L10 16.6 h4 l-.8 -4.2" />
+    </>
+  ),
   paw: (
     <>
       <path d="M7.5 14.5c1.2-2.4 7.8-2.4 9 0 1.4 2.8-.8 5.3-4.5 5.3s-5.9-2.5-4.5-5.3Z" />

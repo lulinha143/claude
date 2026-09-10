@@ -45,3 +45,6 @@ steamcmd/
 
 # local code-review + visual artifacts (never committed)
 semantic-review/
+
+# Character master artwork (see assets/sources/characters/manifest.json)
+assets/sources/characters/*.png

@@ -68,7 +68,7 @@ async function expectInsideViewport(locator: Locator, width: number, height: num
 }
 
 for (const { label, width, height } of VIEWPORTS) {
-  test(`all icon destinations stay directly visible at ${label}`, async ({ page }) => {
+  test(`every destination tab stays directly visible at ${label}`, async ({ page }) => {
     await page.setViewportSize({ width, height });
     await boot(page);
 
@@ -77,30 +77,47 @@ for (const { label, width, height } of VIEWPORTS) {
     await expect(nav).toBeVisible();
     await expect(destinations).toHaveCount(11);
     await expect(nav.locator('.nav__more-toggle, .nav__more-panel')).toHaveCount(0);
+    // One row, always. A wrapped strip steals height from a 420px-tall window and a
+    // scrolled one hides destinations behind a gesture nobody expects, so the tabs
+    // give up their names — and then their breathing room — rather than their row.
     expect(await visibleRowCount(destinations)).toBe(1);
 
+    // The navigation is a strip of folder tabs rather than an icon row, so a tab is
+    // as wide as its label needs. What still has to hold is that every tab is a
+    // real, comfortably sized hit target with its icon intact.
     for (const control of await destinations.all()) {
+      // No overflow/"more" panel labels: every destination is present directly.
       await expect(control.locator('.nav__panel-label, .nav__label')).toHaveCount(0);
       const box = await control.boundingBox();
       expect(box).not.toBeNull();
-      expect(box!.width).toBeGreaterThanOrEqual(27);
-      expect(box!.width).toBeLessThanOrEqual(35);
-      expect(box!.height).toBeGreaterThanOrEqual(29);
-      expect(box!.height).toBeLessThanOrEqual(35);
+      expect(box!.width).toBeGreaterThanOrEqual(24);
+      expect(box!.height).toBeGreaterThanOrEqual(22);
+      expect(box!.height).toBeLessThanOrEqual(44);
       const iconBox = await control.locator('.ui-icon').boundingBox();
       expect(iconBox).not.toBeNull();
-      expect(iconBox!.width).toBeGreaterThanOrEqual(17);
+      expect(iconBox!.width).toBeGreaterThanOrEqual(12);
       expect(iconBox!.width).toBeLessThanOrEqual(20);
     }
 
     const active = nav.locator('.nav__item[aria-current="page"]');
     await expect(active).toHaveCount(1);
-    const activeTreatment = await active.evaluate((element) => ({
-      shadow: getComputedStyle(element).boxShadow,
-      markerWidth: getComputedStyle(element, '::after').width,
-    }));
-    expect(activeTreatment.shadow).not.toBe('none');
-    expect(activeTreatment.markerWidth).toBe('7px');
+    // The open tab is identified by ATTACHMENT to the content below rather than by
+    // a glow: it overlaps the filing rail and shares the panel surface.
+    const activeTreatment = await active.evaluate((element) => {
+      const cs = getComputedStyle(element);
+      const after = getComputedStyle(element, '::after');
+      return {
+        background: cs.backgroundColor,
+        // The overlay that erases the filing rail under the open tab.
+        overlayHeight: parseFloat(after.height),
+        overlayColour: after.backgroundColor,
+        marker: getComputedStyle(element.querySelector('.nav__tab-marker')!).backgroundColor,
+      };
+    });
+    expect(activeTreatment.background).not.toBe('rgba(0, 0, 0, 0)');
+    expect(activeTreatment.overlayHeight).toBeGreaterThan(0);
+    expect(activeTreatment.overlayColour).toBe(activeTreatment.background);
+    expect(activeTreatment.marker).not.toBe('rgba(0, 0, 0, 0)');
 
     const overflow = await nav.evaluate((element) => ({
       pixels: element.scrollWidth - element.clientWidth,

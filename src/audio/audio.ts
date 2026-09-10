@@ -22,7 +22,22 @@ export type SfxName =
   | 'cableReject'
   | 'coffeeCatch'
   | 'bugHit'
-  | 'reward';
+  | 'reward'
+  /** a tap on a click station — short, woody, pitched up by the combo. */
+  | 'stationTap'
+  /** a critical tap: the same gesture, but it lands. */
+  | 'stationCrit'
+  /** a tap that dropped a golden nut. */
+  | 'stationGolden';
+
+/** Per-call shaping for an SFX. */
+export interface SfxOptions {
+  /**
+   * Frequency multiplier, so the same sound can rise with a combo without
+   * needing a separate sample per step. Clamped to a musical range.
+   */
+  pitch?: number;
+}
 
 export interface AudioVolumes {
   master: number;
@@ -150,7 +165,8 @@ export class AudioManager {
       const Ctor =
         (typeof window !== 'undefined' &&
           (window.AudioContext ||
-            (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext)) ||
+            (window as unknown as { webkitAudioContext?: typeof AudioContext })
+              .webkitAudioContext)) ||
         null;
       if (!Ctor) return;
       this.ctx = new Ctor();
@@ -213,7 +229,9 @@ export class AudioManager {
     this.applyGains();
   }
 
-  setChannelMutes(m: Partial<{ music: boolean; ambience: boolean; ui: boolean; sfx: boolean }>): void {
+  setChannelMutes(
+    m: Partial<{ music: boolean; ambience: boolean; ui: boolean; sfx: boolean }>,
+  ): void {
     this.channelMuted = { ...this.channelMuted, ...m };
     this.applyGains();
   }
@@ -501,8 +519,11 @@ export class AudioManager {
   }
 
   // -- SFX ------------------------------------------------------------------
-  play(name: SfxName): void {
+  play(name: SfxName, opts: SfxOptions = {}): void {
     const isUi = name === 'click' || name === 'error';
+    // A combo can run long, so clamp the pitch into a range that stays musical
+    // instead of climbing into a whistle.
+    const pitch = Math.max(0.5, Math.min(2.4, opts.pitch ?? 1));
     const bus = isUi ? this.uiGain : this.sfxGain;
     // Master mute is checked here AND enforced at the master node; the per-note
     // sound routes through its bus (uiGain/sfxGain), so channel volume + channel
@@ -524,8 +545,8 @@ export class AudioManager {
       const osc = this.ctx.createOscillator();
       const g = this.ctx.createGain();
       osc.type = type;
-      osc.frequency.setValueAtTime(freq, now + startAt);
-      if (slideTo) osc.frequency.exponentialRampToValueAtTime(slideTo, now + startAt + dur);
+      osc.frequency.setValueAtTime(freq * pitch, now + startAt);
+      if (slideTo) osc.frequency.exponentialRampToValueAtTime(slideTo * pitch, now + startAt + dur);
       g.gain.setValueAtTime(0.0001, now + startAt);
       g.gain.exponentialRampToValueAtTime(vol, now + startAt + 0.01);
       g.gain.exponentialRampToValueAtTime(0.0001, now + startAt + dur);
@@ -564,6 +585,21 @@ export class AudioManager {
         break;
       case 'collect':
         beep(520, 0.08, 'sine', 0, 0.3, 780);
+        break;
+      // A station tap is deliberately SHORT (~45ms) so it can retrigger dozens
+      // of times a second without the notes smearing into a drone. The caller
+      // raises `pitch` with the combo, which is what makes a streak feel like it
+      // is building.
+      case 'stationTap':
+        beep(430, 0.045, 'triangle', 0, 0.22, 520);
+        texture(0.035, 1500, 0.05);
+        break;
+      case 'stationCrit':
+        beep(660, 0.09, 'square', 0, 0.22, 990);
+        beep(990, 0.11, 'triangle', 0.05, 0.2, 1320);
+        break;
+      case 'stationGolden':
+        [784, 1046, 1318].forEach((f, i) => beep(f, 0.12, 'sine', i * 0.06, 0.24));
         break;
       case 'upgrade':
         beep(440, 0.1, 'square', 0, 0.2, 660);

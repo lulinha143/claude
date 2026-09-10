@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react';
 import type { EmployeeMood } from '../sim/types';
+import { SpeechNote } from './SpeechNote';
 
 type MoodFace =
   | 'smile'
@@ -161,29 +162,33 @@ export function EmployeeBubble({
   color,
   label,
   speech,
+  name,
 }: {
   mood: EmployeeMood;
   color: string;
   label: string;
   speech?: string | null;
+  /** the speaking teammate's display name, shown on the observation note. */
+  name?: string;
 }) {
   const speaking = Boolean(speech);
   return (
-    <span
-      className="employee-bubble"
-      style={{ ['--mood-color' as string]: color } as CSSProperties}
-      data-mode={speaking ? 'speech' : 'emoji'}
-      data-mood={mood}
-      title={speaking ? undefined : label}
-    >
-      <span className="employee-bubble__emoji" aria-hidden={speaking || undefined}>
-        <MoodEmoji mood={mood} color={color} />
-      </span>
-      {speaking ? (
-        <span className="employee-bubble__speech" role="status">
-          {speech}
+    <>
+      {/* The mood emoji stays IN the scene: it is small, centred on the character
+          and reads as part of them. Only the words move to a portal, because only
+          the words are long enough to be clipped by the room. */}
+      <span
+        className="employee-bubble"
+        style={{ ['--mood-color' as string]: color } as CSSProperties}
+        data-mode={speaking ? 'speech' : 'emoji'}
+        data-mood={mood}
+        title={speaking ? undefined : label}
+      >
+        <span className="employee-bubble__emoji" aria-hidden={speaking || undefined}>
+          <MoodEmoji mood={mood} color={color} />
         </span>
-      ) : null}
-    </span>
+      </span>
+      {speech ? <SpeechNote name={name ?? label} text={speech} color={color} /> : null}
+    </>
   );
 }

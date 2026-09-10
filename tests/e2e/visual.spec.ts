@@ -39,16 +39,20 @@ const RICH_SAVE = {
 // Exhaustive art-direction fixture: every department is unlocked but no one
 // and nothing has been added by the player. Each room capture therefore proves
 // the authored composition can stand on its own before customization.
+// Both gates are derived from the room table rather than listed by hand. A room
+// added later then joins this review automatically instead of shipping unlooked-at,
+// which is exactly how the five newest departments slipped past a hardcoded list.
+const ROOM_UNLOCK_UPGRADES = Object.fromEntries(
+  ROOMS.flatMap((room) => (room.unlock.upgradeId ? [[room.unlock.upgradeId, 1] as const] : [])),
+);
+const ROOM_UNLOCK_REPUTATION =
+  Math.max(0, ...ROOMS.map((room) => room.unlock.reputation ?? 0)) * 4 + 1000;
+
 const EMPTY_ROOM_REVIEW_SAVE = {
   ...RICH_SAVE,
   settings: { language: 'en', reducedMotion: true, fontScale: 1, uiScale: 1 },
-  upgrades: {
-    'room-sorting': 1,
-    'room-lab': 1,
-    'room-vault': 1,
-    'room-meeting': 1,
-    'room-basement': 1,
-  },
+  resources: { ...RICH_SAVE.resources, reputation: ROOM_UNLOCK_REPUTATION },
+  upgrades: ROOM_UNLOCK_UPGRADES,
   employees: Object.fromEntries(
     EMPLOYEES.map((employee) => [
       employee.id,

@@ -1,7 +1,12 @@
 import { create } from 'zustand';
 import { GameEngine } from '../sim/engine';
 import { SaveManager } from '../save/saveManager';
-import { computeOffline, applyOffline, shouldShowOfflineModal, type OfflineResult } from '../sim/offline';
+import {
+  computeOffline,
+  applyOffline,
+  shouldShowOfflineModal,
+  type OfflineResult,
+} from '../sim/offline';
 import { performPrestige, buyPrestigeSkill } from '../sim/prestige';
 import type { GameState, PrestigeBranchId } from '../sim/types';
 import { getPlatform } from '../platform/adapter';
@@ -11,6 +16,7 @@ import { DECORATIONS_BY_ID } from '../content/decorations';
 import { evaluateAchievements } from '../sim/achievements';
 import { unlockedRooms } from '../sim/rooms';
 import { ROOMS_BY_ID } from '../content/rooms';
+import { REPUTATION_TIERS, reputationTier } from '../content/reputationTiers';
 import { EMPLOYEES_BY_ID } from '../content/employees';
 import { ACHIEVEMENTS_BY_ID } from '../content/achievements';
 import { notify } from '../ui/notificationsStore';
@@ -20,7 +26,8 @@ import i18n from '../i18n';
 // rendered mute button actually drives every audio bus to zero (not just the
 // AudioManager methods in isolation). Harmless: exposes only effective gains.
 if (typeof window !== 'undefined') {
-  (window as unknown as { __wmnoAudioDiag?: () => unknown }).__wmnoAudioDiag = () => audio.getDiagnostics();
+  (window as unknown as { __wmnoAudioDiag?: () => unknown }).__wmnoAudioDiag = () =>
+    audio.getDiagnostics();
 }
 
 export type ViewId =
@@ -223,15 +230,33 @@ export const useStore = create<StoreState>((set) => {
 function unlockedRoomIdSet(state: GameState): Set<string> {
   return new Set(unlockedRooms(state).map((r) => r.id));
 }
-let prevAch = new Set(Object.entries(engine.state.achievements).filter(([, v]) => v > 0).map(([k]) => k));
-let prevHired = new Set(Object.keys(engine.state.employees).filter((id) => engine.state.employees[id]?.hired));
+let prevAch = new Set(
+  Object.entries(engine.state.achievements)
+    .filter(([, v]) => v > 0)
+    .map(([k]) => k),
+);
+let prevHired = new Set(
+  Object.keys(engine.state.employees).filter((id) => engine.state.employees[id]?.hired),
+);
 let prevRooms = unlockedRoomIdSet(engine.state);
+/** Timestamp of the last auto-resolved event already announced. */
+let prevAutoResolvedAt = engine.lastAutoResolved?.at ?? 0;
+/** The standing tier already announced, so a tier-up fires exactly once. */
+let prevRepTier = reputationTier(engine.state.resources.reputation).id;
 
 let suppressNotify = false;
 function resetChangeTracking(): void {
-  prevAch = new Set(Object.entries(engine.state.achievements).filter(([, v]) => v > 0).map(([k]) => k));
-  prevHired = new Set(Object.keys(engine.state.employees).filter((id) => engine.state.employees[id]?.hired));
+  prevAch = new Set(
+    Object.entries(engine.state.achievements)
+      .filter(([, v]) => v > 0)
+      .map(([k]) => k),
+  );
+  prevHired = new Set(
+    Object.keys(engine.state.employees).filter((id) => engine.state.employees[id]?.hired),
+  );
   prevRooms = unlockedRoomIdSet(engine.state);
+  prevAutoResolvedAt = engine.lastAutoResolved?.at ?? 0;
+  prevRepTier = reputationTier(engine.state.resources.reputation).id;
 }
 
 /** Replace state (prestige/import/reset) without flooding toasts for the whole company. */
@@ -261,7 +286,8 @@ engine.subscribe(() => {
     if (st.employees[id]?.hired && !prevHired.has(id)) {
       prevHired.add(id);
       const def = EMPLOYEES_BY_ID[id];
-      if (def) notify('employees', i18n.t('notify.hired', { name: i18n.t(def.nameKey) }), 'positive');
+      if (def)
+        notify('employees', i18n.t('notify.hired', { name: i18n.t(def.nameKey) }), 'positive');
     }
   }
 
@@ -271,8 +297,59 @@ engine.subscribe(() => {
     if (!prevRooms.has(rid)) {
       prevRooms.add(rid);
       const def = ROOMS_BY_ID[rid];
-      if (def) notify('rooms', i18n.t('notify.roomUnlocked', { name: i18n.t(def.nameKey) }), 'positive');
+      if (def)
+        notify('rooms', i18n.t('notify.roomUnlocked', { name: i18n.t(def.nameKey) }), 'positive');
     }
+  }
+
+  // Climbing the standing ladder is one of the game's real milestones, so it is
+  // announced with the tier's own name and flavour line rather than passing by as
+  // a number ticking over.
+  const tier = reputationTier(st.resources.reputation);
+  if (tier.id !== prevRepTier) {
+    const climbed =
+      REPUTATION_TIERS.indexOf(tier) > REPUTATION_TIERS.findIndex((t) => t.id === prevRepTier);
+    prevRepTier = tier.id;
+    if (climbed) {
+      notify(
+        'reputation',
+        i18n.t('notify.repTierUp', { name: i18n.t(tier.nameKey), blurb: i18n.t(tier.blurbKey) }),
+        'gold',
+      );
+    }
+  }
+
+  // Promised consequences that have just come due. Announcing these is what keeps
+  // a delayed penalty fair: the player sees the bill AND what it is settling up
+  // for, rather than an unexplained swing minutes after the decision.
+  if (engine.settledConsequences.length > 0) {
+    const settled = engine.settledConsequences.splice(0, engine.settledConsequences.length);
+    for (const item of settled) {
+      notify(
+        'moment',
+        i18n.t('notify.consequenceSettled', {
+          title: i18n.t(item.titleKey),
+          body: i18n.t(item.bodyKey),
+        }),
+        'negative',
+      );
+    }
+  }
+
+  // Events handled automatically because the player turned choice popups off.
+  // Reporting them is what keeps the setting honest: the system is still running
+  // and the player can see every decision that was taken for them.
+  const auto = engine.lastAutoResolved;
+  if (auto && auto.at !== prevAutoResolvedAt) {
+    prevAutoResolvedAt = auto.at;
+    notify(
+      'moment',
+      i18n.t('notify.eventAutoResolved', {
+        title: i18n.t(auto.titleKey),
+        choice: i18n.t(auto.choiceLabelKey),
+      }),
+      'neutral',
+    );
   }
 });
 

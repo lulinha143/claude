@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import type { EmployeeSpriteConfig } from './employeeSprites';
 import { useHaloOff } from './haloTest';
+import { markSpriteUnavailable } from './spriteAvailability';
 
 // Renders an employee's FINAL animated artwork as a looping APNG.
 //
@@ -64,11 +65,20 @@ function EmployeeSpriteImpl({ config, reducedMotion, height, className }: Employ
   // Push any authored bottom padding below the floor line so the character's
   // real contact point sits exactly on its slot (baseline 0 = no shift).
   const baselineShift = config.baseline > 0 ? `translateY(${config.baseline * 100}%)` : '';
+  // Slide the figure so ITS centre — not the centre of its transparent padding —
+  // lands on the slot the layout chose. Several animals sit 1.5-2.5% right of
+  // their canvas centre, which is enough to read as standing beside the desk
+  // rather than at it. The wrapper button is already centred on the slot, so the
+  // correction is the difference between the two centres.
+  const anchorShift =
+    Math.abs(config.anchorX - 0.5) > 0.002
+      ? `translateX(${((0.5 - config.anchorX) * 100).toFixed(2)}%)`
+      : '';
   // Keep a `translateZ(0)` so the sprite stays on its OWN compositor layer (see
   // `.employee-sprite` in styles.css), so the halo's semi-transparent edge is
   // composited from an independently-rasterised texture instead of being
   // re-blended whenever an ancestor repaints.
-  const transform = `${baselineShift} translateZ(0)`.trim();
+  const transform = `${anchorShift} ${baselineShift} translateZ(0)`.trim();
 
   // Serve the animation at the resolution it is actually displayed at, so on an
   // integer device pixel ratio the frame maps 1:1 to device pixels (DPR 1 -> @1x,
@@ -91,6 +101,10 @@ function EmployeeSpriteImpl({ config, reducedMotion, height, className }: Employ
       height={height}
       draggable={false}
       decoding="async"
+      // If the artwork cannot load, record it so this animal falls back to the
+      // code-drawn Critter silhouette instead of leaving a broken image (and an
+      // orphaned mood bubble) standing at the workstation.
+      onError={() => markSpriteUnavailable(config.src)}
       style={{
         width: `calc(${width}px * var(--asset-scale))`,
         height: `calc(${height}px * var(--asset-scale))`,

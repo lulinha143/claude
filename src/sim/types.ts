@@ -1,4 +1,5 @@
 import type { DecorationPlacement } from './surfaces';
+import type { EventEffect } from '../content/types';
 
 // Shared simulation types. These describe the persisted game state and the
 // runtime shapes the engine works with. Content *definitions* (the catalogue
@@ -71,6 +72,26 @@ export interface EmployeeEmotion {
 }
 
 /** A compact, persisted record of a resolved event decision (company timeline). */
+/**
+ * A consequence that was deferred when a choice was made and fires later.
+ *
+ * Deliberately carries its own presentation keys: when it lands, the player has
+ * usually forgotten the decision, so the notice has to say what it is settling up
+ * for. Effects are stored as authored data rather than resolved numbers so a
+ * delayed morale hit still respects the caps in force when it actually applies.
+ */
+export interface ScheduledConsequence {
+  id: string;
+  /** epoch ms at which the effects apply. */
+  at: number;
+  /** the event that promised this, for the callback notice. */
+  sourceEventId: string;
+  titleKey: string;
+  bodyKey: string;
+  /** authored effects, applied through the ordinary effect pipeline. */
+  effects: EventEffect[];
+}
+
 export interface EventHistoryEntry {
   eventId: string;
   choiceId: string;
@@ -78,11 +99,7 @@ export interface EventHistoryEntry {
 }
 
 export type PrestigeBranchId =
-  | 'industrial'
-  | 'cooperative'
-  | 'science'
-  | 'marketing'
-  | 'underground';
+  'industrial' | 'cooperative' | 'science' | 'marketing' | 'underground';
 
 export interface PrestigeState {
   count: number;
@@ -133,6 +150,22 @@ export interface StatsState {
   prestiges: number;
 }
 
+/**
+ * Persisted active-play record. The live combo itself is deliberately transient
+ * (a streak is a moment, not an asset), but the totals below survive a reload so
+ * the player keeps credit for how they have actually been playing.
+ */
+export interface ClickerState {
+  /** stationId -> lifetime taps, so rooms can show how used they are. */
+  stationTaps: Record<string, number>;
+  /** lifetime critical taps. */
+  criticalTaps: number;
+  /** lifetime taps that dropped a golden nut. */
+  goldenTaps: number;
+  /** best combo streak ever reached. */
+  bestStreak: number;
+}
+
 export interface GameSettings {
   language: string;
   masterMuted: boolean;
@@ -153,6 +186,13 @@ export interface GameSettings {
   quietMode: boolean;
   pauseAnimationsInMenus: boolean;
   fpsLimit: 30 | 60;
+  /**
+   * When true, choice events no longer interrupt play: the department resolves
+   * them automatically (picking the best available option) and reports the
+   * decision through the notification feed. Events, their consequences, their
+   * history and their cooldowns all keep working — see sim/eventAutoResolve.ts.
+   */
+  autoResolveEvents: boolean;
   focusHarvestEnabled: boolean;
   offlineCapHours: number;
   /** show the "recommended next step" hint banner. */
@@ -223,6 +263,8 @@ export interface GameState {
   focus: FocusState;
   daily: DailyState;
   stats: StatsState;
+  /** active-play (click station) record. */
+  clicker: ClickerState;
   settings: GameSettings;
   onboardingComplete: boolean;
   /** Cooldown bookkeeping for the event system: eventId -> next-eligible epoch ms. */
@@ -231,6 +273,20 @@ export interface GameState {
   pendingChain: { eventId: string; step: number } | null;
   /** Chronological record of resolved event decisions (most recent last). */
   eventHistory: EventHistoryEntry[];
+  /**
+   * Consequence memory: durable marks left by the player's decisions.
+   *
+   * flagId -> the epoch ms it was set (so content can also ask "how long ago?").
+   * Events read these to remember what the company already did — who was turned
+   * away, which favour is still owed, which crisis was caused — which is what
+   * lets later content refer back to a specific save's history.
+   */
+  flags: Record<string, number>;
+  /**
+   * Effects that were promised earlier and land later. This is how a choice can
+   * look profitable now and bill the company afterwards.
+   */
+  scheduled: ScheduledConsequence[];
 }
 
 export interface ProductionBreakdownEntry {

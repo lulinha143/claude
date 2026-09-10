@@ -1,4 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { GameEngine } from '../src/sim/engine';
 import { createInitialState } from '../src/sim/state';
 import {
@@ -25,6 +27,59 @@ describe('random events', () => {
     expect(GAME_EVENTS.length).toBeGreaterThanOrEqual(40);
     const chained = GAME_EVENTS.filter((e) => e.steps && Object.keys(e.steps).length > 0);
     expect(chained.length).toBeGreaterThanOrEqual(8);
+  });
+
+  // Every string a player can see in an event is a localisation KEY, and nothing
+  // else checked that the keys resolve. A typo therefore shipped as the raw key
+  // text on a modal button — invisible to typechecking, invisible to the engine
+  // tests, and visible to the player. This walks every key an event can present,
+  // in both complete locales.
+  it('resolves every event string in every complete locale', () => {
+    const localeDir = join(__dirname, '..', 'src', 'i18n', 'locales');
+    const locales = ['en', 'pt-BR'].map((code) => ({
+      code,
+      data: JSON.parse(readFileSync(join(localeDir, `${code}.json`), 'utf8')) as unknown,
+    }));
+    const lookup = (data: unknown, key: string): unknown =>
+      key.split('.').reduce<unknown>((node, part) => {
+        if (node && typeof node === 'object' && part in (node as Record<string, unknown>)) {
+          return (node as Record<string, unknown>)[part];
+        }
+        return undefined;
+      }, data);
+
+    const keys = new Set<string>();
+    const addChoice = (choice: (typeof GAME_EVENTS)[number]['choices'][number]) => {
+      keys.add(choice.labelKey);
+      if (choice.disabledKey) keys.add(choice.disabledKey);
+      for (const reaction of choice.reactions ?? []) keys.add(reaction);
+      for (const effect of choice.effects) {
+        if (effect.scheduleTitleKey) keys.add(effect.scheduleTitleKey);
+        if (effect.scheduleBodyKey) keys.add(effect.scheduleBodyKey);
+      }
+    };
+    for (const event of GAME_EVENTS) {
+      keys.add(event.titleKey);
+      keys.add(event.bodyKey);
+      for (const choice of event.choices) addChoice(choice);
+      for (const step of Object.values(event.steps ?? {})) {
+        keys.add(step.bodyKey);
+        for (const choice of step.choices) addChoice(choice);
+      }
+    }
+
+    const missing: string[] = [];
+    for (const key of [...keys].sort()) {
+      for (const locale of locales) {
+        const value = lookup(locale.data, key);
+        if (typeof value !== 'string' || value.length === 0) {
+          missing.push(`${locale.code}: ${key}`);
+        }
+      }
+    }
+    expect(missing, `unresolved event strings:\n${missing.join('\n')}`).toEqual([]);
+    // Sanity: the walk actually found the content rather than an empty set.
+    expect(keys.size).toBeGreaterThan(300);
   });
 
   it('every choice/step references localizable keys and valid next steps', () => {

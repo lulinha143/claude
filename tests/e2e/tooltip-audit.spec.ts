@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { ROOM_CAP } from '../../src/sim/rooms';
 
 // Audit proof for the newly-covered controls: the office room stats explain
 // themselves on hover, and Settings toggles reveal their hint on KEYBOARD FOCUS
@@ -56,7 +57,8 @@ test('room stats and settings toggles are self-explanatory (hover + keyboard)', 
   await page.locator('.floor[data-room="founder-desk"] .floor__stat').first().hover();
   await expect(tip).toBeVisible();
   await expect(tip).toContainText(/capacity/i);
-  await expect(tip).toContainText(/\/\s*6|of\s*6|six/i);
+  // The room capacity is four, and the tooltip has to say so.
+  await expect(tip).toContainText(new RegExp(`/\\s*${ROOM_CAP}|of\\s*${ROOM_CAP}|four`, 'i'));
 
   // Settings: a desktop toggle reveals its hint on KEYBOARD FOCUS.
   await page.getByRole('button', { name: 'Settings' }).click();

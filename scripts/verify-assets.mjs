@@ -41,11 +41,50 @@ for (const { file, role } of optional) {
 // The animated file must be a real APNG (contain the `acTL` chunk) so it can
 // never regress into a flattened, static PNG.
 const EMP = join('public', 'employees');
-const sprites = [
-  { file: 'bea.png', poster: 'bea-poster.png', minBytes: 100000, name: 'Bea (Beaver)' },
-  { file: 'pip.png', poster: 'pip-poster.png', minBytes: 100000, name: 'Pip (Squirrel)' },
-  { file: 'pip-1x.png', poster: 'pip-poster.png', minBytes: 100000, name: 'Pip (Squirrel) @1x' },
-];
+
+// The sprite list is DERIVED from the character-art registry rather than repeated
+// here, so importing a new animal cannot leave it silently unverified. The registry
+// is TypeScript, so its file paths are read out textually — a dependency-free parse
+// is preferable to adding a build step to a validation script that has to run
+// before the build.
+function spritesFromRegistry() {
+  const registry = join('src', 'art', 'characterAssets.ts');
+  if (!existsSync(registry)) return [];
+  const source = readFileSync(registry, 'utf8');
+  const out = [];
+  // Each entry is `art('<asset>', w, h, …)` inside a block naming its employee.
+  const entry = /employee:\s*'([^']+)',\s*\n\s*species:\s*'([^']+)'/g;
+  const assets = [...source.matchAll(/art\('([^']+)'/g)].map((m) => m[1]);
+  let m;
+  let index = 0;
+  while ((m = entry.exec(source))) {
+    const asset = assets[index++];
+    if (!asset) continue;
+    const [, employee, species] = m;
+    const label = `${employee[0].toUpperCase()}${employee.slice(1)} (${species})`;
+    out.push({
+      file: `${asset}.png`,
+      poster: `${asset}-poster.png`,
+      minBytes: 100000,
+      name: label,
+    });
+    if (existsSync(join(EMP, `${asset}-1x.png`))) {
+      out.push({
+        file: `${asset}-1x.png`,
+        poster: `${asset}-poster.png`,
+        minBytes: 100000,
+        name: `${label} @1x`,
+      });
+    }
+  }
+  return out;
+}
+
+const sprites = spritesFromRegistry();
+if (sprites.length === 0) {
+  console.error('  ✗ could not read any characters from src/art/characterAssets.ts');
+  ok = false;
+}
 for (const { file, poster, minBytes, name } of sprites) {
   const p = join(EMP, file);
   if (!existsSync(p)) {

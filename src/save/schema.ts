@@ -44,20 +44,22 @@ const dailyChallengeSchema = z.object({
   claimed: z.boolean().catch(false),
 });
 
-const decorationInstanceSchema = z.object({
-  instanceId: z.string().min(1),
-  decorationId: z.string().min(1),
-  roomId: z.string().nullable().catch(null),
-  surfaceType: z.enum(['floor', 'wall', 'ceiling']).catch('floor'),
-  regionKind: z.enum(['floor', 'wall', 'ceiling']).optional().catch(undefined),
-  normalizedX: z.number().min(0).max(1).catch(0.5),
-  normalizedY: z.number().min(0).max(1).catch(0.1),
-  depth: z.number().finite().catch(0),
-  variantId: z.string().optional().catch(undefined),
-  flipped: z.boolean().optional().catch(undefined),
-  rotation: z.number().finite().optional().catch(undefined),
-  interactionState: z.record(z.unknown()).optional().catch(undefined),
-}).passthrough();
+const decorationInstanceSchema = z
+  .object({
+    instanceId: z.string().min(1),
+    decorationId: z.string().min(1),
+    roomId: z.string().nullable().catch(null),
+    surfaceType: z.enum(['floor', 'wall', 'ceiling']).catch('floor'),
+    regionKind: z.enum(['floor', 'wall', 'ceiling']).optional().catch(undefined),
+    normalizedX: z.number().min(0).max(1).catch(0.5),
+    normalizedY: z.number().min(0).max(1).catch(0.1),
+    depth: z.number().finite().catch(0),
+    variantId: z.string().optional().catch(undefined),
+    flipped: z.boolean().optional().catch(undefined),
+    rotation: z.number().finite().optional().catch(undefined),
+    interactionState: z.record(z.unknown()).optional().catch(undefined),
+  })
+  .passthrough();
 
 const settingsSchema = z
   .object({
@@ -93,6 +95,7 @@ const settingsSchema = z
     quietMode: z.boolean().catch(false),
     pauseAnimationsInMenus: z.boolean().catch(false),
     fpsLimit: z.union([z.literal(30), z.literal(60)]).catch(60),
+    autoResolveEvents: z.boolean().catch(false),
     focusHarvestEnabled: z.boolean().catch(false),
     offlineCapHours: z.number().catch(8),
     showHints: z.boolean().catch(true),
@@ -120,6 +123,28 @@ const settingsSchema = z
   })
   .default({})
   .catch({} as never);
+
+export /**
+ * One authored effect inside a promised consequence. Kept permissive
+ * (`passthrough`) so a save written by a newer build that added an effect field
+ * survives a downgrade instead of having its promises silently dropped.
+ */
+const effectSchema = z
+  .object({
+    type: z.string(),
+  })
+  .passthrough();
+
+const scheduledConsequenceSchema = z.object({
+  id: z.string(),
+  at: z.number().finite(),
+  sourceEventId: z.string(),
+  titleKey: z.string(),
+  bodyKey: z.string(),
+  effects: z.array(effectSchema),
+});
+
+type ScheduledParsed = z.infer<typeof scheduledConsequenceSchema>;
 
 export const gameStateSchema = z.object({
   version: z.number().catch(SAVE_VERSION),
@@ -206,16 +231,38 @@ export const gameStateSchema = z.object({
       highestNutsPerSecond: 0,
       prestiges: 0,
     }),
+  clicker: z
+    .object({
+      stationTaps: z.record(z.number().finite().nonnegative()).catch({}),
+      criticalTaps: z.number().finite().nonnegative().catch(0),
+      goldenTaps: z.number().finite().nonnegative().catch(0),
+      bestStreak: z.number().finite().nonnegative().catch(0),
+    })
+    .catch({ stationTaps: {}, criticalTaps: 0, goldenTaps: 0, bestStreak: 0 }),
   settings: settingsSchema,
   onboardingComplete: z.boolean().catch(false),
   eventCooldowns: z.record(z.number()).catch({}),
-  pendingChain: z
-    .object({ eventId: z.string(), step: z.number() })
-    .nullable()
-    .catch(null),
+  pendingChain: z.object({ eventId: z.string(), step: z.number() }).nullable().catch(null),
   eventHistory: z
     .array(z.object({ eventId: z.string(), choiceId: z.string(), at: z.number() }))
     .catch([]),
+  /** Consequence memory: flagId -> epoch ms it was set. */
+  flags: z.record(z.number().finite()).catch({}),
+  /**
+   * Promised consequences awaiting their moment. Individually validated and bad
+   * entries dropped, matching the decorationInstances convention: one malformed
+   * promise must not cost the player their whole save.
+   */
+  scheduled: z
+    .array(z.unknown())
+    .catch([])
+    .transform((items) =>
+      items
+        .map((item) => scheduledConsequenceSchema.safeParse(item))
+        .filter((r): r is { success: true; data: ScheduledParsed } => r.success)
+        .map((r) => r.data),
+    ),
 });
 
 export type ParsedGameState = z.infer<typeof gameStateSchema>;
+export type { ScheduledParsed };

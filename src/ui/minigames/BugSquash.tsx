@@ -230,7 +230,7 @@ export function BugSquash({
               ) : null}
               {wrong === index ? (
                 <span className="burrow__miss" aria-hidden="true">
-                  <b>−2</b>
+                  <b>-2</b>
                 </span>
               ) : null}
             </button>

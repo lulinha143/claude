@@ -23,6 +23,12 @@ const DISLIKES: Record<string, string[]> = {
   procurement: ['basement'],
   sorting: ['basement', 'nap'],
   meeting: ['sorting', 'construction'],
+  // Second expansion.
+  archive: ['construction', 'cafeteria'],
+  security: ['cafeteria', 'nap'],
+  incubator: ['cafeteria', 'nap'],
+  cafeteria: ['basement', 'incubator'],
+  mailroom: ['basement'],
 };
 
 export function roomAffinity(employeeId: string, roomId: string): AffinityTier {

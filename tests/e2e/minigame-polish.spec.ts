@@ -119,7 +119,9 @@ test.describe.serial('premium minigame presentation', () => {
     const emptyBurrow = game.locator('.burrow').nth((activeIndex + 1) % 9);
     await emptyBurrow.click();
     await expect(emptyBurrow).toHaveClass(/is-wrong/);
-    await expect(emptyBurrow.locator('.burrow__miss b')).toHaveText('−2');
+    // ASCII hyphen-minus, not U+2212: the bundled fonts are Latin subsets and the
+    // typographic minus sign renders as a tofu box without a system fallback.
+    await expect(emptyBurrow.locator('.burrow__miss b')).toHaveText('-2');
     await expect(emptyBurrow.locator('.burrow__miss b')).toBeVisible();
     await page.waitForTimeout(120);
     await page.screenshot({ path: 'visual-artifacts/minigame-bug-penalty-1280x800.png' });

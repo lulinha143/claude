@@ -47,7 +47,14 @@
     "permanentKernels": "Permanent Kernels",
     "morale": "Morale",
     "reputation": "Reputation",
-    "perSecond": "{{value}}/s"
+    "perSecond": "{{value}}/s",
+    "short": {
+      "nuts": "Nuts",
+      "golden": "Golden",
+      "morale": "Morale",
+      "reputation": "Standing",
+      "kernels": "Kernels"
+    }
   },
   "nav": {
     "mainNavigation": "Main navigation",
@@ -131,6 +138,10 @@
       "prestige": "Reset for permanent bonuses.",
       "settings": "Options, audio and accessibility.",
       "more": "Open every other company destination."
+    },
+    "kernels": {
+      "t": "Permanent Kernels",
+      "d": "Banked through restructuring. They persist through every cycle and fund permanent skills."
     }
   },
   "office": {
@@ -145,7 +156,8 @@
     "decorateHint": "Drag a decoration to move it, or drop it on the tray to stow it. Buy more in the Decorate tab.",
     "dragHint": "Drag a teammate onto a room to move them there.",
     "roomFull": "{{room}} is full.",
-    "roomFullSuggest": "{{room}} is full — try {{other}} instead."
+    "roomFullSuggest": "{{room}} is full — try {{other}} instead.",
+    "roomFullShort": "full"
   },
   "decorate": {
     "searchPlaceholder": "Search decorations…",
@@ -569,6 +581,112 @@
     "rooftop": {
       "name": "Rooftop Acorn Garden",
       "desc": "Fresh air, actual grass, and a great view."
+    },
+    "cafeteria": {
+      "name": "Nut Cafeteria",
+      "desc": "Hot food, cold lighting. Everyone leaves happier than they arrived."
+    },
+    "mailroom": {
+      "name": "Internal Mail Room",
+      "desc": "Every form in the building passes through here. Some pass through twice."
+    },
+    "security": {
+      "name": "Security Office",
+      "desc": "Eleven cameras. Twelve monitors. Nobody has explained the twelfth."
+    },
+    "archive": {
+      "name": "Records Archive",
+      "desc": "Everything the company has ever written down, and a little more."
+    },
+    "incubator": {
+      "name": "Behavioural Incubator",
+      "desc": "Six pods. Six clipboards. Please do not tap on the glass."
+    }
+  },
+  "station": {
+    "cadence": {
+      "steady": "Steady — pays every tap",
+      "charge": "Charged — pays more with a beat between taps",
+      "burst": "Burst — rewards long, fast streaks"
+    },
+    "tip": {
+      "perTap": "Per tap",
+      "cadence": "Rhythm",
+      "synergy": "Boosted by {{names}} working in this room.",
+      "nutAmount": "{{amount}} nuts",
+      "goldenAmount": "{{amount}} golden"
+    },
+    "nutCrate": {
+      "name": "Nut Crate",
+      "hint": "The original revenue stream. Pry it open, take the nuts."
+    },
+    "sortingChute": {
+      "name": "Sorting Chute",
+      "hint": "Feed it steadily and it never jams. Probably."
+    },
+    "coffeeUrn": {
+      "name": "Communal Urn",
+      "hint": "Refills itself. Nobody has admitted to refilling it."
+    },
+    "purchaseLedger": {
+      "name": "Purchase Ledger",
+      "hint": "Every line signed twice. One signature is not yours."
+    },
+    "shellPress": {
+      "name": "Shell Press",
+      "hint": "Heavy work. Let the ram reset before the next pull."
+    },
+    "centrifuge": {
+      "name": "Behaviour Centrifuge",
+      "hint": "Spins a sample until it admits something."
+    },
+    "announcementHorn": {
+      "name": "Announcement Horn",
+      "hint": "Volume is a marketing strategy."
+    },
+    "depositWheel": {
+      "name": "Deposit Wheel",
+      "hint": "Turns smoothly. Sounds like it is counting."
+    },
+    "observationTerminal": {
+      "name": "Observation Terminal",
+      "hint": "Logs a finding each time. Some findings log themselves."
+    },
+    "agendaBell": {
+      "name": "Agenda Bell",
+      "hint": "Rings to advance the agenda. The agenda has no final item."
+    },
+    "dreamLog": {
+      "name": "Dream Log",
+      "hint": "Records what the nap room hears. Please do not read page 4."
+    },
+    "furnaceValve": {
+      "name": "Furnace Valve",
+      "hint": "Pays in gold. Asks no questions. Neither should you."
+    },
+    "signalDish": {
+      "name": "Signal Dish",
+      "hint": "Aimed at the car park. Receiving anyway."
+    },
+    "servingLine": {
+      "name": "Serving Line",
+      "hint": "Keep the trays moving. Nobody minds if you are quick."
+    },
+    "pneumaticTube": {
+      "name": "Pneumatic Tube",
+      "hint": "Let the canister land before you send the next one."
+    },
+    "cameraBank": {
+      "name": "Camera Bank",
+      "hint": "Cycle the feeds. Occasionally one shows something useful."
+    },
+    "documentScanner": {
+      "name": "Document Scanner",
+      "hint": "One page per pass. Page 400 is missing and always has been."
+    },
+    "incubationPod": {
+      "name": "Incubation Pod",
+      "hint": "Log the reading. The reading logs you back."
     }
   },
   "upgrade": {
@@ -634,7 +752,55 @@
       "basement": {
         "name": "Build: Suspicious Basement",
         "desc": "Unlock the definitely-normal basement."
+      },
+      "mailroom": {
+        "name": "Open the Mail Room",
+        "desc": "Internal post. Cuts the cost of everything else in the building."
+      },
+      "archive": {
+        "name": "Open the Records Archive",
+        "desc": "Somewhere to put the paperwork. Findings start turning up in it."
       }
+    },
+    "calibratedTools": {
+      "name": "Calibrated Tools",
+      "desc": "Every workstation is trued up and re-balanced. Critical taps land more often, everywhere in the building."
+    },
+    "techniqueManual": {
+      "name": "Technique Manual",
+      "desc": "Somebody wrote down how the good days feel and had it bound. A sharper edge on every tap, in exchange for golden nuts."
+    },
+    "muscleMemory": {
+      "name": "Muscle Memory",
+      "desc": "Staff stop looking at their hands. Combo streaks survive a longer pause before they break."
+    },
+    "shiftRhythm": {
+      "name": "Shift Rhythm",
+      "desc": "The whole floor works to one unspoken tempo. Streaks hold through interruptions that used to end them."
+    },
+    "assayDesk": {
+      "name": "Assay Desk",
+      "desc": "A desk whose only job is noticing value. Slightly more taps turn up a golden nut."
+    },
+    "gildingProgramme": {
+      "name": "Gilding Programme",
+      "desc": "Officially, a quality initiative. In practice, golden nuts appear where they did not before."
+    },
+    "legalReview": {
+      "name": "Legal Review",
+      "desc": "Favourable outcomes are drafted properly. Decisions that go the company’s way pay more; the ones that do not are unchanged."
+    },
+    "negotiationTraining": {
+      "name": "Negotiation Training",
+      "desc": "The company stops accepting first offers. A much larger share of every good decision."
+    },
+    "standardProcedures": {
+      "name": "Standard Procedures",
+      "desc": "Written down once, followed everywhere. Every department performs as though better staffed than it is."
+    },
+    "internalAudit": {
+      "name": "Internal Audit",
+      "desc": "A department that improves other departments by reading them. Substantially more from every room, staffed or thin."
     }
   },
   "event": {
@@ -924,6 +1090,162 @@
       "body": "The (now sentient) coffee machine has requested a well-earned vacation. It has been working overtime.",
       "approve": "Approve its leave",
       "deny": "Ask it to stay one more week"
+    },
+    "ledgerDiscrepancy": {
+      "title": "Ledger Discrepancy",
+      "body": "Procurement has found 400 nuts that exist in two places at once. The paperwork is immaculate. That is the concerning part.",
+      "report": "Report it upward (cost: 400 nuts)",
+      "quiet": "Ask around quietly first",
+      "accountantBody": "The accountant finds you before you find them. They can make the second entry go away. They mention, unprompted, that they have a family.",
+      "pay": "Pay the 1,200 and owe them one",
+      "payLocked": "Not enough nuts to make this quietly disappear.",
+      "refuse": "Refuse, and keep the 900 that never existed",
+      "laterTitle": "The Discrepancy Returns",
+      "laterBody": "An external reviewer has found the entry you buried. They found it easily. They seem almost disappointed."
+    },
+    "accountantRemembers": {
+      "title": "The Accountant Remembers",
+      "body": "A folder appears on your desk with no covering note. Inside: three golden nuts, and a single line reading \"for the thing we did not discuss.\"",
+      "accept": "Accept the folder",
+      "decline": "Return it, formally, in writing"
+    },
+    "moralePetition": {
+      "title": "Petition from the Floor",
+      "body": "Every employee has signed the same document. It is a good document. It is better written than anything the company has ever published.",
+      "concede": "Grant it in full (cost: 2,500 nuts)",
+      "partial": "Grant the reasonable half",
+      "refuse": "Thank them for their feedback",
+      "laterTitle": "The Petition, Externally",
+      "laterBody": "The document you declined to read has been published somewhere you cannot decline to read it."
+    },
+    "goodWeek": {
+      "title": "An Unusually Good Week",
+      "body": "Nothing went wrong. Nobody can explain it. Two employees have independently described the atmosphere as \"suspiciously pleasant.\"",
+      "celebrate": "Let it run — cancel all meetings",
+      "document": "Document the conditions for replication",
+      "bank": "Quietly bank the surplus"
+    },
+    "basementRequisition": {
+      "title": "Requisition Form 12-B",
+      "body": "A supply request has come up from the basement. It is correctly filled in. It is signed. Nobody in the basement is on the payroll.",
+      "approve": "Approve it and ask nothing",
+      "query": "Query the signature",
+      "deny": "Deny the request",
+      "replyBody": "A second form arrives within the hour. Under \"clarification of signatory\" someone has written, in the same neat hand, \"yes\".",
+      "sign": "Countersign it",
+      "file": "File both forms and move on"
+    },
+    "vending": {
+      "title": "Unstocked Inventory",
+      "body": "The cafeteria vending machine is dispensing items that appear on no order form: unbranded biscuits, a small brass key, and what the label calls SOUP (ASSORTED). It has taken no money for any of them.",
+      "audit": "Audit the machine properly",
+      "sell": "Sell the surplus to the staff",
+      "leave": "Leave it. It seems happy.",
+      "laterTitle": "Vending Machine Follow-up",
+      "laterBody": "An external supplier has asked, politely, why we have been distributing their product for free."
+    },
+    "misdirected": {
+      "title": "Misdirected Post",
+      "body": "A crate has arrived addressed to NUTSHELL INC. (RESEARCH ANNEXE 2). We do not have an annexe. We have never had an annexe. The courier has already left and the paperwork is signed in our own handwriting.",
+      "return": "Return to sender, unopened",
+      "open": "Open the crate",
+      "contentsBody": "Inside: forty identical clipboards, a coffee machine still warm, and a staff photograph in which everyone is recognisable and nobody is anyone we employ.",
+      "file": "File all of it and log the discrepancy",
+      "keep": "Keep the equipment. It is good equipment.",
+      "laterTitle": "Annexe 2 Correspondence",
+      "laterBody": "Research Annexe 2 has invoiced us for equipment retention. The invoice is addressed to a department head we do not have, and is itemised correctly."
+    },
+    "nightFootage": {
+      "title": "Camera Four",
+      "body": "Overnight footage shows the corridor at 03:14. Someone is sitting at a desk, working steadily. The desk is not in that corridor during the day. Attendance records confirm the building was empty.",
+      "review": "Review the whole night, frame by frame",
+      "delete": "Delete the footage and say nothing",
+      "noticeboard": "Print a still and pin it to the noticeboard",
+      "laterTitle": "Retention Policy Enquiry",
+      "laterBody": "An audit of the security archive has found a gap of exactly one night. The gap is the only thing in the archive that has been catalogued twice."
+    },
+    "futureBox": {
+      "title": "Filed In Advance",
+      "body": "A records box has surfaced in the Archive bearing next quarter's reference number, in the correct format, in the Archive's own labelling hand. The seal has not been broken.",
+      "openNow": "Open it now",
+      "reshelve": "Re-shelve it and wait for its quarter",
+      "insideBody": "It contains minutes of a meeting that has not happened, attended by people who work here, about a decision the company has not yet made. The minutes are unanimous. There is a note in the margin: THIS WENT WELL.",
+      "act": "Make the decision the minutes describe",
+      "shred": "Shred the minutes and hold the meeting anyway"
+    },
+    "hatched": {
+      "title": "Programme Update",
+      "body": "Something in the Incubator has hatched. Reports agree it is small, warm, and pleased to see everyone. Nothing was scheduled to hatch. Nothing was scheduled at all.",
+      "mascot": "Adopt it as the company mascot",
+      "observe": "Log it properly and observe",
+      "return": "Return it to the programme"
+    },
+    "walkout": {
+      "title": "Informal Work Stoppage",
+      "body": "Nobody has declared anything. The corridors are simply full of people standing in them, holding mugs, waiting to see what happens. It is extremely polite and completely total.",
+      "dayOff": "Close the building for the day, fully paid",
+      "dayOffLocked": "Needs 900 nuts to cover a paid closure.",
+      "address": "Go out there and hear them out",
+      "ignore": "Carry on as though it is a scheduled break",
+      "laterTitle": "Exit Interviews",
+      "laterBody": "Three exit interviews were conducted this morning. All three used the phrase \\u201cnobody came out\\u201d, unprompted, and all three asked that it be minuted."
+    },
+    "party": {
+      "title": "Unscheduled Celebration",
+      "body": "There is a party in the corridor. It has a cake, a banner, and a reason nobody can now remember. The banner is professionally printed, which means somebody planned this far enough ahead to use the budget.",
+      "fund": "Fund it properly and put it in the minutes",
+      "join": "Join in for twenty minutes",
+      "backToWork": "Thank everyone and reopen the floor"
+    },
+    "corridor": {
+      "title": "Dimensional Discrepancy",
+      "body": "Facilities have measured the east corridor at 1.2 metres longer than the floor plan allows. The floor plan is correct. The corridor is also correct. Both were checked twice, by different people, who then checked each other.",
+      "remeasure": "Commission a proper survey",
+      "amend": "Amend the floor plan to match the building",
+      "ignore": "It is 1.2 metres. Move on.",
+      "laterTitle": "Corridor Follow-up",
+      "laterBody": "The east corridor now measures 1.4 metres longer than the plan. Nobody has requested a remeasurement. Somebody has been doing them anyway, and leaving the results on the noticeboard."
+    },
+    "grant": {
+      "title": "Grant Application",
+      "body": "A behavioural-research fund is accepting applications. The form asks for our subject count, our published findings, and a one-line summary of our methodology. Two of the three are straightforward.",
+      "honest": "Submit exactly what we have",
+      "embellish": "Round everything generously upward",
+      "awardedBody": "The application was successful, at four times the amount we expected. A congratulatory letter asks when the review panel may visit the facilities described in section three. We did not describe any facilities in section three. Section three is a diagram.",
+      "spend": "Bank it and worry about section three later",
+      "withdraw": "Withdraw the application and explain",
+      "laterTitle": "Review Panel Visit",
+      "laterBody": "The review panel visited. They were shown the diagram. They have asked for their money back and for the diagram to be destroyed, in that order."
+    },
+    "intern": {
+      "title": "A Reasonable Question",
+      "body": "An intern has asked what the company actually does. They are not being difficult. They have read the brochure, the mission statement and two years of internal notices, and they have arrived at this question honestly.",
+      "honest": "Tell them the truth, as far as we know it",
+      "brochure": "Recite the brochure with real conviction",
+      "deflect": "Give them something urgent to file"
+    },
+    "internReturns": {
+      "title": "A Familiar Name",
+      "body": "The intern who asked what we do now runs a department somewhere serious, and has written to propose a joint study. The letter quotes our answer back to us, word for word, as the reason.",
+      "partner": "Accept the partnership",
+      "decline": "Decline warmly and wish them well"
+    },
+    "goldenBuyer": {
+      "title": "An Unsolicited Offer",
+      "body": "A caller has offered a very serious sum for a single golden nut. They are not interested in any other quantity, will not say what it is for, and have already had the paperwork drawn up with our details correctly filled in.",
+      "sell": "Sell them one and take the money",
+      "sellLocked": "Requires a golden nut to sell.",
+      "refuse": "Refuse, politely and permanently",
+      "ask": "Ask what it is for before answering"
+    },
+    "unaccounted": {
+      "title": "Headcount Variance",
+      "body": "Payroll lists one more desk than the building contains. The desk has an occupant, a name badge, and eleven months of filed reports of a consistently high standard. Nobody can say which room it is in.",
+      "investigate": "Fund a full reconciliation",
+      "keepPaying": "The reports are good. Keep paying.",
+      "remove": "Strike the entry from payroll",
+      "laterTitle": "Reporting Gap",
+      "laterBody": "The reports have stopped. Several departments have noticed, because they had come to rely on them, and have asked who used to write them."
     }
   },
   "ach": {
@@ -1291,6 +1613,75 @@
     },
     "rooftop-garden-bed": {
       "name": "Rooftop Garden Bed"
+    },
+    "coffee-urn": {
+      "name": "Coffee Urn"
+    },
+    "tray-stack": {
+      "name": "Tray Stack"
+    },
+    "menu-chalkboard": {
+      "name": "Menu Board"
+    },
+    "pigeonholes": {
+      "name": "Pigeonholes"
+    },
+    "parcel-stack": {
+      "name": "Parcel Stack"
+    },
+    "postal-scale": {
+      "name": "Postal Scale"
+    },
+    "monitor-stack": {
+      "name": "Monitor Stack"
+    },
+    "key-cabinet": {
+      "name": "Key Cabinet"
+    },
+    "torch-rack": {
+      "name": "Torch Rack"
+    },
+    "box-tower": {
+      "name": "Box Tower"
+    },
+    "card-catalogue": {
+      "name": "Card Catalogue"
+    },
+    "index-board": {
+      "name": "Index Board"
+    },
+    "warming-lamp": {
+      "name": "Warming Lamp"
+    },
+    "seed-tray": {
+      "name": "Seed Tray"
+    },
+    "glass-dome": {
+      "name": "Glass Dome"
+    },
+    "specimen-shelf": {
+      "name": "Specimen Shelf"
+    },
+    "data-plotter": {
+      "name": "Data Plotter"
+    },
+    "observation-mirror": {
+      "name": "Observation Mirror"
+    },
+    "sump-pump": {
+      "name": "Sump Pump"
+    },
+    "pipe-cluster": {
+      "name": "Pipe Cluster"
+    },
+    "bare-bulb": {
+      "name": "Bare Bulb"
+    },
+    "weather-vane": {
+      "name": "Weather Vane"
+    },
+    "planter-row": {
+      "name": "Planter Row"
     }
   },
   "prestige": {
@@ -1395,7 +1786,7 @@
       "ticket": "Bug queue",
       "scanning": "Scanning desk…",
       "hit": "Bug fixed · +{{value}} points",
-      "penalty": "Empty drawer · −{{value}} points",
+      "penalty": "Empty drawer · -{{value}} points",
       "empty": "Empty drawer — no points to deduct"
     },
     "cableUntangle": {
@@ -1451,7 +1842,7 @@
     "workers": "{{count}} working here",
     "comfort": "Room comfort +{{value}}",
     "capacityTitle": "Room capacity",
-    "capacityTip": "Teammates working here. Every room holds up to six before it's full.",
+    "capacityTip": "Teammates working here. Every room is laid out for up to four; a fifth has nowhere to stand.",
     "comfortTitle": "Room comfort",
     "comfortTip": "Bonus morale from this room's decorations.",
     "autoRoom": "Default (department)"
@@ -1549,7 +1940,17 @@
         "moon": "Moon",
         "sun": "Sun",
         "gem": "Gem",
-        "crown": "Crown"
+        "crown": "Crown",
+        "acorn": "Acorn",
+        "nutshell": "Opened nutshell",
+        "clipboard": "Observation clipboard",
+        "folder": "Department file",
+        "stamp": "Approval stamp",
+        "flask": "Research flask",
+        "magnifier": "Magnifier",
+        "maze": "Behavioural maze",
+        "observer": "Observer",
+        "keyhole": "Keyhole"
       }
     }
   },
@@ -1564,7 +1965,8 @@
     "focus": "Focus Mode",
     "mood": "Team mood",
     "boost": "Active boost",
-    "total": "Total"
+    "total": "Total",
+    "fromRooms": "From your departments"
   },
   "stats": {
     "title": "Statistics",
@@ -1656,7 +2058,11 @@
     "resetConfirm": "This erases all progress (cosmetics too). Are you absolutely sure?",
     "idleNote": "Activity detection only checks how long the computer has been inactive. It never records keystrokes, text, app content, screenshots, clipboard, or any private information.",
     "browserNote": "Desktop-window options are only available in the desktop app.",
-    "replayTutorial": "Replay tutorial"
+    "replayTutorial": "Replay tutorial",
+    "gameplay": "Gameplay",
+    "autoResolveEvents": "Disable choice popups",
+    "autoResolveEventsOn": "Choice events will not interrupt you. The department picks the best available option, applies the real consequences, and reports each decision in your notifications.",
+    "autoResolveEventsOff": "Choice events pause the office and ask you to decide."
   },
   "onboarding": {
     "skip": "Skip guide",
@@ -1724,7 +2130,10 @@
     "decoration": "Decoration placed",
     "policy": "Policy changed",
     "additionalUpdates_one": "+{{count}} additional update",
-    "additionalUpdates_other": "+{{count}} additional updates"
+    "additionalUpdates_other": "+{{count}} additional updates",
+    "eventAutoResolved": "Handled for you — {{title}}: {{choice}}",
+    "repTierUp": "{{name}} — {{blurb}}",
+    "consequenceSettled": "{{title}} — {{body}}"
   },
   "react": {
     "marlowApproves": "Marlow approved of this decision.",
@@ -1742,7 +2151,13 @@
     "hazelApproves": "Hazel nods — legally sound.",
     "junieReady": "Junie already rescheduled everything around it.",
     "mossKnowing": "Moss says nothing, but seems to have known.",
-    "fennGrin": "Fenn grins like the deal was always going to close."
+    "fennGrin": "Fenn grins like the deal was always going to close.",
+    "ottoImpressed": "Otto counts something twice and says nothing.",
+    "beaSuspicious": "Bea measures it again, twice, and writes both numbers down.",
+    "minaFascinated": "Mina has already started a new logbook for this.",
+    "teamCheers": "A cheer goes up somewhere near the sorting line and spreads without explanation.",
+    "teamRelieved": "The floor lets out a breath it had apparently been holding all morning.",
+    "teamDelighted": "Work stops. Nobody minds. Somebody fetches the good mugs."
   },
   "daily": {
     "title": "Daily Challenges",
@@ -2087,6 +2502,141 @@
       "I feel seen. And caffeinated.",
       "Ready to work my nuts off!",
       "Best. Company. Ever."
+    ],
+    "highMorale": [
+      "Everything is going well. I have written it down in case it stops.",
+      "Nobody has filed a complaint in days. We think that is good?",
+      "I brought in biscuits and they were simply eaten. No incident.",
+      "Someone tidied the supply cupboard. Anonymously. Beautiful.",
+      "I like it here. Please do not put that in the newsletter.",
+      "Productivity is up and I feel FINE about it, which is new."
+    ],
+    "roomPride": [
+      "This is my department. I know where everything is. Even the odd drawer.",
+      "I was built for this room. Metaphorically. Probably.",
+      "Put me anywhere else and the numbers get worse. I have shown my work.",
+      "Everything in here makes sense to me. That is rarer than you think.",
+      "I have a system. The system is good. Do not reorganise the system.",
+      "Best desk in the building. I will not be taking questions."
+    ],
+    "roomGrumble": [
+      "I am not sure why I am in this department. Nobody has said.",
+      "I can work here. I am simply working here worse.",
+      "None of these drawers are labelled for anything I do.",
+      "I keep being handed things that are not my job. I do them. Badly.",
+      "Is there a form for requesting a different room? There is a form for everything else.",
+      "I miss my own department. I miss my own chair, specifically."
     ]
+  },
+  "roomProfile": {
+    "founderDesk": "Where the company started. Sharpens every tap.",
+    "sorting": "Raw throughput. Repetitive, and it wears people down.",
+    "construction": "Builds the machines that run the company for you.",
+    "lab": "The biggest output in the building, and the unhappiest.",
+    "morale": "Keeps the company liveable. Offsets the hard rooms.",
+    "nap": "Deep recovery. Nobody here is working, and that is the point.",
+    "marketing": "Turns a happy company into public standing.",
+    "procurement": "Cheaper supply lines. Pairs with the workshop.",
+    "meeting": "Coordination. Steadies everything, produces nothing.",
+    "research": "Findings compound on the Lab. Sharpens critical taps.",
+    "rooftop": "Long streaks and a signal aimed at nothing in particular.",
+    "vault": "Where golden nuts accumulate. Likes a full supply chain.",
+    "basement": "Extremely productive. Please do not ask about it.",
+    "cafeteria": "Feeds the company. Cheap morale, early.",
+    "mailroom": "Makes the whole building cheaper and luckier.",
+    "security": "Watches the strange rooms so they cost less standing.",
+    "archive": "Turns the company’s own paperwork into findings.",
+    "incubator": "The strongest golden-nut room, and the least pleasant."
+  },
+  "repTier": {
+    "unlisted": {
+      "name": "Unlisted Entity",
+      "blurb": "No filings. No address. Technically fine."
+    },
+    "registered": {
+      "name": "Registered Office",
+      "blurb": "A form was submitted. Nobody read it."
+    },
+    "local": {
+      "name": "Local Concern",
+      "blurb": "The neighbours know the name now."
+    },
+    "emerging": {
+      "name": "Emerging Research Group",
+      "blurb": "Someone called us promising. In writing."
+    },
+    "recognized": {
+      "name": "Recognised Institution",
+      "blurb": "Invitations arrive addressed to the company."
+    },
+    "institution": {
+      "name": "Established Institution",
+      "blurb": "We are cited. We are not always read."
+    },
+    "leader": {
+      "name": "Sector Authority",
+      "blurb": "Our methods are now the standard. Concerning."
+    },
+    "unaccountable": {
+      "name": "Unaccountable Body",
+      "blurb": "Oversight has been reorganised into us."
+    },
+    "irregular": {
+      "name": "Irregular Global Institution",
+      "blurb": "Several countries list us as weather."
+    },
+    "progressLabel": "Progress to the next tier",
+    "nextAt": "Next: {{name}} at {{at}}",
+    "maxed": "Highest standing reached.",
+    "nextShort": "next {{at}}"
+  },
+  "synergy": {
+    "title": "Department Network",
+    "subtitle": "What each department contributes, and what it costs.",
+    "idle": "No staff — contributing nothing",
+    "idleHint": "Assign a teammate here to switch this department on.",
+    "staffed": "{{count}} staffed",
+    "specialists": "Specialist on site: {{names}}",
+    "contributes": "Contributes",
+    "costs": "Costs",
+    "dormant": "Dormant",
+    "dormantUnstaffed": "needs staff",
+    "dormantMissingRoom": "needs {{room}} running",
+    "dormantLowMorale": "needs higher morale",
+    "locked": "Not yet unlocked",
+    "netEffect": "Net effect on the company",
+    "feeds": "Supports {{rooms}}",
+    "noRooms": "Unlock a department to start building a network.",
+    "temper": {
+      "operational": "Operations",
+      "social": "People",
+      "analytical": "Research",
+      "industrial": "Production",
+      "secure": "Holdings",
+      "irregular": "Irregular"
+    }
+  },
+  "effect": {
+    "production": "Production",
+    "clickPower": "Tap value",
+    "moraleTarget": "Morale",
+    "moraleRegen": "Morale recovery",
+    "reputationRate": "Reputation",
+    "goldenChance": "Golden nut chance",
+    "critChance": "Critical tap chance",
+    "comboWindow": "Combo window",
+    "costReduction": "Costs",
+    "eventLuck": "Event luck",
+    "automation": "Automation"
+  },
+  "secret": {
+    "secret-ledger": "The Second Entry",
+    "secret-requisition": "Form 12-B"
+  },
+  "header": {
+    "department": "Behavioural Research",
+    "departmentFull": "Behavioural Research Department",
+    "cycle": "Cycle {{n}}",
+    "cycleTip": "Operating cycle {{n}}. Each restructure begins a new one."
   }
 }

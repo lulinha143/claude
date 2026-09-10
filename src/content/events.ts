@@ -45,21 +45,39 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
     employeeId: null,
     momentWorthy: true,
     choices: [
-      { id: 'negotiate', labelKey: 'event.printer.negotiate', effects: [{ type: 'morale', value: 5 }], next: 'peace' },
-      { id: 'unplug', labelKey: 'event.printer.unplug', effects: [{ type: 'nuts', value: -50 }], next: 'revenge' },
+      {
+        id: 'negotiate',
+        labelKey: 'event.printer.negotiate',
+        effects: [{ type: 'morale', value: 5 }],
+        next: 'peace',
+      },
+      {
+        id: 'unplug',
+        labelKey: 'event.printer.unplug',
+        effects: [{ type: 'nuts', value: -50 }],
+        next: 'revenge',
+      },
     ],
     steps: {
       peace: {
         bodyKey: 'event.printer.peaceBody',
         choices: [
-          { id: 'ok', labelKey: 'common.ok', effects: [{ type: 'productionBoost', value: 1.2, durationSeconds: 120 }] },
+          {
+            id: 'ok',
+            labelKey: 'common.ok',
+            effects: [{ type: 'productionBoost', value: 1.2, durationSeconds: 120 }],
+          },
           createEventFallbackChoice('decline'),
         ],
       },
       revenge: {
         bodyKey: 'event.printer.revengeBody',
         choices: [
-          { id: 'ok', labelKey: 'common.ok', effects: [{ type: 'morale', value: -3 }, { type: 'momentCard' }] },
+          {
+            id: 'ok',
+            labelKey: 'common.ok',
+            effects: [{ type: 'morale', value: -3 }, { type: 'momentCard' }],
+          },
           createEventFallbackChoice('decline'),
         ],
       },
@@ -74,7 +92,14 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
     cooldownSeconds: 300,
     choices: [
       { id: 'comply', labelKey: 'event.audit.comply', effects: [{ type: 'reputation', value: 3 }] },
-      { id: 'hide', labelKey: 'event.audit.hide', effects: [{ type: 'nuts', value: 200 }, { type: 'morale', value: -4 }] },
+      {
+        id: 'hide',
+        labelKey: 'event.audit.hide',
+        effects: [
+          { type: 'nuts', value: 200 },
+          { type: 'morale', value: -4 },
+        ],
+      },
     ],
   },
   {
@@ -89,14 +114,33 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
     momentWorthy: true,
     choices: [
       { id: 'inspect', labelKey: 'event.rizzoFound.inspect', effects: [], next: 'box' },
-      { id: 'ignore', labelKey: 'event.rizzoFound.ignore', effects: [{ type: 'nuts', value: 100 }] },
+      {
+        id: 'ignore',
+        labelKey: 'event.rizzoFound.ignore',
+        effects: [{ type: 'nuts', value: 100 }],
+      },
     ],
     steps: {
       box: {
         bodyKey: 'event.rizzoFound.boxBody',
         choices: [
-          { id: 'open', labelKey: 'event.rizzoFound.open', effects: [{ type: 'goldenNuts', value: 1 }, { type: 'collectNut', nutId: 'suspicious-pistachio' }, { type: 'momentCard' }] },
-          { id: 'return', labelKey: 'event.rizzoFound.return', effects: [{ type: 'reputation', value: 5 }, { type: 'friendship', value: 8, employeeId: 'rizzo' }] },
+          {
+            id: 'open',
+            labelKey: 'event.rizzoFound.open',
+            effects: [
+              { type: 'goldenNuts', value: 1 },
+              { type: 'collectNut', nutId: 'suspicious-pistachio' },
+              { type: 'momentCard' },
+            ],
+          },
+          {
+            id: 'return',
+            labelKey: 'event.rizzoFound.return',
+            effects: [
+              { type: 'reputation', value: 5 },
+              { type: 'friendship', value: 8, employeeId: 'rizzo' },
+            ],
+          },
         ],
       },
     },
@@ -109,8 +153,19 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
     weight: 9,
     cooldownSeconds: 300,
     choices: [
-      { id: 'attend', labelKey: 'event.meeting.attend', effects: [{ type: 'morale', value: -2 }, { type: 'reputation', value: 2 }] },
-      { id: 'skip', labelKey: 'event.meeting.skip', effects: [{ type: 'productionBoost', value: 1.15, durationSeconds: 90 }] },
+      {
+        id: 'attend',
+        labelKey: 'event.meeting.attend',
+        effects: [
+          { type: 'morale', value: -2 },
+          { type: 'reputation', value: 2 },
+        ],
+      },
+      {
+        id: 'skip',
+        labelKey: 'event.meeting.skip',
+        effects: [{ type: 'productionBoost', value: 1.15, durationSeconds: 90 }],
+      },
     ],
   },
   {
@@ -145,7 +200,14 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
     cooldownSeconds: 300,
     employeeId: 'pip',
     choices: [
-      { id: 'applaud', labelKey: 'event.pieChart.applaud', effects: [{ type: 'friendship', value: 5, employeeId: 'pip' }, { type: 'morale', value: 3 }] },
+      {
+        id: 'applaud',
+        labelKey: 'event.pieChart.applaud',
+        effects: [
+          { type: 'friendship', value: 5, employeeId: 'pip' },
+          { type: 'morale', value: 3 },
+        ],
+      },
       createEventFallbackChoice('decline'),
     ],
   },
@@ -158,7 +220,14 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
     cooldownSeconds: 400,
     choices: [
       { id: 'shoo', labelKey: 'event.pigeon.shoo', effects: [{ type: 'morale', value: 2 }] },
-      { id: 'hire', labelKey: 'event.pigeon.hire', effects: [{ type: 'productionBoost', value: 1.25, durationSeconds: 120 }, { type: 'momentCard' }] },
+      {
+        id: 'hire',
+        labelKey: 'event.pigeon.hire',
+        effects: [
+          { type: 'productionBoost', value: 1.25, durationSeconds: 120 },
+          { type: 'momentCard' },
+        ],
+      },
     ],
   },
   {
@@ -171,8 +240,23 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
     requires: { hiredEmployee: 'bea' },
     employeeId: 'bea',
     choices: [
-      { id: 'approve', labelKey: 'event.beaWood.approve', effects: [{ type: 'morale', value: 4 }, { type: 'friendship', value: 6, employeeId: 'bea' }, { type: 'emotion', employeeId: 'bea', emotion: 'proud', durationSeconds: 600 }] },
-      { id: 'decline', labelKey: 'event.beaWood.decline', effects: [{ type: 'nuts', value: 150 }, { type: 'emotion', employeeId: 'bea', emotion: 'sad', durationSeconds: 480 }] },
+      {
+        id: 'approve',
+        labelKey: 'event.beaWood.approve',
+        effects: [
+          { type: 'morale', value: 4 },
+          { type: 'friendship', value: 6, employeeId: 'bea' },
+          { type: 'emotion', employeeId: 'bea', emotion: 'proud', durationSeconds: 600 },
+        ],
+      },
+      {
+        id: 'decline',
+        labelKey: 'event.beaWood.decline',
+        effects: [
+          { type: 'nuts', value: 150 },
+          { type: 'emotion', employeeId: 'bea', emotion: 'sad', durationSeconds: 480 },
+        ],
+      },
     ],
   },
   {
@@ -249,14 +333,38 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
     employeeId: 'corvus',
     momentWorthy: true,
     choices: [
-      { id: 'invest', labelKey: 'event.nutcoin.invest', effects: [{ type: 'nuts', value: -500 }, { type: 'emotion', employeeId: 'corvus', emotion: 'excited', durationSeconds: 600 }, { type: 'emotion', employeeId: 'marlow', emotion: 'embarrassed', durationSeconds: 600 }], next: 'crash' },
-      { id: 'refuse', labelKey: 'event.nutcoin.refuse', effects: [{ type: 'reputation', value: 4 }, { type: 'unlockSecret', secretId: 'nutcoin' }] },
+      {
+        id: 'invest',
+        labelKey: 'event.nutcoin.invest',
+        effects: [
+          { type: 'nuts', value: -500 },
+          { type: 'emotion', employeeId: 'corvus', emotion: 'excited', durationSeconds: 600 },
+          { type: 'emotion', employeeId: 'marlow', emotion: 'embarrassed', durationSeconds: 600 },
+        ],
+        next: 'crash',
+      },
+      {
+        id: 'refuse',
+        labelKey: 'event.nutcoin.refuse',
+        effects: [
+          { type: 'reputation', value: 4 },
+          { type: 'unlockSecret', secretId: 'nutcoin' },
+        ],
+      },
     ],
     steps: {
       crash: {
         bodyKey: 'event.nutcoin.crashBody',
         choices: [
-          { id: 'sigh', labelKey: 'event.nutcoin.sigh', effects: [{ type: 'morale', value: -3 }, { type: 'unlockSecret', secretId: 'nutcoin' }, { type: 'momentCard' }] },
+          {
+            id: 'sigh',
+            labelKey: 'event.nutcoin.sigh',
+            effects: [
+              { type: 'morale', value: -3 },
+              { type: 'unlockSecret', secretId: 'nutcoin' },
+              { type: 'momentCard' },
+            ],
+          },
           createEventFallbackChoice('decline'),
         ],
       },
@@ -290,8 +398,22 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
       deep: {
         bodyKey: 'event.minaBasement.deepBody',
         choices: [
-          { id: 'dig', labelKey: 'event.minaBasement.dig', effects: [{ type: 'goldenNuts', value: 2 }, { type: 'unlockSecret', secretId: 'basement-basement' }, { type: 'emotion', employeeId: 'mina', emotion: 'inspired', durationSeconds: 600 }, { type: 'emotion', employeeId: 'bea', emotion: 'worried', durationSeconds: 600 }, { type: 'momentCard' }] },
-          { id: 'back', labelKey: 'event.minaBasement.back', effects: [{ type: 'reputation', value: 6 }] },
+          {
+            id: 'dig',
+            labelKey: 'event.minaBasement.dig',
+            effects: [
+              { type: 'goldenNuts', value: 2 },
+              { type: 'unlockSecret', secretId: 'basement-basement' },
+              { type: 'emotion', employeeId: 'mina', emotion: 'inspired', durationSeconds: 600 },
+              { type: 'emotion', employeeId: 'bea', emotion: 'worried', durationSeconds: 600 },
+              { type: 'momentCard' },
+            ],
+          },
+          {
+            id: 'back',
+            labelKey: 'event.minaBasement.back',
+            effects: [{ type: 'reputation', value: 6 }],
+          },
         ],
       },
     },
@@ -305,7 +427,15 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
     cooldownSeconds: 1800,
     momentWorthy: true,
     choices: [
-      { id: 'grab', labelKey: 'event.goldenAcorn.grab', effects: [{ type: 'goldenNuts', value: 3 }, { type: 'collectNut', nutId: 'executive-hazelnut' }, { type: 'momentCard' }] },
+      {
+        id: 'grab',
+        labelKey: 'event.goldenAcorn.grab',
+        effects: [
+          { type: 'goldenNuts', value: 3 },
+          { type: 'collectNut', nutId: 'executive-hazelnut' },
+          { type: 'momentCard' },
+        ],
+      },
       createEventFallbackChoice('decline'),
     ],
   },
@@ -317,7 +447,14 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
     weight: 8,
     cooldownSeconds: 400,
     choices: [
-      { id: 'celebrate', labelKey: 'event.employeeMinute.celebrate', effects: [{ type: 'morale', value: 4 }, { type: 'friendship', value: 4 }] },
+      {
+        id: 'celebrate',
+        labelKey: 'event.employeeMinute.celebrate',
+        effects: [
+          { type: 'morale', value: 4 },
+          { type: 'friendship', value: 4 },
+        ],
+      },
       createEventFallbackChoice('decline'),
     ],
   },
@@ -329,8 +466,19 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
     weight: 7,
     cooldownSeconds: 400,
     choices: [
-      { id: 'apologize', labelKey: 'event.replyAll.apologize', effects: [{ type: 'morale', value: -1 }] },
-      { id: 'double-down', labelKey: 'event.replyAll.doubleDown', effects: [{ type: 'reputation', value: -1 }, { type: 'morale', value: 3 }] },
+      {
+        id: 'apologize',
+        labelKey: 'event.replyAll.apologize',
+        effects: [{ type: 'morale', value: -1 }],
+      },
+      {
+        id: 'double-down',
+        labelKey: 'event.replyAll.doubleDown',
+        effects: [
+          { type: 'reputation', value: -1 },
+          { type: 'morale', value: 3 },
+        ],
+      },
     ],
   },
   {
@@ -345,7 +493,11 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
       {
         id: 'approve',
         labelKey: 'event.chairPromoted.approve',
-        effects: [{ type: 'unlockSecret', secretId: 'chair' }, { type: 'morale', value: 5 }, { type: 'momentCard' }],
+        effects: [
+          { type: 'unlockSecret', secretId: 'chair' },
+          { type: 'morale', value: 5 },
+          { type: 'momentCard' },
+        ],
         reactions: ['react.teamHappy', 'react.pipProud'],
       },
       createEventFallbackChoice('decline'),
@@ -360,7 +512,14 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
     cooldownSeconds: 700,
     requires: { reputation: 40 },
     choices: [
-      { id: 'accept', labelKey: 'event.merger.accept', effects: [{ type: 'nuts', value: 1000 }, { type: 'reputation', value: 5 }] },
+      {
+        id: 'accept',
+        labelKey: 'event.merger.accept',
+        effects: [
+          { type: 'nuts', value: 1000 },
+          { type: 'reputation', value: 5 },
+        ],
+      },
       { id: 'reject', labelKey: 'event.merger.reject', effects: [{ type: 'morale', value: 4 }] },
     ],
   },
@@ -372,7 +531,11 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
     weight: 7,
     cooldownSeconds: 400,
     choices: [
-      { id: 'investigate', labelKey: 'event.stapler.investigate', effects: [{ type: 'reputation', value: 1 }] },
+      {
+        id: 'investigate',
+        labelKey: 'event.stapler.investigate',
+        effects: [{ type: 'reputation', value: 1 }],
+      },
       { id: 'shrug', labelKey: 'event.stapler.shrug', effects: [{ type: 'morale', value: 1 }] },
     ],
   },
@@ -385,7 +548,14 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
     cooldownSeconds: 500,
     employeeId: 'pip',
     choices: [
-      { id: 'endure', labelKey: 'event.metaMeeting.endure', effects: [{ type: 'morale', value: -2 }, { type: 'productionBoost', value: 1.1, durationSeconds: 60 }] },
+      {
+        id: 'endure',
+        labelKey: 'event.metaMeeting.endure',
+        effects: [
+          { type: 'morale', value: -2 },
+          { type: 'productionBoost', value: 1.1, durationSeconds: 60 },
+        ],
+      },
       createEventFallbackChoice('decline'),
     ],
   },
@@ -397,8 +567,19 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
     weight: 5,
     cooldownSeconds: 700,
     choices: [
-      { id: 'grant', labelKey: 'event.union.grant', effects: [{ type: 'nuts', value: -300 }, { type: 'morale', value: 10 }] },
-      { id: 'negotiate', labelKey: 'event.union.negotiate', effects: [{ type: 'morale', value: 4 }] },
+      {
+        id: 'grant',
+        labelKey: 'event.union.grant',
+        effects: [
+          { type: 'nuts', value: -300 },
+          { type: 'morale', value: 10 },
+        ],
+      },
+      {
+        id: 'negotiate',
+        labelKey: 'event.union.negotiate',
+        effects: [{ type: 'morale', value: 4 }],
+      },
     ],
   },
   {
@@ -411,7 +592,11 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
     employeeId: 'pip',
     momentWorthy: true,
     choices: [
-      { id: 'approve', labelKey: 'event.mascot.approve', effects: [{ type: 'reputation', value: 3 }, { type: 'momentCard' }] },
+      {
+        id: 'approve',
+        labelKey: 'event.mascot.approve',
+        effects: [{ type: 'reputation', value: 3 }, { type: 'momentCard' }],
+      },
       createEventFallbackChoice('decline'),
     ],
   },
@@ -423,7 +608,14 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
     weight: 3,
     cooldownSeconds: 900,
     choices: [
-      { id: 'eat', labelKey: 'event.walnut.eat', effects: [{ type: 'collectNut', nutId: 'legally-distinct-walnut' }, { type: 'goldenNuts', value: 1 }] },
+      {
+        id: 'eat',
+        labelKey: 'event.walnut.eat',
+        effects: [
+          { type: 'collectNut', nutId: 'legally-distinct-walnut' },
+          { type: 'goldenNuts', value: 1 },
+        ],
+      },
       { id: 'study', labelKey: 'event.walnut.study', effects: [{ type: 'reputation', value: 4 }] },
     ],
   },
@@ -436,7 +628,11 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
     cooldownSeconds: 800,
     momentWorthy: true,
     choices: [
-      { id: 'wave', labelKey: 'event.human.wave', effects: [{ type: 'morale', value: 6 }, { type: 'momentCard' }] },
+      {
+        id: 'wave',
+        labelKey: 'event.human.wave',
+        effects: [{ type: 'morale', value: 6 }, { type: 'momentCard' }],
+      },
       createEventFallbackChoice('decline'),
     ],
   },
@@ -450,13 +646,25 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
     momentWorthy: true,
     choices: [
       { id: 'ask', labelKey: 'event.spreadsheet.ask', effects: [], next: 'answer' },
-      { id: 'close', labelKey: 'event.spreadsheet.close', effects: [{ type: 'morale', value: -1 }] },
+      {
+        id: 'close',
+        labelKey: 'event.spreadsheet.close',
+        effects: [{ type: 'morale', value: -1 }],
+      },
     ],
     steps: {
       answer: {
         bodyKey: 'event.spreadsheet.answerBody',
         choices: [
-          { id: 'accept', labelKey: 'event.spreadsheet.accept', effects: [{ type: 'unlockSecret', secretId: 'spreadsheet' }, { type: 'goldenNuts', value: 1 }, { type: 'momentCard' }] },
+          {
+            id: 'accept',
+            labelKey: 'event.spreadsheet.accept',
+            effects: [
+              { type: 'unlockSecret', secretId: 'spreadsheet' },
+              { type: 'goldenNuts', value: 1 },
+              { type: 'momentCard' },
+            ],
+          },
           createEventFallbackChoice('decline'),
         ],
       },
@@ -470,8 +678,16 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
     weight: 4,
     cooldownSeconds: 800,
     choices: [
-      { id: 'reflect', labelKey: 'event.existential.reflect', effects: [{ type: 'morale', value: 3 }] },
-      { id: 'work', labelKey: 'event.existential.work', effects: [{ type: 'productionBoost', value: 1.2, durationSeconds: 120 }] },
+      {
+        id: 'reflect',
+        labelKey: 'event.existential.reflect',
+        effects: [{ type: 'morale', value: 3 }],
+      },
+      {
+        id: 'work',
+        labelKey: 'event.existential.work',
+        effects: [{ type: 'productionBoost', value: 1.2, durationSeconds: 120 }],
+      },
     ],
   },
   {
@@ -483,7 +699,11 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
     cooldownSeconds: 1500,
     momentWorthy: true,
     choices: [
-      { id: 'cool', labelKey: 'event.sunglasses.cool', effects: [{ type: 'morale', value: 8 }, { type: 'momentCard' }] },
+      {
+        id: 'cool',
+        labelKey: 'event.sunglasses.cool',
+        effects: [{ type: 'morale', value: 8 }, { type: 'momentCard' }],
+      },
       createEventFallbackChoice('decline'),
     ],
   },
@@ -504,11 +724,20 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
     employeeId: 'nixie',
     momentWorthy: true,
     choices: [
-      { id: 'trust', labelKey: 'event.nixieMachine.trust', effects: [], next: 'whir', reactions: ['react.nixieProud'] },
+      {
+        id: 'trust',
+        labelKey: 'event.nixieMachine.trust',
+        effects: [],
+        next: 'whir',
+        reactions: ['react.nixieProud'],
+      },
       {
         id: 'unplug',
         labelKey: 'event.nixieMachine.unplug',
-        effects: [{ type: 'morale', value: -2 }, { type: 'nuts', value: 200 }],
+        effects: [
+          { type: 'morale', value: -2 },
+          { type: 'nuts', value: 200 },
+        ],
         reactions: ['react.nixieProud'],
       },
     ],
@@ -519,7 +748,10 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
           {
             id: 'ship',
             labelKey: 'event.nixieMachine.ship',
-            effects: [{ type: 'productionBoost', value: 1.4, durationSeconds: 180 }, { type: 'momentCard' }],
+            effects: [
+              { type: 'productionBoost', value: 1.4, durationSeconds: 180 },
+              { type: 'momentCard' },
+            ],
             reactions: ['react.nixieProud', 'react.teamHappy'],
           },
           {
@@ -547,19 +779,29 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
       {
         id: 'investigate',
         labelKey: 'event.ottoAudit.investigate',
-        effects: [{ type: 'goldenNuts', value: 1 }, { type: 'reputation', value: 3 }],
+        effects: [
+          { type: 'goldenNuts', value: 1 },
+          { type: 'reputation', value: 3 },
+        ],
         reactions: ['react.ottoDistracted'],
       },
       {
         id: 'ignore',
         labelKey: 'event.ottoAudit.ignore',
-        effects: [{ type: 'nuts', value: 500 }, { type: 'morale', value: -2 }],
+        effects: [
+          { type: 'nuts', value: 500 },
+          { type: 'morale', value: -2 },
+        ],
         reactions: ['react.hazelApproves'],
       },
       {
         id: 'frame',
         labelKey: 'event.ottoAudit.frame',
-        effects: [{ type: 'morale', value: 4 }, { type: 'unlockSecret', secretId: 'negative-nut' }, { type: 'momentCard' }],
+        effects: [
+          { type: 'morale', value: 4 },
+          { type: 'unlockSecret', secretId: 'negative-nut' },
+          { type: 'momentCard' },
+        ],
         reactions: ['react.teamHappy'],
       },
     ],
@@ -580,19 +822,29 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
       {
         id: 'redesign',
         labelKey: 'event.hazelLoophole.redesign',
-        effects: [{ type: 'nuts', value: -400 }, { type: 'reputation', value: 6 }],
+        effects: [
+          { type: 'nuts', value: -400 },
+          { type: 'reputation', value: 6 },
+        ],
         reactions: ['react.hazelApproves', 'react.corvusExcited'],
       },
       {
         id: 'fight',
         labelKey: 'event.hazelLoophole.fight',
-        effects: [{ type: 'morale', value: 5 }, { type: 'unlockSecret', secretId: 'too-round' }, { type: 'momentCard' }],
+        effects: [
+          { type: 'morale', value: 5 },
+          { type: 'unlockSecret', secretId: 'too-round' },
+          { type: 'momentCard' },
+        ],
         reactions: ['react.hazelApproves'],
       },
       {
         id: 'squares',
         labelKey: 'event.hazelLoophole.squares',
-        effects: [{ type: 'reputation', value: -2 }, { type: 'nuts', value: 300 }],
+        effects: [
+          { type: 'reputation', value: -2 },
+          { type: 'nuts', value: 300 },
+        ],
         reactions: ['react.teamNervous'],
       },
     ],
@@ -618,7 +870,10 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
       {
         id: 'hold-meeting',
         labelKey: 'event.junieSchedule.holdMeeting',
-        effects: [{ type: 'productionBoost', value: 1.15, durationSeconds: 120 }, { type: 'morale', value: -3 }],
+        effects: [
+          { type: 'productionBoost', value: 1.15, durationSeconds: 120 },
+          { type: 'morale', value: -3 },
+        ],
         reactions: ['react.junieReady', 'react.teamNervous'],
       },
     ],
@@ -636,8 +891,18 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
     employeeId: 'moss',
     momentWorthy: true,
     choices: [
-      { id: 'listen', labelKey: 'event.mossNight.listen', effects: [], next: 'omen', reactions: ['react.mossKnowing'] },
-      { id: 'dismiss', labelKey: 'event.mossNight.dismiss', effects: [{ type: 'nuts', value: 300 }] },
+      {
+        id: 'listen',
+        labelKey: 'event.mossNight.listen',
+        effects: [],
+        next: 'omen',
+        reactions: ['react.mossKnowing'],
+      },
+      {
+        id: 'dismiss',
+        labelKey: 'event.mossNight.dismiss',
+        effects: [{ type: 'nuts', value: 300 }],
+      },
     ],
     steps: {
       omen: {
@@ -646,13 +911,20 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
           {
             id: 'invest',
             labelKey: 'event.mossNight.invest',
-            effects: [{ type: 'goldenNuts', value: 2 }, { type: 'reputation', value: 4 }, { type: 'momentCard' }],
+            effects: [
+              { type: 'goldenNuts', value: 2 },
+              { type: 'reputation', value: 4 },
+              { type: 'momentCard' },
+            ],
             reactions: ['react.mossKnowing', 'react.fennGrin'],
           },
           {
             id: 'record',
             labelKey: 'event.mossNight.record',
-            effects: [{ type: 'unlockSecret', secretId: 'wind-chime' }, { type: 'reputation', value: 6 }],
+            effects: [
+              { type: 'unlockSecret', secretId: 'wind-chime' },
+              { type: 'reputation', value: 6 },
+            ],
             reactions: ['react.minaCurious'],
           },
         ],
@@ -674,19 +946,29 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
       {
         id: 'refund',
         labelKey: 'event.fennDeal.refund',
-        effects: [{ type: 'nuts', value: -600 }, { type: 'reputation', value: 8 }],
+        effects: [
+          { type: 'nuts', value: -600 },
+          { type: 'reputation', value: 8 },
+        ],
         reactions: ['react.fennGrin', 'react.hazelApproves'],
       },
       {
         id: 'upsell',
         labelKey: 'event.fennDeal.upsell',
-        effects: [{ type: 'nuts', value: 1200 }, { type: 'reputation', value: -3 }],
+        effects: [
+          { type: 'nuts', value: 1200 },
+          { type: 'reputation', value: -3 },
+        ],
         reactions: ['react.fennGrin', 'react.teamNervous'],
       },
       {
         id: 'walnuts',
         labelKey: 'event.fennDeal.walnuts',
-        effects: [{ type: 'collectNut', nutId: 'legally-distinct-walnut' }, { type: 'morale', value: 3 }, { type: 'momentCard' }],
+        effects: [
+          { type: 'collectNut', nutId: 'legally-distinct-walnut' },
+          { type: 'morale', value: 3 },
+          { type: 'momentCard' },
+        ],
         reactions: ['react.teamHappy'],
       },
     ],
@@ -703,7 +985,15 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
     momentWorthy: true,
     choices: [
       { id: 'negotiate', labelKey: 'event.breakRoom.negotiate', effects: [], next: 'treaty' },
-      { id: 'annex', labelKey: 'event.breakRoom.annex', effects: [{ type: 'morale', value: -6 }, { type: 'nuts', value: 400 }], reactions: ['react.teamNervous'] },
+      {
+        id: 'annex',
+        labelKey: 'event.breakRoom.annex',
+        effects: [
+          { type: 'morale', value: -6 },
+          { type: 'nuts', value: 400 },
+        ],
+        reactions: ['react.teamNervous'],
+      },
     ],
     steps: {
       treaty: {
@@ -712,7 +1002,11 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
           {
             id: 'sign',
             labelKey: 'event.breakRoom.sign',
-            effects: [{ type: 'morale', value: 8 }, { type: 'unlockSecret', secretId: 'break-room-nation' }, { type: 'momentCard' }],
+            effects: [
+              { type: 'morale', value: 8 },
+              { type: 'unlockSecret', secretId: 'break-room-nation' },
+              { type: 'momentCard' },
+            ],
             reactions: ['react.marlowApproves', 'react.hazelApproves'],
           },
           createEventFallbackChoice('decline'),
@@ -728,8 +1022,21 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
     weight: 7,
     cooldownSeconds: 400,
     choices: [
-      { id: 'drink', labelKey: 'event.acornWater.drink', effects: [{ type: 'morale', value: -4 }, { type: 'productionBoost', value: 1.2, durationSeconds: 90 }], reactions: ['react.teamNervous'] },
-      { id: 'replace', labelKey: 'event.acornWater.replace', effects: [{ type: 'morale', value: 4 }], reactions: ['react.teamHappy'] },
+      {
+        id: 'drink',
+        labelKey: 'event.acornWater.drink',
+        effects: [
+          { type: 'morale', value: -4 },
+          { type: 'productionBoost', value: 1.2, durationSeconds: 90 },
+        ],
+        reactions: ['react.teamNervous'],
+      },
+      {
+        id: 'replace',
+        labelKey: 'event.acornWater.replace',
+        effects: [{ type: 'morale', value: 4 }],
+        reactions: ['react.teamHappy'],
+      },
     ],
   },
   {
@@ -743,8 +1050,21 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
     employeeId: 'rizzo',
     momentWorthy: true,
     choices: [
-      { id: 'return', labelKey: 'event.staplers17.return', effects: [{ type: 'reputation', value: 3 }], reactions: ['react.hazelApproves'] },
-      { id: 'keep', labelKey: 'event.staplers17.keep', effects: [{ type: 'nuts', value: 250 }, { type: 'friendship', value: 6, employeeId: 'rizzo' }], reactions: ['react.rizzoSuspicious'] },
+      {
+        id: 'return',
+        labelKey: 'event.staplers17.return',
+        effects: [{ type: 'reputation', value: 3 }],
+        reactions: ['react.hazelApproves'],
+      },
+      {
+        id: 'keep',
+        labelKey: 'event.staplers17.keep',
+        effects: [
+          { type: 'nuts', value: 250 },
+          { type: 'friendship', value: 6, employeeId: 'rizzo' },
+        ],
+        reactions: ['react.rizzoSuspicious'],
+      },
     ],
   },
   {
@@ -755,8 +1075,24 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
     weight: 5,
     cooldownSeconds: 600,
     choices: [
-      { id: 'fix', labelKey: 'event.elevator.fix', effects: [{ type: 'nuts', value: -300 }, { type: 'morale', value: 3 }], reactions: ['react.beaProud'] },
-      { id: 'embrace', labelKey: 'event.elevator.embrace', effects: [{ type: 'morale', value: 5 }, { type: 'unlockSecret', secretId: 'sideways' }], reactions: ['react.teamHappy'] },
+      {
+        id: 'fix',
+        labelKey: 'event.elevator.fix',
+        effects: [
+          { type: 'nuts', value: -300 },
+          { type: 'morale', value: 3 },
+        ],
+        reactions: ['react.beaProud'],
+      },
+      {
+        id: 'embrace',
+        labelKey: 'event.elevator.embrace',
+        effects: [
+          { type: 'morale', value: 5 },
+          { type: 'unlockSecret', secretId: 'sideways' },
+        ],
+        reactions: ['react.teamHappy'],
+      },
     ],
   },
   {
@@ -769,8 +1105,18 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
     requires: { reputation: 60 },
     momentWorthy: true,
     choices: [
-      { id: 'investigate', labelKey: 'event.vaultHum.investigate', effects: [{ type: 'goldenNuts', value: 2 }, { type: 'momentCard' }], reactions: ['react.minaCurious'] },
-      { id: 'harmonize', labelKey: 'event.vaultHum.harmonize', effects: [{ type: 'morale', value: 7 }], reactions: ['react.teamHappy'] },
+      {
+        id: 'investigate',
+        labelKey: 'event.vaultHum.investigate',
+        effects: [{ type: 'goldenNuts', value: 2 }, { type: 'momentCard' }],
+        reactions: ['react.minaCurious'],
+      },
+      {
+        id: 'harmonize',
+        labelKey: 'event.vaultHum.harmonize',
+        effects: [{ type: 'morale', value: 7 }],
+        reactions: ['react.teamHappy'],
+      },
     ],
   },
   {
@@ -781,8 +1127,22 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
     weight: 5,
     cooldownSeconds: 700,
     choices: [
-      { id: 'accept', labelKey: 'event.fakeAward.accept', effects: [{ type: 'reputation', value: 5 }, { type: 'morale', value: 4 }, { type: 'momentCard' }], reactions: ['react.corvusExcited', 'react.pipProud'] },
-      { id: 'decline', labelKey: 'event.fakeAward.decline', effects: [{ type: 'reputation', value: 2 }], reactions: ['react.hazelApproves'] },
+      {
+        id: 'accept',
+        labelKey: 'event.fakeAward.accept',
+        effects: [
+          { type: 'reputation', value: 5 },
+          { type: 'morale', value: 4 },
+          { type: 'momentCard' },
+        ],
+        reactions: ['react.corvusExcited', 'react.pipProud'],
+      },
+      {
+        id: 'decline',
+        labelKey: 'event.fakeAward.decline',
+        effects: [{ type: 'reputation', value: 2 }],
+        reactions: ['react.hazelApproves'],
+      },
     ],
   },
   {
@@ -793,9 +1153,30 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
     weight: 5,
     cooldownSeconds: 700,
     choices: [
-      { id: 'sue', labelKey: 'event.slogan.sue', effects: [{ type: 'reputation', value: 4 }, { type: 'nuts', value: -200 }], reactions: ['react.hazelApproves'] },
-      { id: 'rebrand', labelKey: 'event.slogan.rebrand', effects: [{ type: 'productionBoost', value: 1.2, durationSeconds: 120 }], reactions: ['react.corvusExcited'] },
-      { id: 'petty', labelKey: 'event.slogan.petty', effects: [{ type: 'morale', value: 5 }, { type: 'reputation', value: -1 }], reactions: ['react.teamHappy'] },
+      {
+        id: 'sue',
+        labelKey: 'event.slogan.sue',
+        effects: [
+          { type: 'reputation', value: 4 },
+          { type: 'nuts', value: -200 },
+        ],
+        reactions: ['react.hazelApproves'],
+      },
+      {
+        id: 'rebrand',
+        labelKey: 'event.slogan.rebrand',
+        effects: [{ type: 'productionBoost', value: 1.2, durationSeconds: 120 }],
+        reactions: ['react.corvusExcited'],
+      },
+      {
+        id: 'petty',
+        labelKey: 'event.slogan.petty',
+        effects: [
+          { type: 'morale', value: 5 },
+          { type: 'reputation', value: -1 },
+        ],
+        reactions: ['react.teamHappy'],
+      },
     ],
   },
   {
@@ -806,8 +1187,24 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
     weight: 6,
     cooldownSeconds: 500,
     choices: [
-      { id: 'allow', labelKey: 'event.namedNuts.allow', effects: [{ type: 'morale', value: 5 }, { type: 'productionBoost', value: 0.9, durationSeconds: 60 }], reactions: ['react.teamHappy'] },
-      { id: 'forbid', labelKey: 'event.namedNuts.forbid', effects: [{ type: 'productionBoost', value: 1.1, durationSeconds: 60 }, { type: 'morale', value: -2 }], reactions: ['react.teamNervous'] },
+      {
+        id: 'allow',
+        labelKey: 'event.namedNuts.allow',
+        effects: [
+          { type: 'morale', value: 5 },
+          { type: 'productionBoost', value: 0.9, durationSeconds: 60 },
+        ],
+        reactions: ['react.teamHappy'],
+      },
+      {
+        id: 'forbid',
+        labelKey: 'event.namedNuts.forbid',
+        effects: [
+          { type: 'productionBoost', value: 1.1, durationSeconds: 60 },
+          { type: 'morale', value: -2 },
+        ],
+        reactions: ['react.teamNervous'],
+      },
     ],
   },
   {
@@ -819,8 +1216,23 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
     cooldownSeconds: 1200,
     momentWorthy: true,
     choices: [
-      { id: 'grant', labelKey: 'event.ghost.grant', effects: [{ type: 'nuts', value: -300 }, { type: 'morale', value: 8 }, { type: 'unlockSecret', secretId: 'ghost' }, { type: 'momentCard' }], reactions: ['react.marlowApproves'] },
-      { id: 'deny', labelKey: 'event.ghost.deny', effects: [{ type: 'morale', value: -4 }], reactions: ['react.teamNervous'] },
+      {
+        id: 'grant',
+        labelKey: 'event.ghost.grant',
+        effects: [
+          { type: 'nuts', value: -300 },
+          { type: 'morale', value: 8 },
+          { type: 'unlockSecret', secretId: 'ghost' },
+          { type: 'momentCard' },
+        ],
+        reactions: ['react.marlowApproves'],
+      },
+      {
+        id: 'deny',
+        labelKey: 'event.ghost.deny',
+        effects: [{ type: 'morale', value: -4 }],
+        reactions: ['react.teamNervous'],
+      },
     ],
   },
   {
@@ -831,8 +1243,944 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
     weight: 5,
     cooldownSeconds: 800,
     choices: [
-      { id: 'approve', labelKey: 'event.coffeeLeave.approve', effects: [{ type: 'morale', value: 6 }, { type: 'productionBoost', value: 0.85, durationSeconds: 90 }], reactions: ['react.marlowApproves'] },
-      { id: 'deny', labelKey: 'event.coffeeLeave.deny', effects: [{ type: 'productionBoost', value: 1.15, durationSeconds: 90 }, { type: 'morale', value: -3 }], reactions: ['react.teamNervous'] },
+      {
+        id: 'approve',
+        labelKey: 'event.coffeeLeave.approve',
+        effects: [
+          { type: 'morale', value: 6 },
+          { type: 'productionBoost', value: 0.85, durationSeconds: 90 },
+        ],
+        reactions: ['react.marlowApproves'],
+      },
+      {
+        id: 'deny',
+        labelKey: 'event.coffeeLeave.deny',
+        effects: [
+          { type: 'productionBoost', value: 1.15, durationSeconds: 90 },
+          { type: 'morale', value: -3 },
+        ],
+        reactions: ['react.teamNervous'],
+      },
+    ],
+  },
+
+  // ==========================================================================
+  //  CONSEQUENCE-MEMORY CONTENT
+  // ==========================================================================
+  // These events use the three systems that let choices become stories rather
+  // than stat buttons:
+  //
+  //   `setFlag`   — leave a durable mark on the save.
+  //   `requires.flag` / `missingFlag` — content that only exists BECAUSE of an
+  //                 earlier decision, so a callback can only reach a player who
+  //                 actually earned it.
+  //   `schedule`  — bill the company later, so "take the money" is a real
+  //                 gamble instead of free value.
+  //
+  // Situational gates (`moraleBelow`, `moraleAbove`, `room`) keep them in
+  // context: a morale crisis only turns up when there is one.
+
+  // --- The audit favour: a three-step chain that leaves a lasting debt --------
+  {
+    id: 'ledger-discrepancy',
+    titleKey: 'event.ledgerDiscrepancy.title',
+    bodyKey: 'event.ledgerDiscrepancy.body',
+    rarity: 'uncommon',
+    weight: 6,
+    cooldownSeconds: 1400,
+    requires: { room: 'procurement', missingFlag: 'accountant-favour' },
+    momentWorthy: true,
+    choices: [
+      {
+        id: 'report',
+        labelKey: 'event.ledgerDiscrepancy.report',
+        effects: [
+          { type: 'reputation', value: 8 },
+          { type: 'nuts', value: -400 },
+          { type: 'setFlag', flagId: 'ledger-reported' },
+        ],
+        reactions: ['react.teamRelieved'],
+      },
+      {
+        id: 'quiet',
+        labelKey: 'event.ledgerDiscrepancy.quiet',
+        // No immediate effect: this branch exists to open the next step.
+        effects: [],
+        next: 'accountant',
+      },
+    ],
+    steps: {
+      accountant: {
+        bodyKey: 'event.ledgerDiscrepancy.accountantBody',
+        choices: [
+          {
+            id: 'pay',
+            labelKey: 'event.ledgerDiscrepancy.pay',
+            requires: { nuts: 1200 },
+            disabledKey: 'event.ledgerDiscrepancy.payLocked',
+            effects: [
+              { type: 'nuts', value: -1200 },
+              // The favour is the point: it unlocks a callback event later.
+              { type: 'setFlag', flagId: 'accountant-favour' },
+              { type: 'momentCard' },
+            ],
+            reactions: ['react.ottoImpressed'],
+          },
+          {
+            id: 'refuse',
+            labelKey: 'event.ledgerDiscrepancy.refuse',
+            effects: [
+              { type: 'nuts', value: 900 },
+              { type: 'setFlag', flagId: 'ledger-buried' },
+              // Looks free. Is not: the discrepancy resurfaces.
+              {
+                type: 'schedule',
+                flagId: 'ledger-buried',
+                delaySeconds: 900,
+                scheduleTitleKey: 'event.ledgerDiscrepancy.laterTitle',
+                scheduleBodyKey: 'event.ledgerDiscrepancy.laterBody',
+                scheduled: [
+                  { type: 'reputation', value: -14 },
+                  { type: 'morale', value: -8 },
+                ],
+              },
+            ],
+            reactions: ['react.teamNervous'],
+          },
+        ],
+      },
+    },
+  },
+
+  // --- The callback. Only exists if the player paid the accountant. ----------
+  {
+    id: 'accountant-remembers',
+    titleKey: 'event.accountantRemembers.title',
+    bodyKey: 'event.accountantRemembers.body',
+    rarity: 'rare',
+    weight: 4,
+    cooldownSeconds: 3600,
+    requires: { flag: 'accountant-favour' },
+    momentWorthy: true,
+    choices: [
+      {
+        id: 'accept',
+        labelKey: 'event.accountantRemembers.accept',
+        effects: [
+          { type: 'goldenNuts', value: 3 },
+          { type: 'reputation', value: 6 },
+          { type: 'unlockSecret', secretId: 'secret-ledger' },
+        ],
+        reactions: ['react.ottoImpressed'],
+      },
+      {
+        id: 'decline',
+        labelKey: 'event.accountantRemembers.decline',
+        effects: [
+          { type: 'reputation', value: 12 },
+          { type: 'morale', value: 5 },
+          // Settling the debt closes the thread cleanly.
+          { type: 'clearFlag', flagId: 'accountant-favour' },
+        ],
+        reactions: ['react.teamRelieved'],
+      },
+    ],
+  },
+
+  // --- A morale crisis that can only fire when the company is genuinely bad --
+  {
+    id: 'morale-petition',
+    titleKey: 'event.moralePetition.title',
+    bodyKey: 'event.moralePetition.body',
+    rarity: 'uncommon',
+    weight: 14,
+    cooldownSeconds: 1200,
+    requires: { moraleBelow: 34 },
+    momentWorthy: true,
+    choices: [
+      {
+        id: 'concede',
+        labelKey: 'event.moralePetition.concede',
+        effects: [
+          { type: 'morale', value: 22 },
+          { type: 'nuts', value: -2500 },
+          { type: 'setFlag', flagId: 'listened-to-staff' },
+        ],
+        reactions: ['react.teamRelieved'],
+      },
+      {
+        id: 'partial',
+        labelKey: 'event.moralePetition.partial',
+        effects: [
+          { type: 'morale', value: 10 },
+          { type: 'nuts', value: -800 },
+        ],
+      },
+      {
+        id: 'refuse',
+        labelKey: 'event.moralePetition.refuse',
+        effects: [
+          { type: 'morale', value: -6 },
+          { type: 'reputation', value: -5 },
+          { type: 'setFlag', flagId: 'ignored-staff' },
+          // Ignoring a petition has a tail: word gets out.
+          {
+            type: 'schedule',
+            flagId: 'ignored-staff',
+            delaySeconds: 1200,
+            scheduleTitleKey: 'event.moralePetition.laterTitle',
+            scheduleBodyKey: 'event.moralePetition.laterBody',
+            scheduled: [{ type: 'reputation', value: -10 }],
+          },
+        ],
+        reactions: ['react.teamNervous'],
+      },
+    ],
+  },
+
+  // --- The reward for running a genuinely happy company ----------------------
+  {
+    id: 'unusually-good-week',
+    titleKey: 'event.goodWeek.title',
+    bodyKey: 'event.goodWeek.body',
+    rarity: 'uncommon',
+    weight: 9,
+    cooldownSeconds: 1500,
+    requires: { moraleAbove: 88 },
+    momentWorthy: true,
+    choices: [
+      {
+        id: 'celebrate',
+        labelKey: 'event.goodWeek.celebrate',
+        effects: [
+          { type: 'productionBoost', value: 1.6, durationSeconds: 240 },
+          { type: 'morale', value: 4 },
+          { type: 'momentCard' },
+        ],
+        reactions: ['react.teamCheers'],
+      },
+      {
+        id: 'document',
+        labelKey: 'event.goodWeek.document',
+        effects: [
+          { type: 'reputation', value: 14 },
+          { type: 'setFlag', flagId: 'documented-good-week' },
+        ],
+      },
+      {
+        id: 'bank',
+        labelKey: 'event.goodWeek.bank',
+        effects: [{ type: 'goldenNuts', value: 2 }],
+      },
+    ],
+  },
+
+  // --- Something in the basement is filing paperwork ------------------------
+  {
+    id: 'basement-requisition',
+    titleKey: 'event.basementRequisition.title',
+    bodyKey: 'event.basementRequisition.body',
+    rarity: 'rare',
+    weight: 5,
+    cooldownSeconds: 2400,
+    requires: { room: 'basement' },
+    momentWorthy: true,
+    choices: [
+      {
+        id: 'approve',
+        labelKey: 'event.basementRequisition.approve',
+        effects: [
+          { type: 'goldenNuts', value: 4 },
+          { type: 'morale', value: -7 },
+          { type: 'setFlag', flagId: 'basement-supplied' },
+          { type: 'unlockSecret', secretId: 'secret-requisition' },
+        ],
+        reactions: ['react.teamNervous'],
+      },
+      {
+        id: 'query',
+        labelKey: 'event.basementRequisition.query',
+        effects: [],
+        next: 'reply',
+      },
+      {
+        id: 'deny',
+        labelKey: 'event.basementRequisition.deny',
+        effects: [
+          { type: 'morale', value: 4 },
+          { type: 'setFlag', flagId: 'basement-denied' },
+        ],
+      },
+    ],
+    steps: {
+      reply: {
+        bodyKey: 'event.basementRequisition.replyBody',
+        choices: [
+          {
+            id: 'sign',
+            labelKey: 'event.basementRequisition.sign',
+            effects: [
+              { type: 'goldenNuts', value: 6 },
+              { type: 'reputation', value: -4 },
+              { type: 'setFlag', flagId: 'basement-supplied' },
+              { type: 'momentCard' },
+            ],
+          },
+          {
+            id: 'file',
+            labelKey: 'event.basementRequisition.file',
+            effects: [
+              { type: 'nuts', value: 1500 },
+              { type: 'unlockSecret', secretId: 'secret-requisition' },
+            ],
+          },
+        ],
+      },
+    },
+  },
+
+  // ==========================================================================
+  //  DEPARTMENT CONTENT AND CONSEQUENCE CHAINS
+  // ==========================================================================
+  // Events that belong to a specific part of the building, so opening a room
+  // opens its stories too, plus situational content that only appears when the
+  // company is in the state it describes (a walkout needs a morale crisis; a
+  // celebration needs the opposite). Several set flags that later events read,
+  // so a decision can be referred back to rather than merely scored.
+
+  // --- The vending machine has opinions -------------------------------------
+  {
+    id: 'cafeteria-vending',
+    titleKey: 'event.vending.title',
+    bodyKey: 'event.vending.body',
+    rarity: 'common',
+    weight: 9,
+    cooldownSeconds: 700,
+    requires: { room: 'cafeteria' },
+    choices: [
+      {
+        id: 'audit',
+        labelKey: 'event.vending.audit',
+        effects: [
+          { type: 'nuts', value: -160 },
+          { type: 'reputation', value: 5 },
+          { type: 'setFlag', flagId: 'vending-audited' },
+        ],
+        reactions: ['react.teamRelieved'],
+      },
+      {
+        id: 'sell',
+        labelKey: 'event.vending.sell',
+        effects: [
+          { type: 'nuts', value: 520 },
+          { type: 'morale', value: -4 },
+        ],
+        reactions: ['react.teamNervous'],
+      },
+      {
+        id: 'leave',
+        labelKey: 'event.vending.leave',
+        effects: [
+          { type: 'morale', value: 4 },
+          {
+            type: 'schedule',
+            flagId: 'vending-ignored',
+            delaySeconds: 780,
+            scheduleTitleKey: 'event.vending.laterTitle',
+            scheduleBodyKey: 'event.vending.laterBody',
+            scheduled: [{ type: 'reputation', value: -4 }],
+          },
+        ],
+      },
+    ],
+  },
+  // --- Post for a company that does not exist -------------------------------
+  {
+    id: 'mailroom-misdirected',
+    titleKey: 'event.misdirected.title',
+    bodyKey: 'event.misdirected.body',
+    rarity: 'uncommon',
+    weight: 7,
+    cooldownSeconds: 1100,
+    requires: { room: 'mailroom' },
+    momentWorthy: true,
+    choices: [
+      {
+        id: 'return',
+        labelKey: 'event.misdirected.return',
+        effects: [
+          { type: 'reputation', value: 7 },
+          { type: 'morale', value: 2 },
+        ],
+        reactions: ['react.teamRelieved'],
+      },
+      {
+        id: 'open',
+        labelKey: 'event.misdirected.open',
+        effects: [],
+        next: 'contents',
+      },
+    ],
+    steps: {
+      contents: {
+        bodyKey: 'event.misdirected.contentsBody',
+        choices: [
+          {
+            id: 'file',
+            labelKey: 'event.misdirected.file',
+            effects: [
+              { type: 'reputation', value: 4 },
+              { type: 'setFlag', flagId: 'filed-the-parcel' },
+              { type: 'momentCard' },
+            ],
+          },
+          {
+            id: 'keep',
+            labelKey: 'event.misdirected.keep',
+            effects: [
+              { type: 'nuts', value: 1400 },
+              { type: 'morale', value: -6 },
+              { type: 'setFlag', flagId: 'kept-the-parcel' },
+              {
+                type: 'schedule',
+                flagId: 'kept-the-parcel',
+                delaySeconds: 1200,
+                scheduleTitleKey: 'event.misdirected.laterTitle',
+                scheduleBodyKey: 'event.misdirected.laterBody',
+                scheduled: [
+                  { type: 'reputation', value: -12 },
+                  { type: 'nuts', value: -600 },
+                ],
+              },
+            ],
+            reactions: ['react.teamNervous'],
+          },
+        ],
+      },
+    },
+  },
+  // --- Camera four, at three in the morning ---------------------------------
+  {
+    id: 'security-night-footage',
+    titleKey: 'event.nightFootage.title',
+    bodyKey: 'event.nightFootage.body',
+    rarity: 'rare',
+    weight: 5,
+    cooldownSeconds: 1600,
+    requires: { room: 'security' },
+    momentWorthy: true,
+    choices: [
+      {
+        id: 'review',
+        labelKey: 'event.nightFootage.review',
+        effects: [
+          { type: 'reputation', value: 9 },
+          { type: 'morale', value: -3 },
+          { type: 'setFlag', flagId: 'watched-the-tape' },
+          { type: 'momentCard' },
+        ],
+        reactions: ['react.teamNervous'],
+      },
+      {
+        id: 'delete',
+        labelKey: 'event.nightFootage.delete',
+        effects: [
+          { type: 'morale', value: 6 },
+          {
+            type: 'schedule',
+            flagId: 'deleted-the-tape',
+            delaySeconds: 1500,
+            scheduleTitleKey: 'event.nightFootage.laterTitle',
+            scheduleBodyKey: 'event.nightFootage.laterBody',
+            scheduled: [
+              { type: 'reputation', value: -10 },
+              { type: 'morale', value: -6 },
+            ],
+          },
+          { type: 'setFlag', flagId: 'deleted-the-tape' },
+        ],
+      },
+      {
+        id: 'noticeboard',
+        labelKey: 'event.nightFootage.noticeboard',
+        effects: [
+          { type: 'nuts', value: -220 },
+          { type: 'morale', value: 9 },
+          { type: 'reputation', value: 3 },
+        ],
+        reactions: ['react.teamDelighted'],
+      },
+    ],
+  },
+  // --- A box filed ahead of time --------------------------------------------
+  {
+    id: 'archive-future-box',
+    titleKey: 'event.futureBox.title',
+    bodyKey: 'event.futureBox.body',
+    rarity: 'rare',
+    weight: 4,
+    cooldownSeconds: 1800,
+    requires: { room: 'archive' },
+    momentWorthy: true,
+    choices: [
+      {
+        id: 'open-now',
+        labelKey: 'event.futureBox.openNow',
+        effects: [],
+        next: 'inside',
+      },
+      {
+        id: 'reshelve',
+        labelKey: 'event.futureBox.reshelve',
+        effects: [
+          { type: 'reputation', value: 6 },
+          { type: 'setFlag', flagId: 'box-reshelved' },
+        ],
+        reactions: ['react.teamRelieved'],
+      },
+    ],
+    steps: {
+      inside: {
+        bodyKey: 'event.futureBox.insideBody',
+        choices: [
+          {
+            id: 'act',
+            labelKey: 'event.futureBox.act',
+            effects: [
+              { type: 'goldenNuts', value: 2 },
+              { type: 'reputation', value: 12 },
+              { type: 'setFlag', flagId: 'acted-on-the-box' },
+              { type: 'momentCard' },
+            ],
+            reactions: ['react.minaFascinated'],
+          },
+          {
+            id: 'shred',
+            labelKey: 'event.futureBox.shred',
+            effects: [
+              { type: 'morale', value: 7 },
+              { type: 'reputation', value: -3 },
+            ],
+          },
+        ],
+      },
+    },
+  },
+  // --- Something in the incubator is fine and friendly ----------------------
+  {
+    id: 'incubator-hatched',
+    titleKey: 'event.hatched.title',
+    bodyKey: 'event.hatched.body',
+    rarity: 'uncommon',
+    weight: 6,
+    cooldownSeconds: 1500,
+    requires: { room: 'incubator' },
+    momentWorthy: true,
+    choices: [
+      {
+        id: 'mascot',
+        labelKey: 'event.hatched.mascot',
+        effects: [
+          { type: 'morale', value: 14 },
+          { type: 'reputation', value: 4 },
+          { type: 'setFlag', flagId: 'adopted-the-hatchling' },
+          { type: 'momentCard' },
+        ],
+        reactions: ['react.teamDelighted'],
+      },
+      {
+        id: 'observe',
+        labelKey: 'event.hatched.observe',
+        effects: [
+          { type: 'reputation', value: 11 },
+          { type: 'goldenNuts', value: 1 },
+        ],
+        reactions: ['react.minaFascinated'],
+      },
+      {
+        id: 'return',
+        labelKey: 'event.hatched.return',
+        effects: [
+          { type: 'nuts', value: 700 },
+          { type: 'morale', value: -5 },
+        ],
+      },
+    ],
+  },
+  // --- A real morale crisis, and three real ways out ------------------------
+  {
+    id: 'morale-walkout',
+    titleKey: 'event.walkout.title',
+    bodyKey: 'event.walkout.body',
+    rarity: 'uncommon',
+    weight: 12,
+    cooldownSeconds: 1200,
+    requires: { moraleBelow: 26 },
+    momentWorthy: true,
+    choices: [
+      {
+        id: 'day-off',
+        labelKey: 'event.walkout.dayOff',
+        requires: { nuts: 900 },
+        disabledKey: 'event.walkout.dayOffLocked',
+        effects: [
+          { type: 'nuts', value: -900 },
+          { type: 'morale', value: 26 },
+          { type: 'setFlag', flagId: 'gave-the-day-off' },
+        ],
+        reactions: ['react.teamDelighted'],
+      },
+      {
+        id: 'address',
+        labelKey: 'event.walkout.address',
+        effects: [
+          { type: 'morale', value: 13 },
+          { type: 'reputation', value: 3 },
+          { type: 'setFlag', flagId: 'listened-to-staff' },
+        ],
+        reactions: ['react.teamRelieved'],
+      },
+      {
+        id: 'ignore',
+        labelKey: 'event.walkout.ignore',
+        effects: [
+          { type: 'nuts', value: 400 },
+          { type: 'setFlag', flagId: 'ignored-walkout' },
+          {
+            type: 'schedule',
+            flagId: 'ignored-walkout',
+            delaySeconds: 600,
+            scheduleTitleKey: 'event.walkout.laterTitle',
+            scheduleBodyKey: 'event.walkout.laterBody',
+            scheduled: [
+              { type: 'morale', value: -14 },
+              { type: 'reputation', value: -16 },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  // --- The opposite problem -------------------------------------------------
+  {
+    id: 'morale-spontaneous-party',
+    titleKey: 'event.party.title',
+    bodyKey: 'event.party.body',
+    rarity: 'uncommon',
+    weight: 8,
+    cooldownSeconds: 1300,
+    requires: { moraleAbove: 88 },
+    choices: [
+      {
+        id: 'fund',
+        labelKey: 'event.party.fund',
+        effects: [
+          { type: 'nuts', value: -450 },
+          { type: 'morale', value: 8 },
+          { type: 'reputation', value: 6 },
+        ],
+        reactions: ['react.teamDelighted'],
+      },
+      {
+        id: 'join',
+        labelKey: 'event.party.join',
+        effects: [
+          { type: 'morale', value: 5 },
+          { type: 'friendship', value: 4 },
+        ],
+        reactions: ['react.teamDelighted'],
+      },
+      {
+        id: 'back-to-work',
+        labelKey: 'event.party.backToWork',
+        effects: [
+          { type: 'nuts', value: 520 },
+          { type: 'morale', value: -8 },
+        ],
+        reactions: ['react.teamNervous'],
+      },
+    ],
+  },
+  // --- The building disagrees with its own floor plan -----------------------
+  {
+    id: 'anomaly-corridor',
+    titleKey: 'event.corridor.title',
+    bodyKey: 'event.corridor.body',
+    rarity: 'rare',
+    weight: 4,
+    cooldownSeconds: 2000,
+    requires: { reputation: 60 },
+    momentWorthy: true,
+    choices: [
+      {
+        id: 'remeasure',
+        labelKey: 'event.corridor.remeasure',
+        effects: [
+          { type: 'nuts', value: -300 },
+          { type: 'reputation', value: 10 },
+          { type: 'setFlag', flagId: 'remeasured-the-corridor' },
+        ],
+        reactions: ['react.beaSuspicious'],
+      },
+      {
+        id: 'amend',
+        labelKey: 'event.corridor.amend',
+        effects: [
+          { type: 'morale', value: 7 },
+          { type: 'reputation', value: 2 },
+          { type: 'setFlag', flagId: 'amended-the-plan' },
+        ],
+      },
+      {
+        id: 'ignore',
+        labelKey: 'event.corridor.ignore',
+        effects: [
+          { type: 'nuts', value: 250 },
+          {
+            type: 'schedule',
+            flagId: 'ignored-the-corridor',
+            delaySeconds: 1700,
+            scheduleTitleKey: 'event.corridor.laterTitle',
+            scheduleBodyKey: 'event.corridor.laterBody',
+            scheduled: [{ type: 'morale', value: -9 }],
+          },
+        ],
+      },
+    ],
+  },
+  // --- A grant, and the temptation to round upward --------------------------
+  {
+    id: 'research-grant',
+    titleKey: 'event.grant.title',
+    bodyKey: 'event.grant.body',
+    rarity: 'uncommon',
+    weight: 7,
+    cooldownSeconds: 1600,
+    requires: { reputation: 40 },
+    choices: [
+      {
+        id: 'honest',
+        labelKey: 'event.grant.honest',
+        effects: [
+          { type: 'nuts', value: 900 },
+          { type: 'reputation', value: 8 },
+          { type: 'setFlag', flagId: 'grant-honest' },
+        ],
+        reactions: ['react.teamRelieved'],
+      },
+      {
+        id: 'embellish',
+        labelKey: 'event.grant.embellish',
+        effects: [],
+        next: 'awarded',
+      },
+    ],
+    steps: {
+      awarded: {
+        bodyKey: 'event.grant.awardedBody',
+        choices: [
+          {
+            id: 'spend',
+            labelKey: 'event.grant.spend',
+            effects: [
+              { type: 'nuts', value: 3200 },
+              { type: 'setFlag', flagId: 'grant-embellished' },
+              {
+                type: 'schedule',
+                flagId: 'grant-embellished',
+                delaySeconds: 1500,
+                scheduleTitleKey: 'event.grant.laterTitle',
+                scheduleBodyKey: 'event.grant.laterBody',
+                scheduled: [
+                  { type: 'reputation', value: -18 },
+                  { type: 'nuts', value: -1400 },
+                ],
+              },
+            ],
+            reactions: ['react.teamNervous'],
+          },
+          {
+            id: 'withdraw',
+            labelKey: 'event.grant.withdraw',
+            effects: [
+              { type: 'reputation', value: 6 },
+              { type: 'morale', value: 4 },
+              { type: 'setFlag', flagId: 'grant-withdrawn' },
+            ],
+            reactions: ['react.teamRelieved'],
+          },
+        ],
+      },
+    },
+  },
+  // --- The question, and the callback that remembers the answer -------------
+  {
+    id: 'intern-question',
+    titleKey: 'event.intern.title',
+    bodyKey: 'event.intern.body',
+    rarity: 'common',
+    weight: 9,
+    cooldownSeconds: 900,
+    requires: { missingFlag: 'answered-the-intern' },
+    choices: [
+      {
+        id: 'honest',
+        labelKey: 'event.intern.honest',
+        effects: [
+          { type: 'morale', value: 6 },
+          { type: 'reputation', value: 3 },
+          { type: 'setFlag', flagId: 'answered-the-intern' },
+          { type: 'setFlag', flagId: 'intern-told-truth' },
+        ],
+        reactions: ['react.teamRelieved'],
+      },
+      {
+        id: 'brochure',
+        labelKey: 'event.intern.brochure',
+        effects: [
+          { type: 'reputation', value: 6 },
+          { type: 'morale', value: -2 },
+          { type: 'setFlag', flagId: 'answered-the-intern' },
+          { type: 'setFlag', flagId: 'intern-told-brochure' },
+        ],
+      },
+      {
+        id: 'deflect',
+        labelKey: 'event.intern.deflect',
+        effects: [
+          { type: 'nuts', value: 180 },
+          { type: 'morale', value: -4 },
+          { type: 'setFlag', flagId: 'answered-the-intern' },
+          { type: 'setFlag', flagId: 'intern-deflected' },
+        ],
+        reactions: ['react.teamNervous'],
+      },
+    ],
+  },
+
+  // --- Years later. Which version of us they repeat is the player's doing. ---
+  {
+    id: 'intern-returns',
+    titleKey: 'event.internReturns.title',
+    bodyKey: 'event.internReturns.body',
+    rarity: 'rare',
+    weight: 5,
+    cooldownSeconds: 2400,
+    requires: { flag: 'answered-the-intern', reputation: 120 },
+    momentWorthy: true,
+    choices: [
+      {
+        id: 'partner',
+        labelKey: 'event.internReturns.partner',
+        effects: [
+          { type: 'reputation', value: 16 },
+          { type: 'nuts', value: 1500 },
+          { type: 'momentCard' },
+        ],
+        reactions: ['react.teamDelighted'],
+      },
+      {
+        id: 'decline',
+        labelKey: 'event.internReturns.decline',
+        effects: [
+          { type: 'morale', value: 8 },
+          { type: 'reputation', value: 4 },
+        ],
+      },
+    ],
+  },
+  // --- Somebody wants to buy a golden nut, and will not say why ------------
+  {
+    id: 'golden-buyer',
+    titleKey: 'event.goldenBuyer.title',
+    bodyKey: 'event.goldenBuyer.body',
+    rarity: 'rare',
+    weight: 5,
+    cooldownSeconds: 1900,
+    requires: { reputation: 70 },
+    choices: [
+      {
+        id: 'sell',
+        labelKey: 'event.goldenBuyer.sell',
+        requires: { goldenNuts: 1 },
+        disabledKey: 'event.goldenBuyer.sellLocked',
+        effects: [
+          { type: 'goldenNuts', value: -1 },
+          { type: 'nuts', value: 6000 },
+          { type: 'setFlag', flagId: 'sold-a-golden' },
+        ],
+        reactions: ['react.ottoImpressed'],
+      },
+      {
+        id: 'refuse',
+        labelKey: 'event.goldenBuyer.refuse',
+        effects: [
+          { type: 'reputation', value: 9 },
+          { type: 'morale', value: 3 },
+          { type: 'setFlag', flagId: 'refused-the-buyer' },
+        ],
+        reactions: ['react.teamRelieved'],
+      },
+      {
+        id: 'ask',
+        labelKey: 'event.goldenBuyer.ask',
+        effects: [
+          { type: 'reputation', value: 4 },
+          { type: 'goldenNuts', value: 1 },
+          { type: 'morale', value: -3 },
+          { type: 'momentCard' },
+        ],
+        reactions: ['react.beaSuspicious'],
+      },
+    ],
+  },
+  // --- Payroll has one more entry than the building does -------------------
+  {
+    id: 'unaccounted-desk',
+    titleKey: 'event.unaccounted.title',
+    bodyKey: 'event.unaccounted.body',
+    rarity: 'rare',
+    weight: 4,
+    cooldownSeconds: 2100,
+    requires: { reputation: 90, missingFlag: 'desk-resolved' },
+    momentWorthy: true,
+    choices: [
+      {
+        id: 'investigate',
+        labelKey: 'event.unaccounted.investigate',
+        effects: [
+          { type: 'nuts', value: -500 },
+          { type: 'reputation', value: 13 },
+          { type: 'setFlag', flagId: 'desk-resolved' },
+          { type: 'momentCard' },
+        ],
+        reactions: ['react.beaSuspicious'],
+      },
+      {
+        id: 'keep-paying',
+        labelKey: 'event.unaccounted.keepPaying',
+        effects: [
+          { type: 'morale', value: 6 },
+          { type: 'nuts', value: -140 },
+        ],
+      },
+      {
+        id: 'remove',
+        labelKey: 'event.unaccounted.remove',
+        effects: [
+          { type: 'nuts', value: 900 },
+          { type: 'morale', value: -7 },
+          { type: 'setFlag', flagId: 'desk-removed' },
+          {
+            type: 'schedule',
+            flagId: 'desk-removed',
+            delaySeconds: 1400,
+            scheduleTitleKey: 'event.unaccounted.laterTitle',
+            scheduleBodyKey: 'event.unaccounted.laterBody',
+            scheduled: [{ type: 'morale', value: -8 }],
+          },
+        ],
+      },
     ],
   },
 ];

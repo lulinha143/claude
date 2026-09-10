@@ -13,6 +13,16 @@ import {
   type PlacementRegion,
   type PlacementRegionKind,
 } from '../sim/placementRegions';
+import { decorationBand, decorationDefaultDepth } from '../sim/depth';
+
+/**
+ * Depth range a region hands to its props, taken from the shared scene bands so
+ * every decoration stays behind every character (see `sim/depth.ts`).
+ */
+function regionDepth(kind: PlacementRegionKind): PlacementRegion['depth'] {
+  const band = decorationBand(kind);
+  return { min: band.min, max: band.max, default: decorationDefaultDepth(kind) };
+}
 
 export type RoomBuiltInKind =
   'shelf' | 'counter' | 'cabinet' | 'lab' | 'board' | 'toolwall' | 'pipes' | 'plant';
@@ -31,6 +41,12 @@ export const ROOM_BUILTIN: Record<string, RoomBuiltInKind> = {
   nap: 'plant',
   basement: 'pipes',
   rooftop: 'plant',
+  // Second expansion.
+  cafeteria: 'counter',
+  mailroom: 'shelf',
+  security: 'board',
+  archive: 'cabinet',
+  incubator: 'lab',
 };
 
 export interface RegionCompatibilityProfile {
@@ -75,9 +91,11 @@ function makeRegion(
 function buildRoomRegions(roomId: string): readonly PlacementRegion[] {
   return [
     // The entire walkable floor.
-    makeRegion(roomId, 'floor', placementPlane(0.04, 0.96, 0.01, 0.35, 0.1), {
+    // Far edge matches SURFACE_BANDS.floor.max, which matches the drawn junction.
+    // These three numbers were 0.35 / 0.34 / 0.32 and disagreed with each other.
+    makeRegion(roomId, 'floor', placementPlane(0.04, 0.96, 0.01, 0.3, 0.1), {
       anchorMode: 'base',
-      depth: { min: 2, max: 5, default: 3 },
+      depth: regionDepth('floor'),
       priority: 10,
       capacity: 12,
       tags: ['grounded', 'perspective'],
@@ -85,7 +103,7 @@ function buildRoomRegions(roomId: string): readonly PlacementRegion[] {
     // The entire wall.
     makeRegion(roomId, 'wall', placementPlane(0.05, 0.95, 0.44, 0.82), {
       anchorMode: 'center',
-      depth: { min: 1, max: 1, default: 1 },
+      depth: regionDepth('wall'),
       priority: 20,
       capacity: 10,
       tags: ['vertical', 'backdrop'],
@@ -93,7 +111,7 @@ function buildRoomRegions(roomId: string): readonly PlacementRegion[] {
     // The entire ceiling.
     makeRegion(roomId, 'ceiling', placementPlane(0.06, 0.94, 0.85, 0.98), {
       anchorMode: 'hanging',
-      depth: { min: 6, max: 7, default: 6 },
+      depth: regionDepth('ceiling'),
       priority: 50,
       capacity: 6,
       tags: ['hanging', 'overhead'],

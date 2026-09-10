@@ -1,6 +1,12 @@
 import { BALANCE } from './config';
 import { createRng, hashStringToSeed, type Rng } from './rng';
-import type { DecorationInstance, EmployeeMood, GameState, MomentCard } from './types';
+import type {
+  DecorationInstance,
+  EmployeeMood,
+  GameState,
+  MomentCard,
+  ScheduledConsequence,
+} from './types';
 import {
   aggregatePassives,
   autoCollectRate,
@@ -15,6 +21,7 @@ import {
   reputationRate,
   upgradeCost,
 } from './economy';
+import { upgradeBonus } from './upgradeEffects';
 import { employeeMood, moodProductivityMultiplier } from './mood';
 import { repairEmployees } from './state';
 import { EMPLOYEES_BY_ID } from '../content/employees';
@@ -22,9 +29,30 @@ import { UPGRADES_BY_ID } from '../content/upgrades';
 import type { EventEffect, GameEventDef } from '../content/types';
 import { GAME_EVENTS, GAME_EVENTS_BY_ID } from '../content/events';
 import { eventChoicesForState } from './eventChoices';
+import { chooseAutoResolution } from './eventAutoResolve';
+import { CLICK_STATIONS_BY_ID } from '../content/clickStations';
+import {
+  CLICK,
+  critChance,
+  goldenTapChance,
+  resolveClick,
+  stationComboWindowMs,
+  type ClickResolution,
+  type ComboTracker,
+} from './clickStations';
+import { aggregateCompanyModifiers } from './companyModifiers';
 import { evaluateAchievements } from './achievements';
 import { ensureDailyForDate } from './dailyChallenges';
-import { isRoomIdUnlocked, repairPlacements, unlockedRooms } from './rooms';
+import {
+  ROOM_CAP,
+  bestRoomWithSpace,
+  enforceRoomCapacity,
+  isRoomIdUnlocked,
+  repairPlacements,
+  resolveEmployeeRoom,
+  roomHasSpace,
+  unlockedRooms,
+} from './rooms';
 import {
   repairDecorations,
   repairDecorationInstances,
@@ -101,6 +129,22 @@ export interface EventChoiceContext {
   step: string | null;
 }
 
+/** One decision taken on the player's behalf while popups are disabled. */
+interface AutoResolvedDecision {
+  def: GameEventDef;
+  choice: { id: string; labelKey: string };
+}
+
+/**
+ * Summary of the most recent auto-resolved event, so the UI can tell the player
+ * what the department decided. Transient: it is a notification, not saved state.
+ */
+export interface AutoResolvedEvent {
+  titleKey: string;
+  choiceLabelKey: string;
+  at: number;
+}
+
 export interface EngineOptions {
   now?: () => number;
   seed?: number;
@@ -132,6 +176,22 @@ export class GameEngine {
   /** transient: the result of the most recent event choice, for the result panel. */
   lastConsequence: Consequence | null = null;
   tempBoosts: TempBoost[] = [];
+  /**
+   * transient: the live click-station combo. A streak is a moment, not an asset,
+   * so it is intentionally NOT persisted — it lapses on reload just as it lapses
+   * when the player stops tapping. Lifetime totals live in `state.clicker`.
+   */
+  combo: ComboTracker | null = null;
+  /**
+   * transient: the last event the department handled on its own (only set while
+   * `settings.autoResolveEvents` is on), for the notification feed.
+   */
+  lastAutoResolved: AutoResolvedEvent | null = null;
+  /**
+   * transient: delayed consequences that have just landed, for the notification
+   * feed. Drained by the UI; the authoritative queue lives in `state.scheduled`.
+   */
+  settledConsequences: ScheduledConsequence[] = [];
 
   private listeners = new Set<EngineListener>();
   private now: () => number;
@@ -141,18 +201,25 @@ export class GameEngine {
   private saveCallback: ((state: GameState) => void) | null = null;
   private version = 0;
   private nextEventInstanceId = 1;
+  /** Rooms unlocked as of the last check, so a new one can re-seat the team. */
+  private unlockedRoomCount = 0;
   private resolvingEventInstanceId: number | null = null;
 
   constructor(state: GameState, opts: EngineOptions = {}) {
     this.state = state;
     this.now = opts.now ?? (() => Date.now());
-    const seed = opts.deterministic ? (opts.seed ?? 12345) : (opts.seed ?? (Date.now() & 0xffffffff));
+    const seed = opts.deterministic ? (opts.seed ?? 12345) : (opts.seed ?? Date.now() & 0xffffffff);
     this.rng = createRng(seed);
     // Backfill any employees added to the game since this save was written, so
     // screens that map over all employees never read `undefined` and crash.
     repairEmployees(this.state);
     // Repair any invalid employee placement data on load so no one is lost.
     this.repairedOnLoad = repairPlacements(this.state);
+    // Older saves predate the four-per-room cap, and the fallback resolution can
+    // pile unassigned teammates into one room regardless of when the save was
+    // written, so the invariant is established before anything renders.
+    enforceRoomCapacity(this.state);
+    this.unlockedRoomCount = unlockedRooms(this.state).length;
     // Repair the source instance model before its legacy placement projection,
     // then mirror any coordinate clamping back into the instances.
     repairDecorationInstances(this.state);
@@ -227,6 +294,16 @@ export class GameEngine {
     this.tickFocus();
     this.rolloverDaily();
 
+    // A room opening is the one thing that can change where the team fits without
+    // the player touching anything: reputation crosses a threshold mid-tick and a
+    // new department appears. Re-seat anyone the fallback had crowded, and give the
+    // newly opened room its first occupants.
+    const openRooms = unlockedRooms(this.state).length;
+    if (openRooms !== this.unlockedRoomCount) {
+      this.unlockedRoomCount = openRooms;
+      enforceRoomCapacity(this.state);
+    }
+
     // prune expired boosts to avoid unbounded growth
     const t = this.now();
     this.tempBoosts = this.tempBoosts.filter((b) => b.endsAt > t);
@@ -241,6 +318,8 @@ export class GameEngine {
     }
 
     // random events
+    this.settleScheduled();
+
     this.eventAccum += deltaSeconds;
     if (this.eventAccum >= BALANCE.eventRollIntervalSeconds) {
       this.eventAccum = 0;
@@ -270,12 +349,26 @@ export class GameEngine {
 
     this.state.stats.highestNutsPerSecond = Math.max(this.state.stats.highestNutsPerSecond, nps);
 
-    // Morale drifts toward equilibrium influenced by passives, with a floor.
+    // Morale drifts toward an equilibrium set by passives AND by the building.
+    //
+    // The room network drives both ends: the Lab, the basement and the production
+    // floors drag the target down, while the Break Room and the Nap Room raise it
+    // and speed up recovery. This is the causal chain the player feels — an
+    // unbalanced building settles at low morale, low morale cuts production via
+    // `moraleMultiplier`, and weaker production slows every other system.
+    const rooms = aggregateCompanyModifiers(this.state);
     const cap = moraleCap(this.state);
     const floor = Math.max(BALANCE.morale.min, moraleFloor(this.state));
-    const target = Math.min(cap, BALANCE.morale.start + passives.moraleBonus);
+    const target = Math.min(
+      cap,
+      Math.max(
+        BALANCE.morale.min,
+        BALANCE.morale.start + passives.moraleBonus + rooms.moraleTarget,
+      ),
+    );
     const m = this.state.resources.morale;
-    const drift = (target - m) * Math.min(1, BALANCE.morale.driftPerSecond * dt);
+    const regen = Math.max(0.1, BALANCE.morale.driftPerSecond * (1 + rooms.moraleRegen));
+    const drift = (target - m) * Math.min(1, regen * dt);
     this.state.resources.morale = Math.max(floor, Math.min(cap, m + drift));
 
     // Reputation grows slowly with company size.
@@ -314,6 +407,115 @@ export class GameEngine {
     return { gained, bonus };
   }
 
+  /**
+   * Tap a click station. This is the game's primary active-play verb.
+   *
+   * There is deliberately NO cooldown or debounce: every call pays out, so
+   * repeated clicking is always honoured and never silently dropped. Stations
+   * that want a rhythm express it through their `charge` cadence (a reduced —
+   * never zero — payout for tapping early), which is a balancing choice the
+   * player can see and learn, not an input limiter.
+   */
+  tapStation(stationId: string): ClickResolution | null {
+    const def = CLICK_STATIONS_BY_ID[stationId];
+    if (!def) return null;
+    // A station is available exactly when its room is.
+    if (!isRoomIdUnlocked(this.state, def.roomId)) return null;
+
+    const now = this.now();
+    const rolls = {
+      critical: this.rng.chance(critChance(this.state, def)),
+      golden: this.rng.chance(goldenTapChance(this.state)),
+    };
+    const result = resolveClick(this.state, def, this.combo, now, rolls);
+
+    // Advance the transient combo tracker.
+    this.combo = { stationId: def.id, streak: result.streak, lastTapAt: now };
+
+    if (result.resource === 'goldenNuts') {
+      this.state.resources.goldenNuts += result.amount;
+      // Taps still count as clicks for stats/dailies even when paid in gold.
+      this.state.stats.totalClicks += 1;
+    } else {
+      this.addNuts(result.amount, true);
+    }
+    if (result.golden) this.state.resources.goldenNuts += 1;
+
+    const clicker = this.state.clicker;
+    clicker.stationTaps[def.id] = (clicker.stationTaps[def.id] ?? 0) + 1;
+    if (result.critical) clicker.criticalTaps += 1;
+    if (result.golden) clicker.goldenTaps += 1;
+    clicker.bestStreak = Math.max(clicker.bestStreak, result.streak);
+
+    // The crate is the founder's station, so keep its long-standing counters and
+    // daily challenge wired up rather than stranding them.
+    if (def.kind === 'crate') {
+      this.state.stats.cratesCollected += 1;
+      this.progressDaily('collectCrates', 1);
+    }
+
+    this.emit();
+    return result;
+  }
+
+  /**
+   * Apply any promised consequences that have come due.
+   *
+   * Run every tick, which also means a player who was away gets their bill on
+   * return rather than having it silently skipped: `tick` catches up elapsed time,
+   * so anything whose moment passed offline settles on the next tick.
+   */
+  private settleScheduled(): void {
+    if (this.state.scheduled.length === 0) return;
+    const now = this.now();
+    const due = this.state.scheduled.filter((s) => s.at <= now);
+    if (due.length === 0) return;
+    this.state.scheduled = this.state.scheduled.filter((s) => s.at > now);
+
+    for (const item of due) {
+      const def = GAME_EVENTS_BY_ID[item.sourceEventId];
+      for (const effect of item.effects) {
+        // Reuse the ordinary effect pipeline so a delayed change is clamped and
+        // recorded exactly like an immediate one.
+        this.applyEffect(effect, def ?? this.syntheticEventFor(item));
+      }
+      // Surfaced so the callback never feels like an unexplained swing.
+      this.settledConsequences.push(item);
+      if (this.settledConsequences.length > 8) this.settledConsequences.shift();
+    }
+  }
+
+  /**
+   * A minimal event stand-in for a scheduled consequence whose source event no
+   * longer exists (content removed between versions). Keeps `applyEffect`'s
+   * employee fallbacks working without special-casing them.
+   */
+  private syntheticEventFor(item: ScheduledConsequence): GameEventDef {
+    return {
+      id: item.sourceEventId,
+      titleKey: item.titleKey,
+      bodyKey: item.bodyKey,
+      rarity: 'common',
+      weight: 0,
+      cooldownSeconds: 0,
+      choices: [],
+    };
+  }
+
+  /** The live combo streak on a station, or 0 if it has lapsed. */
+  comboStreak(stationId: string): number {
+    const def = CLICK_STATIONS_BY_ID[stationId];
+    if (!def || !this.combo || this.combo.stationId !== stationId) return 0;
+    if (this.now() - this.combo.lastTapAt > stationComboWindowMs(this.state, def)) return 0;
+    return this.combo.streak;
+  }
+
+  /** The combo window currently in force for a station (rooms can widen it). */
+  comboWindowFor(stationId: string): number {
+    const def = CLICK_STATIONS_BY_ID[stationId];
+    return def ? stationComboWindowMs(this.state, def) : CLICK.comboWindowMs;
+  }
+
   canAfford(resource: 'nuts' | 'goldenNuts' | 'permanentKernels', amount: number): boolean {
     return this.state.resources[resource] >= amount;
   }
@@ -345,8 +547,19 @@ export class GameEngine {
     const cost = employeeLevelCost(def, rt.level, reduction);
     if (!this.canAfford(def.hireCost.resource, cost)) return false;
     this.state.resources[def.hireCost.resource] -= cost;
+    const firstDay = !rt.hired;
     rt.hired = true;
     rt.level += 1;
+    // A new hire needs a desk that exists. Without this they resolve to their
+    // department (or the Founder's Desk) no matter how full it already is.
+    if (firstDay && !rt.room) {
+      const home = def.room;
+      rt.room =
+        home && isRoomIdUnlocked(this.state, home) && roomHasSpace(this.state, home)
+          ? home
+          : bestRoomWithSpace(this.state, id);
+      enforceRoomCapacity(this.state);
+    }
     this.emit();
     return true;
   }
@@ -396,7 +609,20 @@ export class GameEngine {
     const rt = this.state.employees[id];
     if (!rt) return false;
     if (roomId !== null && !isRoomIdUnlocked(this.state, roomId)) return false;
+    // A full room refuses the move outright rather than accepting it and letting
+    // the capacity pass silently bounce them somewhere else — the player asked for
+    // a specific desk, so "no" is the honest answer.
+    if (
+      roomId !== null &&
+      resolveEmployeeRoom(this.state, id) !== roomId &&
+      !roomHasSpace(this.state, roomId)
+    ) {
+      return false;
+    }
     rt.room = roomId;
+    // Clearing an assignment hands them back to the fallback, which can overfill a
+    // room; re-seat whoever that displaces.
+    if (roomId === null) enforceRoomCapacity(this.state);
     this.emit();
     this.save(); // a room move is a deliberate action — persist it immediately
     return true;
@@ -412,27 +638,61 @@ export class GameEngine {
   autoArrangeEmployees(strategy: 'department' | 'balanced'): number {
     const hired = Object.entries(this.state.employees).filter(([, rt]) => rt.hired);
     let changes = 0;
+    // Both strategies fill rooms against a live occupancy count, so neither can
+    // produce a five-person room. 'department' used to send a whole department to
+    // one room regardless, and 'balanced' round-robined over however many rooms
+    // happened to be unlocked.
+    const occupancy = new Map<string, number>(unlockedRooms(this.state).map((r) => [r.id, 0]));
+    const take = (roomId: string): boolean => {
+      const seated = occupancy.get(roomId);
+      if (seated === undefined || seated >= ROOM_CAP) return false;
+      occupancy.set(roomId, seated + 1);
+      return true;
+    };
+    const place = (rt: (typeof hired)[number][1], roomId: string | null) => {
+      if (!roomId) return;
+      if (rt.room !== roomId) {
+        rt.room = roomId;
+        changes += 1;
+      }
+    };
+
     if (strategy === 'department') {
+      const spill: [string, (typeof hired)[number][1]][] = [];
       for (const [id, rt] of hired) {
         const home = EMPLOYEES_BY_ID[id]?.room ?? null;
-        if (home && isRoomIdUnlocked(this.state, home) && rt.room !== home) {
-          rt.room = home;
-          changes += 1;
-        }
+        if (home && isRoomIdUnlocked(this.state, home) && take(home)) place(rt, home);
+        else spill.push([id, rt]);
+      }
+      // Anyone whose department is full or locked gets the room they next prefer.
+      for (const [id, rt] of spill) {
+        const target = bestRoomWithSpace(this.state, id, occupancy);
+        if (target && take(target)) place(rt, target);
       }
     } else {
       const rooms = unlockedRooms(this.state).map((r) => r.id);
       if (rooms.length > 0) {
-        hired.forEach(([, rt], i) => {
-          const target = rooms[i % rooms.length];
-          if (rt.room !== target) {
-            rt.room = target;
-            changes += 1;
+        // Deal round-robin, skipping rooms that have reached the cap so a small
+        // office packs evenly instead of overfilling the first few rooms.
+        let cursor = 0;
+        for (const [, rt] of hired) {
+          let target: string | null = null;
+          for (let step = 0; step < rooms.length; step += 1) {
+            const candidate = rooms[(cursor + step) % rooms.length];
+            if (take(candidate)) {
+              target = candidate;
+              cursor = (cursor + step + 1) % rooms.length;
+              break;
+            }
           }
-        });
+          place(rt, target);
+        }
       }
     }
-    if (changes > 0) this.emit();
+    if (changes > 0) {
+      enforceRoomCapacity(this.state);
+      this.emit();
+    }
     return changes;
   }
 
@@ -456,7 +716,13 @@ export class GameEngine {
   }
 
   // -- events ---------------------------------------------------------------
-  private eligibleEvents(): GameEventDef[] {
+  /** Ids of the events that could fire right now. Useful for diagnostics. */
+  eligibleEventIds(): string[] {
+    return this.eligibleEvents().map((ev) => ev.id);
+  }
+
+  /** Every event whose cooldown has expired and whose requirements are met. */
+  eligibleEvents(): GameEventDef[] {
     const t = this.now();
     return GAME_EVENTS.filter((ev) => {
       const cd = this.state.eventCooldowns[ev.id] ?? 0;
@@ -466,6 +732,22 @@ export class GameEngine {
       if (ev.requires?.prestige && this.state.prestige.count < ev.requires.prestige) return false;
       if (ev.requires?.hiredEmployee && !this.state.employees[ev.requires.hiredEmployee]?.hired)
         return false;
+      // Consequence memory: content can be gated on what this company has
+      // already done, which is how a decision made an hour ago comes back.
+      if (ev.requires?.flag && !(ev.requires.flag in this.state.flags)) return false;
+      if (ev.requires?.missingFlag && ev.requires.missingFlag in this.state.flags) return false;
+      if (ev.requires?.room && !isRoomIdUnlocked(this.state, ev.requires.room)) return false;
+      // Situational events: a morale crisis should only turn up when there IS one.
+      if (
+        ev.requires?.moraleBelow !== undefined &&
+        this.state.resources.morale > ev.requires.moraleBelow
+      )
+        return false;
+      if (
+        ev.requires?.moraleAbove !== undefined &&
+        this.state.resources.morale < ev.requires.moraleAbove
+      )
+        return false;
       return true;
     });
   }
@@ -473,7 +755,10 @@ export class GameEngine {
   maybeRollEvent(force = false): void {
     if (this.activeEvent) return;
     const passives = aggregatePassives(this.state);
-    const chance = BALANCE.eventBaseChance + passives.rareChance;
+    // Rooms that deal in the strange — the Lab, Research, the basement — make
+    // something interesting happen more often, which is their real reward.
+    const luck = aggregateCompanyModifiers(this.state).eventLuck;
+    const chance = BALANCE.eventBaseChance + passives.rareChance + luck;
     if (!force && !this.rng.chance(chance)) return;
     const pool = this.eligibleEvents();
     if (pool.length === 0) return;
@@ -496,7 +781,60 @@ export class GameEngine {
     this.activeEvent = { def, step: null, instanceId: this.nextEventInstanceId++ };
     this.state.stats.eventsSeen += 1;
     this.progressDaily('employeeConversations', def.employeeId ? 1 : 0);
+
+    // The player has asked not to be interrupted: handle the whole event now,
+    // consequences and all, and report it instead of showing a popup.
+    if (this.state.settings.autoResolveEvents) {
+      const handled = this.autoResolveActiveEvent();
+      this.emit();
+      return handled;
+    }
+
     this.emit();
+    return true;
+  }
+
+  /**
+   * Resolve the active event (and any chain it leads into) without a popup.
+   *
+   * Runs the real `resolveEventChoice` path so effects, the measured consequence
+   * report, event history and cooldowns behave exactly as they do when the player
+   * decides by hand — the only difference is who picked. The decisions taken are
+   * returned so the UI can summarise them in the notification feed.
+   */
+  private autoResolveActiveEvent(): boolean {
+    const decisions: AutoResolvedDecision[] = [];
+    // A chain cannot legitimately be longer than its authored steps; the guard
+    // stops malformed content (a step pointing at itself) from spinning forever.
+    const guard = Object.keys(this.activeEvent?.def.steps ?? {}).length + 2;
+
+    for (let i = 0; i < guard; i += 1) {
+      const active = this.activeEvent;
+      if (!active) break;
+      const picked = chooseAutoResolution(this.state, active.def, active.step);
+      if (!picked) break;
+      decisions.push({ def: active.def, choice: picked.choice });
+      const resolved = this.resolveEventChoice(picked.choice.id, {
+        eventInstanceId: active.instanceId,
+        step: active.step,
+      });
+      if (!resolved) break;
+    }
+
+    if (decisions.length === 0) {
+      // Nothing actionable (malformed content): do not leave a popup stranded.
+      this.activeEvent = null;
+      return false;
+    }
+
+    // The result panel is an interruption too, so it is suppressed; the summary
+    // below is what the player sees.
+    this.lastConsequence = null;
+    this.lastAutoResolved = {
+      titleKey: decisions[0].def.titleKey,
+      choiceLabelKey: decisions[decisions.length - 1].choice.labelKey,
+      at: this.now(),
+    };
     return true;
   }
 
@@ -638,14 +976,35 @@ export class GameEngine {
     };
   }
 
-  private applyEffect(effect: EventEffect, def: GameEventDef): void {
+  /**
+   * Apply one authored effect. This is the SINGLE funnel every effect goes
+   * through — event choices, delayed consequences, and the dev panel — so all of
+   * them share the same clamping, employee fallbacks and caps.
+   *
+   * `def` supplies the contextual employee for effects that omit one; it is
+   * optional because a delayed consequence can outlive the event that promised it.
+   */
+  applyEffect(effect: EventEffect, def?: GameEventDef): void {
+    // Upgrades in the "negotiation" line make favourable outcomes pay MORE without
+    // softening the unfavourable ones — so investing in decision-making changes
+    // which choices are worth taking, rather than removing the risk from all of
+    // them. Penalties are deliberately untouched.
+    const rewardBonus = 1 + upgradeBonus(this.state, 'eventReward');
+    const gain = (value: number | undefined): number => {
+      const raw = value ?? 0;
+      return raw > 0 ? raw * rewardBonus : raw;
+    };
     switch (effect.type) {
       case 'nuts':
-        if ((effect.value ?? 0) >= 0) this.addNuts(effect.value ?? 0, false);
-        else this.state.resources.nuts = Math.max(0, this.state.resources.nuts + (effect.value ?? 0));
+        if ((effect.value ?? 0) >= 0) this.addNuts(gain(effect.value), false);
+        else
+          this.state.resources.nuts = Math.max(0, this.state.resources.nuts + (effect.value ?? 0));
         break;
       case 'goldenNuts':
-        this.state.resources.goldenNuts = Math.max(0, this.state.resources.goldenNuts + (effect.value ?? 0));
+        this.state.resources.goldenNuts = Math.max(
+          0,
+          this.state.resources.goldenNuts + (effect.value ?? 0),
+        );
         break;
       case 'morale':
         this.state.resources.morale = Math.max(
@@ -654,19 +1013,22 @@ export class GameEngine {
         );
         break;
       case 'reputation':
-        this.state.resources.reputation = Math.max(0, this.state.resources.reputation + (effect.value ?? 0));
+        this.state.resources.reputation = Math.max(
+          0,
+          this.state.resources.reputation + gain(effect.value),
+        );
         break;
       case 'productionBoost':
         this.addBoost(effect.value ?? 1.5, effect.durationSeconds ?? 60);
         break;
       case 'friendship': {
-        const rt = this.state.employees[effect.employeeId ?? def.employeeId ?? ''];
+        const rt = this.state.employees[effect.employeeId ?? def?.employeeId ?? ''];
         // Only unlocked employees participate in the simulation.
         if (rt && rt.hired) rt.friendship = Math.min(100, rt.friendship + (effect.value ?? 5));
         break;
       }
       case 'emotion': {
-        const id = effect.employeeId ?? def.employeeId ?? '';
+        const id = effect.employeeId ?? def?.employeeId ?? '';
         if (effect.emotion) this.setEmployeeEmotion(id, effect.emotion, effect.durationSeconds);
         break;
       }
@@ -678,8 +1040,36 @@ export class GameEngine {
         if (effect.secretId && !this.state.collections.secrets.includes(effect.secretId))
           this.state.collections.secrets.push(effect.secretId);
         break;
+      // Consequence memory. Stamped with WHEN so later content can distinguish
+      // "this happened" from "this happened recently".
+      case 'setFlag':
+        if (effect.flagId && !(effect.flagId in this.state.flags)) {
+          this.state.flags[effect.flagId] = this.now();
+        }
+        break;
+      case 'clearFlag':
+        if (effect.flagId) delete this.state.flags[effect.flagId];
+        break;
+      // A promise to be settled later. Stored as authored effects so the delayed
+      // change still respects whatever caps are in force when it lands.
+      case 'schedule': {
+        if (!effect.scheduled?.length) break;
+        const delay = Math.max(1, effect.delaySeconds ?? 300);
+        this.state.scheduled.push({
+          id: `${def?.id ?? 'manual'}:${effect.flagId ?? 'delayed'}:${this.now()}`,
+          at: this.now() + delay * 1000,
+          sourceEventId: def?.id ?? 'manual',
+          titleKey: effect.scheduleTitleKey ?? def?.titleKey ?? 'notify.consequenceSettled',
+          bodyKey: effect.scheduleBodyKey ?? def?.bodyKey ?? 'notify.consequenceSettled',
+          effects: effect.scheduled,
+        });
+        // Keep the queue bounded; a save should never accumulate promises forever.
+        if (this.state.scheduled.length > 24) this.state.scheduled.shift();
+        break;
+      }
       case 'momentCard':
-        this.createMomentCard(def);
+        // A moment card is a souvenir OF an event, so it needs a real source.
+        if (def) this.createMomentCard(def);
         break;
     }
   }
@@ -836,12 +1226,7 @@ export class GameEngine {
     );
   }
 
-  private canApplyDecorationPlacement(
-    id: string,
-    roomId: string,
-    x: number,
-    y: number,
-  ): boolean {
+  private canApplyDecorationPlacement(id: string, roomId: string, x: number, y: number): boolean {
     if (!this.canMoveDecorationToRoom(id, roomId)) return false;
     const def = DECORATIONS_BY_ID[id];
     if (!def || def.defaultRegionKind !== 'floor') {
@@ -874,7 +1259,8 @@ export class GameEngine {
     // back to the coarse surface→kind mapping.
     const legacyDef = DECORATIONS_BY_ID[id];
     instance.regionKind =
-      legacyDef && projectSurfaceType(REGION_KIND_SURFACE[legacyDef.defaultRegionKind]) === placement.surface
+      legacyDef &&
+      projectSurfaceType(REGION_KIND_SURFACE[legacyDef.defaultRegionKind]) === placement.surface
         ? legacyDef.defaultRegionKind
         : regionKindForSurface(placement.surface);
     if (depth !== undefined) {
@@ -1109,7 +1495,10 @@ export class GameEngine {
   }
 
   addMoraleFromDecoration(amount: number): void {
-    this.state.resources.morale = Math.min(moraleCap(this.state), this.state.resources.morale + amount);
+    this.state.resources.morale = Math.min(
+      moraleCap(this.state),
+      this.state.resources.morale + amount,
+    );
   }
 
   replaceState(next: GameState): void {

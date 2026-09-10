@@ -8,6 +8,10 @@ import { PRESTIGE_BRANCHES_BY_ID, PRESTIGE_SKILLS_BY_ID } from '../content/prest
 import { teamMoodMultiplier } from './mood';
 import { affinityMultiplier } from './affinity';
 import { resolveEmployeeRoom } from './rooms';
+import { aggregateCompanyModifiers } from './companyModifiers';
+// Re-exported so existing callers can keep importing it from the economy module.
+export { upgradeBonus } from './upgradeEffects';
+import { nextReputationTier } from '../content/reputationTiers';
 
 /** An employee's output = their base contribution × room-specialization bonus. */
 export function employeeOutput(state: GameState, def: EmployeeDef, level: number): number {
@@ -44,7 +48,11 @@ export function upgradeCost(def: UpgradeDef, ownedLevels: number, costReduction 
   return Math.max(1, Math.ceil(raw * (1 - costReduction)));
 }
 
-export function employeeLevelCost(def: EmployeeDef, currentLevel: number, costReduction = 0): number {
+export function employeeLevelCost(
+  def: EmployeeDef,
+  currentLevel: number,
+  costReduction = 0,
+): number {
   // Level 0 -> 1 uses the hire cost; further levels grow geometrically.
   const base = def.hireCost.amount > 0 ? def.hireCost.amount : 100;
   const raw = Math.ceil(base * Math.pow(def.levelCostMult, Math.max(0, currentLevel)));
@@ -101,6 +109,11 @@ export function aggregatePassives(state: GameState): Passives {
         break;
     }
   }
+  // Procurement, the Vault, the Nap Room and company standing all make the
+  // building cheaper to run. Folding that in here means every existing consumer
+  // of `costReduction` (upgrades, hiring, levelling) picks it up without a second
+  // discount system to keep in sync.
+  p.costReduction += aggregateCompanyModifiers(state).costReduction;
   // Cost reduction is capped so it can never make things free.
   p.costReduction = Math.min(0.75, p.costReduction);
   return p;
@@ -134,6 +147,9 @@ export function nextReputationUnlock(state: GameState): number | null {
   };
   for (const r of ROOMS) consider(r.unlock.reputation);
   for (const e of EMPLOYEES) consider(e.unlock.reputation);
+  // The next rung of the standing ladder is also something reputation is working
+  // toward, and it is often the nearest goal.
+  consider(nextReputationTier(cur)?.at);
   return next;
 }
 
@@ -185,9 +201,12 @@ export function computeProduction(state: GameState, focusActive: boolean): Produ
     breakdown.push({ source: `employee:${def.id}`, nutsPerSecond: contrib });
   }
 
-  // Global multiplier stack.
+  // Global multiplier stack. The room network joins the additive bucket, so a
+  // well-designed building reads as one clear "+x% from your rooms" line rather
+  // than a hidden extra multiplication.
+  const rooms = aggregateCompanyModifiers(state);
   const globalMult =
-    (1 + upgradeGlobalMultiplier(state) + passives.globalMultiplier) *
+    (1 + upgradeGlobalMultiplier(state) + passives.globalMultiplier + rooms.production) *
     moraleMultiplier(state.resources.morale) *
     prestigeMultiplier(state) *
     moodMultiplier(state) *
@@ -204,6 +223,8 @@ export interface ProductionBreakdown {
   /** additive fractions (0.1 = +10%) */
   upgradeBonus: number;
   passiveBonus: number;
+  /** net additive contribution of the room synergy network. */
+  roomBonus: number;
   /** multipliers (1 = no change) */
   moraleMult: number;
   prestigeMult: number;
@@ -232,18 +253,25 @@ export function productionBreakdown(state: GameState, focusActive: boolean): Pro
   }
   const upgradeBonus = upgradeGlobalMultiplier(state);
   const passiveBonus = passives.globalMultiplier;
+  const roomBonus = aggregateCompanyModifiers(state).production;
   const moraleMult = moraleMultiplier(state.resources.morale);
   const prestigeMult = prestigeMultiplier(state);
   const focusMult = focusActive ? BALANCE.focus.productionMultiplier : 1;
   const moodMult = moodMultiplier(state);
   const total =
-    raw * (1 + upgradeBonus + passiveBonus) * moraleMult * prestigeMult * focusMult * moodMult;
+    raw *
+    (1 + upgradeBonus + passiveBonus + roomBonus) *
+    moraleMult *
+    prestigeMult *
+    focusMult *
+    moodMult;
   return {
     base,
     employees,
     rawPerSecond: raw,
     upgradeBonus,
     passiveBonus,
+    roomBonus,
     moraleMult,
     prestigeMult,
     focusMult,
@@ -259,9 +287,12 @@ export function clickPower(state: GameState): number {
     if (!def || level <= 0) continue;
     if (def.effect.kind === 'clickPower') power += def.effect.perLevel * level;
   }
+  // Rooms that sharpen the active layer raise tap value directly, so building for
+  // clicking is a real strategy rather than an early-game phase.
+  power *= 1 + aggregateCompanyModifiers(state).clickPower;
   // clicks also benefit from the global multiplier so they stay relevant.
   const prod = computeProduction(state, false);
-  return power * Math.max(1, Math.sqrt(prod.multiplier));
+  return Math.max(BALANCE.baseClickPower * 0.25, power) * Math.max(1, Math.sqrt(prod.multiplier));
 }
 
 export function crateValue(state: GameState, focusActive: boolean): number {
@@ -303,6 +334,10 @@ export function reputationRate(state: GameState, passives: Passives): number {
     const def = UPGRADES_BY_ID[id];
     if (def && def.effect.kind === 'reputationRate') rate += def.effect.perLevel * level;
   }
+  // Marketing and the rooftop dish earn standing; the Lab and the basement cost
+  // it. The net can go negative, which is the point — a company built only out of
+  // the unpleasant rooms slides back down the ladder.
+  rate += aggregateCompanyModifiers(state).reputationRate;
   return rate + passives.reputationRate / 60; // passive reputationRate is per-minute
 }
 
@@ -312,7 +347,10 @@ export function autoCollectRate(state: GameState): number {
     const def = UPGRADES_BY_ID[id];
     if (def && def.effect.kind === 'autoCollect') rate += def.effect.perLevel * level;
   }
-  return rate; // fraction of production auto-banked per second
+  // Automation also arrives from the workshop and from company standing, so the
+  // shift from "run it by hand" to "it mostly runs itself" happens through play.
+  rate += aggregateCompanyModifiers(state).automation;
+  return Math.min(1, rate); // fraction of production auto-banked per second
 }
 
 export function isEmployeeUnlocked(state: GameState, def: EmployeeDef): boolean {

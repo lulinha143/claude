@@ -129,10 +129,154 @@ const automationUpgrades: UpgradeDef[] = [
   },
 ];
 
+
+/**
+ * Upgrades that change how the company PLAYS, not how big its numbers are.
+ *
+ * Each one hooks a system that already exists — the tap crit roll, the combo
+ * window, the golden-nut drop, event payouts, room staffing — through
+ * `upgradeBonus`, and stacks with the room network's contribution to the same
+ * thing rather than replacing it. They are deliberately few, expensive, and
+ * shallow (small maxLevel), because their job is to open a strategy, not to be
+ * bought forty times.
+ */
+const behaviourUpgrades: UpgradeDef[] = [
+  // --- Sharper taps ----------------------------------------------------------
+  {
+    id: 'calibrated-tools',
+    nameKey: 'upgrade.calibratedTools.name',
+    descriptionKey: 'upgrade.calibratedTools.desc',
+    category: 'production',
+    resource: 'nuts',
+    baseCost: 9000,
+    costMult: 2.5,
+    maxLevel: 6,
+    effect: { kind: 'critChance', perLevel: 0.02 },
+    unlock: { upgradeId: 'click-2' },
+  },
+  {
+    id: 'technique-manual',
+    nameKey: 'upgrade.techniqueManual.name',
+    descriptionKey: 'upgrade.techniqueManual.desc',
+    category: 'production',
+    resource: 'goldenNuts',
+    baseCost: 4,
+    costMult: 2.2,
+    maxLevel: 4,
+    effect: { kind: 'critChance', perLevel: 0.035 },
+    unlock: { upgradeId: 'calibrated-tools' },
+  },
+  // --- Longer combos: rewards actually staying at a station ------------------
+  {
+    id: 'muscle-memory',
+    nameKey: 'upgrade.muscleMemory.name',
+    descriptionKey: 'upgrade.muscleMemory.desc',
+    category: 'production',
+    resource: 'nuts',
+    baseCost: 14000,
+    costMult: 2.6,
+    maxLevel: 5,
+    effect: { kind: 'comboWindow', perLevel: 0.12 },
+    unlock: { upgradeId: 'click-3' },
+  },
+  {
+    id: 'shift-rhythm',
+    nameKey: 'upgrade.shiftRhythm.name',
+    descriptionKey: 'upgrade.shiftRhythm.desc',
+    category: 'quality',
+    resource: 'nuts',
+    baseCost: 120000,
+    costMult: 2.8,
+    maxLevel: 4,
+    effect: { kind: 'comboWindow', perLevel: 0.18 },
+    unlock: { upgradeId: 'muscle-memory' },
+  },
+  // --- Premium currency as a strategy, not a trickle ------------------------
+  {
+    id: 'assay-desk',
+    nameKey: 'upgrade.assayDesk.name',
+    descriptionKey: 'upgrade.assayDesk.desc',
+    category: 'quality',
+    resource: 'nuts',
+    baseCost: 60000,
+    costMult: 3,
+    maxLevel: 5,
+    effect: { kind: 'goldenChance', perLevel: 0.008 },
+    unlock: { reputation: 45 },
+  },
+  {
+    id: 'gilding-programme',
+    nameKey: 'upgrade.gildingProgramme.name',
+    descriptionKey: 'upgrade.gildingProgramme.desc',
+    category: 'quality',
+    resource: 'goldenNuts',
+    baseCost: 6,
+    costMult: 2.4,
+    maxLevel: 4,
+    effect: { kind: 'goldenChance', perLevel: 0.014 },
+    unlock: { upgradeId: 'assay-desk' },
+  },
+  // --- Decisions worth more, without making them safer ----------------------
+  {
+    id: 'legal-review',
+    nameKey: 'upgrade.legalReview.name',
+    descriptionKey: 'upgrade.legalReview.desc',
+    category: 'quality',
+    resource: 'nuts',
+    baseCost: 35000,
+    costMult: 2.7,
+    maxLevel: 5,
+    effect: { kind: 'eventReward', perLevel: 0.12 },
+    unlock: { reputation: 30 },
+  },
+  {
+    id: 'negotiation-training',
+    nameKey: 'upgrade.negotiationTraining.name',
+    descriptionKey: 'upgrade.negotiationTraining.desc',
+    category: 'quality',
+    resource: 'nuts',
+    baseCost: 260000,
+    costMult: 2.9,
+    maxLevel: 4,
+    effect: { kind: 'eventReward', perLevel: 0.18 },
+    unlock: { upgradeId: 'legal-review' },
+  },
+  // --- Make a thin department punch above its headcount ---------------------
+  {
+    id: 'standard-procedures',
+    nameKey: 'upgrade.standardProcedures.name',
+    descriptionKey: 'upgrade.standardProcedures.desc',
+    category: 'quality',
+    resource: 'nuts',
+    baseCost: 45000,
+    costMult: 2.6,
+    maxLevel: 6,
+    effect: { kind: 'roomEfficiency', perLevel: 0.07 },
+    unlock: { reputation: 50 },
+  },
+  {
+    id: 'internal-audit',
+    nameKey: 'upgrade.internalAudit.name',
+    descriptionKey: 'upgrade.internalAudit.desc',
+    category: 'automation',
+    resource: 'nuts',
+    baseCost: 500000,
+    costMult: 3,
+    maxLevel: 4,
+    effect: { kind: 'roomEfficiency', perLevel: 0.11 },
+    unlock: { upgradeId: 'standard-procedures' },
+  },
+];
+
 const roomUpgrades: UpgradeDef[] = [
   ['room-sorting', 'sorting', 500],
+  // The mail room is cheap and early: it is the first room that makes the REST of
+  // the building cheaper, so finding it early is its own reward.
+  ['room-mailroom', 'mailroom', 4000],
   ['room-lab', 'lab', 20000],
   ['room-vault', 'vault', 150000],
+  // The archive turns the company's own paperwork into discoveries.
+  ['room-archive', 'archive', 400000],
   ['room-meeting', 'meeting', 1000000],
   ['room-basement', 'basement', 3000000],
 ].map(([id, roomId, cost]) => ({
@@ -154,6 +298,7 @@ export const UPGRADES: UpgradeDef[] = [
   ...qualityFamily,
   ...clickFamily,
   ...automationUpgrades,
+  ...behaviourUpgrades,
   ...roomUpgrades,
 ];
 

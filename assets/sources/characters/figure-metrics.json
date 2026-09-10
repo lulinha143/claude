@@ -1,0 +1,218 @@
+{
+  "alphaFloor": 12,
+  "characters": {
+    "axel": {
+      "bottomPadFraction": 0.0,
+      "box": {
+        "bottom": 95,
+        "left": 3,
+        "right": 108,
+        "top": 6
+      },
+      "canvasHeight": 96,
+      "canvasWidth": 109,
+      "figureCentreX": 0.513761,
+      "figureHeight": 90,
+      "figureHeightFraction": 0.9375,
+      "figureWidth": 106,
+      "figureWidthFraction": 0.972477,
+      "frames": 232,
+      "topPadFraction": 0.0625
+    },
+    "bea": {
+      "bottomPadFraction": 0.051724,
+      "box": {
+        "bottom": 109,
+        "left": 3,
+        "right": 128,
+        "top": 6
+      },
+      "canvasHeight": 116,
+      "canvasWidth": 132,
+      "figureCentreX": 0.5,
+      "figureHeight": 104,
+      "figureHeightFraction": 0.896552,
+      "figureWidth": 126,
+      "figureWidthFraction": 0.954545,
+      "frames": 121,
+      "topPadFraction": 0.051724
+    },
+    "corvus": {
+      "bottomPadFraction": 0.0,
+      "box": {
+        "bottom": 99,
+        "left": 3,
+        "right": 99,
+        "top": 11
+      },
+      "canvasHeight": 100,
+      "canvasWidth": 100,
+      "figureCentreX": 0.515,
+      "figureHeight": 89,
+      "figureHeightFraction": 0.89,
+      "figureWidth": 97,
+      "figureWidthFraction": 0.97,
+      "frames": 228,
+      "topPadFraction": 0.11
+    },
+    "junie": {
+      "bottomPadFraction": 0.0,
+      "box": {
+        "bottom": 98,
+        "left": 4,
+        "right": 98,
+        "top": 2
+      },
+      "canvasHeight": 99,
+      "canvasWidth": 99,
+      "figureCentreX": 0.520202,
+      "figureHeight": 97,
+      "figureHeightFraction": 0.979798,
+      "figureWidth": 95,
+      "figureWidthFraction": 0.959596,
+      "frames": 158,
+      "topPadFraction": 0.020202
+    },
+    "moss": {
+      "bottomPadFraction": 0.0,
+      "box": {
+        "bottom": 101,
+        "left": 3,
+        "right": 104,
+        "top": 8
+      },
+      "canvasHeight": 102,
+      "canvasWidth": 105,
+      "figureCentreX": 0.514286,
+      "figureHeight": 94,
+      "figureHeightFraction": 0.921569,
+      "figureWidth": 102,
+      "figureWidthFraction": 0.971429,
+      "frames": 222,
+      "topPadFraction": 0.078431
+    },
+    "nino": {
+      "bottomPadFraction": 0.0,
+      "box": {
+        "bottom": 97,
+        "left": 1,
+        "right": 104,
+        "top": 4
+      },
+      "canvasHeight": 98,
+      "canvasWidth": 105,
+      "figureCentreX": 0.504762,
+      "figureHeight": 94,
+      "figureHeightFraction": 0.959184,
+      "figureWidth": 104,
+      "figureWidthFraction": 0.990476,
+      "frames": 242,
+      "topPadFraction": 0.040816
+    },
+    "pip": {
+      "bottomPadFraction": 0.0,
+      "box": {
+        "bottom": 92,
+        "left": 5,
+        "right": 102,
+        "top": 1
+      },
+      "canvasHeight": 93,
+      "canvasWidth": 103,
+      "figureCentreX": 0.524272,
+      "figureHeight": 92,
+      "figureHeightFraction": 0.989247,
+      "figureWidth": 98,
+      "figureWidthFraction": 0.951456,
+      "frames": 242,
+      "topPadFraction": 0.010753
+    },
+    "rizzo": {
+      "bottomPadFraction": 0.0,
+      "box": {
+        "bottom": 103,
+        "left": 4,
+        "right": 113,
+        "top": 4
+      },
+      "canvasHeight": 104,
+      "canvasWidth": 114,
+      "figureCentreX": 0.517544,
+      "figureHeight": 100,
+      "figureHeightFraction": 0.961538,
+      "figureWidth": 110,
+      "figureWidthFraction": 0.964912,
+      "frames": 223,
+      "topPadFraction": 0.038462
+    },
+    "rosa": {
+      "bottomPadFraction": 0.037037,
+      "box": {
+        "bottom": 103,
+        "left": 6,
+        "right": 101,
+        "top": 0
+      },
+      "canvasHeight": 108,
+      "canvasWidth": 108,
+      "figureCentreX": 0.5,
+      "figureHeight": 104,
+      "figureHeightFraction": 0.962963,
+      "figureWidth": 96,
+      "figureWidthFraction": 0.888889,
+      "frames": 121,
+      "topPadFraction": 0.0
+    }
+  },
+  "derived": {
+    "axel": {
+      "anchorX": 0.513761,
+      "baseline": 0.0,
+      "officeHeight": 98
+    },
+    "bea": {
+      "anchorX": 0.5,
+      "baseline": 0.051724,
+      "officeHeight": 103
+    },
+    "corvus": {
+      "anchorX": 0.515,
+      "baseline": 0.0,
+      "officeHeight": 103
+    },
+    "junie": {
+      "anchorX": 0.520202,
+      "baseline": 0.0,
+      "officeHeight": 94
+    },
+    "moss": {
+      "anchorX": 0.514286,
+      "baseline": 0.0,
+      "officeHeight": 100
+    },
+    "nino": {
+      "anchorX": 0.504762,
+      "baseline": 0.0,
+      "officeHeight": 96
+    },
+    "pip": {
+      "anchorX": 0.524272,
+      "baseline": 0.0,
+      "officeHeight": 93
+    },
+    "rizzo": {
+      "anchorX": 0.517544,
+      "baseline": 0.0,
+      "officeHeight": 96
+    },
+    "rosa": {
+      "anchorX": 0.5,
+      "baseline": 0.037037,
+      "officeHeight": 96
+    }
+  },
+  "generatedBy": "scripts/measure-character-figures.py",
+  "note": "Visible-figure geometry of the shipped @1x character assets, as fractions of each canvas, plus the registry values derived from them. `derived` is what src/art/characterAssets.ts must declare so every animal presents at the reference character's figure scale; tests/characterAssets.test.ts asserts the two agree, so the registry cannot drift from the artwork.",
+  "presenceScale": 1.2,
+  "reference": "pip"
+}

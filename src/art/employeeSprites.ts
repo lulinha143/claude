@@ -11,6 +11,20 @@
 // animal's art is purely additive: drop the files in `public/employees/` and
 // register a config here — no per-employee code anywhere else.
 
+import { isSpriteUnavailable } from './spriteAvailability';
+import { presenceSize } from '../content/characterScale';
+import { CHARACTER_ART, characterArt, type CharacterArtFiles } from './characterAssets';
+
+// The presence scale is authored data shared with the framework-free layout layer,
+// so it lives in `content/`. Re-exported here because this module is where
+// renderers look for character sizing.
+export {
+  CHARACTER_PRESENCE_SCALE,
+  presenceSize,
+  VECTOR_CRITTER_OFFICE_SIZE,
+  VECTOR_CRITTER_CARD_SIZE,
+} from '../content/characterScale';
+
 export interface EmployeeSpriteConfig {
   /** Animated APNG (autoplay + infinite loop), path relative to BASE_URL. This
    * is the @2x asset (twice the slot size); see `src1x`. */
@@ -44,6 +58,8 @@ export interface EmployeeSpriteConfig {
   officeHeight: number;
   /** Rendered height (px) inside the employee roster card portrait. */
   cardHeight: number;
+  /** Dead transparent margin above the animal, as a fraction of canvas height. */
+  figureTop: number;
   /**
    * Fraction of the sprite width (0..1) that lines up with the character's
    * visual centre. The office anchors sprites by this point so a teammate
@@ -59,108 +75,47 @@ export interface EmployeeSpriteConfig {
   baseline: number;
 }
 
-// Scale normalization: every final workstation sprite is a "seated animal at a
-// desk (with chair)" composition. Each is sized so its DESK reads at a shared
-// apparent width, derived from the asset's measured desk pixels so the desks
-// line up regardless of how much the animal, chair or props extend above. All
-// assets are pre-trimmed to their content, centred (anchorX 0.5) and rest on
-// the bottom edge (baseline 0).
+// Sprite configs are DERIVED from the versioned character-art registry
+// (`characterAssets.ts`) rather than hand-authored here. That registry is the one
+// place an animal's art build is chosen, so a rollback or an enhanced pass is a
+// single-line change there and cannot drift out of sync with this table.
 //
-// Scale refinement pass: Bea (beaver) was raised ~15% and Marlow (capybara),
-// Pingo (penguin) and Canela (red panda) ~20% over their previous rendered
-// size, then eyeballed together in-office for harmony. Pip (squirrel) is
-// intentionally left untouched from the previous pass.
-//
-// Follow-up presence pass: Marlow, Pingo and Canela raised a further ~20% so
-// they read as more present at their workstations, re-checked side-by-side in
-// the office so they stay harmonious and never dominate the room.
-export const EMPLOYEE_SPRITES: Record<string, EmployeeSpriteConfig> = {
-  // Bea — Beaver, Construction. Refreshed workstation art (overalls, bonsai,
-  // toolbox). Sized to the shared ~115px desk width.
-  bea: {
-    src: 'employees/bea.png',
-    poster: 'employees/bea-poster.png',
-    frameWidth: 335,
-    frameHeight: 300,
-    officeHeight: 116,
-    cardHeight: 164,
-    anchorX: 0.5,
-    baseline: 0,
-  },
-  // Pip — Squirrel, Founder. FINAL animated workstation art (bespectacled
-  // squirrel typing at a wooden desk: laptop, cocoa, pencil cup, books, sticky
-  // notes, cactus). Source is a 960x960 / 242-frame / 30fps APNG; all frames +
-  // timing are kept and it loops forever (full-frame encode, premultiplied
-  // LANCZOS downscale — crisp, no edge halos). The desk footprint is centred and
-  // the art carries its own soft grounded shadow (baseline 0).
-  //
-  // HALO SHIMMER — the cause was IN THE ARTWORK, not the renderer. 8 of the 242
-  // frames (13, 67, 87, 94, 157, 158, 161, 210) had their semi-transparent alpha
-  // collapsed ~52%, so the soft halo deflated for a single frame roughly once a
-  // second while the near-opaque body barely moved — exactly the reported
-  // symptom. Between healthy frames the mean alpha changes by only ~0.4/255, so
-  // the dropouts stood out at ~24/255. Repaired in place by substituting the
-  // nearest healthy frame (healthy frames left bit-identical, timing and loop
-  // preserved); see docs/CHARACTER_SPRITES.md. `npm run verify:assets` now fails
-  // if any character APNG regains this defect.
-  //
-  // The @1x/@2x pair below is kept only as a resolution hint so the frame maps
-  // 1:1 to device pixels at integer DPR. It is NOT a shimmer fix, and it cannot
-  // affect geometry: EmployeeSprite always sets the <img>'s CSS width AND height
-  // from frameWidth/frameHeight, which are the @1x dimensions.
-  pip: {
-    src: 'employees/pip.png', // @2x (206x186)
-    src1x: 'employees/pip-1x.png', // @1x (103x93) — exact slot size
-    srcNoHalo: '_diag/pip-nohalo.png', // TEMP halo-isolation A/B (Ctrl+Alt+H)
-    poster: 'employees/pip-poster.png',
-    frameWidth: 103,
-    frameHeight: 93,
-    officeHeight: 93,
-    cardHeight: 133,
-    anchorX: 0.5,
-    baseline: 0,
-  },
-  // Marlow — Capybara slot, refreshed test workstation art (all frames kept,
-  // single premultiplied downscale to ~180px for sharp, stable animation).
-  // Reduced ~20% from the previous rendered desk width.
-  marlow: {
-    src: 'employees/marlow.png',
-    poster: 'employees/marlow-poster.png',
-    frameWidth: 216,
-    frameHeight: 180,
-    officeHeight: 83,
-    cardHeight: 119,
-    anchorX: 0.5,
-    baseline: 0,
-  },
-  // Pingo — Penguin, Logistics. Refreshed workstation art (cocoa, snow globe,
-  // fan). Sized to the shared ~115px desk width.
-  pingo: {
-    src: 'employees/penguin.png',
-    poster: 'employees/penguin-poster.png',
-    frameWidth: 356,
-    frameHeight: 300,
-    officeHeight: 105,
-    cardHeight: 149,
-    anchorX: 0.5,
-    baseline: 0,
-  },
-  // Canela — Red Panda, Research/Naturalist. Desk lamp, "OBSERVATIONS" pad.
-  // Raised ~20%, then a further ~20% (81->97 / 117->140).
-  canela: {
-    src: 'employees/canela.png',
-    poster: 'employees/canela-poster.png',
-    frameWidth: 374,
-    frameHeight: 300,
-    officeHeight: 97,
-    cardHeight: 140,
-    anchorX: 0.5,
-    baseline: 0,
-  },
-};
+// The presence multiplier is applied to the RENDERED heights only. `frameWidth` /
+// `frameHeight` stay at the artwork's intrinsic @1x values because they are the
+// aspect-ratio source `EmployeeSprite` derives width from — the property that
+// keeps a character from being squashed by the global `img { max-width: 100% }`
+// guard. Scaling those would break the geometry contract.
+function configFor(files: CharacterArtFiles): EmployeeSpriteConfig {
+  return {
+    src: files.src,
+    src1x: files.src1x,
+    srcNoHalo: files.srcNoHalo,
+    poster: files.poster,
+    frameWidth: files.frameWidth,
+    frameHeight: files.frameHeight,
+    officeHeight: presenceSize(files.officeHeight),
+    cardHeight: presenceSize(files.cardHeight),
+    anchorX: files.anchorX,
+    baseline: files.baseline,
+    figureTop: files.figureTop,
+  };
+}
+
+export const EMPLOYEE_SPRITES: Record<string, EmployeeSpriteConfig> = Object.fromEntries(
+  CHARACTER_ART.map((entry) => {
+    const files = entry.variants[entry.activeVersion] ?? entry.variants.original;
+    if (!files) throw new Error(`character art for "${entry.employee}" has no usable variant`);
+    return [entry.employee, configFor(files)];
+  }),
+);
 
 export function employeeSprite(id: string): EmployeeSpriteConfig | undefined {
-  return EMPLOYEE_SPRITES[id];
+  // Resolved through the registry so a development art override takes effect
+  // everywhere at once.
+  const files = characterArt(id);
+  if (!files) return undefined;
+  if (isSpriteUnavailable(files.src)) return undefined;
+  return configFor(files);
 }
 
 export function hasEmployeeSprite(id: string): boolean {

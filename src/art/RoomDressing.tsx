@@ -42,14 +42,36 @@ type PropId =
   | 'hammock'
   | 'pipes'
   | 'planterBed'
-  | 'skyline';
+  | 'skyline'
+  | 'cameraWall'
+  | 'recordWall';
 
 // Architectural props are restricted to the back wall. Any prop that rests on
 // the floor must be a movable DecorationDef instead.
 type Slot = 'wallLeft' | 'wallRight' | 'ambient';
 
+/**
+ * The props that are genuinely FIXED TO A WALL, and so the only ones a wall slot
+ * may hold. The slots position their contents by the top edge, with no floor
+ * anchoring, so hanging a free-standing object here leaves it in mid-air — which
+ * is exactly what happened when unlisted rooms fell back to a bookshelf. Narrowing
+ * the type turns that from a rendering bug into a compile error.
+ */
+type WallPropId =
+  | 'corkboard'
+  | 'whiteboard'
+  | 'pegboard'
+  | 'menuBoard'
+  | 'campaignBoard'
+  | 'binShelf'
+  | 'flaskShelf'
+  | 'pipes'
+  | 'skyline'
+  | 'cameraWall'
+  | 'recordWall';
+
 interface ScenePiece {
-  prop: PropId;
+  prop: WallPropId;
   slot: Slot;
 }
 
@@ -70,7 +92,19 @@ const ROOM_SCENE: Record<string, ScenePiece[]> = {
   nap: [],
   basement: [{ prop: 'pipes', slot: 'wallLeft' }],
   rooftop: [{ prop: 'skyline', slot: 'wallLeft' }],
+  // Second expansion. Each gets the fixture that says what the room is for.
+  cafeteria: [{ prop: 'menuBoard', slot: 'wallLeft' }],
+  mailroom: [{ prop: 'binShelf', slot: 'wallLeft' }],
+  security: [{ prop: 'cameraWall', slot: 'wallLeft' }],
+  archive: [{ prop: 'recordWall', slot: 'wallLeft' }],
+  incubator: [{ prop: 'flaskShelf', slot: 'wallLeft' }],
 };
+
+/** Rooms with no built-in wall fixture, stated rather than left to a fallback. */
+export const ROOMS_WITHOUT_WALL_FIXTURE = ['vault', 'nap'] as const;
+
+/** Which rooms have an authored architectural recipe. Read by the room tests. */
+export const ROOMS_WITH_SCENE: readonly string[] = Object.keys(ROOM_SCENE);
 
 function shadow(cx: number, cy: number, rx: number, ry = 3) {
   return <ellipse cx={cx} cy={cy} rx={rx} ry={ry} fill="rgba(40,26,12,0.22)" />;
@@ -97,6 +131,65 @@ function SceneProp({ prop }: { prop: PropId }) {
           <rect x="19" y="22" width="4" height="11" fill="#b0473a" />
           <rect x="24" y="23" width="4" height="10" fill="#4f7d4f" />
           <circle cx="30" cy="41" r="4" fill="var(--dept, #c79a5e)" stroke={LINE} strokeWidth="1.2" />
+        </svg>
+      );
+    // Security: a bank of small monitors on a bracket, all watching something.
+    case 'cameraWall':
+      return (
+        <svg {...box(50, 38, '0 0 50 38')}>
+          <rect x="2" y="2" width="46" height="30" rx="2" fill={METAL} stroke={LINE} strokeWidth="1.8" />
+          {[0, 1].map((row) =>
+            [0, 1, 2].map((col) => (
+              <g key={`${row}-${col}`}>
+                <rect
+                  x={5 + col * 14}
+                  y={5 + row * 13}
+                  width="11"
+                  height="10"
+                  rx="1"
+                  fill="#1e2830"
+                  stroke={LINE}
+                  strokeWidth="1.1"
+                />
+                <rect
+                  x={6.4 + col * 14}
+                  y={6.4 + row * 13}
+                  width="8.2"
+                  height="7.2"
+                  fill={(row + col) % 3 === 0 ? '#5f8f6f' : '#3b5a68'}
+                  opacity="0.9"
+                />
+              </g>
+            )),
+          )}
+          <circle cx="44" cy="35" r="2" fill="#b0473a" stroke={LINE} strokeWidth="0.9" />
+        </svg>
+      );
+    // Archive: a rack of labelled box files, the company's memory on a wall.
+    case 'recordWall':
+      return (
+        <svg {...box(52, 40, '0 0 52 40')}>
+          <rect x="2" y="2" width="48" height="34" rx="2" fill={WOOD} stroke={LINE} strokeWidth="1.8" />
+          {[3, 19].map((y) => (
+            <rect key={y} x="4" y={y + 12} width="44" height="2.6" fill={WOOD_DARK} />
+          ))}
+          {[0, 1].map((row) =>
+            [0, 1, 2, 3, 4].map((col) => (
+              <g key={`${row}-${col}`}>
+                <rect
+                  x={5 + col * 8.6}
+                  y={4 + row * 16}
+                  width="7.2"
+                  height="11"
+                  rx="0.8"
+                  fill={['#b8a07a', '#a8895f', '#c2ad86', '#9c7f57', '#b09070'][(row + col) % 5]}
+                  stroke={LINE}
+                  strokeWidth="1"
+                />
+                <rect x={6 + col * 8.6} y={6 + row * 16} width="5.2" height="2.4" fill="#f2e6cc" />
+              </g>
+            )),
+          )}
         </svg>
       );
     case 'deskMonitor':
@@ -458,7 +551,11 @@ function SceneProp({ prop }: { prop: PropId }) {
 
 export const RoomDressing = memo(function RoomDressing({ roomId }: { roomId: string }) {
   const builtIn = ROOM_BUILTIN[roomId] ?? 'shelf';
-  const scene = ROOM_SCENE[roomId] ?? [{ prop: 'bookshelf' as PropId, slot: 'wallLeft' as Slot }];
+  // No fallback fixture. An unlisted room shows bare walls, which reads as an
+  // unfinished room; the old fallback hung a free-standing bookshelf in mid-air,
+  // which reads as a bug. `tests/roomExpansion.test.ts` requires every room to be
+  // listed, so bare walls should never actually ship.
+  const scene = ROOM_SCENE[roomId] ?? [];
   return (
     <div className={`room-dressing room-dressing--${builtIn} rd--${roomId}`} aria-hidden>
       <span className="room-dressing__wall" />

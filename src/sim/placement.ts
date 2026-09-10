@@ -16,9 +16,8 @@ import {
 import { regionArea } from './placementRegions';
 import { DECORATIONS_BY_ID } from '../content/decorations';
 import { placementSpec } from '../content/placementSpecs';
-import { decorationSurface, isRug } from './surfaces';
-import { employeesInRoom } from './rooms';
-import { characterSlots } from '../content/roomLayout';
+import { isRug } from './surfaces';
+import { decorationDepth } from './depth';
 import { compatibleRegionsForProfile, defaultCompatiblePlacement } from '../content/roomSurfaces';
 import type { DecorationDef } from '../content/types';
 
@@ -47,7 +46,7 @@ const RAW_POINTER_TOLERANCE = 0.08;
  * position is a legal, readable composition. Returns a reason key when not.
  */
 export function evaluatePlacement(
-  state: GameState,
+  _state: GameState,
   id: string,
   x: number,
   _y: number,
@@ -59,7 +58,6 @@ export function evaluatePlacement(
   if (!def.compatibleRooms.includes(destinationRoom)) {
     return { ok: false, reasonKey: 'decorate.reject.incompatibleRoom' };
   }
-  const surface = decorationSurface(id);
 
   // Rugs lie flat on the floor under everything else — they never block.
   if (isRug(id)) return { ok: true };
@@ -74,21 +72,17 @@ export function evaluatePlacement(
     return { ok: false, reasonKey: 'decorate.reject.moveInside' };
   }
 
-  // A large floor object must not sit on top of a teammate (covering the face).
-  if (surface === 'floor' && (fp.w >= 0.18 || fp.h >= 0.2)) {
-    const occupants = employeesInRoom(state, destinationRoom);
-    const slots = characterSlots(occupants.length, destinationRoom);
-    for (const slot of slots) {
-      if (Math.abs(slot.x - x) < fp.w / 2 + 0.03) {
-        return { ok: false, reasonKey: 'decorate.reject.coversTeammate' };
-      }
-    }
-  }
+  // A large floor prop overlapping a teammate used to be rejected here, because
+  // a prop could paint over a character and hide their face. Stacking order now
+  // makes that impossible: every decoration band in `sim/depth.ts` sits strictly
+  // below the character band, so an employee always draws in front of the props
+  // around them. Keeping the old rule would only reintroduce an invisible
+  // exclusion zone around each teammate and block exactly the dense, layered
+  // arrangements free placement exists to allow — so a prop may now share a
+  // teammate's spot and simply be stood in front of.
 
   return { ok: true };
 }
-
-
 
 export interface RegionPlacementCheck extends PlacementCheck {
   region: PlacementRegion;
@@ -167,12 +161,33 @@ function insetClampToPlane(
   const halfDepth = Math.min(size.depth / 2, Math.max(0, height / 2 - 1e-4));
   const y = Math.max(minY + halfDepth, Math.min(maxY - halfDepth, point.y));
   const v = height < Number.EPSILON ? 0 : (y - minY) / height;
-  const leftX = lerp(plane.bottomLeft.x, plane.topLeft.x, v);
-  const rightX = lerp(plane.bottomRight.x, plane.topRight.x, v);
+  const spanAt = (t: number): { left: number; right: number } => ({
+    left: lerp(plane.bottomLeft.x, plane.topLeft.x, t),
+    right: lerp(plane.bottomRight.x, plane.topRight.x, t),
+  });
+  const centre = spanAt(v);
+
+  // A floor plane TAPERS: it is narrower at the back. The footprint occupies
+  // `y ± halfDepth`, so its back corners sit in a narrower span than its centre —
+  // insetting only against the centre span let a prop's back corners fall outside
+  // the plane, which failed the footprint test and dropped the drag into the
+  // discrete fallback search. That search snaps to a grid, so the prop visibly
+  // hopped ~2% of the room width as it approached an edge. Inset against the
+  // NARROWEST span the footprint touches and the fast path always succeeds.
+  const backV = height < Number.EPSILON ? 0 : clamp01((y + halfDepth - minY) / height);
+  const frontV = height < Number.EPSILON ? 0 : clamp01((y - halfDepth - minY) / height);
+  const back = spanAt(backV);
+  const front = spanAt(frontV);
+  const leftX = Math.max(centre.left, back.left, front.left);
+  const rightX = Math.min(centre.right, back.right, front.right);
+
   const width = rightX - leftX;
   const halfWidth = Math.min(size.width / 2, Math.max(0, width / 2 - 1e-4));
   const x = Math.max(leftX + halfWidth, Math.min(rightX - halfWidth, point.x));
-  const u = width < Number.EPSILON ? 0 : (x - leftX) / width;
+  // `u` stays measured against the centre span, which is the row the anchor
+  // actually sits on and what callers store.
+  const centreWidth = centre.right - centre.left;
+  const u = centreWidth < Number.EPSILON ? 0 : (x - centre.left) / centreWidth;
   return { point: { x, y }, u: clamp01(u), v: clamp01(v) };
 }
 
@@ -210,10 +225,11 @@ export function clampDecorationToRegion(
 
 function depthAt(region: PlacementRegion, v: number): number {
   if (region.depth.min === region.depth.max) return region.depth.default;
-  // Region v grows from the near/bottom edge toward the far/top edge. Higher
-  // z-index values must belong to nearer props so they paint over back-row
-  // props and, where appropriate, employees.
-  return Math.round(region.depth.max - (region.depth.max - region.depth.min) * v);
+  // Region v grows from the near/bottom edge toward the far/top edge, so
+  // nearness is its complement. Nearer props take a higher z-index and paint
+  // over back-row props. The region's depth range comes from the decoration
+  // bands in `sim/depth.ts`, so this can never lift a prop over a character.
+  return decorationDepth(region.kind, 1 - v);
 }
 
 /**
@@ -264,7 +280,6 @@ export function evaluateRegionPlacement(
   };
 }
 
-
 /**
  * Deterministically find a legal support point for non-pointer placement flows
  * such as purchase fallback, Move To, and room reset. Pointer drags still use
@@ -296,8 +311,6 @@ export function findValidRegionPlacement(
   }
   return nearest?.check ?? null;
 }
-
-
 
 // --- unified region resolution -------------------------------------------
 // A single authoritative entry point that turns a pointer (or a desired point)
@@ -342,9 +355,7 @@ export function pointerRegionPlacement(
   // overlapping compatible planes (e.g. floor vs. tabletop) as the pointer
   // crosses their shared band.
   const sticky =
-    preferKind !== undefined
-      ? containing.find((region) => region.kind === preferKind)
-      : undefined;
+    preferKind !== undefined ? containing.find((region) => region.kind === preferKind) : undefined;
   const chosen =
     sticky ??
     containing[0] ??
