@@ -97,7 +97,9 @@ test('employee drag-and-drop moves a teammate between rooms and persists', async
   await page.mouse.move(1, 1);
   const movedEmployee = page.locator(`${destSel} .critter-btn[aria-label="${draggedLabel}"]`);
   await expect(movedEmployee).toBeVisible();
-  await expect(movedEmployee.locator('svg.critter')).not.toHaveClass(/critter--tap/);
+  // Read the state off the button: a character with photographic artwork has no
+  // vector <svg>, so asserting on one silently passed for the whole sprite cast.
+  await expect(movedEmployee).not.toHaveAttribute('data-anim', 'tap');
 
   // persists across reload
   await page.reload();
@@ -117,29 +119,34 @@ test('employee hover, focus, activation, movement, and celebration states keep t
   const marlow = founder.getByRole('button', { name: /^Marlow,\s/i });
   await expect(pip).toHaveAttribute('aria-label', /^Pip,\s.+/i);
   await expect(marlow).toHaveAttribute('aria-label', /^Marlow,\s.+/i);
-  const pipCritter = pip.locator('svg.critter');
-  const marlowCritter = marlow.locator('svg.critter');
+  // Assert the reaction state on the BUTTON rather than on the vector critter's
+  // <svg>. Pip has photographic artwork and so has no <svg> to carry a class; the
+  // state machine's output is the thing under test, and it drives both art types.
+  const pipState = pip;
+  const marlowState = marlow;
+  const hasState = (locator: typeof pip, state: string) =>
+    expect(locator).toHaveAttribute('data-anim', state);
 
   // Keyboard focus and pointer hover are independent inputs: moving away from
   // Marlow must not erase Pip's focus reaction.
   await pip.focus();
-  await expect(pipCritter).toHaveClass(/critter--tap/);
+  await hasState(pipState, 'tap');
   const marlowBox = (await marlow.boundingBox())!;
   await page.mouse.move(marlowBox.x + marlowBox.width / 2, marlowBox.y + marlowBox.height / 2);
-  await expect(marlowCritter).toHaveClass(/critter--tap/);
-  await expect(pipCritter).toHaveClass(/critter--tap/);
+  await hasState(marlowState, 'tap');
+  await hasState(pipState, 'tap');
   await page.mouse.move(1, 1);
-  await expect(pipCritter).toHaveClass(/critter--tap/);
+  await hasState(pipState, 'tap');
 
   // Native keyboard activation temporarily outranks the retained focus state.
   await pip.press('Enter');
-  await expect(pipCritter).toHaveClass(/critter--coffee/);
+  await hasState(pipState, 'coffee');
 
   // Movement outranks hover while a real pointer drag is active.
   await page.mouse.move(marlowBox.x + marlowBox.width / 2, marlowBox.y + marlowBox.height / 2);
   await page.mouse.down();
   await page.mouse.move(marlowBox.x + marlowBox.width / 2 + 20, marlowBox.y - 12, { steps: 4 });
-  await expect(marlowCritter).toHaveClass(/critter--walk/);
+  await hasState(marlowState, 'walk');
   await page.keyboard.press('Escape');
   await page.mouse.up();
 
@@ -147,7 +154,7 @@ test('employee hover, focus, activation, movement, and celebration states keep t
   // Stations tap on pointerdown (not click) so a mashed button responds on the
   // first frame rather than waiting for pointerup.
   await founder.locator('.station-btn').first().dispatchEvent('pointerdown', { button: 0 });
-  await expect(pipCritter).toHaveClass(/critter--celebrate/);
+  await hasState(pipState, 'celebrate');
 });
 
 test('decoration Arrange Mode: tray opens and a decoration can be placed by dragging', async ({

@@ -48,9 +48,15 @@ const WIDTHS = [
 test('the masthead states the company and its live standing', async ({ page }) => {
   await boot(page, 720);
   await expect(page.locator('.header__company')).toHaveText('Nutshell Inc.');
-  // The subtitle is the reputation tier, so it must be a real tier name.
-  await expect(page.locator('.header__tier')).not.toBeEmpty();
+  // The subtitle is now the DEPARTMENT: a fixed identity, not a changing value.
   await expect(page.locator('.header__department')).toContainText('Behavioural Research');
+  await expect(page.locator('.header__department')).toContainText('Department');
+  // The company's standing moved to the stamp, where a changing status belongs —
+  // and it must be a real tier name plus the operating cycle, not placeholder text.
+  const stamp = page.locator('.header__stamp');
+  await expect(stamp).toBeVisible();
+  await expect(stamp.locator('.header__stamp-tier')).not.toBeEmpty();
+  await expect(stamp.locator('.header__stamp-cycle')).toContainText(/Cycle\s*\d+/i);
 });
 
 test('the resource strip labels every value and explains what is happening to it', async ({

@@ -5100,6 +5100,61 @@ img {
   transform: translateX(-50%) translateY(-3px) scale(1.04);
 }
 
+/* ---- reactions for the photographic cast ---------------------------------------
+   The vector critters animate their own <svg> limbs and body. The sprite animals
+   cannot: their motion is baked into the APNG, and there is no <svg> to put a
+   class on — so hover, focus, celebration and panic produced no reaction at all
+   for nine of the twenty-four characters.
+   
+   These animate the INDIVIDUAL transform properties (`translate` / `rotate`)
+   rather than `transform`, so they compose with the button's own
+   `translateX(-50%)` positioning and with the hover lift instead of replacing
+   them. Deliberately restrained: the artwork is already moving, so the button's
+   job is to acknowledge input, not to perform. */
+.critter-btn--sprite[data-anim='tap'] {
+  animation: sprite-lean 0.6s ease-in-out infinite alternate;
+}
+.critter-btn--sprite[data-anim='celebrate'] {
+  animation: sprite-jump 0.5s ease-in-out infinite;
+}
+.critter-btn--sprite[data-anim='panic'] {
+  animation: sprite-shake 0.25s linear infinite;
+}
+@keyframes sprite-lean {
+  from {
+    rotate: 0deg;
+  }
+  to {
+    rotate: -1.6deg;
+  }
+}
+@keyframes sprite-jump {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  45% {
+    translate: 0 -7px;
+  }
+}
+@keyframes sprite-shake {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  25% {
+    translate: -1.5px 0;
+  }
+  75% {
+    translate: 1.5px 0;
+  }
+}
+[data-reduced-motion='true'] .critter-btn--sprite[data-anim] {
+  animation: none;
+  translate: none;
+  rotate: none;
+}
+
 /* sparkle burst emitted on a purchase / reward */
 .sparkle-burst {
   position: fixed;

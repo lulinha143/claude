@@ -1230,6 +1230,12 @@ export function OfficeScene() {
                       onClick={() => onCritterClick(id)}
                       title={`${label} · ${moodLabel}`}
                       aria-label={`${label}, ${moodLabel}`}
+                      // The reaction state lives on the BUTTON, not only on the
+                      // vector critter's <svg>. The nine animals with photographic
+                      // artwork have no <svg> to carry a class, so every hover,
+                      // focus, celebration and panic reaction was silently doing
+                      // nothing for them.
+                      data-anim={anim}
                     >
                       {focusMode ? <span className="focus-hat" aria-hidden /> : null}
                       {sprite ? (
