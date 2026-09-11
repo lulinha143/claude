@@ -838,7 +838,16 @@ h4 {
 }
 .floor {
   --dept: var(--dept-founder);
-  --floor-h: 40px; /* height of the wood floor plane at the bottom */
+  /* Height of the wood floor plane at the bottom of the room.
+     This is not a free visual choice: it must be the same quantity as
+     FLOOR_BAND_PX in content/roomLayout.ts (40 * presence), because that is how
+     far back up the room a character can be placed. When this was a flat 40px it
+     was SHORTER than the band the cast stands in, so teammates at the back of a
+     formation had their feet — and the desk baked into their artwork — above the
+     drawn boards, resting on the wall, which is what read as furniture floating.
+     Multiplying by the scene scale as well keeps the boards under the cast when
+     the window shrinks the characters. */
+  --floor-h: calc(40px * var(--character-presence) * var(--asset-scale));
   position: relative;
   isolation: isolate;
   /* A cozy illustrated room: warm wall with a soft department tint up top. */
@@ -1117,7 +1126,9 @@ h4 {
 .floor__ambient {
   position: absolute;
   right: 10px;
-  bottom: calc(var(--floor-h) - 10px); /* rest on the wood floor, not mid-wall */
+  /* Rest on the wood floor, not mid-wall. The inset is proportional so it stays on
+     the boards at every scene scale rather than sliding off a shrinking floor. */
+  bottom: calc(var(--floor-h) - 10px * var(--asset-scale));
   z-index: 1;
   width: 24px;
   height: 36px;
@@ -1724,6 +1735,12 @@ h4 {
    button so the button's hover/press/idle transforms still compose cleanly. */
 .station-btn > svg {
   transform: translateY(calc((1 - 27 / 28) * 100%));
+  /* Machines are part of the set, so they take the scene scale like the room and
+     the cast do. The intrinsic size is the 52x60 the sprite is authored at; scaling
+     it here (rather than in the width/height attributes) keeps StationArt free of
+     any layout concern and cannot desynchronise from the room. */
+  width: calc(52px * var(--asset-scale));
+  height: calc(60px * var(--asset-scale));
 }
 .station-btn:hover {
   transform: translateX(-50%) scale(1.05);
@@ -4135,6 +4152,20 @@ select,
   transform-origin: bottom center;
   line-height: 0;
   transition: filter 0.18s var(--ease);
+}
+/* Decorations are part of the set, so their drawn size takes the scene scale along
+   with the room, the furniture and the cast. Their POSITION is already normalised
+   (left/bottom in %), so it tracked the room correctly; only the size was pinned to
+   raw pixels, which made props grow relative to their room as the window shrank.
+   `--deco-scale` carries the per-item authored scale from placementSpecs, so the
+   two multiply instead of one overriding the other.
+
+   Deliberately scoped to placed decorations: the same art in the decoration tray is
+   an inventory thumbnail, not scenery, and keeps its intrinsic size. */
+.floor__deco .decor > svg,
+.floor__anchor .decor > svg {
+  width: calc(52px * var(--deco-scale, 1) * var(--asset-scale));
+  height: calc(60px * var(--deco-scale, 1) * var(--asset-scale));
 }
 .floor__deco.deco-anchor--center {
   transform-origin: center;

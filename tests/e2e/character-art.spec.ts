@@ -4,16 +4,32 @@ import { test, expect, type Page } from '@playwright/test';
 // browser: every animal loads its own asset, nothing is squashed, and Pip's
 // protected geometry is unchanged.
 
+// Four to a room at most (ROOM_CAP), so the whole photographic cast is on screen
+// at once. `bia` (bear) is deliberately absent: no artwork exists yet, and she is
+// covered separately by the vector-fallback assertion below.
 const ROSTER = [
   { id: 'pip', room: 'founder-desk', aspect: 103 / 93 },
+  { id: 'nino', room: 'founder-desk', aspect: 105 / 98 },
+  { id: 'junie', room: 'founder-desk', aspect: 99 / 99 },
+  { id: 'marlow', room: 'founder-desk', aspect: 108 / 100 },
   { id: 'bea', room: 'construction', aspect: 132 / 116 },
+  { id: 'dorm', room: 'construction', aspect: 101 / 100 },
   { id: 'rizzo', room: 'procurement', aspect: 114 / 104 },
+  { id: 'nixie', room: 'procurement', aspect: 110 / 100 },
+  { id: 'otto', room: 'procurement', aspect: 111 / 100 },
+  { id: 'pingo', room: 'procurement', aspect: 128 / 100 },
   { id: 'corvus', room: 'marketing', aspect: 100 / 100 },
-  { id: 'junie', room: 'sorting', aspect: 99 / 99 },
-  { id: 'moss', room: 'research', aspect: 105 / 102 },
-  { id: 'nino', room: 'meeting', aspect: 105 / 98 },
   { id: 'rosa', room: 'marketing', aspect: 108 / 108 },
+  { id: 'canela', room: 'marketing', aspect: 104 / 100 },
+  { id: 'fenn', room: 'marketing', aspect: 103 / 100 },
+  { id: 'moss', room: 'research', aspect: 105 / 102 },
+  { id: 'mina', room: 'research', aspect: 110 / 100 },
+  { id: 'hazel', room: 'research', aspect: 104 / 100 },
+  { id: 'perry', room: 'research', aspect: 106 / 100 },
   { id: 'axel', room: 'lab', aspect: 109 / 96 },
+  { id: 'quincy', room: 'lab', aspect: 100 / 100 },
+  { id: 'inky', room: 'lab', aspect: 100 / 100 },
+  { id: 'echo', room: 'lab', aspect: 100 / 100 },
 ];
 
 function save() {
@@ -36,7 +52,15 @@ function save() {
     },
     employees,
     // Unlock the rooms these animals live in.
-    upgrades: { 'room-sorting': 1, 'room-lab': 1, 'room-meeting': 1 },
+    upgrades: {
+      'room-sorting': 1,
+      'room-lab': 1,
+      'room-meeting': 1,
+      'room-research': 1,
+      'room-marketing': 1,
+      'room-construction': 1,
+      'room-procurement': 1,
+    },
     collections: { nuts: [], outfits: [], logos: ['default'], moments: [], secrets: [] },
     settings: { reducedMotion: false },
   };
@@ -160,4 +184,62 @@ test('reduced motion swaps every animal to its static poster', async ({ page }) 
   for (const src of srcs) {
     expect(src, `${src} should be a poster under reduced motion`).toContain('-poster.png');
   }
+});
+
+
+test('the cast scales with the room when the window is resized', async ({ page }) => {
+  // The reported bug: making the window smaller shrank the room but not the
+  // characters in it, so the cast read as oversized cut-outs on a shrunken set.
+  // Measured before the fix, the tallest figure was 112.00px whether the room was
+  // 824px or 1140px wide — a 38% swing in the figure-to-room ratio.
+  await boot(page, 1280, 950);
+
+  const sample = async () =>
+    page.evaluate(() => {
+      const room = document.querySelector('.floor');
+      if (!room) return null;
+      const rr = room.getBoundingClientRect();
+      const figures = [...document.querySelectorAll('.employee-sprite')].map(
+        (el) => el.getBoundingClientRect().height,
+      );
+      return {
+        roomWidth: rr.width,
+        tallest: figures.length ? Math.max(...figures) : 0,
+        assetScale: Number(getComputedStyle(room).getPropertyValue('--asset-scale')),
+      };
+    });
+
+  const sizes = [
+    { width: 1280, height: 950 },
+    { width: 1024, height: 800 },
+    { width: 900, height: 700 },
+    { width: 1600, height: 950 },
+  ];
+
+  const ratios: number[] = [];
+  for (const size of sizes) {
+    await page.setViewportSize(size);
+    await page.waitForTimeout(500); // let the ResizeObserver settle
+    const s = await sample();
+    expect(s, 'no room on screen').not.toBeNull();
+    expect(s!.tallest, `no figures at ${size.width}px`).toBeGreaterThan(0);
+    expect(s!.assetScale, `scene scale unset at ${size.width}px`).toBeGreaterThan(0);
+    ratios.push(s!.tallest / s!.roomWidth);
+  }
+
+  const spread = Math.max(...ratios) / Math.min(...ratios) - 1;
+  expect(spread, `figure-to-room ratio varied by ${(spread * 100).toFixed(1)}%`).toBeLessThan(0.05);
+});
+
+test('scene scale does not leak into the HUD', async ({ page }) => {
+  // World scale and UI scale are different things. --asset-scale belongs to the
+  // diorama; the header must not inherit it, or the HUD would resize with the room.
+  await boot(page);
+  const leaked = await page.evaluate(() => {
+    const header = document.querySelector('.app__header, header');
+    if (!header) return 'no-header';
+    return getComputedStyle(header).getPropertyValue('--asset-scale').trim();
+  });
+  // Either unset, or still the untouched document default of 1.
+  expect(['', '1', 'no-header']).toContain(leaked);
 });

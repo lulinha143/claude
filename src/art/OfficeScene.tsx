@@ -17,6 +17,7 @@ import { Critter } from './Critter';
 import { CritterStateMachine, type CritterState } from './animation';
 import { shapeFor } from './critterShapes';
 import { employeeSprite, VECTOR_CRITTER_OFFICE_SIZE } from './employeeSprites';
+import { useSceneScale } from './useSceneScale';
 import { useSpriteAvailabilityRevision } from './spriteAvailability';
 import { EmployeeSprite } from './EmployeeSprite';
 import { EmployeeBubble } from './EmployeeMoodBadge';
@@ -249,6 +250,15 @@ export function OfficeScene() {
   // Re-render if a character's artwork turns out to be missing, so they switch to
   // the hand-drawn fallback silhouette rather than showing a broken image.
   useSpriteAvailabilityRevision();
+  // World scale. Measured off the room and published as --asset-scale on the scene
+  // root, so the cast, the furniture and the set all change size together when the
+  // window does. `sceneScale` is the same number for the JS-side scene geometry
+  // below (slot depth), which CSS cannot reach.
+  const {
+    measureRef: sceneMeasureRef,
+    scopeRef: sceneScopeRef,
+    sceneScale,
+  } = useSceneScale<HTMLDivElement, HTMLDivElement>();
   const [decorMode, setDecorMode] = useState(false);
   // The decoration currently picked up for arranging (its id), or null.
   const [selected, setSelected] = useState<string | null>(null);
@@ -912,6 +922,9 @@ export function OfficeScene() {
         drag ? 'office--dragging' : ''
       }`}
       aria-label="office diorama"
+      // The scene scale is published here so it cascades to every room, sprite,
+      // fixture and decoration inside the diorama — and to nothing in the HUD.
+      ref={sceneScopeRef}
     >
       <div className="office__toolbar">
         <button
@@ -1014,7 +1027,7 @@ export function OfficeScene() {
           </div>
         ) : null}
 
-        {rooms.map((room) => {
+        {rooms.map((room, roomIndex) => {
           const occupants = Object.entries(state.employees).filter(
             ([id, rt]) => rt.hired && resolveEmployeeRoom(state, id) === room.id,
           );
@@ -1048,6 +1061,9 @@ export function OfficeScene() {
               className={`floor ${dropClass}`}
               key={room.id}
               data-room={room.id}
+              // Every room is the same width, so the first one is measured and its
+              // width drives the scale for the whole diorama.
+              ref={roomIndex === 0 ? sceneMeasureRef : undefined}
               style={{ ['--dept' as string]: DEPT[room.id] ?? 'var(--dept-founder)' }}
             >
               <div className="floor__header">
@@ -1203,7 +1219,11 @@ export function OfficeScene() {
                       } ${!decorMode ? 'is-draggable' : ''} ${visiting ? 'is-visiting' : ''}`}
                       style={{
                         left: `${ex * 100}%`,
-                        bottom: `${slot.bottom}px`,
+                        // Slot depth is authored in scene pixels, so it scales with
+                        // the scene. Without this the cast kept its spacing up the
+                        // floor while the floor itself shrank, and characters at the
+                        // back drifted off the top of a small room.
+                        bottom: `calc(${slot.bottom}px * var(--asset-scale))`,
                         // Hang the mood bubble off the top of the HEAD. Sprite
                         // canvases carry between 0% and 11% dead headroom, so a
                         // single shared percentage sat a different distance above
@@ -1257,7 +1277,12 @@ export function OfficeScene() {
                           state={anim}
                           hasGlasses={shape.hasGlasses}
                           reducedMotion={reducedMotion}
-                          size={Math.round(VECTOR_CRITTER_OFFICE_SIZE * perspective)}
+                          // The vector fallback renders an <svg> at a raw pixel
+                          // size, so unlike EmployeeSprite it cannot pick the scene
+                          // scale up from CSS and has to be told. Without this the
+                          // animals still awaiting artwork — the bear — would be the
+                          // only ones that did not shrink with the room.
+                          size={Math.round(VECTOR_CRITTER_OFFICE_SIZE * perspective * sceneScale)}
                           title={label}
                           seed={idx + room.floor}
                         />
