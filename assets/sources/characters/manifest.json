@@ -4,7 +4,7 @@
     "",
     "The masters are 80-210 MB each (~1.3 GB total) and are deliberately NOT in the",
     "repository: `assets/sources/characters/*.png` is gitignored. This manifest is",
-    "what makes them recoverable without archaeology through git history — re-fetch",
+    "what makes them recoverable without archaeology through git history \u2014 re-fetch",
     "by driveId, check the sha256, then run scripts/import-character-assets.py.",
     "",
     "`employee` is the authoritative link. Asset files are never matched to animals",
@@ -94,6 +94,146 @@
       "sourceFile": "AXOLOT.png",
       "driveId": "1rgHaJejlr6TABFtxVFfJKWqu7ByinAce",
       "officeHeight": 96
+    },
+    {
+      "employee": "marlow",
+      "species": "capybara",
+      "asset": "marlow",
+      "sourceFile": "CAPIVARA.png",
+      "driveId": "1TbmUFPWQW6zD8nOaO7a41FCAnrg8yt6N",
+      "officeHeight": 100,
+      "sourceBytes": 82092125,
+      "sourceSha256": "edefb13acf98d9a4a65939f1d61e1c2c2bfb6676b9b1c90c69616f55397e10ea"
+    },
+    {
+      "employee": "otto",
+      "species": "otter",
+      "asset": "otto",
+      "sourceFile": "LONTRA.png",
+      "driveId": "1dkfzv8vDBTDT1AKjcGeBaGk4A1eYE-n-",
+      "officeHeight": 100,
+      "sourceBytes": 111573062,
+      "sourceSha256": "8d9effa7bd351cba65f1ce45a4056372d24372736619df0d1d1a532d68a148c4"
+    },
+    {
+      "employee": "echo",
+      "species": "bat",
+      "asset": "echo",
+      "sourceFile": "MORCEGO.png",
+      "driveId": "1jzFVSAcMmMkVUvajOlOZHpFUJAEgmfhd",
+      "officeHeight": 100,
+      "sourceBytes": 133422741,
+      "sourceSha256": "2bfe12ad0021db4b016a0ef2c563e42ce97831497d35c051891eacf3cc15cb33"
+    },
+    {
+      "employee": "perry",
+      "species": "platypus",
+      "asset": "perry",
+      "sourceFile": "ORNITORRINCO.png",
+      "driveId": "1JddVd0Q2gDyUYkhfpgTb2Vv3ReS-9lEQ",
+      "officeHeight": 100,
+      "sourceBytes": 126234206,
+      "sourceSha256": "50e6e02d9a9303a5da86272e27e9c09418c237e4064c1edb14af4f886e4d310e"
+    },
+    {
+      "employee": "hazel",
+      "species": "hedgehog",
+      "asset": "hazel",
+      "sourceFile": "OURICO.png",
+      "driveId": "1zvug_xRoV7QbXACLwmMUkpoxuspiCnLs",
+      "officeHeight": 100,
+      "sourceBytes": 190541926,
+      "sourceSha256": "172a82e2accb0960cbd1ff7927729e8d71b477a478df528d0fc7b14b7b35c6e2"
+    },
+    {
+      "employee": "canela",
+      "species": "redpanda",
+      "asset": "canela",
+      "sourceFile": "PANDA VERMELHO.png",
+      "driveId": "1mzkU944JV4jiAO5vO46trC6HEseeANzD",
+      "officeHeight": 100,
+      "sourceBytes": 107378509,
+      "sourceSha256": "301793fb0228a553ad5accd7a4a06521f9ec3d8c53f1fdf3c6da1a4ba3d56096"
+    },
+    {
+      "employee": "pingo",
+      "species": "penguin",
+      "asset": "pingo",
+      "sourceFile": "PINGUIM.png",
+      "driveId": "1q1Ysfd9ajcYX_TcYhtFCz8xDjZdDLugg",
+      "officeHeight": 100,
+      "sourceBytes": 29661942,
+      "sourceSha256": "169c20ab66a5487cc3450a9e4b7c1d3c6866ca73e8e48b75e6fed336d48cab07"
+    },
+    {
+      "employee": "inky",
+      "species": "octopus",
+      "asset": "inky",
+      "sourceFile": "POLVO.png",
+      "driveId": "1iL0NWJ1vpuIs_KDYkvVFZT34XMAwx7mA",
+      "officeHeight": 100,
+      "sourceBytes": 119210836,
+      "sourceSha256": "9467bfb838bc4f6a5cfef36d6af00a066cf2f7981eb68da475ee7b43f687c9b6"
+    },
+    {
+      "employee": "dorm",
+      "species": "sloth",
+      "asset": "dorm",
+      "sourceFile": "PREGUICA.png",
+      "driveId": "17cYhrXZDhOf1RE0LxRfF461thbOBdrj6",
+      "officeHeight": 100,
+      "sourceBytes": 184404888,
+      "sourceSha256": "aed7974fad33339c55b200e709da0dbf34ce8ee7a00c2e3e12e6c821352ce4f0"
+    },
+    {
+      "employee": "fenn",
+      "species": "fox",
+      "asset": "fenn",
+      "sourceFile": "RAPOSA.png",
+      "driveId": "1pRCEBe_Q6rYl0KJbWYR1Wv9cqj273nGV",
+      "officeHeight": 100,
+      "sourceBytes": 191776159,
+      "sourceSha256": "720234b9849de4dc545bc90e02258f9fc2d412599131ad6a18d8ea74a3563468"
+    },
+    {
+      "employee": "nixie",
+      "species": "mouse",
+      "asset": "nixie",
+      "sourceFile": "RATO.png",
+      "driveId": "1wceVIrYSWFhdp0jVNYA8q4ldU1rk_JQa",
+      "officeHeight": 100,
+      "sourceBytes": 86082470,
+      "sourceSha256": "b0995b2a1b46fcb34f31c95934f47aca593b31fbc550ed2bcdabbeeac32c2331"
+    },
+    {
+      "employee": "quincy",
+      "species": "frog",
+      "asset": "quincy",
+      "sourceFile": "SAPO.png",
+      "driveId": "1Hhnab4L2QeZk5tZdD6KdCWZvTUKg3yQd",
+      "officeHeight": 100,
+      "sourceBytes": 141490932,
+      "sourceSha256": "40a5703273198443716146bc6ea405897310fc0cde7a22ef055b0e656135debb"
+    },
+    {
+      "employee": "mina",
+      "species": "mole",
+      "asset": "mina",
+      "sourceFile": "TOUPEIRA.png",
+      "driveId": "15x7zcVVJ4hm5WqFP83Sk6WllaDcvSBGi",
+      "officeHeight": 100,
+      "sourceBytes": 104536020,
+      "sourceSha256": "8f5a3edb9196559354137864fb3df6e9a1ce97e9731b718e899820f949ed4f8b"
+    },
+    {
+      "employee": "bia",
+      "species": "bear",
+      "asset": "bia",
+      "sourceFile": "URSO.png",
+      "driveId": null,
+      "officeHeight": null,
+      "skipImport": true,
+      "skipReason": "AWAITING REAL ASSET. The bear master has not been authored yet. Do not substitute, generate or re-use another animal's artwork: bia deliberately renders as the vector Critter fallback until URSO.png exists. To finish the cast, drop the master in assets/sources/characters/URSO.png, fill in driveId and officeHeight, remove skipImport, then run scripts/import-character-assets.py --only bia and scripts/normalize-cast.py."
     }
   ]
 }

@@ -220,6 +220,107 @@ export const CHARACTER_ART: readonly CharacterArtEntry[] = [
     activeVersion: 'original',
     variants: { original: art('axel', 109, 96, { officeHeight: 98, baseline: 0.0, anchorX: 0.513761, figureTop: 0.0625 }) },
   },
+
+  // ---------------------------------------------------------------------------
+  // 2.0 cast expansion. Thirteen animals that until now rendered as vector
+  // critters, imported through the same pipeline as the nine above:
+  // scripts/import-character-assets.py (crop -> premultiplied LANCZOS downscale ->
+  // full-canvas frames) then scripts/measure-character-figures.py for the figure
+  // numbers below. Nothing here is hand-tuned; the measured values live in
+  // assets/sources/characters/figure-metrics.json and a test fails on drift.
+  // ---------------------------------------------------------------------------
+  {
+    employee: 'marlow',
+    species: 'capybara',
+    activeVersion: 'original',
+    variants: { original: art('marlow', 108, 100, { officeHeight: 100, baseline: 0.04, anchorX: 0.49537, figureTop: 0.04 }) },
+  },
+  {
+    employee: 'mina',
+    species: 'mole',
+    activeVersion: 'original',
+    variants: { original: art('mina', 110, 100, { officeHeight: 95, baseline: 0, anchorX: 0.504545, figureTop: 0.03 }) },
+  },
+  {
+    employee: 'nixie',
+    species: 'mouse',
+    activeVersion: 'original',
+    variants: { original: art('nixie', 110, 100, { officeHeight: 94, baseline: 0, anchorX: 0.513636, figureTop: 0.02 }) },
+  },
+  {
+    employee: 'otto',
+    species: 'otter',
+    activeVersion: 'original',
+    variants: { original: art('otto', 111, 100, { officeHeight: 96, baseline: 0, anchorX: 0.509009, figureTop: 0.04 }) },
+  },
+  {
+    employee: 'hazel',
+    species: 'hedgehog',
+    activeVersion: 'original',
+    variants: { original: art('hazel', 104, 100, { officeHeight: 96, baseline: 0, anchorX: 0.514423, figureTop: 0.04 }) },
+  },
+  {
+    employee: 'fenn',
+    species: 'fox',
+    activeVersion: 'original',
+    variants: { original: art('fenn', 103, 100, { officeHeight: 95, baseline: 0, anchorX: 0.509709, figureTop: 0.03 }) },
+  },
+  {
+    employee: 'pingo',
+    species: 'penguin',
+    activeVersion: 'original',
+    variants: { original: art('pingo', 128, 100, { officeHeight: 99, baseline: 0.04, anchorX: 0.5, figureTop: 0.03 }) },
+  },
+  {
+    employee: 'canela',
+    species: 'redpanda',
+    activeVersion: 'original',
+    variants: { original: art('canela', 104, 100, { officeHeight: 96, baseline: 0, anchorX: 0.504808, figureTop: 0.04 }) },
+  },
+  {
+    employee: 'quincy',
+    species: 'frog',
+    activeVersion: 'original',
+    variants: { original: art('quincy', 100, 100, { officeHeight: 103, baseline: 0, anchorX: 0.525, figureTop: 0.11 }) },
+  },
+  {
+    employee: 'dorm',
+    species: 'sloth',
+    activeVersion: 'original',
+    // 344 of the master's 586 frames were byte-identical repeats of a pose it was
+    // already holding. The encoder now merges those runs into one longer delay,
+    // which is lossless (verified pixel-identical at 5ms resolution across the whole
+    // 19.3s loop) and took the sprite from 32.0 MB to 13.2 MB, in line with the cast.
+    variants: { original: art('dorm', 101, 100, { officeHeight: 95, baseline: 0, anchorX: 0.514851, figureTop: 0.03 }) },
+  },
+  {
+    employee: 'inky',
+    species: 'octopus',
+    activeVersion: 'original',
+    variants: { original: art('inky', 100, 100, { officeHeight: 105, baseline: 0, anchorX: 0.51, figureTop: 0.12 }) },
+  },
+  {
+    employee: 'echo',
+    species: 'bat',
+    activeVersion: 'original',
+    variants: { original: art('echo', 100, 100, { officeHeight: 95, baseline: 0, anchorX: 0.51, figureTop: 0.03 }) },
+  },
+  {
+    employee: 'perry',
+    species: 'platypus',
+    activeVersion: 'original',
+    variants: { original: art('perry', 106, 100, { officeHeight: 95, baseline: 0, anchorX: 0.504717, figureTop: 0.03 }) },
+  },
+
+  // NOT REGISTERED, DELIBERATELY: 'bia' (bear).
+  //
+  // The bear master has not been authored yet. There is no entry here because the
+  // absence is the correct behaviour: an employee with no registered art renders as
+  // the vector Critter, which is a complete, shipping fallback rather than a hole.
+  // Do NOT satisfy this by generating placeholder bear art, reusing another animal's
+  // APNG, or approximating one -- the cast is photographic and a substitute would be
+  // visibly wrong. assets/sources/characters/manifest.json carries the pending entry
+  // with the exact steps to finish it once URSO.png exists.
 ];
 
 export const CHARACTER_ART_BY_EMPLOYEE: Record<string, CharacterArtEntry> = Object.fromEntries(

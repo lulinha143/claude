@@ -37,6 +37,24 @@
       "frames": 121,
       "topPadFraction": 0.051724
     },
+    "canela": {
+      "bottomPadFraction": 0.0,
+      "box": {
+        "bottom": 99,
+        "left": 1,
+        "right": 103,
+        "top": 4
+      },
+      "canvasHeight": 100,
+      "canvasWidth": 104,
+      "figureCentreX": 0.504808,
+      "figureHeight": 96,
+      "figureHeightFraction": 0.96,
+      "figureWidth": 103,
+      "figureWidthFraction": 0.990385,
+      "frames": 136,
+      "topPadFraction": 0.04
+    },
     "corvus": {
       "bottomPadFraction": 0.0,
       "box": {
@@ -55,6 +73,96 @@
       "frames": 228,
       "topPadFraction": 0.11
     },
+    "dorm": {
+      "bottomPadFraction": 0.0,
+      "box": {
+        "bottom": 99,
+        "left": 3,
+        "right": 100,
+        "top": 3
+      },
+      "canvasHeight": 100,
+      "canvasWidth": 101,
+      "figureCentreX": 0.514851,
+      "figureHeight": 97,
+      "figureHeightFraction": 0.97,
+      "figureWidth": 98,
+      "figureWidthFraction": 0.970297,
+      "frames": 242,
+      "topPadFraction": 0.03
+    },
+    "echo": {
+      "bottomPadFraction": 0.0,
+      "box": {
+        "bottom": 99,
+        "left": 2,
+        "right": 99,
+        "top": 3
+      },
+      "canvasHeight": 100,
+      "canvasWidth": 100,
+      "figureCentreX": 0.51,
+      "figureHeight": 97,
+      "figureHeightFraction": 0.97,
+      "figureWidth": 98,
+      "figureWidthFraction": 0.98,
+      "frames": 165,
+      "topPadFraction": 0.03
+    },
+    "fenn": {
+      "bottomPadFraction": 0.0,
+      "box": {
+        "bottom": 99,
+        "left": 2,
+        "right": 102,
+        "top": 3
+      },
+      "canvasHeight": 100,
+      "canvasWidth": 103,
+      "figureCentreX": 0.509709,
+      "figureHeight": 97,
+      "figureHeightFraction": 0.97,
+      "figureWidth": 101,
+      "figureWidthFraction": 0.980583,
+      "frames": 242,
+      "topPadFraction": 0.03
+    },
+    "hazel": {
+      "bottomPadFraction": 0.0,
+      "box": {
+        "bottom": 99,
+        "left": 3,
+        "right": 103,
+        "top": 4
+      },
+      "canvasHeight": 100,
+      "canvasWidth": 104,
+      "figureCentreX": 0.514423,
+      "figureHeight": 96,
+      "figureHeightFraction": 0.96,
+      "figureWidth": 101,
+      "figureWidthFraction": 0.971154,
+      "frames": 242,
+      "topPadFraction": 0.04
+    },
+    "inky": {
+      "bottomPadFraction": 0.0,
+      "box": {
+        "bottom": 99,
+        "left": 2,
+        "right": 99,
+        "top": 12
+      },
+      "canvasHeight": 100,
+      "canvasWidth": 100,
+      "figureCentreX": 0.51,
+      "figureHeight": 88,
+      "figureHeightFraction": 0.88,
+      "figureWidth": 98,
+      "figureWidthFraction": 0.98,
+      "frames": 148,
+      "topPadFraction": 0.12
+    },
     "junie": {
       "bottomPadFraction": 0.0,
       "box": {
@@ -72,6 +180,42 @@
       "figureWidthFraction": 0.959596,
       "frames": 158,
       "topPadFraction": 0.020202
+    },
+    "marlow": {
+      "bottomPadFraction": 0.04,
+      "box": {
+        "bottom": 95,
+        "left": 3,
+        "right": 103,
+        "top": 4
+      },
+      "canvasHeight": 100,
+      "canvasWidth": 108,
+      "figureCentreX": 0.49537,
+      "figureHeight": 92,
+      "figureHeightFraction": 0.92,
+      "figureWidth": 101,
+      "figureWidthFraction": 0.935185,
+      "frames": 116,
+      "topPadFraction": 0.04
+    },
+    "mina": {
+      "bottomPadFraction": 0.0,
+      "box": {
+        "bottom": 99,
+        "left": 1,
+        "right": 109,
+        "top": 3
+      },
+      "canvasHeight": 100,
+      "canvasWidth": 110,
+      "figureCentreX": 0.504545,
+      "figureHeight": 97,
+      "figureHeightFraction": 0.97,
+      "figureWidth": 109,
+      "figureWidthFraction": 0.990909,
+      "frames": 144,
+      "topPadFraction": 0.03
     },
     "moss": {
       "bottomPadFraction": 0.0,
@@ -109,6 +253,78 @@
       "frames": 242,
       "topPadFraction": 0.040816
     },
+    "nixie": {
+      "bottomPadFraction": 0.0,
+      "box": {
+        "bottom": 99,
+        "left": 3,
+        "right": 109,
+        "top": 2
+      },
+      "canvasHeight": 100,
+      "canvasWidth": 110,
+      "figureCentreX": 0.513636,
+      "figureHeight": 98,
+      "figureHeightFraction": 0.98,
+      "figureWidth": 107,
+      "figureWidthFraction": 0.972727,
+      "frames": 128,
+      "topPadFraction": 0.02
+    },
+    "otto": {
+      "bottomPadFraction": 0.0,
+      "box": {
+        "bottom": 99,
+        "left": 2,
+        "right": 110,
+        "top": 4
+      },
+      "canvasHeight": 100,
+      "canvasWidth": 111,
+      "figureCentreX": 0.509009,
+      "figureHeight": 96,
+      "figureHeightFraction": 0.96,
+      "figureWidth": 109,
+      "figureWidthFraction": 0.981982,
+      "frames": 162,
+      "topPadFraction": 0.04
+    },
+    "perry": {
+      "bottomPadFraction": 0.0,
+      "box": {
+        "bottom": 99,
+        "left": 1,
+        "right": 105,
+        "top": 3
+      },
+      "canvasHeight": 100,
+      "canvasWidth": 106,
+      "figureCentreX": 0.504717,
+      "figureHeight": 97,
+      "figureHeightFraction": 0.97,
+      "figureWidth": 105,
+      "figureWidthFraction": 0.990566,
+      "frames": 160,
+      "topPadFraction": 0.03
+    },
+    "pingo": {
+      "bottomPadFraction": 0.04,
+      "box": {
+        "bottom": 95,
+        "left": 0,
+        "right": 127,
+        "top": 3
+      },
+      "canvasHeight": 100,
+      "canvasWidth": 128,
+      "figureCentreX": 0.5,
+      "figureHeight": 93,
+      "figureHeightFraction": 0.93,
+      "figureWidth": 128,
+      "figureWidthFraction": 1.0,
+      "frames": 45,
+      "topPadFraction": 0.03
+    },
     "pip": {
       "bottomPadFraction": 0.0,
       "box": {
@@ -126,6 +342,24 @@
       "figureWidthFraction": 0.951456,
       "frames": 242,
       "topPadFraction": 0.010753
+    },
+    "quincy": {
+      "bottomPadFraction": 0.0,
+      "box": {
+        "bottom": 99,
+        "left": 5,
+        "right": 99,
+        "top": 11
+      },
+      "canvasHeight": 100,
+      "canvasWidth": 100,
+      "figureCentreX": 0.525,
+      "figureHeight": 89,
+      "figureHeightFraction": 0.89,
+      "figureWidth": 95,
+      "figureWidthFraction": 0.95,
+      "frames": 212,
+      "topPadFraction": 0.11
     },
     "rizzo": {
       "bottomPadFraction": 0.0,
@@ -175,15 +409,55 @@
       "baseline": 0.051724,
       "officeHeight": 103
     },
+    "canela": {
+      "anchorX": 0.504808,
+      "baseline": 0.0,
+      "officeHeight": 96
+    },
     "corvus": {
       "anchorX": 0.515,
       "baseline": 0.0,
       "officeHeight": 103
     },
+    "dorm": {
+      "anchorX": 0.514851,
+      "baseline": 0.0,
+      "officeHeight": 95
+    },
+    "echo": {
+      "anchorX": 0.51,
+      "baseline": 0.0,
+      "officeHeight": 95
+    },
+    "fenn": {
+      "anchorX": 0.509709,
+      "baseline": 0.0,
+      "officeHeight": 95
+    },
+    "hazel": {
+      "anchorX": 0.514423,
+      "baseline": 0.0,
+      "officeHeight": 96
+    },
+    "inky": {
+      "anchorX": 0.51,
+      "baseline": 0.0,
+      "officeHeight": 105
+    },
     "junie": {
       "anchorX": 0.520202,
       "baseline": 0.0,
       "officeHeight": 94
+    },
+    "marlow": {
+      "anchorX": 0.49537,
+      "baseline": 0.04,
+      "officeHeight": 100
+    },
+    "mina": {
+      "anchorX": 0.504545,
+      "baseline": 0.0,
+      "officeHeight": 95
     },
     "moss": {
       "anchorX": 0.514286,
@@ -195,10 +469,35 @@
       "baseline": 0.0,
       "officeHeight": 96
     },
+    "nixie": {
+      "anchorX": 0.513636,
+      "baseline": 0.0,
+      "officeHeight": 94
+    },
+    "otto": {
+      "anchorX": 0.509009,
+      "baseline": 0.0,
+      "officeHeight": 96
+    },
+    "perry": {
+      "anchorX": 0.504717,
+      "baseline": 0.0,
+      "officeHeight": 95
+    },
+    "pingo": {
+      "anchorX": 0.5,
+      "baseline": 0.04,
+      "officeHeight": 99
+    },
     "pip": {
       "anchorX": 0.524272,
       "baseline": 0.0,
       "officeHeight": 93
+    },
+    "quincy": {
+      "anchorX": 0.525,
+      "baseline": 0.0,
+      "officeHeight": 103
     },
     "rizzo": {
       "anchorX": 0.517544,

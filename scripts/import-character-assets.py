@@ -47,6 +47,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
 ENCODER = REPO / "scripts" / "build-employee-apng.py"
+REPAIR = REPO / "scripts" / "repair-character-apng.py"
 
 # Frames sampled when measuring the content bounding box. The box only needs to be
 # tight enough to remove dead padding, and every animal here is a seated figure
@@ -155,6 +156,33 @@ def build(entry: dict, source: Path, out_dir: Path, dry_run: bool) -> dict:
         ],
         check=True,
     )
+
+    # Repair isolated alpha dropouts, in the pipeline rather than by hand.
+    #
+    # A handful of frames in some masters have their semi-transparent alpha collapsed
+    # to roughly half, which deflates the character's soft baked-in halo for a single
+    # frame about once a second and reads in game as a shimmer/flicker. It was first
+    # found in Pip and fixed by hand; when the 2.0 cast arrived, 7 of the 13 new
+    # masters (marlow, otto, hazel, canela, quincy, mina, perry) carried the same
+    # defect, so leaving the repair as a manual follow-up step was clearly the wrong
+    # design. Running it here means a defective master cannot reach the game, and it
+    # is a no-op for healthy artwork.
+    #
+    # The master itself is never touched: it stays in assets/sources/characters/ with
+    # its SHA-256 recorded, so ORIGINAL -> DERIVED/REPAIRED -> ACTIVE all remain
+    # recoverable. `npm run verify:assets` independently re-checks the result.
+    plan["repaired_frames"] = {}
+    for key, path in (("out_2x", out2x), ("out_1x", out1x)):
+        proc = subprocess.run(
+            [sys.executable, str(REPAIR), "--in", str(path)],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        n = len([ln for ln in proc.stdout.splitlines() if "<- repair from frame" in ln])
+        plan["repaired_frames"][key] = n
+        if n:
+            print(f"    repaired {n} alpha-dropout frame(s) in {path.name}")
 
     from PIL import Image
 
