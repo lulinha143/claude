@@ -102,22 +102,20 @@ describe('character sprite resampling', () => {
     }
   });
 
-  // The roster card draws the same sprite ~43% larger than the office does. With
-  // fixed "1x, 2x" labels a DPR-1 browser took the small file and enlarged it there,
-  // so portraits were the softest thing in the game. Densities are derived from the
-  // rendered height instead, which makes the card step up to the @2x build.
-  it('has a denser candidate available for the larger roster-card render', () => {
+  // The roster card draws the same sprite larger than the office does, so the @1x
+  // asset would have to be ENLARGED there — which is why portraits were the softest
+  // art in the game. EmployeeSprite serves the denser build outright above the encoded
+  // size, so what must hold is that the denser build actually covers the card.
+  it('covers the larger roster-card render with the denser build', () => {
     for (const r of rows) {
       const cardHeight = presenceSize(r.files.cardHeight);
       expect(cardHeight, `${r.employee} card is larger than office`).toBeGreaterThan(
         r.files.frameHeight,
       );
-      // What EmployeeSprite computes for the card, and what the browser needs at DPR 1.
-      const smallDensity = r.files.frameHeight / cardHeight;
-      const largeDensity = r.files.srcHeight / cardHeight;
-      expect(smallDensity, `${r.employee} @1x on a card`).toBeLessThan(1);
-      // So a DPR-1 display skips it and downscales the @2x build instead.
-      expect(largeDensity, `${r.employee} @2x on a card`).toBeGreaterThanOrEqual(1);
+      // The @2x build must be at least card-sized, or the card is an upscale again.
+      expect(r.files.srcHeight, `${r.employee} @2x covers the card`).toBeGreaterThanOrEqual(
+        cardHeight,
+      );
     }
   });
 

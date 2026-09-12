@@ -60,7 +60,6 @@ function EmployeeSpriteImpl({ config, reducedMotion, height, className }: Employ
   // art. Same size/position/animation/scene — the halo is the ONLY variable.
   const haloOff = useHaloOff();
   const useNoHalo = haloOff && !reducedMotion && !!config.srcNoHalo;
-  const file = reducedMotion ? config.poster : useNoHalo ? config.srcNoHalo! : config.src;
 
   // Push any authored bottom padding below the floor line so the character's
   // real contact point sits exactly on its slot (baseline 0 = no shift).
@@ -80,35 +79,39 @@ function EmployeeSpriteImpl({ config, reducedMotion, height, className }: Employ
   // re-blended whenever an ancestor repaints.
   const transform = `${anchorShift} ${baselineShift} translateZ(0)`.trim();
 
-  // Let the browser pick the candidate that needs the least resampling, by telling it
-  // each file's TRUE density for the size this element is actually being drawn at.
+  // RESOLUTION SELECTION
   //
-  // Both numbers are measured, not asserted. The old code declared "1x, 2x", and
-  // neither label was true any more: `src1x` is encoded at the office display height
-  // (officeHeight * presence) and the @2x build is twice `officeHeight`, so their real
-  // densities are ~1.0x and ~1.67x in the office — and something else entirely on a
-  // roster card, which draws the same sprite 43% larger. A density a file does not
-  // have is how a browser gets talked into the softer choice.
+  // Two sizes of the same animation exist: `src1x`, encoded at exactly the office
+  // display height, and `src`, the denser retained build (~1.6-1.9x of it, not 2x —
+  // see characterAssets.ts). Which one to serve depends on how big this particular
+  // element is being drawn, because the office draws at `src1x`'s exact size while a
+  // roster card draws the same character ~43% larger.
   //
-  // Deriving from `height` makes one rule serve every call site:
-  //   office (height === frameHeight)  -> src1x is 1.00x, so DPR 1 gets it 1:1, exact.
-  //   card   (height  >  frameHeight)  -> src1x drops below 1.00x, so DPR 1 steps up to
-  //                                       the @2x build and DOWNSCALES it, which is the
-  //                                       sharp direction. Previously the card enlarged
-  //                                       the small file ~1.7x.
-  //   pushed back in perspective       -> src1x rises above 1.00x and still wins, again
-  //                                       as a downscale.
+  // The oversized case is decided HERE rather than by handing the browser a density
+  // that makes the denser file win, because that does not reliably work: Chromium
+  // will not DOWNGRADE to a smaller candidate once a denser one is in its cache, so
+  // a character whose srcset was ever evaluated at card proportions keeps the big
+  // file everywhere afterwards. Measured directly — a `<img>` moved from densities
+  // `0.700x/1.160x` to `1.035x/1.739x` keeps serving the 1.160x file. So density
+  // labels stay a fixed property of the FILES, and the size-dependent part is an
+  // explicit source choice that cannot drift.
+  const oversized = height > config.frameHeight;
+  const animation = oversized && config.src1x ? config.src : (config.src1x ?? config.src);
+  const file = reducedMotion ? config.poster : useNoHalo ? config.srcNoHalo! : animation;
+
+  // At the encoded size (the office) offer both candidates so a HiDPI display can take
+  // the denser one; the labels are the files' real ratio, so DPR 1 lands on `src1x`
+  // and maps it 1:1 to device pixels — no resample at all. When oversized we have
+  // already chosen the denser build outright and must NOT also advertise the small one,
+  // or DPR 1 would pick it and enlarge it, which is the softness this avoids.
   //
-  // `--asset-scale` shrinks the element further in CSS (never enlarges it: it is capped
-  // at 1), so the real drawn size is at most `height`. That makes these densities a
-  // conservative floor, and erring low only ever picks a DENSER file than needed.
-  //
-  // Purely a resolution hint: the CSS width and height below are identical whichever
-  // candidate is picked, so this cannot change the geometry.
+  // `--asset-scale` only ever shrinks the element further (it is capped at 1), so the
+  // drawn size is at most `height` and these choices stay conservative.
   const srcSet =
-    !reducedMotion && !useNoHalo && config.src1x
-      ? `${BASE}${config.src1x} ${(config.frameHeight / height).toFixed(3)}x, ` +
-        `${BASE}${config.src} ${(config.srcHeight / height).toFixed(3)}x`
+    !reducedMotion && !useNoHalo && config.src1x && !oversized
+      ? `${BASE}${config.src1x} 1x, ${BASE}${config.src} ${(
+          config.srcHeight / config.frameHeight
+        ).toFixed(3)}x`
       : undefined;
 
   return (
@@ -139,11 +142,26 @@ function EmployeeSpriteImpl({ config, reducedMotion, height, className }: Employ
 // Only re-render when something that actually affects the pixels changes. This
 // guarantees ordinary state churn in the parent never recreates the <img>, so
 // the APNG never visibly restarts.
+//
+// The config is compared BY VALUE, not by identity. `employeeSprite(id)` builds a
+// fresh object on every call, so an identity check (`a.config === b.config`) was
+// always false and this memo never actually stopped anything — and the office
+// diorama re-renders continuously because it reads `Date.now()`, so that was a
+// re-render per sprite per animation frame. Only the fields this component reads
+// are compared; the rest cannot change what is painted.
 export const EmployeeSprite = memo(EmployeeSpriteImpl, (a, b) => {
   return (
-    a.config === b.config &&
     a.reducedMotion === b.reducedMotion &&
     a.height === b.height &&
-    a.className === b.className
+    a.className === b.className &&
+    a.config.src === b.config.src &&
+    a.config.src1x === b.config.src1x &&
+    a.config.srcNoHalo === b.config.srcNoHalo &&
+    a.config.poster === b.config.poster &&
+    a.config.frameWidth === b.config.frameWidth &&
+    a.config.frameHeight === b.config.frameHeight &&
+    a.config.srcHeight === b.config.srcHeight &&
+    a.config.anchorX === b.config.anchorX &&
+    a.config.baseline === b.config.baseline
   );
 });
