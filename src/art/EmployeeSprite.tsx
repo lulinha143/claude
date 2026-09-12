@@ -80,13 +80,35 @@ function EmployeeSpriteImpl({ config, reducedMotion, height, className }: Employ
   // re-blended whenever an ancestor repaints.
   const transform = `${anchorShift} ${baselineShift} translateZ(0)`.trim();
 
-  // Serve the animation at the resolution it is actually displayed at, so on an
-  // integer device pixel ratio the frame maps 1:1 to device pixels (DPR 1 -> @1x,
-  // DPR 2 -> @2x) with no resample. Purely a resolution hint: the CSS width and
-  // height below are identical either way, so this cannot change the geometry.
+  // Let the browser pick the candidate that needs the least resampling, by telling it
+  // each file's TRUE density for the size this element is actually being drawn at.
+  //
+  // Both numbers are measured, not asserted. The old code declared "1x, 2x", and
+  // neither label was true any more: `src1x` is encoded at the office display height
+  // (officeHeight * presence) and the @2x build is twice `officeHeight`, so their real
+  // densities are ~1.0x and ~1.67x in the office — and something else entirely on a
+  // roster card, which draws the same sprite 43% larger. A density a file does not
+  // have is how a browser gets talked into the softer choice.
+  //
+  // Deriving from `height` makes one rule serve every call site:
+  //   office (height === frameHeight)  -> src1x is 1.00x, so DPR 1 gets it 1:1, exact.
+  //   card   (height  >  frameHeight)  -> src1x drops below 1.00x, so DPR 1 steps up to
+  //                                       the @2x build and DOWNSCALES it, which is the
+  //                                       sharp direction. Previously the card enlarged
+  //                                       the small file ~1.7x.
+  //   pushed back in perspective       -> src1x rises above 1.00x and still wins, again
+  //                                       as a downscale.
+  //
+  // `--asset-scale` shrinks the element further in CSS (never enlarges it: it is capped
+  // at 1), so the real drawn size is at most `height`. That makes these densities a
+  // conservative floor, and erring low only ever picks a DENSER file than needed.
+  //
+  // Purely a resolution hint: the CSS width and height below are identical whichever
+  // candidate is picked, so this cannot change the geometry.
   const srcSet =
     !reducedMotion && !useNoHalo && config.src1x
-      ? `${BASE}${config.src1x} 1x, ${BASE}${config.src} 2x`
+      ? `${BASE}${config.src1x} ${(config.frameHeight / height).toFixed(3)}x, ` +
+        `${BASE}${config.src} ${(config.srcHeight / height).toFixed(3)}x`
       : undefined;
 
   return (

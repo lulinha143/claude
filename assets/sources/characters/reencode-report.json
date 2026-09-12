@@ -1,0 +1,939 @@
+{
+  "_comment": [
+    "Provenance for the @1x display-size re-encode.",
+    "",
+    "Only <asset>-1x.png is rewritten, from <asset>.png (the retained @2x",
+    "build). Masters are untouched and Pip is NOT re-imported, so her",
+    "hand-repaired artwork is preserved. Re-running the script reproduces",
+    "these outputs, and the sha256 of every input and output is recorded",
+    "here so a rollback is deterministic."
+  ],
+  "presenceScale": 1.2,
+  "generatedBy": "scripts/reencode-cast-display-size.py",
+  "characters": [
+    {
+      "employee": "pip",
+      "asset": "pip",
+      "officeHeight": 93,
+      "presenceScale": 1.2,
+      "targetHeight": 112,
+      "source": {
+        "file": "pip.png",
+        "size": [
+          207,
+          186
+        ],
+        "bytes": 13164605,
+        "sha256": "acbb564836693a8993e17ef71dfbd95a8e614a1d1bf9a378ffadabec8f51264f",
+        "frames": 242,
+        "durationMs": 7986
+      },
+      "before": {
+        "file": "pip-1x.png",
+        "size": [
+          125,
+          112
+        ],
+        "bytes": 5238028,
+        "sha256": "270dc5066eff5dc81073720dd7101862d564db947fffda061a89565910a97d36",
+        "dpr1Ratio": 1.0
+      },
+      "resample": 0.6022,
+      "after": {
+        "file": "pip-1x.png",
+        "size": [
+          125,
+          112
+        ],
+        "bytes": 5238028,
+        "sha256": "270dc5066eff5dc81073720dd7101862d564db947fffda061a89565910a97d36",
+        "frames": 234,
+        "durationMs": 7986,
+        "repairedFrames": 0,
+        "dpr1Ratio": 1.0
+      }
+    },
+    {
+      "employee": "bea",
+      "asset": "bea",
+      "officeHeight": 102,
+      "presenceScale": 1.2,
+      "targetHeight": 122,
+      "source": {
+        "file": "bea.png",
+        "size": [
+          265,
+          232
+        ],
+        "bytes": 9066321,
+        "sha256": "76e57c5ee3a5ff895105eae4195379097b6742800871ca0a817112c780d16a9b",
+        "frames": 121,
+        "durationMs": 3993
+      },
+      "before": {
+        "file": "bea-1x.png",
+        "size": [
+          142,
+          124
+        ],
+        "bytes": 2991744,
+        "sha256": "bd71e0482f9a797ebec1a859f023ba9801e04c9a0bb13fec2a9cb2ff3b13ab08",
+        "dpr1Ratio": 0.9839
+      },
+      "resample": 0.5259,
+      "after": {
+        "file": "bea-1x.png",
+        "size": [
+          139,
+          122
+        ],
+        "bytes": 2896962,
+        "sha256": "77de36ed56913427a2820b86b53e2147145b9878a8cedac70590872e0e48af03",
+        "frames": 118,
+        "durationMs": 3993,
+        "repairedFrames": 0,
+        "dpr1Ratio": 1.0
+      }
+    },
+    {
+      "employee": "rizzo",
+      "asset": "rizzo",
+      "officeHeight": 96,
+      "presenceScale": 1.2,
+      "targetHeight": 115,
+      "source": {
+        "file": "rizzo.png",
+        "size": [
+          228,
+          208
+        ],
+        "bytes": 13689657,
+        "sha256": "84ee32706be662d0ebd51d6d46d18dd4fc2847669f8ed53a60db0bb95ea8efee",
+        "frames": 223,
+        "durationMs": 7359
+      },
+      "before": {
+        "file": "rizzo-1x.png",
+        "size": [
+          126,
+          115
+        ],
+        "bytes": 4833849,
+        "sha256": "87f172cd429dbb8305a3eb0d3022f094ae21ab7470e7e9c04cc6f77f298b2ecc",
+        "dpr1Ratio": 1.0
+      },
+      "resample": 0.5529,
+      "after": {
+        "file": "rizzo-1x.png",
+        "size": [
+          126,
+          115
+        ],
+        "bytes": 4833849,
+        "sha256": "87f172cd429dbb8305a3eb0d3022f094ae21ab7470e7e9c04cc6f77f298b2ecc",
+        "frames": 223,
+        "durationMs": 7359,
+        "repairedFrames": 0,
+        "dpr1Ratio": 1.0
+      }
+    },
+    {
+      "employee": "corvus",
+      "asset": "corvus",
+      "officeHeight": 103,
+      "presenceScale": 1.2,
+      "targetHeight": 124,
+      "source": {
+        "file": "corvus.png",
+        "size": [
+          200,
+          200
+        ],
+        "bytes": 10621825,
+        "sha256": "091d9809ca9418bc9f9cd45bcd697f3040123ea4d04f033421f32482f5a563e6",
+        "frames": 228,
+        "durationMs": 7524
+      },
+      "before": {
+        "file": "corvus-1x.png",
+        "size": [
+          124,
+          124
+        ],
+        "bytes": 4451323,
+        "sha256": "d6746cc20e3339ab92370f62825bc702ac9d102899a1a0f5c0c78e8cc14fd252",
+        "dpr1Ratio": 1.0
+      },
+      "resample": 0.62,
+      "after": {
+        "file": "corvus-1x.png",
+        "size": [
+          124,
+          124
+        ],
+        "bytes": 4451323,
+        "sha256": "d6746cc20e3339ab92370f62825bc702ac9d102899a1a0f5c0c78e8cc14fd252",
+        "frames": 220,
+        "durationMs": 7524,
+        "repairedFrames": 0,
+        "dpr1Ratio": 1.0
+      }
+    },
+    {
+      "employee": "junie",
+      "asset": "junie",
+      "officeHeight": 94,
+      "presenceScale": 1.2,
+      "targetHeight": 113,
+      "source": {
+        "file": "junie.png",
+        "size": [
+          198,
+          198
+        ],
+        "bytes": 7367417,
+        "sha256": "1eece9a90add93729620c6d4101876ae3ce5079275290ef48c86ed1acb16b620",
+        "frames": 158,
+        "durationMs": 5214
+      },
+      "before": {
+        "file": "junie-1x.png",
+        "size": [
+          113,
+          113
+        ],
+        "bytes": 2721332,
+        "sha256": "6b3a4257e5eaaece80037fb84f36aa4307a4e5a8ce1dd0d47afdc3809bd9286f",
+        "dpr1Ratio": 1.0
+      },
+      "resample": 0.5707,
+      "after": {
+        "file": "junie-1x.png",
+        "size": [
+          113,
+          113
+        ],
+        "bytes": 2721332,
+        "sha256": "6b3a4257e5eaaece80037fb84f36aa4307a4e5a8ce1dd0d47afdc3809bd9286f",
+        "frames": 153,
+        "durationMs": 5214,
+        "repairedFrames": 0,
+        "dpr1Ratio": 1.0
+      }
+    },
+    {
+      "employee": "moss",
+      "asset": "moss",
+      "officeHeight": 100,
+      "presenceScale": 1.2,
+      "targetHeight": 120,
+      "source": {
+        "file": "moss.png",
+        "size": [
+          211,
+          204
+        ],
+        "bytes": 11502182,
+        "sha256": "616e85ecfe7a68db47821f32a949f3c002f75bb023f81b3972aa017c29958e9c",
+        "frames": 222,
+        "durationMs": 7326
+      },
+      "before": {
+        "file": "moss-1x.png",
+        "size": [
+          124,
+          120
+        ],
+        "bytes": 4508374,
+        "sha256": "7bac98e0fbebed2602f14e13a61e58c99cb17c95f9ceeb207e1ae63fe51f018e",
+        "dpr1Ratio": 1.0
+      },
+      "resample": 0.5882,
+      "after": {
+        "file": "moss-1x.png",
+        "size": [
+          124,
+          120
+        ],
+        "bytes": 4508374,
+        "sha256": "7bac98e0fbebed2602f14e13a61e58c99cb17c95f9ceeb207e1ae63fe51f018e",
+        "frames": 220,
+        "durationMs": 7326,
+        "repairedFrames": 0,
+        "dpr1Ratio": 1.0
+      }
+    },
+    {
+      "employee": "nino",
+      "asset": "nino",
+      "officeHeight": 96,
+      "presenceScale": 1.2,
+      "targetHeight": 115,
+      "source": {
+        "file": "nino.png",
+        "size": [
+          211,
+          196
+        ],
+        "bytes": 11613696,
+        "sha256": "493314cacb6e28b940a5dde08b883508c13f258f002a9ca4e8d8ca485f308844",
+        "frames": 242,
+        "durationMs": 7986
+      },
+      "before": {
+        "file": "nino-1x.png",
+        "size": [
+          124,
+          115
+        ],
+        "bytes": 4578472,
+        "sha256": "558f3199b8542f360794c3b9240e4e41700625b1bf3b97acc2d85787a40f4f9c",
+        "dpr1Ratio": 1.0
+      },
+      "resample": 0.5867,
+      "after": {
+        "file": "nino-1x.png",
+        "size": [
+          124,
+          115
+        ],
+        "bytes": 4578472,
+        "sha256": "558f3199b8542f360794c3b9240e4e41700625b1bf3b97acc2d85787a40f4f9c",
+        "frames": 239,
+        "durationMs": 7986,
+        "repairedFrames": 0,
+        "dpr1Ratio": 1.0
+      }
+    },
+    {
+      "employee": "rosa",
+      "asset": "rosa",
+      "officeHeight": 96,
+      "presenceScale": 1.2,
+      "targetHeight": 115,
+      "source": {
+        "file": "rosa.png",
+        "size": [
+          216,
+          216
+        ],
+        "bytes": 6133963,
+        "sha256": "64913613988696bcd37dc7641234e3faa7dc78125a4e35a52405684abe2e904e",
+        "frames": 121,
+        "durationMs": 3993
+      },
+      "before": {
+        "file": "rosa-1x.png",
+        "size": [
+          115,
+          115
+        ],
+        "bytes": 2030762,
+        "sha256": "b8b8a918b123242f62ddeb3a2577e76ba108fabfde11b3ca246bcbe72f618f5a",
+        "dpr1Ratio": 1.0
+      },
+      "resample": 0.5324,
+      "after": {
+        "file": "rosa-1x.png",
+        "size": [
+          115,
+          115
+        ],
+        "bytes": 2030762,
+        "sha256": "b8b8a918b123242f62ddeb3a2577e76ba108fabfde11b3ca246bcbe72f618f5a",
+        "frames": 117,
+        "durationMs": 3993,
+        "repairedFrames": 0,
+        "dpr1Ratio": 1.0
+      }
+    },
+    {
+      "employee": "axel",
+      "asset": "axel",
+      "officeHeight": 98,
+      "presenceScale": 1.2,
+      "targetHeight": 118,
+      "source": {
+        "file": "axel.png",
+        "size": [
+          219,
+          192
+        ],
+        "bytes": 11390280,
+        "sha256": "eaaf4ad1406dd2942508e6b1ac3dcf2c68e6f72e750673dedec5873822d9379c",
+        "frames": 232,
+        "durationMs": 7656
+      },
+      "before": {
+        "file": "axel-1x.png",
+        "size": [
+          135,
+          118
+        ],
+        "bytes": 4639799,
+        "sha256": "2b765dd7c115b3385fc4d7a982ede5da5b0e46fd25b013b59e5baa5fef48fab0",
+        "dpr1Ratio": 1.0
+      },
+      "resample": 0.6146,
+      "after": {
+        "file": "axel-1x.png",
+        "size": [
+          135,
+          118
+        ],
+        "bytes": 4639799,
+        "sha256": "2b765dd7c115b3385fc4d7a982ede5da5b0e46fd25b013b59e5baa5fef48fab0",
+        "frames": 220,
+        "durationMs": 7656,
+        "repairedFrames": 0,
+        "dpr1Ratio": 1.0
+      }
+    },
+    {
+      "employee": "marlow",
+      "asset": "marlow",
+      "officeHeight": 99,
+      "presenceScale": 1.2,
+      "targetHeight": 119,
+      "source": {
+        "file": "marlow.png",
+        "size": [
+          217,
+          200
+        ],
+        "bytes": 6474262,
+        "sha256": "dd583c369a731dbf79ca10d29c80dccf4dbe3ca418d817202369f5050edb0924",
+        "frames": 116,
+        "durationMs": 3828
+      },
+      "before": {
+        "file": "marlow-1x.png",
+        "size": [
+          130,
+          120
+        ],
+        "bytes": 2655399,
+        "sha256": "4a9b68495e0b2cf2ccd5e4cb08fce4312cdf11d32a9bbbc3217f6925c1925bb8",
+        "dpr1Ratio": 0.9917
+      },
+      "resample": 0.595,
+      "after": {
+        "file": "marlow-1x.png",
+        "size": [
+          129,
+          119
+        ],
+        "bytes": 2622117,
+        "sha256": "fd55a02cd0b8dd6cebe20afabcc9853195c126936e062bdff71c3caf9ad124b4",
+        "frames": 115,
+        "durationMs": 3828,
+        "repairedFrames": 0,
+        "dpr1Ratio": 1.0
+      }
+    },
+    {
+      "employee": "mina",
+      "asset": "mina",
+      "officeHeight": 95,
+      "presenceScale": 1.2,
+      "targetHeight": 114,
+      "source": {
+        "file": "mina.png",
+        "size": [
+          220,
+          200
+        ],
+        "bytes": 8657391,
+        "sha256": "974cdc0fafcb5ea532069060844d279259da5e2af0031b2e282bd304525912cf",
+        "frames": 144,
+        "durationMs": 4752
+      },
+      "before": {
+        "file": "mina-1x.png",
+        "size": [
+          125,
+          114
+        ],
+        "bytes": 3165897,
+        "sha256": "5080cc02e4ba9525a49203cf7c62b4f0625e14b7b04deb4f39b4a9201538fc0e",
+        "dpr1Ratio": 1.0
+      },
+      "resample": 0.57,
+      "after": {
+        "file": "mina-1x.png",
+        "size": [
+          125,
+          114
+        ],
+        "bytes": 3165897,
+        "sha256": "5080cc02e4ba9525a49203cf7c62b4f0625e14b7b04deb4f39b4a9201538fc0e",
+        "frames": 142,
+        "durationMs": 4752,
+        "repairedFrames": 0,
+        "dpr1Ratio": 1.0
+      }
+    },
+    {
+      "employee": "nixie",
+      "asset": "nixie",
+      "officeHeight": 94,
+      "presenceScale": 1.2,
+      "targetHeight": 113,
+      "source": {
+        "file": "nixie.png",
+        "size": [
+          220,
+          200
+        ],
+        "bytes": 7339660,
+        "sha256": "1d5d8a6c82994a77315f25449e3a6e55f491ede88a8090d86072c1d4908d9959",
+        "frames": 128,
+        "durationMs": 4224
+      },
+      "before": {
+        "file": "nixie-1x.png",
+        "size": [
+          124,
+          113
+        ],
+        "bytes": 2802423,
+        "sha256": "0ec6701e8f3e240b0c49c37a82a6645cbb02d28cb6ad117d02ab1a1472970dd6",
+        "dpr1Ratio": 1.0
+      },
+      "resample": 0.565,
+      "after": {
+        "file": "nixie-1x.png",
+        "size": [
+          124,
+          113
+        ],
+        "bytes": 2802423,
+        "sha256": "0ec6701e8f3e240b0c49c37a82a6645cbb02d28cb6ad117d02ab1a1472970dd6",
+        "frames": 128,
+        "durationMs": 4224,
+        "repairedFrames": 0,
+        "dpr1Ratio": 1.0
+      }
+    },
+    {
+      "employee": "otto",
+      "asset": "otto",
+      "officeHeight": 96,
+      "presenceScale": 1.2,
+      "targetHeight": 115,
+      "source": {
+        "file": "otto.png",
+        "size": [
+          221,
+          200
+        ],
+        "bytes": 9289015,
+        "sha256": "f9d85060db192d3925498255c2b956542ac30712d059272b2e8545cbacbf3d00",
+        "frames": 162,
+        "durationMs": 5346
+      },
+      "before": {
+        "file": "otto-1x.png",
+        "size": [
+          127,
+          115
+        ],
+        "bytes": 3582554,
+        "sha256": "9face140c7efbb552ab88f39a6de507610615f7547347e9730116d606af89177",
+        "dpr1Ratio": 1.0
+      },
+      "resample": 0.575,
+      "after": {
+        "file": "otto-1x.png",
+        "size": [
+          127,
+          115
+        ],
+        "bytes": 3582554,
+        "sha256": "9face140c7efbb552ab88f39a6de507610615f7547347e9730116d606af89177",
+        "frames": 160,
+        "durationMs": 5346,
+        "repairedFrames": 0,
+        "dpr1Ratio": 1.0
+      }
+    },
+    {
+      "employee": "hazel",
+      "asset": "hazel",
+      "officeHeight": 96,
+      "presenceScale": 1.2,
+      "targetHeight": 115,
+      "source": {
+        "file": "hazel.png",
+        "size": [
+          209,
+          200
+        ],
+        "bytes": 14308997,
+        "sha256": "703250d5095ee7eace25476d2a39a853d67309eb275ac25e0717ab177d323079",
+        "frames": 242,
+        "durationMs": 7986
+      },
+      "before": {
+        "file": "hazel-1x.png",
+        "size": [
+          120,
+          115
+        ],
+        "bytes": 5408537,
+        "sha256": "5851adf33fe88fce729362d3b282da3d584f78f5b60570564296c1c25918a2d6",
+        "dpr1Ratio": 1.0
+      },
+      "resample": 0.575,
+      "after": {
+        "file": "hazel-1x.png",
+        "size": [
+          120,
+          115
+        ],
+        "bytes": 5408537,
+        "sha256": "5851adf33fe88fce729362d3b282da3d584f78f5b60570564296c1c25918a2d6",
+        "frames": 237,
+        "durationMs": 7986,
+        "repairedFrames": 0,
+        "dpr1Ratio": 1.0
+      }
+    },
+    {
+      "employee": "fenn",
+      "asset": "fenn",
+      "officeHeight": 95,
+      "presenceScale": 1.2,
+      "targetHeight": 114,
+      "source": {
+        "file": "fenn.png",
+        "size": [
+          205,
+          200
+        ],
+        "bytes": 13756487,
+        "sha256": "bff305ea620ff6f5c2437359698e6b959a707ba80c9219cc225b2f79d29e4451",
+        "frames": 242,
+        "durationMs": 7986
+      },
+      "before": {
+        "file": "fenn-1x.png",
+        "size": [
+          117,
+          114
+        ],
+        "bytes": 5237777,
+        "sha256": "9933622449af60f67a03a1f5999cc43e4f3f4164633c3d9e7641eca0143fc6e6",
+        "dpr1Ratio": 1.0
+      },
+      "resample": 0.57,
+      "after": {
+        "file": "fenn-1x.png",
+        "size": [
+          117,
+          114
+        ],
+        "bytes": 5237777,
+        "sha256": "9933622449af60f67a03a1f5999cc43e4f3f4164633c3d9e7641eca0143fc6e6",
+        "frames": 242,
+        "durationMs": 7986,
+        "repairedFrames": 0,
+        "dpr1Ratio": 1.0
+      }
+    },
+    {
+      "employee": "pingo",
+      "asset": "pingo",
+      "officeHeight": 99,
+      "presenceScale": 1.2,
+      "targetHeight": 119,
+      "source": {
+        "file": "pingo.png",
+        "size": [
+          256,
+          200
+        ],
+        "bytes": 3240186,
+        "sha256": "8e923e79b8a3e1a8445065d785c3a8506e18908c0216e8f1f8be4f03f68b8e58",
+        "frames": 45,
+        "durationMs": 1485
+      },
+      "before": {
+        "file": "pingo-1x.png",
+        "size": [
+          152,
+          119
+        ],
+        "bytes": 1385495,
+        "sha256": "29eb4fd04726cf372812d694face61c7cd96d3070cd5493112b7a6f513b1fa02",
+        "dpr1Ratio": 1.0
+      },
+      "resample": 0.595,
+      "after": {
+        "file": "pingo-1x.png",
+        "size": [
+          152,
+          119
+        ],
+        "bytes": 1385495,
+        "sha256": "29eb4fd04726cf372812d694face61c7cd96d3070cd5493112b7a6f513b1fa02",
+        "frames": 45,
+        "durationMs": 1485,
+        "repairedFrames": 0,
+        "dpr1Ratio": 1.0
+      }
+    },
+    {
+      "employee": "canela",
+      "asset": "canela",
+      "officeHeight": 96,
+      "presenceScale": 1.2,
+      "targetHeight": 115,
+      "source": {
+        "file": "canela.png",
+        "size": [
+          208,
+          200
+        ],
+        "bytes": 8022921,
+        "sha256": "799831c10cc4babef816855c35f48022f9d267345a1b5e936c99c9aac60dd35b",
+        "frames": 136,
+        "durationMs": 4488
+      },
+      "before": {
+        "file": "canela-1x.png",
+        "size": [
+          120,
+          115
+        ],
+        "bytes": 3062565,
+        "sha256": "b3ac49da87c86ee5ff45b364ad77864af3b746446b88593fc18039d7dfddf9c4",
+        "dpr1Ratio": 1.0
+      },
+      "resample": 0.575,
+      "after": {
+        "file": "canela-1x.png",
+        "size": [
+          120,
+          115
+        ],
+        "bytes": 3062565,
+        "sha256": "b3ac49da87c86ee5ff45b364ad77864af3b746446b88593fc18039d7dfddf9c4",
+        "frames": 131,
+        "durationMs": 4488,
+        "repairedFrames": 0,
+        "dpr1Ratio": 1.0
+      }
+    },
+    {
+      "employee": "quincy",
+      "asset": "quincy",
+      "officeHeight": 103,
+      "presenceScale": 1.2,
+      "targetHeight": 124,
+      "source": {
+        "file": "quincy.png",
+        "size": [
+          200,
+          200
+        ],
+        "bytes": 9885096,
+        "sha256": "2f34efa241fcd13f9c98ac06f8444e2793f1cf1cdd9f5c625d53c24396744519",
+        "frames": 212,
+        "durationMs": 6996
+      },
+      "before": {
+        "file": "quincy-1x.png",
+        "size": [
+          124,
+          124
+        ],
+        "bytes": 4241685,
+        "sha256": "cc7ffe60f6775820e3ff7bfd99bf9a8b19451b8f433104942d69479246a37088",
+        "dpr1Ratio": 1.0
+      },
+      "resample": 0.62,
+      "after": {
+        "file": "quincy-1x.png",
+        "size": [
+          124,
+          124
+        ],
+        "bytes": 4241685,
+        "sha256": "cc7ffe60f6775820e3ff7bfd99bf9a8b19451b8f433104942d69479246a37088",
+        "frames": 207,
+        "durationMs": 6996,
+        "repairedFrames": 0,
+        "dpr1Ratio": 1.0
+      }
+    },
+    {
+      "employee": "dorm",
+      "asset": "dorm",
+      "officeHeight": 95,
+      "presenceScale": 1.2,
+      "targetHeight": 114,
+      "source": {
+        "file": "dorm.png",
+        "size": [
+          203,
+          200
+        ],
+        "bytes": 13877259,
+        "sha256": "e0cf30fdb97c4dbdc8a96422efcf77174264bb35fa352dc65810f4c3c9697435",
+        "frames": 242,
+        "durationMs": 19338
+      },
+      "before": {
+        "file": "dorm-1x.png",
+        "size": [
+          116,
+          114
+        ],
+        "bytes": 5281530,
+        "sha256": "5354035a5d150dc3dcb1d1ef543420de6db9f991ff3fb241076a625bedf737f5",
+        "dpr1Ratio": 1.0
+      },
+      "resample": 0.57,
+      "after": {
+        "file": "dorm-1x.png",
+        "size": [
+          116,
+          114
+        ],
+        "bytes": 5281530,
+        "sha256": "5354035a5d150dc3dcb1d1ef543420de6db9f991ff3fb241076a625bedf737f5",
+        "frames": 242,
+        "durationMs": 19338,
+        "repairedFrames": 0,
+        "dpr1Ratio": 1.0
+      }
+    },
+    {
+      "employee": "inky",
+      "asset": "inky",
+      "officeHeight": 105,
+      "presenceScale": 1.2,
+      "targetHeight": 126,
+      "source": {
+        "file": "inky.png",
+        "size": [
+          200,
+          200
+        ],
+        "bytes": 8294882,
+        "sha256": "686088bd3253b60ac76807bf26207687fd440ee25dc8ec69ad6b42415ce6b56a",
+        "frames": 148,
+        "durationMs": 4884
+      },
+      "before": {
+        "file": "inky-1x.png",
+        "size": [
+          126,
+          126
+        ],
+        "bytes": 3734270,
+        "sha256": "f6d89d88d5dd65704e30181763bc0cde374fbe85a16605efef9aa408de7f051c",
+        "dpr1Ratio": 1.0
+      },
+      "resample": 0.63,
+      "after": {
+        "file": "inky-1x.png",
+        "size": [
+          126,
+          126
+        ],
+        "bytes": 3734270,
+        "sha256": "f6d89d88d5dd65704e30181763bc0cde374fbe85a16605efef9aa408de7f051c",
+        "frames": 148,
+        "durationMs": 4884,
+        "repairedFrames": 0,
+        "dpr1Ratio": 1.0
+      }
+    },
+    {
+      "employee": "echo",
+      "asset": "echo",
+      "officeHeight": 95,
+      "presenceScale": 1.2,
+      "targetHeight": 114,
+      "source": {
+        "file": "echo.png",
+        "size": [
+          200,
+          200
+        ],
+        "bytes": 9175785,
+        "sha256": "adf83c8955ba37e5d908c0125a5721c8189665906b56b4ab660ee4419254f709",
+        "frames": 165,
+        "durationMs": 5445
+      },
+      "before": {
+        "file": "echo-1x.png",
+        "size": [
+          114,
+          114
+        ],
+        "bytes": 3431139,
+        "sha256": "7a73fe61f8d1457cfef1ff54d48b6938e15e78bbfb82dec80969672866b015c4",
+        "dpr1Ratio": 1.0
+      },
+      "resample": 0.57,
+      "after": {
+        "file": "echo-1x.png",
+        "size": [
+          114,
+          114
+        ],
+        "bytes": 3431139,
+        "sha256": "7a73fe61f8d1457cfef1ff54d48b6938e15e78bbfb82dec80969672866b015c4",
+        "frames": 165,
+        "durationMs": 5445,
+        "repairedFrames": 0,
+        "dpr1Ratio": 1.0
+      }
+    },
+    {
+      "employee": "perry",
+      "asset": "perry",
+      "officeHeight": 95,
+      "presenceScale": 1.2,
+      "targetHeight": 114,
+      "source": {
+        "file": "perry.png",
+        "size": [
+          212,
+          200
+        ],
+        "bytes": 9402117,
+        "sha256": "04e93e388a9d33d5867bdb3c2d01efe1275a6fca517007430345096eaea6184c",
+        "frames": 160,
+        "durationMs": 5280
+      },
+      "before": {
+        "file": "perry-1x.png",
+        "size": [
+          121,
+          114
+        ],
+        "bytes": 3510200,
+        "sha256": "c88e44b082532761679744fb0a57bada2df4b980aacd16533265b07f8de1a3c5",
+        "dpr1Ratio": 1.0
+      },
+      "resample": 0.57,
+      "after": {
+        "file": "perry-1x.png",
+        "size": [
+          121,
+          114
+        ],
+        "bytes": 3510200,
+        "sha256": "c88e44b082532761679744fb0a57bada2df4b980aacd16533265b07f8de1a3c5",
+        "frames": 158,
+        "durationMs": 5280,
+        "repairedFrames": 0,
+        "dpr1Ratio": 1.0
+      }
+    }
+  ]
+}

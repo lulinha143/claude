@@ -13,8 +13,13 @@
     "agree so a cat can never end up wearing the owl's artwork.",
     "",
     "`officeHeight` is the authored CSS height for that animal in the office diorama",
-    "BEFORE the global presence multiplier in src/content/characterScale.ts. The",
-    "importer encodes @1x at exactly this height so it maps 1:1 to CSS pixels."
+    "BEFORE the global presence multiplier in src/content/characterScale.ts.",
+    "",
+    "NOTE: this importer encodes @1x at `officeHeight`, which is NOT the size the",
+    "sprite is drawn at -- the presence multiplier makes that officeHeight * 1.2. A",
+    "fresh import therefore lands 20% short and reads soft; run",
+    "scripts/reencode-cast-display-size.py afterwards to bring @1x up to the real",
+    "display height. See docs/CHARACTER_SPRITE_SHARPNESS.md."
   ],
   "fetch": {
     "urlTemplate": "https://drive.usercontent.google.com/download?id={driveId}&export=download&confirm=t",

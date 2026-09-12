@@ -5,6 +5,8 @@ import { existsSync, statSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { inflateSync as zlibInflate } from 'node:zlib';
 
+import { readRegistry } from './lib/sprite-geometry.mjs';
+
 const DIR = join('public', 'backgrounds', 'office');
 const required = [
   { file: 'office-main-loop.mp4', minBytes: 10000, role: 'primary optimized loop' },
@@ -47,20 +49,16 @@ const EMP = join('public', 'employees');
 // is TypeScript, so its file paths are read out textually — a dependency-free parse
 // is preferable to adding a build step to a validation script that has to run
 // before the build.
+// Reads the registry through the SHARED reader in lib/sprite-geometry.mjs rather than
+// re-implementing the parse. This script used to carry its own copy, which pairs an
+// `employee:`/`species:` scan with a separate `art('…')` scan by index -- and it broke
+// the moment Prettier wrapped the `art(` calls across lines, because the second regex
+// expected the asset name to follow `art(` immediately. One reader, one place to fix.
 function spritesFromRegistry() {
   const registry = join('src', 'art', 'characterAssets.ts');
   if (!existsSync(registry)) return [];
-  const source = readFileSync(registry, 'utf8');
   const out = [];
-  // Each entry is `art('<asset>', w, h, …)` inside a block naming its employee.
-  const entry = /employee:\s*'([^']+)',\s*\n\s*species:\s*'([^']+)'/g;
-  const assets = [...source.matchAll(/art\('([^']+)'/g)].map((m) => m[1]);
-  let m;
-  let index = 0;
-  while ((m = entry.exec(source))) {
-    const asset = assets[index++];
-    if (!asset) continue;
-    const [, employee, species] = m;
+  for (const { employee, species, asset } of readRegistry(registry)) {
     const label = `${employee[0].toUpperCase()}${employee.slice(1)} (${species})`;
     out.push({
       file: `${asset}.png`,

@@ -3,51 +3,59 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 import { CHARACTER_ART } from '../src/art/characterAssets';
-import { CHARACTER_PRESENCE_SCALE, presenceSize } from '../src/content/characterScale';
+import { presenceSize } from '../src/content/characterScale';
 
 /**
- * How much the browser has to enlarge each character's artwork to fill its box.
+ * How much the browser has to resample each character's artwork to fill its box.
  *
- * 1.0 is pixel-exact and therefore as sharp as a bitmap can be. The cast is
- * currently at ~1.16 because the assets are encoded at the pre-presence
- * `officeHeight` while they are drawn at `presenceSize(officeHeight)` — the
- * presence multiplier arrived after the encode heights were set. That is a real
- * sharpness defect and the reason characters read soft; it is written up in
- * docs/CHARACTER_SPRITE_SHARPNESS.md along with why fixing it properly is its own
- * change (it needs the measurement pipeline and Pip's protected asset to move
- * together).
+ * 1.0 is pixel-exact and therefore as sharp as a bitmap can be. The cast used to sit
+ * at ~1.16 (worst 1.26) because the assets were encoded at the pre-presence
+ * `officeHeight` while being drawn at `presenceSize(officeHeight)` — the presence
+ * multiplier arrived after the encode heights were set, so the file labelled 1x was
+ * really a 0.83x asset for the box it was drawn into. Every character was enlarged,
+ * which is why they read soft.
  *
- * These tests exist so the situation is pinned: it cannot get WORSE unnoticed, and
- * when the assets are re-encoded at their true display size the bound here should
- * be tightened to 1.0 rather than relaxed.
+ * `scripts/reencode-cast-display-size.py` re-encoded every @1x asset at its true
+ * display size, so DPR1 is now exactly 1.000x. These tests hold that: DPR1 must stay
+ * pixel-exact, and the srcSet densities must stay honest.
+ *
+ * See docs/CHARACTER_SPRITE_SHARPNESS.md.
  */
 
-/** Height out of a PNG's IHDR, no image decode. */
-function pngHeight(path: string): number {
+/** Dimensions out of a PNG's IHDR, no image decode. */
+function pngSize(path: string): { width: number; height: number } {
   const buf = readFileSync(path);
   expect(buf.subarray(0, 8).toString('binary')).toBe('\x89PNG\r\n\x1a\n');
-  return buf.readUInt32BE(20);
+  return { width: buf.readUInt32BE(16), height: buf.readUInt32BE(20) };
 }
 
 const PUBLIC = 'public/';
 
 const rows = CHARACTER_ART.map((entry) => {
   const files = entry.variants[entry.activeVersion] ?? entry.variants.original!;
-  const encoded1x = pngHeight(PUBLIC + files.src1x!);
-  const encoded2x = pngHeight(PUBLIC + files.src);
+  const asset1x = pngSize(PUBLIC + files.src1x!);
+  const asset2x = pngSize(PUBLIC + files.src);
   const cssHeight = presenceSize(files.officeHeight);
   return {
     employee: entry.employee,
-    encoded1x,
-    encoded2x,
+    files,
+    asset1x,
+    asset2x,
     cssHeight,
-    dpr1: cssHeight / encoded1x,
-    dpr2: (cssHeight * 2) / encoded2x,
+    dpr1: cssHeight / asset1x.height,
+    dpr2: (cssHeight * 2) / asset2x.height,
+    declaredDensity: files.srcHeight / files.frameHeight,
   };
 });
 
-// The measured state today. Tighten toward 1.0; never loosen.
-const CURRENT_WORST = 1.27;
+/**
+ * The @2x build still cannot satisfy a DPR-2 display: it carries `2 x officeHeight`
+ * pixels while DPR 2 wants `2 x cssHeight`, i.e. 2.4 x officeHeight. Closing that gap
+ * means upscaling artwork, and the masters that could supply real pixels are not in
+ * the repository (Pip's must not be re-imported at all — her shipped build is the
+ * hand-repaired one). So this bound documents an ASSET limit, not a layout bug.
+ */
+const DPR2_KNOWN_BOUND = 1.27;
 
 describe('character sprite resampling', () => {
   it('covers every registered character', () => {
@@ -55,29 +63,70 @@ describe('character sprite resampling', () => {
     expect(rows.length).toBeGreaterThanOrEqual(22);
   });
 
-  it('never DOWNSCALES so far that detail is thrown away, nor upscales past the known bound', () => {
+  // THE sharpness contract. This is what the display-size re-encode bought, and the
+  // reason it must never silently regress: at DPR 1 — most Windows desktops, and the
+  // packaged app on them — nothing is resampled at all.
+  it('draws every character pixel-exact at DPR 1', () => {
     for (const r of rows) {
-      expect(r.dpr1, `${r.employee} DPR1`).toBeLessThanOrEqual(CURRENT_WORST);
-      expect(r.dpr2, `${r.employee} DPR2`).toBeLessThanOrEqual(CURRENT_WORST);
-      // A ratio far below 1 would mean we ship far more pixels than we draw.
-      expect(r.dpr1, `${r.employee} DPR1`).toBeGreaterThan(0.5);
+      expect(r.dpr1, `${r.employee} DPR1`).toBe(1);
     }
   });
 
-  it('keeps @2x at twice @1x, so the density labels in srcSet stay truthful', () => {
+  it('encodes the @1x asset at exactly the rendered height', () => {
     for (const r of rows) {
-      expect(Math.abs(r.encoded2x - r.encoded1x * 2), `${r.employee}`).toBeLessThanOrEqual(2);
+      expect(r.asset1x.height, `${r.employee} @1x height`).toBe(r.cssHeight);
+      // The registry's aspect-ratio source must agree with the file it describes.
+      expect(r.files.frameHeight, `${r.employee} frameHeight`).toBe(r.asset1x.height);
+      expect(r.files.frameWidth, `${r.employee} frameWidth`).toBe(r.asset1x.width);
     }
   });
 
-  it('attributes the upscale to the presence multiplier, not to per-animal drift', () => {
-    // Every animal's DPR1 ratio should be explained by cssHeight/encodedHeight, and
-    // the encode height is officeHeight, so the ratio should sit at or below the
-    // presence factor. If an animal exceeded it, something animal-specific broke.
+  it('declares the @2x asset at its real size, so srcSet densities are truthful', () => {
     for (const r of rows) {
-      expect(r.dpr1, `${r.employee} exceeds the presence factor`).toBeLessThanOrEqual(
-        CHARACTER_PRESENCE_SCALE + 0.07,
+      expect(r.files.srcHeight, `${r.employee} srcHeight`).toBe(r.asset2x.height);
+      expect(r.files.srcWidth, `${r.employee} srcWidth`).toBe(r.asset2x.width);
+      // It is emphatically NOT 2x any more, and claiming so is what would mislead
+      // the browser's candidate selection.
+      expect(r.declaredDensity, `${r.employee} density`).toBeGreaterThan(1.4);
+      expect(r.declaredDensity, `${r.employee} density`).toBeLessThan(2);
+    }
+  });
+
+  it('never ships a candidate less dense than the box it fills', () => {
+    for (const r of rows) {
+      // A ratio below 1 would mean shipping more pixels than are ever drawn; above 1
+      // at DPR1 would mean inventing them. Exactly 1 is the target.
+      expect(r.dpr1, `${r.employee} DPR1`).toBeGreaterThan(0.99);
+      expect(r.dpr2, `${r.employee} DPR2`).toBeLessThanOrEqual(DPR2_KNOWN_BOUND);
+      expect(r.dpr2, `${r.employee} DPR2`).toBeGreaterThan(1);
+    }
+  });
+
+  // The roster card draws the same sprite ~43% larger than the office does. With
+  // fixed "1x, 2x" labels a DPR-1 browser took the small file and enlarged it there,
+  // so portraits were the softest thing in the game. Densities are derived from the
+  // rendered height instead, which makes the card step up to the @2x build.
+  it('has a denser candidate available for the larger roster-card render', () => {
+    for (const r of rows) {
+      const cardHeight = presenceSize(r.files.cardHeight);
+      expect(cardHeight, `${r.employee} card is larger than office`).toBeGreaterThan(
+        r.files.frameHeight,
       );
+      // What EmployeeSprite computes for the card, and what the browser needs at DPR 1.
+      const smallDensity = r.files.frameHeight / cardHeight;
+      const largeDensity = r.files.srcHeight / cardHeight;
+      expect(smallDensity, `${r.employee} @1x on a card`).toBeLessThan(1);
+      // So a DPR-1 display skips it and downscales the @2x build instead.
+      expect(largeDensity, `${r.employee} @2x on a card`).toBeGreaterThanOrEqual(1);
+    }
+  });
+
+  it('keeps the @1x aspect ratio faithful to the @2x artwork it came from', () => {
+    for (const r of rows) {
+      const source = r.asset2x.width / r.asset2x.height;
+      const shipped = r.asset1x.width / r.asset1x.height;
+      // Rounding to whole pixels at ~115px tall is sub-pixel; a real squash is not.
+      expect(Math.abs(source - shipped) / source, `${r.employee} aspect drift`).toBeLessThan(0.01);
     }
   });
 });

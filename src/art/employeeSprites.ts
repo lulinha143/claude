@@ -30,13 +30,20 @@ export interface EmployeeSpriteConfig {
    * is the @2x asset (twice the slot size); see `src1x`. */
   src: string;
   /**
-   * Optional @1x variant of `src` (exactly the slot's CSS-pixel size). When
-   * present the renderer emits `srcset` so the browser picks @1x on a DPR-1
-   * display and @2x on DPR-2 — the frame then renders 1:1 at either ratio, so
-   * the GPU never does a fractional per-frame downscale (which shimmers the
-   * soft semi-transparent halo). frameWidth/frameHeight are the @1x dimensions.
+   * Optional @1x variant of `src`, encoded at EXACTLY the rendered CSS size. When
+   * present the renderer emits `srcset` so a DPR-1 display gets this file and maps
+   * it 1:1 to device pixels — no resample at all, which is both the sharpest a
+   * bitmap can be and the case that never risks shimmering the soft
+   * semi-transparent halo. frameWidth/frameHeight are the @1x dimensions.
    */
   src1x?: string;
+  /** Real pixel width of the @2x animation. */
+  srcWidth: number;
+  /**
+   * Real pixel height of the @2x animation. Divided by `frameHeight` this is that
+   * file's TRUE srcSet density (~1.6-1.9x, not 2x — see characterAssets.ts).
+   */
+  srcHeight: number;
   /**
    * TEMPORARY (halo-isolation diagnostic): a halo-stripped variant of the
    * animation — identical size / timing / motion but with hard (binary) alpha,
@@ -93,6 +100,8 @@ function configFor(files: CharacterArtFiles): EmployeeSpriteConfig {
     poster: files.poster,
     frameWidth: files.frameWidth,
     frameHeight: files.frameHeight,
+    srcWidth: files.srcWidth,
+    srcHeight: files.srcHeight,
     officeHeight: presenceSize(files.officeHeight),
     cardHeight: presenceSize(files.cardHeight),
     anchorX: files.anchorX,

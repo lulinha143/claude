@@ -45,8 +45,10 @@ export function PNG_IHDR_WIDTH(path) {
 export function readRegistry(path = REGISTRY) {
   const src = readFileSync(path, 'utf8');
   const entries = [];
+  // `\s*` after `art(` and between every argument, so Prettier is free to wrap the
+  // call across lines (it does, once the @2x tuple is there) without breaking this.
   const re =
-    /employee:\s*'([^']+)',\s*\n\s*species:\s*'([^']+)'[\s\S]*?art\('([^']+)',\s*(\d+),\s*(\d+),\s*\{\s*officeHeight:\s*(\d+)/g;
+    /employee:\s*'([^']+)',\s*\n\s*species:\s*'([^']+)'[\s\S]*?art\(\s*'([^']+)',\s*(\d+),\s*(\d+),\s*\{\s*officeHeight:\s*(\d+)/g;
   let m;
   while ((m = re.exec(src))) {
     entries.push({

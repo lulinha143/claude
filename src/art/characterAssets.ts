@@ -33,6 +33,26 @@
 // through them, which is what keeps a character from being squashed by the global
 // `img { max-width: 100% }` guard. They must always match the real @1x file; a
 // test checks every registered entry against the file on disk.
+//
+// SHARPNESS CONTRACT
+// ------------------
+// `frameHeight` also equals the character's RENDERED height, `presenceSize(
+// officeHeight)`. That is the whole point: the @1x asset is encoded at the size it is
+// actually drawn at, so on a DPR-1 display the frame maps 1:1 to device pixels and
+// the browser resamples nothing. It did not use to hold — the assets were encoded at
+// the pre-presence `officeHeight` while being drawn 20% larger, so the entire cast
+// was enlarged ~1.16x (worst 1.26x) and read soft. `scripts/check-sprite-resampling.mjs`
+// reports the ratios and `tests/spriteResampling.test.ts` fails if any of them
+// regresses above 1.0.
+//
+// `srcWidth` / `srcHeight` are the real dimensions of the @2x animation. They exist
+// so the renderer can state that file's srcSet density HONESTLY. It is no longer
+// "twice the @1x asset": @1x is now the display size (officeHeight * 1.2) while the
+// @2x build is unchanged at twice `officeHeight`, which makes its true density
+// 2 / 1.2 = ~1.67x rather than 2x. It is left unchanged deliberately — reaching a
+// genuine 2x of the new @1x would mean upscaling artwork, i.e. inventing pixels, and
+// the masters that could supply them are not in the repository (and Pip's must not be
+// re-imported at all).
 
 /** Which build of an animal's artwork to render. */
 export type CharacterArtVersion = 'original' | 'enhanced' | 'legacy';
@@ -46,11 +66,22 @@ export interface CharacterArtFiles {
   poster: string;
   /** @1x frame width — the aspect-ratio numerator. */
   frameWidth: number;
-  /** @1x frame height — the aspect-ratio denominator. */
+  /** @1x frame height — the aspect-ratio denominator, and the rendered height. */
   frameHeight: number;
+  /** Real pixel width of the @2x animation (`src`). */
+  srcWidth: number;
+  /** Real pixel height of the @2x animation, for its true srcSet density. */
+  srcHeight: number;
   /**
    * Rendered height in the office diorama, in CSS px, BEFORE the global presence
-   * multiplier. Encoded to equal `frameHeight` so @1x maps 1:1 to CSS pixels.
+   * multiplier. `presenceSize(officeHeight)` is the on-screen height, and the @1x
+   * asset is encoded at exactly that — so `frameHeight === presenceSize(officeHeight)`.
+   *
+   * This is a LAYOUT quantity, derived from each animal's `figureHeightFraction`
+   * against the authored reference figure (92px of squirrel, see characterScale.ts).
+   * It is deliberately NOT derived from any shipped canvas height: doing that made
+   * the derivation circular once the @1x asset's height became a function of this
+   * value. See scripts/measure-character-figures.py.
    */
   officeHeight: number;
   /** Rendered height on the roster card portrait. */
@@ -128,12 +159,19 @@ interface FigureNorm {
   figureTop: number;
 }
 
-/** Shorthand for a straightforward @2x + @1x + poster set. */
+/**
+ * Shorthand for a straightforward @2x + @1x + poster set.
+ *
+ * `frameWidth`/`frameHeight` are the @1x file's real size; `src2x` is the @2x file's
+ * real size, as `[width, height]`. Both are generated from the files on disk by
+ * `scripts/sync-character-registry.py` rather than typed by hand.
+ */
 function art(
   asset: string,
   frameWidth: number,
   frameHeight: number,
   figure: FigureNorm,
+  src2x: readonly [number, number],
   extra: Partial<CharacterArtFiles> = {},
 ): CharacterArtFiles {
   return {
@@ -142,6 +180,8 @@ function art(
     poster: `employees/${asset}-poster.png`,
     frameWidth,
     frameHeight,
+    srcWidth: src2x[0],
+    srcHeight: src2x[1],
     officeHeight: figure.officeHeight,
     cardHeight: card(figure.officeHeight),
     anchorX: figure.anchorX,
@@ -160,65 +200,136 @@ export const CHARACTER_ART: readonly CharacterArtEntry[] = [
     variants: {
       // The reference figure: 92px tall inside a 93px canvas. Every other animal is
       // scaled to match this, and Pip's own numbers are therefore unchanged.
-      original: art('pip', 103, 93, { officeHeight: 93, baseline: 0, anchorX: 0.524272, figureTop: 0.010753 }, {
-        srcNoHalo: '_diag/pip-nohalo.png',
-        note:
-          'Repaired build. 8 of the 242 master frames had their semi-transparent alpha ' +
-          'collapsed ~52%, deflating the halo for one frame about once a second. Those ' +
-          'frames were replaced with their nearest healthy neighbours, preserving timing, ' +
-          'dimensions, loop and artwork. Measured alpha peak-to-peak 2.10 here versus ' +
-          '16.95 in the raw master, so re-importing the master would reintroduce the bug. ' +
-          'Guarded by npm run verify:assets.',
-      }),
+      original: art(
+        'pip',
+        125,
+        112,
+        { officeHeight: 93, baseline: 0, anchorX: 0.521739, figureTop: 0.010753 },
+        [207, 186],
+        {
+          srcNoHalo: '_diag/pip-nohalo.png',
+          note:
+            'Repaired build. 8 of the 242 master frames had their semi-transparent alpha ' +
+            'collapsed ~52%, deflating the halo for one frame about once a second. Those ' +
+            'frames were replaced with their nearest healthy neighbours, preserving timing, ' +
+            'dimensions, loop and artwork. Measured alpha peak-to-peak 2.10 here versus ' +
+            '16.95 in the raw master, so re-importing the master would reintroduce the bug. ' +
+            'Guarded by npm run verify:assets.',
+        },
+      ),
     },
   },
   {
     employee: 'bea',
     species: 'beaver',
     activeVersion: 'original',
-    variants: { original: art('bea', 132, 116, { officeHeight: 103, baseline: 0.051724, anchorX: 0.5, figureTop: 0.051724 }) },
+    variants: {
+      original: art(
+        'bea',
+        139,
+        122,
+        { officeHeight: 102, baseline: 0.047414, anchorX: 0.5, figureTop: 0.051724 },
+        [265, 232],
+      ),
+    },
   },
   {
     employee: 'rizzo',
     species: 'raccoon',
     activeVersion: 'original',
-    variants: { original: art('rizzo', 114, 104, { officeHeight: 96, baseline: 0.0, anchorX: 0.517544, figureTop: 0.038462 }) },
+    variants: {
+      original: art(
+        'rizzo',
+        126,
+        115,
+        { officeHeight: 96, baseline: 0, anchorX: 0.517544, figureTop: 0.043269 },
+        [228, 208],
+      ),
+    },
   },
   {
     employee: 'corvus',
     species: 'crow',
     activeVersion: 'original',
-    variants: { original: art('corvus', 100, 100, { officeHeight: 103, baseline: 0.0, anchorX: 0.515, figureTop: 0.11 }) },
+    variants: {
+      original: art(
+        'corvus',
+        124,
+        124,
+        { officeHeight: 103, baseline: 0, anchorX: 0.5175, figureTop: 0.11 },
+        [200, 200],
+      ),
+    },
   },
   {
     employee: 'junie',
     species: 'rabbit',
     activeVersion: 'original',
-    variants: { original: art('junie', 99, 99, { officeHeight: 94, baseline: 0.0, anchorX: 0.520202, figureTop: 0.020202 }) },
+    variants: {
+      original: art(
+        'junie',
+        113,
+        113,
+        { officeHeight: 94, baseline: 0, anchorX: 0.517677, figureTop: 0.025253 },
+        [198, 198],
+      ),
+    },
   },
   {
     employee: 'moss',
     species: 'owl',
     activeVersion: 'original',
-    variants: { original: art('moss', 105, 102, { officeHeight: 100, baseline: 0.0, anchorX: 0.514286, figureTop: 0.078431 }) },
+    variants: {
+      original: art(
+        'moss',
+        124,
+        120,
+        { officeHeight: 100, baseline: 0, anchorX: 0.511848, figureTop: 0.078431 },
+        [211, 204],
+      ),
+    },
   },
   {
     employee: 'nino',
     species: 'cat',
     activeVersion: 'original',
-    variants: { original: art('nino', 105, 98, { officeHeight: 96, baseline: 0.0, anchorX: 0.504762, figureTop: 0.040816 }) },
+    variants: {
+      original: art(
+        'nino',
+        124,
+        115,
+        { officeHeight: 96, baseline: 0, anchorX: 0.504739, figureTop: 0.040816 },
+        [211, 196],
+      ),
+    },
   },
   {
     employee: 'rosa',
     species: 'flamingo',
     activeVersion: 'original',
-    variants: { original: art('rosa', 108, 108, { officeHeight: 96, baseline: 0.037037, anchorX: 0.5, figureTop: 0.0 }) },
+    variants: {
+      original: art(
+        'rosa',
+        115,
+        115,
+        { officeHeight: 96, baseline: 0.037037, anchorX: 0.49537, figureTop: 0 },
+        [216, 216],
+      ),
+    },
   },
   {
     employee: 'axel',
     species: 'axolotl',
     activeVersion: 'original',
-    variants: { original: art('axel', 109, 96, { officeHeight: 98, baseline: 0.0, anchorX: 0.513761, figureTop: 0.0625 }) },
+    variants: {
+      original: art(
+        'axel',
+        135,
+        118,
+        { officeHeight: 98, baseline: 0, anchorX: 0.515982, figureTop: 0.057292 },
+        [219, 192],
+      ),
+    },
   },
 
   // ---------------------------------------------------------------------------
@@ -233,55 +344,127 @@ export const CHARACTER_ART: readonly CharacterArtEntry[] = [
     employee: 'marlow',
     species: 'capybara',
     activeVersion: 'original',
-    variants: { original: art('marlow', 108, 100, { officeHeight: 100, baseline: 0.04, anchorX: 0.49537, figureTop: 0.04 }) },
+    variants: {
+      original: art(
+        'marlow',
+        129,
+        119,
+        { officeHeight: 99, baseline: 0.035, anchorX: 0.497696, figureTop: 0.04 },
+        [217, 200],
+      ),
+    },
   },
   {
     employee: 'mina',
     species: 'mole',
     activeVersion: 'original',
-    variants: { original: art('mina', 110, 100, { officeHeight: 95, baseline: 0, anchorX: 0.504545, figureTop: 0.03 }) },
+    variants: {
+      original: art(
+        'mina',
+        125,
+        114,
+        { officeHeight: 95, baseline: 0, anchorX: 0.504545, figureTop: 0.03 },
+        [220, 200],
+      ),
+    },
   },
   {
     employee: 'nixie',
     species: 'mouse',
     activeVersion: 'original',
-    variants: { original: art('nixie', 110, 100, { officeHeight: 94, baseline: 0, anchorX: 0.513636, figureTop: 0.02 }) },
+    variants: {
+      original: art(
+        'nixie',
+        124,
+        113,
+        { officeHeight: 94, baseline: 0, anchorX: 0.511364, figureTop: 0.025 },
+        [220, 200],
+      ),
+    },
   },
   {
     employee: 'otto',
     species: 'otter',
     activeVersion: 'original',
-    variants: { original: art('otto', 111, 100, { officeHeight: 96, baseline: 0, anchorX: 0.509009, figureTop: 0.04 }) },
+    variants: {
+      original: art(
+        'otto',
+        127,
+        115,
+        { officeHeight: 96, baseline: 0, anchorX: 0.511312, figureTop: 0.04 },
+        [221, 200],
+      ),
+    },
   },
   {
     employee: 'hazel',
     species: 'hedgehog',
     activeVersion: 'original',
-    variants: { original: art('hazel', 104, 100, { officeHeight: 96, baseline: 0, anchorX: 0.514423, figureTop: 0.04 }) },
+    variants: {
+      original: art(
+        'hazel',
+        120,
+        115,
+        { officeHeight: 96, baseline: 0, anchorX: 0.514354, figureTop: 0.04 },
+        [209, 200],
+      ),
+    },
   },
   {
     employee: 'fenn',
     species: 'fox',
     activeVersion: 'original',
-    variants: { original: art('fenn', 103, 100, { officeHeight: 95, baseline: 0, anchorX: 0.509709, figureTop: 0.03 }) },
+    variants: {
+      original: art(
+        'fenn',
+        117,
+        114,
+        { officeHeight: 95, baseline: 0, anchorX: 0.509756, figureTop: 0.035 },
+        [205, 200],
+      ),
+    },
   },
   {
     employee: 'pingo',
     species: 'penguin',
     activeVersion: 'original',
-    variants: { original: art('pingo', 128, 100, { officeHeight: 99, baseline: 0.04, anchorX: 0.5, figureTop: 0.03 }) },
+    variants: {
+      original: art(
+        'pingo',
+        152,
+        119,
+        { officeHeight: 99, baseline: 0.035, anchorX: 0.501953, figureTop: 0.035 },
+        [256, 200],
+      ),
+    },
   },
   {
     employee: 'canela',
     species: 'redpanda',
     activeVersion: 'original',
-    variants: { original: art('canela', 104, 100, { officeHeight: 96, baseline: 0, anchorX: 0.504808, figureTop: 0.04 }) },
+    variants: {
+      original: art(
+        'canela',
+        120,
+        115,
+        { officeHeight: 96, baseline: 0, anchorX: 0.502404, figureTop: 0.04 },
+        [208, 200],
+      ),
+    },
   },
   {
     employee: 'quincy',
     species: 'frog',
     activeVersion: 'original',
-    variants: { original: art('quincy', 100, 100, { officeHeight: 103, baseline: 0, anchorX: 0.525, figureTop: 0.11 }) },
+    variants: {
+      original: art(
+        'quincy',
+        124,
+        124,
+        { officeHeight: 103, baseline: 0, anchorX: 0.525, figureTop: 0.11 },
+        [200, 200],
+      ),
+    },
   },
   {
     employee: 'dorm',
@@ -291,25 +474,57 @@ export const CHARACTER_ART: readonly CharacterArtEntry[] = [
     // already holding. The encoder now merges those runs into one longer delay,
     // which is lossless (verified pixel-identical at 5ms resolution across the whole
     // 19.3s loop) and took the sprite from 32.0 MB to 13.2 MB, in line with the cast.
-    variants: { original: art('dorm', 101, 100, { officeHeight: 95, baseline: 0, anchorX: 0.514851, figureTop: 0.03 }) },
+    variants: {
+      original: art(
+        'dorm',
+        116,
+        114,
+        { officeHeight: 95, baseline: 0, anchorX: 0.517241, figureTop: 0.03 },
+        [203, 200],
+      ),
+    },
   },
   {
     employee: 'inky',
     species: 'octopus',
     activeVersion: 'original',
-    variants: { original: art('inky', 100, 100, { officeHeight: 105, baseline: 0, anchorX: 0.51, figureTop: 0.12 }) },
+    variants: {
+      original: art(
+        'inky',
+        126,
+        126,
+        { officeHeight: 105, baseline: 0, anchorX: 0.51, figureTop: 0.12 },
+        [200, 200],
+      ),
+    },
   },
   {
     employee: 'echo',
     species: 'bat',
     activeVersion: 'original',
-    variants: { original: art('echo', 100, 100, { officeHeight: 95, baseline: 0, anchorX: 0.51, figureTop: 0.03 }) },
+    variants: {
+      original: art(
+        'echo',
+        114,
+        114,
+        { officeHeight: 95, baseline: 0, anchorX: 0.51, figureTop: 0.03 },
+        [200, 200],
+      ),
+    },
   },
   {
     employee: 'perry',
     species: 'platypus',
     activeVersion: 'original',
-    variants: { original: art('perry', 106, 100, { officeHeight: 95, baseline: 0, anchorX: 0.504717, figureTop: 0.03 }) },
+    variants: {
+      original: art(
+        'perry',
+        121,
+        114,
+        { officeHeight: 95, baseline: 0, anchorX: 0.504717, figureTop: 0.035 },
+        [212, 200],
+      ),
+    },
   },
 
   // NOT REGISTERED, DELIBERATELY: 'bia' (bear).
