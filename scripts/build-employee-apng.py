@@ -127,6 +127,48 @@ def _png_parts(img: Image.Image):
     return ihdr, idat
 
 
+MAX_DELAY = 0xFFFF  # fcTL delay_num is uint16
+
+
+def coalesce_duplicates(
+    frames: list[Image.Image], delays_ms: list[int], den: int = 1000
+) -> tuple[list[Image.Image], list[int]]:
+    """Merge runs of byte-identical frames by summing their delays. Lossless.
+
+    Some masters hold a pose for a long time by repeating the same frame instead of
+    using one long delay -- the sloth spends 59% of its 586 frames (344 of them)
+    re-stating a pose it is already in. Storing those as separate fdAT chunks costs
+    real bytes for no visual difference: coalescing took that sprite from 32.0 MB to
+    ~13 MB, in line with the rest of the cast, while every displayed pixel at every
+    point in time stays exactly the same.
+
+    This is safe with respect to the two properties this encoder exists to protect:
+    frames stay full-canvas (dispose=NONE/blend=SOURCE), so the halo still has one
+    stable rect to scale, and total duration is preserved exactly because the delays
+    of a merged run are added together. Runs are split if a summed delay would
+    overflow the uint16 fcTL field.
+    """
+    if not frames:
+        return frames, delays_ms
+
+    def delay_at(i: int) -> int:
+        return delays_ms[i] if i < len(delays_ms) else round(den / 30)
+
+    out_frames = [frames[0]]
+    out_delays = [delay_at(0)]
+    prev_bytes = frames[0].tobytes()
+    for i in range(1, len(frames)):
+        cur_bytes = frames[i].tobytes()
+        same = cur_bytes == prev_bytes
+        if same and out_delays[-1] + delay_at(i) <= MAX_DELAY:
+            out_delays[-1] += delay_at(i)
+            continue
+        out_frames.append(frames[i])
+        out_delays.append(delay_at(i))
+        prev_bytes = cur_bytes
+    return out_frames, out_delays
+
+
 def write_full_frame_apng(path: str, frames: list[Image.Image], delays_ms: list[int], den: int = 1000):
     """Write frames as a full-canvas APNG (dispose=NONE, blend=SOURCE, loop forever)."""
     ihdr, _ = _png_parts(frames[0])
@@ -164,12 +206,22 @@ def main():
     ap.add_argument("--pad", type=lambda s: _parse_ints(s, 4), default=(0, 0, 0, 0), help="left,top,right,bottom pad")
     ap.add_argument("--poster", default=None, help="optional static poster PNG (first frame)")
     ap.add_argument("--poster-height", type=int, default=None, help="poster height (default: --height)")
+    ap.add_argument(
+        "--no-coalesce",
+        action="store_true",
+        help="keep byte-identical repeated frames instead of merging them (debug)",
+    )
     args = ap.parse_args()
 
     delays = _read_delays_ms(args.src)
     frames, fw = _prepare_frames(args.src, args.crop, args.pad, args.height)
+    raw_count = len(frames)
+    if not args.no_coalesce:
+        frames, delays = coalesce_duplicates(frames, delays)
     write_full_frame_apng(args.out, frames, delays)
-    print(f"wrote {args.out}: {len(frames)} full frames {fw}x{args.height}, loops forever")
+    merged = raw_count - len(frames)
+    note = f", {merged} duplicate frames coalesced" if merged else ""
+    print(f"wrote {args.out}: {len(frames)} full frames {fw}x{args.height}, loops forever{note}")
 
     if args.poster:
         ph = args.poster_height or args.height

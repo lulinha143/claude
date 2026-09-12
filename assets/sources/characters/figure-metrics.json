@@ -4,161 +4,395 @@
     "axel": {
       "bottomPadFraction": 0.0,
       "box": {
-        "bottom": 95,
-        "left": 3,
-        "right": 108,
-        "top": 6
+        "bottom": 191,
+        "left": 7,
+        "right": 218,
+        "top": 11
       },
-      "canvasHeight": 96,
-      "canvasWidth": 109,
-      "figureCentreX": 0.513761,
-      "figureHeight": 90,
-      "figureHeightFraction": 0.9375,
-      "figureWidth": 106,
-      "figureWidthFraction": 0.972477,
+      "canvasHeight": 192,
+      "canvasWidth": 219,
+      "figureCentreX": 0.515982,
+      "figureHeight": 181,
+      "figureHeightFraction": 0.942708,
+      "figureWidth": 212,
+      "figureWidthFraction": 0.968037,
       "frames": 232,
-      "topPadFraction": 0.0625
+      "topPadFraction": 0.057292
     },
     "bea": {
-      "bottomPadFraction": 0.051724,
+      "bottomPadFraction": 0.047414,
       "box": {
-        "bottom": 109,
-        "left": 3,
-        "right": 128,
-        "top": 6
+        "bottom": 220,
+        "left": 6,
+        "right": 258,
+        "top": 12
       },
-      "canvasHeight": 116,
-      "canvasWidth": 132,
+      "canvasHeight": 232,
+      "canvasWidth": 265,
       "figureCentreX": 0.5,
-      "figureHeight": 104,
-      "figureHeightFraction": 0.896552,
-      "figureWidth": 126,
-      "figureWidthFraction": 0.954545,
+      "figureHeight": 209,
+      "figureHeightFraction": 0.900862,
+      "figureWidth": 253,
+      "figureWidthFraction": 0.954717,
       "frames": 121,
       "topPadFraction": 0.051724
+    },
+    "canela": {
+      "bottomPadFraction": 0.0,
+      "box": {
+        "bottom": 199,
+        "left": 1,
+        "right": 207,
+        "top": 8
+      },
+      "canvasHeight": 200,
+      "canvasWidth": 208,
+      "figureCentreX": 0.502404,
+      "figureHeight": 192,
+      "figureHeightFraction": 0.96,
+      "figureWidth": 207,
+      "figureWidthFraction": 0.995192,
+      "frames": 136,
+      "topPadFraction": 0.04
     },
     "corvus": {
       "bottomPadFraction": 0.0,
       "box": {
-        "bottom": 99,
-        "left": 3,
-        "right": 99,
-        "top": 11
+        "bottom": 199,
+        "left": 7,
+        "right": 199,
+        "top": 22
       },
-      "canvasHeight": 100,
-      "canvasWidth": 100,
-      "figureCentreX": 0.515,
-      "figureHeight": 89,
+      "canvasHeight": 200,
+      "canvasWidth": 200,
+      "figureCentreX": 0.5175,
+      "figureHeight": 178,
       "figureHeightFraction": 0.89,
-      "figureWidth": 97,
-      "figureWidthFraction": 0.97,
+      "figureWidth": 193,
+      "figureWidthFraction": 0.965,
       "frames": 228,
       "topPadFraction": 0.11
+    },
+    "dorm": {
+      "bottomPadFraction": 0.0,
+      "box": {
+        "bottom": 199,
+        "left": 7,
+        "right": 202,
+        "top": 6
+      },
+      "canvasHeight": 200,
+      "canvasWidth": 203,
+      "figureCentreX": 0.517241,
+      "figureHeight": 194,
+      "figureHeightFraction": 0.97,
+      "figureWidth": 196,
+      "figureWidthFraction": 0.965517,
+      "frames": 242,
+      "topPadFraction": 0.03
+    },
+    "echo": {
+      "bottomPadFraction": 0.0,
+      "box": {
+        "bottom": 199,
+        "left": 4,
+        "right": 199,
+        "top": 6
+      },
+      "canvasHeight": 200,
+      "canvasWidth": 200,
+      "figureCentreX": 0.51,
+      "figureHeight": 194,
+      "figureHeightFraction": 0.97,
+      "figureWidth": 196,
+      "figureWidthFraction": 0.98,
+      "frames": 165,
+      "topPadFraction": 0.03
+    },
+    "fenn": {
+      "bottomPadFraction": 0.0,
+      "box": {
+        "bottom": 199,
+        "left": 4,
+        "right": 204,
+        "top": 7
+      },
+      "canvasHeight": 200,
+      "canvasWidth": 205,
+      "figureCentreX": 0.509756,
+      "figureHeight": 193,
+      "figureHeightFraction": 0.965,
+      "figureWidth": 201,
+      "figureWidthFraction": 0.980488,
+      "frames": 242,
+      "topPadFraction": 0.035
+    },
+    "hazel": {
+      "bottomPadFraction": 0.0,
+      "box": {
+        "bottom": 199,
+        "left": 6,
+        "right": 208,
+        "top": 8
+      },
+      "canvasHeight": 200,
+      "canvasWidth": 209,
+      "figureCentreX": 0.514354,
+      "figureHeight": 192,
+      "figureHeightFraction": 0.96,
+      "figureWidth": 203,
+      "figureWidthFraction": 0.971292,
+      "frames": 242,
+      "topPadFraction": 0.04
+    },
+    "inky": {
+      "bottomPadFraction": 0.0,
+      "box": {
+        "bottom": 199,
+        "left": 4,
+        "right": 199,
+        "top": 24
+      },
+      "canvasHeight": 200,
+      "canvasWidth": 200,
+      "figureCentreX": 0.51,
+      "figureHeight": 176,
+      "figureHeightFraction": 0.88,
+      "figureWidth": 196,
+      "figureWidthFraction": 0.98,
+      "frames": 148,
+      "topPadFraction": 0.12
     },
     "junie": {
       "bottomPadFraction": 0.0,
       "box": {
-        "bottom": 98,
-        "left": 4,
-        "right": 98,
-        "top": 2
+        "bottom": 197,
+        "left": 7,
+        "right": 197,
+        "top": 5
       },
-      "canvasHeight": 99,
-      "canvasWidth": 99,
-      "figureCentreX": 0.520202,
-      "figureHeight": 97,
-      "figureHeightFraction": 0.979798,
-      "figureWidth": 95,
-      "figureWidthFraction": 0.959596,
+      "canvasHeight": 198,
+      "canvasWidth": 198,
+      "figureCentreX": 0.517677,
+      "figureHeight": 193,
+      "figureHeightFraction": 0.974747,
+      "figureWidth": 191,
+      "figureWidthFraction": 0.964646,
       "frames": 158,
-      "topPadFraction": 0.020202
+      "topPadFraction": 0.025253
+    },
+    "marlow": {
+      "bottomPadFraction": 0.035,
+      "box": {
+        "bottom": 192,
+        "left": 6,
+        "right": 209,
+        "top": 8
+      },
+      "canvasHeight": 200,
+      "canvasWidth": 217,
+      "figureCentreX": 0.497696,
+      "figureHeight": 185,
+      "figureHeightFraction": 0.925,
+      "figureWidth": 204,
+      "figureWidthFraction": 0.940092,
+      "frames": 116,
+      "topPadFraction": 0.04
+    },
+    "mina": {
+      "bottomPadFraction": 0.0,
+      "box": {
+        "bottom": 199,
+        "left": 2,
+        "right": 219,
+        "top": 6
+      },
+      "canvasHeight": 200,
+      "canvasWidth": 220,
+      "figureCentreX": 0.504545,
+      "figureHeight": 194,
+      "figureHeightFraction": 0.97,
+      "figureWidth": 218,
+      "figureWidthFraction": 0.990909,
+      "frames": 144,
+      "topPadFraction": 0.03
     },
     "moss": {
       "bottomPadFraction": 0.0,
       "box": {
-        "bottom": 101,
-        "left": 3,
-        "right": 104,
-        "top": 8
+        "bottom": 203,
+        "left": 5,
+        "right": 210,
+        "top": 16
       },
-      "canvasHeight": 102,
-      "canvasWidth": 105,
-      "figureCentreX": 0.514286,
-      "figureHeight": 94,
+      "canvasHeight": 204,
+      "canvasWidth": 211,
+      "figureCentreX": 0.511848,
+      "figureHeight": 188,
       "figureHeightFraction": 0.921569,
-      "figureWidth": 102,
-      "figureWidthFraction": 0.971429,
+      "figureWidth": 206,
+      "figureWidthFraction": 0.976303,
       "frames": 222,
       "topPadFraction": 0.078431
     },
     "nino": {
       "bottomPadFraction": 0.0,
       "box": {
-        "bottom": 97,
-        "left": 1,
-        "right": 104,
-        "top": 4
+        "bottom": 195,
+        "left": 2,
+        "right": 210,
+        "top": 8
       },
-      "canvasHeight": 98,
-      "canvasWidth": 105,
-      "figureCentreX": 0.504762,
-      "figureHeight": 94,
+      "canvasHeight": 196,
+      "canvasWidth": 211,
+      "figureCentreX": 0.504739,
+      "figureHeight": 188,
       "figureHeightFraction": 0.959184,
-      "figureWidth": 104,
-      "figureWidthFraction": 0.990476,
+      "figureWidth": 209,
+      "figureWidthFraction": 0.990521,
       "frames": 242,
       "topPadFraction": 0.040816
+    },
+    "nixie": {
+      "bottomPadFraction": 0.0,
+      "box": {
+        "bottom": 199,
+        "left": 5,
+        "right": 219,
+        "top": 5
+      },
+      "canvasHeight": 200,
+      "canvasWidth": 220,
+      "figureCentreX": 0.511364,
+      "figureHeight": 195,
+      "figureHeightFraction": 0.975,
+      "figureWidth": 215,
+      "figureWidthFraction": 0.977273,
+      "frames": 128,
+      "topPadFraction": 0.025
+    },
+    "otto": {
+      "bottomPadFraction": 0.0,
+      "box": {
+        "bottom": 199,
+        "left": 5,
+        "right": 220,
+        "top": 8
+      },
+      "canvasHeight": 200,
+      "canvasWidth": 221,
+      "figureCentreX": 0.511312,
+      "figureHeight": 192,
+      "figureHeightFraction": 0.96,
+      "figureWidth": 216,
+      "figureWidthFraction": 0.977376,
+      "frames": 162,
+      "topPadFraction": 0.04
+    },
+    "perry": {
+      "bottomPadFraction": 0.0,
+      "box": {
+        "bottom": 199,
+        "left": 2,
+        "right": 211,
+        "top": 7
+      },
+      "canvasHeight": 200,
+      "canvasWidth": 212,
+      "figureCentreX": 0.504717,
+      "figureHeight": 193,
+      "figureHeightFraction": 0.965,
+      "figureWidth": 210,
+      "figureWidthFraction": 0.990566,
+      "frames": 160,
+      "topPadFraction": 0.035
+    },
+    "pingo": {
+      "bottomPadFraction": 0.035,
+      "box": {
+        "bottom": 192,
+        "left": 1,
+        "right": 255,
+        "top": 7
+      },
+      "canvasHeight": 200,
+      "canvasWidth": 256,
+      "figureCentreX": 0.501953,
+      "figureHeight": 186,
+      "figureHeightFraction": 0.93,
+      "figureWidth": 255,
+      "figureWidthFraction": 0.996094,
+      "frames": 45,
+      "topPadFraction": 0.035
     },
     "pip": {
       "bottomPadFraction": 0.0,
       "box": {
-        "bottom": 92,
-        "left": 5,
-        "right": 102,
-        "top": 1
+        "bottom": 185,
+        "left": 9,
+        "right": 206,
+        "top": 2
       },
-      "canvasHeight": 93,
-      "canvasWidth": 103,
-      "figureCentreX": 0.524272,
-      "figureHeight": 92,
+      "canvasHeight": 186,
+      "canvasWidth": 207,
+      "figureCentreX": 0.521739,
+      "figureHeight": 184,
       "figureHeightFraction": 0.989247,
-      "figureWidth": 98,
-      "figureWidthFraction": 0.951456,
+      "figureWidth": 198,
+      "figureWidthFraction": 0.956522,
       "frames": 242,
       "topPadFraction": 0.010753
+    },
+    "quincy": {
+      "bottomPadFraction": 0.0,
+      "box": {
+        "bottom": 199,
+        "left": 10,
+        "right": 199,
+        "top": 22
+      },
+      "canvasHeight": 200,
+      "canvasWidth": 200,
+      "figureCentreX": 0.525,
+      "figureHeight": 178,
+      "figureHeightFraction": 0.89,
+      "figureWidth": 190,
+      "figureWidthFraction": 0.95,
+      "frames": 212,
+      "topPadFraction": 0.11
     },
     "rizzo": {
       "bottomPadFraction": 0.0,
       "box": {
-        "bottom": 103,
-        "left": 4,
-        "right": 113,
-        "top": 4
+        "bottom": 207,
+        "left": 8,
+        "right": 227,
+        "top": 9
       },
-      "canvasHeight": 104,
-      "canvasWidth": 114,
+      "canvasHeight": 208,
+      "canvasWidth": 228,
       "figureCentreX": 0.517544,
-      "figureHeight": 100,
-      "figureHeightFraction": 0.961538,
-      "figureWidth": 110,
+      "figureHeight": 199,
+      "figureHeightFraction": 0.956731,
+      "figureWidth": 220,
       "figureWidthFraction": 0.964912,
       "frames": 223,
-      "topPadFraction": 0.038462
+      "topPadFraction": 0.043269
     },
     "rosa": {
       "bottomPadFraction": 0.037037,
       "box": {
-        "bottom": 103,
-        "left": 6,
-        "right": 101,
+        "bottom": 207,
+        "left": 11,
+        "right": 202,
         "top": 0
       },
-      "canvasHeight": 108,
-      "canvasWidth": 108,
-      "figureCentreX": 0.5,
-      "figureHeight": 104,
+      "canvasHeight": 216,
+      "canvasWidth": 216,
+      "figureCentreX": 0.49537,
+      "figureHeight": 208,
       "figureHeightFraction": 0.962963,
-      "figureWidth": 96,
+      "figureWidth": 192,
       "figureWidthFraction": 0.888889,
       "frames": 121,
       "topPadFraction": 0.0
@@ -166,39 +400,104 @@
   },
   "derived": {
     "axel": {
-      "anchorX": 0.513761,
+      "anchorX": 0.515982,
       "baseline": 0.0,
       "officeHeight": 98
     },
     "bea": {
       "anchorX": 0.5,
-      "baseline": 0.051724,
-      "officeHeight": 103
+      "baseline": 0.047414,
+      "officeHeight": 102
+    },
+    "canela": {
+      "anchorX": 0.502404,
+      "baseline": 0.0,
+      "officeHeight": 96
     },
     "corvus": {
-      "anchorX": 0.515,
+      "anchorX": 0.5175,
       "baseline": 0.0,
       "officeHeight": 103
     },
+    "dorm": {
+      "anchorX": 0.517241,
+      "baseline": 0.0,
+      "officeHeight": 95
+    },
+    "echo": {
+      "anchorX": 0.51,
+      "baseline": 0.0,
+      "officeHeight": 95
+    },
+    "fenn": {
+      "anchorX": 0.509756,
+      "baseline": 0.0,
+      "officeHeight": 95
+    },
+    "hazel": {
+      "anchorX": 0.514354,
+      "baseline": 0.0,
+      "officeHeight": 96
+    },
+    "inky": {
+      "anchorX": 0.51,
+      "baseline": 0.0,
+      "officeHeight": 105
+    },
     "junie": {
-      "anchorX": 0.520202,
+      "anchorX": 0.517677,
       "baseline": 0.0,
       "officeHeight": 94
     },
+    "marlow": {
+      "anchorX": 0.497696,
+      "baseline": 0.035,
+      "officeHeight": 99
+    },
+    "mina": {
+      "anchorX": 0.504545,
+      "baseline": 0.0,
+      "officeHeight": 95
+    },
     "moss": {
-      "anchorX": 0.514286,
+      "anchorX": 0.511848,
       "baseline": 0.0,
       "officeHeight": 100
     },
     "nino": {
-      "anchorX": 0.504762,
+      "anchorX": 0.504739,
       "baseline": 0.0,
       "officeHeight": 96
     },
+    "nixie": {
+      "anchorX": 0.511364,
+      "baseline": 0.0,
+      "officeHeight": 94
+    },
+    "otto": {
+      "anchorX": 0.511312,
+      "baseline": 0.0,
+      "officeHeight": 96
+    },
+    "perry": {
+      "anchorX": 0.504717,
+      "baseline": 0.0,
+      "officeHeight": 95
+    },
+    "pingo": {
+      "anchorX": 0.501953,
+      "baseline": 0.035,
+      "officeHeight": 99
+    },
     "pip": {
-      "anchorX": 0.524272,
+      "anchorX": 0.521739,
       "baseline": 0.0,
       "officeHeight": 93
+    },
+    "quincy": {
+      "anchorX": 0.525,
+      "baseline": 0.0,
+      "officeHeight": 103
     },
     "rizzo": {
       "anchorX": 0.517544,
@@ -206,7 +505,7 @@
       "officeHeight": 96
     },
     "rosa": {
-      "anchorX": 0.5,
+      "anchorX": 0.49537,
       "baseline": 0.037037,
       "officeHeight": 96
     }

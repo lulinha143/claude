@@ -50,6 +50,7 @@ function makeEmployeeState(e: (typeof EMPLOYEES)[number], i: number): EmployeeRu
     room: null, // resolved to their department (or Founder's Desk) at render time
     x: 0.15 + i * 0.12,
     emotion: null,
+    talks: { count: 0, lastAt: 0, seen: {} },
   };
 }
 
@@ -75,6 +76,15 @@ export function repairEmployees(state: GameState): string[] {
     if (!state.employees[e.id]) {
       state.employees[e.id] = makeEmployeeState(e, i);
       added.push(e.id);
+    }
+    // Conversation memory arrived after these saves existed. Backfilling it here as
+    // well as in the migration means an employee added by a LATER content update
+    // also gets it, which the migration alone cannot do.
+    const rt = state.employees[e.id];
+    if (!rt.talks || typeof rt.talks !== 'object') {
+      rt.talks = { count: 0, lastAt: 0, seen: {} };
+    } else if (!rt.talks.seen || typeof rt.talks.seen !== 'object') {
+      rt.talks.seen = {};
     }
   });
   return added;

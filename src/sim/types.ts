@@ -40,6 +40,25 @@ export interface EmployeeRuntimeState {
    * to none; the engine expires temporary emotions during the tick.
    */
   emotion?: EmployeeEmotion | null;
+  /**
+   * Conversation memory for the full-screen interaction mode (persisted).
+   *
+   * This is what makes a talk a relationship rather than a vending machine: `seen`
+   * records when each topic was resolved, so a once-only conversation never repeats
+   * and later content can ask how long ago something was said. Optional so saves
+   * written before the feature default to "never talked".
+   */
+  talks?: EmployeeTalkMemory;
+}
+
+/** Per-employee record of the conversations that have actually happened. */
+export interface EmployeeTalkMemory {
+  /** Conversations completed with this employee. */
+  count: number;
+  /** Epoch ms the last one ended, for the cooldown. */
+  lastAt: number;
+  /** topicId -> epoch ms it was resolved. */
+  seen: Record<string, number>;
 }
 
 export type EmployeeMood =

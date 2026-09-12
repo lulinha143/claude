@@ -2638,5 +2638,228 @@
     "departmentFull": "Behavioural Research Department",
     "cycle": "Cycle {{n}}",
     "cycleTip": "Operating cycle {{n}}. Each restructure begins a new one."
+  },
+  "talk": {
+    "open": "Talk",
+    "fileLabel": "PERSONNEL CONVERSATION",
+    "ref": "REF {{id}}-{{n}}",
+    "confidential": "INTERNAL — NOT FOR THE BOARD",
+    "mood": "Mood",
+    "trust": "Trust",
+    "posting": "Posting",
+    "whatChanged": "What changed",
+    "ended": "They get back to it.",
+    "backToWork": "Back to work",
+    "tip": {
+      "ready": "They have something on their mind.",
+      "cooldown": "Still thinking about the last chat. ({{seconds}}s)",
+      "nothing": "Nothing new to say right now."
+    },
+    "req": {
+      "nuts": "Needs {{value}} nuts",
+      "goldenNuts": "Needs {{value}} golden",
+      "friendship": "Needs {{value}}% trust",
+      "flag": "Something has to happen first",
+      "missingFlag": "Too late for that now",
+      "room": "Wrong department for this",
+      "mood": "Not in the mood",
+      "moraleAbove": "Morale must be above {{value}}",
+      "moraleBelow": "Only while morale is under {{value}}"
+    },
+    "consequence": {
+      "promise": {
+        "title": "An unkept promise",
+        "body": "The thing you said you would sort out did not get sorted out. Word travels."
+      },
+      "escalated": {
+        "title": "The memo resurfaces",
+        "body": "Someone outside the building read it. Standing recovers, and then some."
+      },
+      "wellRested": {
+        "title": "Astonishingly well rested",
+        "body": "The nap was, it turns out, load-bearing."
+      },
+      "audit": {
+        "title": "Routine inventory audit",
+        "body": "Procurement cannot account for a shipment. Nobody is accusing anybody."
+      }
+    },
+    "check-in": {
+      "title": "A quick word",
+      "blurb": "No agenda. That is itself unusual here.",
+      "open": {
+        "prompt": "Oh — hello. I was just going to write this down and never mention it, so this is probably better.",
+        "listen": {
+          "label": "What is on your mind?",
+          "reply": "Right. Okay. It is a small thing, but it adds up."
+        },
+        "praise": {
+          "label": "You have been doing good work.",
+          "reply": "I have? I mean — yes. I have. Thank you. I will keep doing the work."
+        },
+        "quota": {
+          "label": "Can you push a little harder this week?",
+          "reply": "I can. I will. I am noting that you asked, not because I am cross, just — noting it."
+        }
+      },
+      "listened": {
+        "prompt": "The equipment in here was requisitioned in a cycle nobody will name, and one of the drawers screams. Not loudly. Just enough.",
+        "fix": {
+          "label": "I will get it replaced. Properly.",
+          "reply": "You are going to actually do it? Sorry. That was rude. Thank you."
+        },
+        "promise": {
+          "label": "I'll look into it.",
+          "reply": "You will look into it. Great. I will put that in the file with the others."
+        },
+        "thanks": {
+          "label": "Thanks for telling me.",
+          "reply": "Any time. Genuinely. It is nice to be asked."
+        }
+      }
+    },
+    "suspicious-memo": {
+      "title": "A memo that should not exist",
+      "blurb": "It was in the wrong tray, which is how anyone ever finds anything.",
+      "open": {
+        "prompt": "I found this in with the supply forms. It has our letterhead. It has a subject line. It does not have an author, a date, or any of the sentences you would expect a memo to have.",
+        "read": {
+          "label": "Read it to me.",
+          "reply": "Alright. Bear with me. Some of it is in a different hand."
+        },
+        "shred": {
+          "label": "Shred it. We never saw it.",
+          "reply": "Understood. For the record I did see it, but I take your meaning."
+        }
+      },
+      "read": {
+        "prompt": "It describes a study. Eighteen participants. It refers to them by room. And at the bott, in pencil, someone has written \"they are getting better at it\".",
+        "escalate": {
+          "label": "This goes outside the building.",
+          "reply": "Outside. Right. That is — yes. That is the correct answer and I did not expect it."
+        },
+        "bury": {
+          "label": "File it under Q3 and forget it.",
+          "reply": "Q3. Of course. I will forget it immediately and permanently and think about it every night."
+        },
+        "ask": {
+          "label": "Do you think it is about us?",
+          "reply": "I think if it were about anyone else, it would not have been in our tray."
+        }
+      }
+    },
+    "gift": {
+      "title": "Something for you",
+      "blurb": "Morale, in this company, is a line item. It does not have to be.",
+      "open": {
+        "prompt": "You are holding something behind your back and doing a very poor job of it.",
+        "acorn": {
+          "label": "A good acorn. (500)",
+          "reply": "Oh, this is a GOOD one. Look at the shoulders on it."
+        },
+        "golden": {
+          "label": "A golden nut. (1)",
+          "reply": "That is — no. That is too much. I am keeping it. But it is too much."
+        },
+        "coffee": {
+          "label": "The last of the good coffee.",
+          "reply": "The GOOD one? From the back? I am going to get so much done. Possibly too much."
+        }
+      }
+    },
+    "slump": {
+      "title": "Everyone can feel it",
+      "blurb": "Morale is low enough that pretending otherwise is its own insult.",
+      "open": {
+        "prompt": "Can I be honest? Nobody is okay this week. We have all been very polite about it, which is somehow worse.",
+        "own-it": {
+          "label": "This one is on me.",
+          "reply": "That is not what I expected. Thank you. That actually helps more than the alternative."
+        },
+        "deflect": {
+          "label": "It has been a hard quarter for everyone.",
+          "reply": "A hard quarter. Right. I will pass that along to everyone during the hard quarter."
+        },
+        "buy-lunch": {
+          "label": "Everyone off the floor. Lunch is on the company. (4,000)",
+          "reply": "You are serious. Everyone! Off the floor! Before it is rescinded!"
+        }
+      }
+    },
+    "pip-doubt": {
+      "title": "The founder, after hours",
+      "blurb": "She has been re-reading the same page of the ledger for some time.",
+      "open": {
+        "prompt": "Do you ever think I invented a company so I would have somewhere to put the worrying? Everyone here trusts me and I am mostly guessing.",
+        "reassure": {
+          "label": "Everyone here is here because of you.",
+          "reply": "Because of me. Right. That is the bit that makes it heavy, but — thank you. I needed the sentence."
+        },
+        "honest": {
+          "label": "You are guessing. So is everyone. You guess carefully.",
+          "reply": "Carefully. I will take carefully. Careful is a thing I can keep being."
+        }
+      },
+      "reassured": {
+        "prompt": "She closes the ledger, which she has not done all cycle.",
+        "share": {
+          "label": "Tell me what you actually wanted this place to be.",
+          "reply": "Somewhere nobody has to be brilliant to be safe. That was the whole idea. It is still the idea."
+        },
+        "work": {
+          "label": "Then let us get back to it.",
+          "reply": "Yes. Work. Work I can do. Thank you for not making me talk about it any more."
+        }
+      }
+    },
+    "dorm-sleep": {
+      "title": "Asleep at the terminal",
+      "blurb": "Technically at their post. Technically.",
+      "open": {
+        "prompt": "...mm. I am awake. I was processing. I process better with my eyes shut and my face on the desk.",
+        "let-sleep": {
+          "label": "Carry on. Process away.",
+          "reply": "You are a good employer. I will remember this in about four hours."
+        },
+        "wake": {
+          "label": "I need you actually awake.",
+          "reply": "Awake. Yes. This is me awake. This is what it looks like. It is not sustainable but it is happening."
+        },
+        "join": {
+          "label": "Budge up.",
+          "reply": "The company is asleep on the job with me. This is the best day of my employment."
+        }
+      }
+    },
+    "rizzo-inventory": {
+      "title": "An inventory discrepancy",
+      "blurb": "The numbers are fine. The numbers are, in fact, too fine.",
+      "open": {
+        "prompt": "Before you say anything: the inventory balances. It balances beautifully. It balances better than it did before, which I admit raises questions.",
+        "ask-where": {
+          "label": "Where did the extra crate come from?",
+          "reply": "Define \"come from\". Legally. Because I have thought about this and I do not love my answer."
+        },
+        "dont-ask": {
+          "label": "The inventory balances. Good work.",
+          "reply": "The inventory balances. Excellent. We are going to get along extremely well."
+        }
+      },
+      "confessed": {
+        "prompt": "It was on the loading dock with no paperwork for eleven days. I checked. Every day. It was becoming ours by attrition.",
+        "return-it": {
+          "label": "Find out whose it is and return it.",
+          "reply": "Return it. Fine. FINE. I will be very honourable about it and hate every second."
+        },
+        "split-it": {
+          "label": "Split it and never speak of it.",
+          "reply": "Now THAT is procurement. I have never respected a mammal more."
+        },
+        "promote": {
+          "label": "You watched a dock for eleven days. That is a skill.",
+          "reply": "It IS a skill! Nobody has ever called it a skill! I am going to be so good at this job."
+        }
+      }
+    }
   }
 }

@@ -221,6 +221,20 @@ const v9ToV10: Migration = (raw) => ({
   version: 10,
 });
 
+// v10 -> v11: per-employee conversation memory (`employee.talks`), for the
+// full-screen interaction mode. An existing company has had no conversations, so every
+// employee starts at "never talked" — which correctly means every once-only topic is
+// still available to a returning player rather than silently spent.
+const v10ToV11: Migration = (raw) => {
+  const employees = (raw.employees as Record<string, RawSave>) ?? {};
+  for (const rt of Object.values(employees)) {
+    if (rt && typeof rt === 'object' && !('talks' in rt)) {
+      rt.talks = { count: 0, lastAt: 0, seen: {} };
+    }
+  }
+  return { ...raw, employees, version: 11 };
+};
+
 const MIGRATIONS: Record<number, Migration> = {
   1: v1ToV2,
   2: v2ToV3,
@@ -231,6 +245,7 @@ const MIGRATIONS: Record<number, Migration> = {
   7: v7ToV8,
   8: v8ToV9,
   9: v9ToV10,
+  10: v10ToV11,
 };
 
 export function migrate(raw: RawSave): RawSave {

@@ -1,372 +1,54 @@
 {
   "characters": [
     {
-      "employee": "bea",
-      "asset": "bea",
-      "source": "CASTOR.png",
-      "source_bytes": 86494122,
+      "employee": "perry",
+      "asset": "perry",
+      "source": "ORNITORRINCO.png",
+      "source_bytes": 126234206,
       "crop": [
         0,
-        62,
-        960,
-        903
-      ],
-      "crop_size": [
-        960,
-        841
-      ],
-      "height_1x": 116,
-      "height_2x": 232,
-      "out_2x": {
-        "file": "bea.png",
-        "size": [
-          265,
-          232
-        ],
-        "frames": 121,
-        "bytes": 9052497
-      },
-      "out_1x": {
-        "file": "bea-1x.png",
-        "size": [
-          132,
-          116
-        ],
-        "frames": 121,
-        "bytes": 2697321
-      },
-      "poster": {
-        "file": "bea-poster.png",
-        "size": [
-          370,
-          324
-        ],
-        "frames": 1,
-        "bytes": 128008
-      },
-      "source_sha256": "19c210a0cc210060082c6df298a7ea8c33e315e23dda13f33a0465afd964e1ae"
-    },
-    {
-      "employee": "rizzo",
-      "asset": "rizzo",
-      "source": "GUAXINIM.png",
-      "source_bytes": 164578226,
-      "crop": [
-        0,
-        85,
+        54,
         960,
         960
       ],
       "crop_size": [
         960,
-        875
-      ],
-      "height_1x": 104,
-      "height_2x": 208,
-      "out_2x": {
-        "file": "rizzo.png",
-        "size": [
-          228,
-          208
-        ],
-        "frames": 223,
-        "bytes": 13689657
-      },
-      "out_1x": {
-        "file": "rizzo-1x.png",
-        "size": [
-          114,
-          104
-        ],
-        "frames": 223,
-        "bytes": 4014147
-      },
-      "poster": {
-        "file": "rizzo-poster.png",
-        "size": [
-          319,
-          291
-        ],
-        "frames": 1,
-        "bytes": 105462
-      },
-      "source_sha256": "33f0334a56c304ff70c77e5a662ae59b8ba77dd842ba14a223be6d89a02ba96a"
-    },
-    {
-      "employee": "corvus",
-      "asset": "corvus",
-      "source": "CORVO.png",
-      "source_bytes": 157048818,
-      "crop": [
-        0,
-        0,
-        960,
-        960
-      ],
-      "crop_size": [
-        960,
-        960
+        906
       ],
       "height_1x": 100,
       "height_2x": 200,
+      "repaired_frames": {
+        "out_2x": 2,
+        "out_1x": 2
+      },
       "out_2x": {
-        "file": "corvus.png",
+        "file": "perry.png",
         "size": [
-          200,
+          212,
           200
         ],
-        "frames": 228,
-        "bytes": 10601467
+        "frames": 160,
+        "bytes": 9402117
       },
       "out_1x": {
-        "file": "corvus-1x.png",
+        "file": "perry-1x.png",
         "size": [
-          100,
+          106,
           100
         ],
-        "frames": 228,
-        "bytes": 3115732
+        "frames": 160,
+        "bytes": 2809955
       },
       "poster": {
-        "file": "corvus-poster.png",
+        "file": "perry-poster.png",
         "size": [
-          280,
+          297,
           280
         ],
         "frames": 1,
-        "bytes": 80979
+        "bytes": 103816
       },
-      "source_sha256": "4a29196ce761e9751b29987f7ca1139acde77c42a8ba2a521a0f2ce4c53035da"
-    },
-    {
-      "employee": "junie",
-      "asset": "junie",
-      "source": "COELHA.png",
-      "source_bytes": 112655939,
-      "crop": [
-        0,
-        0,
-        960,
-        960
-      ],
-      "crop_size": [
-        960,
-        960
-      ],
-      "height_1x": 99,
-      "height_2x": 198,
-      "out_2x": {
-        "file": "junie.png",
-        "size": [
-          198,
-          198
-        ],
-        "frames": 158,
-        "bytes": 7352148
-      },
-      "out_1x": {
-        "file": "junie-1x.png",
-        "size": [
-          99,
-          99
-        ],
-        "frames": 158,
-        "bytes": 2223987
-      },
-      "poster": {
-        "file": "junie-poster.png",
-        "size": [
-          277,
-          277
-        ],
-        "frames": 1,
-        "bytes": 82386
-      },
-      "source_sha256": "0181913f2aa91f25fcff75e4f322120c3169d3266e786074411798ba8c3163d3"
-    },
-    {
-      "employee": "moss",
-      "asset": "moss",
-      "source": "CORUJA.png",
-      "source_bytes": 164922218,
-      "crop": [
-        0,
-        30,
-        960,
-        960
-      ],
-      "crop_size": [
-        960,
-        930
-      ],
-      "height_1x": 102,
-      "height_2x": 204,
-      "out_2x": {
-        "file": "moss.png",
-        "size": [
-          211,
-          204
-        ],
-        "frames": 222,
-        "bytes": 11495774
-      },
-      "out_1x": {
-        "file": "moss-1x.png",
-        "size": [
-          105,
-          102
-        ],
-        "frames": 222,
-        "bytes": 3392352
-      },
-      "poster": {
-        "file": "moss-poster.png",
-        "size": [
-          294,
-          285
-        ],
-        "frames": 1,
-        "bytes": 91726
-      },
-      "source_sha256": "108dc4c42cdf78e757503071f8cfa53269a56d96da1995a2833f78a1a13e8b4b"
-    },
-    {
-      "employee": "nino",
-      "asset": "nino",
-      "source": "GATO.png",
-      "source_bytes": 154104080,
-      "crop": [
-        0,
-        68,
-        960,
-        960
-      ],
-      "crop_size": [
-        960,
-        892
-      ],
-      "height_1x": 98,
-      "height_2x": 196,
-      "out_2x": {
-        "file": "nino.png",
-        "size": [
-          211,
-          196
-        ],
-        "frames": 242,
-        "bytes": 11606557
-      },
-      "out_1x": {
-        "file": "nino-1x.png",
-        "size": [
-          105,
-          98
-        ],
-        "frames": 242,
-        "bytes": 3468271
-      },
-      "poster": {
-        "file": "nino-poster.png",
-        "size": [
-          295,
-          274
-        ],
-        "frames": 1,
-        "bytes": 82574
-      },
-      "source_sha256": "6944e0084f80db8cfb9bf439f048b9a99cb29e794a06874b7f85f22848e8a0d7"
-    },
-    {
-      "employee": "rosa",
-      "asset": "rosa",
-      "source": "FLAMINGO.png",
-      "source_bytes": 81908138,
-      "crop": [
-        0,
-        0,
-        960,
-        960
-      ],
-      "crop_size": [
-        960,
-        960
-      ],
-      "height_1x": 108,
-      "height_2x": 216,
-      "out_2x": {
-        "file": "rosa.png",
-        "size": [
-          216,
-          216
-        ],
-        "frames": 121,
-        "bytes": 6115782
-      },
-      "out_1x": {
-        "file": "rosa-1x.png",
-        "size": [
-          108,
-          108
-        ],
-        "frames": 121,
-        "bytes": 1867970
-      },
-      "poster": {
-        "file": "rosa-poster.png",
-        "size": [
-          302,
-          302
-        ],
-        "frames": 1,
-        "bytes": 88601
-      },
-      "source_sha256": "f570fb4d92979e5f33df7abbcc433d2cc0336fd24db4ed0ec77c875b905c87fd"
-    },
-    {
-      "employee": "axel",
-      "asset": "axel",
-      "source": "AXOLOT.png",
-      "source_bytes": 147487571,
-      "crop": [
-        0,
-        118,
-        960,
-        960
-      ],
-      "crop_size": [
-        960,
-        842
-      ],
-      "height_1x": 96,
-      "height_2x": 192,
-      "out_2x": {
-        "file": "axel.png",
-        "size": [
-          219,
-          192
-        ],
-        "frames": 232,
-        "bytes": 11344469
-      },
-      "out_1x": {
-        "file": "axel-1x.png",
-        "size": [
-          109,
-          96
-        ],
-        "frames": 232,
-        "bytes": 3344793
-      },
-      "poster": {
-        "file": "axel-poster.png",
-        "size": [
-          306,
-          268
-        ],
-        "frames": 1,
-        "bytes": 85730
-      },
-      "source_sha256": "f5253a340aebaf6f2d89e12c23b1c44281fba14e917c04e41e15d786c34db526"
+      "source_sha256": "50e6e02d9a9303a5da86272e27e9c09418c237e4064c1edb14af4f886e4d310e"
     }
   ]
 }

@@ -146,7 +146,9 @@ export function ClickStation({
         className={`station-btn station-btn--${def.kind} station-btn--${def.cadence}`}
         style={{
           left: `${def.x * 100}%`,
-          bottom: `${def.bottom}px`,
+          // Authored in scene pixels, so it tracks the scene scale exactly like a
+          // character's slot depth does; a station is furniture in the same room.
+          bottom: `calc(${def.bottom}px * var(--asset-scale))`,
           zIndex: stationDepth(1 - def.bottom / 40),
         }}
         // Pointer-down for immediate response; the browser's synthetic click is

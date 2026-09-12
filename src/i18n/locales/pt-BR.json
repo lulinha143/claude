@@ -2638,5 +2638,228 @@
     "departmentFull": "Departamento de Pesquisa Comportamental",
     "cycle": "Ciclo {{n}}",
     "cycleTip": "Ciclo operacional {{n}}. Cada reestruturação inicia um novo."
+  },
+  "talk": {
+    "open": "Conversar",
+    "fileLabel": "CONVERSA DE PESSOAL",
+    "ref": "REF {{id}}-{{n}}",
+    "confidential": "INTERNO — NÃO PARA O CONSELHO",
+    "mood": "Humor",
+    "trust": "Confiança",
+    "posting": "Lotação",
+    "whatChanged": "O que mudou",
+    "ended": "Ele volta ao trabalho.",
+    "backToWork": "Voltar ao trabalho",
+    "tip": {
+      "ready": "Tem algo na cabeça dele.",
+      "cooldown": "Ainda pensando na última conversa. ({{seconds}}s)",
+      "nothing": "Nada novo para dizer agora."
+    },
+    "req": {
+      "nuts": "Precisa de {{value}} nozes",
+      "goldenNuts": "Precisa de {{value}} douradas",
+      "friendship": "Precisa de {{value}}% de confiança",
+      "flag": "Algo precisa acontecer primeiro",
+      "missingFlag": "Tarde demais para isso",
+      "room": "Departamento errado para isso",
+      "mood": "Sem clima",
+      "moraleAbove": "A moral precisa estar acima de {{value}}",
+      "moraleBelow": "Só enquanto a moral estiver abaixo de {{value}}"
+    },
+    "consequence": {
+      "promise": {
+        "title": "Uma promessa não cumprida",
+        "body": "Aquilo que você disse que ia resolver não foi resolvido. A notícia corre."
+      },
+      "escalated": {
+        "title": "O memorando reaparece",
+        "body": "Alguém de fora do prédio leu. A reputação se recupera, e sobra."
+      },
+      "wellRested": {
+        "title": "Espantosamente descansado",
+        "body": "O cochilo era, no fim, estrutural."
+      },
+      "audit": {
+        "title": "Auditoria de estoque de rotina",
+        "body": "Compras não consegue justificar uma remessa. Ninguém está acusando ninguém."
+      }
+    },
+    "check-in": {
+      "title": "Uma palavrinha",
+      "blurb": "Sem pauta. O que já é incomum aqui.",
+      "open": {
+        "prompt": "Ah — olá. Eu ia anotar isso e nunca mais mencionar, então isso aqui provavelmente é melhor.",
+        "listen": {
+          "label": "O que está te incomodando?",
+          "reply": "Certo. Ok. É pouca coisa, mas vai somando."
+        },
+        "praise": {
+          "label": "Você tem feito um bom trabalho.",
+          "reply": "Tenho? Quer dizer — sim. Tenho. Obrigado. Vou continuar fazendo o trabalho."
+        },
+        "quota": {
+          "label": "Consegue apertar um pouco mais esta semana?",
+          "reply": "Consigo. Vou. Estou registrando que você pediu, não por mágoa, só — registrando."
+        }
+      },
+      "listened": {
+        "prompt": "O equipamento daqui foi requisitado num ciclo que ninguém nomeia, e uma das gavetas grita. Não alto. Só o suficiente.",
+        "fix": {
+          "label": "Vou providenciar a troca. De verdade.",
+          "reply": "Você vai fazer mesmo? Desculpa. Isso foi grosseiro. Obrigado."
+        },
+        "promise": {
+          "label": "Vou ver isso.",
+          "reply": "Vai ver isso. Ótimo. Vou colocar no arquivo com os outros."
+        },
+        "thanks": {
+          "label": "Obrigado por me contar.",
+          "reply": "Sempre. De verdade. É bom ser perguntado."
+        }
+      }
+    },
+    "suspicious-memo": {
+      "title": "Um memorando que não deveria existir",
+      "blurb": "Estava na bandeja errada, que é como alguém acha qualquer coisa.",
+      "open": {
+        "prompt": "Achei isso junto com os formulários de suprimento. Tem nosso timbre. Tem assunto. Não tem autor, data, nem nenhuma das frases que se esperaria de um memorando.",
+        "read": {
+          "label": "Leia para mim.",
+          "reply": "Certo. Tenha paciência. Parte está em outra letra."
+        },
+        "shred": {
+          "label": "Destrua. Nunca vimos isso.",
+          "reply": "Entendido. Para constar, eu vi, mas compreendo o que quer dizer."
+        }
+      },
+      "read": {
+        "prompt": "Descreve um estudo. Dezoito participantes. Refere-se a eles por sala. E no rodapé, a lápis, alguém escreveu \"eles estão ficando bons nisso\".",
+        "escalate": {
+          "label": "Isso sai do prédio.",
+          "reply": "Sair. Certo. Isso é — sim. É a resposta correta e eu não esperava."
+        },
+        "bury": {
+          "label": "Arquive no 3º trimestre e esqueça.",
+          "reply": "Terceiro trimestre. Claro. Vou esquecer imediata e permanentemente e pensar nisso toda noite."
+        },
+        "ask": {
+          "label": "Você acha que é sobre nós?",
+          "reply": "Acho que se fosse sobre outra pessoa, não estaria na nossa bandeja."
+        }
+      }
+    },
+    "gift": {
+      "title": "Algo para você",
+      "blurb": "Moral, nesta empresa, é uma rubrica. Não precisa ser.",
+      "open": {
+        "prompt": "Você está escondendo algo atrás das costas e muito mal.",
+        "acorn": {
+          "label": "Uma boa avelã. (500)",
+          "reply": "Ah, essa é BOA. Olha a espessura disso."
+        },
+        "golden": {
+          "label": "Uma noz dourada. (1)",
+          "reply": "Isso é — não. É demais. Vou ficar com ela. Mas é demais."
+        },
+        "coffee": {
+          "label": "O resto do café bom.",
+          "reply": "O BOM? Do fundo? Vou produzir tanto. Possivelmente demais."
+        }
+      }
+    },
+    "slump": {
+      "title": "Todo mundo sente",
+      "blurb": "A moral está baixa o bastante para que finjir o contrário seja um insulto.",
+      "open": {
+        "prompt": "Posso ser honesto? Ninguém está bem esta semana. Fomos todos muito educados sobre isso, o que de alguma forma é pior.",
+        "own-it": {
+          "label": "Essa é minha culpa.",
+          "reply": "Não era o que eu esperava. Obrigado. Isso ajuda mais que a alternativa."
+        },
+        "deflect": {
+          "label": "Foi um trimestre difícil para todos.",
+          "reply": "Um trimestre difícil. Certo. Vou repassar isso a todos durante o trimestre difícil."
+        },
+        "buy-lunch": {
+          "label": "Todos fora do andar. O almoço é por conta da empresa. (4.000)",
+          "reply": "Você está falando sério. Todos! Fora do andar! Antes que seja revogado!"
+        }
+      }
+    },
+    "pip-doubt": {
+      "title": "A fundadora, fora de hora",
+      "blurb": "Ela relê a mesma página do livro-caixa há um bom tempo.",
+      "open": {
+        "prompt": "Você já pensou que eu inventei uma empresa só para ter onde colocar a preocupação? Todos aqui confiam em mim e eu estou basicamente adivinhando.",
+        "reassure": {
+          "label": "Todos aqui estão aqui por sua causa.",
+          "reply": "Por minha causa. Certo. É essa parte que pesa, mas — obrigada. Eu precisava da frase."
+        },
+        "honest": {
+          "label": "Você adivinha. Todos adivinham. Você adivinha com cuidado.",
+          "reply": "Com cuidado. Aceito cuidado. Cuidado é algo que eu consigo continuar sendo."
+        }
+      },
+      "reassured": {
+        "prompt": "Ela fecha o livro-caixa, o que não fez em todo o ciclo.",
+        "share": {
+          "label": "Me conta o que você queria que este lugar fosse.",
+          "reply": "Um lugar onde ninguém precise ser brilhante para estar seguro. Era a ideia toda. Ainda é."
+        },
+        "work": {
+          "label": "Então vamos voltar ao trabalho.",
+          "reply": "Sim. Trabalho. Trabalho eu sei fazer. Obrigada por não me obrigar a falar mais disso."
+        }
+      }
+    },
+    "dorm-sleep": {
+      "title": "Dormindo no terminal",
+      "blurb": "Tecnicamente em seu posto. Tecnicamente.",
+      "open": {
+        "prompt": "...mm. Estou acordado. Estava processando. Processo melhor com os olhos fechados e a cara na mesa.",
+        "let-sleep": {
+          "label": "Continue. Processe à vontade.",
+          "reply": "Você é um bom empregador. Vou lembrar disso em umas quatro horas."
+        },
+        "wake": {
+          "label": "Preciso de você acordado de verdade.",
+          "reply": "Acordado. Sim. Este sou eu acordado. É assim que fica. Não é sustentável mas está acontecendo."
+        },
+        "join": {
+          "label": "Me dá um espaço.",
+          "reply": "A empresa está dormindo no trabalho comigo. É o melhor dia do meu emprego."
+        }
+      }
+    },
+    "rizzo-inventory": {
+      "title": "Uma divergência de estoque",
+      "blurb": "Os números estão certos. Os números estão, na verdade, certos demais.",
+      "open": {
+        "prompt": "Antes que você diga nada: o estoque fecha. Fecha lindamente. Fecha melhor do que antes, o que admito levanta questões.",
+        "ask-where": {
+          "label": "De onde veio o engradado extra?",
+          "reply": "Defina \"veio\". Juridicamente. Porque eu pensei nisso e não gosto da minha resposta."
+        },
+        "dont-ask": {
+          "label": "O estoque fecha. Bom trabalho.",
+          "reply": "O estoque fecha. Excelente. Nós vamos nos dar muito bem."
+        }
+      },
+      "confessed": {
+        "prompt": "Ficou na doca de carga sem nenhuma papelada por onze dias. Eu conferi. Todo dia. Estava virando nosso por desgaste.",
+        "return-it": {
+          "label": "Descubra de quem é e devolva.",
+          "reply": "Devolver. Ótimo. ÓTIMO. Vou ser muito honrado sobre isso e odiar cada segundo."
+        },
+        "split-it": {
+          "label": "Divida e nunca mais fale disso.",
+          "reply": "AGORA sim, isso é compras. Nunca respeitei tanto um mamífero."
+        },
+        "promote": {
+          "label": "Você vigiou uma doca por onze dias. Isso é uma habilidade.",
+          "reply": "É uma HABILIDADE! Ninguém nunca chamou de habilidade! Vou ser tão bom nesse trabalho."
+        }
+      }
+    }
   }
 }

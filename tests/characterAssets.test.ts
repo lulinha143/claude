@@ -45,7 +45,8 @@ const FIGURE_METRICS: {
  */
 function renderedFigureHeight(employee: string): number {
   return (
-    EMPLOYEE_SPRITES[employee].officeHeight * FIGURE_METRICS.characters[employee].figureHeightFraction
+    EMPLOYEE_SPRITES[employee].officeHeight *
+    FIGURE_METRICS.characters[employee].figureHeightFraction
   );
 }
 
@@ -127,19 +128,32 @@ describe('character art files on disk', () => {
     }
   });
 
-  it('keeps the @2x animation at twice the @1x frame size', () => {
+  // The @2x animation used to be exactly twice the @1x frame size, and that is no
+  // longer true by design: @1x is now encoded at the character's real display height
+  // (officeHeight * presence) while the @2x build is left untouched at twice
+  // officeHeight. So what must hold is that the registry states the @2x file's REAL
+  // size — that is what the renderer divides to declare its srcSet density, and a
+  // wrong number there talks the browser into the wrong candidate.
+  it('declares the @2x animation at its real size on disk', () => {
     for (const entry of CHARACTER_ART) {
       const files = entry.variants[entry.activeVersion]!;
       const two = pngInfo(files.src);
-      // Encoders round, so allow a pixel of slack on each axis.
-      expect(
-        Math.abs(two.width - files.frameWidth * 2),
-        `${entry.employee} @2x width`,
-      ).toBeLessThanOrEqual(2);
-      expect(
-        Math.abs(two.height - files.frameHeight * 2),
-        `${entry.employee} @2x height`,
-      ).toBeLessThanOrEqual(2);
+      expect(two.width, `${entry.employee} srcWidth`).toBe(files.srcWidth);
+      expect(two.height, `${entry.employee} srcHeight`).toBe(files.srcHeight);
+      // It must still be the denser of the two candidates, or serving it to a HiDPI
+      // display would be pointless.
+      expect(files.srcHeight, `${entry.employee} @2x density`).toBeGreaterThan(files.frameHeight);
+    }
+  });
+
+  // The sharpness contract: the @1x asset is encoded at the size it is actually drawn
+  // at, so a DPR-1 display resamples nothing. See tests/spriteResampling.test.ts.
+  it('encodes @1x at exactly the rendered height', () => {
+    for (const entry of CHARACTER_ART) {
+      const files = entry.variants[entry.activeVersion]!;
+      expect(files.frameHeight, `${entry.employee} @1x height`).toBe(
+        presenceSize(files.officeHeight),
+      );
     }
   });
 
@@ -219,7 +233,14 @@ describe('rendered character scale', () => {
     }
   });
 
-  it('measures the figures against the canvases actually shipped', () => {
+  // The figures are measured off the @2x build, not the @1x one. That is deliberate:
+  // the @1x asset's height is now a FUNCTION of `officeHeight`, so deriving
+  // `officeHeight` from it would close the loop and make each re-encode nudge the
+  // value by a pixel forever. The @2x build is never re-encoded, so measuring it makes
+  // these numbers a fixed property of the artwork (and finds the figure edge in four
+  // times the pixels). Every value consumed is a FRACTION, so the resolution it was
+  // measured at does not matter — only that it is stable.
+  it('measures the figures against the retained @2x artwork', () => {
     expect(FIGURE_METRICS.reference).toBe('pip');
     for (const entry of CHARACTER_ART) {
       const files = entry.variants[entry.activeVersion]!;
@@ -227,8 +248,8 @@ describe('rendered character scale', () => {
       expect(measured, `${entry.employee} was not measured`).toBeDefined();
       // A measurement taken against a different canvas than the one we ship would
       // make every number above meaningless.
-      expect(measured.canvasWidth, `${entry.employee} measured width`).toBe(files.frameWidth);
-      expect(measured.canvasHeight, `${entry.employee} measured height`).toBe(files.frameHeight);
+      expect(measured.canvasWidth, `${entry.employee} measured width`).toBe(files.srcWidth);
+      expect(measured.canvasHeight, `${entry.employee} measured height`).toBe(files.srcHeight);
       // The figure must genuinely be inside its canvas.
       expect(measured.figureHeight).toBeGreaterThan(0);
       expect(measured.figureHeight).toBeLessThanOrEqual(measured.canvasHeight);
@@ -240,11 +261,17 @@ describe('rendered character scale', () => {
   // must not have moved her.
   it('leaves the reference character untouched', () => {
     const pip = CHARACTER_ART_BY_EMPLOYEE.pip.variants.original!;
-    expect(pip.frameWidth).toBe(103);
-    expect(pip.frameHeight).toBe(93);
-    // Her canvas already hugs her, so it needs no compensation in either axis.
+    // The LAYOUT numbers are what "untouched" means, and they are unchanged: Pip is
+    // still the 93px reference, and her canvas already hugs her so it needs no
+    // baseline compensation. Her @1x frame is now 112px because that is her true
+    // display height (93 * 1.2) — the display-size re-encode, which sharpened her
+    // without redrawing anything and without going near her defective master.
     expect(pip.officeHeight).toBe(93);
     expect(pip.baseline).toBe(0);
+    expect(pip.frameHeight).toBe(presenceSize(93));
+    expect(pip.frameHeight).toBe(112);
+    // Her artwork still comes from the hand-repaired @2x build, untouched at 186px.
+    expect(pip.srcHeight).toBe(186);
   });
 
   it('sinks a sprite by exactly the dead margin under its feet', () => {

@@ -16,6 +16,7 @@ import { employeeMood, moodProductivityMultiplier, MOOD_POSITIVE, MOOD_TONE } fr
 import { MoodEmoji } from '../../art/EmployeeMoodBadge';
 import { roomAffinity, affinityPercent } from '../../sim/affinity';
 import { ROOMS_BY_ID } from '../../content/rooms';
+import { canTalk, talkCooldownRemaining } from '../../sim/talks';
 
 export function EmployeesView() {
   const { t } = useTranslation();
@@ -32,6 +33,12 @@ export function EmployeesView() {
     const moved = engine.autoArrangeEmployees(strategy);
     audio.play(moved > 0 ? 'upgrade' : 'click');
   }
+
+  // Conversation availability, read fresh each render so the button reflects the
+  // cooldown ticking down rather than a stale snapshot.
+  const now = Date.now();
+  const talkReady = (id: string) => canTalk(state, id, now);
+  const cooldown = (id: string) => talkCooldownRemaining(state, id, now);
 
   return (
     <section className="view view--employees">
@@ -280,6 +287,34 @@ export function EmployeesView() {
                       >
                         {t('employee.give_coffee')}
                       </button>
+                    ) : null}
+                    {/* The roster is the reliable way in: the office critter only opens
+                        a conversation when one is available, so without this a player
+                        who has just talked to someone has no visible affordance at all.
+                        Disabled-with-a-reason rather than hidden, so the cooldown and
+                        the "nothing new to say" state are legible. */}
+                    {rt.hired ? (
+                      <Tip
+                        content={
+                          talkReady(def.id)
+                            ? t('talk.tip.ready')
+                            : cooldown(def.id) > 0
+                              ? t('talk.tip.cooldown', { seconds: cooldown(def.id) })
+                              : t('talk.tip.nothing')
+                        }
+                      >
+                        <button
+                          className="ghost-btn employee-card__talk"
+                          data-employee={def.id}
+                          aria-disabled={!talkReady(def.id)}
+                          onClick={() => {
+                            if (engine.openTalk(def.id)) audio.play('click');
+                            else audio.play('error');
+                          }}
+                        >
+                          {t('talk.open')}
+                        </button>
+                      </Tip>
                     ) : null}
                   </>
                 )}

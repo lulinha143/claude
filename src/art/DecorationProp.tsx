@@ -119,7 +119,9 @@ export function DecorationProp({
       } ${selected ? 'is-selected' : ''} ${reacting ? 'is-reacting' : ''} ${
         TOGGLEABLE.includes(kind) && !on ? 'is-off' : ''
       }`}
-      style={{ ['--accent' as string]: accent }}
+      // The authored per-item scale is published as a variable so the stylesheet can
+      // combine it with the scene scale; see `.floor__deco .decor > svg`.
+      style={{ ['--accent' as string]: accent, ['--deco-scale' as string]: spec.scale }}
       onClick={handleClick}
       onPointerDown={onPointerDown}
       title={title}

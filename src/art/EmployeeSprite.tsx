@@ -60,7 +60,6 @@ function EmployeeSpriteImpl({ config, reducedMotion, height, className }: Employ
   // art. Same size/position/animation/scene — the halo is the ONLY variable.
   const haloOff = useHaloOff();
   const useNoHalo = haloOff && !reducedMotion && !!config.srcNoHalo;
-  const file = reducedMotion ? config.poster : useNoHalo ? config.srcNoHalo! : config.src;
 
   // Push any authored bottom padding below the floor line so the character's
   // real contact point sits exactly on its slot (baseline 0 = no shift).
@@ -80,13 +79,39 @@ function EmployeeSpriteImpl({ config, reducedMotion, height, className }: Employ
   // re-blended whenever an ancestor repaints.
   const transform = `${anchorShift} ${baselineShift} translateZ(0)`.trim();
 
-  // Serve the animation at the resolution it is actually displayed at, so on an
-  // integer device pixel ratio the frame maps 1:1 to device pixels (DPR 1 -> @1x,
-  // DPR 2 -> @2x) with no resample. Purely a resolution hint: the CSS width and
-  // height below are identical either way, so this cannot change the geometry.
+  // RESOLUTION SELECTION
+  //
+  // Two sizes of the same animation exist: `src1x`, encoded at exactly the office
+  // display height, and `src`, the denser retained build (~1.6-1.9x of it, not 2x —
+  // see characterAssets.ts). Which one to serve depends on how big this particular
+  // element is being drawn, because the office draws at `src1x`'s exact size while a
+  // roster card draws the same character ~43% larger.
+  //
+  // The oversized case is decided HERE rather than by handing the browser a density
+  // that makes the denser file win, because that does not reliably work: Chromium
+  // will not DOWNGRADE to a smaller candidate once a denser one is in its cache, so
+  // a character whose srcset was ever evaluated at card proportions keeps the big
+  // file everywhere afterwards. Measured directly — a `<img>` moved from densities
+  // `0.700x/1.160x` to `1.035x/1.739x` keeps serving the 1.160x file. So density
+  // labels stay a fixed property of the FILES, and the size-dependent part is an
+  // explicit source choice that cannot drift.
+  const oversized = height > config.frameHeight;
+  const animation = oversized && config.src1x ? config.src : (config.src1x ?? config.src);
+  const file = reducedMotion ? config.poster : useNoHalo ? config.srcNoHalo! : animation;
+
+  // At the encoded size (the office) offer both candidates so a HiDPI display can take
+  // the denser one; the labels are the files' real ratio, so DPR 1 lands on `src1x`
+  // and maps it 1:1 to device pixels — no resample at all. When oversized we have
+  // already chosen the denser build outright and must NOT also advertise the small one,
+  // or DPR 1 would pick it and enlarge it, which is the softness this avoids.
+  //
+  // `--asset-scale` only ever shrinks the element further (it is capped at 1), so the
+  // drawn size is at most `height` and these choices stay conservative.
   const srcSet =
-    !reducedMotion && !useNoHalo && config.src1x
-      ? `${BASE}${config.src1x} 1x, ${BASE}${config.src} 2x`
+    !reducedMotion && !useNoHalo && config.src1x && !oversized
+      ? `${BASE}${config.src1x} 1x, ${BASE}${config.src} ${(
+          config.srcHeight / config.frameHeight
+        ).toFixed(3)}x`
       : undefined;
 
   return (
@@ -117,11 +142,26 @@ function EmployeeSpriteImpl({ config, reducedMotion, height, className }: Employ
 // Only re-render when something that actually affects the pixels changes. This
 // guarantees ordinary state churn in the parent never recreates the <img>, so
 // the APNG never visibly restarts.
+//
+// The config is compared BY VALUE, not by identity. `employeeSprite(id)` builds a
+// fresh object on every call, so an identity check (`a.config === b.config`) was
+// always false and this memo never actually stopped anything — and the office
+// diorama re-renders continuously because it reads `Date.now()`, so that was a
+// re-render per sprite per animation frame. Only the fields this component reads
+// are compared; the rest cannot change what is painted.
 export const EmployeeSprite = memo(EmployeeSpriteImpl, (a, b) => {
   return (
-    a.config === b.config &&
     a.reducedMotion === b.reducedMotion &&
     a.height === b.height &&
-    a.className === b.className
+    a.className === b.className &&
+    a.config.src === b.config.src &&
+    a.config.src1x === b.config.src1x &&
+    a.config.srcNoHalo === b.config.srcNoHalo &&
+    a.config.poster === b.config.poster &&
+    a.config.frameWidth === b.config.frameWidth &&
+    a.config.frameHeight === b.config.frameHeight &&
+    a.config.srcHeight === b.config.srcHeight &&
+    a.config.anchorX === b.config.anchorX &&
+    a.config.baseline === b.config.baseline
   );
 });
