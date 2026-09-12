@@ -26,6 +26,18 @@ const employeeSchema = z.object({
     .nullable()
     .catch(null)
     .optional(),
+  // Conversation memory. Every field carries its own `.catch` so a partially written
+  // record degrades to "never talked" rather than failing the whole save — and note
+  // the schema has no `.passthrough()`, so this MUST be declared or it is stripped on
+  // every load and no conversation would ever be remembered.
+  talks: z
+    .object({
+      count: z.number().int().nonnegative().catch(0),
+      lastAt: z.number().nonnegative().catch(0),
+      seen: z.record(z.number()).catch({}),
+    })
+    .catch({ count: 0, lastAt: 0, seen: {} })
+    .optional(),
 });
 
 const momentSchema = z.object({

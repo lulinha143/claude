@@ -20,6 +20,7 @@ import { DecorateView } from './ui/views/DecorateView';
 import { StatsView } from './ui/views/StatsView';
 import { PrestigeView } from './ui/views/PrestigeView';
 import { SettingsView } from './ui/views/SettingsView';
+import { EmployeeTalk } from './ui/modals/EmployeeTalk';
 import { EventModal } from './ui/modals/EventModal';
 import { ConsequenceModal } from './ui/modals/ConsequenceModal';
 import { OfflineModal } from './ui/modals/OfflineModal';
@@ -193,6 +194,7 @@ export function App() {
           <Current />
         </div>
       </main>
+      <EmployeeTalk />
       <EventModal />
       <ConsequenceModal />
       <OfflineModal />

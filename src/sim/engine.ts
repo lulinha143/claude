@@ -30,6 +30,8 @@ import type { EventEffect, GameEventDef } from '../content/types';
 import { GAME_EVENTS, GAME_EVENTS_BY_ID } from '../content/events';
 import { eventChoicesForState } from './eventChoices';
 import { chooseAutoResolution } from './eventAutoResolve';
+import { evaluateTalkNode, pickTopic, talkCooldownRemaining } from './talks';
+import type { TalkChoice, TalkTopic } from '../content/employeeTalks';
 import { CLICK_STATIONS_BY_ID } from '../content/clickStations';
 import {
   CLICK,
@@ -129,6 +131,36 @@ export interface EventChoiceContext {
   step: string | null;
 }
 
+/** An open employee conversation. Transient — see `GameEngine.activeTalk`. */
+export interface ActiveTalk {
+  employeeId: string;
+  topic: TalkTopic;
+  /** Current node; empty string once the conversation has ended. */
+  nodeId: string;
+  /** Identity used to reject a click that was in flight across a state change. */
+  instanceId: string;
+  /** The employee's reply to the option just taken, shown before the next prompt. */
+  lastReplyKey: string | null;
+  /** How many options have been taken, so the UI can show progress. */
+  exchanges: number;
+  /** Measured before/after of the last option, for the "what changed" readout. */
+  report: ConsequenceReport | null;
+}
+
+/**
+ * Effect types that act ON a specific employee.
+ *
+ * A conversation topic is written once and reused across the cast, so its effects name
+ * no employee; these are the ones that need to be pointed at whoever is being talked
+ * to. Everything else (nuts, morale, reputation, boosts) is company-wide and must be
+ * left alone — stamping an employeeId onto a morale effect would be harmless today but
+ * is exactly the kind of quiet wrongness that surfaces later.
+ */
+const EFFECTS_NEEDING_EMPLOYEE: ReadonlySet<EventEffect['type']> = new Set([
+  'friendship',
+  'emotion',
+]);
+
 /** One decision taken on the player's behalf while popups are disabled. */
 interface AutoResolvedDecision {
   def: GameEventDef;
@@ -192,6 +224,14 @@ export class GameEngine {
    * feed. Drained by the UI; the authoritative queue lives in `state.scheduled`.
    */
   settledConsequences: ScheduledConsequence[] = [];
+  /**
+   * transient: the open employee conversation, driving the full-screen interaction
+   * screen. The CONVERSATION is a moment and is not persisted — what it changed is,
+   * because every consequence went through `applyEffect` into `state`, and the fact
+   * that it happened is recorded in the employee's `talks` memory. So closing the game
+   * mid-sentence loses only the sentence.
+   */
+  activeTalk: ActiveTalk | null = null;
 
   private listeners = new Set<EngineListener>();
   private now: () => number;
@@ -898,6 +938,137 @@ export class GameEngine {
   clearConsequence(): void {
     this.lastConsequence = null;
     this.emit();
+  }
+
+  /* ---------------------------------------------------------------------------
+   * Employee conversations (the full-screen interaction mode)
+   *
+   * Deliberately built ON the event machinery rather than beside it: a talk's
+   * consequences are `EventEffect`s put through `applyEffect`, so they inherit the
+   * caps, the temporary-emotion expiry, consequence-memory flags and the scheduled
+   * queue for free — a promise made in conversation is billed by the same
+   * `settleScheduled` that bills a random event. The only new persistent state is the
+   * per-employee `talks` memory, which is what stops a once-only conversation from
+   * repeating and lets later content ask how long ago something was said.
+   * ------------------------------------------------------------------------- */
+
+  /** Open a conversation, choosing the most pressing topic. False if nobody is free. */
+  openTalk(employeeId: string): boolean {
+    const rt = this.state.employees[employeeId];
+    if (!rt?.hired) return false;
+    const now = this.now();
+    if (talkCooldownRemaining(this.state, employeeId, now) > 0) return false;
+    const topic = pickTopic(this.state, employeeId, now);
+    if (!topic) return false;
+    const node = topic.nodes[topic.root];
+    if (!node) return false;
+    this.activeTalk = {
+      employeeId,
+      topic,
+      nodeId: topic.root,
+      instanceId: `${employeeId}:${topic.id}:${now}`,
+      // The reply to the option just taken, shown before the next node's prompt.
+      lastReplyKey: null,
+      exchanges: 0,
+      report: null,
+    };
+    this.emit();
+    return true;
+  }
+
+  /**
+   * Take an option. Applies its effects, records the reply, and either advances to the
+   * next node or ends the conversation.
+   *
+   * `instanceId` is checked so a click that was already in flight when the state moved
+   * cannot resolve against a different conversation — the same staleness guard
+   * `resolveEventChoice` uses for event popups.
+   */
+  chooseTalkOption(choiceId: string, instanceId?: string): boolean {
+    const active = this.activeTalk;
+    if (!active) return false;
+    if (instanceId && instanceId !== active.instanceId) return false;
+    const node = active.topic.nodes[active.nodeId];
+    if (!node) return false;
+    const now = this.now();
+    const evaluated = evaluateTalkNode(this.state, active.employeeId, node.choices, now);
+    const picked = evaluated.find((e) => e.choice.id === choiceId);
+    if (!picked?.enabled) return false;
+    const choice = picked.choice;
+
+    // Snapshot BEFORE, so what the player is shown afterwards is measured rather
+    // than a restatement of the authored effect list.
+    const before = this.snapshotForReport(now);
+    for (const effect of choice.effects) {
+      // Effects that name no employee are about THIS conversation's employee. That is
+      // what lets one topic be written once and reused across the whole cast.
+      this.applyEffect(
+        effect.employeeId || !EFFECTS_NEEDING_EMPLOYEE.has(effect.type)
+          ? effect
+          : { ...effect, employeeId: active.employeeId },
+        this.talkEventShim(active.topic, choice),
+      );
+    }
+    const report = this.diffReport(before, choice.effects, now);
+
+    this.state.eventHistory.push({
+      eventId: `talk:${active.topic.id}`,
+      choiceId: choice.id,
+      at: now,
+    });
+    if (this.state.eventHistory.length > 50) this.state.eventHistory.shift();
+
+    active.exchanges += 1;
+    active.lastReplyKey = choice.replyKey;
+    active.report = report;
+
+    const next = choice.next ? active.topic.nodes[choice.next] : undefined;
+    if (next) {
+      active.nodeId = next.id;
+    } else {
+      this.finishTalk(active.employeeId, active.topic.id, now);
+      active.nodeId = '';
+    }
+    this.emit();
+    return true;
+  }
+
+  /** Write the conversation into the employee's memory and start the cooldown. */
+  private finishTalk(employeeId: string, topicId: string, now: number): void {
+    const rt = this.state.employees[employeeId];
+    if (!rt) return;
+    if (!rt.talks) rt.talks = { count: 0, lastAt: 0, seen: {} };
+    rt.talks.count += 1;
+    rt.talks.lastAt = now;
+    rt.talks.seen[topicId] = now;
+    // Conversations move real numbers, so this is one of the deliberate
+    // must-survive-a-crash writes, like assigning a room.
+    this.save();
+  }
+
+  /** Close the interaction screen. */
+  closeTalk(): void {
+    this.activeTalk = null;
+    this.emit();
+  }
+
+  /**
+   * A minimal `GameEventDef` so a talk's effects can reuse `applyEffect` unchanged.
+   *
+   * `applyEffect` reads only `id`, `titleKey` and `bodyKey` off the def — to label a
+   * scheduled callback and to stamp a moment card — so this supplies exactly those
+   * rather than forcing conversations to be authored as fake events.
+   */
+  private talkEventShim(topic: TalkTopic, choice: TalkChoice): GameEventDef {
+    return {
+      id: `talk:${topic.id}`,
+      titleKey: topic.titleKey,
+      bodyKey: choice.replyKey,
+      rarity: 'common',
+      weight: 0,
+      cooldownSeconds: 0,
+      choices: [],
+    };
   }
 
   /** Set (or clear) an employee's event-driven emotion. Only unlocked (hired)
