@@ -140,19 +140,24 @@ test('reduced motion swaps the animation for a static poster frame', async ({ pa
 });
 
 // An animal with NO registered artwork must still render — as the hand-drawn
-// Critter silhouette rather than a broken image. Nine animals have final art; the
-// rest of the roster relies on this path, so it is the common case, not an edge one.
-// (Bea used to be the example here; she has real artwork now.)
+// Critter silhouette rather than a broken image.
+//
+// This example has had to move twice as the photographic cast filled in: Bea first,
+// then Marlow, both of whom now have real art, which is why the test had started
+// failing — it was asserting that an animal WITH artwork had none. The roster is now 22
+// of 23 covered, so there is exactly one genuine case left and it is unlikely to move
+// again soon: Bia the bear, whose artwork has not been supplied. She is the reason this
+// path has to keep working, so she is the right animal to guard it with.
 test('an animal without registered artwork renders as the drawn silhouette', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await seed(
     page,
     saveWith({
       settings: { reducedMotion: true },
-      // Marlow the capybara has no entry in the character-art registry.
+      // Bia the bear is the only employee with no entry in the character-art registry.
       employees: {
         pip: { hired: true, level: 6, friendship: 70, room: 'founder-desk', x: 0.5 },
-        marlow: { hired: true, level: 4, friendship: 50, room: 'morale', x: 0.5 },
+        bia: { hired: true, level: 4, friendship: 50, room: 'morale', x: 0.5 },
       },
     }),
   );

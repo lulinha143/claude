@@ -1022,28 +1022,51 @@ export class GameEngine {
     active.lastReplyKey = choice.replyKey;
     active.report = report;
 
+    // Record the conversation on the FIRST option taken, not when it ends.
+    //
+    // Waiting for the end left a live exploit: a branching topic whose opening option
+    // pays trust could be taken, abandoned with Escape, and taken again immediately —
+    // nothing had marked the topic spent or started the cooldown, so the reward
+    // repeated. Taking an option IS having the conversation, so that is the moment it
+    // counts. Later options in the same conversation only refresh the timestamp.
+    this.recordTalk(active.employeeId, active.topic.id, now, active.exchanges === 1);
+
     const next = choice.next ? active.topic.nodes[choice.next] : undefined;
     if (next) {
       active.nodeId = next.id;
     } else {
-      this.finishTalk(active.employeeId, active.topic.id, now);
       active.nodeId = '';
     }
+    // Persist after EVERY option, not only when the conversation ends.
+    //
+    // A talk's effects are applied irreversibly the moment an option is taken, so they
+    // have to be durable at that moment too. Saving only on completion lost them: an
+    // e2e test that took the first option of a branching topic, pressed Escape and
+    // reloaded got the pre-conversation friendship back, because the mid-conversation
+    // state was in memory and the next autosave had not come round yet. Nothing about
+    // leaving a conversation early is supposed to undo what was already agreed.
+    this.save();
     this.emit();
     return true;
   }
 
-  /** Write the conversation into the employee's memory and start the cooldown. */
-  private finishTalk(employeeId: string, topicId: string, now: number): void {
+  /**
+   * Write the conversation into the employee's memory and (re)start the cooldown.
+   *
+   * `first` distinguishes the option that begins a conversation from the ones that
+   * continue it, so a three-node topic counts once rather than three times. The caller
+   * saves immediately afterwards, so this memory write and the consequences it
+   * accompanies land together.
+   */
+  private recordTalk(employeeId: string, topicId: string, now: number, first: boolean): void {
     const rt = this.state.employees[employeeId];
     if (!rt) return;
     if (!rt.talks) rt.talks = { count: 0, lastAt: 0, seen: {} };
-    rt.talks.count += 1;
+    if (first) {
+      rt.talks.count += 1;
+      rt.talks.seen[topicId] = now;
+    }
     rt.talks.lastAt = now;
-    rt.talks.seen[topicId] = now;
-    // Conversations move real numbers, so this is one of the deliberate
-    // must-survive-a-crash writes, like assigning a room.
-    this.save();
   }
 
   /** Close the interaction screen. */

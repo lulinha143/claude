@@ -433,16 +433,19 @@ export function OfficeScene() {
       if (recentReactionGenerationRef.current !== reactionGeneration) return;
       setRecentEmployee((current) => (current === employeeId ? null : current));
     }, 1400);
-    // If this teammate actually has something to talk about, clicking them opens the
-    // full interaction mode — that is the primary way the feature is discovered, since
-    // walking up to someone at their desk is the natural gesture for it.
+    // LEANING IN: the first click keeps its original behaviour and the teammate says
+    // something. Clicking a teammate who is ALREADY mid-sentence opens the full
+    // interaction mode, if they have something worth a conversation.
     //
-    // When they DON'T (a topic they have exhausted, or the cooldown after a real
-    // conversation), the click keeps its original behaviour and they just say
-    // something about how work is going. That matters: making every click open a
-    // screen would turn the ambient life of the office into a modal interruption, and
-    // the office feeling alive on its own is worth protecting.
-    if (engine.openTalk(employeeId)) {
+    // Having the first click open the mode was tried and reverted. It reads fine in
+    // isolation, but it costs the ambient life of the office — every idle poke became a
+    // full-screen interruption, and the one-liners are most of what makes the room feel
+    // inhabited. Gating on "they are already talking" keeps the poke cheap, makes the
+    // escalation discoverable by doing the obvious thing twice, and keeps the roster's
+    // explicit Talk button as the direct route for anyone who wants it.
+    const alreadySpeaking = bubble?.employeeId === employeeId && bubble.until > Date.now();
+    if (alreadySpeaking && engine.openTalk(employeeId)) {
+      setBubble(null);
       audio.play('click');
       return;
     }

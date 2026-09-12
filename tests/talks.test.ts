@@ -273,6 +273,47 @@ describe('conversation memory', () => {
     expect(eligibleTopics(e.state, 'rizzo', now).map((t) => t.id)).not.toContain('rizzo-inventory');
   });
 
+  // Abandoning a branching conversation after taking its first (rewarding) option used
+  // to leave the topic unspent and the cooldown unstarted, so re-opening and taking the
+  // same option again repeated the reward indefinitely. Taking an option IS having the
+  // conversation.
+  it('cannot be farmed by taking the first option and walking away', () => {
+    const now = 1_000_000;
+    const e = staffed(now, (s) => {
+      s.resources.morale = 80;
+      s.employees.pip.friendship = 80;
+    });
+    expect(e.openTalk('pip')).toBe(true);
+    expect(e.activeTalk!.topic.id).toBe('pip-doubt');
+    // `reassure` branches onward rather than ending the conversation.
+    e.chooseTalkOption('reassure', e.activeTalk!.instanceId);
+    expect(e.activeTalk!.nodeId).toBe('reassured');
+    const afterFirst = e.state.employees.pip.friendship;
+
+    // Walk away mid-conversation.
+    e.closeTalk();
+    // It still counted, the topic is spent, and the cooldown is running.
+    expect(e.state.employees.pip.talks!.count).toBe(1);
+    expect(topicSpent(e.state, 'pip', 'pip-doubt')).toBe(true);
+    expect(talkCooldownRemaining(e.state, 'pip', now)).toBe(TALK_COOLDOWN_SECONDS);
+    // So the reward cannot be taken again.
+    expect(e.openTalk('pip')).toBe(false);
+    expect(e.state.employees.pip.friendship).toBe(afterFirst);
+  });
+
+  it('counts a multi-step conversation once, not once per option', () => {
+    const now = 1_000_000;
+    const e = staffed(now, (s) => {
+      s.resources.morale = 80;
+      s.employees.pip.friendship = 80;
+    });
+    e.openTalk('pip');
+    e.chooseTalkOption('reassure', e.activeTalk!.instanceId);
+    e.chooseTalkOption('work', e.activeTalk!.instanceId);
+    expect(e.activeTalk!.nodeId).toBe('');
+    expect(e.state.employees.pip.talks!.count).toBe(1);
+  });
+
   it('holds a cooldown after a conversation, then lets it lapse', () => {
     const now = 1_000_000;
     const e = staffed(now, (s) => {
