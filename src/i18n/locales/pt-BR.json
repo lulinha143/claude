@@ -2136,8 +2136,8 @@
     "eventAutoResolved": "Resolvido para você — {{title}}: {{choice}}",
     "repTierUp": "{{name}} — {{blurb}}",
     "consequenceSettled": "{{title}} — {{body}}",
-    "achievementsCaughtUp_one": "Registros atualizados: {{count}} conquista já obtida",
-    "achievementsCaughtUp_other": "Registros atualizados: {{count}} conquistas já obtidas"
+    "achievementsCaughtUp_one": "{{count}} conquista anterior registrada",
+    "achievementsCaughtUp_other": "{{count}} conquistas anteriores registradas"
   },
   "react": {
     "marlowApproves": "Bento aprovou esta decisão.",

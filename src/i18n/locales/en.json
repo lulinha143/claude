@@ -2136,8 +2136,8 @@
     "eventAutoResolved": "Handled for you — {{title}}: {{choice}}",
     "repTierUp": "{{name}} — {{blurb}}",
     "consequenceSettled": "{{title}} — {{body}}",
-    "achievementsCaughtUp_one": "Records brought up to date: {{count}} achievement already earned",
-    "achievementsCaughtUp_other": "Records brought up to date: {{count}} achievements already earned"
+    "achievementsCaughtUp_one": "{{count}} earlier achievement recorded",
+    "achievementsCaughtUp_other": "{{count}} earlier achievements recorded"
   },
   "react": {
     "marlowApproves": "Marlow approved of this decision.",

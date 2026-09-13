@@ -86,9 +86,9 @@ test('loading a progressed save does not bury the office in achievement toasts',
   expect(peak, `boot toast queue peaked at ${peak}: ${texts.join(' | ')}`).toBeLessThanOrEqual(6);
 
   // Whatever the save already satisfied is reported as ONE line, not N.
-  const summaries = texts.filter((t) => /brought up to date/i.test(t));
+  const summaries = texts.filter((t) => /earlier achievements? recorded/i.test(t));
   expect(summaries.length, `expected a single catch-up summary, got: ${texts.join(' | ')}`).toBe(1);
-  expect(summaries[0]).toMatch(/\d+\s+achievements? already earned/i);
+  expect(summaries[0]).toMatch(/\d+\s+earlier achievements? recorded/i);
 });
 
 test('the catch-up records the achievements and pays their rewards rather than hiding them', async ({
@@ -129,5 +129,5 @@ test('a brand-new game gets no catch-up summary, because it has nothing to catch
       (c.textContent ?? '').trim(),
     ),
   );
-  expect(texts.filter((t) => /brought up to date/i.test(t))).toHaveLength(0);
+  expect(texts.filter((t) => /earlier achievements? recorded/i.test(t))).toHaveLength(0);
 });
