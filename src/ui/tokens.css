@@ -121,7 +121,13 @@
   /* Rubber-stamp ink: a desaturated violet that reads as "applied by a department",
      distinct from every semantic colour so a stamp is never mistaken for a warning
      or a reward. Used only by the letterhead's standing stamp. */
-  --stamp-ink: #a8879f;
+  /* Rubber-stamp ink. Was #a8879f, a cold lilac that was the only cool colour in
+     a warm cream/wood palette and read as a UI error rather than as ink — and it
+     spent purple, which the palette reserves for rare/special states, on a
+     permanent fixture. This is a faded violet-brown: still unmistakably a stamp,
+     still tinted toward the reputation tiers, but sitting in the same warm family
+     as the letterhead it is stamped on. */
+  --stamp-ink: #9c7a72;
   --panel-surface: color-mix(in srgb, var(--c-bark-700) 94%, var(--c-wood-500));
   --panel-surface-raised: color-mix(in srgb, var(--c-bark-600) 90%, var(--c-wood-400));
   --panel-texture:

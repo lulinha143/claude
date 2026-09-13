@@ -562,6 +562,32 @@ export const RoomDressing = memo(function RoomDressing({ roomId }: { roomId: str
       <span className="room-dressing__floor" />
       <span className="room-dressing__baseboard" />
 
+      {/* --- Architectural shell -------------------------------------------
+          The rooms used to read as flat coloured bands: a wall gradient, a
+          floor gradient, and a lot of empty middle. The cast is photographic
+          and richly lit, so a flat backdrop behind it is what made the whole
+          scene look like a level editor rather than a place.
+
+          These four layers give the room the structure a real interior has,
+          WITHOUT putting anything on the floor — the complete floor plane stays
+          player-owned, which is the constraint the freestanding furniture was
+          removed for in the first place. Everything here is fixed to the
+          building: ceiling, wall joinery, corner shading, and the light those
+          surfaces receive.
+
+          All of it is `pointer-events: none` inside `.room-dressing` and stays
+          at z-index 0, so decoration hit-testing and the
+          decorations-behind-characters ordering are untouched. Per-room art
+          direction continues to live in the `rd--<room>` CSS blocks, which can
+          restyle or hide any of these (the rooftop has no ceiling; the vault
+          has no daylight). */}
+      <span className="room-dressing__ceiling" />
+      <span className="room-dressing__rail" />
+      <span className="room-dressing__fixture">
+        <span className="room-dressing__fixture-pool" />
+      </span>
+      <span className="room-dressing__depth" />
+
       {/* Back-wall opening. Its shape, glazing and sky are set per department in
           CSS (arched daylight, corporate city view, night window, sealed lab
           pane, barred basement slit, open rooftop sky — or hidden entirely for

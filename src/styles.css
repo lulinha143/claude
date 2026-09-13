@@ -284,15 +284,22 @@ h4 {
     inset 0 0 0 1px transparent,
     inset 0 0 0 2.5px currentColor;
   border-radius: 3px;
-  transform: rotate(-2.5deg);
+  /* Was -2.5deg. A rotated block of 0.55em letter-spaced caps is hard to read at
+     the top of every screen; 1.2deg still reads as hand-stamped without fighting
+     the eye. */
+  transform: rotate(-1.2deg);
   cursor: help;
   /* Ink on paper never sits perfectly opaque. */
-  opacity: 0.94;
+  opacity: 0.92;
 }
 .header__stamp-tier {
   font-size: 0.55em;
   font-weight: 800;
-  letter-spacing: 0.1em;
+  /* Tightened from 0.1em: the tier names are long ("Irregular Global
+     Institution") and the wide tracking forced them onto three cramped lines.
+     The SIZE stays as it was — the stamp sits in the same row as the window
+     controls, and growing it eats their corner at small sizes. */
+  letter-spacing: 0.05em;
   line-height: 1.1;
   text-align: center;
   text-transform: uppercase;
@@ -307,18 +314,56 @@ h4 {
 
 /* The resource strip: four equal cells separated by hairlines, like fields on a
    form rather than four floating pills. */
+/* THE FIGURES, as a dense readout rather than a table header.
+   ---------------------------------------------------------------------------
+   This was `grid-auto-columns: minmax(0, 1fr)`: one EQUAL column per field,
+   stretched across the full width of the window. With four fields on a 1280px
+   window each got ~300px to hold a 6-character number, so the strip was mostly
+   empty space with a hairline every 300px — which is precisely what a
+   spreadsheet header looks like, and it was the single least game-like thing on
+   screen at all times.
+
+   Fields now hug their contents and sit together at the left, so the numbers
+   form one readable cluster the eye can take in at a glance. The space they no
+   longer waste is given back to the letterhead as a ruled line, which is both
+   quieter and more in keeping with a company document than four empty columns.
+
+   Still flow-based, so the Kernels field appearing after the first cycle
+   continues to add a column without any fixed template to update. */
 .header__strip {
+  /* NARROW = the original equal-column grid, kept exactly as it was.
+     It is the layout that provably fits: with five fields on a 320px window
+     (Kernels appears after the first cycle) there is no spare width to reclaim,
+     and every field has to be allowed to shrink to a fraction of the row.
+     `minmax(0, 1fr)` is what permits that; content-sized fields could not, and
+     forcing them overflowed the strip and shoved the window controls off the
+     right edge. The cluster layout is applied only where it earns its keep. */
   display: grid;
-  /* One equal column per field, however many there are: the Kernels field only
-     exists once the company has been through a cycle, and a fixed four-column
-     template would have left a hole or crushed the others. */
   grid-auto-flow: column;
   grid-auto-columns: minmax(0, 1fr);
+  align-items: stretch;
   background: rgba(0, 0, 0, 0.22);
   border: 1px solid rgba(0, 0, 0, 0.35);
   border-radius: var(--corner-panel);
   overflow: hidden;
 }
+/* WIDTH: shrink-wrapped only where there is actually space to waste.
+   ---------------------------------------------------------------------------
+   The point of sizing this block to its contents is to remove dead bar. On a
+   narrow window there is none — the fields fill the row and then some — so the
+   two cases genuinely want different behaviour:
+
+     narrow  equal flexible columns that shrink, exactly as before. This is not a
+             cosmetic preference: at 320px the fields cannot all keep a minimum
+             width, and forcing them to made the strip wider than the window,
+             which pushed the masthead and the window controls off the right
+             edge. (Caught by responsive-layout + window-chrome, which is what
+             those suites are for.)
+     wide    content-sized fields gathered at the left, so the numbers read as
+             one cluster instead of four columns of mostly nothing.
+
+   Below the breakpoint the fields therefore stay flexible and shrinkable, and
+   `.res-cell__value` keeps its ellipsis as the last resort it always was. */
 .res-cell {
   display: grid;
   /* label / value / note, always in these three rows. Without an explicit template
@@ -328,10 +373,47 @@ h4 {
   grid-template-rows: auto auto minmax(0, 1fr);
   align-content: start;
   gap: 0;
+  /* Compact by default: at 320px four fields have ~76px each, so the padding is
+     part of what has to fit. The roomier spacing is applied with the
+     content-sized layout in the wide block below. */
   padding: 4px 9px 5px;
-  min-width: 0;
   border-left: 1px solid rgba(255, 255, 255, 0.07);
   cursor: help;
+  /* A hairline of the resource's own colour along the top, so the fields are
+     told apart by their subject rather than only by position. */
+  box-shadow: inset 0 2px 0 -1px var(--res-accent, transparent);
+  transition: background var(--dur-fast) var(--ease);
+}
+.res-cell:first-child {
+  border-left: 0;
+}
+/* The figures are readable at a glance; a hover tint confirms the field is the
+   thing the tooltip is about. */
+.res-cell:hover {
+  background: rgba(255, 255, 255, 0.045);
+}
+.res-cell--nuts {
+  --res-accent: var(--gold);
+}
+.res-cell--golden {
+  --res-accent: #f4c95a;
+}
+.res-cell--morale {
+  --res-accent: #6fbf7f;
+}
+.res-cell--rep {
+  --res-accent: var(--stamp-ink, #b08fd0);
+}
+.res-cell--kernels {
+  --res-accent: #c9a06a;
+}
+/* The inline resource glyph carries the field, so let it be seen.
+   Size is deliberately NOT increased here: the labels are `nowrap`, so a wider
+   glyph widens the strip's scroll width, and at a 320px window under 1.5x
+   interface scale that overflow pushed the window controls past the header's
+   right edge (window-chrome catches it). Contrast, not size. */
+.res-cell__label svg {
+  opacity: 1;
 }
 .res-cell:first-child {
   border-left: 0;
@@ -886,7 +968,25 @@ h4 {
   pointer-events: none;
   z-index: 0;
 }
-/* wood-plank floor plane grounding the whole room */
+/* FRONT-EDGE SHADING for the floor plane the cast stands on.
+   ---------------------------------------------------------------------------
+   This used to paint a hard-coded wood plank band here, with its own colour, its
+   own seams and a 2px top border. Because a pseudo-element paints after its
+   element's children, that band went OVER `.room-dressing__floor` — so every
+   room's art-directed flooring was replaced by the same brown wood for exactly
+   the strip the characters stand on. The result was a floor that changed
+   material and colour halfway down, with a hard line across it: the lab's pale
+   tiles, the rooftop's decking and the vault's stone all ended in the same
+   plank bar. It read as a dark dead bar under the cast.
+
+   The room's flooring is now a single material owned by `.room-dressing__floor`
+   and art-directed per department. What is left here is only LIGHT: the floor
+   gets slightly darker toward the front edge, which is what grounds the cast
+   without overriding what they are standing on.
+
+   `--floor-h` is unchanged and still mirrors FLOOR_BAND_PX in
+   content/roomLayout.ts — it is a LAYOUT quantity (how far back a character may
+   stand) and never was a painting instruction. */
 .floor::after {
   content: '';
   position: absolute;
@@ -894,11 +994,12 @@ h4 {
   right: 0;
   bottom: 0;
   height: var(--floor-h);
-  background:
-    repeating-linear-gradient(90deg, rgba(90, 63, 31, 0.16) 0 1px, transparent 1px 34px),
-    linear-gradient(180deg, #c79a5e 0%, #b0824a 45%, #9c6c39 100%);
-  border-top: 2px solid rgba(90, 63, 31, 0.5);
-  box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.22);
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(90, 63, 31, 0.07) 55%,
+    rgba(90, 63, 31, 0.16) 100%
+  );
   pointer-events: none;
   z-index: 0;
 }
@@ -989,6 +1090,195 @@ h4 {
   background: color-mix(in srgb, var(--dept) 34%, #8a6a44);
   box-shadow: 0 3px 6px rgba(40, 26, 12, 0.22);
 }
+
+/* ===========================================================================
+   ARCHITECTURAL SHELL
+   ---------------------------------------------------------------------------
+   Why this exists: the rooms were a wall gradient, a floor gradient and a lot
+   of empty middle. Next to a photographic, richly lit cast that read as a
+   level editor — the single biggest reason the game looked like a prototype.
+
+   The fix is structure, not clutter. Every layer below belongs to the BUILDING
+   (ceiling, joinery, corner shading, cast light), so the floor plane stays
+   entirely available to player decorations — the constraint that freestanding
+   built-in furniture was removed for.
+
+   Tuning is expressed as per-room custom properties so the `rd--<room>` blocks
+   further down can art-direct each department by setting variables rather than
+   re-declaring geometry:
+
+     --ceil-h        ceiling band height
+     --ceil          ceiling colour
+     --ceil-trim     crown moulding colour
+     --rail-y        dado rail height up the wall (0 disables the wainscot)
+     --wainscot      lower-wall panel colour
+     --fixture-x     horizontal position of the ceiling fixture
+     --fixture-glow  colour of the light it casts
+     --room-ao       strength of the corner ambient occlusion
+   ========================================================================= */
+
+/* Ceiling plane + crown moulding. Gives the room a top edge, so the wall stops
+   being an infinite backdrop and becomes a surface between two planes. */
+.room-dressing__ceiling {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--ceil-h, 11%);
+  background: linear-gradient(
+    180deg,
+    var(--ceil, color-mix(in srgb, var(--dept) 12%, #e6d8bd)) 0%,
+    color-mix(in srgb, var(--dept) 18%, #d8c7a6) 100%
+  );
+  border-bottom: 1.5px solid var(--ceil-trim, color-mix(in srgb, var(--dept) 40%, #a1855c));
+  /* The moulding catches light on its underside, the way a real cornice does. */
+  box-shadow:
+    inset 0 -3px 5px rgba(40, 26, 12, 0.16),
+    0 2px 5px rgba(40, 26, 12, 0.14);
+}
+
+/* Dado rail + wainscot panelling. Breaks the wall's vertical run at a human
+   height, which is what stops a large flat wall reading as cardboard. */
+.room-dressing__rail {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 32%;
+  height: var(--rail-y, 26%);
+  background:
+    /* panel seams */
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 calc(9% - 1px),
+      rgba(58, 42, 24, 0.13) calc(9% - 1px) 9%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--wainscot, #e3d3b2) 88%, var(--dept)) 0%,
+      color-mix(in srgb, var(--wainscot, #d9c7a3) 94%, var(--dept)) 100%
+    );
+  /* Top edge of the wainscot is a moulding: light above, shadow below. */
+  border-top: 2px solid color-mix(in srgb, var(--dept) 30%, #b09872);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.34),
+    inset 0 -4px 7px rgba(40, 26, 12, 0.09);
+}
+
+/* Ceiling fixture: a pendant hanging on a flex, and the warm pool it throws
+   down the wall onto the floor. This is the room's light SOURCE, which is what
+   makes the department lighting wash read as motivated rather than as a filter. */
+.room-dressing__fixture {
+  position: absolute;
+  top: var(--ceil-h, 11%);
+  left: var(--fixture-x, 32%);
+  width: calc(26px * var(--asset-scale));
+  height: calc(21px * var(--asset-scale));
+  /* Just the flex/cord. The shade is ::before and the bulb is ::after, so the
+     three parts can be restyled independently — the industrial departments swap
+     the whole thing for a fluorescent batten by hiding the shade. */
+  background: linear-gradient(#5a452b, #5a452b) no-repeat calc(50% - 0.75px) 0 / 1.5px 34%;
+  filter: drop-shadow(0 2px 2px rgba(40, 26, 12, 0.26));
+}
+/* The shade: a real conical lamp shade, cut as a trapezoid. Drawn with a
+   polygon rather than border-radius because a rounded rectangle at 26px reads as
+   a brown blob — which is exactly how the first attempt at this looked. */
+.room-dressing__fixture::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 1px;
+  height: 66%;
+  clip-path: polygon(32% 0%, 68% 0%, 100% 100%, 0% 100%);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--dept) 42%, #7a5c39) 0%,
+    color-mix(in srgb, var(--dept) 24%, #96764c) 62%,
+    color-mix(in srgb, var(--dept) 16%, #b08f61) 100%
+  );
+}
+/* The lit bulb under the shade, and the cone of light on the surfaces below. */
+.room-dressing__fixture-pool {
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: calc(150px * var(--asset-scale));
+  height: calc(110px * var(--asset-scale));
+  transform: translateX(-50%);
+  background: radial-gradient(
+    ellipse 50% 62% at 50% 0%,
+    var(--fixture-glow, rgba(255, 226, 158, 0.5)) 0%,
+    color-mix(in srgb, var(--fixture-glow, rgba(255, 226, 158, 0.5)) 40%, transparent) 42%,
+    transparent 76%
+  );
+  mix-blend-mode: soft-light;
+}
+/* The bulb itself: a small bright core so the fixture reads as switched on. */
+.room-dressing__fixture::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -2px;
+  width: 5px;
+  height: 5px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: var(--fixture-bulb, #ffe9a8);
+  box-shadow: 0 0 6px 2px var(--fixture-glow, rgba(255, 226, 158, 0.55));
+}
+
+/* Corner ambient occlusion + the contact shadow where the wall meets the floor.
+   This is what turns three stacked rectangles into a box you are looking into:
+   light falls off toward the corners, and the floor is darkest right where it
+   disappears behind the wall. */
+.room-dressing__depth {
+  position: absolute;
+  inset: 0;
+  background:
+    /* wall-to-floor contact shadow */
+    linear-gradient(
+      180deg,
+      transparent 62%,
+      rgba(40, 26, 12, var(--room-ao, 0.17)) 68%,
+      transparent 74%
+    ),
+    /* left + right corner falloff */
+    linear-gradient(90deg, rgba(40, 26, 12, var(--room-ao, 0.17)) 0%, transparent 13%),
+    linear-gradient(270deg, rgba(40, 26, 12, var(--room-ao, 0.17)) 0%, transparent 13%),
+    /* a touch of shade under the ceiling, so the crown reads as overhanging */
+    linear-gradient(180deg, rgba(40, 26, 12, 0.13) 0%, transparent 18%);
+  mix-blend-mode: multiply;
+}
+
+/* The floorboard seams get perspective: they fan very slightly outward toward
+   the viewer instead of running dead-parallel, which reads as a floor receding
+   under the cast rather than as striped wallpaper lying down. */
+.room-dressing__floor {
+  perspective: 240px;
+  perspective-origin: 50% -40%;
+}
+.room-dressing__floor::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(58, 42, 24, 0.16) 0 1.5px,
+    transparent 1.5px 7.5%
+  );
+  transform: rotateX(52deg) scaleY(1.7);
+  transform-origin: 50% 0%;
+  opacity: 0.42;
+}
+
+/* Reduced motion never affects this — none of it animates — but a very small
+   window must not turn the fixture into a blob, so it retires below the size at
+   which the room is only about a hundred pixels tall. */
+@media (max-height: 620px) {
+  .room-dressing__fixture {
+    display: none;
+  }
+}
 /* Back-wall window. Fully CSS-driven so each department can restyle the frame,
    glazing, sky and mullions — or hide it entirely for windowless interiors.
    Defaults below are the warm daylight of the founder's study. */
@@ -996,8 +1286,10 @@ h4 {
   position: absolute;
   top: 9%;
   right: 11%;
-  width: calc(60px * var(--asset-scale));
-  height: calc(42px * var(--asset-scale));
+  /* Enlarged with the decorations, for the same reason: a 42px window on the wall
+     behind a 112px character read as a model of a window. */
+  width: calc(78px * var(--asset-scale));
+  height: calc(54px * var(--asset-scale));
   border: 3px solid var(--win-frame, #8a6a44);
   border-radius: var(--win-radius, 3px);
   background: var(--win-sky, linear-gradient(180deg, #bfe0ef 0%, #dcecc4 62%, #e9f2d9 100%));
@@ -3550,9 +3842,36 @@ select,
   font-size: 0.7em;
   color: var(--text-secondary);
 }
+/* EDIT MODE — "this room is editable", said without a dashed rectangle.
+   ---------------------------------------------------------------------------
+   This used to be `outline: 2px dashed`, which is the single most recognisable
+   piece of level-editor furniture there is: a marching-ants box around a canvas.
+   It made decorate mode read as a debug tool bolted onto the game rather than as
+   part of it.
+   The replacement says the same thing with the game's own language — the room
+   lifts slightly toward the player, its department rim brightens, and its
+   corners get short registration brackets, like a plan drawing being marked up.
+   No dashes, and nothing that reads as a selection you cannot select. */
 .office--decorating .floor {
-  outline: 2px dashed color-mix(in srgb, var(--dept) 60%, transparent);
-  outline-offset: -2px;
+  border-color: color-mix(in srgb, var(--dept) 55%, rgba(90, 63, 31, 0.35));
+  box-shadow:
+    0 4px 14px rgba(40, 26, 12, 0.26),
+    inset 0 0 0 1px color-mix(in srgb, var(--dept) 30%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+/* Corner registration brackets, drawn as two crossed gradients so there is no
+   extra element and no cost when decorate mode is closed. */
+.office--decorating .floor > .floor__label::before {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: -4px;
+  width: 13px;
+  height: 13px;
+  border-top: 2px solid color-mix(in srgb, var(--dept) 75%, #6f5636);
+  border-left: 2px solid color-mix(in srgb, var(--dept) 75%, #6f5636);
+  border-radius: 3px 0 0 0;
+  pointer-events: none;
 }
 .floor__decor {
   position: absolute;
@@ -3582,10 +3901,39 @@ select,
 .decor.is-dim {
   filter: grayscale(0.8) opacity(0.4);
 }
+/* EDIT MODE — a decoration reads as GRABBABLE, not as a bounding box.
+   ---------------------------------------------------------------------------
+   Every placed decoration used to get `outline: 1px solid` in decorate mode. On
+   a small prop that outline is bigger than the art inside it, so a decorated
+   room turned into a grid of empty labelled rectangles — the exact look of a
+   sprite editor, and the thing that made dragging feel like dragging a div.
+
+   A real editor communicates affordance through depth and response instead:
+   nothing at rest, a lift and a soft halo under the pointer, and a deliberate
+   ring only for the one thing that is actually selected. */
 .office--decorating .decor {
-  outline: 1px solid var(--accent);
-  outline-offset: 1px;
-  border-radius: 4px;
+  border-radius: 5px;
+  /* At rest: a grounding shadow only. The prop stays the hero. */
+  filter: drop-shadow(0 2px 3px rgba(40, 26, 12, 0.3));
+  transition:
+    transform var(--dur-fast) var(--ease),
+    filter var(--dur-fast) var(--ease);
+}
+.office--decorating .decor:hover {
+  /* Picks up off the floor toward the cursor and catches the room's light. */
+  transform: translateY(-3px) scale(1.06);
+  filter: drop-shadow(0 5px 7px rgba(40, 26, 12, 0.34))
+    drop-shadow(0 0 6px color-mix(in srgb, var(--gold) 55%, transparent));
+}
+.office--decorating .decor:focus-visible {
+  outline: none;
+  filter: drop-shadow(0 4px 6px rgba(40, 26, 12, 0.32))
+    drop-shadow(0 0 0 2px color-mix(in srgb, var(--gold) 80%, transparent));
+}
+[data-reduced-motion='true'] .office--decorating .decor,
+[data-reduced-motion='true'] .office--decorating .decor:hover {
+  transform: none;
+  transition: none;
 }
 .decor--lamp.is-off .decor__leaf,
 .decor.is-off {
@@ -4106,8 +4454,11 @@ select,
     0 2px 7px rgba(40, 26, 12, 0.22),
     inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
-.office--overgif .floor::after {
-  opacity: 1; /* wood floor plane is opaque so the video can't bleed through it */
+/* The floor must stay opaque over the animated backdrop. That job moved from
+   `.floor::after` (which is now only shading) to the room's actual flooring. */
+.office--overgif .room-dressing__floor,
+.office--overgif .room-dressing__wall {
+  opacity: 1;
 }
 .office--overgif .floor::before {
   opacity: 0.9;
@@ -4168,10 +4519,25 @@ select,
 
    Deliberately scoped to placed decorations: the same art in the decoration tray is
    an inventory thumbnail, not scenery, and keeps its intrinsic size. */
+/* SIZE: furniture has to relate to the cast, or the room reads as a doll house.
+   ---------------------------------------------------------------------------
+   This was 52x60. Measured against the sprites that stand next to it, that put a
+   filing cabinet at 60px beside a seated character at 112px — furniture at barely
+   half scale. It is the reason decorated rooms looked like miniatures however well
+   the props themselves were drawn, and no amount of catalogue polish could fix it.
+   81px puts a full-height floor prop at ~72% of a seated character's block, which
+   is what a cabinet beside somebody at a desk actually looks like.
+
+   The character scale is NOT touched: it is normalised, measured and verified
+   (~110-111px visible figure for all 23, 0px foot drift). The environment moves to
+   meet the cast, never the other way round.
+
+   The ghost shares this rule (`.floor__anchor`), so the preview stays the same size
+   as the thing it is previewing — that equality is what makes dragging feel exact. */
 .floor__deco .decor > svg,
 .floor__anchor .decor > svg {
-  width: calc(52px * var(--deco-scale, 1) * var(--asset-scale));
-  height: calc(60px * var(--deco-scale, 1) * var(--asset-scale));
+  width: calc(70px * var(--deco-scale, 1) * var(--asset-scale));
+  height: calc(81px * var(--deco-scale, 1) * var(--asset-scale));
 }
 .floor__deco.deco-anchor--center {
   transform-origin: center;
@@ -4185,8 +4551,61 @@ select,
 .office--decorating .floor__deco:active {
   cursor: grabbing;
 }
+/* SELECTED — a deliberate selection frame with handles.
+   A gold blur alone (the previous treatment) is ambiguous: it looks like the prop
+   is glowing, i.e. like a game effect, not like the thing the toolbar is about to
+   act on. Real editors draw a frame with grips, so that is what this draws —
+   scaled to the prop, tinted gold, and animated in once so the selection lands
+   rather than appearing. */
 .floor__deco.is-selected {
-  filter: drop-shadow(0 0 6px var(--gold));
+  filter: drop-shadow(0 3px 5px rgba(40, 26, 12, 0.34));
+  z-index: 4;
+}
+.floor__deco.is-selected::before {
+  content: '';
+  position: absolute;
+  inset: -7px -7px -5px;
+  border: 1.5px solid color-mix(in srgb, var(--gold) 85%, #6f5636);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--gold) 9%, transparent);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.5),
+    0 0 10px color-mix(in srgb, var(--gold) 40%, transparent);
+  pointer-events: none;
+  animation: deco-select-in 0.16s var(--ease);
+}
+/* Four corner grips. Purely indicative — the whole prop is the drag target, so
+   they never steal a pointer (`pointer-events: none` on the parent frame). */
+.floor__deco.is-selected::after {
+  content: '';
+  position: absolute;
+  inset: -7px -7px -5px;
+  pointer-events: none;
+  background-image:
+    linear-gradient(var(--gold), var(--gold)), linear-gradient(var(--gold), var(--gold)),
+    linear-gradient(var(--gold), var(--gold)), linear-gradient(var(--gold), var(--gold));
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+  background-position:
+    left -1px top -1px,
+    right -1px top -1px,
+    left -1px bottom -1px,
+    right -1px bottom -1px;
+  animation: deco-select-in 0.16s var(--ease);
+}
+@keyframes deco-select-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+[data-reduced-motion='true'] .floor__deco.is-selected::before,
+[data-reduced-motion='true'] .floor__deco.is-selected::after {
+  animation: none;
 }
 .floor__deco.is-dragging {
   opacity: 0.22;
@@ -4528,19 +4947,12 @@ select,
   border-color: color-mix(in srgb, var(--gold) 54%, var(--wood-light));
   box-shadow: 2px 4px 0 rgba(37, 24, 12, 0.2);
 }
-.decocard.is-owned::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 26px;
-  height: 26px;
-  background: linear-gradient(
-    225deg,
-    color-mix(in srgb, var(--positive) 55%, transparent) 0 49%,
-    transparent 50%
-  );
-  pointer-events: none;
+/* OWNED marker. Was a 26px diagonal colour wedge in the corner, which the card's
+   own border-radius clipped into a shape that read as a rendering artefact rather
+   than a badge. A hairline rule down the leading edge says the same thing calmly,
+   and cannot be clipped into something odd. */
+.decocard.is-owned {
+  border-left: 2px solid color-mix(in srgb, var(--positive) 50%, var(--wood-light));
 }
 .decocard.is-placed {
   border-color: color-mix(in srgb, var(--positive) 55%, var(--wood-light));
@@ -4572,14 +4984,14 @@ select,
   z-index: -1;
   pointer-events: none;
 }
+/* Intentionally EMPTY.
+   This drew a 12x12 rotated square outline in the top-right of every thumbnail,
+   meant to suggest a picture hook. At 12px, unfilled and hard-edged, it read as
+   an unstyled checkbox sitting in the corner of all 43 catalogue items — the
+   single most debug-looking thing on the screen. The niche now gets its depth
+   from the plate's own vignette instead. */
 .decocard__preview::before {
-  right: 8px;
-  top: 9px;
-  width: 12px;
-  height: 12px;
-  border: 2px solid rgba(116, 80, 43, 0.26);
-  border-radius: 2px;
-  transform: rotate(3deg);
+  display: none;
 }
 .decocard__preview::after {
   left: 0;
@@ -11993,6 +12405,249 @@ button:disabled,
 }
 
 /* ==========================================================================
+   ARCHITECTURAL SHELL — per-department art direction
+   --------------------------------------------------------------------------
+   The shared shell above gives every room structure. This gives each department
+   a DIFFERENT room, using the building itself rather than props: how high the
+   wainscot runs, what the ceiling is made of, where the light hangs and what
+   colour it is, how deep the corners fall off.
+
+   The test is whether a player can tell which department they are looking at
+   with every decoration and employee removed. Ordered to match the room list.
+   ========================================================================== */
+
+/* Founder's study: tall panelling, warm domestic pendant, generous daylight. */
+.rd--founder-desk {
+  --rail-y: 30%;
+  --wainscot: #e0cfab;
+  --fixture-x: 27%;
+  --fixture-glow: rgba(255, 222, 150, 0.55);
+}
+
+/* Sorting: utilitarian. Low panelling, a hard industrial fluorescent batten
+   rather than a pendant, and a cooler light. */
+.rd--sorting {
+  --rail-y: 15%;
+  --wainscot: #d6c8a8;
+  --fixture-x: 50%;
+  --fixture-glow: rgba(226, 240, 255, 0.42);
+  --ceil-h: 9%;
+}
+.rd--sorting .room-dressing__fixture {
+  width: calc(64px * var(--asset-scale));
+  height: calc(7px * var(--asset-scale));
+  border-radius: 2px;
+  background: linear-gradient(180deg, #cfd6dd 0%, #9aa4ae 62%, #7d8790 100%);
+}
+.rd--sorting .room-dressing__fixture::before {
+  display: none;
+}
+.rd--sorting .room-dressing__fixture::after {
+  width: calc(52px * var(--asset-scale));
+  height: 3px;
+  border-radius: 2px;
+  bottom: -1px;
+  background: #f2f8ff;
+}
+
+/* Cafeteria / morale: café. No wainscot — glazed tile up to the rail instead —
+   and a low, cosy warm pendant. */
+.rd--morale,
+.rd--cafeteria {
+  --rail-y: 22%;
+  --fixture-x: 62%;
+  --fixture-glow: rgba(255, 206, 140, 0.6);
+  --room-ao: 0.14;
+}
+.rd--morale .room-dressing__rail,
+.rd--cafeteria .room-dressing__rail {
+  background:
+    repeating-linear-gradient(
+        90deg,
+        transparent 0 calc(4.5% - 1.5px),
+        rgba(58, 42, 24, 0.16) calc(4.5% - 1.5px) 4.5%
+      )
+      0 0 / 100% 100%,
+    repeating-linear-gradient(180deg, transparent 0 46%, rgba(58, 42, 24, 0.16) 46% 50%),
+    linear-gradient(180deg, #f2e6cf 0%, #e6d6b8 100%);
+}
+
+/* Procurement: ledgers and locked cupboards. Deep panelling, dim single lamp. */
+.rd--procurement {
+  --rail-y: 34%;
+  --wainscot: #d8c39a;
+  --fixture-x: 40%;
+  --fixture-glow: rgba(255, 214, 138, 0.44);
+  --room-ao: 0.2;
+}
+
+/* Construction: unfinished. Exposed ceiling joists, a bare clip lamp, no
+   panelling at all — the wall is still studs and board. */
+.rd--construction {
+  --rail-y: 0%;
+  --fixture-x: 70%;
+  --fixture-glow: rgba(255, 234, 176, 0.5);
+  --ceil-h: 13%;
+}
+.rd--construction .room-dressing__rail {
+  display: none;
+}
+.rd--construction .room-dressing__ceiling {
+  background:
+    repeating-linear-gradient(90deg, transparent 0 34px, rgba(90, 63, 31, 0.55) 34px 42px),
+    linear-gradient(180deg, #cbb591 0%, #b89e77 100%);
+}
+
+/* Lab: clinical. Suspended ceiling grid, cold even light, no wood anywhere. */
+.rd--lab,
+.rd--incubator {
+  --rail-y: 18%;
+  --wainscot: #dfe4e2;
+  --fixture-x: 50%;
+  --fixture-glow: rgba(214, 244, 255, 0.46);
+  --ceil-h: 12%;
+  --ceil-trim: #9fb0ae;
+  --room-ao: 0.12;
+}
+.rd--lab .room-dressing__ceiling,
+.rd--incubator .room-dressing__ceiling {
+  background:
+    repeating-linear-gradient(90deg, transparent 0 30px, rgba(120, 140, 138, 0.5) 30px 32px),
+    repeating-linear-gradient(180deg, transparent 0 12px, rgba(120, 140, 138, 0.5) 12px 14px),
+    linear-gradient(180deg, #e8eeec 0%, #d5dedb 100%);
+}
+.rd--lab .room-dressing__fixture,
+.rd--incubator .room-dressing__fixture {
+  width: calc(70px * var(--asset-scale));
+  height: calc(6px * var(--asset-scale));
+  border-radius: 1px;
+  background: linear-gradient(180deg, #eef5f4 0%, #c3d0ce 100%);
+}
+.rd--lab .room-dressing__fixture::before,
+.rd--incubator .room-dressing__fixture::before {
+  display: none;
+}
+.rd--lab .room-dressing__fixture::after,
+.rd--incubator .room-dressing__fixture::after {
+  width: calc(60px * var(--asset-scale));
+  height: 2.5px;
+  border-radius: 1px;
+  background: #f4feff;
+}
+
+/* Marketing: a pitch room. Bright, high wainscot in the brand colour, warm
+   spotlight aimed at the wall where the campaign board hangs. */
+.rd--marketing {
+  --rail-y: 27%;
+  --wainscot: #e6d2c4;
+  --fixture-x: 22%;
+  --fixture-glow: rgba(255, 226, 176, 0.55);
+}
+
+/* Vault: no daylight, no ceiling detail. A single caged bulb, heavy shadow. */
+.rd--vault {
+  --rail-y: 0%;
+  --fixture-x: 50%;
+  --fixture-glow: rgba(255, 206, 110, 0.4);
+  --ceil-h: 8%;
+  --ceil: #6f6656;
+  --ceil-trim: #554d40;
+  --room-ao: 0.3;
+}
+.rd--vault .room-dressing__rail {
+  display: none;
+}
+/* the cage over the bulb */
+.rd--vault .room-dressing__fixture::before {
+  display: none;
+}
+.rd--vault .room-dressing__fixture {
+  border-radius: 50%;
+  background:
+    repeating-conic-gradient(from 0deg, rgba(40, 34, 26, 0.9) 0 6deg, transparent 6deg 30deg),
+    radial-gradient(circle, #8f7048 0%, #6f5636 100%);
+}
+
+/* Research / meeting: acoustic panelling and a fluorescent panel. */
+.rd--research,
+.rd--meeting {
+  --rail-y: 24%;
+  --wainscot: #dcd2bc;
+  --fixture-x: 50%;
+  --fixture-glow: rgba(240, 240, 226, 0.44);
+}
+.rd--research .room-dressing__rail,
+.rd--meeting .room-dressing__rail {
+  background:
+    repeating-linear-gradient(90deg, rgba(58, 42, 24, 0.1) 0 2px, transparent 2px 5%),
+    linear-gradient(180deg, #ded4be 0%, #cec3aa 100%);
+}
+
+/* Nap chamber: soft, dark, no overhead light at all — just a night glow. */
+.rd--nap {
+  --rail-y: 20%;
+  --wainscot: #cfc0ad;
+  --room-ao: 0.24;
+  --ceil-h: 10%;
+  --ceil: #b9a894;
+}
+.rd--nap .room-dressing__fixture {
+  display: none;
+}
+
+/* Basement: concrete. No panelling, no ceiling trim, one swinging worklight and
+   very deep corners. The room the company does not put on the floor plan. */
+.rd--basement {
+  --rail-y: 0%;
+  --fixture-x: 58%;
+  --fixture-glow: rgba(214, 226, 190, 0.34);
+  --ceil-h: 7%;
+  --ceil: #6d6a60;
+  --ceil-trim: #4f4c45;
+  --room-ao: 0.34;
+}
+.rd--basement .room-dressing__rail {
+  display: none;
+}
+
+/* Rooftop: outdoors. There is no ceiling and no pendant; the sky is the light. */
+.rd--rooftop .room-dressing__ceiling,
+.rd--rooftop .room-dressing__rail,
+.rd--rooftop .room-dressing__fixture {
+  display: none;
+}
+.rd--rooftop {
+  --room-ao: 0.1;
+}
+
+/* Mailroom: pigeonholes and a plain batten. */
+.rd--mailroom {
+  --rail-y: 16%;
+  --wainscot: #dbcaa6;
+  --fixture-x: 46%;
+  --fixture-glow: rgba(255, 236, 190, 0.42);
+}
+
+/* Security: dim, watchful. Low ceiling, cold monitor light from below the rail. */
+.rd--security {
+  --rail-y: 20%;
+  --wainscot: #cbc7bb;
+  --fixture-x: 34%;
+  --fixture-glow: rgba(196, 226, 235, 0.36);
+  --ceil-h: 9%;
+  --room-ao: 0.26;
+}
+
+/* Archive: floor-to-rail shelving depth, warm reading lamp, dusty corners. */
+.rd--archive {
+  --rail-y: 36%;
+  --wainscot: #d9c7a1;
+  --fixture-x: 66%;
+  --fixture-glow: rgba(255, 218, 150, 0.42);
+  --room-ao: 0.24;
+}
+
+/* ==========================================================================
    Commercial polish pass — typography rhythm and unified tactile controls
    ========================================================================== */
 .view > h2,
@@ -13225,5 +13880,278 @@ button:disabled,
   }
   .talk__name {
     margin: 0;
+  }
+}
+
+/* ===========================================================================
+   THE DECORATION CATALOGUE — presentation pass
+   ---------------------------------------------------------------------------
+   The underlying system is sound; how it was presented was not. What the screen
+   actually looked like:
+
+     * roughly two dozen identical rounded pills stacked in three wrapping rows
+       (one per room, one per type, one per currency) before a single item was
+       visible — a wall of component-library chips, and the clearest single
+       "generic web app" signal in the game;
+     * cards of ragged height, because an unowned item shows a price button while
+       an owned one shows two or three controls, so the grid never lined up;
+     * a 72px thumbnail plate darker than the art inside it, which made every
+       decoration hard to actually SEE — the one thing a shop must get right.
+
+   Nothing here changes the DOM, the filters or the purchase logic. It changes
+   density, alignment, contrast and hierarchy: the controls become one quiet
+   toolbar, the items become a tidy grid of framed objects, and the art gets a
+   lit plate to sit on.
+   ========================================================================= */
+
+/* --- the controls, as one toolbar rather than three rows of pills ---------- */
+.decorate__rooms {
+  gap: 4px;
+  margin: 10px 0 8px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid color-mix(in srgb, var(--wood-light) 45%, transparent);
+}
+/* Room chips are a filter, not a primary action: smaller, quieter, and only the
+   active one carries weight. */
+.decorate__rooms .chip-btn {
+  padding: 3px 9px;
+  font-size: 0.7em;
+  letter-spacing: 0.01em;
+  border-radius: 4px;
+  opacity: 0.82;
+}
+.decorate__rooms .chip-btn:hover {
+  opacity: 1;
+}
+.decorate__rooms .chip-btn.is-on {
+  opacity: 1;
+  font-weight: 800;
+}
+
+/* The secondary filters read as one instrument: a single recessed bar holding
+   the search field and the two chip groups, with hairline dividers between
+   them instead of loose rows floating on the page. */
+.decorate__filters {
+  gap: 7px;
+  margin-bottom: 14px;
+  padding: 6px 8px;
+  background: rgba(0, 0, 0, 0.13);
+  border: 1px solid color-mix(in srgb, var(--wood-light) 40%, transparent);
+  border-radius: var(--r-sm);
+  box-shadow: inset 0 1px 2px rgba(37, 24, 12, 0.16);
+}
+.decorate__chiprow {
+  gap: 3px;
+  padding-left: 7px;
+  border-left: 1px solid color-mix(in srgb, var(--wood-light) 34%, transparent);
+}
+.decorate__chiprow .tag-btn {
+  padding: 2px 8px;
+  font-size: 0.66em;
+}
+.decorate__search {
+  flex: 1 1 190px;
+  min-width: 150px;
+}
+
+/* --- the grid ------------------------------------------------------------- */
+.decorate__grid {
+  grid-template-columns: repeat(auto-fill, minmax(232px, 1fr));
+  gap: 11px;
+}
+
+/* Uniform cards. The row template is what fixes the ragged grid: the body takes
+   the slack and the action row is pinned to the bottom edge, so a priced card
+   and an owned card with three controls are exactly the same height and every
+   price in the grid sits on one line. */
+.decocard {
+  grid-template-columns: 88px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 8px 12px;
+  min-height: 132px;
+  padding: 11px 11px 9px;
+}
+.decocard:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--gold) 42%, var(--wood-light));
+  box-shadow:
+    1px 3px 0 rgba(37, 24, 12, 0.24),
+    0 6px 14px rgba(37, 24, 12, 0.2);
+}
+[data-reduced-motion='true'] .decocard:hover {
+  transform: none;
+}
+
+/* A LIT plate for the object. The old plate was darker than most of the art on
+   it; a shop item has to be the brightest thing in its own frame. Warm paper,
+   a floor line low down so standing props read as standing, and an inner
+   vignette so the object sits IN a niche rather than on a swatch. */
+.decocard__preview {
+  width: 88px;
+  height: 92px;
+  align-self: center;
+  background:
+    radial-gradient(ellipse 66% 42% at 50% 88%, rgba(63, 39, 16, 0.16), transparent 70%),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--paper) 92%, #fff) 0 74%,
+      color-mix(in srgb, #c79a5e 78%, var(--paper)) 75% 100%
+    );
+  border-color: color-mix(in srgb, var(--wood-light) 82%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -8px 14px rgba(63, 39, 16, 0.11),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+/* Let the artwork use the plate it was given. */
+.decocard__preview .decor > svg {
+  width: 62px;
+  height: 70px;
+}
+/* Surface tag: a small stamped label on the frame, not a floating black chip. */
+.decocard__surface {
+  right: 4px;
+  bottom: 4px;
+  padding: 1px 5px;
+  border-radius: 2px;
+  background: color-mix(in srgb, #2b1e12 62%, transparent);
+  border: 1px solid rgba(255, 244, 220, 0.22);
+  letter-spacing: 0.06em;
+}
+
+/* --- card text: one clear name, one quiet line of metadata ---------------- */
+.decocard__title {
+  font-size: 0.86em;
+  line-height: 1.22;
+  /* Two lines maximum, so a long name cannot push the grid around. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+/* The metadata was three competing pills. The room is the useful fact, so it
+   keeps a pill; the type becomes plain small caps beside it. */
+.decocard__meta {
+  gap: 5px;
+  align-items: center;
+  margin-top: 4px;
+}
+.decocard__meta .pill--soft {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--ink-dim);
+  font-size: 0.62em;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+.decocard__comfort {
+  margin-top: 5px;
+  color: color-mix(in srgb, #6fbf7f 76%, var(--ink));
+  font-size: 0.68em;
+  font-weight: 800;
+}
+
+/* --- the action row ------------------------------------------------------- */
+.decocard__actions {
+  align-self: end;
+  margin-top: 2px;
+  padding-top: 7px;
+  /* A solid hairline. The dashed rule read as a dotted-line coupon. */
+  border-top: 1px solid color-mix(in srgb, var(--wood-light) 40%, transparent);
+}
+/* The price is the call to action: readable, tactile, and clearly a button —
+   without the oversized glossy slab it used to be. */
+.decocard__actions .buy-btn {
+  padding: 4px 11px;
+  font-size: 0.78em;
+  border-radius: 5px;
+}
+.decocard__actions .buy-btn:disabled {
+  /* Cannot afford it yet: legible, obviously inert, not simply faded out. */
+  opacity: 1;
+  filter: saturate(0.25);
+  color: var(--ink-dim);
+}
+/* Owned states are information, not actions — so they stop competing with the
+   button next to them.
+
+   The border reset is the point: `.pill, .decocard__badge` share a stationery
+   rule that sets `border-style: dashed`, which on a pill reads as stitched paper
+   but on this badge produced a 3px dashed green box around the word PLACED — a
+   marching-ants rectangle on every owned item, indistinguishable from a debug
+   outline. A status like "placed" is a caption, not a container. */
+.decocard__badge {
+  margin-right: auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  font-size: 0.66em;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* Placed items are the goal of the screen: mark them on the frame so the grid
+   can be read at a glance for what is already in the office. */
+.decocard.is-placed .decocard__preview {
+  border-color: color-mix(in srgb, #6fbf7f 55%, var(--wood-light));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -8px 14px rgba(63, 39, 16, 0.11),
+    inset 0 0 0 1px color-mix(in srgb, #6fbf7f 30%, transparent);
+}
+/* Unowned items sit slightly back, so owned/placed ones come forward. */
+.decocard:not(.is-owned) .decocard__preview .decor {
+  opacity: 0.92;
+}
+
+/* WIDE = the figures gathered into one cluster.
+   Deliberately at the end of the sheet: this and the base `.res-cell` block have
+   equal specificity, so source order decides, and a media query adds none. Placed
+   earlier, the base padding silently won and the wide layout never got its roomier
+   spacing.
+
+   Only above 760px, because that is where the equal-column grid starts leaving
+   large empty gaps between four short numbers — the "spreadsheet header" look this
+   pass set out to remove. Below it, the grid above stays in charge. */
+@media (min-width: 900px) {
+  /* The strip element itself stays a full-width block. That is deliberate and it
+     is the safety property: an earlier attempt sized it with `width: max-content`,
+     which let its intrinsic width exceed its container and pushed the window
+     controls clean off the right edge at a 320px window under 1.5x interface
+     scale. Never sizing this element to its contents makes that impossible.
+
+     Instead the COLUMNS hug their contents and pack to the left, and the panel
+     surface moves from the strip onto the fields. The leftover space is then
+     genuinely empty letterhead rather than an empty bar, which is the look this
+     was after in the first place. */
+  .header__strip {
+    grid-auto-columns: max-content;
+    justify-content: start;
+    background: none;
+    border-color: transparent;
+    overflow: visible;
+  }
+  .res-cell {
+    /* Stops a column jittering as its value ticks between 4 and 5 glyphs. */
+    min-width: 96px;
+    padding: 4px 15px 5px 13px;
+    background: rgba(0, 0, 0, 0.22);
+    border-top: 1px solid rgba(0, 0, 0, 0.35);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.35);
+  }
+  .res-cell:hover {
+    background: rgba(0, 0, 0, 0.3);
+  }
+  .res-cell:first-child {
+    border-left: 1px solid rgba(0, 0, 0, 0.35);
+    border-radius: var(--corner-panel) 0 0 var(--corner-panel);
+  }
+  .res-cell:last-of-type {
+    border-right: 1px solid rgba(0, 0, 0, 0.35);
+    border-radius: 0 var(--corner-panel) var(--corner-panel) 0;
   }
 }
