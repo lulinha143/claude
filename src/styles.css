@@ -14155,3 +14155,123 @@ button:disabled,
     border-radius: 0 var(--corner-panel) var(--corner-panel) 0;
   }
 }
+
+/* ===========================================================================
+   THE DECORATION TRAY — the surface you actually drag from
+   ---------------------------------------------------------------------------
+   This is what decorate mode is operated through, and it was its weakest part:
+   62px cards with the artwork crammed into ~34px on a flat brown square, so the
+   props were barely identifiable — on a shop-like strip that is the one thing
+   that has to work.
+
+   The cards are wider, and the artwork now sits in the same lit niche the
+   catalogue uses, so an item looks like itself wherever it appears.
+
+   WHAT IS DELIBERATELY *NOT* DONE HERE, and why
+   ---------------------------------------------
+   Card HEIGHT is left alone. Two-line names and a taller tray both look better in
+   isolation, and both were reverted: `.deco-tray` is a flex column with a
+   `max-height`, so any extra content height is absorbed by shrinking its rows.
+   The head row wraps, so once squeezed its second line rode up over its first and
+   the search label came to rest on top of the "Move To…" button — a control that
+   looked perfectly normal and could not be clicked — while also covering the first
+   card, so a cancelled drag never got the pointer-up that clears its selection.
+
+   Two E2E tests caught exactly that (decoration "touch-friendly room choice" and
+   interactions "never leave input blocked"), and they were right to: it is a
+   dead-control bug, which is worse than a truncated label. Legibility here comes
+   from width and from the plate, not from height.
+   ========================================================================= */
+.deco-tray__card {
+  /* Wider, so most names fit without being cut, at the same height as before. */
+  width: 84px;
+  padding: 5px 5px 6px;
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  border-color: color-mix(in srgb, var(--wood-light) 45%, transparent);
+  box-shadow: 0 1px 0 rgba(37, 24, 12, 0.3);
+  transition:
+    transform var(--dur-fast) var(--ease),
+    box-shadow var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease),
+    background var(--dur-fast) var(--ease);
+}
+/* Grab affordance: it rises toward the cursor, because the next thing you do is
+   pick it up. */
+.deco-tray__card:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--gold) 55%, var(--wood-light));
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  box-shadow:
+    0 5px 10px rgba(20, 12, 6, 0.4),
+    0 0 0 1px color-mix(in srgb, var(--gold) 24%, transparent);
+}
+.deco-tray__card:active {
+  transform: translateY(-1px) scale(0.97);
+  cursor: grabbing;
+}
+[data-reduced-motion='true'] .deco-tray__card,
+[data-reduced-motion='true'] .deco-tray__card:hover,
+[data-reduced-motion='true'] .deco-tray__card:active {
+  transform: none;
+  transition: none;
+}
+
+/* The lit niche, drawn BEHIND the item by the card.
+   Deliberately not by styling `.decor` into a full-width block: `.decor` is the
+   draggable button, and giving it the plate's box made it cover the whole card and
+   swallow pointer events the card itself needed. Decoration is the card's job; the
+   button keeps its own geometry. */
+.deco-tray__card {
+  position: relative;
+}
+.deco-tray__card::before {
+  content: '';
+  position: absolute;
+  left: 5px;
+  right: 5px;
+  top: 5px;
+  height: 44px;
+  border-radius: 4px;
+  background:
+    radial-gradient(ellipse 60% 38% at 50% 86%, rgba(63, 39, 16, 0.2), transparent 70%),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--paper) 90%, #fff) 0 76%,
+      color-mix(in srgb, #c79a5e 76%, var(--paper)) 77% 100%
+    );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 0 0 1px rgba(90, 63, 31, 0.22);
+  pointer-events: none;
+}
+.deco-tray__card .decor {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 44px;
+}
+.deco-tray__card .decor > svg {
+  width: 38px;
+  height: 42px;
+}
+
+/* Selected: the item the room is about to receive. */
+.deco-tray__card.is-selected {
+  border-color: var(--gold);
+  background: color-mix(in srgb, var(--gold) 15%, var(--surface));
+  box-shadow:
+    0 0 0 1px var(--gold),
+    0 4px 9px rgba(20, 12, 6, 0.42);
+}
+
+/* While a drag is in progress the tray steps back so the room is the focus.
+   Visual only — it must keep taking pointer events, or a cancelled drag leaves the
+   selection stuck. */
+.deco-tray.is-dragging {
+  opacity: 0.55;
+}
+
+.deco-tray__chips .tag-btn {
+  padding: 2px 8px;
+  font-size: 0.66em;
+}
