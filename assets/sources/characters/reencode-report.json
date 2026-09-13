@@ -73,12 +73,12 @@
       "before": {
         "file": "bea-1x.png",
         "size": [
-          142,
-          124
+          139,
+          122
         ],
-        "bytes": 2991744,
-        "sha256": "bd71e0482f9a797ebec1a859f023ba9801e04c9a0bb13fec2a9cb2ff3b13ab08",
-        "dpr1Ratio": 0.9839
+        "bytes": 2896962,
+        "sha256": "77de36ed56913427a2820b86b53e2147145b9878a8cedac70590872e0e48af03",
+        "dpr1Ratio": 1.0
       },
       "resample": 0.5259,
       "after": {
@@ -409,12 +409,12 @@
       "before": {
         "file": "marlow-1x.png",
         "size": [
-          130,
-          120
+          129,
+          119
         ],
-        "bytes": 2655399,
-        "sha256": "4a9b68495e0b2cf2ccd5e4cb08fce4312cdf11d32a9bbbc3217f6925c1925bb8",
-        "dpr1Ratio": 0.9917
+        "bytes": 2622117,
+        "sha256": "fd55a02cd0b8dd6cebe20afabcc9853195c126936e062bdff71c3caf9ad124b4",
+        "dpr1Ratio": 1.0
       },
       "resample": 0.595,
       "after": {
@@ -931,6 +931,48 @@
         "sha256": "c88e44b082532761679744fb0a57bada2df4b980aacd16533265b07f8de1a3c5",
         "frames": 158,
         "durationMs": 5280,
+        "repairedFrames": 0,
+        "dpr1Ratio": 1.0
+      }
+    },
+    {
+      "employee": "bia",
+      "asset": "bia",
+      "officeHeight": 100,
+      "presenceScale": 1.2,
+      "targetHeight": 120,
+      "source": {
+        "file": "bia.png",
+        "size": [
+          200,
+          200
+        ],
+        "bytes": 7550978,
+        "sha256": "e58b702866a80bf38e8e1d75f99efdded505c80054cf1a1ab5e7fe07e17bec74",
+        "frames": 134,
+        "durationMs": 4422
+      },
+      "before": {
+        "file": "bia-1x.png",
+        "size": [
+          120,
+          120
+        ],
+        "bytes": 2979692,
+        "sha256": "cb0210ab2fcb8978af1c4d784bbbe41ce87a14c4f57c8d68a407db3f68bb2fce",
+        "dpr1Ratio": 1.0
+      },
+      "resample": 0.6,
+      "after": {
+        "file": "bia-1x.png",
+        "size": [
+          120,
+          120
+        ],
+        "bytes": 2979692,
+        "sha256": "cb0210ab2fcb8978af1c4d784bbbe41ce87a14c4f57c8d68a407db3f68bb2fce",
+        "frames": 129,
+        "durationMs": 4422,
         "repairedFrames": 0,
         "dpr1Ratio": 1.0
       }

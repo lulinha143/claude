@@ -235,10 +235,11 @@
       "species": "bear",
       "asset": "bia",
       "sourceFile": "URSO.png",
-      "driveId": null,
-      "officeHeight": null,
-      "skipImport": true,
-      "skipReason": "AWAITING REAL ASSET. The bear master has not been authored yet. Do not substitute, generate or re-use another animal's artwork: bia deliberately renders as the vector Critter fallback until URSO.png exists. To finish the cast, drop the master in assets/sources/characters/URSO.png, fill in driveId and officeHeight, remove skipImport, then run scripts/import-character-assets.py --only bia and scripts/normalize-cast.py."
+      "driveId": "1WJ4-q6aKEk8sfyw2jNexC82g8RapUcDr",
+      "officeHeight": 100,
+      "sourceBytes": 109916653,
+      "sourceSha256": "1825b0f1e7ab634991f9c3d8ce667c016e8a3a8ecee23cd4ea7b269b46acc418",
+      "note": "The bear master finally landed, completing the 23-animal cast. Imported through the same pipeline as the rest (crop -> premultiplied LANCZOS downscale -> full-canvas frames -> alpha-dropout repair). Like 7 of the 13 masters in the 2.0 drop it carries the semi-transparent alpha-collapse defect that produced Pip's halo shimmer: 8 of its 134 frames deviate from their neighbours by ~8.9/255 mean alpha against a 0.07/255 median, and the importer's repair pass substitutes the nearest healthy frames."
     }
   ]
 }

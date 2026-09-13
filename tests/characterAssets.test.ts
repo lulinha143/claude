@@ -103,6 +103,26 @@ describe('character art registry integrity', () => {
     expect(characterArt('not-an-animal')).toBeUndefined();
     expect(activeArtVersion('not-an-animal')).toBeUndefined();
   });
+
+  // THE COMPLETENESS GUARD.
+  //
+  // The cast is 23 animals and every one of them has real artwork; the bear was the
+  // last to land. The failure mode this exists to catch is an animal being quietly
+  // dropped — an employee added without art, or an art entry deleted — because the
+  // consequence is not a crash but a character who silently degrades to the vector
+  // critter and stands out against a photographic cast. That is exactly what the
+  // bear did for the whole of 2.0, and it went unnoticed because nothing failed.
+  //
+  // Deliberately asserted BOTH ways: every employee has art, and every art entry has
+  // an employee. A count alone would let an addition and a removal cancel out.
+  it('gives every single employee real artwork, with nobody left on the fallback', () => {
+    const employees = Object.keys(EMPLOYEES_BY_ID).sort();
+    const registered = CHARACTER_ART.map((e) => e.employee).sort();
+    expect(registered).toEqual(employees);
+    for (const id of employees) {
+      expect(characterArt(id), `${id} has no registered artwork`).toBeDefined();
+    }
+  });
 });
 
 describe('character art files on disk', () => {
@@ -288,10 +308,12 @@ describe('rendered character scale', () => {
     }
   });
 
-  // Fifteen of the twenty-four employees still have no photographic artwork and are
-  // drawn by code instead. They stand in the same rooms as the animals that do, so
-  // they belong to the same cast scale — before this they rendered a third smaller,
-  // which read as "some characters are tiny" rather than as a missing-art fallback.
+  // Every employee now has photographic artwork, so the code-drawn critters are no
+  // longer a roster gap — but they are still the load-failure fallback (see
+  // tests/spriteAvailability.test.ts), so a critter can appear beside a photographic
+  // animal at any time and still has to belong to the same cast scale. Before this
+  // was normalised they rendered a third smaller, which read as "some characters are
+  // tiny" rather than as a fallback.
   it('draws the code-drawn fallback critters at the same figure height', () => {
     const target = renderedFigureHeight('pip');
     const vector = VECTOR_CRITTER_OFFICE_SIZE * VECTOR_CRITTER_FIGURE_FRACTION;
