@@ -12,6 +12,16 @@ if (!exe || !fs.existsSync(exe)) {
   console.error(`RECOVERY SMOKE FAIL: PKG_EXE not found: ${exe}`);
   process.exit(1);
 }
+// Checked here rather than left to blow up further down: without it the run died on
+// `path.join(undefined, 'startup.log')` with a bare ERR_INVALID_ARG_TYPE, which reads
+// like a broken script rather than a missing argument.
+if (!userData) {
+  console.error(
+    'RECOVERY SMOKE FAIL: PKG_USERDATA must be set to an isolated user-data dir, ' +
+      'so the startup log can be inspected without touching a real profile.',
+  );
+  process.exit(1);
+}
 function fail(msg) {
   console.error('RECOVERY SMOKE FAIL:', msg);
   process.exit(1);

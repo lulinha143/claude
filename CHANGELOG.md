@@ -6,6 +6,65 @@ semantic versioning.
 
 ## [Unreleased] — audio, breakdown & start-screen pass
 
+### Added — the cast is complete (23/23)
+
+- **The bear (`bia`) has real artwork, closing the last gap in the photographic
+  cast.** She was the only employee still rendering as the code-drawn vector
+  critter: fully wired into gameplay (roster, room specialists, click-station
+  synergy, dialogue, i18n) but with `assets/sources/characters/manifest.json`
+  marking her master `skipImport: "AWAITING REAL ASSET"`. The master (`URSO.png`,
+  960×960, 134 frames @30fps) landed and went through the **existing** pipeline
+  unchanged — `import-character-assets.py` → `measure-character-figures.py` →
+  `sync-character-registry.py` → `reencode-cast-display-size.py` → `sync` again,
+  with `--check` confirming convergence. No second employee architecture; one
+  registry entry in `src/art/characterAssets.ts` where the "NOT REGISTERED,
+  DELIBERATELY" comment used to be.
+- **The master carried the same alpha-collapse defect as Pip's**, which is exactly
+  why that repair was moved into the importer rather than left as a manual step: 8
+  of its 134 frames deviate ~8.9/255 in mean alpha against a 0.07/255 median, and
+  the pipeline rebuilt 5 frames from their nearest healthy neighbours automatically.
+  The result passes the halo temporal-stability guard at **3.3/255** peak-to-peak
+  (Pip's raw, defective master measures 16.95). The master itself is untouched and
+  recorded with its SHA-256.
+- **Verified at Pip's scale, not at Pip's canvas size.** Measured `officeHeight` 100,
+  `baseline` 0, `anchorX` 0.5175, `figureTop` 0.08 — all derived, none hand-tuned.
+  The bear's visible figure renders **110px against Pip's 111px** with her feet
+  exactly on the floor line, and DPR 1 is pixel-exact `1.000x` like the rest of the
+  cast.
+- **`scripts/shot-cast-scale.py`** — draws all 23 animals at their real rendered size
+  on one shared floor line, with guide lines at Pip's figure top and bottom, so
+  "does the roster read as one cast?" can be looked at instead of inferred from a
+  table. It measures the **union** silhouette across the whole loop, because a single
+  mid-loop frame misreports several animals badly (the bear looked 9.9% short and
+  10px airborne purely from a contact shadow that only extends in a few frames).
+
+### Fixed — validation that had quietly stopped validating
+
+- **`npm run smoke:window` had been failing on its first assertion since the
+  letterhead rebuild** (`f5cfa79`/`127dff4`), because it still looked for
+  `.header__resources` after the resource strip became `.header__strip`. It never
+  reached the resize, min-size-clamp, window-controls or bounds-persistence checks
+  below it. Its navigation assertions were also describing a superseded design —
+  11 visible `.nav__label`s wrapped onto 2+ rows — where the file-tab strip
+  deliberately has **no** text labels and stays on **one** row at every size
+  (pinned by `tests/e2e/nav-layout.spec.ts`). Now asserts the real contract:
+  11 destinations, each visible with an icon and an accessible name, one row, no
+  overflow menu and no horizontal scroll. Passes end-to-end in real Electron.
+- **`npm run verify:packaged` never checked the character artwork** — the highest-risk
+  asset class, and the one with the quietest failure mode, since a missing sprite does
+  not error but silently degrades to the vector critter. It now verifies all three
+  files for every registered animal, driven off the registry so it tracks the cast
+  automatically. Confirmed non-vacuous: hiding one file fails the check by name.
+- **`smoke:recovery` died with a bare `ERR_INVALID_ARG_TYPE`** when `PKG_USERDATA`
+  was unset, which reads like a broken script rather than a missing argument. It now
+  says which variable it needs.
+- `scripts/shot-room.mjs` counted the mood-bubble `<svg>` as a vector critter
+  (`.critter-btn svg` matched both), inventing four phantom "vector" figures in every
+  full room and hiding any real fallback regression behind them. It now matches
+  `svg.critter`, reports each bubble's gap to the top of the **head** rather than the
+  sprite box, and takes `--staff` so 1/2/3/4-employee room layouts can each be
+  photographed.
+
 ### Removed
 
 - **Removed the two conveyor micro-games** (brief §14): **Sorting Conveyor**

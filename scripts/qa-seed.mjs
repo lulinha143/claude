@@ -7,9 +7,12 @@
  * actually exercised.
  */
 
-// The full 2.0 cast, four to a room (ROOM_CAP), grouped so each room is full.
-// `bia` is deliberately absent from the photographic cast: the bear has no artwork
-// yet and renders as the vector critter.
+// The full cast, four to a room (ROOM_CAP), grouped so each room is full.
+//
+// Every one of the 23 animals now has photographic artwork — the bear was the last
+// to land — so this roster no longer exercises the vector-critter fallback. That
+// path is still covered, by tests/spriteAvailability.test.ts, which is the right
+// place for it: it is a load-failure behaviour, not a visual-QA subject.
 export const QA_ROSTER = [
   // founder's desk
   { id: 'pip', room: 'founder-desk' },
@@ -39,7 +42,8 @@ export const QA_ROSTER = [
   // construction + sorting
   { id: 'bea', room: 'construction' },
   { id: 'dorm', room: 'construction' },
-  // the bear: no artwork, vector fallback, deliberately still here
+  // The bear, alone in sorting — which also gives the harness a 1-employee room to
+  // photograph next to the full ones, so the progressive room layouts get exercised.
   { id: 'bia', room: 'sorting' },
 ];
 
@@ -59,7 +63,13 @@ export function qaSave(roster = QA_ROSTER) {
       goldenNuts: 40,
       permanentKernels: 0,
       morale: 80,
-      reputation: 400,
+      // Comfortably above the highest employee unlock (1150), because the roster below
+      // hires the whole cast and reputation is what UNLOCKS them. At 400 the save was
+      // internally inconsistent — twelve animals were flagged `hired` while
+      // `isEmployeeUnlocked` still said no, so their roster cards showed "unlock at …"
+      // instead of their actions and no harness could reach Talk, coffee or promotion
+      // for over half the cast.
+      reputation: 1_600,
     },
     employees,
     upgrades: {

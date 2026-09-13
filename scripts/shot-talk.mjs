@@ -9,7 +9,7 @@
  * with its measured "what changed" readout. That is the only way to know the thing a
  * player actually sees is right.
  *
- * Usage: node scripts/shot-talk.mjs [--tag NAME]
+ * Usage: node scripts/shot-talk.mjs [--tag NAME] [--who EMPLOYEE_ID]
  */
 import { createServer } from 'node:http';
 import { mkdir, readFile } from 'node:fs/promises';
@@ -63,6 +63,12 @@ async function serve() {
 const main = async () => {
   const i = process.argv.indexOf('--tag');
   const tag = i > -1 ? process.argv[i + 1] : 'talk';
+  // Which animal to interview. Was hard-coded to Pip, which meant the one character
+  // whose artwork is hand-repaired and most-tested was also the only one this harness
+  // could ever look at — so a newly imported animal could not be checked in the mode
+  // that shows a character at their largest.
+  const w = process.argv.indexOf('--who');
+  const who = w > -1 ? process.argv[w + 1] : 'pip';
   await mkdir(OUT, { recursive: true });
   const { server, port } = await serve();
   const browser = await chromium.launch();
@@ -81,9 +87,9 @@ const main = async () => {
     // Into the roster, which is the reliable entry point.
     await page.locator('.nav button').filter({ hasText: 'Team' }).first().click();
     await page.waitForTimeout(600);
-    const talk = page.locator('.employee-card__talk[data-employee="pip"]').first();
+    const talk = page.locator(`.employee-card__talk[data-employee="${who}"]`).first();
     if (!(await talk.count())) {
-      problems.push(`[${size.name}] no Talk button rendered on the roster`);
+      problems.push(`[${size.name}] no Talk button rendered on the roster for ${who}`);
       await page.close();
       continue;
     }
