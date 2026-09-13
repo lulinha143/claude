@@ -216,7 +216,9 @@
       "cushion": "Conforto",
       "screen": "Telas",
       "box": "Móveis"
-    }
+    },
+    "resetRoomTip": "Reorganiza todas as peças já presentes nesta sala em um layout padrão arrumado. Desfazer está aqui ao lado, se você preferia do seu jeito.",
+    "resetDone": "Sala arrumada — Desfazer está ao lado do botão."
   },
   "decoReact": {
     "plant": "Essa plantinha deixa o ambiente bem mais fresco.",
@@ -2133,7 +2135,9 @@
     "additionalUpdates_other": "+{{count}} atualizações adicionais",
     "eventAutoResolved": "Resolvido para você — {{title}}: {{choice}}",
     "repTierUp": "{{name}} — {{blurb}}",
-    "consequenceSettled": "{{title}} — {{body}}"
+    "consequenceSettled": "{{title}} — {{body}}",
+    "achievementsCaughtUp_one": "Registros atualizados: {{count}} conquista já obtida",
+    "achievementsCaughtUp_other": "Registros atualizados: {{count}} conquistas já obtidas"
   },
   "react": {
     "marlowApproves": "Bento aprovou esta decisão.",

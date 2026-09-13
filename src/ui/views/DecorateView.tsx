@@ -21,6 +21,7 @@ import { sparkleAt } from '../sparkle';
 import { notify } from '../notificationsStore';
 import { MoveDecorationModal } from '../modals/MoveDecorationModal';
 import { decorationSurface } from '../../sim/surfaces';
+import { Tip, TipContent } from '../Tooltip';
 
 const ROOM_ACCENT: Record<string, string> = {
   'founder-desk': 'var(--dept-founder)',
@@ -63,10 +64,7 @@ export function DecorateView() {
   );
   const roomIds = useMemo(() => new Set(rooms.map((r) => r.id)), [rooms]);
 
-  const available = useMemo(
-    () => DECORATIONS.filter((d) => roomIds.has(d.room)),
-    [roomIds],
-  );
+  const available = useMemo(() => DECORATIONS.filter((d) => roomIds.has(d.room)), [roomIds]);
 
   // The decoration kinds present among available items (for the type filter).
   const kinds = useMemo(() => {
@@ -85,6 +83,11 @@ export function DecorateView() {
     if (q && !t(`deco.${d.id}.name`).toLowerCase().includes(q)) return false;
     return true;
   });
+
+  // Owned pieces in the selected room. `resetRoomDecorations` refuses when a room
+  // has nothing of its own to arrange, so the button is disabled rather than
+  // offered-and-then-rejected.
+  const ownedHere = room === 'all' ? 0 : ownedDecorationsInRoom(state, room).length;
 
   // Scope summary (whole catalogue, or the selected room).
   const scopeRooms = room === 'all' ? rooms.map((r) => r.id) : [room];
@@ -123,6 +126,58 @@ export function DecorateView() {
           </button>
         ))}
       </div>
+
+      {/* Room actions.
+          "Tidy up" used to sit as the last chip INSIDE the filter toolbar, which
+          made a mutating, room-wide action look like one more filter — and it was
+          the only control there that changed the game rather than the view. Worse,
+          it is fully undoable (engine.resetRoomDecorations pushes decoration
+          history) but Undo lived only in the office toolbar, on a different screen,
+          so from here the player could rearrange every piece in a room with no
+          visible way back.
+
+          Actions now have their own bar, scoped to the selected room, with the
+          undo that belongs to them sitting right next to it. */}
+      {room !== 'all' ? (
+        <div className="decorate__roombar">
+          <span className="decorate__roombar-room">
+            <Icon name="rooms" size={13} />
+            {t(ROOMS_BY_ID[room].nameKey)}
+          </span>
+          <div className="decorate__roombar-actions">
+            <Tip
+              content={
+                <TipContent title={t('decorate.resetRoom')} lines={[t('decorate.resetRoomTip')]} />
+              }
+            >
+              <button
+                className="mini-btn mini-btn--primary"
+                disabled={ownedHere === 0}
+                onClick={() => {
+                  if (engine.resetRoomDecorations(room)) {
+                    audio.play('upgrade');
+                    notify('rooms', t('decorate.resetDone'), 'positive');
+                  } else {
+                    notify('rooms', t('decorate.resetFull'), 'neutral');
+                    audio.play('error');
+                  }
+                }}
+              >
+                <Icon name="refresh" size={13} /> {t('decorate.resetRoom')}
+              </button>
+            </Tip>
+            <button
+              className="mini-btn"
+              disabled={!engine.canUndoDecoration()}
+              onClick={() => {
+                if (engine.undoDecoration()) audio.play('click');
+              }}
+            >
+              <Icon name="undo" size={13} /> {t('decorate.undo')}
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       {/* filters */}
       <div className="decorate__filters">
@@ -173,21 +228,6 @@ export function DecorateView() {
             <GoldenNut size={13} />
           </button>
         </div>
-        {room !== 'all' ? (
-          <button
-            className="tag-btn decorate__tidy"
-            onClick={() => {
-              if (engine.resetRoomDecorations(room)) audio.play('upgrade');
-              else {
-                notify('rooms', t('decorate.resetFull'), 'neutral');
-                audio.play('error');
-              }
-            }}
-            title={t('decorate.resetRoom')}
-          >
-            <Icon name="refresh" size={13} /> {t('decorate.resetRoom')}
-          </button>
-        ) : null}
       </div>
 
       {/* grid */}
@@ -225,12 +265,17 @@ export function DecorateView() {
                   <div className="decocard__title">{t(`deco.${d.id}.name`)}</div>
                   <div className="decocard__meta">
                     <span className="pill">
-                      {currentRoom ? t(ROOMS_BY_ID[currentRoom].nameKey) : owned ? t('decorate.inStorage') : t(ROOMS_BY_ID[d.room].nameKey)}
+                      {currentRoom
+                        ? t(ROOMS_BY_ID[currentRoom].nameKey)
+                        : owned
+                          ? t('decorate.inStorage')
+                          : t(ROOMS_BY_ID[d.room].nameKey)}
                     </span>
                     <span className="pill pill--soft">{t(`decorate.type.${kind}`)}</span>
                   </div>
                   <div className="decocard__comfort">
-                    <Icon name="morale" size={12} /> +{d.moraleBonus} {t('resource.morale').toLowerCase()}
+                    <Icon name="morale" size={12} /> +{d.moraleBonus}{' '}
+                    {t('resource.morale').toLowerCase()}
                   </div>
                 </div>
                 <div className="decocard__actions">
@@ -245,7 +290,11 @@ export function DecorateView() {
                         }
                       }}
                     >
-                      {d.cost.resource === 'goldenNuts' ? <GoldenNut size={15} /> : <Acorn size={15} />}
+                      {d.cost.resource === 'goldenNuts' ? (
+                        <GoldenNut size={15} />
+                      ) : (
+                        <Acorn size={15} />
+                      )}
                       <span>{fmt.num(d.cost.amount)}</span>
                     </button>
                   ) : placed ? (
@@ -253,7 +302,10 @@ export function DecorateView() {
                       <span className="decocard__badge">
                         <Icon name="success" size={12} /> {t('decorate.placed')}
                       </span>
-                      <button className="mini-btn mini-btn--primary" onClick={() => setMovingId(d.id)}>
+                      <button
+                        className="mini-btn mini-btn--primary"
+                        onClick={() => setMovingId(d.id)}
+                      >
                         <Icon name="rooms" size={12} /> {t('decorate.moveTo')}
                       </button>
                       <button
@@ -290,9 +342,10 @@ export function DecorateView() {
           state={state}
           decorationId={movingId}
           onMove={(roomId) => {
-            const moved = roomId === null
-              ? engine.removeDecoration(movingId)
-              : engine.placeDecorationInRoom(movingId, roomId);
+            const moved =
+              roomId === null
+                ? engine.removeDecoration(movingId)
+                : engine.placeDecorationInRoom(movingId, roomId);
             if (moved) audio.play(roomId === null ? 'click' : 'place');
             return moved;
           }}

@@ -78,9 +78,13 @@ export function tapPop({ x, y, text, tone = 'normal', streak = 0 }: TapPopOption
   node.style.left = `${x}px`;
   node.style.top = `${y}px`;
   if (!still) {
-    const drift = (Math.random() * 2 - 1) * 18;
+    // Spread widened from +/-18px along with the payout type size. The jitter has to
+    // scale with the glyphs it separates: at the larger, outlined size the old range
+    // was narrower than the numbers themselves, so a fast streak stacked them into an
+    // unreadable pile instead of a spray.
+    const drift = (Math.random() * 2 - 1) * 34;
     node.style.setProperty('--tap-drift', `${drift}px`);
-    node.style.setProperty('--tap-rise', `${34 + Math.random() * 14}px`);
+    node.style.setProperty('--tap-rise', `${40 + Math.random() * 20}px`);
   }
 
   const value = document.createElement('strong');
@@ -101,6 +105,33 @@ export function tapPop({ x, y, text, tone = 'normal', streak = 0 }: TapPopOption
   while (live.length > MAX_LIVE_POPS) retire(live[0]);
 
   window.setTimeout(() => retire(node), POP_LIFETIME_MS);
+}
+
+/**
+ * Mark a tap burst as in progress, so the rest of the UI can get out of the way.
+ *
+ * Exists for one specific problem: to tap a station you hover it, and hovering
+ * opens that station's tooltip, anchored right on top of the machine and its own
+ * floating payouts. Aiming at the thing hid the feedback for hitting it.
+ *
+ * The flag lives on <html> rather than on the button because the tooltip is
+ * portalled to <body>, so it is not reachable from the station's own subtree. It
+ * clears itself shortly after the last tap, which is why it is a debounced timer
+ * rather than a pointerup handler: mashing produces a stream of downs and ups, and
+ * the tooltip should stay out of the way for the whole burst, not flicker between
+ * every one of them.
+ */
+const TAP_BURST_LINGER_MS = 420;
+let burstTimer: number | null = null;
+
+export function markTapBurst(): void {
+  if (typeof document === 'undefined') return;
+  document.documentElement.setAttribute('data-station-tapping', 'true');
+  if (burstTimer !== null) window.clearTimeout(burstTimer);
+  burstTimer = window.setTimeout(() => {
+    burstTimer = null;
+    document.documentElement.removeAttribute('data-station-tapping');
+  }, TAP_BURST_LINGER_MS);
 }
 
 /**
@@ -127,4 +158,11 @@ export function clearTapFeedback(): void {
   while (live.length) retire(live[0]);
   layer?.remove();
   layer = null;
+  // Never leave the burst flag latched on <html>: it dims tooltips, and a scene
+  // torn down mid-burst would otherwise keep them dimmed for the rest of the session.
+  if (burstTimer !== null) window.clearTimeout(burstTimer);
+  burstTimer = null;
+  if (typeof document !== 'undefined') {
+    document.documentElement.removeAttribute('data-station-tapping');
+  }
 }

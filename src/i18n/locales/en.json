@@ -216,7 +216,9 @@
       "cushion": "Comfort",
       "screen": "Screens",
       "box": "Furniture"
-    }
+    },
+    "resetRoomTip": "Re-arranges every piece already in this room back to a neat default layout. Undo is right here if you preferred it your way.",
+    "resetDone": "Room tidied — Undo is next to the button."
   },
   "decoReact": {
     "plant": "This little plant really freshens up the place.",
@@ -2133,7 +2135,9 @@
     "additionalUpdates_other": "+{{count}} additional updates",
     "eventAutoResolved": "Handled for you — {{title}}: {{choice}}",
     "repTierUp": "{{name}} — {{blurb}}",
-    "consequenceSettled": "{{title}} — {{body}}"
+    "consequenceSettled": "{{title}} — {{body}}",
+    "achievementsCaughtUp_one": "Records brought up to date: {{count}} achievement already earned",
+    "achievementsCaughtUp_other": "Records brought up to date: {{count}} achievements already earned"
   },
   "react": {
     "marlowApproves": "Marlow approved of this decision.",

@@ -259,17 +259,82 @@ function resetChangeTracking(): void {
   prevRepTier = reputationTier(engine.state.resources.reputation).id;
 }
 
+/**
+ * Record achievements that are ALREADY satisfied by existing progress, without
+ * announcing them one by one. Returns how many were caught up.
+ *
+ * THE BUG THIS FIXES
+ * ------------------
+ * Achievements are evaluated at the end of every tick, and anything newly
+ * satisfied is announced as its own gold toast. That is right for an achievement
+ * the player just earned, and wrong for one they earned some time ago — and on the
+ * FIRST tick after a load, those are indistinguishable, because the tick has no
+ * idea whether the progress that satisfies a condition happened a second ago or
+ * last week.
+ *
+ * So loading a save could unlock a dozen achievements at once and greet the player
+ * with a wall of toasts covering the office. It is not only a seeded-save
+ * artefact; three ordinary paths reach it:
+ *
+ *   1. A CONTENT UPDATE that adds achievements. Every returning player already
+ *      satisfies most of the new ones, so all of them fire together on next load.
+ *      This is the common case and it gets worse the longer the game is supported.
+ *   2. A save whose `achievements` record fails validation. The schema repairs it
+ *      with `.catch({})` (save/schema.ts), which is the right call for
+ *      robustness — but it means every achievement the player ever earned is
+ *      "new" again on the next tick.
+ *   3. OFFLINE PROGRESSION crossing several thresholds while the game was closed,
+ *      which boot applies before the first tick.
+ *
+ * The fix is to separate catch-up from earning, at the only point where the
+ * difference is actually known: load. Anything already true before the game
+ * starts running is caught up silently and summarised in ONE toast.
+ *
+ * Deliberately NOT a suppression: `evaluateAchievements` still records them and
+ * still pays their golden-nut rewards, and each is still mirrored to the platform
+ * adapter, so nothing is lost and Steam still sees them. Only the interruption is
+ * folded together. Genuinely new in-play unlocks are untouched and still announce
+ * themselves individually.
+ */
+function catchUpAchievementsQuietly(): number {
+  const caughtUp = evaluateAchievements(engine.state, Date.now());
+  for (const id of caughtUp) achievements.unlock(id);
+  // Re-baseline so the subscriber does not treat these as fresh unlocks.
+  resetChangeTracking();
+  return caughtUp.length;
+}
+
 /** Replace state (prestige/import/reset) without flooding toasts for the whole company. */
 export function replaceStateQuietly(next: GameState): void {
   suppressNotify = true;
   engine.replaceState(next);
+  // An imported save is a load like any other, so it gets the same treatment:
+  // whatever it already satisfies is history, not an achievement ceremony.
+  catchUpAchievementsQuietly();
   resetChangeTracking();
   suppressNotify = false;
 }
 
+/**
+ * Achievements reconciled at boot, waiting to be summarised.
+ *
+ * Announced from the subscriber rather than here because this runs during module
+ * initialisation, before i18n has necessarily loaded its bundles — translating at
+ * that point yields raw key names. The subscriber is where every other
+ * notification is translated, so it is where this one belongs too.
+ */
+let pendingAchievementCatchUp = catchUpAchievementsQuietly();
+
 engine.subscribe(() => {
   if (suppressNotify) return;
   const st = engine.state;
+
+  // One line for everything the save already had, instead of one toast each.
+  if (pendingAchievementCatchUp > 0) {
+    const count = pendingAchievementCatchUp;
+    pendingAchievementCatchUp = 0;
+    notify('achievements', i18n.t('notify.achievementsCaughtUp', { count }), 'gold');
+  }
 
   // achievements
   for (const [id, v] of Object.entries(st.achievements)) {

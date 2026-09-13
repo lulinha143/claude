@@ -18,7 +18,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StationArt } from './StationArt';
 import { Tip } from '../ui/Tooltip';
-import { tapPop, tapPunch, type TapTone } from '../ui/tapFeedback';
+import { markTapBurst, tapPop, tapPunch, type TapTone } from '../ui/tapFeedback';
 import { stationDepth } from '../sim/depth';
 import { comboWindowMs, type ClickResolution } from '../sim/clickStations';
 import type { ClickStationDef } from '../content/clickStations';
@@ -100,6 +100,8 @@ export function ClickStation({
         streak: result.streak,
       });
       tapPunch(element, tone);
+      // Get the station's own tooltip out from over the machine for the burst.
+      markTapBurst();
 
       // Coalesced combo readout.
       pendingStreakRef.current = result.streak;

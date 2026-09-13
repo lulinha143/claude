@@ -2037,8 +2037,14 @@ h4 {
      the cast do. The intrinsic size is the 52x60 the sprite is authored at; scaling
      it here (rather than in the width/height attributes) keeps StationArt free of
      any layout concern and cannot desynchronise from the room. */
-  width: calc(52px * var(--asset-scale));
-  height: calc(60px * var(--asset-scale));
+  /* 70x81, matching the movable decorations. A station is furniture drawn on the
+     same 24x28 grid, and it was still at the old 52x60 after the decorations were
+     brought up — so the one object in the room the player is meant to reach for was
+     also the smallest thing in it. Same numbers as `.floor__deco .decor > svg`, for
+     the same reason: furniture has to relate to the cast or the room reads as a
+     doll house. */
+  width: calc(70px * var(--asset-scale));
+  height: calc(81px * var(--asset-scale));
 }
 .station-btn:hover {
   transform: translateX(-50%) scale(1.05);
@@ -4906,9 +4912,6 @@ select,
   background: var(--primary);
   color: var(--text-on-accent);
   border-color: var(--primary);
-}
-.decorate__tidy {
-  margin-left: auto;
 }
 .decorate__empty {
   color: var(--text-muted);
@@ -14274,4 +14277,153 @@ button:disabled,
 .deco-tray__chips .tag-btn {
   padding: 2px 8px;
   font-size: 0.66em;
+}
+
+/* ===========================================================================
+   ROOM ACTION BAR (decorate view)
+   ---------------------------------------------------------------------------
+   "Tidy up" was the last chip inside the filter toolbar: a room-wide, mutating
+   action sitting in the one group on the screen that otherwise only changes what
+   you are LOOKING at. It read as an orphan because it was one — and because the
+   Undo that makes it safe lived on a different screen (the office toolbar), so
+   from here a player could rearrange every piece in a room with no visible way
+   back.
+
+   Actions now get their own bar: scoped to the selected room, named after it, and
+   holding the undo that belongs with them. Styled as a shelf rather than a
+   recessed instrument, so it reads as "things you can DO here" against the
+   filter bar's "things you can FILTER by".
+   ========================================================================= */
+.decorate__roombar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 0 0 10px;
+  padding: 7px 10px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--paper) 92%, transparent),
+    color-mix(in srgb, var(--paper-muted) 88%, transparent)
+  );
+  border: 1px solid color-mix(in srgb, var(--wood-light) 62%, transparent);
+  border-left: 3px solid color-mix(in srgb, var(--gold) 58%, var(--wood-light));
+  border-radius: var(--r-sm);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.42) inset,
+    0 2px 5px rgba(37, 24, 12, 0.14);
+}
+/* Which room these actions apply to. Stated, because a room-wide rearrange should
+   never be ambiguous about its target. */
+.decorate__roombar-room {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--ink);
+  font-family: var(--type-caption-family, inherit);
+  font-size: 0.72em;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.decorate__roombar-room svg {
+  opacity: 0.75;
+}
+.decorate__roombar-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+/* A disabled action must be READABLE but unmistakably inert.
+   `filter: saturate(.2)` alone was not enough: on an already-brown button it is
+   nearly invisible, so a disabled Undo looked exactly like the live Tidy up beside
+   it — the player cannot tell which of two adjacent controls will do something.
+   Flattening it onto the paper (no fill, no lift, hairline border) reads as
+   "not available yet" without reading as "broken". */
+.decorate__roombar-actions .mini-btn:disabled {
+  opacity: 1;
+  cursor: not-allowed;
+  color: color-mix(in srgb, var(--ink) 45%, transparent);
+  background: color-mix(in srgb, var(--paper-muted) 55%, transparent);
+  border-color: color-mix(in srgb, var(--wood-light) 45%, transparent);
+  box-shadow: none;
+  text-shadow: none;
+}
+.decorate__roombar-actions .mini-btn:disabled svg {
+  opacity: 0.5;
+}
+@media (max-width: 620px) {
+  .decorate__roombar-actions {
+    margin-left: 0;
+    width: 100%;
+  }
+}
+
+/* ===========================================================================
+   CLICKER FEEL — the payout has to be the loudest thing on screen
+   ---------------------------------------------------------------------------
+   The tap machinery was already right (pointer-down, imperative DOM feedback,
+   combos, pitch-climbing audio, no React render per tap). What was wrong was that
+   you could barely SEE the result: the floating number rendered at 0.88em in gold
+   with a soft shadow, over rooms that are variously pale wood, bright sky and
+   near-black night. Photographed mid-burst it was a small smudge next to the
+   machine — so the most important feedback in a clicker was also its faintest.
+
+   A payout is the reward. It gets read at a glance, on any background.
+   ========================================================================= */
+.tap-pop__value {
+  font-size: 1.22em;
+  letter-spacing: -0.01em;
+  color: #fff3cf;
+  /* A dark contact-ink outline rather than a blur: it holds the glyph shape at
+     speed and works over sky, wood and night alike, which a drop shadow does not. */
+  text-shadow:
+    0 0 1px rgba(40, 26, 12, 0.95),
+    1px 1px 0 rgba(40, 26, 12, 0.95),
+    -1px 1px 0 rgba(40, 26, 12, 0.95),
+    1px -1px 0 rgba(40, 26, 12, 0.95),
+    -1px -1px 0 rgba(40, 26, 12, 0.95),
+    0 2px 6px rgba(0, 0, 0, 0.55);
+}
+/* Crits and golden payouts are worth more, so they read as worth more. */
+.tap-pop--critical .tap-pop__value {
+  font-size: 1.4em;
+  color: #ffe6a2;
+}
+.tap-pop--golden .tap-pop__value {
+  font-size: 1.5em;
+  color: #ffd54a;
+}
+.tap-pop__combo {
+  font-size: 0.86em;
+  font-weight: 800;
+  color: #ffd54a;
+  opacity: 1;
+  text-shadow:
+    1px 1px 0 rgba(40, 26, 12, 0.9),
+    -1px 1px 0 rgba(40, 26, 12, 0.9),
+    0 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+/* THE TOOLTIP MUST NOT COVER THE THING YOU ARE TAPPING.
+   To tap a station you hover it, and hovering opens its tooltip — which is
+   anchored right there and, mid-burst, sat squarely over both the machine and its
+   own payout numbers. The player was hiding their feedback by aiming at it.
+
+   While a burst is live the tooltip recedes to a hint of itself and stops taking
+   input; it comes straight back when the tapping stops. Deliberately done with
+   OPACITY rather than `visibility`/`display`: the tooltip audit suite asserts real
+   visibility and hit-testing, and this must not quietly weaken those guarantees. */
+html[data-station-tapping='true'] body > .tooltip[role='tooltip'] {
+  /* `animation: none` is load-bearing, not tidying. `.tooltip` animates in with
+     `premium-tooltip-in ... both`, and a `both` fill mode keeps the final keyframe
+     (opacity: 1) applied indefinitely — animation values beat normal declarations,
+     so the dim below was silently ignored until the animation was cancelled. The
+     tooltip has long finished animating by the time a burst starts, so dropping it
+     costs nothing visually. */
+  animation: none;
+  opacity: 0.1;
+  pointer-events: none;
+  transition: opacity 90ms var(--ease);
 }
