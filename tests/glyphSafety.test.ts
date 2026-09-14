@@ -56,7 +56,10 @@ function isRisky(ch: string): boolean {
 const KNOWN_BASELINE: Record<string, string[]> = {
   'src/dev/typography.tsx': ['\u25cf', '\u2302', '\u25a4', '\u2667'],
   'src/sim/format.ts': ['\u221e'],
-  'src/ui/minigames/CoffeeRescue.tsx': ['\u2668', '\u2605', '\u25cf'],
+  // CoffeeRescue.tsx used to be here with U+2668, U+2605 and U+25CF. A screenshot of
+  // the running cafe showed the star rendering as a literal tofu box on the menu
+  // board, disproving the "the OS will have a fallback" assumption below, so all
+  // three are now drawn in CSS (.coffee__rating, .coffee__foam, .coffee__meter > i).
   'src/ui/modals/Onboarding.tsx': ['\u2197', '\u25cf'],
   'src/ui/views/FocusView.tsx': ['\u203a'],
 };

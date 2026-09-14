@@ -1,9 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  coffeeFallDuration,
+  coffeeKindFallDuration,
+  pickCoffeeDropKind,
+  firstCoffeeDropKind,
+  coffeeKindCatchScore,
+  applyCoffeeHazard,
+  type CoffeeDropKind,
   coffeeSpawnInterval,
-  coffeeCatchScore,
   coffeeComboMultiplier,
   coffeeCatchGeometry,
   resolveCoffeeDrop,
@@ -17,6 +21,8 @@ interface Drop {
   x: number; // 0..100
   y: number; // 0..100 progress down the play area
   born: number;
+  /** What is falling. Decides speed, value, and whether it should be caught. */
+  kind: CoffeeDropKind;
 }
 
 const DROP_LIFETIME = 1800; // reduced-motion tap mode
@@ -44,7 +50,7 @@ export function CoffeeRescue({ seed, reducedMotion, paused, onScore, onCombo }: 
   const [splash, setSplash] = useState(false);
   const [feedback, setFeedback] = useState('');
   const [catchFx, setCatchFx] = useState<{ id: number; x: number; value: number } | null>(null);
-  const [missFx, setMissFx] = useState<{ id: number; x: number } | null>(null);
+  const [missFx, setMissFx] = useState<{ id: number; x: number; hazard?: boolean } | null>(null);
   const dropsRef = useRef<Drop[]>([]);
   const scoreRef = useRef(0);
   const streakRef = useRef(0);
@@ -130,11 +136,59 @@ export function CoffeeRescue({ seed, reducedMotion, paused, onScore, onCombo }: 
     setDrops(next);
   }
 
-  function registerCatch(n = 1, x = mugXRef.current) {
+  /**
+   * Resolve a set of caught drops.
+   *
+   * Hazards are handled first and separately: catching one is a MISTAKE, so it must
+   * not also be credited as part of the same catch. It breaks the streak, which is
+   * the real cost — the points are almost incidental next to losing a 3x multiplier.
+   */
+  function registerCatch(caughtKinds: CoffeeDropKind[], x = mugXRef.current) {
+    const hazards = caughtKinds.filter((kind) => kind.hazard);
+    const goods = caughtKinds.filter((kind) => !kind.hazard);
+
+    if (hazards.length > 0) {
+      // Read the streak BEFORE destroying it: how much was riding on the mistake is
+      // the most useful thing we can tell the player, and zeroing first loses it.
+      const lostStreak = streakRef.current;
+      let lost = 0;
+      for (let i = 0; i < hazards.length; i += 1) {
+        const penalty = applyCoffeeHazard(scoreRef.current);
+        scoreRef.current = penalty.score;
+        lost += penalty.lost;
+      }
+      streakRef.current = 0;
+      setStreak(0);
+      onScore(scoreRef.current);
+      onCombo(1);
+      audio.play('error');
+      setCatchFx(null);
+      /* Deliberately NOT routed through registerMiss(). Two reasons, both of which
+         were real bugs: registerMiss re-reads streakRef — already zeroed above — and
+         overwrites this announcement with "Coffee missed", so the player never learned
+         it was the decaf that cost them. And a caught hazard is not a miss: it earns
+         its own mark rather than borrowing the dropped-coffee one. */
+      setMissFx({ id: performance.now(), x, hazard: true });
+      if (splashTimer.current) clearTimeout(splashTimer.current);
+      /* Unlike the miss mark, this one LINGERS under reduced motion instead of being
+         cleared on the next tick. Reduced motion means "no movement", not "no
+         feedback", and a player who just lost a 27-catch streak deserves a visible
+         record of why. The mark itself is static; only its entry animation is motion,
+         and that is already suppressed globally. */
+      splashTimer.current = setTimeout(() => setMissFx(null), reducedMotion ? 900 : 380);
+      setFeedback(
+        lostStreak > 0
+          ? t('microgame.coffeeRescue.hazardStreak', { value: lost, count: lostStreak })
+          : t('microgame.coffeeRescue.hazard', { value: lost }),
+      );
+      if (goods.length === 0) return;
+    }
+
+    const n = goods.length;
     const scoreBefore = scoreRef.current;
-    for (let i = 0; i < n; i += 1) {
+    for (const kind of goods) {
       streakRef.current += 1;
-      scoreRef.current += coffeeCatchScore(streakRef.current);
+      scoreRef.current += coffeeKindCatchScore(kind, streakRef.current);
     }
     if (n > 0) {
       const multiplier = coffeeComboMultiplier(streakRef.current);
@@ -200,11 +254,15 @@ export function CoffeeRescue({ seed, reducedMotion, paused, onScore, onCombo }: 
       const geometry = geometryRef.current;
       const minDropX = Math.max(4, geometry.minMugX - geometry.halfCatchWidth + 1);
       const maxDropX = Math.min(96, geometry.maxMugX + geometry.halfCatchWidth - 1);
+      // The first thing that falls always teaches the basic rule; see
+      // firstCoffeeDropKind().
+      const kind = idRef.current === 0 ? firstCoffeeDropKind() : pickCoffeeDropKind(rng.current());
       const drop: Drop = {
         id: idRef.current++,
         x: minDropX + rng.current() * Math.max(1, maxDropX - minDropX),
         y: 0,
         born: now,
+        kind,
       };
       commitDrops([...dropsRef.current, drop]);
       const interval = coffeeSpawnInterval(elapsed());
@@ -229,13 +287,15 @@ export function CoffeeRescue({ seed, reducedMotion, paused, onScore, onCombo }: 
     const tick = (now: number) => {
       const dt = Math.min(0.05, Math.max(0, (now - last) / 1000));
       last = now;
-      const speed = 100 / coffeeFallDuration(elapsed());
+      const seconds = elapsed();
       const geometry = geometryRef.current;
       const next: Drop[] = [];
       const caught: Drop[] = [];
       const missed: Drop[] = [];
       for (const drop of dropsRef.current) {
-        const y = drop.y + speed * dt;
+        // Each kind falls at its own rate, so a fast espresso can overtake a
+        // slow carafe that spawned before it.
+        const y = drop.y + (100 / coffeeKindFallDuration(drop.kind, seconds)) * dt;
         if (y >= geometry.catchY) {
           if (Math.abs(drop.x - mugXRef.current) <= geometry.halfCatchWidth) caught.push(drop);
           else missed.push(drop);
@@ -246,7 +306,10 @@ export function CoffeeRescue({ seed, reducedMotion, paused, onScore, onCombo }: 
       commitDrops(next);
       if (caught.length > 0) {
         const catchX = caught.reduce((total, drop) => total + drop.x, 0) / caught.length;
-        registerCatch(caught.length, catchX);
+        registerCatch(
+          caught.map((drop) => drop.kind),
+          catchX,
+        );
       }
       if (missed.length > 0) registerMiss(missed[missed.length - 1].x);
       raf = requestAnimationFrame(tick);
@@ -303,7 +366,7 @@ export function CoffeeRescue({ seed, reducedMotion, paused, onScore, onCombo }: 
 
   function tap(drop: Drop) {
     if (paused || !removeDrop(drop.id)) return;
-    registerCatch(1, drop.x);
+    registerCatch([drop.kind], drop.x);
   }
 
   const mult = coffeeComboMultiplier(streak);
@@ -324,7 +387,12 @@ export function CoffeeRescue({ seed, reducedMotion, paused, onScore, onCombo }: 
           aria-valuenow={Math.round(warmth)}
         >
           <span className="coffee__meter-fill" style={{ width: `${warmth}%` }} />
-          <i aria-hidden="true">♨</i>
+          {/* Steam wisps drawn in CSS instead of U+2668, which had no glyph. */}
+          <i className="coffee__warm" aria-hidden="true">
+            <b />
+            <b />
+            <b />
+          </i>
         </div>
         <span className={`coffee__streak ${mult > 1 ? 'is-hot' : ''}`}>
           {streak > 0 ? t('microgame.combo', { value: mult }) : t('microgame.coffeeRescue.steady')}
@@ -356,7 +424,13 @@ export function CoffeeRescue({ seed, reducedMotion, paused, onScore, onCombo }: 
             <br />
             ROAST
             <br />
-            <b>★ ★ ★</b>
+            {/* Three CSS-clipped stars, not U+2605. The bundled fonts are Latin
+                subsets, so the character rendered as a tofu box on the menu board. */}
+            <b className="coffee__rating">
+              <i />
+              <i />
+              <i />
+            </b>
           </div>
           <div className="coffee__window">
             <i />
@@ -370,18 +444,22 @@ export function CoffeeRescue({ seed, reducedMotion, paused, onScore, onCombo }: 
           reducedMotion ? (
             <button
               key={drop.id}
-              className="coffee__drop coffee__drop--tap"
+              className={`coffee__drop coffee__drop--tap coffee__drop--${drop.kind.id}`}
               style={{ left: `${drop.x}%`, top: `${20 + (drop.id % 4) * 16}%` }}
               onClick={() => tap(drop)}
               disabled={paused}
-              aria-label={t('microgame.coffeeDrop')}
+              /* Per-kind label, not one generic one. In reduced-motion mode the drop
+                 is a real button that a screen reader announces, and labelling the
+                 hazard identically to the rest would make it impossible to avoid
+                 without sight — i.e. unfair rather than merely unpolished. */
+              aria-label={t(`microgame.coffeeRescue.drop.${drop.kind.id}`)}
             >
               <span aria-hidden="true" />
             </button>
           ) : (
             <span
               key={drop.id}
-              className="coffee__drop"
+              className={`coffee__drop coffee__drop--${drop.kind.id}`}
               style={{ left: `${drop.x}%`, top: `${drop.y}%` }}
               aria-hidden="true"
             >
@@ -400,7 +478,12 @@ export function CoffeeRescue({ seed, reducedMotion, paused, onScore, onCombo }: 
             <i />
             <i />
           </span>
-          <span className="coffee__foam">● ● ●</span>
+          {/* Foam as three drawn circles rather than U+25CF, for the same reason. */}
+          <span className="coffee__foam">
+            <i />
+            <i />
+            <i />
+          </span>
           <span className="coffee__mug-face">
             <i />
             <i />
@@ -415,12 +498,16 @@ export function CoffeeRescue({ seed, reducedMotion, paused, onScore, onCombo }: 
         {missFx ? (
           <span
             key={missFx.id}
-            className="coffee__miss-fx"
+            className={`coffee__miss-fx ${missFx.hazard ? 'is-hazard' : ''}`}
             style={{ left: `${missFx.x}%` }}
             aria-hidden="true"
           >
             <i />
-            <b>{t('microgame.coffeeRescue.missMark')}</b>
+            <b>
+              {missFx.hazard
+                ? t('microgame.coffeeRescue.hazardMark')
+                : t('microgame.coffeeRescue.missMark')}
+            </b>
           </span>
         ) : null}
         {catchFx ? (

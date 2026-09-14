@@ -1770,7 +1770,13 @@
     "backToOffice": "Voltar ao escritório",
     "coffeeRescue": {
       "name": "Resgate do Café",
-      "desc": "Mova a caneca com o ponteiro ou as setas para pegar cada gota de café. Com movimento reduzido, toque em cada gota.",
+      "desc": "Mova a caneca com o ponteiro ou as setas para pegar cada gota de café. Garrafas grandes valem o dobro e espressos pequenos valem mais ainda — mas deixe cair o descafeinado cinza com anel, porque pegá-lo encerra sua sequência. Com movimento reduzido, toque em cada gota.",
+      "drop": {
+        "mug": "Café — pegue",
+        "carafe": "Garrafa — pegue, vale o dobro",
+        "espresso": "Espresso — pegue, vale mais",
+        "decaf": "Descafeinado — não pegue este"
+      },
       "reaction": "Tico abraça a caneca quentinha. A produtividade foi salva.",
       "order": "Café prioritário",
       "warmth": "Calor da caneca",
@@ -1779,7 +1785,10 @@
       "caught": "{{count}} gota de café salva · +{{value}} pontos",
       "missed": "O café caiu",
       "streakLost": "O café caiu · sequência de {{count}} encerrada",
-      "missMark": "Caiu"
+      "missMark": "Caiu",
+      "hazardMark": "Descaf.",
+      "hazard": "Descafeinado pego · -{{value}} pontos",
+      "hazardStreak": "Descafeinado pego · -{{value}} pontos · sequência de {{count}} encerrada"
     },
     "bugSquash": {
       "name": "Caça-Insetos",

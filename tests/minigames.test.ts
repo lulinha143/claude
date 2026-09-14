@@ -22,6 +22,14 @@ import {
   coffeeCatchScore,
   coffeeCatchGeometry,
   resolveCoffeeDrop,
+  COFFEE_DROP_KINDS,
+  COFFEE_DROP_KINDS_BY_ID,
+  COFFEE_HAZARD_PENALTY,
+  pickCoffeeDropKind,
+  firstCoffeeDropKind,
+  coffeeKindFallDuration,
+  coffeeKindCatchScore,
+  applyCoffeeHazard,
   bugLifetime,
   bugSpawnInterval,
   bugScore,
@@ -349,5 +357,86 @@ describe('the pest that opens a round', () => {
 
   it('opens on the full-length window rather than a short one', () => {
     expect(bugSpeciesLifetime(firstBugSpecies(), 0)).toBe(bugLifetime(0));
+  });
+});
+
+/**
+ * COFFEE DROP KINDS.
+ *
+ * Coffee Rescue had one kind of falling thing, so it only ever asked "is the mug
+ * under it" — execution with no decision. The hazard is what turns it into a game,
+ * and it is also the thing most likely to be made unfair by a careless tuning edit,
+ * so these tests pin its properties specifically.
+ */
+describe('coffee drop kinds', () => {
+  it('spans a 0..1 roll without ever falling through', () => {
+    for (const roll of [0, 0.0001, 0.3, 0.6, 0.999999, 1]) {
+      const kind = pickCoffeeDropKind(roll);
+      expect(kind, `roll ${roll} produced nothing`).toBeDefined();
+      expect(COFFEE_DROP_KINDS.map((k) => k.id)).toContain(kind.id);
+    }
+  });
+
+  it('reaches every kind and keeps the plain mug the common case', () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < 10_000; i += 1) {
+      const id = pickCoffeeDropKind(i / 10_000).id;
+      counts.set(id, (counts.get(id) ?? 0) + 1);
+    }
+    expect(counts.size).toBe(COFFEE_DROP_KINDS.length);
+    for (const id of ['carafe', 'espresso', 'decaf']) {
+      expect(counts.get('mug') ?? 0, `mug should outnumber ${id}`).toBeGreaterThan(
+        counts.get(id) ?? 0,
+      );
+    }
+    // The hazard must be a surprise, not a constant tax.
+    expect((counts.get('decaf') ?? 0) / 10_000).toBeLessThan(0.12);
+  });
+
+  it('opens a round on a plain mug so the round teaches its own rule', () => {
+    const first = firstCoffeeDropKind();
+    expect(first.id).toBe('mug');
+    expect(first.hazard).toBe(false);
+    // Opening on a hazard would punish the player for doing the obvious thing.
+  });
+
+  it('trades fall speed against value', () => {
+    const mug = COFFEE_DROP_KINDS_BY_ID.mug;
+    const carafe = COFFEE_DROP_KINDS_BY_ID.carafe;
+    const espresso = COFFEE_DROP_KINDS_BY_ID.espresso;
+    // The fast one pays the most of the catchables; the slow one still pays a premium
+    // for occupying the mug while other things are falling.
+    expect(coffeeKindFallDuration(espresso, 0)).toBeLessThan(coffeeKindFallDuration(mug, 0));
+    expect(coffeeKindFallDuration(carafe, 0)).toBeGreaterThan(coffeeKindFallDuration(mug, 0));
+    expect(coffeeKindCatchScore(espresso, 1)).toBeGreaterThan(coffeeKindCatchScore(mug, 1));
+    expect(coffeeKindCatchScore(carafe, 1)).toBeGreaterThan(coffeeKindCatchScore(mug, 1));
+  });
+
+  it('never makes a drop fall too fast to reach, at any point in a round', () => {
+    for (const kind of COFFEE_DROP_KINDS) {
+      for (const elapsed of [0, 20, 40, 60, 120]) {
+        expect(
+          coffeeKindFallDuration(kind, elapsed),
+          `${kind.id} at ${elapsed}s`,
+        ).toBeGreaterThanOrEqual(0.9);
+      }
+    }
+  });
+
+  it('scores the hazard at nothing and takes points for catching it', () => {
+    const decaf = COFFEE_DROP_KINDS_BY_ID.decaf;
+    expect(decaf.hazard).toBe(true);
+    expect(coffeeKindCatchScore(decaf, 10)).toBe(0);
+    // It costs points, but can never push the player into debt.
+    expect(applyCoffeeHazard(10).score).toBe(10 - COFFEE_HAZARD_PENALTY);
+    expect(applyCoffeeHazard(1).score).toBe(0);
+    expect(applyCoffeeHazard(1).lost).toBe(1);
+    expect(applyCoffeeHazard(0).score).toBe(0);
+    expect(applyCoffeeHazard(0).lost).toBe(0);
+  });
+
+  it('keeps exactly one hazard, so dodging stays a clear rule', () => {
+    // Two different "do not catch" kinds would make the read ambiguous mid-round.
+    expect(COFFEE_DROP_KINDS.filter((k) => k.hazard)).toHaveLength(1);
   });
 });

@@ -9290,15 +9290,37 @@ button:disabled,
   box-shadow: 0 0 9px rgba(235, 174, 84, 0.36);
   transition: width var(--dur-slow) var(--ease-settle);
 }
+/* Drawn steam. Was "♨" (U+2668), which had no glyph in the bundled subset. Three
+   tapered wisps read as heat at 12px tall, where a detailed glyph would not. */
 .coffee__meter > i {
   position: absolute;
   left: 50%;
   top: 50%;
+  display: flex;
+  gap: 2px;
+  align-items: flex-end;
+  height: 8px;
   transform: translate(-50%, -52%);
-  color: rgba(255, 255, 255, 0.66);
-  font-style: normal;
-  font-size: 9px;
-  text-shadow: 0 1px #3c2615;
+}
+/* Three wisps, fanned and unequal. Equal upright bars read as a bar chart rather
+   than heat, so the outer two lean away from the middle and sit lower. */
+.coffee__meter > i b {
+  width: 2px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.72);
+  border-radius: 1px 1px 0 0;
+  box-shadow: 0 1px rgba(60, 38, 21, 0.55);
+}
+.coffee__meter > i b:nth-child(1) {
+  height: 4px;
+  transform: rotate(-16deg) translateY(1px);
+}
+.coffee__meter > i b:nth-child(2) {
+  height: 8px;
+}
+.coffee__meter > i b:nth-child(3) {
+  height: 4px;
+  transform: rotate(16deg) translateY(1px);
 }
 .coffee__streak,
 .bugsquash__streak {
@@ -9446,6 +9468,32 @@ button:disabled,
   color: #f4cf6b;
   letter-spacing: 0.1em;
 }
+/* Drawn rating stars. Was "★ ★ ★" (U+2605) and shipped as three tofu boxes on the
+   menu board — visible in any screenshot of the cafe. clip-path gives a real
+   five-point star at 7px, which no font subset was going to provide. */
+.coffee__rating {
+  display: flex;
+  gap: 2px;
+  justify-content: center;
+  margin-top: 2px;
+}
+.coffee__rating i {
+  width: 7px;
+  height: 7px;
+  background: #f4cf6b;
+  clip-path: polygon(
+    50% 0%,
+    61% 35%,
+    98% 35%,
+    68% 57%,
+    79% 91%,
+    50% 70%,
+    21% 91%,
+    32% 57%,
+    2% 35%,
+    39% 35%
+  );
+}
 .coffee__counter {
   position: absolute;
   z-index: 2;
@@ -9581,14 +9629,26 @@ button:disabled,
   top: 45%;
   animation-delay: -1.2s;
 }
+/* Drawn foam. Was "● ● ●" in text, which rendered as three tofu boxes wherever the
+   Latin font subset had no U+25CF and the OS offered no fallback. */
 .coffee__foam {
   position: absolute;
-  left: 10px;
-  top: -8px;
-  color: #f3e3bd;
-  font-size: 8px;
-  letter-spacing: -3px;
-  text-shadow: 0 1px #85613a;
+  left: 9px;
+  top: -7px;
+  display: flex;
+  gap: 1px;
+  align-items: center;
+}
+.coffee__foam i {
+  width: 7px;
+  height: 6px;
+  background: #f3e3bd;
+  border-radius: 50%;
+  box-shadow: 0 1px #85613a;
+}
+.coffee__foam i:nth-child(2) {
+  width: 8px;
+  height: 7px;
 }
 .coffee__mug-face {
   position: absolute;
@@ -14860,4 +14920,111 @@ html[data-station-tapping='true'] body > .tooltip[role='tooltip'] {
     width: 100%;
     justify-content: center;
   }
+}
+
+/* ===========================================================================
+   COFFEE RESCUE — the falling things must be TELLABLE APART
+   ---------------------------------------------------------------------------
+   Coffee Rescue had one kind of drop, so the game only ever asked "is the mug
+   under it". It now has four, one of which (decaf) must be DODGED — and the moment
+   a game contains something you must not catch, readability stops being decoration
+   and becomes fairness. A hazard you cannot identify in the air is just a random
+   punishment.
+
+   So each kind is separated on THREE channels rather than one, because colour alone
+   fails for a colour-blind player and size alone fails at a glance:
+     colour   warm brown / deep amber / near-black / desaturated grey-green
+     size     the carafe is visibly bigger, the espresso visibly smaller
+     shape    the hazard alone is ringed, so it reads as "not this one"
+   ========================================================================= */
+
+/* Three constraints these rules have to respect, all of them load-bearing:
+
+   1. The drop BODY carries the coffee colour (see .coffee__drop) — the `i` child is
+      only a 4x7px specular highlight. Colour therefore belongs on the body; styling
+      `i` would recolour a speck nobody can see.
+   2. `transform` is spoken for. The body uses translate(-50%,-50%) to centre itself
+      on its coordinate, and the infinite mg-drop-jiggle keyframes re-declare that
+      transform every loop. Size must come from width/height, never transform.
+   3. .coffee__drop--tap is a 44px accessible tap target in reduced-motion mode. The
+      per-kind SIZES are scoped away from it so that target never shrinks; the
+      per-kind COLOURS still apply there, because telling the kinds apart matters in
+      both modes.
+
+   Baseline mug keeps the existing look. Everything else is defined against it. */
+
+/* Slower and worth double: reads as a heavier, fuller vessel. */
+.coffee__drop--carafe {
+  background: radial-gradient(circle at 35% 24%, #f0b968 0 14%, #b3762f 45%, #6d4318 100%);
+  border-color: #402714;
+}
+.coffee__drop--carafe:not(.coffee__drop--tap) {
+  width: 21px;
+  height: 27px;
+}
+
+/* Fast, small, near-black: a tight high-value shot. The faint warm glow is the
+   "worth grabbing" signal, and stays subtle enough not to read as a particle effect. */
+.coffee__drop--espresso {
+  background: radial-gradient(circle at 35% 24%, #6b452a 0 12%, #2a1810 48%, #120a06 100%);
+  border-color: #0d0705;
+  box-shadow:
+    0 3px 0 rgba(20, 12, 7, 0.24),
+    inset 2px 2px 2px rgba(255, 220, 169, 0.22),
+    0 0 8px rgba(255, 205, 92, 0.42);
+}
+.coffee__drop--espresso:not(.coffee__drop--tap) {
+  width: 12px;
+  height: 16px;
+}
+
+/* THE HAZARD — the one thing in the game you must NOT catch, so it is separated on
+   four independent channels: desaturated colour, a red ring, a rounder silhouette
+   than any real cup, and a printed marker. A player with no colour vision still has
+   the ring, the shape and the mark. */
+.coffee__drop--decaf {
+  background: radial-gradient(circle at 35% 24%, #b9c4b6 0 14%, #7d8a7b 45%, #4f584e 100%);
+  border: 2px dashed rgba(255, 244, 224, 0.9);
+  /* Not a real vessel shape: rounder and more regular than the mug's wobble. */
+  border-radius: 50%;
+  box-shadow:
+    0 3px 0 rgba(20, 12, 7, 0.24),
+    0 0 0 3px rgba(176, 71, 58, 0.42);
+}
+.coffee__drop--decaf::after {
+  /* An ASCII slash, deliberately: the bundled fonts are Latin subsets, so a
+     typographic "no entry" glyph would render as a tofu box. Absolutely positioned
+     against the body — which is already position:absolute, and must stay that way,
+     so this rule must never introduce position:relative here. */
+  content: '/';
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #fff4e0;
+  font-weight: 800;
+  font-size: 14px;
+  line-height: 1;
+  text-shadow: 0 1px 2px rgba(20, 12, 6, 0.9);
+  pointer-events: none;
+}
+
+/* A CAUGHT hazard is not a dropped coffee, so it does not borrow the miss mark.
+   A miss is passive (something fell); catching decaf is an active mistake, and reads
+   louder: solid negative chip, dashed ring, wider. Only non-animated properties are
+   touched here — coffee-miss-ring and coffee-score-rise both use `both` fill, which
+   pins their final opacity/transform and would beat any override. */
+.coffee__miss-fx.is-hazard i {
+  left: -24px;
+  width: 48px;
+  height: 17px;
+  border-style: dashed;
+  border-color: var(--negative);
+}
+.coffee__miss-fx.is-hazard b {
+  color: #fff1ea;
+  background: color-mix(in srgb, var(--negative) 82%, #2a1410);
+  padding: 2px 7px;
+  border-radius: 5px;
+  box-shadow: 0 2px 0 rgba(20, 12, 6, 0.45);
 }

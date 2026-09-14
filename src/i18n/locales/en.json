@@ -1770,7 +1770,13 @@
     "backToOffice": "Back to office",
     "coffeeRescue": {
       "name": "Coffee Rescue",
-      "desc": "Move the mug with your pointer or arrow keys to catch each falling coffee drop. With reduced motion, tap each drop instead.",
+      "desc": "Move the mug with your pointer or arrow keys to catch each falling coffee drop. Big carafes are worth double, small espressos are worth most — but let the grey ringed decaf fall, because catching it ends your streak. With reduced motion, tap each drop instead.",
+      "drop": {
+        "mug": "Coffee — catch it",
+        "carafe": "Carafe — catch it, worth double",
+        "espresso": "Espresso — catch it, worth the most",
+        "decaf": "Decaf — do not catch this one"
+      },
       "reaction": "Pip hugs the warm mug. Productivity has been rescued.",
       "order": "Priority pour",
       "warmth": "Mug warmth",
@@ -1779,7 +1785,10 @@
       "caught": "Caught {{count}} coffee drop · +{{value}} points",
       "missed": "Coffee missed",
       "streakLost": "Coffee missed · {{count}} catch streak ended",
-      "missMark": "Miss"
+      "missMark": "Miss",
+      "hazardMark": "Decaf",
+      "hazard": "Decaf caught · -{{value}} points",
+      "hazardStreak": "Decaf caught · -{{value}} points · {{count}} catch streak ended"
     },
     "bugSquash": {
       "name": "Bug Squash",

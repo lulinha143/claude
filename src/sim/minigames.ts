@@ -30,6 +30,97 @@ export function coffeeCatchScore(streak: number): number {
   return 2 * coffeeComboMultiplier(streak);
 }
 
+/* --- coffee drop kinds ----------------------------------------------------
+ * Coffee Rescue had exactly one kind of falling thing. Every drop fell at the same
+ * speed and paid the same score, so the whole game was "keep the mug under the next
+ * one" — there was never a decision, only execution. Bug Squash had the same problem
+ * and the same fix works here: make the falling things behave differently.
+ *
+ * The important addition is the HAZARD. A game where you catch everything only asks
+ * you to track one position; a game where one drop must be DODGED asks you to read
+ * what is falling and decide. That is the difference between a reflex test and a
+ * small game, and it costs one boolean.
+ *
+ *   mug       the baseline, and most of what falls
+ *   carafe    slower and worth double — easy to reach, so the pressure is that it
+ *             occupies the mug while faster things arrive
+ *   espresso  falls fast for the best score of the three catchables
+ *   decaf     do NOT catch it. Breaks the streak and takes points.
+ * ------------------------------------------------------------------------- */
+
+export type CoffeeDropKindId = 'mug' | 'carafe' | 'espresso' | 'decaf';
+
+export interface CoffeeDropKind {
+  id: CoffeeDropKindId;
+  /** Multiplier on fall duration. Above 1 falls slower. */
+  fallScale: number;
+  /** Multiplier on catch score. Ignored for hazards. */
+  scoreScale: number;
+  /** Relative spawn frequency. */
+  weight: number;
+  /** Catching this is a mistake. */
+  hazard: boolean;
+}
+
+export const COFFEE_DROP_KINDS: readonly CoffeeDropKind[] = [
+  { id: 'mug', fallScale: 1, scoreScale: 1, weight: 60, hazard: false },
+  { id: 'carafe', fallScale: 1.35, scoreScale: 2, weight: 18, hazard: false },
+  { id: 'espresso', fallScale: 0.65, scoreScale: 2.5, weight: 16, hazard: false },
+  { id: 'decaf', fallScale: 1.05, scoreScale: 0, weight: 6, hazard: true },
+];
+
+export const COFFEE_DROP_KINDS_BY_ID: Record<CoffeeDropKindId, CoffeeDropKind> = Object.fromEntries(
+  COFFEE_DROP_KINDS.map((k) => [k.id, k]),
+) as Record<CoffeeDropKindId, CoffeeDropKind>;
+
+/** Points deducted for catching something the office did not order. */
+export const COFFEE_HAZARD_PENALTY = 3;
+
+/**
+ * Choose a drop kind from a 0..1 roll. Takes the roll rather than owning an RNG so
+ * the caller's seeded generator stays the only source of randomness.
+ */
+export function pickCoffeeDropKind(roll: number): CoffeeDropKind {
+  const total = COFFEE_DROP_KINDS.reduce((sum, k) => sum + k.weight, 0);
+  let cursor = Math.min(Math.max(roll, 0), 0.999999) * total;
+  for (const kind of COFFEE_DROP_KINDS) {
+    cursor -= kind.weight;
+    if (cursor < 0) return kind;
+  }
+  return COFFEE_DROP_KINDS[0];
+}
+
+/**
+ * The first thing that falls in a round is always an ordinary mug.
+ *
+ * Same reasoning as `firstBugSpecies`: a short round has to teach its own rules
+ * before it starts asking for judgement, and opening on a hazard would read as the
+ * game punishing the player for doing the obvious thing. It also keeps the opening
+ * of a seeded round deterministic.
+ */
+export function firstCoffeeDropKind(): CoffeeDropKind {
+  return COFFEE_DROP_KINDS_BY_ID.mug;
+}
+
+/** How long this kind takes to fall, on the shared difficulty curve. */
+export function coffeeKindFallDuration(kind: CoffeeDropKind, elapsedSeconds: number): number {
+  // Floored so the fastest kind stays reachable at the end of a long round rather
+  // than becoming a coin flip.
+  return Math.max(0.9, coffeeFallDuration(elapsedSeconds) * kind.fallScale);
+}
+
+/** What catching this kind is worth at the current streak. */
+export function coffeeKindCatchScore(kind: CoffeeDropKind, streak: number): number {
+  if (kind.hazard) return 0;
+  return Math.max(1, Math.round(coffeeCatchScore(streak) * kind.scoreScale));
+}
+
+/** Applying a caught hazard: the streak dies and a few points go with it. */
+export function applyCoffeeHazard(score: number): { score: number; lost: number } {
+  const next = Math.max(0, score - COFFEE_HAZARD_PENALTY);
+  return { score: next, lost: score - next };
+}
+
 export interface CoffeeCatchGeometry {
   minMugX: number;
   maxMugX: number;
