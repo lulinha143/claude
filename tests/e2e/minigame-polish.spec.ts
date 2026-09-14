@@ -1,4 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
+import { cableLevelEdges, cableLevelSlots } from '../../src/sim/minigames';
+import { cableScratchRows, cableScratchPoint } from './support/cable-scratch';
 
 const SAVE = {
   version: 7,
@@ -140,8 +142,17 @@ test.describe.serial('premium minigame presentation', () => {
     const board = game.locator('.cable__board');
     const plugs = game.locator('.cable__node');
     await expect(board).toBeVisible();
-    await expect(game.locator('.cable__strand-body')).toHaveCount(5);
     await expect(plugs).toHaveCount(5);
+    /* Cable count comes from the desk that actually loaded, not from a constant.
+       Asserting "5 cables for 5 plugs" quietly assumed every desk is a single ring;
+       a wheel wires four rim cables plus four spokes to the same five plugs. Checking
+       against the authored edge list is the stronger claim anyway: the renderer must
+       draw exactly the cabling the level defines, whatever its shape. */
+    const levelId = await board.getAttribute('data-level');
+    expect(levelId).toBeTruthy();
+    const authoredEdges = cableLevelEdges(levelId!);
+    expect(authoredEdges.length).toBeGreaterThanOrEqual(5);
+    await expect(game.locator('.cable__strand-body')).toHaveCount(authoredEdges.length);
     await expect(
       game.locator('.cable__port, .cable__desk-art, .cable__tag, .cable__node-label'),
     ).toHaveCount(0);
@@ -188,8 +199,9 @@ test.describe.serial('premium minigame presentation', () => {
 
     const boardBox = await board.boundingBox();
     expect(boardBox).not.toBeNull();
-    const currentZero = await plugs.nth(0).boundingBox();
-    const mirrored = currentZero!.x + currentZero!.width / 2 > boardBox!.x + boardBox!.width / 2;
+    // The board reports its own horizontal flip; inferring it from where plug 0
+    // happens to have been tangled is a guess that a non-ring shape can get wrong.
+    const mirrored = (await board.getAttribute('data-mirrored')) === 'true';
     const target = (x: number, y: number) => ({
       x: boardBox!.x + (mirrored ? 1 - x : x) * boardBox!.width,
       y: boardBox!.y + y * boardBox!.height,
@@ -205,13 +217,26 @@ test.describe.serial('premium minigame presentation', () => {
       await expect(game.locator('.cable__node.is-active')).toHaveCount(0);
     };
 
-    // Use the open centre as a spare space, then place the loop in perimeter
-    // order. Completion matches the visible straight crossings and overlaps.
-    await dragPlug(1, 0.5, 0.5);
-    await dragPlug(3, 0.84, 0.72);
-    await dragPlug(4, 0.5, 0.88);
-    await dragPlug(2, 0.82, 0.2);
-    await dragPlug(1, 0.5, 0.11);
+    /* Solve from the desk's OWN authored slots rather than from a fixed sequence of
+       coordinates. The previous sequence used the centre of the board as spare space
+       and then walked the plugs around the perimeter, which only clears a single ring
+       — a wheel wires a hub INTO that centre, so no perimeter-only ordering can ever
+       finish it. Scatter clear of the slots first so each pick-up grabs its own plug,
+       then seat every plug on its slot. */
+    const solveSlots = cableLevelSlots(levelId!);
+    expect(solveSlots).toHaveLength(5);
+    const rows = cableScratchRows(solveSlots);
+    for (let id = 0; id < solveSlots.length; id += 1) {
+      const scratch = cableScratchPoint(id, solveSlots.length, rows);
+      await dragPlug(id, scratch.x, scratch.y);
+    }
+    for (let attempt = 0; attempt < 6; attempt += 1) {
+      for (let id = 0; id < solveSlots.length; id += 1) {
+        await dragPlug(id, solveSlots[id].x, solveSlots[id].y);
+      }
+      const crossings = (await game.locator('.cable__crossings').textContent()) ?? '';
+      if (/\b0\b/.test(crossings)) break;
+    }
     await expect(game.locator('.cable__crossings')).toContainText('0');
     await expect(game.locator('.cable__cleared')).toBeVisible();
     await expect(game.locator('.cable__cleared')).toContainText('All cables clear!');
@@ -227,13 +252,18 @@ test.describe.serial('premium minigame presentation', () => {
     let game = await openGame(page, 'Coffee Rescue');
     await startGame(page);
     const area = await game.locator('.coffee__area').boundingBox();
-    const drop = game.locator('.coffee__drop').first();
-    await expect(drop).toBeVisible({ timeout: 3_000 });
+    /* Aim at something the office actually ordered. The decaf drop is a hazard, so
+       catching it scoring nothing is correct behaviour — targeting `.coffee__drop`
+       blindly made this check depend on which kind happened to be falling. The point
+       of the test is that a compact board is pointer-playable, so it wants a
+       catchable drop. */
+    const drop = game.locator('.coffee__drop:not(.coffee__drop--decaf)').first();
+    await expect(drop).toBeVisible({ timeout: 6_000 });
     const dropBox = await drop.boundingBox();
     expect(area).not.toBeNull();
     expect(dropBox).not.toBeNull();
     await page.mouse.move(dropBox!.x + dropBox!.width / 2, area!.y + area!.height - 18);
-    await expect(game.locator('.microgame__score b')).not.toHaveText('0', { timeout: 4_000 });
+    await expect(game.locator('.microgame__score b')).not.toHaveText('0', { timeout: 6_000 });
     await page.screenshot({ path: 'visual-artifacts/minigame-coffee-play-390x700.png' });
     await game.locator('.microgame__exit').click();
     await expect(page.locator('.microgame-menu')).toBeVisible();

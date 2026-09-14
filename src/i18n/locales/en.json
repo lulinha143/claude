@@ -1803,10 +1803,16 @@
     },
     "cableUntangle": {
       "name": "Cable Untangle Desk",
-      "desc": "Drag the numbered plugs until no cables cross or overlap. Clear every tangle to finish.",
+      "desc": "Drag the numbered plugs until no cables cross or overlap. Every desk is wired differently — a single loop, a hub that feeds everything, two separate loops, or a loop with shortcuts across it — so read the wiring before you start pulling.",
       "reaction": "Every cable runs clear. Marlow is trying not to cry with joy.",
       "crossings": "Tangles: {{value}}",
       "goal": "Move any plug to reshape its two cables",
+      "goalBy": {
+        "cycle": "One loop — run the plugs around the ring in order",
+        "wheel": "One plug feeds all the rest — give that one the middle",
+        "bi-loop": "Two separate loops — pull them apart from each other",
+        "chorded": "Shortcut cables cut across the loop — mind where they land"
+      },
       "clearStatus": "No crossings or overlaps — desk clear!",
       "board": "Desk {{value}}",
       "computer": "Plug {{value}}",

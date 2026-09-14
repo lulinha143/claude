@@ -318,12 +318,34 @@ export interface CableEdge {
 }
 export type CableDifficulty = 'easy' | 'medium' | 'hard';
 
+/**
+ * The SHAPE of the wiring, which is what actually makes one desk different from
+ * another.
+ *
+ * Every board used to be a single cycle laid out on an ellipse, so the solution was
+ * always "put the plugs in order around the ring". Eight ellipse proportions and a
+ * mirror flag made forty boards that were all the same puzzle: once a player learned
+ * the procedure, no later desk ever asked a new question.
+ *
+ * Each topology below needs a different realisation instead:
+ *
+ *   cycle     one loop. Solved on the perimeter, in order. The original.
+ *   wheel     a hub wired to every plug on the rim. The insight is that ONE plug
+ *             belongs in the middle — nowhere on the ring works.
+ *   bi-loop   two independent loops. The insight is that they must be pulled apart
+ *             from each other, not interleaved.
+ *   chorded   a loop with shortcut cables across it. The insight is that a shortcut
+ *             constrains which rotation of the ring is legal.
+ */
+export type CableTopology = 'cycle' | 'wheel' | 'bi-loop' | 'chorded';
+
 export interface CablePuzzle {
   points: CablePoint[];
   edges: CableEdge[];
   /** Authored, crossing-free matching-port locations. */
   solution: CablePoint[];
   difficulty: CableDifficulty;
+  topology: CableTopology;
   levelId: string;
   mirrored: boolean;
 }
@@ -473,8 +495,12 @@ interface CableLayoutProfile {
 interface CableLayout {
   id: string;
   nodeCount: number;
+  topology: CableTopology;
   difficulty: CableDifficulty;
+  /** Placing node `id` at `slots[id]` is conflict-free. Proven for the whole
+   *  catalogue by the "every authored desk is solvable" test. */
   slots: readonly { x: number; y: number }[];
+  edges: readonly CableEdge[];
 }
 
 // Eight desk silhouettes are generated for every supported size. Each profile
@@ -496,36 +522,155 @@ function roundCableCoordinate(value: number): number {
   return Math.round(value * 10_000) / 10_000;
 }
 
-function cableDifficulty(nodeCount: number): CableDifficulty {
-  if (nodeCount <= 5) return 'easy';
-  if (nodeCount <= 7) return 'medium';
-  return 'hard';
+/** Extra cables mean more to reason about, so they cost a difficulty step. */
+function cableDifficulty(nodeCount: number, topology: CableTopology): CableDifficulty {
+  const bySize = nodeCount <= 5 ? 0 : nodeCount <= 7 ? 1 : 2;
+  // bi-loop splits the desk into two SMALL loops, which is no harder than one big
+  // one; wheel and chorded add cables on top of the ring.
+  const byShape = topology === 'cycle' || topology === 'bi-loop' ? 0 : 1;
+  return (['easy', 'medium', 'hard'] as const)[Math.min(2, bySize + byShape)];
+}
+
+/** `count` points spread evenly around an ellipse, in angular order. */
+function ellipseSlots(
+  count: number,
+  centerX: number,
+  centerY: number,
+  radiusX: number,
+  radiusY: number,
+  phase: number,
+): { x: number; y: number }[] {
+  return Array.from({ length: count }, (_, index) => {
+    const angle = phase + (index * Math.PI * 2) / count;
+    return {
+      x: roundCableCoordinate(centerX + Math.cos(angle) * radiusX),
+      y: roundCableCoordinate(centerY + Math.sin(angle) * radiusY),
+    };
+  });
 }
 
 function buildCableSlots(
   nodeCount: number,
   profile: CableLayoutProfile,
 ): readonly { x: number; y: number }[] {
-  const phase = profile.phase * Math.PI;
-  return Array.from({ length: nodeCount }, (_, index) => {
-    const angle = phase + (index * Math.PI * 2) / nodeCount;
-    return {
-      x: roundCableCoordinate(profile.centerX + Math.cos(angle) * profile.radiusX),
-      y: roundCableCoordinate(profile.centerY + Math.sin(angle) * profile.radiusY),
-    };
-  });
+  return ellipseSlots(
+    nodeCount,
+    profile.centerX,
+    profile.centerY,
+    profile.radiusX,
+    profile.radiusY,
+    profile.phase * Math.PI,
+  );
 }
+
+/** Closed loop over a contiguous run of ids starting at `from`. */
+function ringEdges(from: number, count: number): CableEdge[] {
+  return Array.from({ length: count }, (_, index) => ({
+    a: from + index,
+    b: from + ((index + 1) % count),
+  }));
+}
+
+function cableEdges(nodeCount: number): CableEdge[] {
+  return ringEdges(0, nodeCount);
+}
+
+/**
+ * Shortcut cables for a chorded ring, chosen so the perimeter placement stays a
+ * valid solution.
+ *
+ * Two chords cross only if their endpoints interleave around the ring, so these are
+ * kept on disjoint arcs (or sharing an endpoint, which is never counted as a
+ * crossing). A chord skipping one node cannot pass through the node it skips either,
+ * because the slots sit on a strictly convex ellipse.
+ */
+function chordEdges(nodeCount: number): CableEdge[] {
+  const chords: CableEdge[] = [{ a: 0, b: 2 }];
+  if (nodeCount >= 6) chords.push({ a: 3, b: 5 });
+  if (nodeCount >= 8) chords.push({ a: 5, b: 7 });
+  return chords;
+}
+
+/** Build one authored desk: its slot positions and its cabling. */
+function buildCableLayout(
+  nodeCount: number,
+  topology: CableTopology,
+  profile: CableLayoutProfile,
+): { slots: readonly { x: number; y: number }[]; edges: readonly CableEdge[] } | null {
+  if (topology === 'cycle') {
+    return { slots: buildCableSlots(nodeCount, profile), edges: cableEdges(nodeCount) };
+  }
+
+  if (topology === 'chorded') {
+    return {
+      slots: buildCableSlots(nodeCount, profile),
+      edges: [...cableEdges(nodeCount), ...chordEdges(nodeCount)],
+    };
+  }
+
+  if (topology === 'wheel') {
+    // Rim ids 0..n-2 around the ellipse, hub id n-1 at the centre. A spoke from the
+    // centre to a rim vertex only touches the perimeter at its own endpoint, so no
+    // spoke crosses a rim cable and no rim plug sits on a spoke.
+    const rim = nodeCount - 1;
+    if (rim < 4) return null;
+    const hub = nodeCount - 1;
+    const slots = [
+      ...buildCableSlots(rim, profile),
+      { x: roundCableCoordinate(profile.centerX), y: roundCableCoordinate(profile.centerY) },
+    ];
+    const spokes = Array.from({ length: rim }, (_, index) => ({ a: hub, b: index }));
+    return { slots, edges: [...ringEdges(0, rim), ...spokes] };
+  }
+
+  // bi-loop: two loops on side-by-side ellipses whose bounding boxes do not overlap,
+  // so nothing in one loop can reach anything in the other. Each loop needs three
+  // plugs to be a loop rather than a doubled cable, hence six nodes minimum.
+  const sizeA = Math.ceil(nodeCount / 2);
+  const sizeB = nodeCount - sizeA;
+  if (sizeA < 3 || sizeB < 3) return null;
+  const radiusX = 0.15;
+  const radiusY = Math.max(0.14, profile.radiusY * 0.5);
+  const phase = profile.phase * Math.PI;
+  return {
+    slots: [
+      ...ellipseSlots(sizeA, 0.28, profile.centerY, radiusX, radiusY, phase),
+      ...ellipseSlots(sizeB, 0.72, profile.centerY, radiusX, radiusY, phase + Math.PI / 3),
+    ],
+    edges: [...ringEdges(0, sizeA), ...ringEdges(sizeA, sizeB)],
+  };
+}
+
+const CABLE_TOPOLOGIES: readonly CableTopology[] = ['cycle', 'wheel', 'bi-loop', 'chorded'];
+
+/** How many ellipse variants each topology gets. The ring keeps all eight it had. */
+const PROFILES_PER_TOPOLOGY: Readonly<Record<CableTopology, number>> = {
+  cycle: 8,
+  wheel: 4,
+  'bi-loop': 4,
+  chorded: 4,
+};
 
 const CABLE_LAYOUTS: readonly CableLayout[] = Array.from(
   { length: 5 },
   (_, index) => index + 5,
 ).flatMap((nodeCount) =>
-  CABLE_LAYOUT_PROFILES.map((profile) => ({
-    id: `${nodeCount}-${profile.id}`,
-    nodeCount,
-    difficulty: cableDifficulty(nodeCount),
-    slots: buildCableSlots(nodeCount, profile),
-  })),
+  CABLE_TOPOLOGIES.flatMap((topology) =>
+    CABLE_LAYOUT_PROFILES.slice(0, PROFILES_PER_TOPOLOGY[topology]).flatMap((profile) => {
+      const built = buildCableLayout(nodeCount, topology, profile);
+      if (!built) return [];
+      return [
+        {
+          id: `${nodeCount}-${topology}-${profile.id}`,
+          nodeCount,
+          topology,
+          difficulty: cableDifficulty(nodeCount, topology),
+          slots: built.slots,
+          edges: built.edges,
+        },
+      ];
+    }),
+  ),
 );
 
 const FALLBACK_TANGLE_ORDERS: Readonly<Record<number, readonly number[]>> = {
@@ -564,13 +709,6 @@ function pointsForCableOrder(
     .sort((left, right) => left.id - right.id);
 }
 
-function cableEdges(nodeCount: number): CableEdge[] {
-  return Array.from({ length: nodeCount }, (_, index) => ({
-    a: index,
-    b: (index + 1) % nodeCount,
-  }));
-}
-
 /** Pick a readable tangle near the target crossing count, never a lucky clear board. */
 function cableTangleOrder(
   seedStr: string,
@@ -578,7 +716,10 @@ function cableTangleOrder(
   slots: readonly { x: number; y: number }[],
 ): readonly number[] {
   const random = cableRng(hashStringToSeed(`cable-tangle:${seedStr}:${layout.id}`));
-  const edges = cableEdges(layout.nodeCount);
+  // The desk's OWN cabling, not an assumed ring: a wheel or a pair of loops tangles
+  // differently, and scoring a candidate against the wrong graph would hand out
+  // boards that are already clear.
+  const edges = layout.edges as CableEdge[];
   const targetConflicts = Math.max(3, layout.nodeCount - 2);
   let best = FALLBACK_TANGLE_ORDERS[layout.nodeCount];
   let bestDistance = Number.POSITIVE_INFINITY;
@@ -614,11 +755,35 @@ export function cablePuzzle(
   recentLevelIds: readonly string[] = [],
 ): CablePuzzle {
   const n = Math.max(5, Math.min(9, nodeCount));
-  const candidates = CABLE_LAYOUTS.filter((layout) => layout.nodeCount === n);
+  const forSize = CABLE_LAYOUTS.filter((layout) => layout.nodeCount === n);
   const recent = new Set(recentLevelIds);
+
+  /* Pick the SHAPE first, and prefer one the player has not just seen.
+     Selecting a layout directly would let the ring dominate purely because it has
+     twice as many ellipse variants — the player would mostly get the same puzzle
+     again with different proportions, which is the problem topologies exist to fix.
+     Choosing the topology explicitly means consecutive desks ask different
+     questions. */
+  /* One properly mixed stream, two draws — the way every other seeded system here
+     works (dailyChallenges and engine both feed hashStringToSeed into a PRNG rather
+     than using it directly). Two raw `hash(prefix + seed) % n` draws are NOT
+     independent: across the seeds `variety-0..63` the topology landed a perfect
+     16/16/16/16 while every shape stayed pinned to one ellipse variant, because the
+     inputs differ only in a prefix and a trailing digit. */
+  const pick = cableRng(hashStringToSeed(`cable-pick:${seedStr}:${n}`));
+
+  const topologies = [...new Set(forSize.map((layout) => layout.topology))];
+  const recentTopologies = new Set(
+    forSize.filter((layout) => recent.has(layout.id)).map((layout) => layout.topology),
+  );
+  const freshTopologies = topologies.filter((topology) => !recentTopologies.has(topology));
+  const topologyPool = freshTopologies.length > 0 ? freshTopologies : topologies;
+  const topology = topologyPool[Math.floor(pick() * topologyPool.length) % topologyPool.length];
+
+  const candidates = forSize.filter((layout) => layout.topology === topology);
   const available = candidates.filter((layout) => !recent.has(layout.id));
   const pool = available.length > 0 ? available : candidates;
-  const level = pool[hashStringToSeed(`cable-layout:${seedStr}:${n}`) % pool.length];
+  const level = pool[Math.floor(pick() * pool.length) % pool.length];
   const mirrored = hashStringToSeed(`cable-mirror:${seedStr}:${level.id}`) % 2 === 1;
   const mapPoint = (point: { x: number; y: number }) => ({
     x: mirrored ? roundCableCoordinate(1 - point.x) : point.x,
@@ -630,9 +795,10 @@ export function cablePuzzle(
   const points = pointsForCableOrder(order, mappedSlots);
   return {
     points,
-    edges: cableEdges(n),
+    edges: level.edges.map((edge) => ({ ...edge })),
     solution,
     difficulty: level.difficulty,
+    topology: level.topology,
     levelId: level.id,
     mirrored,
   };
@@ -660,9 +826,30 @@ export function cableLayoutIds(nodeCount: number): readonly string[] {
   return CABLE_LAYOUTS.filter((entry) => entry.nodeCount === n).map((entry) => entry.id);
 }
 
-/** Reward for clearing a board of the given size; bigger tangles are worth more. */
-export function cableSolveScore(nodeCount: number): number {
-  return 3 + Math.max(0, nodeCount - 4);
+/**
+ * Reward for clearing a board; bigger tangles are worth more, and a shape with extra
+ * cables is worth more than a plain ring of the same size. Topology is optional so
+ * the size-only reading stays valid for callers that only know the node count.
+ */
+export function cableSolveScore(nodeCount: number, topology: CableTopology = 'cycle'): number {
+  const base = 3 + Math.max(0, nodeCount - 4);
+  const bonus =
+    topology === 'wheel' ? 3 : topology === 'chorded' ? 2 : topology === 'bi-loop' ? 1 : 0;
+  return base + bonus;
+}
+
+/** Topologies authored for a board size, for diagnostics and variety checks. */
+export function cableTopologies(nodeCount: number): readonly CableTopology[] {
+  const n = Math.max(5, Math.min(9, nodeCount));
+  return [
+    ...new Set(CABLE_LAYOUTS.filter((entry) => entry.nodeCount === n).map((e) => e.topology)),
+  ];
+}
+
+/** The authored cabling for a level id, in node-id space. Mirrors `cableLevelSlots`. */
+export function cableLevelEdges(levelId: string): readonly CableEdge[] {
+  const level = CABLE_LAYOUTS.find((entry) => entry.id === levelId);
+  return level ? level.edges : [];
 }
 
 // --- shared -------------------------------------------------------------

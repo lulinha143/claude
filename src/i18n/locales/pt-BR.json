@@ -1803,10 +1803,16 @@
     },
     "cableUntangle": {
       "name": "Mesa de Cabos Embolados",
-      "desc": "Arraste os plugues numerados até nenhum cabo cruzar ou se sobrepor a outro. Desfaça todos os nós para concluir.",
+      "desc": "Arraste os plugues numerados até nenhum cabo cruzar ou se sobrepor a outro. Cada mesa é ligada de um jeito diferente — um laço só, um centro que alimenta tudo, dois laços separados ou um laço com atalhos — então leia a fiação antes de puxar.",
       "reaction": "Todos os cabos estão livres. Bento tenta não chorar de alegria.",
       "crossings": "Embolados: {{value}}",
       "goal": "Mova um plugue para reposicionar seus dois cabos",
+      "goalBy": {
+        "cycle": "Um laço — coloque os plugues em ordem ao redor do anel",
+        "wheel": "Um plugue alimenta todos os outros — deixe esse no centro",
+        "bi-loop": "Dois laços separados — afaste um do outro",
+        "chorded": "Cabos de atalho cruzam o laço — cuide de onde eles chegam"
+      },
       "clearStatus": "Sem cruzamentos ou sobreposições — mesa livre!",
       "board": "Mesa {{value}}",
       "computer": "Plugue {{value}}",

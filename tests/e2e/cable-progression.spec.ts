@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
-import { cableLevelSlots } from '../../src/sim/minigames';
+import { cableLevelSlots, cableLevelEdges } from '../../src/sim/minigames';
+import { cableScratchRows, cableScratchPoint } from './support/cable-scratch';
 
 // Regression cover for the highest-priority bug: after clearing a Cable
 // Untangle desk the next round must ALWAYS load. These tests complete many
@@ -96,17 +97,20 @@ async function solveCurrentBoard(page: Page) {
     await page.mouse.up();
   };
 
-  // The convex ellipse layouts occupy only the board perimeter, so the central
-  // horizontal strip (x 0.28..0.72, y 0.42/0.58) is always free of solution
-  // slots and of the left/right extreme plugs. Scatter every plug there first
-  // so each pick-up unambiguously grabs its own plug, then place each onto its
-  // solution slot. Two rows keep spacing well above the collision threshold
-  // even at nine plugs on a compact board.
-  const scratchColumns = Math.ceil(n / 2);
-  const scratchPoint = (id: number) => ({
-    x: 0.28 + (0.44 * (id % scratchColumns)) / Math.max(1, scratchColumns - 1),
-    y: id < scratchColumns ? 0.42 : 0.58,
-  });
+  // Scatter every plug onto two scratch rows first, so each pick-up unambiguously
+  // grabs its own plug, then place each onto its solution slot.
+  //
+  // The rows are DERIVED from this board rather than fixed. They used to be hardcoded
+  // at y 0.42/0.58 on the reasoning that "the convex ellipse layouts occupy only the
+  // board perimeter, so the centre is always free of solution slots". That stopped
+  // being true once desks could be wired as a wheel (hub slot dead centre) or as two
+  // loops (two inset ellipses reaching into the middle band): a scratch row sitting on
+  // top of a solution slot means a placed plug can cover the next plug we try to pick
+  // up, which fails intermittently rather than outright. So pick the two rows with the
+  // most clearance from every solution slot, keeping them far enough apart that the
+  // two groups cannot touch either.
+  const rows = cableScratchRows(slots);
+  const scratchPoint = (id: number) => cableScratchPoint(id, n, rows);
   for (let id = 0; id < n; id += 1) {
     const scratch = scratchPoint(id);
     await dragTo(id, scratch.x, scratch.y);
@@ -185,7 +189,14 @@ test.describe.serial('cable untangle keeps loading round after round', () => {
     await page.waitForTimeout(150);
     await expect(board).toHaveAttribute('data-nodes', '9');
     await expect(page.locator('.cable__node')).toHaveCount(9);
-    await expect(page.locator('.cable__strand-body')).toHaveCount(9);
+    // Nine plugs no longer implies nine cables: a wheel adds eight spokes and a
+    // chorded ring adds shortcuts. Check the renderer against the desk's own
+    // authored cabling instead of against the node count.
+    const compactLevel = await board.getAttribute('data-level');
+    expect(compactLevel).toBeTruthy();
+    await expect(page.locator('.cable__strand-body')).toHaveCount(
+      cableLevelEdges(compactLevel!).length,
+    );
     const boardBox = await board.boundingBox();
     expect(boardBox).not.toBeNull();
     for (const node of await page.locator('.cable__node').all()) {

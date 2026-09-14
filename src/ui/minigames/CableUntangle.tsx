@@ -221,7 +221,7 @@ export function CableUntangle({ seed, reducedMotion, paused, onScore, onCombo }:
     if (paused || settled.current || stage !== 'solving' || active !== null || tangles !== 0)
       return;
     settled.current = true;
-    scoreRef.current += cableSolveScore(puzzle.points.length);
+    scoreRef.current += cableSolveScore(puzzle.points.length, puzzle.topology);
     onScore(scoreRef.current);
     onCombo(Math.min(3, 1 + Math.floor((solvedCount + 1) / 2)));
     setSolvedCount((count) => count + 1);
@@ -242,6 +242,7 @@ export function CableUntangle({ seed, reducedMotion, paused, onScore, onCombo }:
     onScore,
     paused,
     puzzle.points.length,
+    puzzle.topology,
     reducedMotion,
     solvedCount,
     stage,
@@ -331,9 +332,12 @@ export function CableUntangle({ seed, reducedMotion, paused, onScore, onCombo }:
           {t('microgame.cableUntangle.crossings', { value: tangles })}
         </span>
         <span className="cable__status-copy">
+          {/* The goal line names THIS desk's wiring. A hub-and-spokes board with a
+              generic "move any plug" hint reads as broken rather than as a different
+              puzzle, so each shape states the insight it wants. */}
           {tangles === 0
             ? t('microgame.cableUntangle.clearStatus')
-            : t('microgame.cableUntangle.goal')}
+            : t(`microgame.cableUntangle.goalBy.${puzzle.topology}`)}
         </span>
       </div>
 
@@ -344,6 +348,7 @@ export function CableUntangle({ seed, reducedMotion, paused, onScore, onCombo }:
         data-stage={stage}
         data-round={solvedCount}
         data-level={puzzle.levelId}
+        data-topology={puzzle.topology}
         data-mirrored={puzzle.mirrored ? 'true' : 'false'}
         data-nodes={puzzle.points.length}
         aria-label={t('microgame.cableUntangle.name')}
