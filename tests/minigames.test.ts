@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import {
+  BUG_SPECIES,
+  BUG_SPECIES_BY_ID,
+  BUG_INPUT_GRACE_MS,
+  pickBugSpecies,
+  firstBugSpecies,
+  bugSpeciesLifetime,
+  bugSpeciesScore,
   cablePuzzle,
   cablePositions,
   countCrossings,
@@ -231,5 +238,116 @@ describe('grading', () => {
     expect(microGrade(10)).toBe('ok');
     expect(microGrade(20)).toBe('great');
     expect(microGrade(40)).toBe('perfect');
+  });
+});
+
+/**
+ * BUG SPECIES.
+ *
+ * The three bug "variants" used to be paint: different colours on a pest with the
+ * same lifetime, the same score and the same one-tap resolution. The game looked
+ * varied and played identically. These tests pin the properties that make a species
+ * a BEHAVIOUR, because they are exactly what a careless tuning edit would flatten
+ * back into cosmetics.
+ */
+describe('bug species', () => {
+  it('spans a 0..1 roll without ever falling through', () => {
+    // Including the boundaries: a roll of exactly 1 must not return undefined, which
+    // is the classic weighted-pick bug.
+    for (const roll of [0, 0.0001, 0.25, 0.5, 0.75, 0.999999, 1]) {
+      const species = pickBugSpecies(roll);
+      expect(species, `roll ${roll} produced nothing`).toBeDefined();
+      expect(BUG_SPECIES.map((s) => s.id)).toContain(species.id);
+    }
+  });
+
+  it('is deterministic for a given roll', () => {
+    for (const roll of [0.1, 0.42, 0.87]) {
+      expect(pickBugSpecies(roll).id).toBe(pickBugSpecies(roll).id);
+    }
+  });
+
+  it('reaches every species across the roll space', () => {
+    const seen = new Set<string>();
+    for (let i = 0; i < 2000; i += 1) seen.add(pickBugSpecies(i / 2000).id);
+    // A species that no roll can produce is dead content.
+    expect(seen.size).toBe(BUG_SPECIES.length);
+  });
+
+  it('keeps the common pest common and the prize rare', () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < 10_000; i += 1) {
+      const id = pickBugSpecies(i / 10_000).id;
+      counts.set(id, (counts.get(id) ?? 0) + 1);
+    }
+    expect(counts.get('worker') ?? 0).toBeGreaterThan(counts.get('runner') ?? 0);
+    expect(counts.get('runner') ?? 0).toBeGreaterThan(counts.get('rare') ?? 0);
+    // The prize must actually be scarce, or it stops being a prize.
+    expect((counts.get('rare') ?? 0) / 10_000).toBeLessThan(0.1);
+  });
+
+  it('trades window length against reward, so the species ask different things', () => {
+    const worker = BUG_SPECIES_BY_ID.worker;
+    const runner = BUG_SPECIES_BY_ID.runner;
+    const rare = BUG_SPECIES_BY_ID.rare;
+    const armoured = BUG_SPECIES_BY_ID.armoured;
+
+    // A shorter window must pay more, or nobody would want the harder target.
+    expect(bugSpeciesLifetime(runner, 0)).toBeLessThan(bugSpeciesLifetime(worker, 0));
+    expect(bugSpeciesScore(runner, 0)).toBeGreaterThan(bugSpeciesScore(worker, 0));
+    expect(bugSpeciesLifetime(rare, 0)).toBeLessThan(bugSpeciesLifetime(runner, 0));
+    expect(bugSpeciesScore(rare, 0)).toBeGreaterThan(bugSpeciesScore(runner, 0));
+
+    // The armoured pest buys its extra tap with a longer window.
+    expect(armoured.taps).toBe(2);
+    expect(bugSpeciesLifetime(armoured, 0)).toBeGreaterThan(bugSpeciesLifetime(worker, 0));
+    // Everything else resolves in one tap.
+    for (const id of ['worker', 'runner', 'rare'] as const) {
+      expect(BUG_SPECIES_BY_ID[id].taps).toBe(1);
+    }
+  });
+
+  it('never opens a window too short to actually hit', () => {
+    // A species whose window approaches the input grace period is a coin flip, not a
+    // skill test. Checked across the whole difficulty ramp, not just at t=0.
+    for (const species of BUG_SPECIES) {
+      for (const elapsed of [0, 15, 30, 45, 60, 120]) {
+        expect(
+          bugSpeciesLifetime(species, elapsed),
+          `${species.id} at ${elapsed}s`,
+        ).toBeGreaterThan(BUG_INPUT_GRACE_MS * 1.5);
+      }
+    }
+  });
+
+  it('still gets harder over time for every species', () => {
+    for (const species of BUG_SPECIES) {
+      expect(bugSpeciesLifetime(species, 60)).toBeLessThanOrEqual(bugSpeciesLifetime(species, 0));
+    }
+  });
+
+  it('keeps a squash worth at least a point at any streak', () => {
+    for (const species of BUG_SPECIES) {
+      for (const streak of [0, 1, 5, 20]) {
+        expect(bugSpeciesScore(species, streak)).toBeGreaterThanOrEqual(1);
+      }
+    }
+  });
+});
+
+describe('the pest that opens a round', () => {
+  it('is always a plain one-tap worker', () => {
+    // A round is short and the first pest has to teach the interaction. It is also
+    // what makes the opening of a round deterministic: with a weighted first spawn
+    // the same seed could open four different ways and the first hit was worth 2, 4,
+    // 8 or nothing, depending on which species happened to appear.
+    const first = firstBugSpecies();
+    expect(first.taps).toBe(1);
+    expect(first.id).toBe('worker');
+    expect(first.scoreScale).toBe(1);
+  });
+
+  it('opens on the full-length window rather than a short one', () => {
+    expect(bugSpeciesLifetime(firstBugSpecies(), 0)).toBe(bugLifetime(0));
   });
 });

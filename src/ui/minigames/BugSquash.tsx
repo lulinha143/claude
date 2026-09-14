@@ -2,12 +2,15 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   BUG_HOLES,
-  bugLifetime,
   bugSpawnInterval,
-  bugScore,
+  bugSpeciesLifetime,
+  bugSpeciesScore,
+  pickBugSpecies,
+  firstBugSpecies,
   coffeeComboMultiplier,
   applyBugEmptyPenalty,
   resolveBugWhack,
+  type BugSpecies,
   type RecentBugTarget,
 } from '../../sim/minigames';
 import { useStore } from '../../state/store';
@@ -29,13 +32,20 @@ export function BugSquash({
   const { t } = useTranslation();
   const audio = useStore((state) => state.audio);
   const [active, setActive] = useState<number | null>(null);
-  const [activeVariant, setActiveVariant] = useState(0);
+  const [activeSpecies, setActiveSpecies] = useState<BugSpecies>(() => pickBugSpecies(0));
+  /** Taps still needed on the bug currently up (armoured pests take two). */
+  const [tapsLeft, setTapsLeft] = useState(1);
   const [urgent, setUrgent] = useState(false);
   const [streak, setStreak] = useState(0);
-  const [hit, setHit] = useState<{ hole: number; variant: number } | null>(null);
+  const [hit, setHit] = useState<{ hole: number; species: BugSpecies } | null>(null);
   const [wrong, setWrong] = useState<number | null>(null);
   const [feedback, setFeedback] = useState('');
-  const activeRef = useRef<{ hole: number; token: number; variant: number } | null>(null);
+  const activeRef = useRef<{
+    hole: number;
+    token: number;
+    species: BugSpecies;
+    tapsLeft: number;
+  } | null>(null);
   const recentRef = useRef<RecentBugTarget | null>(null);
   const pressedTokenRef = useRef<{ hole: number; token: number | null } | null>(null);
   const tokenRef = useRef(0);
@@ -69,15 +79,27 @@ export function BugSquash({
         if (now >= nextSpawnRef.current) {
           let hole = Math.floor(rng.current() * BUG_HOLES);
           if (hole === lastRef.current) hole = (hole + 1) % BUG_HOLES;
-          const variant = Math.floor(rng.current() * 3);
-          activeRef.current = { hole, token: ++tokenRef.current, variant };
+          // The opening pest is always the basic worker so the round teaches its
+          // own interaction first; see firstBugSpecies().
+          const species =
+            tokenRef.current === 0 ? firstBugSpecies() : pickBugSpecies(rng.current());
+          activeRef.current = {
+            hole,
+            token: ++tokenRef.current,
+            species,
+            tapsLeft: species.taps,
+          };
           lastRef.current = hole;
           spawnedAtRef.current = now;
           setActive(hole);
-          setActiveVariant(variant);
+          setActiveSpecies(species);
+          setTapsLeft(species.taps);
           setUrgent(false);
         }
-      } else if (now - spawnedAtRef.current > bugLifetime(elapsed())) {
+      } else if (
+        now - spawnedAtRef.current >
+        bugSpeciesLifetime(activeRef.current.species, elapsed())
+      ) {
         recentRef.current = { hole: activeRef.current.hole, at: now };
         activeRef.current = null;
         setActive(null);
@@ -87,7 +109,10 @@ export function BugSquash({
         onCombo(1);
         nextSpawnRef.current = now + bugSpawnInterval(elapsed());
       } else {
-        setUrgent(now - spawnedAtRef.current > bugLifetime(elapsed()) * 0.68);
+        setUrgent(
+          now - spawnedAtRef.current >
+            bugSpeciesLifetime(activeRef.current.species, elapsed()) * 0.68,
+        );
       }
     }, 90);
     return () => {
@@ -144,19 +169,32 @@ export function BugSquash({
     }
 
     const target = activeRef.current!;
+
+    // ARMOURED: the first tap cracks the shell and the bug stays up. The spawn token
+    // is deliberately NOT rotated, so the pointer-down capture on the follow-up tap
+    // still matches and the existing grace/race protection keeps working unchanged.
+    if (target.tapsLeft > 1) {
+      target.tapsLeft -= 1;
+      setTapsLeft(target.tapsLeft);
+      audio.play('click');
+      setFeedback(t('microgame.bugSquash.cracked'));
+      return;
+    }
+
     recentRef.current = { hole, at: now };
     activeRef.current = null;
     setActive(null);
+    setTapsLeft(1);
     setUrgent(false);
     streakRef.current += 1;
     setStreak(streakRef.current);
-    const gained = bugScore(streakRef.current);
+    const gained = bugSpeciesScore(target.species, streakRef.current);
     scoreRef.current += gained;
     onScore(scoreRef.current);
     onCombo(coffeeComboMultiplier(streakRef.current));
     audio.play('bugHit');
     setWrong(null);
-    setHit({ hole, variant: target.variant });
+    setHit({ hole, species: target.species });
     setFeedback(t('microgame.bugSquash.hit', { value: gained }));
     if (hitTimer.current) clearTimeout(hitTimer.current);
     hitTimer.current = setTimeout(() => setHit(null), reducedMotion ? 420 : 460);
@@ -208,7 +246,7 @@ export function BugSquash({
           {Array.from({ length: BUG_HOLES }).map((_, index) => (
             <button
               key={index}
-              className={`burrow ${active === index ? 'is-up' : ''} ${urgent && active === index ? 'is-urgent' : ''} ${hit?.hole === index ? 'is-hit' : ''} ${wrong === index ? 'is-wrong' : ''}`}
+              className={`burrow ${active === index ? 'is-up' : ''} ${active === index ? `burrow--${activeSpecies.id}` : ''} ${urgent && active === index ? 'is-urgent' : ''} ${hit?.hole === index ? 'is-hit' : ''} ${wrong === index ? 'is-wrong' : ''}`}
               onPointerDown={() => armWhack(index)}
               onClick={(event) => whack(index, event.detail === 0)}
               disabled={paused}
@@ -218,8 +256,10 @@ export function BugSquash({
                 {String(index + 1).padStart(2, '0')}
               </span>
               <span className="burrow__hole" aria-hidden="true" />
-              {active === index ? <Bug variant={activeVariant} /> : null}
-              {hit?.hole === index ? <Bug variant={hit.variant} squashed /> : null}
+              {active === index ? (
+                <Bug species={activeSpecies} cracked={tapsLeft < activeSpecies.taps} />
+              ) : null}
+              {hit?.hole === index ? <Bug species={hit.species} squashed /> : null}
               {hit?.hole === index ? (
                 <span className="burrow__impact" aria-hidden="true">
                   <b>POW!</b>
@@ -241,14 +281,39 @@ export function BugSquash({
   );
 }
 
-function Bug({ variant, squashed = false }: { variant: number; squashed?: boolean }) {
-  const body = variant === 0 ? '#a95b38' : variant === 1 ? '#7d6aae' : '#73924e';
-  const shell = variant === 0 ? '#e48b55' : variant === 1 ? '#aa92d3' : '#a4c96f';
+const SPECIES_PAINT: Record<string, { body: string; shell: string }> = {
+  // Colour now MEANS something: the player should be able to read the behaviour off
+  // the pest before deciding whether to commit to it.
+  //
+  // Chosen against THIS board, not in the abstract. The desk is brown wood, the
+  // folders are grey-tan and the tray is teal-grey, so the first attempt at an
+  // armoured pest (#5d6b74 body, #9fb3bd plate) came out almost exactly the colour
+  // of the furniture — the one species that demands two taps was the hardest of the
+  // four to spot. It is now dark slate against a bright steel plate, which reads as
+  // armour AND separates from the folders behind it.
+  worker: { body: '#a95b38', shell: '#e48b55' },
+  runner: { body: '#6b4fa8', shell: '#b79cf0' },
+  armoured: { body: '#2f4757', shell: '#cfe2ec' },
+  rare: { body: '#8a5a12', shell: '#ffd54a' },
+};
+
+function Bug({
+  species,
+  squashed = false,
+  cracked = false,
+}: {
+  species: BugSpecies;
+  squashed?: boolean;
+  cracked?: boolean;
+}) {
+  const paint = SPECIES_PAINT[species.id] ?? SPECIES_PAINT.worker;
+  const body = paint.body;
+  const shell = paint.shell;
   return (
     <svg
-      className={`bug bug--${variant} ${squashed ? 'is-squashed' : ''}`}
-      width="52"
-      height="52"
+      className={`bug bug--${species.id} ${squashed ? 'is-squashed' : ''} ${cracked ? 'is-cracked' : ''}`}
+      width="58"
+      height="58"
       viewBox="0 0 52 52"
       aria-hidden="true"
     >
@@ -296,18 +361,37 @@ function Bug({ variant, squashed = false }: { variant: number; squashed?: boolea
       <circle cx="30" cy="25" r="1.6" fill="#2a1a0e" />
       <path d="M18 11l4 7M34 11l-4 7" stroke="#2a1a0e" strokeWidth="2.4" strokeLinecap="round" />
       <path d="M22 32q4-3 8 0" stroke="#2a1a0e" strokeWidth="2" fill="none" strokeLinecap="round" />
-      {variant === 0 ? (
+      {species.id === 'worker' ? (
         <g fill={shell} stroke="#2a1a0e" strokeWidth="1">
           <circle cx="20" cy="30" r="2.2" />
           <circle cx="32" cy="35" r="2.4" />
           <circle cx="24" cy="40" r="1.8" />
         </g>
       ) : null}
-      {variant === 1 ? (
+      {/* Runner: swept back, so "this one is quick" is legible at a glance. */}
+      {species.id === 'runner' ? (
         <path d="M11 20 3 9l14 6M41 20l8-11-14 6" fill={shell} stroke="#2a1a0e" strokeWidth="2" />
       ) : null}
-      {variant === 2 ? (
-        <path d="M26 17 22 7l4 3 4-3-4 10" fill={shell} stroke="#2a1a0e" strokeWidth="1.8" />
+      {/* Armoured: a plate over the back, which splits once it has been cracked. */}
+      {species.id === 'armoured' ? (
+        <g stroke="#2a1a0e" strokeWidth="2">
+          <path d="M15 26q11-8 22 0v8q-11 6-22 0Z" fill={shell} />
+          {cracked ? (
+            <path d="M26 24l-4 6 5 3-3 6" fill="none" strokeWidth="1.8" stroke="#2a1a0e" />
+          ) : null}
+        </g>
+      ) : null}
+      {/* Rare: it shines. Worth dropping everything for. */}
+      {species.id === 'rare' ? (
+        <g>
+          <path d="M26 17 22 7l4 3 4-3-4 10" fill={shell} stroke="#2a1a0e" strokeWidth="1.8" />
+          <path
+            d="M8 12l2 5 5 2-5 2-2 5-2-5-5-2 5-2Z"
+            fill="#fff4c0"
+            stroke="#2a1a0e"
+            strokeWidth="1.2"
+          />
+        </g>
       ) : null}
       <circle cx="17" cy="17" r="2" fill={shell} opacity=".8" />
     </svg>

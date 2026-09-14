@@ -82,6 +82,101 @@ export function bugScore(streak: number): number {
   return 2 + Math.min(6, Math.floor(streak / 2));
 }
 
+/* --- bug species ----------------------------------------------------------
+ * WHY THIS EXISTS
+ * ---------------
+ * Bug Squash drew three bug "variants" and they were purely cosmetic: different
+ * colours and a decorative flourish on an otherwise identical pest. Every bug had
+ * the same lifetime, the same score and the same one-tap resolution, and only one
+ * was ever on screen at a time. So the whole game was "wait, tap, wait" — it LOOKED
+ * varied and PLAYED identically, which is the definition of shallow.
+ *
+ * A species is now a behaviour, not a palette. The table is the only place the
+ * differences live, so adding one is data, and the numbers are all multipliers on
+ * the existing difficulty curve rather than a second curve to keep in sync.
+ *
+ * The four are chosen to ask genuinely different things of the player:
+ *   worker    the baseline. Most of what you see.
+ *   runner    a window roughly half as long, worth double. Pure reaction.
+ *   armoured  needs TWO taps and stays up longer. A commitment: while you finish
+ *             it you are not watching the rest of the desk.
+ *   rare      the shortest window in the game for four times the score. The one
+ *             you drop everything for.
+ * ------------------------------------------------------------------------- */
+
+export type BugSpeciesId = 'worker' | 'runner' | 'armoured' | 'rare';
+
+export interface BugSpecies {
+  id: BugSpeciesId;
+  /** Multiplier on `bugLifetime` — how long the window stays open. */
+  lifetimeScale: number;
+  /** Multiplier on `bugScore` — what squashing it is worth. */
+  scoreScale: number;
+  /** Taps required before it is squashed. */
+  taps: number;
+  /** Relative spawn frequency. */
+  weight: number;
+}
+
+export const BUG_SPECIES: readonly BugSpecies[] = [
+  { id: 'worker', lifetimeScale: 1, scoreScale: 1, taps: 1, weight: 58 },
+  { id: 'runner', lifetimeScale: 0.55, scoreScale: 2, taps: 1, weight: 22 },
+  { id: 'armoured', lifetimeScale: 1.6, scoreScale: 1.6, taps: 2, weight: 15 },
+  { id: 'rare', lifetimeScale: 0.45, scoreScale: 4, taps: 1, weight: 5 },
+];
+
+export const BUG_SPECIES_BY_ID: Record<BugSpeciesId, BugSpecies> = Object.fromEntries(
+  BUG_SPECIES.map((s) => [s.id, s]),
+) as Record<BugSpeciesId, BugSpecies>;
+
+/**
+ * Choose a species from a 0..1 roll.
+ *
+ * Takes the roll rather than owning an RNG so the caller's seeded generator stays
+ * the single source of randomness — which is what keeps a run reproducible from its
+ * seed, and what makes this function trivially testable at its boundaries.
+ */
+export function pickBugSpecies(roll: number): BugSpecies {
+  const total = BUG_SPECIES.reduce((sum, s) => sum + s.weight, 0);
+  // Clamp rather than trust: a roll of exactly 1 (or a hair over) must not fall
+  // through the loop and return undefined.
+  let cursor = Math.min(Math.max(roll, 0), 0.999999) * total;
+  for (const species of BUG_SPECIES) {
+    cursor -= species.weight;
+    if (cursor < 0) return species;
+  }
+  return BUG_SPECIES[0];
+}
+
+/**
+ * The pest that opens a round.
+ *
+ * Always the plain one-tap worker, deliberately. A round is short, and the first
+ * thing a player meets has to teach the basic interaction — tap it, it dies — before
+ * the game asks for two taps on an armoured shell or expects a reaction to a runner
+ * that is gone in half the time. Leading with an armoured pest reads as an
+ * unresponsive game rather than as a harder target.
+ *
+ * It also removes real non-determinism from the opening of every round: with a
+ * weighted first spawn, the same seed could open four different ways, which made the
+ * first hit worth 2, 4, 8 or nothing at all.
+ */
+export function firstBugSpecies(): BugSpecies {
+  return BUG_SPECIES_BY_ID.worker;
+}
+
+/** How long this species stays up, on the shared difficulty curve. */
+export function bugSpeciesLifetime(species: BugSpecies, elapsedSeconds: number): number {
+  // Floored well above the input grace window so even the shortest-lived species is
+  // always genuinely hittable rather than a coin flip.
+  return Math.max(320, Math.round(bugLifetime(elapsedSeconds) * species.lifetimeScale));
+}
+
+/** What squashing this species is worth at the current streak. */
+export function bugSpeciesScore(species: BugSpecies, streak: number): number {
+  return Math.max(1, Math.round(bugScore(streak) * species.scoreScale));
+}
+
 export const BUG_EMPTY_PENALTY = 2;
 export const BUG_INPUT_GRACE_MS = 180;
 

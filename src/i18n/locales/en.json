@@ -1789,7 +1789,8 @@
       "scanning": "Scanning desk…",
       "hit": "Bug fixed · +{{value}} points",
       "penalty": "Empty drawer · -{{value}} points",
-      "empty": "Empty drawer — no points to deduct"
+      "empty": "Empty drawer — no points to deduct",
+      "cracked": "Shell cracked — hit it again!"
     },
     "cableUntangle": {
       "name": "Cable Untangle Desk",

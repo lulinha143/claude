@@ -1789,7 +1789,8 @@
       "scanning": "Vasculhando a mesa…",
       "hit": "Inseto corrigido · +{{value}} pontos",
       "penalty": "Gaveta vazia · -{{value}} pontos",
-      "empty": "Gaveta vazia — sem pontos para descontar"
+      "empty": "Gaveta vazia — sem pontos para descontar",
+      "cracked": "Carapaça rachada — bata de novo!"
     },
     "cableUntangle": {
       "name": "Mesa de Cabos Embolados",
