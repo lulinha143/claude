@@ -447,3 +447,119 @@ describe('conversations reuse the consequence machinery', () => {
     expect(after).toBeGreaterThan(before);
   });
 });
+
+/**
+ * BREADTH AND CONTINUITY OF THE CONVERSATION CATALOGUE.
+ *
+ * The catalogue had four universal topics plus personal ones for three animals, so
+ * twenty of the twenty-three employees shared exactly the same conversations — the
+ * roster read as interchangeable however distinct the artwork was. These tests pin
+ * the two properties that fixed it, both of which are easy to lose by editing
+ * content:
+ *
+ *   BREADTH   — personal topics exist for more than a token few animals, and a
+ *               personal topic is never offered to the wrong employee.
+ *   CONTINUITY — a conversation can exist BECAUSE of an earlier one. `moss-ledger`
+ *               is gated on a flag that only certain choices in `moss-count` write,
+ *               so it is a consequence of a decision rather than of a timer.
+ */
+describe('conversation catalogue breadth and continuity', () => {
+  /** Hire one animal with enough trust to unlock their personal material. */
+  function withEmployee(now: number, id: string, friendship = 60) {
+    return engineAt(now, (s) => {
+      s.employees[id] = {
+        ...s.employees[id],
+        hired: true,
+        level: 3,
+        friendship,
+        talks: { count: 0, lastAt: 0, seen: {} },
+      };
+      s.resources.nuts = 50_000;
+      s.resources.goldenNuts = 10;
+    });
+  }
+
+  it('gives personal conversations to a meaningful share of the cast', () => {
+    const personal = new Set(
+      Object.values(TALKS_BY_ID)
+        .map((t) => t.employeeId)
+        .filter((id): id is string => Boolean(id)),
+    );
+    // Was three (pip, dorm, rizzo). The point of the guard is that adding cast
+    // members must not quietly re-dilute the roster back to shared small talk.
+    expect(personal.size).toBeGreaterThanOrEqual(5);
+  });
+
+  it('never offers one animal another animal\u2019s personal topic', () => {
+    for (const topic of Object.values(TALKS_BY_ID)) {
+      if (!topic.employeeId) continue;
+      const others = ['pip', 'moss', 'bia', 'dorm', 'rizzo'].filter(
+        (id) => id !== topic.employeeId,
+      );
+      for (const other of others) {
+        expect(
+          topicsForEmployee(other).some((t) => t.id === topic.id),
+          `${topic.id} leaked to ${other}`,
+        ).toBe(false);
+      }
+    }
+  });
+
+  it('keeps the follow-up conversation shut until the choice that opens it is made', () => {
+    const now = 1_000_000;
+    const engine = withEmployee(now, 'moss');
+
+    // Before anything is decided, the payoff topic must not be on offer.
+    expect(eligibleTopics(engine.state, 'moss', now).map((t) => t.id)).not.toContain('moss-ledger');
+
+    // Hushing her is the option that does NOT file the count, so it must not open it.
+    engine.state.flags['moss.hushed'] = now;
+    expect(eligibleTopics(engine.state, 'moss', now).map((t) => t.id)).not.toContain('moss-ledger');
+
+    // Filing it is what earns the follow-up.
+    engine.state.flags['moss.counted'] = now;
+    expect(eligibleTopics(engine.state, 'moss', now).map((t) => t.id)).toContain('moss-ledger');
+  });
+
+  it('writes the mark that opens the follow-up when the count is filed', () => {
+    // Pure content assertion: the flag written and the flag required must be the
+    // same string, which needs no engine.
+    const topic = TALKS_BY_ID['moss-count'];
+    const filing = topic.nodes.open.choices.find((c) => c.id === 'log');
+    expect(filing, 'moss-count must keep an option that files the count').toBeDefined();
+    // The flag the follow-up requires and the flag this choice writes must be the
+    // same string, or the arc silently never chains.
+    expect(filing!.effects.some((e) => e.type === 'setFlag' && e.flagId === 'moss.counted')).toBe(
+      true,
+    );
+    expect(TALKS_BY_ID['moss-ledger'].requires?.flag).toBe('moss.counted');
+  });
+
+  it('makes the risky option cost something real and promise something later', () => {
+    const door = TALKS_BY_ID['bia-door'];
+    const risky = door.nodes.open.choices.find((c) => c.id === 'open-it');
+    expect(risky).toBeDefined();
+    // A "risky" option that only pays out now is not risky, it is just the best one.
+    const promise = risky!.effects.find((e) => e.type === 'schedule');
+    expect(promise, 'the risky option must schedule a later consequence').toBeDefined();
+    expect(promise!.delaySeconds ?? 0).toBeGreaterThan(0);
+    expect((promise!.scheduled ?? []).length).toBeGreaterThan(0);
+    // And the later consequence must actually be a downside somewhere.
+    expect(
+      (promise!.scheduled ?? []).some((e) => (e.value ?? 0) < 0),
+      'the delayed consequence should not be pure upside',
+    ).toBe(true);
+  });
+
+  it('diverges in KIND across the options of a new topic, not just in magnitude', () => {
+    for (const id of ['moss-count', 'bia-door']) {
+      const kinds = TALKS_BY_ID[id].nodes.open.choices.map(
+        (c) => new Set(c.effects.map((e) => e.type)),
+      );
+      // At least two options must touch a different SET of systems, which is what
+      // stops "three buttons that all pay +5 nuts".
+      const signatures = new Set(kinds.map((s) => [...s].sort().join(',')));
+      expect(signatures.size, `${id} options are mechanically interchangeable`).toBeGreaterThan(1);
+    }
+  });
+});

@@ -618,11 +618,301 @@ const RIZZO_INVENTORY: TalkTopic = {
   },
 };
 
+/* -------------------------------------------------------------------------- */
+/* Personal arcs, continued.                                                   */
+/*                                                                            */
+/* The catalogue had four universal topics and personal ones for exactly three  */
+/* animals — Pip, Dorm and Rizzo. With a cast of 23 that meant twenty employees */
+/* shared the same four conversations, so talking to the bear, the owl and the  */
+/* octopus produced identical dialogue and the roster read as interchangeable   */
+/* however distinct the artwork was.                                            */
+/*                                                                            */
+/* These are written to each animal's established role and voice (see           */
+/* `employee.<id>.story` in the locales) rather than being generic lines with a  */
+/* name swapped in. Breadth over volume: three authored topics, one of which is  */
+/* only reachable because of a choice made in another, is worth more than fifty  */
+/* interchangeable ones.                                                        */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Moss, Night Operations & Observation. She notices what everyone else misses and
+ * says so gently, which is what makes it unsettling.
+ *
+ * Step one of a two-part arc. Each option leaves a DIFFERENT mark, and only one of
+ * them opens `MOSS_LEDGER` below — so the follow-up is a consequence of a specific
+ * decision rather than a timer.
+ */
+const MOSS_COUNT: TalkTopic = {
+  id: 'moss-count',
+  employeeId: 'moss',
+  titleKey: k('moss-count', 'title'),
+  blurbKey: k('moss-count', 'blurb'),
+  root: 'open',
+  weight: 13,
+  once: true,
+  requires: { friendship: 30 },
+  nodes: {
+    open: {
+      id: 'open',
+      promptKey: k('moss-count', 'open.prompt'),
+      choices: [
+        {
+          id: 'log',
+          tone: 'curious',
+          labelKey: k('moss-count', 'open.log.label'),
+          replyKey: k('moss-count', 'open.log.reply'),
+          // The only option that opens the follow-up. Filing it officially is what
+          // gives the company something to later disagree with.
+          effects: [
+            { type: 'friendship', value: 7 },
+            { type: 'reputation', value: 10 },
+            { type: 'emotion', emotion: 'focused', durationSeconds: 900 },
+            { type: 'setFlag', flagId: 'moss.counted' },
+          ],
+          next: 'filed',
+        },
+        {
+          id: 'hush',
+          tone: 'firm',
+          labelKey: k('moss-count', 'open.hush.label'),
+          replyKey: k('moss-count', 'open.hush.reply'),
+          // Cheaper now, and it closes the door permanently: MOSS_LEDGER requires
+          // the flag this option does not set.
+          effects: [
+            { type: 'friendship', value: -8 },
+            { type: 'morale', value: -3 },
+            { type: 'emotion', emotion: 'worried', durationSeconds: 1200 },
+            { type: 'setFlag', flagId: 'moss.hushed' },
+          ],
+        },
+        {
+          id: 'join',
+          tone: 'costly',
+          labelKey: k('moss-count', 'open.join.label'),
+          replyKey: k('moss-count', 'open.join.reply'),
+          // Costs a night of production now and pays back later, in her company.
+          effects: [
+            { type: 'friendship', value: 14 },
+            { type: 'productionBoost', value: 0.85, durationSeconds: 300 },
+            { type: 'setFlag', flagId: 'moss.counted' },
+            {
+              type: 'schedule',
+              delaySeconds: 720,
+              scheduleTitleKey: 'talk.consequence.mossNight.title',
+              scheduleBodyKey: 'talk.consequence.mossNight.body',
+              scheduled: [
+                { type: 'reputation', value: 16 },
+                { type: 'goldenNuts', value: 2 },
+                { type: 'momentCard' },
+              ],
+            },
+          ],
+          next: 'filed',
+        },
+      ],
+    },
+    filed: {
+      id: 'filed',
+      promptKey: k('moss-count', 'filed.prompt'),
+      choices: [
+        {
+          id: 'thank',
+          tone: 'warm',
+          labelKey: k('moss-count', 'filed.thank.label'),
+          replyKey: k('moss-count', 'filed.thank.reply'),
+          effects: [
+            { type: 'friendship', value: 5 },
+            { type: 'morale', value: 3 },
+          ],
+        },
+        {
+          id: 'ask',
+          tone: 'curious',
+          labelKey: k('moss-count', 'filed.ask.label'),
+          replyKey: k('moss-count', 'filed.ask.reply'),
+          effects: [
+            { type: 'friendship', value: 3 },
+            { type: 'emotion', emotion: 'suspicious', durationSeconds: 900 },
+          ],
+        },
+      ],
+    },
+  },
+};
+
+/**
+ * The payoff. Reachable ONLY because the count was filed — the company has now
+ * returned the paperwork with a different number on it, which is the sort of thing
+ * Nutshell Inc. does without explaining itself.
+ *
+ * This is the arc the header of this file promised and nothing yet delivered: a
+ * conversation that exists because of an earlier conversation.
+ */
+const MOSS_LEDGER: TalkTopic = {
+  id: 'moss-ledger',
+  employeeId: 'moss',
+  titleKey: k('moss-ledger', 'title'),
+  blurbKey: k('moss-ledger', 'blurb'),
+  root: 'open',
+  weight: 16,
+  once: true,
+  requires: { flag: 'moss.counted', friendship: 35 },
+  nodes: {
+    open: {
+      id: 'open',
+      promptKey: k('moss-ledger', 'open.prompt'),
+      choices: [
+        {
+          id: 'accept',
+          tone: 'firm',
+          labelKey: k('moss-ledger', 'open.accept.label'),
+          replyKey: k('moss-ledger', 'open.accept.reply'),
+          // Taking the company's number is the profitable, slightly cowardly option.
+          effects: [
+            { type: 'reputation', value: 18 },
+            { type: 'friendship', value: -6 },
+            { type: 'emotion', emotion: 'tired', durationSeconds: 1200 },
+            { type: 'setFlag', flagId: 'moss.acceptedRevision' },
+          ],
+        },
+        {
+          id: 'recount',
+          tone: 'risky',
+          labelKey: k('moss-ledger', 'open.recount.label'),
+          replyKey: k('moss-ledger', 'open.recount.reply'),
+          effects: [
+            { type: 'goldenNuts', value: -2 },
+            { type: 'friendship', value: 12 },
+            { type: 'unlockSecret', secretId: 'memo.basement' },
+            { type: 'momentCard' },
+            { type: 'setFlag', flagId: 'moss.recounted' },
+          ],
+          requires: { goldenNuts: 2 },
+          disabledKey: 'talk.req.goldenNuts',
+        },
+      ],
+    },
+  },
+};
+
+/**
+ * Bia, Security & Facilities — the newest of the cast and the one who is told
+ * things. Big paws, bigger heart, and a corridor she has been instructed to walk
+ * past. Her arc is about whether the player backs their own security officer.
+ */
+const BIA_DOOR: TalkTopic = {
+  id: 'bia-door',
+  employeeId: 'bia',
+  titleKey: k('bia-door', 'title'),
+  blurbKey: k('bia-door', 'blurb'),
+  root: 'open',
+  weight: 13,
+  once: true,
+  requires: { friendship: 25 },
+  nodes: {
+    open: {
+      id: 'open',
+      promptKey: k('bia-door', 'open.prompt'),
+      choices: [
+        {
+          id: 'back',
+          tone: 'warm',
+          labelKey: k('bia-door', 'open.back.label'),
+          replyKey: k('bia-door', 'open.back.reply'),
+          effects: [
+            { type: 'friendship', value: 12 },
+            { type: 'morale', value: 5 },
+            { type: 'emotion', emotion: 'proud', durationSeconds: 900 },
+            { type: 'setFlag', flagId: 'bia.backed' },
+          ],
+          next: 'settled',
+        },
+        {
+          id: 'open-it',
+          tone: 'risky',
+          labelKey: k('bia-door', 'open.open-it.label'),
+          replyKey: k('bia-door', 'open.open-it.reply'),
+          // The interesting one: good for the company's standing now, and something
+          // arrives later that nobody asked for.
+          effects: [
+            { type: 'reputation', value: 12 },
+            { type: 'friendship', value: -4 },
+            { type: 'setFlag', flagId: 'bia.openedTheDoor' },
+            {
+              type: 'schedule',
+              delaySeconds: 840,
+              scheduleTitleKey: 'talk.consequence.biaDoor.title',
+              scheduleBodyKey: 'talk.consequence.biaDoor.body',
+              scheduled: [
+                { type: 'morale', value: -7 },
+                { type: 'reputation', value: -6 },
+                {
+                  type: 'emotion',
+                  employeeId: 'bia',
+                  emotion: 'suspicious',
+                  durationSeconds: 1800,
+                },
+                { type: 'momentCard' },
+              ],
+            },
+          ],
+          next: 'settled',
+        },
+        {
+          id: 'seal',
+          tone: 'firm',
+          labelKey: k('bia-door', 'open.seal.label'),
+          replyKey: k('bia-door', 'open.seal.reply'),
+          effects: [
+            { type: 'morale', value: 4 },
+            { type: 'friendship', value: 6 },
+            { type: 'setFlag', flagId: 'bia.sealed' },
+          ],
+          next: 'settled',
+        },
+      ],
+    },
+    settled: {
+      id: 'settled',
+      promptKey: k('bia-door', 'settled.prompt'),
+      choices: [
+        {
+          id: 'snacks',
+          tone: 'warm',
+          labelKey: k('bia-door', 'settled.snacks.label'),
+          replyKey: k('bia-door', 'settled.snacks.reply'),
+          effects: [
+            { type: 'nuts', value: -400 },
+            { type: 'friendship', value: 8 },
+            { type: 'morale', value: 4 },
+            { type: 'emotion', emotion: 'happy', durationSeconds: 900 },
+          ],
+          requires: { nuts: 400 },
+          disabledKey: 'talk.req.nuts',
+        },
+        {
+          id: 'rounds',
+          tone: 'firm',
+          labelKey: k('bia-door', 'settled.rounds.label'),
+          replyKey: k('bia-door', 'settled.rounds.reply'),
+          effects: [
+            { type: 'productionBoost', value: 1.2, durationSeconds: 600 },
+            { type: 'friendship', value: 2 },
+          ],
+        },
+      ],
+    },
+  },
+};
+
 export const EMPLOYEE_TALKS: readonly TalkTopic[] = [
+  MOSS_LEDGER,
   LOW_MORALE,
   PIP_DOUBT,
   DORM_SLEEP,
   RIZZO_INVENTORY,
+  MOSS_COUNT,
+  BIA_DOOR,
   SUSPICIOUS_MEMO,
   CHECK_IN,
   GIFT,

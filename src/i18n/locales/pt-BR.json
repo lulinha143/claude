@@ -2722,6 +2722,14 @@
       "audit": {
         "title": "Auditoria de estoque de rotina",
         "body": "Compras não consegue justificar uma remessa. Ninguém está acusando ninguém."
+      },
+      "mossNight": {
+        "title": "A auditoria noturna",
+        "body": "Moss protocola a contagem conjunta às 04:12. É minuciosa, assinada duas vezes, e a diretoria lê."
+      },
+      "biaDoor": {
+        "title": "Solicitação da manutenção",
+        "body": "Chega um formulário perguntando quem autorizou a entrada. Ninguém na Nutshell Inc. admite tê-lo enviado. Bia parou de usar aquela escada."
       }
     },
     "check-in": {
@@ -2898,6 +2906,81 @@
         "promote": {
           "label": "Você vigiou uma doca por onze dias. Isso é uma habilidade.",
           "reply": "É uma HABILIDADE! Ninguém nunca chamou de habilidade! Vou ser tão bom nesse trabalho."
+        }
+      }
+    },
+    "moss-count": {
+      "title": "O que o turno da noite conta",
+      "blurb": "Moss tem uma folha de contagem. A contagem está subindo.",
+      "open": {
+        "prompt": "Há onze portas no andar de pesquisa. Eu as contei todas as noites por duzentas noites. Ontem havia doze. Gostaria que soubesse que não estou incomodada. Apenas mantenho registros.",
+        "log": {
+          "label": "Então registramos. Oficialmente, com o número que você contou.",
+          "reply": "Oficialmente. Bom. Eu carregava isso sozinha e estava ficando pesado de um jeito que números não deveriam ficar."
+        },
+        "hush": {
+          "label": "Conte as portas de manhã e pare de contar à noite.",
+          "reply": "De manhã há onze. É por isso que eu conto à noite. Mas você é a fundadora, então: onze. Vou escrever onze."
+        },
+        "join": {
+          "label": "Vou contar com você esta noite.",
+          "reply": "Você vai estar cansada amanhã e o escritório vai notar. Traga algo quente. Começamos na escada e seguimos em sentido anti-horário."
+        }
+      },
+      "filed": {
+        "prompt": "Ela alinha a folha de contagem à borda da mesa até ficar exatamente paralela.",
+        "thank": {
+          "label": "Obrigada por contar a mim e não a outra pessoa.",
+          "reply": "Você é a única que não me pergunta se tenho certeza. Eu sempre tenho. Essa é a parte difícil."
+        },
+        "ask": {
+          "label": "O que há atrás da décima segunda porta?",
+          "reply": "Um corredor com o comprimento correto para um prédio um pouco maior que este. Não entrei. Sou uma observadora."
+        }
+      }
+    },
+    "moss-ledger": {
+      "title": "O registro corrigido",
+      "blurb": "O documento voltou. Alguém foi solícito.",
+      "open": {
+        "prompt": "Nossa submissão voltou com o selo RECONCILIADO. Onde escrevi doze, agora se lê onze, com a minha letra, que eu não escrevi. Estou contando a você antes de contar à folha.",
+        "accept": {
+          "label": "Onze é o número que a empresa pode usar. Que fique assim.",
+          "reply": "Então onze. Vou parar de contar portas e começar a contar algo que a empresa prefira. Janelas, talvez. São nove."
+        },
+        "recount": {
+          "label": "Autorizo uma auditoria noturna. Contamos de novo, direito, no registro.",
+          "reply": "Uma auditoria. Com orçamento, formulário e tudo. Ninguém nunca gastou dinheiro para acreditar em mim. Traga a coisa quente de novo."
+        }
+      }
+    },
+    "bia-door": {
+      "title": "O corredor que ela contorna",
+      "blurb": "Bia recebeu uma rota. A rota desvia de algo.",
+      "open": {
+        "prompt": "Minha ficha de patrulha manda virar à esquerda na escada do subsolo. Há uma porta em frente. A ficha não diz para evitá-la, só nunca a menciona, e isso é uma coisa que comecei a notar. Não estou pedindo para abrir. Estou perguntando se posso perguntar.",
+        "back": {
+          "label": "Você pode me perguntar qualquer coisa. É o trabalho.",
+          "reply": "Certo. Ok. Bom. Então minha pergunta é: quem escreve as fichas de patrulha? Porque não é você e não é a manutenção."
+        },
+        "open-it": {
+          "label": "Abra. Quero saber o que estamos contornando.",
+          "reply": "Pode contar comigo. Vou fazer direito, com registro, lanterna e tudo. ... Não estava trancada. É nessa parte que eu fico pensando."
+        },
+        "seal": {
+          "label": "Lacre, registre e mantenha a rota como está.",
+          "reply": "Lacrada e registrada. Sinceramente? Era a resposta que eu esperava. Gosto de saber onde estão as bordas."
+        }
+      },
+      "settled": {
+        "prompt": "Ela testa a lanterna, desliga e testa de novo.",
+        "snacks": {
+          "label": "Reabasteça a prateleira de lanches. Direito, com verba da empresa.",
+          "reply": "Com verba da empresa. Vou reler essa frase mais tarde, fora do turno."
+        },
+        "rounds": {
+          "label": "Faça a ronda comigo. Mostre o que você notou.",
+          "reply": "Claro. Aviso: demora, porque eu paro em tudo. É meio que o meu ponto."
         }
       }
     }

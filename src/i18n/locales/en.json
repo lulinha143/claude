@@ -2722,6 +2722,14 @@
       "audit": {
         "title": "Routine inventory audit",
         "body": "Procurement cannot account for a shipment. Nobody is accusing anybody."
+      },
+      "mossNight": {
+        "title": "The night audit",
+        "body": "Moss files the joint count at 04:12. It is thorough, it is signed twice, and the board reads it."
+      },
+      "biaDoor": {
+        "title": "Facilities request",
+        "body": "A form arrives asking who authorised entry. Nobody at Nutshell Inc. admits to sending it. Bia has stopped using that stairwell."
       }
     },
     "check-in": {
@@ -2898,6 +2906,81 @@
         "promote": {
           "label": "You watched a dock for eleven days. That is a skill.",
           "reply": "It IS a skill! Nobody has ever called it a skill! I am going to be so good at this job."
+        }
+      }
+    },
+    "moss-count": {
+      "title": "What the night shift counts",
+      "blurb": "Moss has a tally sheet. The tally is going up.",
+      "open": {
+        "prompt": "There are eleven doors on the research floor. I have counted them every night for two hundred nights. Last night there were twelve. I would like you to know that I am not upset about it. I am simply keeping records.",
+        "log": {
+          "label": "Then we file it. Officially, with the number you counted.",
+          "reply": "Officially. Good. I have been carrying it alone and it was becoming heavy in a way numbers should not be."
+        },
+        "hush": {
+          "label": "Count the doors again in the morning, and stop counting at night.",
+          "reply": "In the morning there are eleven. That is why I count at night. But you are the founder, so: eleven. I will write eleven."
+        },
+        "join": {
+          "label": "I'll come and count them with you tonight.",
+          "reply": "You will be tired tomorrow and the office will notice. Bring something warm. We start at the stairwell and work anticlockwise."
+        }
+      },
+      "filed": {
+        "prompt": "She squares the tally sheet against the desk edge until it is exactly parallel.",
+        "thank": {
+          "label": "Thank you for telling me instead of anyone else.",
+          "reply": "You are the only one who does not ask me whether I am sure. I am always sure. That is the difficult part."
+        },
+        "ask": {
+          "label": "What is behind the twelfth door?",
+          "reply": "A corridor of the correct length for a building slightly larger than this one. I did not go in. I am an observer."
+        }
+      }
+    },
+    "moss-ledger": {
+      "title": "The corrected record",
+      "blurb": "The filing came back. Somebody has been helpful.",
+      "open": {
+        "prompt": "Our submission was returned stamped RECONCILED. Where I wrote twelve, it now reads eleven, in my handwriting, which I did not write. I am telling you before I tell the tally sheet.",
+        "accept": {
+          "label": "Eleven is the number the company can use. Let it stand.",
+          "reply": "Then eleven it is. I will stop counting doors and start counting something the company would prefer. Windows, perhaps. There are nine."
+        },
+        "recount": {
+          "label": "Charter a night audit. We count it again, properly, on the record.",
+          "reply": "An audit. With a budget and a form and everything. Nobody has ever spent money on believing me before. Bring the warm thing again."
+        }
+      }
+    },
+    "bia-door": {
+      "title": "The corridor she walks past",
+      "blurb": "Bia has been given a route. The route goes around something.",
+      "open": {
+        "prompt": "My patrol sheet has me turn left at the basement stair. There is a door straight ahead. The sheet does not say avoid it, it just never mentions it, which is a thing I have started noticing. I am not asking to open it. I am asking whether I am allowed to ask.",
+        "back": {
+          "label": "You're allowed to ask me anything. That's the job.",
+          "reply": "Right. Okay. Good. Then my question is: who writes the patrol sheets? Because it is not you and it is not facilities."
+        },
+        "open-it": {
+          "label": "Open it. I want to know what we are walking around.",
+          "reply": "On it. I will do it properly, with the log and the torch and everything. ... It was not locked. That is the part I keep coming back to."
+        },
+        "seal": {
+          "label": "Seal it, log it, and keep the route as written.",
+          "reply": "Sealed and logged. Honestly? That is the answer I was hoping for. I like knowing where the edges are."
+        }
+      },
+      "settled": {
+        "prompt": "She checks the torch, switches it off, and checks it again.",
+        "snacks": {
+          "label": "Restock the snack shelf. Properly, out of company funds.",
+          "reply": "Out of company funds. I am going to read that sentence again later when I am off shift."
+        },
+        "rounds": {
+          "label": "Walk the rounds with me. Show me what you've noticed.",
+          "reply": "Sure. Fair warning, it takes a while, because I stop at everything. That is sort of the point of me."
         }
       }
     }
