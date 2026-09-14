@@ -19,9 +19,7 @@ export function EventModal() {
   const devEnabled = useStore((s) => s.devEnabled);
   const active = engine.activeEvent;
   const { closing, exitThen } = usePopupExit();
-  const choiceSet = active
-    ? eventChoicesForState(state, active.def, active.step)
-    : null;
+  const choiceSet = active ? eventChoicesForState(state, active.def, active.step) : null;
   const availabilitySignature = choiceSet
     ? JSON.stringify(
         choiceSet.choices.map(({ choice, enabled, failures }) => ({
@@ -68,13 +66,14 @@ export function EventModal() {
   const body = step && def.steps?.[step] ? def.steps[step].bodyKey : def.bodyKey;
   const emp = def.employeeId ? EMPLOYEES_BY_ID[def.employeeId] : null;
   const shape = emp ? shapeFor(emp.id) : null;
-  const variant: PopupVariant = def.rarity === 'legendary'
-    ? 'critical'
-    : def.rarity === 'rare'
-      ? 'warning'
-      : emp
-        ? 'employee'
-        : 'choice';
+  const variant: PopupVariant =
+    def.rarity === 'legendary'
+      ? 'critical'
+      : def.rarity === 'rare'
+        ? 'warning'
+        : emp
+          ? 'employee'
+          : 'choice';
   const titleId = `event-title-${def.id}`;
   const ownedEmployees = Object.entries(state.employees)
     .filter(([, employee]) => employee.hired)
@@ -84,9 +83,7 @@ export function EventModal() {
 
   const requirementText = (failure: EventRequirementFailure): string => {
     if (failure.kind === 'hiredEmployee') {
-      const nameKey = failure.employeeId
-        ? EMPLOYEES_BY_ID[failure.employeeId]?.nameKey
-        : undefined;
+      const nameKey = failure.employeeId ? EMPLOYEES_BY_ID[failure.employeeId]?.nameKey : undefined;
       return t(failure.messageKey, {
         employee: nameKey ? t(nameKey) : failure.employeeId,
       });
@@ -118,9 +115,8 @@ export function EventModal() {
       <div className="event-modal__prompt">{t('event.resolvePrompt')}</div>
       <div className="event-modal__choices">
         {choiceSet.choices.map(({ choice, enabled, failures, fallback }) => {
-          const requirementId = failures.length > 0
-            ? `event-requirement-${active.instanceId}-${choice.id}`
-            : undefined;
+          const requirementId =
+            failures.length > 0 ? `event-requirement-${active.instanceId}-${choice.id}` : undefined;
           const disabledReasons = [
             ...failures.map((failure) => failure.kind),
             ...(closing ? ['processing'] : []),
@@ -153,7 +149,15 @@ export function EventModal() {
               <span>{t(choice.labelKey)}</span>
               {failures.length > 0 ? (
                 <span id={requirementId} className="event-choice__req">
-                  {failures.map(requirementText).join(' · ')}
+                  {/* Prefer the authored explanation. `disabledKey` has been on
+                      EventChoice and written in the content for a while — "Not enough
+                      nuts to make this quietly disappear" — but it was never rendered,
+                      so the player got the generic "Requires 1200 nuts" instead of the
+                      line somebody wrote for that exact moment. The generic list stays
+                      as the fallback for choices that have no authored copy. */}
+                  {choice.disabledKey
+                    ? t(choice.disabledKey)
+                    : failures.map(requirementText).join(' · ')}
                 </span>
               ) : null}
             </button>
@@ -161,10 +165,7 @@ export function EventModal() {
         })}
       </div>
       {devEnabled ? (
-        <details
-          className="event-choice-debug"
-          data-event-history-count={eventHistoryCount}
-        >
+        <details className="event-choice-debug" data-event-history-count={eventHistoryCount}>
           <summary>Choice diagnostics</summary>
           <pre>
             {JSON.stringify(

@@ -294,6 +294,23 @@ describe('the authored memory content is coherent', () => {
       if (ev.requires?.missingFlag) {
         expect(settable).toContain(ev.requires.missingFlag);
       }
+      // Individual CHOICES can be gated on a mark too, now that requires.flag is
+      // actually evaluated. A choice gated on a mark nothing can set would be dead
+      // content that silently never appears — the quieter twin of the bug where it
+      // was never evaluated and so always appeared.
+      const everyChoice = [
+        ...ev.choices,
+        ...Object.values(ev.steps ?? {}).flatMap((s) => s.choices),
+      ];
+      for (const choice of everyChoice) {
+        if (!choice.requires?.flag) continue;
+        expect(
+          settable,
+          `${ev.id}/${choice.id} requires unsettable flag ${choice.requires.flag}`,
+        ).toContain(choice.requires.flag);
+        // A locked choice must be able to say why, or the player just sees a dead button.
+        expect(choice.disabledKey, `${ev.id}/${choice.id} has no disabledKey`).toBeTruthy();
+      }
     }
   });
 

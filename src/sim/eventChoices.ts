@@ -6,7 +6,7 @@ import {
 import type { EventChoice, GameEventDef } from '../content/types';
 import type { GameState } from './types';
 
-export type EventRequirementKind = 'nuts' | 'goldenNuts' | 'reputation' | 'hiredEmployee';
+export type EventRequirementKind = 'nuts' | 'goldenNuts' | 'reputation' | 'hiredEmployee' | 'flag';
 
 export interface EventRequirementFailure {
   kind: EventRequirementKind;
@@ -25,11 +25,7 @@ export interface EvaluatedEventChoice {
 
 export interface EventChoiceSet {
   choices: readonly EvaluatedEventChoice[];
-  repairs: readonly (
-    | 'fewer-than-two'
-    | 'no-actionable-choice'
-    | 'duplicate-choice-id'
-  )[];
+  repairs: readonly ('fewer-than-two' | 'no-actionable-choice' | 'duplicate-choice-id')[];
 }
 
 const reportedRepairs = new Set<string>();
@@ -41,10 +37,7 @@ export function authoredEventChoices(
   return step && def.steps?.[step] ? def.steps[step].choices : def.choices;
 }
 
-export function evaluateEventChoice(
-  state: GameState,
-  choice: EventChoice,
-): EvaluatedEventChoice {
+export function evaluateEventChoice(state: GameState, choice: EventChoice): EvaluatedEventChoice {
   const failures: EventRequirementFailure[] = [];
   const requires = choice.requires;
 
@@ -56,10 +49,7 @@ export function evaluateEventChoice(
       current: state.resources.nuts,
     });
   }
-  if (
-    requires?.goldenNuts !== undefined &&
-    state.resources.goldenNuts < requires.goldenNuts
-  ) {
+  if (requires?.goldenNuts !== undefined && state.resources.goldenNuts < requires.goldenNuts) {
     failures.push({
       kind: 'goldenNuts',
       messageKey: 'event.requirement.goldenNuts',
@@ -67,10 +57,7 @@ export function evaluateEventChoice(
       current: state.resources.goldenNuts,
     });
   }
-  if (
-    requires?.reputation !== undefined &&
-    state.resources.reputation < requires.reputation
-  ) {
+  if (requires?.reputation !== undefined && state.resources.reputation < requires.reputation) {
     failures.push({
       kind: 'reputation',
       messageKey: 'event.requirement.reputation',
@@ -89,6 +76,21 @@ export function evaluateEventChoice(
         employeeId: requires.hiredEmployee,
       });
     }
+  }
+  /* Consequence memory as a gate on a single CHOICE, not just a whole event.
+     `requires.flag` has been part of the EventChoice type all along but was never
+     evaluated here, so a choice authored as "only available if the company did X"
+     was silently offered to everyone — content that looked gated and was not. It is
+     what lets a callback event offer a different reply depending on what was said
+     the first time. The flag id is deliberately NOT interpolated into the message:
+     it is internal bookkeeping, not player-facing copy. */
+  if (requires?.flag !== undefined && !(requires.flag in state.flags)) {
+    failures.push({
+      kind: 'flag',
+      messageKey: 'event.requirement.flag',
+      required: requires.flag,
+      current: false,
+    });
   }
 
   return {
@@ -164,10 +166,7 @@ export function reportEventChoiceRepairs(
   const authoredRepairs = EVENT_CONTENT_REPAIRS.filter(
     (repair) => repair.eventId === def.id && repair.step === step,
   );
-  const repairs = [
-    ...authoredRepairs.map((repair) => repair.reason),
-    ...runtimeRepairs,
-  ];
+  const repairs = [...authoredRepairs.map((repair) => repair.reason), ...runtimeRepairs];
   if (repairs.length === 0) return;
   const key = `${def.id}:${step ?? 'root'}:${[...new Set(repairs)].sort().join(',')}`;
   if (reportedRepairs.has(key)) return;

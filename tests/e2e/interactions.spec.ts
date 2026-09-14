@@ -557,7 +557,14 @@ test('event choices recover across chain steps, focus return, and repeated popup
   await expect(contain).toHaveAttribute('aria-disabled', 'true');
   await contain.focus();
   await expect(contain).toBeFocused();
-  await expect(contain.locator('.event-choice__req')).toContainText(/Requires unlocked employee/i);
+  /* The locked choice explains itself with the line the content AUTHORED for it —
+     "Requires Bea (Construction)", which names the department the player has to go and
+     look at — rather than the generic "Requires unlocked employee Bea". That copy has
+     been in the locale all along under the choice's `disabledKey`; the events UI simply
+     never rendered it. The machine-readable reason is unchanged and still asserted, so
+     this checks the human channel and the programmatic one separately. */
+  await expect(contain.locator('.event-choice__req')).toContainText(/Bea/);
+  await expect(contain.locator('.event-choice__req')).not.toHaveText('');
   await expect(contain).toHaveAttribute('data-disabled-reasons', 'hiredEmployee');
   const fireChoices = page.locator('.event-choice[data-event-id="technically-on-fire"]');
   expect(await fireChoices.count()).toBeGreaterThanOrEqual(2);

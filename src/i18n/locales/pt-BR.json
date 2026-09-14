@@ -821,7 +821,8 @@
       "nuts": "Requer {{value}} castanhas",
       "goldenNuts": "Requer {{value}} castanhas douradas",
       "reputation": "Requer {{value}} de reputação",
-      "employee": "Requer o funcionário desbloqueado {{employee}}"
+      "employee": "Requer o funcionário desbloqueado {{employee}}",
+      "flag": "Isto depende de algo que a empresa nunca fez"
     },
     "printer": {
       "title": "A Impressora Está Fazendo Exigências",
@@ -1230,7 +1231,11 @@
       "title": "Um Nome Familiar",
       "body": "O estagiário que perguntou o que fazemos agora chefia um departamento em algum lugar sério, e escreveu propondo um estudo conjunto. A carta cita nossa resposta de volta, palavra por palavra, como o motivo.",
       "partner": "Aceitar a parceria",
-      "decline": "Recusar com carinho e desejar boa sorte"
+      "decline": "Recusar com carinho e desejar boa sorte",
+      "standBy": "Manter o que você disse a eles",
+      "standByLocked": "Você não contou a verdade naquele dia.",
+      "correct": "Corrigir o registro agora",
+      "correctLocked": "Não há registro a corrigir."
     },
     "goldenBuyer": {
       "title": "Uma Oferta Não Solicitada",
@@ -1248,6 +1253,101 @@
       "remove": "Retirar o registro da folha",
       "laterTitle": "Lacuna nos Relatórios",
       "laterBody": "Os relatórios pararam. Vários departamentos notaram, porque tinham passado a depender deles, e perguntaram quem os escrevia."
+    },
+    "calmCapybara": {
+      "title": "Marlow Não Se Mexeu",
+      "body": "O alarme toca há quatro minutos. O prédio está vazio. Marlow segue na mesa, preenchendo um formulário, absolutamente tranquilo. O alarme para sozinho.",
+      "drill": "Fazer o simulado completo mesmo assim",
+      "ask": "Perguntar a Marlow que formulário era aquele",
+      "panel": "Ir ler o painel do alarme você mesmo"
+    },
+    "pingoManifest": {
+      "title": "Um Palete da Semana que Vem",
+      "body": "Pingo tem o manifesto de um palete que chegou hoje de manhã. Está assinado. A assinatura tem data de onze dias no futuro, e é a sua.",
+      "file": "Arquivar e seguir em frente",
+      "open": "Abrir o palete",
+      "insideBody": "Dentro está a remessa deste trimestre, embalada corretamente, incluindo os dois itens que ninguém pediu ainda. Pingo confere o selo. O selo é nosso.",
+      "inventory": "Inventariar cada item",
+      "reseal": "Selar de novo e pôr na fila da semana que vem"
+    },
+    "canelaNotes": {
+      "title": "Anotações Sobre Uma Sala Que Não Temos",
+      "body": "O caderno de Canela descreve, em detalhe cuidadoso, uma sala no segundo andar com uma janela. O segundo andar não tem janelas. Os esboços têm datas ao longo de três semanas.",
+      "fund": "Financiar o levantamento",
+      "file": "Arquivar as anotações",
+      "assigned": "Pedir que ela fique nos andares designados"
+    },
+    "ninoNap": {
+      "title": "A Soneca Corporativa Obrigatória",
+      "body": "Nino colocou uma soneca geral no calendário. Ela cai exatamente sobre a revisão trimestral. O convite não pode ser recusado; ele removeu o botão.",
+      "honour": "Honrar a soneca",
+      "move": "Remarcar a revisão",
+      "during": "Fazer a revisão durante a soneca"
+    },
+    "biaGuard": {
+      "title": "O Cofre Abriu De Dentro",
+      "body": "O registro mostra a porta do cofre abrindo às 03:12, de dentro. Bia dormia em seu posto do outro lado. Nada está faltando. Algo foi acrescentado.",
+      "review": "Revisar a gravação da noite inteira",
+      "trust": "Acreditar na palavra de Bia",
+      "lock": "Instalar uma segunda fechadura",
+      "laterTitle": "O Cofre, De Novo",
+      "laterBody": "A auditoria pergunta por que ninguém viu a gravação. Não há boa resposta, e o registro tem uma entrada a mais que na última vez."
+    },
+    "quincyBug": {
+      "title": "Um Bug Que Ainda Não Aconteceu",
+      "body": "Quincy abriu um relatório de defeito para uma falha na linha de triagem. A linha está perfeita. O relatório tem horário, passos de reprodução e uma correção que funciona. Ele não diz como conseguiu.",
+      "fix": "Aplicar a correção antes que algo quebre",
+      "wait": "Esperar o bug",
+      "askHow": "Perguntar como ele sabia",
+      "laterTitle": "O Bug, No Horário",
+      "laterBody": "A linha de triagem falhou no minuto escrito no relatório. A correção do relatório funcionou. Ninguém quer discutir o horário."
+    },
+    "sonnySlow": {
+      "title": "Seis Semanas Numa Só Tarefa",
+      "body": "Sonny trabalha na mesma melhoria de arquivamento desde o começo do trimestre. Diz que está quase pronta. Disse isso há quatro semanas. Parece inteiramente certo do que diz.",
+      "time": "Dar o tempo que ele precisa",
+      "ship": "Pedir que entregue o que já tem",
+      "pair": "Colocá-lo em dupla com Inky",
+      "laterTitle": "Sonny Terminou",
+      "laterBody": "Está pronto. E está correto, completo e discretamente melhor que qualquer coisa que o setor entregou este ano. Ele vai tirar uma soneca."
+    },
+    "inkyMultitask": {
+      "title": "Nove Tarefas, Oito Braços",
+      "body": "O painel de Inky mostra nove tarefas avançando ao mesmo tempo. Ela tem oito braços. A nona linha é a que avança mais rápido.",
+      "audit": "Auditar o painel",
+      "promote": "Promovê-la e parar de contar",
+      "dontAsk": "Não perguntar"
+    },
+    "echoNight": {
+      "title": "O Prédio Está Cantarolando",
+      "body": "A gravação noturna de Echo tem quarenta minutos do prédio cantarolando uma melodia. Não está em nenhum cancioneiro. Três microfones em três andares a registram em uníssono perfeito.",
+      "archive": "Arquivar a gravação como se deve",
+      "play": "Tocar na reunião geral",
+      "delete": "Apagar"
+    },
+    "rosaRunway": {
+      "title": "O Lançamento É Um Desfile",
+      "body": "Rosa reservou um desfile para a castanha da estação. O local é o andar da triagem. Os convites já saíram, e são convites extremamente bons.",
+      "fund": "Financiar como merece",
+      "fundLocked": "Castanhas insuficientes para fazer como os convites prometem.",
+      "scale": "Reduzir para a sala de descanso",
+      "cancel": "Cancelar o desfile",
+      "laterTitle": "O Desfile Foi Um Sucesso",
+      "laterBody": "Três jornais do setor publicaram as fotos. Os pedidos subiram. Alguém perguntou se o andar da triagem está livre na primavera."
+    },
+    "perryOddjob": {
+      "title": "Providenciado",
+      "body": "Perry conseguiu a peça que estava em falta desde a primavera. Não há nota fiscal, nem fornecedor, nem embalagem. Ele descreve a transação como resolvida.",
+      "accept": "Aceitar e agradecer",
+      "paperwork": "Exigir a papelada",
+      "return": "Devolver"
+    },
+    "axelRegen": {
+      "title": "Rebrotou",
+      "body": "O protótipo destruído no trimestre passado está inteiro na bancada de Axel. Ele está encantado consigo mesmo. Inclui a seção que era confidencial, que ele nunca viu.",
+      "study": "Estudar como se deve",
+      "destroy": "Destruir de novo, com cuidado",
+      "keep": "Deixar que ele fique com aquilo"
     }
   },
   "ach": {
@@ -2213,7 +2313,18 @@
     "minaFascinated": "Mina já começou um novo caderno de registros para isso.",
     "teamCheers": "Um grito de comemoração sai perto da linha de triagem e se espalha sem explicação.",
     "teamRelieved": "O andar solta um suspiro que aparentemente prendia desde a manhã.",
-    "teamDelighted": "O trabalho para. Ninguém se incomoda. Alguém vai buscar as canecas boas."
+    "teamDelighted": "O trabalho para. Ninguém se incomoda. Alguém vai buscar as canecas boas.",
+    "pingoPrecise": "Pingo confere a numeração. Duas vezes.",
+    "canelaCurious": "Canela já está apontando o lápis.",
+    "ninoUnbothered": "Nino dormiu antes de a votação terminar.",
+    "biaSteady": "Bia se empertiga um pouco.",
+    "quincyBlinks": "Quincy pisca uma vez, devagar, e não diz nada.",
+    "sonnyEventually": "Sonny faz um sinal de positivo. Ele chega pouco depois.",
+    "inkyBusy": "Inky acena com quatro braços sem erguer os olhos.",
+    "echoUpsideDown": "Echo assente, de cabeça para baixo, e anota.",
+    "rosaFabulous": "Rosa já está escolhendo a iluminação.",
+    "perryDeadpan": "Perry não diz absolutamente nada, gentilmente.",
+    "axelSunny": "Axel se ilumina. Algo levemente rebrota."
   },
   "daily": {
     "title": "Desafios Diários",

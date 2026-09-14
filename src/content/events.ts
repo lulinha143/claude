@@ -2068,6 +2068,11 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
     cooldownSeconds: 2400,
     requires: { flag: 'answered-the-intern', reputation: 120 },
     momentWorthy: true,
+    /* The first two paths are always open. The last two are the callback actually
+       REMEMBERING: `intern-question` has always recorded which of the three answers
+       was given, but nothing ever read those marks back, so all three histories
+       arrived at an identical scene. Now the intern can quote you — and only the
+       version of the conversation that really happened is offered. */
     choices: [
       {
         id: 'partner',
@@ -2086,6 +2091,32 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
           { type: 'morale', value: 8 },
           { type: 'reputation', value: 4 },
         ],
+      },
+      {
+        id: 'stand-by-the-truth',
+        labelKey: 'event.internReturns.standBy',
+        requires: { flag: 'intern-told-truth' },
+        disabledKey: 'event.internReturns.standByLocked',
+        effects: [
+          { type: 'reputation', value: 22 },
+          { type: 'morale', value: 10 },
+          { type: 'setFlag', flagId: 'kept-our-word' },
+          { type: 'momentCard' },
+        ],
+        reactions: ['react.teamCheers'],
+      },
+      {
+        id: 'correct-the-record',
+        labelKey: 'event.internReturns.correct',
+        requires: { flag: 'answered-the-intern' },
+        disabledKey: 'event.internReturns.correctLocked',
+        effects: [
+          { type: 'reputation', value: 9 },
+          { type: 'nuts', value: -600 },
+          { type: 'morale', value: 6 },
+          { type: 'setFlag', flagId: 'corrected-the-record' },
+        ],
+        reactions: ['react.teamRelieved'],
       },
     ],
   },
@@ -2180,6 +2211,607 @@ export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
             scheduled: [{ type: 'morale', value: -8 }],
           },
         ],
+      },
+    ],
+  },
+
+  /* =========================================================================
+   * One story event per member of the cast.
+   *
+   * Every employee already declared a `rareEventId`, but twelve of the
+   * twenty-three pointed at events that were never written — so most of the cast
+   * had a promise in their data and nothing behind it. The hires late in the
+   * reputation ladder were the ones missing out, which is exactly backwards: by
+   * then the player has spent a long time with these characters.
+   *
+   * Each of these is gated on its own employee being hired and stamped with
+   * `employeeId`, so the moment card it leaves is attributed to them.
+   * ======================================================================= */
+
+  // --- Marlow (HR capybara). The joke is that nothing moves him. -------------
+  {
+    id: 'calm-capybara',
+    titleKey: 'event.calmCapybara.title',
+    bodyKey: 'event.calmCapybara.body',
+    rarity: 'uncommon',
+    weight: 7,
+    cooldownSeconds: 1200,
+    requires: { hiredEmployee: 'marlow' },
+    employeeId: 'marlow',
+    momentWorthy: true,
+    choices: [
+      {
+        id: 'drill-anyway',
+        labelKey: 'event.calmCapybara.drill',
+        effects: [
+          { type: 'reputation', value: 5 },
+          { type: 'morale', value: -2 },
+          { type: 'nuts', value: -200 },
+        ],
+      },
+      {
+        id: 'ask-marlow',
+        labelKey: 'event.calmCapybara.ask',
+        effects: [
+          { type: 'friendship', value: 10 },
+          { type: 'morale', value: 6 },
+          { type: 'setFlag', flagId: 'asked-marlow' },
+          { type: 'momentCard' },
+        ],
+        reactions: ['react.marlowCalm'],
+      },
+      {
+        id: 'check-panel',
+        labelKey: 'event.calmCapybara.panel',
+        effects: [
+          { type: 'reputation', value: 4 },
+          { type: 'nuts', value: -120 },
+        ],
+      },
+    ],
+  },
+
+  // --- Pingo (logistics penguin). A pallet that arrived before it was sent. --
+  {
+    id: 'pingo-manifest',
+    titleKey: 'event.pingoManifest.title',
+    bodyKey: 'event.pingoManifest.body',
+    rarity: 'rare',
+    weight: 5,
+    cooldownSeconds: 1800,
+    requires: { hiredEmployee: 'pingo' },
+    employeeId: 'pingo',
+    momentWorthy: true,
+    choices: [
+      {
+        id: 'file-it',
+        labelKey: 'event.pingoManifest.file',
+        effects: [
+          { type: 'reputation', value: 4 },
+          { type: 'morale', value: -1 },
+          { type: 'setFlag', flagId: 'filed-the-manifest' },
+        ],
+      },
+      {
+        id: 'open-it',
+        labelKey: 'event.pingoManifest.open',
+        // Deliberately empty: this branch exists to open the pallet.
+        effects: [],
+        next: 'inside',
+      },
+    ],
+    steps: {
+      inside: {
+        bodyKey: 'event.pingoManifest.insideBody',
+        choices: [
+          {
+            id: 'inventory',
+            labelKey: 'event.pingoManifest.inventory',
+            effects: [
+              { type: 'nuts', value: 1200 },
+              { type: 'reputation', value: 6 },
+              { type: 'momentCard' },
+            ],
+            reactions: ['react.pingoPrecise'],
+          },
+          {
+            id: 'reseal',
+            labelKey: 'event.pingoManifest.reseal',
+            effects: [
+              { type: 'goldenNuts', value: 1 },
+              { type: 'morale', value: 5 },
+              { type: 'setFlag', flagId: 'resealed-the-pallet' },
+            ],
+            reactions: ['react.teamNervous'],
+          },
+        ],
+      },
+    },
+  },
+
+  // --- Canela (field research red panda). A room the floorplan denies. ------
+  {
+    id: 'canela-field-notes',
+    titleKey: 'event.canelaNotes.title',
+    bodyKey: 'event.canelaNotes.body',
+    rarity: 'uncommon',
+    weight: 6,
+    cooldownSeconds: 1500,
+    requires: { hiredEmployee: 'canela' },
+    employeeId: 'canela',
+    momentWorthy: true,
+    choices: [
+      {
+        id: 'fund-survey',
+        labelKey: 'event.canelaNotes.fund',
+        effects: [
+          { type: 'nuts', value: -900 },
+          { type: 'reputation', value: 9 },
+          { type: 'friendship', value: 8 },
+          { type: 'setFlag', flagId: 'canela-surveyed' },
+          { type: 'momentCard' },
+        ],
+        reactions: ['react.canelaCurious'],
+      },
+      {
+        id: 'file-notes',
+        labelKey: 'event.canelaNotes.file',
+        effects: [
+          { type: 'reputation', value: 3 },
+          { type: 'morale', value: 2 },
+        ],
+      },
+      {
+        id: 'assigned-floors',
+        labelKey: 'event.canelaNotes.assigned',
+        effects: [
+          { type: 'reputation', value: 5 },
+          { type: 'morale', value: -4 },
+        ],
+        reactions: ['react.teamNervous'],
+      },
+    ],
+  },
+
+  // --- Nino (office cat). The nap is on the calendar and cannot be declined. -
+  {
+    id: 'nino-nap',
+    titleKey: 'event.ninoNap.title',
+    bodyKey: 'event.ninoNap.body',
+    rarity: 'uncommon',
+    weight: 7,
+    cooldownSeconds: 1300,
+    requires: { hiredEmployee: 'nino' },
+    employeeId: 'nino',
+    momentWorthy: true,
+    choices: [
+      {
+        id: 'honour-nap',
+        labelKey: 'event.ninoNap.honour',
+        effects: [
+          { type: 'morale', value: 14 },
+          { type: 'productionBoost', value: 1.25, durationSeconds: 180 },
+          { type: 'momentCard' },
+        ],
+        reactions: ['react.ninoUnbothered'],
+      },
+      {
+        id: 'move-review',
+        labelKey: 'event.ninoNap.move',
+        effects: [
+          { type: 'nuts', value: -400 },
+          { type: 'morale', value: 6 },
+        ],
+      },
+      {
+        id: 'review-during',
+        labelKey: 'event.ninoNap.during',
+        effects: [
+          { type: 'reputation', value: 7 },
+          { type: 'morale', value: -6 },
+        ],
+        reactions: ['react.teamNervous'],
+      },
+    ],
+  },
+
+  // --- Bia (bear, security). Nothing was taken. Something was left. ---------
+  {
+    id: 'bia-guard',
+    titleKey: 'event.biaGuard.title',
+    bodyKey: 'event.biaGuard.body',
+    rarity: 'rare',
+    weight: 5,
+    cooldownSeconds: 2000,
+    requires: { hiredEmployee: 'bia' },
+    employeeId: 'bia',
+    momentWorthy: true,
+    choices: [
+      {
+        id: 'review-footage',
+        labelKey: 'event.biaGuard.review',
+        effects: [
+          { type: 'nuts', value: -600 },
+          { type: 'reputation', value: 11 },
+          { type: 'setFlag', flagId: 'reviewed-the-vault' },
+          { type: 'momentCard' },
+        ],
+        reactions: ['react.biaSteady'],
+      },
+      {
+        id: 'take-her-word',
+        labelKey: 'event.biaGuard.trust',
+        effects: [
+          { type: 'friendship', value: 12 },
+          { type: 'morale', value: 7 },
+          { type: 'setFlag', flagId: 'trusted-bia' },
+          // Trust is free right up until the next audit.
+          {
+            type: 'schedule',
+            flagId: 'trusted-bia',
+            delaySeconds: 1200,
+            scheduleTitleKey: 'event.biaGuard.laterTitle',
+            scheduleBodyKey: 'event.biaGuard.laterBody',
+            scheduled: [
+              { type: 'reputation', value: -5 },
+              { type: 'morale', value: -6 },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'second-lock',
+        labelKey: 'event.biaGuard.lock',
+        effects: [
+          { type: 'nuts', value: -350 },
+          { type: 'reputation', value: 4 },
+          { type: 'morale', value: -3 },
+        ],
+      },
+    ],
+  },
+
+  // --- Quincy (QA frog). The defect report predates the defect. -------------
+  {
+    id: 'quincy-bug',
+    titleKey: 'event.quincyBug.title',
+    bodyKey: 'event.quincyBug.body',
+    rarity: 'rare',
+    weight: 5,
+    cooldownSeconds: 1700,
+    requires: { hiredEmployee: 'quincy' },
+    employeeId: 'quincy',
+    momentWorthy: true,
+    choices: [
+      {
+        id: 'fix-now',
+        labelKey: 'event.quincyBug.fix',
+        effects: [
+          { type: 'nuts', value: -700 },
+          { type: 'reputation', value: 8 },
+          { type: 'friendship', value: 8 },
+          { type: 'setFlag', flagId: 'trusted-quincy' },
+        ],
+        reactions: ['react.quincyBlinks'],
+      },
+      {
+        id: 'wait-for-it',
+        labelKey: 'event.quincyBug.wait',
+        effects: [
+          { type: 'nuts', value: 400 },
+          { type: 'setFlag', flagId: 'ignored-quincy' },
+          // The report included a timestamp. It was correct.
+          {
+            type: 'schedule',
+            flagId: 'ignored-quincy',
+            delaySeconds: 900,
+            scheduleTitleKey: 'event.quincyBug.laterTitle',
+            scheduleBodyKey: 'event.quincyBug.laterBody',
+            scheduled: [
+              { type: 'nuts', value: -1500 },
+              { type: 'morale', value: -7 },
+            ],
+          },
+        ],
+        reactions: ['react.teamNervous'],
+      },
+      {
+        id: 'ask-how',
+        labelKey: 'event.quincyBug.askHow',
+        effects: [
+          { type: 'reputation', value: 3 },
+          { type: 'morale', value: 4 },
+          { type: 'momentCard' },
+        ],
+      },
+    ],
+  },
+
+  // --- Sonny (sloth, wellbeing). A rare POSITIVE delayed consequence. -------
+  {
+    id: 'dorm-slow',
+    titleKey: 'event.sonnySlow.title',
+    bodyKey: 'event.sonnySlow.body',
+    rarity: 'uncommon',
+    weight: 6,
+    cooldownSeconds: 1400,
+    requires: { hiredEmployee: 'dorm' },
+    employeeId: 'dorm',
+    momentWorthy: true,
+    choices: [
+      {
+        id: 'give-time',
+        labelKey: 'event.sonnySlow.time',
+        effects: [
+          { type: 'morale', value: 6 },
+          { type: 'setFlag', flagId: 'let-sonny-finish' },
+          // Patience is the only investment in this game that pays in nuts.
+          {
+            type: 'schedule',
+            flagId: 'let-sonny-finish',
+            delaySeconds: 600,
+            scheduleTitleKey: 'event.sonnySlow.laterTitle',
+            scheduleBodyKey: 'event.sonnySlow.laterBody',
+            scheduled: [
+              { type: 'nuts', value: 2600 },
+              { type: 'reputation', value: 7 },
+            ],
+          },
+        ],
+        reactions: ['react.sonnyEventually'],
+      },
+      {
+        id: 'ship-it',
+        labelKey: 'event.sonnySlow.ship',
+        effects: [
+          { type: 'nuts', value: 500 },
+          { type: 'morale', value: -5 },
+        ],
+      },
+      {
+        id: 'pair-him',
+        labelKey: 'event.sonnySlow.pair',
+        effects: [
+          { type: 'nuts', value: -200 },
+          { type: 'reputation', value: 4 },
+          { type: 'morale', value: 3 },
+        ],
+      },
+    ],
+  },
+
+  // --- Inky (octopus, sorting). Nine tasks. Eight arms. --------------------
+  {
+    id: 'inky-multitask',
+    titleKey: 'event.inkyMultitask.title',
+    bodyKey: 'event.inkyMultitask.body',
+    rarity: 'uncommon',
+    weight: 6,
+    cooldownSeconds: 1500,
+    requires: { hiredEmployee: 'inky' },
+    employeeId: 'inky',
+    momentWorthy: true,
+    choices: [
+      {
+        id: 'audit-board',
+        labelKey: 'event.inkyMultitask.audit',
+        effects: [
+          { type: 'nuts', value: -250 },
+          { type: 'reputation', value: 7 },
+          { type: 'momentCard' },
+        ],
+        reactions: ['react.inkyBusy'],
+      },
+      {
+        id: 'promote-her',
+        labelKey: 'event.inkyMultitask.promote',
+        effects: [
+          { type: 'nuts', value: -1100 },
+          { type: 'productionBoost', value: 1.3, durationSeconds: 240 },
+          { type: 'morale', value: 5 },
+          { type: 'friendship', value: 10 },
+        ],
+      },
+      {
+        id: 'dont-ask',
+        labelKey: 'event.inkyMultitask.dontAsk',
+        effects: [
+          { type: 'morale', value: 3 },
+          { type: 'setFlag', flagId: 'didnt-ask-inky' },
+        ],
+        reactions: ['react.teamNervous'],
+      },
+    ],
+  },
+
+  // --- Echo (bat, night research). Three floors, one tune, in unison. ------
+  {
+    id: 'echo-night',
+    titleKey: 'event.echoNight.title',
+    bodyKey: 'event.echoNight.body',
+    rarity: 'rare',
+    weight: 5,
+    cooldownSeconds: 1900,
+    requires: { hiredEmployee: 'echo' },
+    employeeId: 'echo',
+    momentWorthy: true,
+    choices: [
+      {
+        id: 'archive-hum',
+        labelKey: 'event.echoNight.archive',
+        effects: [
+          { type: 'reputation', value: 6 },
+          { type: 'friendship', value: 8 },
+          { type: 'setFlag', flagId: 'archived-the-hum' },
+          { type: 'momentCard' },
+        ],
+        reactions: ['react.echoUpsideDown'],
+      },
+      {
+        id: 'play-all-hands',
+        labelKey: 'event.echoNight.play',
+        effects: [
+          { type: 'morale', value: 9 },
+          { type: 'reputation', value: -4 },
+          { type: 'momentCard' },
+        ],
+        reactions: ['react.teamNervous'],
+      },
+      {
+        id: 'delete-hum',
+        labelKey: 'event.echoNight.delete',
+        effects: [
+          { type: 'reputation', value: 5 },
+          { type: 'morale', value: -6 },
+          { type: 'setFlag', flagId: 'deleted-the-hum' },
+        ],
+      },
+    ],
+  },
+
+  // --- Rosa (flamingo, marketing). The invitations are already out. --------
+  {
+    id: 'rosa-runway',
+    titleKey: 'event.rosaRunway.title',
+    bodyKey: 'event.rosaRunway.body',
+    rarity: 'uncommon',
+    weight: 6,
+    cooldownSeconds: 1600,
+    requires: { hiredEmployee: 'rosa' },
+    employeeId: 'rosa',
+    momentWorthy: true,
+    choices: [
+      {
+        id: 'fund-runway',
+        labelKey: 'event.rosaRunway.fund',
+        requires: { nuts: 1800 },
+        disabledKey: 'event.rosaRunway.fundLocked',
+        effects: [
+          { type: 'nuts', value: -1800 },
+          { type: 'reputation', value: 6 },
+          { type: 'setFlag', flagId: 'funded-the-runway' },
+          // A launch takes a while to land, and this one lands well.
+          {
+            type: 'schedule',
+            flagId: 'funded-the-runway',
+            delaySeconds: 720,
+            scheduleTitleKey: 'event.rosaRunway.laterTitle',
+            scheduleBodyKey: 'event.rosaRunway.laterBody',
+            scheduled: [
+              { type: 'reputation', value: 18 },
+              { type: 'nuts', value: 2200 },
+            ],
+          },
+        ],
+        reactions: ['react.rosaFabulous'],
+      },
+      {
+        id: 'scale-down',
+        labelKey: 'event.rosaRunway.scale',
+        effects: [
+          { type: 'nuts', value: -300 },
+          { type: 'reputation', value: 5 },
+          { type: 'morale', value: 3 },
+        ],
+      },
+      {
+        id: 'cancel-show',
+        labelKey: 'event.rosaRunway.cancel',
+        effects: [
+          { type: 'nuts', value: 200 },
+          { type: 'reputation', value: -3 },
+          { type: 'morale', value: -7 },
+        ],
+      },
+    ],
+  },
+
+  // --- Perry (platypus, procurement). "Handled." ---------------------------
+  {
+    id: 'perry-oddjob',
+    titleKey: 'event.perryOddjob.title',
+    bodyKey: 'event.perryOddjob.body',
+    rarity: 'rare',
+    weight: 5,
+    cooldownSeconds: 1800,
+    requires: { hiredEmployee: 'perry' },
+    employeeId: 'perry',
+    momentWorthy: true,
+    choices: [
+      {
+        id: 'say-thank-you',
+        labelKey: 'event.perryOddjob.accept',
+        effects: [
+          { type: 'goldenNuts', value: 2 },
+          { type: 'morale', value: 4 },
+          { type: 'setFlag', flagId: 'perry-no-questions' },
+          { type: 'momentCard' },
+        ],
+        reactions: ['react.perryDeadpan'],
+      },
+      {
+        id: 'insist-paperwork',
+        labelKey: 'event.perryOddjob.paperwork',
+        effects: [
+          { type: 'nuts', value: -150 },
+          { type: 'reputation', value: 9 },
+          { type: 'morale', value: -3 },
+        ],
+      },
+      {
+        id: 'send-it-back',
+        labelKey: 'event.perryOddjob.return',
+        effects: [
+          { type: 'nuts', value: -300 },
+          { type: 'reputation', value: 4 },
+          { type: 'morale', value: 6 },
+        ],
+        reactions: ['react.teamRelieved'],
+      },
+    ],
+  },
+
+  // --- Axel (axolotl, research). It includes the classified section. -------
+  {
+    id: 'axel-regen',
+    titleKey: 'event.axelRegen.title',
+    bodyKey: 'event.axelRegen.body',
+    rarity: 'rare',
+    weight: 5,
+    cooldownSeconds: 2000,
+    requires: { hiredEmployee: 'axel' },
+    employeeId: 'axel',
+    momentWorthy: true,
+    choices: [
+      {
+        id: 'study-it',
+        labelKey: 'event.axelRegen.study',
+        effects: [
+          { type: 'nuts', value: -800 },
+          { type: 'reputation', value: 12 },
+          { type: 'setFlag', flagId: 'studied-the-regrowth' },
+          { type: 'momentCard' },
+        ],
+        reactions: ['react.axelSunny'],
+      },
+      {
+        id: 'destroy-again',
+        labelKey: 'event.axelRegen.destroy',
+        effects: [
+          { type: 'reputation', value: 6 },
+          { type: 'morale', value: -5 },
+        ],
+        reactions: ['react.teamNervous'],
+      },
+      {
+        id: 'let-him-keep-it',
+        labelKey: 'event.axelRegen.keep',
+        effects: [
+          { type: 'friendship', value: 12 },
+          { type: 'morale', value: 8 },
+          { type: 'momentCard' },
+        ],
+        reactions: ['react.teamDelighted'],
       },
     ],
   },

@@ -821,7 +821,8 @@
       "nuts": "Requires {{value}} nuts",
       "goldenNuts": "Requires {{value}} golden nuts",
       "reputation": "Requires {{value}} reputation",
-      "employee": "Requires unlocked employee {{employee}}"
+      "employee": "Requires unlocked employee {{employee}}",
+      "flag": "This depends on something the company never did"
     },
     "printer": {
       "title": "The Printer Is Making Demands",
@@ -1230,7 +1231,11 @@
       "title": "A Familiar Name",
       "body": "The intern who asked what we do now runs a department somewhere serious, and has written to propose a joint study. The letter quotes our answer back to us, word for word, as the reason.",
       "partner": "Accept the partnership",
-      "decline": "Decline warmly and wish them well"
+      "decline": "Decline warmly and wish them well",
+      "standBy": "Stand by what you told them",
+      "standByLocked": "You did not tell them the truth that day.",
+      "correct": "Correct the record now",
+      "correctLocked": "There is no record to correct."
     },
     "goldenBuyer": {
       "title": "An Unsolicited Offer",
@@ -1248,6 +1253,101 @@
       "remove": "Strike the entry from payroll",
       "laterTitle": "Reporting Gap",
       "laterBody": "The reports have stopped. Several departments have noticed, because they had come to rely on them, and have asked who used to write them."
+    },
+    "calmCapybara": {
+      "title": "Marlow Has Not Moved",
+      "body": "The alarm has been going for four minutes. The building is empty. Marlow is still at their desk, filling in a form, entirely unbothered. The alarm stops on its own.",
+      "drill": "Run the full drill anyway",
+      "ask": "Ask Marlow what the form was",
+      "panel": "Go and read the alarm panel yourself"
+    },
+    "pingoManifest": {
+      "title": "A Pallet From Next Week",
+      "body": "Pingo has the manifest for a pallet that arrived this morning. It is signed for. The signature is dated eleven days from now, and it is yours.",
+      "file": "File it and move on",
+      "open": "Open the pallet",
+      "insideBody": "Inside is this quarter’s shipment, packed correctly, including the two items nobody has ordered yet. Pingo checks the seal. The seal is ours.",
+      "inventory": "Inventory every item",
+      "reseal": "Reseal it and put it in next week’s queue"
+    },
+    "canelaNotes": {
+      "title": "Notes On A Room We Do Not Have",
+      "body": "Canela’s notebook describes, in careful detail, a room on floor two with a window in it. Floor two has no windows. The sketches are dated across three weeks.",
+      "fund": "Fund the survey",
+      "file": "File the notes in the archive",
+      "assigned": "Ask her to stay on the assigned floors"
+    },
+    "ninoNap": {
+      "title": "The Mandatory Company Nap",
+      "body": "Nino has put a company-wide nap on the calendar. It overlaps the quarter review exactly. The invitation cannot be declined; he has removed the button.",
+      "honour": "Honour the nap",
+      "move": "Move the review",
+      "during": "Hold the review during the nap"
+    },
+    "biaGuard": {
+      "title": "The Vault Opened From Inside",
+      "body": "The log shows the vault door opening at 03:12, from the inside. Bia was asleep at her post on the other side of it. Nothing is missing. Something has been added.",
+      "review": "Review the whole night’s footage",
+      "trust": "Take Bia at her word",
+      "lock": "Fit a second lock",
+      "laterTitle": "The Vault, Again",
+      "laterBody": "The auditors ask why nobody looked at the footage. There is no good answer, and the log has one more entry than last time."
+    },
+    "quincyBug": {
+      "title": "A Bug That Has Not Happened",
+      "body": "Quincy has filed a defect report for a fault on the sorting line. The sorting line is fine. The report has a timestamp, reproduction steps, and a working fix. He will not say how he got them.",
+      "fix": "Apply the fix before anything breaks",
+      "wait": "Wait for the bug",
+      "askHow": "Ask how he knew",
+      "laterTitle": "The Bug, On Schedule",
+      "laterBody": "The sorting line failed at the minute written on the report. The fix in the report worked. Nobody wants to discuss the timestamp."
+    },
+    "sonnySlow": {
+      "title": "Six Weeks On One Task",
+      "body": "Sonny has been working on a single filing improvement since the start of the quarter. He says it is nearly ready. He said that four weeks ago. He seems entirely certain.",
+      "time": "Give him the time",
+      "ship": "Ask him to ship what he has",
+      "pair": "Pair him with Inky",
+      "laterTitle": "Sonny Is Finished",
+      "laterBody": "It is finished. It is also correct, complete, and quietly better than anything the department has shipped this year. He goes for a nap."
+    },
+    "inkyMultitask": {
+      "title": "Nine Tasks, Eight Arms",
+      "body": "Inky’s throughput board shows nine tasks progressing at once. She has eight arms. The ninth line is moving fastest of all.",
+      "audit": "Audit the board",
+      "promote": "Promote her and stop counting",
+      "dontAsk": "Do not ask"
+    },
+    "echoNight": {
+      "title": "The Building Is Humming",
+      "body": "Echo’s overnight recording has forty minutes of the building humming a tune. It is in no songbook. Three microphones on three floors have it in perfect unison.",
+      "archive": "Archive the recording properly",
+      "play": "Play it at the all-hands",
+      "delete": "Delete it"
+    },
+    "rosaRunway": {
+      "title": "The Launch Is A Runway Show",
+      "body": "Rosa has booked a runway show for the seasonal nut. The venue is the sorting floor. The invitations have already gone out, and they are extremely good invitations.",
+      "fund": "Fund it properly",
+      "fundLocked": "Not enough nuts to do it the way the invitations promise.",
+      "scale": "Scale it down to the break room",
+      "cancel": "Cancel the show",
+      "laterTitle": "The Show Was A Success",
+      "laterBody": "Three trade papers ran the photographs. Orders are up. Somebody has asked whether the sorting floor is available in spring."
+    },
+    "perryOddjob": {
+      "title": "Procured",
+      "body": "Perry has obtained the part that has been on back-order since spring. There is no invoice, no supplier and no packaging. He describes the transaction as handled.",
+      "accept": "Accept it and say thank you",
+      "paperwork": "Insist on the paperwork",
+      "return": "Send it back"
+    },
+    "axelRegen": {
+      "title": "It Grew Back",
+      "body": "The prototype that was destroyed last quarter is on Axel’s bench, whole. He is delighted with himself. It includes the section that was classified, which he has never been shown.",
+      "study": "Study it properly",
+      "destroy": "Destroy it again, carefully",
+      "keep": "Let him keep it"
     }
   },
   "ach": {
@@ -2213,7 +2313,18 @@
     "minaFascinated": "Mina has already started a new logbook for this.",
     "teamCheers": "A cheer goes up somewhere near the sorting line and spreads without explanation.",
     "teamRelieved": "The floor lets out a breath it had apparently been holding all morning.",
-    "teamDelighted": "Work stops. Nobody minds. Somebody fetches the good mugs."
+    "teamDelighted": "Work stops. Nobody minds. Somebody fetches the good mugs.",
+    "pingoPrecise": "Pingo double-checks the numbering. Twice.",
+    "canelaCurious": "Canela is already sharpening a pencil.",
+    "ninoUnbothered": "Nino was asleep before the vote finished.",
+    "biaSteady": "Bia stands a little straighter.",
+    "quincyBlinks": "Quincy blinks once, slowly, and says nothing.",
+    "sonnyEventually": "Sonny gives a thumbs up. It arrives shortly after.",
+    "inkyBusy": "Inky waves four arms without looking up.",
+    "echoUpsideDown": "Echo nods, upside down, and makes a note.",
+    "rosaFabulous": "Rosa is already choosing the lighting.",
+    "perryDeadpan": "Perry says nothing at all, pleasantly.",
+    "axelSunny": "Axel beams. Something faintly regrows."
   },
   "daily": {
     "title": "Daily Challenges",
