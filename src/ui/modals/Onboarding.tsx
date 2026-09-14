@@ -54,7 +54,7 @@ export function Onboarding() {
       titleId={titleId}
       closing={closing}
       onDismiss={close}
-      actions={(
+      actions={
         <>
           <div className="onboarding__secondary-actions">
             <button className="ghost-btn" disabled={closing} onClick={close}>
@@ -70,7 +70,7 @@ export function Onboarding() {
             {last ? t('onboarding.done') : t('onboarding.next')}
           </button>
         </>
-      )}
+      }
     >
       <header className="onboarding__header">
         <p className="onboarding__eyebrow">{t('onboarding.eyebrow')}</p>
@@ -84,13 +84,18 @@ export function Onboarding() {
       <div className="onboarding__copy" key={chapter.id}>
         <h2 id={titleId}>{t(`onboarding.${chapter.id}Title`)}</h2>
         {chapter.bodyKeys.map((key) => (
-          <p key={key} className="onboarding__text">{t(`onboarding.${key}`)}</p>
+          <p key={key} className="onboarding__text">
+            {t(`onboarding.${key}`)}
+          </p>
         ))}
       </div>
 
       <ol className="onboarding__steps" aria-label={t('onboarding.progressLabel')}>
         {CHAPTERS.map((item, itemIndex) => (
-          <li key={item.id} className={itemIndex === index ? 'is-active' : itemIndex < index ? 'is-complete' : ''}>
+          <li
+            key={item.id}
+            className={itemIndex === index ? 'is-active' : itemIndex < index ? 'is-complete' : ''}
+          >
             <button
               type="button"
               aria-label={t('onboarding.goTo', {
@@ -118,9 +123,15 @@ function TutorialArt({ chapter, reducedMotion }: { chapter: ChapterId; reducedMo
       <span className="onboarding-art__wash" />
       {chapter === 'collect' ? (
         <>
-          <span className="onboarding-art__crate"><Crate size={88} /></span>
-          <span className="onboarding-art__nut onboarding-art__nut--one"><Acorn size={30} /></span>
-          <span className="onboarding-art__nut onboarding-art__nut--two"><Acorn size={26} /></span>
+          <span className="onboarding-art__crate">
+            <Crate size={88} />
+          </span>
+          <span className="onboarding-art__nut onboarding-art__nut--one">
+            <Acorn size={30} />
+          </span>
+          <span className="onboarding-art__nut onboarding-art__nut--two">
+            <Acorn size={26} />
+          </span>
           <span className="onboarding-art__click-ring" />
           <span className="onboarding-art__plus">+12</span>
         </>
@@ -132,8 +143,15 @@ function TutorialArt({ chapter, reducedMotion }: { chapter: ChapterId; reducedMo
           <span className="onboarding-art__bar onboarding-art__bar--one" />
           <span className="onboarding-art__bar onboarding-art__bar--two" />
           <span className="onboarding-art__bar onboarding-art__bar--three" />
-          <span className="onboarding-art__trend">↗</span>
-          <span className="onboarding-art__report-nut"><Acorn size={32} /></span>
+          {/* Drawn arrow, not U+2197: the bundled fonts are Latin subsets and the
+              character rendered as a tofu box in the very first thing a new player
+              sees. */}
+          <span className="onboarding-art__trend" aria-hidden="true">
+            <i />
+          </span>
+          <span className="onboarding-art__report-nut">
+            <Acorn size={32} />
+          </span>
         </div>
       ) : null}
 
@@ -150,8 +168,15 @@ function TutorialArt({ chapter, reducedMotion }: { chapter: ChapterId; reducedMo
               reducedMotion={reducedMotion}
             />
           </span>
-          <span className="onboarding-art__speech"><i /><i /><i /></span>
-          <span className="onboarding-art__morale"><b>+1</b><i /></span>
+          <span className="onboarding-art__speech">
+            <i />
+            <i />
+            <i />
+          </span>
+          <span className="onboarding-art__morale">
+            <b>+1</b>
+            <i />
+          </span>
         </>
       ) : null}
 
@@ -159,22 +184,47 @@ function TutorialArt({ chapter, reducedMotion }: { chapter: ChapterId; reducedMo
         <div className="onboarding-art__dossier">
           <span className="onboarding-art__dossier-tab" />
           <span className="onboarding-art__dossier-heading" />
-          <span className="onboarding-art__department onboarding-art__department--one"><i /><b /></span>
-          <span className="onboarding-art__department onboarding-art__department--two"><i /><b /></span>
-          <span className="onboarding-art__department onboarding-art__department--three"><i /><b /></span>
+          <span className="onboarding-art__department onboarding-art__department--one">
+            <i />
+            <b />
+          </span>
+          <span className="onboarding-art__department onboarding-art__department--two">
+            <i />
+            <b />
+          </span>
+          <span className="onboarding-art__department onboarding-art__department--three">
+            <i />
+            <b />
+          </span>
           <span className="onboarding-art__stamp">CO.</span>
         </div>
       ) : null}
 
       {chapter === 'desktop' ? (
         <div className="onboarding-art__window">
-          <span className="onboarding-art__window-bar"><i /><i /><i /></span>
-          <span className="onboarding-art__mini-office">
-            <b /><b /><b />
-            <i><Acorn size={22} /></i>
+          <span className="onboarding-art__window-bar">
+            <i />
+            <i />
+            <i />
           </span>
-          <span className="onboarding-art__pin">●</span>
-          <span className="onboarding-art__quiet"><i /><i /><i /></span>
+          <span className="onboarding-art__mini-office">
+            <b />
+            <b />
+            <b />
+            <i>
+              <Acorn size={22} />
+            </i>
+          </span>
+          {/* The pin is already a styled circle; the U+25CF inside it was a second,
+              tofu-rendered dot. Drawn as an inner dot instead. */}
+          <span className="onboarding-art__pin" aria-hidden="true">
+            <i />
+          </span>
+          <span className="onboarding-art__quiet">
+            <i />
+            <i />
+            <i />
+          </span>
         </div>
       ) : null}
     </div>

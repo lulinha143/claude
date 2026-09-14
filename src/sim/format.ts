@@ -20,7 +20,13 @@ const SHORT_SUFFIXES = [
 ];
 
 export function formatNumber(value: number, locale = 'en'): string {
-  if (!Number.isFinite(value)) return '∞';
+  /* ASCII only, deliberately. This used to return the infinity sign, which has no
+     glyph in the bundled Latin font subsets and renders as a tofu box — so a very
+     large number looked like a broken one. Verified by rendering U+221E in the app's
+     own font stack and pixel-comparing it against a private-use codepoint.
+     `Inf` also keeps the register of the scientific-notation fallback below. */
+  if (Number.isNaN(value)) return '0';
+  if (!Number.isFinite(value)) return `${value < 0 ? '-' : ''}Inf`;
   const sign = value < 0 ? '-' : '';
   const abs = Math.abs(value);
   if (abs < 1000) {

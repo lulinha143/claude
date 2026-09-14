@@ -1807,10 +1807,17 @@ h4 {
   --note-edge: color-mix(in srgb, var(--mood-color, #d9b65d) 46%, #6b4a28);
   --note-fill: color-mix(in srgb, var(--mood-color, #d9b65d) 9%, #fdf6e6);
   position: fixed;
-  /* Above the office scene and its in-room bubbles (the note is portaled to the
-     body, so it must out-rank the whole scene's stacking context), but below
-     modals (9997+) and tooltips (9999) which are genuinely on top of everything. */
-  z-index: 9000;
+  /* Above the office scene and its in-room bubbles — the note is portaled to the body,
+     so it has to out-rank the scene — but BELOW every piece of UI the player has to
+     read or act on.
+     This used to be 9000, justified by "below modals (9997+)". That premise was wrong:
+     9997-9999 is the cursor-attached tier (.tooltip, .drag-ghost, .sparkle-burst,
+     .dust-puff), while the actual UI layers are much lower — .popup-backdrop 180,
+     .toasts 200, .talk 210, .opening-seq 260. So an ambient bubble on a timer painted
+     over every modal, which was visible in the first run: an employee's room-pride line
+     sat across the tutorial's own heading. A speech note is flavour and must never
+     cover a dialog. */
+  z-index: 130;
   width: max-content;
   max-width: min(26rem, calc(100vw - 24px));
   padding: 7px 11px 8px;
@@ -10309,13 +10316,19 @@ button:disabled,
   backdrop-filter: blur(6px) saturate(0.86);
   animation: opening-frame-in 0.65s var(--ease-settle) both;
 }
+/* Solid inner edge, matching the cable desk. A dashed rectangle inset inside a frame
+   that already has a technical grid behind it reads as a level editor's canvas guide —
+   and this is the FIRST screen of the game, which is the worst place to look
+   unfinished. The dashed separator LINES elsewhere are a different thing: those are the
+   stationery/perforation motif and stay. */
 .opening-seq__dialog::before {
   content: '';
   position: absolute;
   z-index: 5;
   inset: 8px;
-  border: 1px dashed rgba(244, 205, 131, 0.18);
+  border: 1px solid rgba(244, 205, 131, 0.14);
   border-radius: 12px;
+  box-shadow: inset 0 1px 0 rgba(255, 244, 224, 0.05);
   pointer-events: none;
 }
 .opening-seq__skip {
@@ -10964,13 +10977,23 @@ button:disabled,
   width: 88%;
   animation-delay: 0.2s;
 }
+/* The growth arrow, drawn. Was "↗" (U+2197) and rendered as a tofu box, in the
+   tutorial art of all places — the first illustration a new player is shown. A
+   clip-path arrow costs nothing and cannot be missing from a font. */
 .onboarding-art__trend {
   position: absolute;
   right: 12px;
   top: 7px;
-  color: #4f763e;
-  font: 900 2rem/1 var(--font-display);
+  width: 30px;
+  height: 30px;
   transform: rotate(-4deg);
+}
+.onboarding-art__trend i {
+  position: absolute;
+  inset: 0;
+  background: #4f763e;
+  /* Shaft running bottom-left to top-right, with a head at the top-right corner. */
+  clip-path: polygon(4% 74%, 62% 16%, 36% 16%, 36% 2%, 98% 2%, 98% 64%, 84% 64%, 84% 38%, 26% 96%);
 }
 .onboarding-art__report-nut {
   position: absolute;
@@ -11172,11 +11195,19 @@ button:disabled,
   place-items: center;
   width: 35px;
   height: 35px;
-  color: #d6af4c;
   border: 2px solid #654516;
   border-radius: 50%;
   background: #f2d574;
   box-shadow: 2px 3px 0 rgba(65, 41, 19, 0.25);
+}
+/* The inner dot of the pin. Was a U+25CF character sitting inside a circle that was
+   already drawn in CSS — a tofu box in the middle of the tutorial art. */
+.onboarding-art__pin i {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #d6af4c;
+  box-shadow: inset 0 1px 0 rgba(255, 244, 224, 0.5);
 }
 .onboarding-art__quiet {
   position: absolute;

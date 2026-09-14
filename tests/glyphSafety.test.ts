@@ -46,21 +46,31 @@ function isRisky(ch: string): boolean {
 /**
  * Symbols that predate this guard.
  *
- * In practice a browser falls back to a system font for a missing glyph, so on a
- * normal desktop these render. They are recorded rather than fixed because
- * replacing decorative art in the minigames and the onboarding illustration is a
- * separate art decision, and `∞` / `›` are load-bearing in their own contexts.
+ * The original note here said "in practice a browser falls back to a system font for a
+ * missing glyph, so on a normal desktop these render". That was measured and found to
+ * be FALSE: rendering each of these in the app's own font stack and pixel-comparing it
+ * against a private-use codepoint showed U+2605, U+221E, U+2197 and U+25CF drawing the
+ * platform's notdef box. A screenshot of the cafe confirmed it — the menu board read
+ * "NUT ROAST" above three literal rectangles.
+ *
+ * So the player-facing ones were replaced with CSS art or ASCII:
+ *   U+2605 U+25CF U+2668  ->  .coffee__rating / .coffee__foam / .coffee__meter > i
+ *   U+221E                ->  formatNumber() returns "Inf"
+ *   U+2197 U+25CF         ->  .onboarding-art__trend / .onboarding-art__pin
+ * U+203A survived the audit: it does render, and is left alone.
+ *
+ * What remains is `src/dev/typography.tsx`, a developer-only specimen page that is
+ * never reachable in a shipped build — it exists to show what the type looks like, and
+ * a tofu box in it is a finding rather than a defect.
  *
  * This is a RATCHET: the baseline may shrink, never grow. Anything new fails.
  */
 const KNOWN_BASELINE: Record<string, string[]> = {
   'src/dev/typography.tsx': ['\u25cf', '\u2302', '\u25a4', '\u2667'],
-  'src/sim/format.ts': ['\u221e'],
   // CoffeeRescue.tsx used to be here with U+2668, U+2605 and U+25CF. A screenshot of
   // the running cafe showed the star rendering as a literal tofu box on the menu
   // board, disproving the "the OS will have a fallback" assumption below, so all
   // three are now drawn in CSS (.coffee__rating, .coffee__foam, .coffee__meter > i).
-  'src/ui/modals/Onboarding.tsx': ['\u2197', '\u25cf'],
   'src/ui/views/FocusView.tsx': ['\u203a'],
 };
 
