@@ -14427,3 +14427,437 @@ html[data-station-tapping='true'] body > .tooltip[role='tooltip'] {
   pointer-events: none;
   transition: opacity 90ms var(--ease);
 }
+
+/* ===========================================================================
+   MOMENT CARDS — a filing cabinet, not a list
+   ---------------------------------------------------------------------------
+   Moments are the game's collectibles. They were presented as flat rows: a
+   coloured dot, a title, a date, an export icon. The only real "card" was the
+   exported PNG, so the appeal of the feature lived outside the game — and that
+   PNG was a single template (one brown gradient, one rarity frame, a placeholder
+   acorn), so a collection of souvenirs was a collection of one design.
+
+   Each moment now IS its document. The format comes from ui/momentFormats.ts and
+   is shared with the canvas exporter, so what you collect and what you download
+   are the same artefact. Rarity still tints the edge, but it is no longer the only
+   thing that distinguishes one souvenir from another.
+
+   Paper and ink arrive as `--doc-paper` / `--doc-accent` from the format spec, so
+   adding a format needs no new CSS — only the genuinely structural differences
+   below are per-format.
+   ========================================================================= */
+.moment-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(228px, 1fr));
+  gap: 13px;
+}
+
+.moment-doc {
+  position: relative;
+  min-height: 168px;
+  /* Paper, very slightly warmed toward its ink so the two never look unrelated. */
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.5), transparent 38%),
+    color-mix(in srgb, var(--doc-paper) 94%, var(--doc-accent));
+  border: 1px solid color-mix(in srgb, var(--doc-accent) 34%, rgba(90, 63, 31, 0.4));
+  border-radius: 2px;
+  /* Real paper has a shadow and a slight lift, not a rounded card glow. */
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.45) inset,
+    0 3px 7px rgba(37, 24, 12, 0.28);
+  transition:
+    transform var(--dur-fast) var(--ease),
+    box-shadow var(--dur-fast) var(--ease);
+}
+.moment-doc:hover {
+  transform: translateY(-3px) rotate(-0.35deg);
+  box-shadow: 0 8px 16px rgba(37, 24, 12, 0.34);
+}
+[data-reduced-motion='true'] .moment-doc:hover {
+  transform: none;
+}
+/* Rarity keeps a job, but a smaller one: a bound edge down the spine. */
+.moment-doc--uncommon {
+  border-left: 3px solid #4f9d69;
+}
+.moment-doc--rare {
+  border-left: 3px solid #4f7dd6;
+}
+.moment-doc--legendary {
+  border-left: 3px solid #d6a83f;
+}
+
+/* The whole document is the button, so the entire card is clickable. */
+.moment-doc__open {
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  gap: 5px;
+  width: 100%;
+  height: 100%;
+  min-height: 168px;
+  padding: 11px 12px 10px;
+  background: none;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+  color: #3a2a18;
+  font: inherit;
+}
+.moment-doc__open:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: -3px;
+}
+
+/* Letterhead */
+.moment-doc__head {
+  display: grid;
+  gap: 1px;
+  padding-bottom: 5px;
+  border-bottom: 1.5px solid color-mix(in srgb, var(--doc-accent) 52%, transparent);
+}
+.moment-doc__kind {
+  font-family: var(--type-caption-family, inherit);
+  font-size: 0.72em;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--doc-accent);
+}
+.moment-doc__org {
+  font-size: 0.56em;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, #3a2a18 55%, transparent);
+}
+
+/* The reference line. One small detail that does more for "corporate artefact"
+   than any amount of framing. */
+.moment-doc__ref {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  font-size: 0.6em;
+}
+.moment-doc__ref-label {
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, #3a2a18 50%, transparent);
+}
+.moment-doc__ref-code {
+  font-family: var(--font-numeric);
+  font-weight: 700;
+  color: color-mix(in srgb, var(--doc-accent) 85%, #3a2a18);
+}
+
+.moment-doc__title {
+  align-self: start;
+  font-family: var(--type-display-family, inherit);
+  font-size: 0.98em;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #2f2114;
+}
+.moment-doc__subject {
+  align-self: start;
+  display: inline-block;
+  margin-top: -2px;
+  padding: 1px 6px;
+  font-size: 0.62em;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #3a2a18;
+  background: color-mix(in srgb, var(--doc-accent) 22%, transparent);
+  border: 1px solid color-mix(in srgb, var(--doc-accent) 45%, transparent);
+  border-radius: 2px;
+}
+
+.moment-doc__foot {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 5px;
+  border-top: 1px solid color-mix(in srgb, var(--doc-accent) 26%, transparent);
+  font-size: 0.58em;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, #3a2a18 62%, transparent);
+}
+.moment-doc__rarity {
+  color: color-mix(in srgb, var(--doc-accent) 80%, #3a2a18);
+}
+
+/* Rubber stamp. Rotated, semi-opaque, and set OVER the document the way a real one
+   is — it must read as ink applied after the fact, not as a label in the layout. */
+.moment-doc__stamp {
+  position: absolute;
+  right: 8px;
+  bottom: 30px;
+  transform: rotate(-11deg);
+  padding: 2px 7px;
+  font-family: var(--type-caption-family, inherit);
+  font-size: 0.6em;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--doc-accent);
+  border: 2px solid currentColor;
+  border-radius: 2px;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Export stays available but stops competing with the document it belongs to. */
+.moment-doc__save {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  color: color-mix(in srgb, #3a2a18 60%, transparent);
+  background: color-mix(in srgb, #fff 42%, transparent);
+  border: 1px solid color-mix(in srgb, var(--doc-accent) 34%, transparent);
+  border-radius: 2px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease);
+}
+.moment-doc:hover .moment-doc__save,
+.moment-doc__save:focus-visible {
+  opacity: 1;
+}
+.moment-doc__save:hover {
+  color: #3a2a18;
+  background: #fff;
+}
+
+/* --- the structural differences, per format ------------------------------- */
+
+/* Incident reports are ruled, like a form somebody filled in. */
+.moment-doc--incident .moment-doc__open {
+  background-image: repeating-linear-gradient(
+    180deg,
+    transparent 0 21px,
+    color-mix(in srgb, var(--doc-accent) 14%, transparent) 21px 22px
+  );
+}
+/* Observations are on graph paper. */
+.moment-doc--observation .moment-doc__open {
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 11px,
+      color-mix(in srgb, var(--doc-accent) 13%, transparent) 11px 12px
+    ),
+    repeating-linear-gradient(
+      180deg,
+      transparent 0 11px,
+      color-mix(in srgb, var(--doc-accent) 13%, transparent) 11px 12px
+    );
+}
+/* A memo is plain, but it is punched for a binder. */
+.moment-doc--memo::before,
+.moment-doc--personnel::before {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  background: color-mix(in srgb, #3a2a18 22%, transparent);
+  box-shadow:
+    0 -34px 0 color-mix(in srgb, #3a2a18 22%, transparent),
+    0 34px 0 color-mix(in srgb, #3a2a18 22%, transparent);
+  pointer-events: none;
+}
+.moment-doc--memo .moment-doc__open,
+.moment-doc--personnel .moment-doc__open {
+  padding-left: 22px;
+}
+/* Personnel notes are manila folders: a tab across the top edge. */
+.moment-doc--personnel {
+  border-top: 0;
+}
+.moment-doc--personnel .moment-doc__head {
+  margin-top: 3px;
+}
+.moment-doc--personnel::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 42%;
+  top: -4px;
+  height: 5px;
+  background: color-mix(in srgb, var(--doc-paper) 88%, var(--doc-accent));
+  border: 1px solid color-mix(in srgb, var(--doc-accent) 34%, rgba(90, 63, 31, 0.4));
+  border-bottom: 0;
+  border-radius: 3px 3px 0 0;
+  pointer-events: none;
+}
+/* A restricted file is redacted, and says so before you read a word of it. */
+.moment-doc--confidential .moment-doc__title {
+  position: relative;
+}
+.moment-doc--confidential .moment-doc__ref-code {
+  /* The code is struck through with a redaction bar rather than hidden, so the
+     player can see that something was removed. */
+  background: #2f2a24;
+  color: transparent;
+  border-radius: 1px;
+  user-select: none;
+}
+/* Notices are centred and posted, like something taped to a wall. */
+.moment-doc--notice .moment-doc__head,
+.moment-doc--notice .moment-doc__title,
+.moment-doc--notice .moment-doc__ref {
+  text-align: center;
+  justify-content: center;
+}
+.moment-doc--notice .moment-doc__head {
+  justify-items: center;
+}
+.moment-doc--notice .moment-doc__title {
+  align-self: center;
+}
+
+/* ===========================================================================
+   SAVE & DATA — a records desk, not a row of debug buttons
+   ---------------------------------------------------------------------------
+   The panel was four bare `ghost-btn`s in a line: Save now / Export / Import /
+   Replay tutorial. Nothing said the game autosaves, nothing confirmed that "Save
+   now" had done anything, nothing identified WHICH state the company was in, and
+   Import — which replaces the entire company — was a file picker with no warning
+   and no message either way. It read as a developer utility because it behaved
+   like one.
+
+   It now leads with the one fact a player wants (when their progress was last
+   filed), keeps the destructive action behind a confirmation, and answers every
+   action in words.
+   ========================================================================= */
+.savebar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+  padding: 9px 11px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--paper) 92%, transparent),
+    color-mix(in srgb, var(--paper-muted) 88%, transparent)
+  );
+  border: 1px solid color-mix(in srgb, var(--wood-light) 60%, transparent);
+  border-left: 3px solid color-mix(in srgb, var(--positive) 52%, var(--wood-light));
+  border-radius: var(--r-sm);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.42),
+    0 2px 5px rgba(37, 24, 12, 0.14);
+}
+.savebar__status {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+.savebar__label {
+  font-family: var(--type-caption-family, inherit);
+  font-size: 0.62em;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--ink) 58%, transparent);
+}
+/* The timestamp is the headline of this panel, so it is typeset like one. */
+.savebar__value {
+  font-family: var(--font-numeric);
+  font-size: 0.96em;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+.savebar__now {
+  margin-left: auto;
+}
+.savebar__auto {
+  margin: 0 0 10px;
+  max-width: 62ch;
+}
+
+/* The one destructive action in the panel, with the company it would overwrite
+   named explicitly. Warm-warning paper rather than an alarming red panel: the
+   player has not done anything wrong, they are being asked to confirm. */
+.savebar__confirm {
+  margin-top: 11px;
+  padding: 11px 12px;
+  background: color-mix(in srgb, var(--gold) 11%, var(--paper));
+  border: 1px solid color-mix(in srgb, var(--gold) 46%, var(--wood-light));
+  border-radius: var(--r-sm);
+  box-shadow: 0 2px 6px rgba(37, 24, 12, 0.18);
+}
+.savebar__confirm-title {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--ink);
+  font-size: 0.94em;
+  font-weight: 800;
+}
+.savebar__confirm-body {
+  margin: 0 0 9px;
+  max-width: 64ch;
+  color: color-mix(in srgb, var(--ink) 82%, transparent);
+  font-size: 0.84em;
+  line-height: 1.42;
+  /* A filename can be long and arbitrary; it must not push the dialogue wider. */
+  overflow-wrap: anywhere;
+}
+.savebar__confirm-actions {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+/* Result of the last action. Announced with role="status" so it is not only a
+   colour — a save panel that reports failure by turning slightly red is no use to
+   anyone who cannot see the difference. */
+.savebar__note {
+  display: flex;
+  /* The marker is an inline SVG icon (see SettingsView): centre it against the
+     first line rather than baseline-aligning a box. */
+  align-items: center;
+  gap: 7px;
+  margin: 10px 0 0;
+  padding: 7px 10px;
+  border-radius: var(--r-sm);
+  font-size: 0.84em;
+  font-weight: 700;
+  line-height: 1.4;
+}
+.savebar__note--ok {
+  color: color-mix(in srgb, var(--positive) 78%, var(--ink));
+  background: color-mix(in srgb, var(--positive) 13%, transparent);
+  border: 1px solid color-mix(in srgb, var(--positive) 38%, transparent);
+}
+.savebar__note--bad {
+  color: color-mix(in srgb, #b0473a 82%, var(--ink));
+  background: color-mix(in srgb, #b0473a 11%, transparent);
+  border: 1px solid color-mix(in srgb, #b0473a 36%, transparent);
+}
+
+@media (max-width: 560px) {
+  .savebar__now {
+    margin-left: 0;
+    width: 100%;
+    justify-content: center;
+  }
+}

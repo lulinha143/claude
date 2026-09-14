@@ -6,6 +6,9 @@ import { SUPPORTED_LANGUAGES, languageDisplayName } from '../../i18n';
 import type { WindowCorner, WindowSettings } from '../../platform/types';
 import { Icon } from '../../art/UiIcon';
 import { Tip, TipContent } from '../Tooltip';
+import { useFmt } from '../useFmt';
+import { notify } from '../notificationsStore';
+import { fileStamp } from '../../sim/format';
 
 const CORNERS: WindowCorner[] = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
 const SCALES = [0.75, 1, 1.25, 1.5];
@@ -19,8 +22,13 @@ export function SettingsView() {
   const hardReset = useStore((s) => s.hardReset);
   const importSave = useStore((s) => s.importSave);
   const setBatterySaver = useStore((s) => s.setBatterySaver);
+  const fmt = useFmt();
   const [win, setWin] = useState<WindowSettings | null>(null);
   const [confirmReset, setConfirmReset] = useState(false);
+  /** Outcome of the last save/export/import action, shown in the panel. */
+  const [saveNote, setSaveNote] = useState<{ tone: 'ok' | 'bad'; text: string } | null>(null);
+  /** A file that has been read but NOT yet applied, awaiting confirmation. */
+  const [pendingImport, setPendingImport] = useState<{ name: string; json: string } | null>(null);
 
   useEffect(() => {
     void platform.getWindowSettings().then((w) => {
@@ -84,25 +92,80 @@ export function SettingsView() {
     }
   }
 
+  /**
+   * Export, with the three things the previous version left out: a filename that
+   * identifies the save, an object URL that gets released, and any word to the
+   * player about whether it worked.
+   */
   function exportSave() {
-    const data = engine.state;
-    const blob = new Blob([useStore.getState().save.exportSave(data)], {
-      type: 'application/json',
-    });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'zooworkers-save.json';
-    a.click();
+    let url: string | null = null;
+    try {
+      const blob = new Blob([useStore.getState().save.exportSave(engine.state)], {
+        type: 'application/json',
+      });
+      url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      // Was always `zooworkers-save.json`, so a second export silently became
+      // "(1)" and no file said which company or when it was taken.
+      const company = engine.state.company.name.replace(/[^\w.-]+/g, '-').replace(/^-|-$/g, '');
+      a.download = `zooworkers_${company || 'company'}_${fileStamp(Date.now())}.json`;
+      a.click();
+      setSaveNote({ tone: 'ok', text: t('settings.exportDone') });
+      audio.play('click');
+    } catch {
+      setSaveNote({ tone: 'bad', text: t('settings.exportFailed') });
+      audio.play('error');
+    } finally {
+      // Never leaked before, so every export pinned its save in memory for the
+      // rest of the session.
+      if (url) setTimeout(() => URL.revokeObjectURL(url as string), 10_000);
+    }
   }
 
-  function onImport(e: React.ChangeEvent<HTMLInputElement>) {
+  /**
+   * Importing REPLACES the company, so it asks first.
+   *
+   * The file is read here but applied only on confirmation: reading is harmless and
+   * lets the dialogue name the actual file, while the destructive step stays behind
+   * an explicit choice. Previously a stray click on a file picker could overwrite
+   * hours of play with no warning and no message either way.
+   */
+  function onImportPicked(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
+    // Reset the input so re-picking the same file still fires a change event.
+    e.target.value = '';
     if (!file) return;
     const reader = new FileReader();
+    reader.onerror = () => {
+      setSaveNote({ tone: 'bad', text: t('settings.importUnreadable') });
+      audio.play('error');
+    };
     reader.onload = () => {
-      if (typeof reader.result === 'string') importSave(reader.result);
+      if (typeof reader.result !== 'string') {
+        setSaveNote({ tone: 'bad', text: t('settings.importUnreadable') });
+        audio.play('error');
+        return;
+      }
+      setPendingImport({ name: file.name, json: reader.result });
+      setSaveNote(null);
     };
     reader.readAsText(file);
+  }
+
+  function applyImport() {
+    if (!pendingImport) return;
+    const ok = importSave(pendingImport.json);
+    setPendingImport(null);
+    if (ok) {
+      // The view switches to the office on success, so the confirmation has to be
+      // a notification rather than an inline note nobody will be looking at.
+      notify('save', t('settings.importDone'), 'positive');
+      audio.play('upgrade');
+    } else {
+      setSaveNote({ tone: 'bad', text: t('settings.importInvalid') });
+      audio.play('error');
+    }
   }
 
   return (
@@ -422,21 +485,90 @@ export function SettingsView() {
 
       <div className="panel">
         <h3>{t('settings.save')}</h3>
-        <div className="button-row">
-          <button className="ghost-btn" onClick={() => engine.save()}>
-            {t('settings.manualSave')}
+
+        {/* SAVE STATUS.
+            The panel used to be four bare buttons: no indication that the game
+            autosaves, no way to tell whether "Save now" had done anything, and no
+            timestamp to identify what state the company is actually in. A player
+            asking "is my progress safe?" had nothing to read. */}
+        <div className="savebar">
+          <div className="savebar__status">
+            <span className="savebar__label">{t('settings.saveStatus')}</span>
+            <strong className="savebar__value">
+              {state.lastSaved ? fmt.dateTime(state.lastSaved) : t('settings.saveNever')}
+            </strong>
+          </div>
+          <button
+            className="mini-btn mini-btn--primary savebar__now"
+            onClick={() => {
+              engine.save();
+              setSaveNote({ tone: 'ok', text: t('settings.saveDone') });
+              audio.play('click');
+            }}
+          >
+            <Icon name="success" size={13} /> {t('settings.manualSave')}
           </button>
+        </div>
+        <p className="muted small savebar__auto">{t('settings.saveAuto')}</p>
+
+        <div className="button-row">
           <button className="ghost-btn" onClick={exportSave}>
-            {t('settings.export')}
+            <Icon name="export" size={13} /> {t('settings.export')}
           </button>
           <label className="ghost-btn file-btn">
-            {t('settings.import')}
-            <input type="file" accept="application/json" onChange={onImport} hidden />
+            <Icon name="import" size={13} /> {t('settings.import')}
+            <input
+              type="file"
+              accept="application/json,.json"
+              onChange={onImportPicked}
+              hidden
+              aria-label={t('settings.importPick')}
+            />
           </label>
           <button className="ghost-btn" onClick={replayOnboarding}>
             {t('settings.replayTutorial')}
           </button>
         </div>
+
+        {/* Where saves live. Stated plainly, and deliberately NOT dressed up as
+            cloud sync, which the game does not have. */}
+        <p className="muted small">{t('settings.localOnly')}</p>
+
+        {/* OVERWRITE WARNING. Import replaces the whole company, so it is the one
+            action here that has to be confirmed. */}
+        {pendingImport ? (
+          <div className="savebar__confirm" role="alertdialog" aria-live="polite">
+            <strong className="savebar__confirm-title">{t('settings.importConfirmTitle')}</strong>
+            <p className="savebar__confirm-body">
+              {t('settings.importConfirmBody', {
+                file: pendingImport.name,
+                company: state.company.name,
+              })}
+            </p>
+            <div className="savebar__confirm-actions">
+              <button className="danger-btn" onClick={applyImport}>
+                {t('settings.importReplace')}
+              </button>
+              <button className="ghost-btn" onClick={() => setPendingImport(null)}>
+                {t('common.cancel')}
+              </button>
+            </div>
+          </div>
+        ) : null}
+
+        {/* Outcome of the last save action, in the player's language rather than the
+            developer's. Cleared by the next action. */}
+        {saveNote ? (
+          <p className={`savebar__note savebar__note--${saveNote.tone}`} role="status">
+            {/* An ICON, not a CSS glyph. A check mark (U+2713) in `content:` rendered
+                as a tofu box, because the bundled font subset is Latin-only — the
+                same lesson the click-payout prefix already learned. Caught here by
+                eye and then, independently, by tests/glyphSafety.test.ts, which
+                scans source text: hence the codepoint named rather than typed. */}
+            <Icon name={saveNote.tone === 'ok' ? 'success' : 'warning'} size={14} />
+            <span>{saveNote.text}</span>
+          </p>
+        ) : null}
         {confirmReset ? (
           <div className="confirm-row">
             <span>{t('settings.resetConfirm')}</span>

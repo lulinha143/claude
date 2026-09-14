@@ -71,3 +71,26 @@ export function formatClock(seconds: number): string {
 export function formatDate(epochMs: number, locale = 'en'): string {
   return new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(epochMs));
 }
+
+/**
+ * Date AND time, for anything the player needs to identify a specific moment —
+ * "last saved", an exported file, a backup. A save stamped only with a date is
+ * useless for telling this session's save from yesterday's.
+ */
+export function formatDateTime(epochMs: number, locale = 'en'): string {
+  return new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(
+    new Date(epochMs),
+  );
+}
+
+/**
+ * A filename-safe stamp, e.g. `2026-09-14_1532`.
+ *
+ * Deliberately not locale-formatted: this goes in a filename, where slashes and
+ * commas are hostile and sorting by name should sort by time.
+ */
+export function fileStamp(epochMs: number): string {
+  const d = new Date(epochMs);
+  const p = (n: number) => n.toString().padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}`;
+}

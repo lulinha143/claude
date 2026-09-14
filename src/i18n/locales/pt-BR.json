@@ -2064,7 +2064,21 @@
     "gameplay": "Jogabilidade",
     "autoResolveEvents": "Desativar janelas de escolha",
     "autoResolveEventsOn": "Os eventos de escolha não vão te interromper. O departamento escolhe a melhor opção disponível, aplica as consequências reais e informa cada decisão nas suas notificações.",
-    "autoResolveEventsOff": "Os eventos de escolha pausam o escritório e pedem sua decisão."
+    "autoResolveEventsOff": "Os eventos de escolha pausam o escritório e pedem sua decisão.",
+    "saveStatus": "Último salvamento",
+    "saveNever": "Ainda não salvo",
+    "saveAuto": "A Nutshell Inc. arquiva seu progresso automaticamente a cada poucos minutos e sempre que você fecha o jogo.",
+    "saveDone": "Progresso arquivado.",
+    "exportDone": "Save exportado para seus downloads.",
+    "exportFailed": "Não foi possível gravar o arquivo. Verifique se downloads são permitidos.",
+    "importPick": "Escolher um arquivo de save",
+    "importConfirmTitle": "Substituir a empresa atual?",
+    "importConfirmBody": "Importar {{file}} vai substituir {{company}} e tudo nela. Isso não pode ser desfeito.",
+    "importReplace": "Substituir empresa",
+    "importDone": "Save importado. Bem-vindo de volta.",
+    "importInvalid": "Esse arquivo não é um save do ZooWorkers, ou está danificado. Sua empresa atual não foi alterada.",
+    "importUnreadable": "Não foi possível ler esse arquivo. Sua empresa atual não foi alterada.",
+    "localOnly": "Os saves ficam guardados neste computador. Exporte uma cópia se quiser um backup."
   },
   "onboarding": {
     "skip": "Pular guia",
@@ -2104,7 +2118,29 @@
       "uncommon": "Incomum",
       "rare": "Raro",
       "legendary": "Lendário"
-    }
+    },
+    "format": {
+      "memo": "Memorando",
+      "incident": "Relatório de Incidente",
+      "personnel": "Nota de Pessoal",
+      "confidential": "Arquivo Restrito",
+      "observation": "Observação Comportamental",
+      "notice": "Aviso da Empresa"
+    },
+    "field": {
+      "re": "Ref",
+      "ref": "Nº",
+      "subject": "Assunto",
+      "file": "Arquivo",
+      "specimen": "Sujeito nº",
+      "posted": "Publicado"
+    },
+    "stamp": {
+      "filed": "Arquivado",
+      "confidential": "Confidencial",
+      "posted": "A todo o pessoal"
+    },
+    "from": "Nutshell Inc. — Pesquisa Comportamental"
   },
   "consequence": {
     "nutsGain": "+{{value}} castanhas",

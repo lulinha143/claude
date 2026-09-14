@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useGame } from '../../state/hooks';
 import { useStore } from '../../state/store';
@@ -9,6 +9,7 @@ import { GAME_EVENTS_BY_ID } from '../../content/events';
 import { NutDot } from '../../art/Icons';
 import { Icon } from '../../art/UiIcon';
 import { momentCardToPng, type MomentCardData } from '../momentCard';
+import { momentFormat, momentRef } from '../momentFormats';
 import type { MomentCard } from '../../sim/types';
 
 type Tab = 'nuts' | 'moments' | 'outfits' | 'secrets';
@@ -27,6 +28,7 @@ export function CollectionsView() {
   function cardData(card: MomentCard): MomentCardData {
     const def = GAME_EVENTS_BY_ID[card.eventId];
     const employee = card.employeeId ? EMPLOYEES.find((e) => e.id === card.employeeId) : null;
+    const spec = momentFormat(card);
     return {
       card,
       companyName: state.company.name,
@@ -35,6 +37,13 @@ export function CollectionsView() {
       rarityLabel: t(`moment.rarity.${card.rarity}`),
       employeeName: employee ? t(employee.nameKey) : null,
       dateLabel: fmt.date(card.createdAt),
+      // The same descriptor the collection grid renders from, translated here so the
+      // exported PNG says exactly what the on-screen document says.
+      formatLabel: t(spec.headingKey),
+      orgLabel: t('moment.from'),
+      refLabel: t(spec.refLabelKey),
+      refCode: momentRef(card),
+      stampLabel: spec.stampKey ? t(spec.stampKey) : null,
     };
   }
 
@@ -96,35 +105,85 @@ export function CollectionsView() {
         state.collections.moments.length === 0 ? (
           <p className="empty-state">{t('collections.undiscovered')}</p>
         ) : (
-          <ul className="moment-list">
+          // A COLLECTION OF DOCUMENTS, not a list of rows.
+          //
+          // This was a `<ul>` of flat rows — a coloured dot, a title, a date and an
+          // export icon — which is a file listing, not something a player collects.
+          // The only actual card was the exported PNG, so the feature's whole
+          // appeal lived outside the game.
+          //
+          // Each moment is now the document it actually is. The format comes from
+          // ui/momentFormats.ts, which is shared with the canvas exporter so the
+          // card in the collection and the card in the downloaded PNG are the same
+          // artefact.
+          <ul className="moment-grid">
             {state.collections.moments
               .slice()
               .reverse()
               .map((card) => {
                 const def = GAME_EVENTS_BY_ID[card.eventId];
+                const spec = momentFormat(card);
+                const employee = card.employeeId
+                  ? EMPLOYEES.find((e) => e.id === card.employeeId)
+                  : null;
                 return (
-                  <li key={card.id} className={`moment moment--${card.rarity}`}>
+                  <li
+                    key={card.id}
+                    className={`moment-doc moment-doc--${spec.format} moment-doc--${card.rarity}`}
+                    style={
+                      {
+                        '--doc-paper': spec.paper,
+                        '--doc-accent': spec.accent,
+                      } as CSSProperties
+                    }
+                  >
                     <button
-                      className="moment__open"
+                      className="moment-doc__open"
                       onClick={() => setViewing(card)}
                       title={t('collections.view')}
                     >
-                      <span className="moment__dot" aria-hidden />
-                      <span className="moment__info">
-                        <span className="moment__title">
-                          {def ? t(def.titleKey) : card.eventId}
-                        </span>
-                        <span className="moment__meta">
-                          {t(`moment.rarity.${card.rarity}`)} · {fmt.date(card.createdAt)}
-                        </span>
+                      {/* Letterhead: what kind of document this is, and who issued it. */}
+                      <span className="moment-doc__head">
+                        <span className="moment-doc__kind">{t(spec.headingKey)}</span>
+                        <span className="moment-doc__org">{t('moment.from')}</span>
                       </span>
+
+                      {/* The reference line every real piece of paperwork carries. */}
+                      <span className="moment-doc__ref">
+                        <span className="moment-doc__ref-label">{t(spec.refLabelKey)}</span>
+                        <span className="moment-doc__ref-code">{momentRef(card)}</span>
+                      </span>
+
+                      <span className="moment-doc__title">
+                        {def ? t(def.titleKey) : card.eventId}
+                      </span>
+
+                      {/* Personnel notes are about somebody, so they say who. */}
+                      {employee ? (
+                        <span className="moment-doc__subject">{t(employee.nameKey)}</span>
+                      ) : null}
+
+                      <span className="moment-doc__foot">
+                        <span className="moment-doc__rarity">
+                          {t(`moment.rarity.${card.rarity}`)}
+                        </span>
+                        <span className="moment-doc__date">{fmt.date(card.createdAt)}</span>
+                      </span>
+
+                      {/* Rubber stamp, for the formats that are stamped. */}
+                      {spec.stampKey ? (
+                        <span className="moment-doc__stamp" aria-hidden>
+                          {t(spec.stampKey)}
+                        </span>
+                      ) : null}
                     </button>
                     <button
-                      className="ghost-btn"
+                      className="moment-doc__save"
                       onClick={() => saveCard(card)}
                       title={t('collections.saveCard')}
+                      aria-label={t('collections.saveCard')}
                     >
-                      <Icon name="export" size={14} />
+                      <Icon name="export" size={13} />
                     </button>
                   </li>
                 );

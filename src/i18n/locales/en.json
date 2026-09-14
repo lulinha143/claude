@@ -2064,7 +2064,21 @@
     "gameplay": "Gameplay",
     "autoResolveEvents": "Disable choice popups",
     "autoResolveEventsOn": "Choice events will not interrupt you. The department picks the best available option, applies the real consequences, and reports each decision in your notifications.",
-    "autoResolveEventsOff": "Choice events pause the office and ask you to decide."
+    "autoResolveEventsOff": "Choice events pause the office and ask you to decide.",
+    "saveStatus": "Last saved",
+    "saveNever": "Not saved yet",
+    "saveAuto": "Nutshell Inc. files your progress automatically every few minutes, and whenever you close the game.",
+    "saveDone": "Progress filed.",
+    "exportDone": "Save exported to your downloads.",
+    "exportFailed": "Could not write the export file. Check that downloads are permitted.",
+    "importPick": "Choose a save file",
+    "importConfirmTitle": "Replace the current company?",
+    "importConfirmBody": "Importing {{file}} will replace {{company}} and everything in it. This cannot be undone.",
+    "importReplace": "Replace company",
+    "importDone": "Save imported. Welcome back.",
+    "importInvalid": "That file is not a ZooWorkers save, or it is damaged. Your current company has been left untouched.",
+    "importUnreadable": "That file could not be read. Your current company has been left untouched.",
+    "localOnly": "Saves are stored on this computer. Export a copy if you want a backup."
   },
   "onboarding": {
     "skip": "Skip guide",
@@ -2104,7 +2118,29 @@
       "uncommon": "Uncommon",
       "rare": "Rare",
       "legendary": "Legendary"
-    }
+    },
+    "format": {
+      "memo": "Memorandum",
+      "incident": "Incident Report",
+      "personnel": "Personnel Note",
+      "confidential": "Restricted File",
+      "observation": "Behavioural Observation",
+      "notice": "Company Notice"
+    },
+    "field": {
+      "re": "Re",
+      "ref": "Ref",
+      "subject": "Subject",
+      "file": "File",
+      "specimen": "Subject no.",
+      "posted": "Posted"
+    },
+    "stamp": {
+      "filed": "Filed",
+      "confidential": "Confidential",
+      "posted": "For all staff"
+    },
+    "from": "Nutshell Inc. — Behavioural Research"
   },
   "consequence": {
     "nutsGain": "+{{value}} nuts",
