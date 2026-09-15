@@ -424,3 +424,84 @@ describe('a choice can be gated on what the company has already done', () => {
     }
   });
 });
+
+describe('a momentWorthy event actually leaves the souvenir it promises', () => {
+  // `momentWorthy` is authored on 44 events and was read by nothing: cards were only
+  // ever created by an explicit `{ type: 'momentCard' }` effect on the chosen path, so
+  // most of those 44 quietly produced nothing and the collection stayed far emptier
+  // than the content intended.
+  it('is authored widely enough to be worth honouring', () => {
+    const flagged = GAME_EVENTS.filter((ev) => ev.momentWorthy);
+    expect(flagged.length).toBeGreaterThanOrEqual(20);
+  });
+
+  it('files a card when a flagged event closes on a path that filed none', () => {
+    const t = { v: 0 };
+    const engine = engineAt(t);
+    // `nut-audit` is not flagged; `printer-demands` is, and its steps end without an
+    // explicit momentCard on the fallback path.
+    const flagged = GAME_EVENTS.find(
+      (ev) =>
+        ev.momentWorthy &&
+        !ev.steps &&
+        ev.choices.every((c) => !c.effects.some((e) => e.type === 'momentCard')),
+    );
+    expect(flagged, 'expected at least one flagged event with no hand-placed card').toBeDefined();
+    expect(engine.state.collections.moments).toHaveLength(0);
+    engine.triggerEvent(flagged!.id);
+    const choice = eventChoicesForState(engine.state, flagged!, null).choices.find(
+      (c) => c.enabled,
+    );
+    engine.resolveEventChoice(choice!.choice.id);
+    expect(engine.state.collections.moments).toHaveLength(1);
+    expect(engine.state.collections.moments[0].eventId).toBe(flagged!.id);
+  });
+
+  it('never files two cards for one event', () => {
+    // An event that hand-places a card on the taken path must not also get an automatic
+    // one, or every such choice would produce a duplicate souvenir.
+    const t = { v: 0 };
+    const engine = engineAt(t);
+    engine.state.resources.goldenNuts = 5;
+    engine.triggerEvent('golden-acorn');
+    engine.resolveEventChoice('grab');
+    expect(engine.state.collections.moments).toHaveLength(1);
+  });
+
+  it('remembers the first time only, not every repeat', () => {
+    const t = { v: 0 };
+    const engine = engineAt(t);
+    const flagged = GAME_EVENTS.find(
+      (ev) =>
+        ev.momentWorthy &&
+        !ev.steps &&
+        ev.choices.every((c) => !c.effects.some((e) => e.type === 'momentCard')),
+    )!;
+    for (let round = 0; round < 3; round += 1) {
+      // Clear the cooldown so the same event can come round again.
+      delete engine.state.eventCooldowns[flagged.id];
+      engine.triggerEvent(flagged.id);
+      const choice = eventChoicesForState(engine.state, flagged, null).choices.find(
+        (c) => c.enabled,
+      );
+      engine.resolveEventChoice(choice!.choice.id);
+    }
+    // A souvenir is a memento of a thing happening, not a receipt printed every time.
+    expect(engine.state.collections.moments).toHaveLength(1);
+  });
+
+  it('files one card for a whole chain, at its conclusion', () => {
+    const t = { v: 0 };
+    const engine = engineAt(t);
+    // printer-demands is flagged and branches into a step before it closes.
+    engine.triggerEvent('printer-demands');
+    expect(engine.state.collections.moments).toHaveLength(0);
+    engine.resolveEventChoice('negotiate');
+    // Mid-chain: still open, so nothing is filed yet.
+    expect(engine.activeEvent).not.toBeNull();
+    expect(engine.state.collections.moments).toHaveLength(0);
+    engine.resolveEventChoice('ok');
+    expect(engine.activeEvent).toBeNull();
+    expect(engine.state.collections.moments).toHaveLength(1);
+  });
+});

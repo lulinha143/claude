@@ -26,7 +26,7 @@ import { employeeMood, moodProductivityMultiplier } from './mood';
 import { repairEmployees } from './state';
 import { EMPLOYEES_BY_ID } from '../content/employees';
 import { UPGRADES_BY_ID } from '../content/upgrades';
-import type { EventEffect, GameEventDef } from '../content/types';
+import type { EventChoice, EventEffect, GameEventDef } from '../content/types';
 import { GAME_EVENTS, GAME_EVENTS_BY_ID } from '../content/events';
 import { eventChoicesForState } from './eventChoices';
 import { chooseAutoResolution } from './eventAutoResolve';
@@ -926,6 +926,7 @@ export class GameEngine {
         this.lastConsequence = null;
       } else {
         this.state.eventCooldowns[def.id] = this.now() + def.cooldownSeconds * 1000;
+        this.filePromisedMoment(def, choice);
         this.activeEvent = null;
       }
       this.emit();
@@ -933,6 +934,32 @@ export class GameEngine {
     } finally {
       this.resolvingEventInstanceId = null;
     }
+  }
+
+  /**
+   * Keep the souvenir a `momentWorthy` event promises.
+   *
+   * `GameEventDef.momentWorthy` is documented as "true when this event is worth a
+   * shareable Moment Card automatically", and forty-four events are authored with it —
+   * but nothing read the flag. Cards were only ever created by an explicit
+   * `{ type: 'momentCard' }` effect on the chosen path, so most of those forty-four
+   * quietly produced nothing, and the collection stayed far emptier than the content
+   * intended.
+   *
+   * Two conditions keep it honest rather than spammy:
+   *  - if the chosen path already filed a card, this does nothing, so an event that
+   *    hand-places `momentCard` on one branch never ends up with two;
+   *  - only the FIRST time the company settles this event, because a souvenir is a
+   *    memento of a thing happening, not a receipt printed on every repeat.
+   *
+   * Called only when an event CLOSES, so a multi-step chain files one card at its
+   * conclusion rather than one per step.
+   */
+  private filePromisedMoment(def: GameEventDef, choice: EventChoice): void {
+    if (!def.momentWorthy) return;
+    if (choice.effects.some((effect) => effect.type === 'momentCard')) return;
+    if (this.state.collections.moments.some((card) => card.eventId === def.id)) return;
+    this.createMomentCard(def);
   }
 
   clearConsequence(): void {
