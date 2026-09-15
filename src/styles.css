@@ -12181,10 +12181,22 @@ button:disabled,
 }
 
 /* --- marketing: bold creative studio, colour-block wall + glass curtain --- */
+/* The gold accent spot.
+   This was `circle at 82% 30%` with its stops in PERCENT. A radial-gradient with no
+   explicit radius sizes to farthest-corner, so on a 1140x130 wall "6%" resolved against
+   a radius of well over a thousand pixels — a ~136px disc, taller than the wall, which
+   clipped top and bottom into a flat yellow slab that read as a stray colour swatch.
+   Every other room states its speckle in px for exactly this reason. Now an explicitly
+   sized, soft-edged glow that stays a deliberate accent at any room aspect. */
 .rd--marketing .room-dressing__wall {
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.14) 0 40%, transparent 40%),
-    radial-gradient(circle at 82% 30%, #e6b400 0 6%, transparent 7%),
+    radial-gradient(
+      ellipse 40px 26px at 82% 34%,
+      rgba(230, 180, 0, 0.9) 0 42%,
+      rgba(230, 180, 0, 0.28) 72%,
+      transparent 100%
+    ),
     linear-gradient(180deg, #c07fd6 0%, #a25fc0 100%);
 }
 .rd--marketing .room-dressing__wall::after {
@@ -12485,13 +12497,44 @@ button:disabled,
 .rd--rooftop .room-dressing__wall {
   background: linear-gradient(180deg, #7fb8e6 0%, #a9d4ef 52%, #e6d6a4 100%);
 }
-/* drifting clouds */
+/* Drifting clouds.
+   These were three single hard-edged white discs, which is not what a cloud looks
+   like — against an open sky they read as plain circles, and that flat-geometry look is
+   exactly what makes a scene feel like a browser prototype. A cloud is several
+   overlapping lobes with a soft top and a flatter, slightly shaded base, so each one is
+   now built from a few ellipses: two or three lobes plus a wide soft base. Sized in px
+   like every other room's speckle, so the shapes do not distort in a 6:1 room the way a
+   percentage-based radius does. */
 .rd--rooftop .room-dressing__wall::after {
   opacity: 1;
   background-image:
-    radial-gradient(circle at 22% 34%, rgba(255, 255, 255, 0.9) 0 10px, transparent 16px),
-    radial-gradient(circle at 34% 38%, rgba(255, 255, 255, 0.9) 0 13px, transparent 20px),
-    radial-gradient(circle at 72% 24%, rgba(255, 255, 255, 0.85) 0 9px, transparent 15px);
+    /* cloud one */
+    radial-gradient(
+      ellipse 26px 13px at 24% 36%,
+      rgba(255, 255, 255, 0.95) 0 62%,
+      transparent 100%
+    ),
+    radial-gradient(
+      ellipse 16px 15px at 20% 33%,
+      rgba(255, 255, 255, 0.92) 0 60%,
+      transparent 100%
+    ),
+    radial-gradient(ellipse 13px 11px at 29% 32%, rgba(255, 255, 255, 0.9) 0 60%, transparent 100%),
+    /* cloud two, larger and lower */
+    radial-gradient(ellipse 34px 15px at 47% 42%, rgba(255, 255, 255, 0.92) 0 62%, transparent 100%),
+    radial-gradient(ellipse 19px 17px at 43% 38%, rgba(255, 255, 255, 0.9) 0 60%, transparent 100%),
+    radial-gradient(
+      ellipse 15px 13px at 52% 37%,
+      rgba(255, 255, 255, 0.88) 0 60%,
+      transparent 100%
+    ),
+    /* cloud three, small and high */
+    radial-gradient(ellipse 21px 11px at 74% 26%, rgba(255, 255, 255, 0.88) 0 62%, transparent 100%),
+    radial-gradient(
+      ellipse 13px 12px at 71% 23%,
+      rgba(255, 255, 255, 0.85) 0 60%,
+      transparent 100%
+    );
 }
 .rd--rooftop .room-dressing__floor {
   background:
