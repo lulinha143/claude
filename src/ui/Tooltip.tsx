@@ -70,8 +70,7 @@ export function useTooltip(content: ReactNode): TooltipHandlers {
 
   if (content == null || content === '') return {};
   return {
-    onMouseEnter: (event) =>
-      showHovered({ content, anchor: event.currentTarget, id }),
+    onMouseEnter: (event) => showHovered({ content, anchor: event.currentTarget, id }),
     onMouseLeave: (event) => hideHovered(event.currentTarget),
     onFocus: (event) => showFocused({ content, anchor: event.currentTarget, id }),
     onBlur: (event) => hideFocused(event.currentTarget),
@@ -151,7 +150,7 @@ export function TooltipLayer() {
       ? hovered.order >= focused.order
         ? hovered
         : focused
-      : hovered ?? focused;
+      : (hovered ?? focused);
   const inactive = active === hovered ? focused : hovered;
 
   // Native/Electron focus transitions do not consistently blur the focused
@@ -207,13 +206,24 @@ export function TooltipLayer() {
       const roomBelow = viewportBottom - anchor.bottom - SAFE_MARGIN - ANCHOR_GAP;
       const fitsAbove = measured.height <= roomAbove;
       const fitsBelow = measured.height <= roomBelow;
+      /* Prefer above, EXCEPT when going up would cover the header.
+         The destination rail sits directly under the header, so "above whenever it
+         fits" put every nav tooltip across the resource strip — hiding the live nut
+         count, morale and standing, which are exactly the numbers a player is watching
+         while they decide where to go. Opening downward there costs nothing: it lands
+         on the content area, which the tooltip is describing anyway. */
+      const headerRect = document.querySelector('.header')?.getBoundingClientRect();
+      const wouldCoverHeader =
+        !!headerRect &&
+        anchor.top - ANCHOR_GAP - measured.height < headerRect.bottom &&
+        anchor.top >= headerRect.top;
       const side: TooltipPosition['side'] =
-        fitsAbove || (!fitsBelow && roomAbove >= roomBelow) ? 'above' : 'below';
+        (fitsAbove && !(wouldCoverHeader && fitsBelow)) || (!fitsBelow && roomAbove >= roomBelow)
+          ? 'above'
+          : 'below';
       const desiredLeft = anchor.left + anchor.width / 2 - measured.width / 2;
       const desiredTop =
-        side === 'above'
-          ? anchor.top - ANCHOR_GAP - measured.height
-          : anchor.bottom + ANCHOR_GAP;
+        side === 'above' ? anchor.top - ANCHOR_GAP - measured.height : anchor.bottom + ANCHOR_GAP;
 
       setPosition({
         left: clamp(

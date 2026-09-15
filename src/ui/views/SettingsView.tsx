@@ -10,6 +10,39 @@ import { useFmt } from '../useFmt';
 import { notify } from '../notificationsStore';
 import { fileStamp } from '../../sim/format';
 
+/**
+ * A range input that tells CSS how full it is.
+ *
+ * These were unstyled native sliders, which meant five bright OS-blue tracks in the
+ * middle of a warm wood-and-paper interface. Theming a range means `appearance: none`,
+ * and Chromium has no `::-*-range-progress` pseudo-element — so the filled portion
+ * cannot be painted from CSS alone. Publishing the position as a custom property lets
+ * the stylesheet draw it with a gradient, which keeps the "how loud is this" reading
+ * that the native fill was carrying.
+ */
+function RangeInput({
+  min,
+  max,
+  value,
+  ...rest
+}: { min: number; max: number; value: number } & Omit<
+  React.ComponentPropsWithoutRef<'input'>,
+  'min' | 'max' | 'value' | 'type'
+>) {
+  const span = max - min || 1;
+  const pct = Math.min(100, Math.max(0, ((value - min) / span) * 100));
+  return (
+    <input
+      {...rest}
+      type="range"
+      min={min}
+      max={max}
+      value={value}
+      style={{ ['--fill' as string]: `${Math.round(pct * 10) / 10}%` }}
+    />
+  );
+}
+
 const CORNERS: WindowCorner[] = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
 const SCALES = [0.75, 1, 1.25, 1.5];
 
@@ -197,8 +230,7 @@ export function SettingsView() {
         />
         <label className="slider-row">
           <span>{t('settings.master')}</span>
-          <input
-            type="range"
+          <RangeInput
             min={0}
             max={1}
             step={0.05}
@@ -219,8 +251,7 @@ export function SettingsView() {
               <Icon name={s.channelMuted[ch] ? 'quiet' : 'sound'} size={16} />
             </button>
             <span className="audio-row__label">{t(`settings.${ch}`)}</span>
-            <input
-              type="range"
+            <RangeInput
               min={0}
               max={1}
               step={0.05}
@@ -314,8 +345,7 @@ export function SettingsView() {
         </label>
         <label className="slider-row">
           <span>{t('settings.fontScale')}</span>
-          <input
-            type="range"
+          <RangeInput
             min={0.8}
             max={1.5}
             step={0.1}
@@ -325,8 +355,7 @@ export function SettingsView() {
         </label>
         <label className="slider-row">
           <span>{t('settings.uiScale')}</span>
-          <input
-            type="range"
+          <RangeInput
             min={0.8}
             max={1.5}
             step={0.1}
@@ -368,8 +397,7 @@ export function SettingsView() {
         {(['brightness', 'contrast', 'saturation'] as const).map((k) => (
           <label key={k} className="slider-row">
             <span>{t(`settings.bg.${k}`)}</span>
-            <input
-              type="range"
+            <RangeInput
               min={0.5}
               max={1.5}
               step={0.05}

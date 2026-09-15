@@ -215,6 +215,25 @@
   --fs-xl: calc(clamp(18px, 1vw + 0.9vh, 24px) * var(--font-scale));
   --fs-2xl: calc(clamp(22px, 1.4vw + 1.1vh, 32px) * var(--font-scale));
 
+  /* The smallest size any text in this game is allowed to render at.
+     The scale above already floors at 11px, but a great deal of the UI sizes itself
+     with `em` multipliers, and those COMPOUND: a 0.66em note inside a row that is
+     already 0.62em of a small parent lands at 8.5px, and the reputation stamp's cycle
+     label was measuring 6.81px. Nothing in the scale is at fault — the multiplication
+     is. Rules that would otherwise fall through the floor use
+     `max(var(--fs-min), <intent>)`, which keeps the relative intent where there is
+     room and refuses to go below legible. Scales with the player's font preference so
+     turning type up still works.
+
+     It is DISABLED by default and switched on only when the window can afford it (see
+     the media query below). A hard floor at every size is the wrong answer: in the
+     compact modes the nav rail, the window controls and the dense views genuinely need
+     their smaller type to stay complete, and forcing 11px there pushed destination tabs
+     and the window controls out of reach — six responsive/nav/window-chrome specs failed
+     on exactly that, and they were right to. At 0 the max() is a no-op, so compact
+     windows keep the layout they already had, byte for byte. */
+  --fs-min: 0px;
+
   /* Semantic role tokens. Tiny labels deliberately stay in Nunito: DynaPuff's
      lively shapes become crowded below normal control sizes. */
   --type-caption-family: var(--font-compact);
@@ -260,6 +279,47 @@
   --text-xl: var(--fs-xl);
   --text-title: var(--fs-2xl);
   --text-hero: var(--type-hero-size);
+}
+
+/**
+ * Turn the legibility floor ON once the window is big enough to absorb it.
+ *
+ * Below this the game is in its compact modes, where the smaller type is load-bearing:
+ * the destination rail, the window controls and the dense panels all need it to stay
+ * complete, and a floor there pushed tabs and window buttons out of reach. Above it,
+ * nothing in the game renders text under 11px.
+ *
+ * The threshold is deliberately generous (1000x620) so it only engages on a genuine
+ * desktop window — which is how a Steam player will actually run this — and it is a
+ * media query rather than a clamp() so the switch is explicit and inspectable rather
+ * than a curve nobody can reason about. Media queries evaluate against the real
+ * viewport, not the zoomed `.app` space, so the interface-scale settings do not
+ * accidentally trip it.
+ */
+@media (min-width: 1000px) and (min-height: 620px) {
+  :root {
+    --fs-min: calc(11px * var(--font-scale));
+  }
+}
+
+/**
+ * The floor's exemptions, in one place.
+ *
+ * `--fs-min` inherits, so resetting it on a container makes every `max(var(--fs-min),
+ * …)` inside that container fall back to its authored size. That is a far better tool
+ * than editing rules one at a time: the exemption is stated where the reason lives.
+ *
+ * The decoration tray is a dense tool palette inside a fixed 142px shelf, and it is
+ * documented as height-sensitive — growing its card height once pushed the search row
+ * over the first card and the "Move To…" button, and enlarging its chips made a tray
+ * drag intermittently unstartable. Its labels are supplementary anyway: the Decorate
+ * catalogue shows the same items at full size.
+ *
+ * The office toolbar sits directly above that shelf and shares its budget.
+ */
+.deco-tray,
+.office__toolbar {
+  --fs-min: 0px;
 }
 
 /* High-contrast overrides only need to touch semantic tokens. */

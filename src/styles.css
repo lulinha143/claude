@@ -252,6 +252,10 @@ h4 {
      name, which is where a title bar's controls belong. */
   align-self: start;
 }
+/* Exempt from --fs-min, like the stamp beside it: the title bar is a fixed-height row
+   shared with the window controls, and widening anything in it pushes those controls
+   past the right edge (window-chrome.spec.ts measures exactly that). The title bar is
+   the one region of the game where density is load-bearing. */
 .header__department {
   margin: 0;
   color: var(--cream-dim);
@@ -292,6 +296,13 @@ h4 {
   /* Ink on paper never sits perfectly opaque. */
   opacity: 0.92;
 }
+/* EXEMPT from --fs-min, deliberately, and the only exemption in the game.
+   This badge shares the header row with the window controls, and it is the one place
+   where larger text does not merely reflow but pushes the minimise/maximise/close
+   buttons off the right edge — measured 6.7px past it at 900x700 with the interface
+   scale at 1.25, which window-chrome.spec.ts catches. It is also the one place where
+   tiny lettering is the POINT: it is a rubber stamp, and stamps are printed small.
+   Everything else in the game respects the floor. */
 .header__stamp-tier {
   font-size: 0.55em;
   font-weight: 800;
@@ -304,6 +315,7 @@ h4 {
   text-align: center;
   text-transform: uppercase;
 }
+/* Exempt for the same reason as .header__stamp-tier above. */
 .header__stamp-cycle {
   font-size: 0.46em;
   font-weight: 700;
@@ -423,7 +435,7 @@ h4 {
   align-items: center;
   gap: 4px;
   color: var(--cream-dim);
-  font-size: 0.55em;
+  font-size: max(var(--fs-min), 0.55em);
   font-weight: 800;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -432,7 +444,7 @@ h4 {
 }
 .res-cell__value {
   font-family: var(--font-numeric);
-  font-size: 0.98em;
+  font-size: max(var(--fs-min), 0.98em);
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   line-height: 1.15;
@@ -443,7 +455,7 @@ h4 {
 /* The secondary line is where "what is happening to this number" lives. */
 .res-cell__note {
   font-family: var(--font-numeric);
-  font-size: 0.58em;
+  font-size: max(var(--fs-min), 0.58em);
   font-variant-numeric: tabular-nums;
   color: var(--cream-dim);
   white-space: nowrap;
@@ -501,10 +513,10 @@ h4 {
     display: none;
   }
   .res-cell__label {
-    font-size: 0.5em;
+    font-size: max(var(--fs-min), 0.5em);
   }
   .res-cell__value {
-    font-size: 0.86em;
+    font-size: max(var(--fs-min), 0.86em);
   }
 }
 
@@ -714,7 +726,7 @@ h4 {
 /* Names are opt-in, switched on by the container band that can afford all eleven. */
 .nav__tab-label {
   display: none;
-  font-size: 0.62em;
+  font-size: max(var(--fs-min), 0.62em);
   font-weight: 700;
   letter-spacing: 0.03em;
 }
@@ -882,7 +894,7 @@ h4 {
 }
 .view h2 {
   margin: 0 0 10px;
-  font-size: 1.2em;
+  font-size: max(var(--fs-min), 1.2em);
   color: var(--gold);
 }
 .view__head {
@@ -894,7 +906,7 @@ h4 {
   color: var(--cream-dim);
 }
 .small {
-  font-size: 0.8em;
+  font-size: max(var(--fs-min), 0.8em);
 }
 
 /* ------- office scene ------- */
@@ -1009,7 +1021,7 @@ h4 {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 0.62em;
+  font-size: max(var(--fs-min), 0.62em);
   font-weight: 800;
   color: #3a2a18;
   background: color-mix(in srgb, var(--dept) 30%, #fff6e4);
@@ -1417,7 +1429,7 @@ h4 {
   color: var(--text-muted);
 }
 .floor__construction {
-  font-size: 0.68em;
+  font-size: max(var(--fs-min), 0.68em);
   color: var(--text-muted);
 }
 /* --- ambient room decorations --- */
@@ -1867,7 +1879,7 @@ h4 {
   margin-bottom: 3px;
   color: color-mix(in srgb, var(--note-edge) 82%, #2c1d0f);
   font-family: var(--font-body, inherit);
-  font-size: 0.56em;
+  font-size: max(var(--fs-min), 0.56em);
   font-weight: 800;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -1876,7 +1888,7 @@ h4 {
   margin: 0;
   color: #3b2a18;
   font-family: var(--font-body, inherit);
-  font-size: 0.74em;
+  font-size: max(var(--fs-min), 0.74em);
   font-weight: 600;
   line-height: 1.42;
   /* Wrap reliably: long words and URLs must not force a horizontal overflow. */
@@ -2123,7 +2135,7 @@ h4 {
   top: -6px;
   right: -4px;
   font-family: var(--font-numeric);
-  font-size: 0.62em;
+  font-size: max(var(--fs-min), 0.62em);
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   line-height: 1;
@@ -2163,28 +2175,28 @@ h4 {
   animation: tap-float 900ms var(--ease) forwards;
 }
 .tap-pop__value {
-  font-size: 0.88em;
+  font-size: max(var(--fs-min), 0.88em);
   color: var(--gold);
   text-shadow:
     0 1px 0 rgba(40, 26, 12, 0.85),
     0 2px 5px rgba(0, 0, 0, 0.5);
 }
 .tap-pop__combo {
-  font-size: 0.68em;
+  font-size: max(var(--fs-min), 0.68em);
   font-style: normal;
   color: #ffe9a8;
   opacity: 0.9;
   text-shadow: 0 1px 2px rgba(40, 26, 12, 0.8);
 }
 .tap-pop--critical .tap-pop__value {
-  font-size: 1.14em;
+  font-size: max(var(--fs-min), 1.14em);
   color: #ffe07a;
   text-shadow:
     0 1px 0 rgba(70, 34, 8, 0.9),
     0 0 10px rgba(255, 200, 90, 0.65);
 }
 .tap-pop--golden .tap-pop__value {
-  font-size: 1.14em;
+  font-size: max(var(--fs-min), 1.14em);
   color: #f0dcff;
   text-shadow:
     0 1px 0 rgba(58, 28, 82, 0.9),
@@ -2229,7 +2241,7 @@ h4 {
 }
 .station-tip__name {
   font-family: var(--font-display);
-  font-size: 0.95em;
+  font-size: max(var(--fs-min), 0.95em);
 }
 .station-tip__hint {
   color: var(--ink-soft, #6b5b46);
@@ -2272,7 +2284,7 @@ h4 {
   color: #241a12;
   padding: 5px 8px;
   border-radius: 10px;
-  font-size: 0.72em;
+  font-size: max(var(--fs-min), 0.72em);
   width: max-content;
   max-width: 160px;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
@@ -2301,7 +2313,7 @@ h4 {
 .settings-note {
   margin: 2px 0 0;
   color: color-mix(in srgb, var(--ink, #3b2a18) 62%, transparent);
-  font-size: 0.66em;
+  font-size: max(var(--fs-min), 0.66em);
   line-height: 1.45;
   text-wrap: pretty;
 }
@@ -2481,11 +2493,11 @@ h4 {
   flex-wrap: wrap;
 }
 .card__desc {
-  font-size: 0.8em;
+  font-size: max(var(--fs-min), 0.8em);
   color: var(--cream-dim);
 }
 .pill {
-  font-size: 0.7em;
+  font-size: max(var(--fs-min), 0.7em);
   background: var(--wood-light);
   padding: 1px 7px;
   border-radius: 20px;
@@ -2512,7 +2524,7 @@ h4 {
 .buy-btn em {
   font-style: normal;
   opacity: 0.85;
-  font-size: 0.85em;
+  font-size: max(var(--fs-min), 0.85em);
 }
 .buy-btn:hover:not(:disabled) {
   background: #4a9060;
@@ -2529,7 +2541,7 @@ h4 {
   width: 100%;
   justify-content: center;
   padding: 12px;
-  font-size: 1.05em;
+  font-size: max(var(--fs-min), 1.05em);
 }
 .ghost-btn {
   background: transparent;
@@ -2567,7 +2579,7 @@ h4 {
   padding: 5px 10px;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 0.82em;
+  font-size: max(var(--fs-min), 0.82em);
   font-weight: 600;
 }
 .tab.is-active {
@@ -2600,7 +2612,7 @@ h4 {
   align-items: center;
   gap: 8px;
   margin: 6px 0;
-  font-size: 0.85em;
+  font-size: max(var(--fs-min), 0.85em);
 }
 
 /* ------- panels ------- */
@@ -2613,7 +2625,7 @@ h4 {
 }
 .panel h3 {
   margin: 0 0 8px;
-  font-size: 1em;
+  font-size: max(var(--fs-min), 1em);
   color: var(--amber);
 }
 .field {
@@ -2659,10 +2671,10 @@ select,
 }
 .employee-card__role {
   color: var(--amber);
-  font-size: 0.8em;
+  font-size: max(var(--fs-min), 0.8em);
 }
 .employee-card__story {
-  font-size: 0.78em;
+  font-size: max(var(--fs-min), 0.78em);
   color: var(--cream-dim);
   margin: 4px 0;
 }
@@ -2690,7 +2702,7 @@ select,
   border-radius: 20px;
   padding: 3px 8px;
   cursor: pointer;
-  font-size: 0.72em;
+  font-size: max(var(--fs-min), 0.72em);
 }
 .outfit-chip.is-active {
   background: var(--wood-light);
@@ -2710,7 +2722,7 @@ select,
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.75em;
+  font-size: max(var(--fs-min), 0.75em);
 }
 
 /* ------- achievements / nut grid ------- */
@@ -2729,7 +2741,7 @@ select,
   border: 1px solid rgba(0, 0, 0, 0.4);
   border-radius: 10px;
   padding: 8px;
-  font-size: 0.8em;
+  font-size: max(var(--fs-min), 0.8em);
   text-align: center;
 }
 .ach.is-unlocked {
@@ -2740,7 +2752,7 @@ select,
 }
 .ach__desc {
   color: var(--cream-dim);
-  font-size: 0.9em;
+  font-size: max(var(--fs-min), 0.9em);
   margin: 3px 0;
 }
 .ach__reward {
@@ -2759,7 +2771,7 @@ select,
 .nut-cell__desc {
   display: block;
   color: var(--cream-dim);
-  font-size: 0.9em;
+  font-size: max(var(--fs-min), 0.9em);
 }
 
 /* ------- moments ------- */
@@ -2785,7 +2797,7 @@ select,
   font-weight: 700;
 }
 .moment__meta {
-  font-size: 0.75em;
+  font-size: max(var(--fs-min), 0.75em);
   color: var(--cream-dim);
 }
 
@@ -2804,7 +2816,7 @@ select,
   display: flex;
   flex-direction: column;
   gap: 4px;
-  font-size: 0.85em;
+  font-size: max(var(--fs-min), 0.85em);
 }
 
 /* ------- focus / microgame ------- */
@@ -2829,7 +2841,7 @@ select,
   text-align: center;
 }
 .focus-active__clock {
-  font-size: 2em;
+  font-size: max(var(--fs-min), 2em);
   font-weight: 800;
   color: var(--gold);
   font-variant-numeric: tabular-nums;
@@ -2849,7 +2861,7 @@ select,
   text-align: left;
 }
 .micro-card span {
-  font-size: 0.78em;
+  font-size: max(var(--fs-min), 0.78em);
   color: var(--cream-dim);
 }
 /* --- shared micro-game shell --- */
@@ -2877,7 +2889,7 @@ select,
   gap: 4px;
 }
 .microgame__instructions {
-  font-size: 0.82em;
+  font-size: max(var(--fs-min), 0.82em);
   color: var(--text-secondary);
   margin: 0 0 8px;
 }
@@ -2886,7 +2898,7 @@ select,
   padding: 12px;
 }
 .microgame__grade {
-  font-size: 1.1em;
+  font-size: max(var(--fs-min), 1.1em);
   font-weight: 800;
   color: var(--gold);
   margin-bottom: 4px;
@@ -3019,7 +3031,7 @@ select,
   display: grid;
   place-items: center;
   font-weight: 800;
-  font-size: 1.4em;
+  font-size: max(var(--fs-min), 1.4em);
   color: var(--positive);
   background: rgba(0, 0, 0, 0.28);
   pointer-events: none;
@@ -3053,7 +3065,7 @@ select,
   border-color: var(--gold);
 }
 .branch span {
-  font-size: 0.78em;
+  font-size: max(var(--fs-min), 0.78em);
   color: var(--cream-dim);
 }
 .confirm-row {
@@ -3072,7 +3084,7 @@ select,
   align-items: center;
   gap: 10px;
   padding: 5px 0;
-  font-size: 0.9em;
+  font-size: max(var(--fs-min), 0.9em);
 }
 .slider-row input[type='range'] {
   flex: 1;
@@ -3162,7 +3174,7 @@ select,
 }
 .event-modal__head h2 {
   margin: 0;
-  font-size: 1.1em;
+  font-size: max(var(--fs-min), 1.1em);
 }
 .event-modal__body {
   color: var(--cream-dim);
@@ -3183,7 +3195,7 @@ select,
   border-color: #4f7dd6;
 }
 .big-number {
-  font-size: 1.3em;
+  font-size: max(var(--fs-min), 1.3em);
   font-weight: 800;
   color: var(--gold);
 }
@@ -3219,7 +3231,7 @@ select,
 }
 .opening-seq__line {
   font-style: italic;
-  font-size: 1.1em;
+  font-size: max(var(--fs-min), 1.1em);
   max-width: 300px;
 }
 .acorn-cta {
@@ -3240,7 +3252,7 @@ select,
   animation: bob 3.4s ease-in-out infinite;
 }
 .title-card {
-  font-size: 2em;
+  font-size: max(var(--fs-min), 2em);
   color: var(--gold);
   text-shadow: 0 3px 0 #1c150d;
   margin: 0;
@@ -3254,7 +3266,7 @@ select,
 }
 .brand-logo__wordmark {
   font-family: var(--font-logo);
-  font-size: 2em;
+  font-size: max(var(--fs-min), 2em);
   color: var(--gold);
   text-shadow: 0 3px 0 #1c150d;
   letter-spacing: 0.01em;
@@ -3350,7 +3362,7 @@ select,
   border: 1px solid #7c5cff;
   border-radius: 12px;
   padding: 10px;
-  font-size: 0.8em;
+  font-size: max(var(--fs-min), 0.8em);
 }
 .dev-panel__head {
   display: flex;
@@ -3458,7 +3470,7 @@ select,
   align-items: center;
   gap: 4px;
   color: var(--gold);
-  font-size: 0.9em;
+  font-size: max(var(--fs-min), 0.9em);
 }
 
 /* ==========================================================================
@@ -3524,13 +3536,21 @@ select,
 }
 
 /* employee profile: full name + personal goal */
+/* The legal name under the display-font first name. It used to be set in DynaPuff with
+   tight tracking, which contradicts the rule stated in tokens.css — "tiny labels
+   deliberately stay in Nunito: DynaPuff's lively shapes become crowded below normal
+   control sizes" — and it showed: at this size "Marlow Stillwater" crowded until the
+   word space visually disappeared. A secondary line directly beneath a display-font
+   name also reads better with a contrasting face than with a smaller copy of it. */
 .employee-card__fullname {
-  font-size: 0.72em;
+  font-family: var(--font-compact, var(--font-body));
+  letter-spacing: 0;
+  font-size: max(var(--fs-min), 0.78em);
   color: var(--text-muted);
-  margin-top: -2px;
+  margin-top: -1px;
 }
 .employee-card__goal {
-  font-size: 0.75em;
+  font-size: max(var(--fs-min), 0.75em);
   color: var(--text-secondary);
   margin-top: 4px;
   font-style: italic;
@@ -3722,7 +3742,7 @@ select,
 }
 .consequence-modal__head h2 {
   margin: 0;
-  font-size: 1.05em;
+  font-size: max(var(--fs-min), 1.05em);
 }
 .consequence-list {
   list-style: none;
@@ -3739,7 +3759,7 @@ select,
   padding: 6px 10px;
   border-radius: var(--r-sm);
   background: var(--surface);
-  font-size: 0.9em;
+  font-size: max(var(--fs-min), 0.9em);
   font-weight: 600;
   border-left: 3px solid var(--text-muted);
 }
@@ -3762,7 +3782,7 @@ select,
   margin-bottom: 12px;
 }
 .consequence-reactions__label {
-  font-size: 0.72em;
+  font-size: max(var(--fs-min), 0.72em);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--amber);
@@ -3772,7 +3792,7 @@ select,
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.85em;
+  font-size: max(var(--fs-min), 0.85em);
   color: var(--text-secondary);
   font-style: italic;
   padding: 2px 0;
@@ -3785,7 +3805,7 @@ select,
   gap: 2px;
 }
 .event-choice__req {
-  font-size: 0.72em;
+  font-size: max(var(--fs-min), 0.72em);
   font-weight: 600;
   opacity: 0.85;
 }
@@ -3806,7 +3826,7 @@ select,
   padding: 6px 8px;
   background: var(--surface);
   border-radius: var(--r-sm);
-  font-size: 0.82em;
+  font-size: max(var(--fs-min), 0.82em);
 }
 .timeline__title {
   font-weight: 700;
@@ -3816,7 +3836,7 @@ select,
 }
 .timeline__date {
   color: var(--text-muted);
-  font-size: 0.9em;
+  font-size: max(var(--fs-min), 0.9em);
   grid-column: 2;
   grid-row: 1 / span 2;
   align-self: center;
@@ -3842,7 +3862,7 @@ select,
   color: var(--text);
   border-radius: var(--r-pill);
   padding: 4px 10px;
-  font-size: 0.78em;
+  font-size: max(var(--fs-min), 0.78em);
   font-weight: 700;
   cursor: pointer;
 }
@@ -3852,7 +3872,7 @@ select,
   border-color: var(--primary);
 }
 .office__toolbar-hint {
-  font-size: 0.7em;
+  font-size: max(var(--fs-min), 0.7em);
   color: var(--text-secondary);
 }
 /* EDIT MODE — "this room is editable", said without a dashed rectangle.
@@ -3999,7 +4019,7 @@ select,
   display: inline-flex;
   align-items: center;
   gap: 2px;
-  font-size: 0.62em;
+  font-size: max(var(--fs-min), 0.62em);
   font-weight: 700;
   color: var(--text-secondary);
   background: var(--surface-sunken);
@@ -4014,11 +4034,11 @@ select,
   align-items: center;
   gap: 6px;
   margin: 4px 0;
-  font-size: 0.8em;
+  font-size: max(var(--fs-min), 0.8em);
 }
 .assign-row .select {
   flex: 1;
-  font-size: 0.92em;
+  font-size: max(var(--fs-min), 0.92em);
   padding: 4px 6px;
 }
 
@@ -4037,7 +4057,7 @@ select,
   border-radius: var(--r-sm);
   background: linear-gradient(90deg, rgba(224, 164, 59, 0.14), transparent);
   color: var(--text);
-  font-size: 0.8em;
+  font-size: max(var(--fs-min), 0.8em);
   font-weight: 600;
   text-align: left;
   cursor: pointer;
@@ -4084,7 +4104,7 @@ select,
     0 1px 2px rgba(0, 0, 0, 0.16);
   cursor: default;
   align-self: flex-start;
-  font-size: 0.85em;
+  font-size: max(var(--fs-min), 0.85em);
   font-weight: 700;
   transition:
     transform var(--dur-fast) var(--ease),
@@ -4116,7 +4136,7 @@ select,
 .mood-chip--sm {
   min-height: 30px;
   padding: 2px 8px 2px 3px;
-  font-size: 0.8em;
+  font-size: max(var(--fs-min), 0.8em);
 }
 .mood-chip--sm .mood-emoji {
   width: 24px;
@@ -4136,7 +4156,7 @@ select,
   align-items: center;
   gap: 6px;
   font-weight: 700;
-  font-size: 0.82em;
+  font-size: max(var(--fs-min), 0.82em);
   padding: 3px 9px;
   border-radius: 999px;
   background: var(--surface);
@@ -4163,7 +4183,7 @@ select,
 }
 .consequence-team__label {
   font-weight: 700;
-  font-size: 0.85em;
+  font-size: max(var(--fs-min), 0.85em);
   color: var(--text-secondary);
   margin-bottom: 6px;
 }
@@ -4193,7 +4213,7 @@ select,
   align-items: center;
   gap: 10px;
   margin-left: auto;
-  font-size: 0.85em;
+  font-size: max(var(--fs-min), 0.85em);
   font-variant-numeric: tabular-nums;
   flex-wrap: wrap;
 }
@@ -4263,7 +4283,7 @@ select,
   list-style: none;
   margin: 0;
   padding: 0;
-  font-size: 0.86em;
+  font-size: max(var(--fs-min), 0.86em);
 }
 .prod-list li {
   display: flex;
@@ -4300,7 +4320,7 @@ select,
   align-items: center;
   gap: 8px;
   padding: 4px 0;
-  font-size: 0.9em;
+  font-size: max(var(--fs-min), 0.9em);
 }
 .audio-row__label {
   flex: 0 0 32%;
@@ -4313,7 +4333,7 @@ select,
   text-align: right;
   font-variant-numeric: tabular-nums;
   color: var(--text-muted);
-  font-size: 0.85em;
+  font-size: max(var(--fs-min), 0.85em);
 }
 .mute-btn {
   flex: none;
@@ -4348,7 +4368,7 @@ select,
   border-radius: 6px;
   padding: 2px 8px;
   cursor: pointer;
-  font-size: 0.9em;
+  font-size: max(var(--fs-min), 0.9em);
 }
 .dev-panel__tabs button.is-on {
   background: #7c5cff;
@@ -4356,7 +4376,7 @@ select,
 .dev-diag {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.82em;
+  font-size: max(var(--fs-min), 0.82em);
 }
 .dev-diag th {
   text-align: left;
@@ -4810,7 +4830,7 @@ select,
   min-height: 30px;
 }
 .floor__tray-empty {
-  font-size: 0.68em;
+  font-size: max(var(--fs-min), 0.68em);
   color: var(--text-muted);
   font-style: italic;
 }
@@ -4831,7 +4851,7 @@ select,
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 0.68em;
+  font-size: max(var(--fs-min), 0.68em);
   font-weight: 700;
   padding: 3px 8px;
   border-radius: var(--r-pill);
@@ -4859,7 +4879,7 @@ select,
   flex-wrap: wrap;
 }
 .decorate__summary {
-  font-size: 0.78em;
+  font-size: max(var(--fs-min), 0.78em);
   color: var(--text-secondary);
   margin: 0;
 }
@@ -4893,7 +4913,7 @@ select,
   background: none;
   color: var(--text);
   font: inherit;
-  font-size: 0.85em;
+  font-size: max(var(--fs-min), 0.85em);
   width: 100%;
   outline: none;
 }
@@ -4906,7 +4926,7 @@ select,
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 0.72em;
+  font-size: max(var(--fs-min), 0.72em);
   font-weight: 700;
   padding: 3px 9px;
   border-radius: var(--r-pill);
@@ -5056,7 +5076,7 @@ select,
   background: rgba(43, 30, 18, 0.78);
   color: #fff4dc;
   font-family: var(--type-caption-family);
-  font-size: 0.48em;
+  font-size: max(var(--fs-min), 0.48em);
   font-weight: 800;
   line-height: 1.2;
   text-transform: uppercase;
@@ -5069,7 +5089,7 @@ select,
 }
 .decocard__title {
   font-weight: 700;
-  font-size: 0.82em;
+  font-size: max(var(--fs-min), 0.82em);
 }
 .decocard__meta {
   display: flex;
@@ -5085,7 +5105,7 @@ select,
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  font-size: 0.7em;
+  font-size: max(var(--fs-min), 0.7em);
   color: var(--positive);
 }
 .decocard__actions {
@@ -5104,7 +5124,7 @@ select,
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  font-size: 0.66em;
+  font-size: max(var(--fs-min), 0.66em);
   font-weight: 700;
   color: var(--positive);
 }
@@ -5383,7 +5403,7 @@ select,
   border: 1px solid color-mix(in srgb, var(--positive) 64%, #f7e8c8);
   border-radius: 999px;
   white-space: nowrap;
-  font-size: 0.62em;
+  font-size: max(var(--fs-min), 0.62em);
   font-weight: 800;
   letter-spacing: 0.02em;
   color: #243522;
@@ -5854,7 +5874,6 @@ img {
 .card__title,
 .decocard__title,
 .employee-card__name,
-.employee-card__fullname,
 .micro-card strong,
 .microgame__bar strong,
 .big-number,
@@ -6055,7 +6074,7 @@ img {
   background: color-mix(in srgb, var(--gold) 14%, transparent);
 }
 .deco-tray__card-name {
-  font-size: 0.6rem;
+  font-size: max(var(--fs-min), 0.6rem);
   font-weight: var(--fw-bold);
   color: var(--text);
   max-width: 100%;
@@ -6064,7 +6083,7 @@ img {
   white-space: nowrap;
 }
 .deco-tray__card-room {
-  font-size: 0.55rem;
+  font-size: max(var(--fs-min), 0.55rem);
   color: var(--text-muted);
   max-width: 100%;
   overflow: hidden;
@@ -6870,7 +6889,7 @@ textarea {
   min-width: 0;
   color: inherit;
   font-family: var(--type-caption-family);
-  font-size: 0.68em;
+  font-size: max(var(--fs-min), 0.68em);
   font-weight: 800;
   line-height: 1.12;
 }
@@ -7429,7 +7448,7 @@ textarea {
     height: 23px;
   }
   .header__company {
-    font-size: 0.9em;
+    font-size: max(var(--fs-min), 0.9em);
   }
   .app__main {
     padding: 6px;
@@ -7929,7 +7948,7 @@ button:disabled,
 }
 .microgame__score small {
   color: var(--text-muted);
-  font-size: 0.58rem;
+  font-size: max(var(--fs-min), 0.58rem);
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -7937,7 +7956,7 @@ button:disabled,
 .microgame__score b {
   color: var(--text);
   font-family: var(--font-numeric);
-  font-size: 1rem;
+  font-size: max(var(--fs-min), 1rem);
 }
 .microgame__combo {
   color: var(--gold);
@@ -8358,7 +8377,7 @@ button:disabled,
     line-height: 1.35;
   }
   .microgame__intro h3 {
-    font-size: 1.35rem;
+    font-size: max(var(--fs-min), 1.35rem);
   }
   .microgame__intro-actions {
     justify-content: flex-start;
@@ -8412,7 +8431,7 @@ button:disabled,
     height: 68px;
   }
   .microgame__final-score strong {
-    font-size: 2.6rem;
+    font-size: max(var(--fs-min), 2.6rem);
   }
   .microgame__reaction {
     margin: 8px 0 5px;
@@ -9073,7 +9092,7 @@ button:disabled,
 }
 .cable__hint > span {
   color: var(--game-accent);
-  font-size: 1.2em;
+  font-size: max(var(--fs-min), 1.2em);
 }
 .cable__board.is-solved:not(.is-reduced) {
   animation: cable-camera-settle 0.55s var(--ease-settle) both;
@@ -11451,7 +11470,7 @@ button:disabled,
   }
   .onboarding__copy h2 {
     margin-inline: auto;
-    font-size: 1.45rem;
+    font-size: max(var(--fs-min), 1.45rem);
   }
   .onboarding__text {
     margin-top: 6px;
@@ -11504,7 +11523,7 @@ button:disabled,
     margin-bottom: 10%;
   }
   .opening-seq__prompt {
-    font-size: 2.45rem;
+    font-size: max(var(--fs-min), 2.45rem);
   }
   .opening-seq__line {
     margin-block: 8px 10px;
@@ -11522,7 +11541,7 @@ button:disabled,
     height: 50px;
   }
   .opening-seq__title .title-card {
-    font-size: 3.2rem;
+    font-size: max(var(--fs-min), 3.2rem);
   }
   .opening-seq__title-note {
     margin-block: 8px;
@@ -13310,7 +13329,7 @@ button:disabled,
   margin: 0;
   color: var(--card-ink);
   font-family: var(--font-display);
-  font-size: 0.86em;
+  font-size: max(var(--fs-min), 0.86em);
   line-height: 1.2;
 }
 /* The temper reads as a stamped classification field on a form. */
@@ -13321,7 +13340,7 @@ button:disabled,
   background: color-mix(in srgb, var(--dept-accent) 13%, transparent);
   border: 1px solid color-mix(in srgb, var(--dept-accent) 38%, transparent);
   border-radius: var(--r-sm);
-  font-size: 0.54em;
+  font-size: max(var(--fs-min), 0.54em);
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -13331,7 +13350,7 @@ button:disabled,
 .dept-card__summary {
   margin: 1px 0 3px;
   color: var(--card-ink-soft);
-  font-size: 0.66em;
+  font-size: max(var(--fs-min), 0.66em);
   font-style: italic;
   line-height: 1.4;
   text-wrap: pretty;
@@ -13341,7 +13360,7 @@ button:disabled,
   display: flex;
   flex-wrap: wrap;
   gap: 4px 8px;
-  font-size: 0.62em;
+  font-size: max(var(--fs-min), 0.62em);
 }
 .dept-card__count {
   font-weight: 700;
@@ -13362,7 +13381,7 @@ button:disabled,
 .dept-card__section {
   margin: 5px 0 1px;
   color: var(--positive);
-  font-size: 0.55em;
+  font-size: max(var(--fs-min), 0.55em);
   font-weight: 800;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -13389,7 +13408,7 @@ button:disabled,
   grid-template-columns: 1fr auto;
   column-gap: 6px;
   align-items: baseline;
-  font-size: 0.64em;
+  font-size: max(var(--fs-min), 0.64em);
   line-height: 1.35;
 }
 .dept-effect__label {
@@ -13424,7 +13443,7 @@ button:disabled,
    effect name next to it. */
 .dept-effect__reason {
   grid-column: 1 / -1;
-  font-size: 0.86em;
+  font-size: max(var(--fs-min), 0.86em);
   font-style: italic;
   line-height: 1.3;
   opacity: 0.95;
@@ -13435,7 +13454,7 @@ button:disabled,
   padding-top: 4px;
   border-top: 1px dashed var(--paper-edge);
   color: var(--card-ink-faint);
-  font-size: 0.58em;
+  font-size: max(var(--fs-min), 0.58em);
   line-height: 1.35;
 }
 
@@ -13458,20 +13477,20 @@ button:disabled,
 }
 .rep-ladder__tier {
   font-family: var(--font-display);
-  font-size: 0.92em;
+  font-size: max(var(--fs-min), 0.92em);
   line-height: 1.2;
 }
 .rep-ladder__step {
   flex: none;
   font-family: var(--font-numeric);
-  font-size: 0.6em;
+  font-size: max(var(--fs-min), 0.6em);
   font-variant-numeric: tabular-nums;
   color: var(--text-disabled);
 }
 .rep-ladder__blurb {
   margin: 0;
   color: var(--text-secondary, color-mix(in srgb, var(--ink) 68%, transparent));
-  font-size: 0.66em;
+  font-size: max(var(--fs-min), 0.66em);
   font-style: italic;
   line-height: 1.4;
   text-wrap: pretty;
@@ -13497,7 +13516,7 @@ button:disabled,
   display: flex;
   justify-content: space-between;
   gap: 8px;
-  font-size: 0.62em;
+  font-size: max(var(--fs-min), 0.62em);
 }
 .rep-ladder__now {
   font-family: var(--font-numeric);
@@ -13516,7 +13535,7 @@ button:disabled,
   display: flex;
   flex-wrap: wrap;
   gap: 3px 10px;
-  font-size: 0.6em;
+  font-size: max(var(--fs-min), 0.6em);
   font-weight: 700;
   color: var(--positive);
 }
@@ -13610,7 +13629,7 @@ button:disabled,
   flex: 0 0 auto;
 }
 .talk__file {
-  font-size: 0.58em;
+  font-size: max(var(--fs-min), 0.58em);
   font-weight: 800;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -13619,7 +13638,7 @@ button:disabled,
 .talk__ref {
   margin-inline-start: auto;
   font-family: var(--font-numeric);
-  font-size: 0.56em;
+  font-size: max(var(--fs-min), 0.56em);
   letter-spacing: 0.1em;
   color: color-mix(in srgb, var(--ink) 46%, transparent);
 }
@@ -13628,7 +13647,7 @@ button:disabled,
   place-items: center;
   width: 26px;
   height: 26px;
-  font-size: 1.1em;
+  font-size: max(var(--fs-min), 1.1em);
   line-height: 1;
   color: var(--ink);
   background: transparent;
@@ -13682,12 +13701,12 @@ button:disabled,
 }
 .talk__name {
   margin: 6px 0 0;
-  font-size: 1.15em;
+  font-size: max(var(--fs-min), 1.15em);
   line-height: 1.1;
 }
 .talk__role {
   margin: 0;
-  font-size: 0.62em;
+  font-size: max(var(--fs-min), 0.62em);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -13708,7 +13727,7 @@ button:disabled,
   text-align: start;
 }
 .talk__vital dt {
-  font-size: 0.52em;
+  font-size: max(var(--fs-min), 0.52em);
   font-weight: 800;
   letter-spacing: 0.11em;
   text-transform: uppercase;
@@ -13719,12 +13738,12 @@ button:disabled,
   align-items: center;
   gap: 6px;
   margin: 0;
-  font-size: 0.78em;
+  font-size: max(var(--fs-min), 0.78em);
   font-weight: 700;
 }
 .talk__vital dd em {
   font-family: var(--font-numeric);
-  font-size: 0.85em;
+  font-size: max(var(--fs-min), 0.85em);
   font-style: normal;
   margin-inline-start: auto;
 }
@@ -13757,7 +13776,7 @@ button:disabled,
 }
 .talk__bar-num {
   font-family: var(--font-numeric);
-  font-size: 0.8em;
+  font-size: max(var(--fs-min), 0.8em);
   min-width: 3.2em;
   text-align: end;
 }
@@ -13774,12 +13793,12 @@ button:disabled,
 }
 .talk__topic h3 {
   margin: 0;
-  font-size: 1.02em;
+  font-size: max(var(--fs-min), 1.02em);
   line-height: 1.2;
 }
 .talk__topic p {
   margin: 3px 0 0;
-  font-size: 0.72em;
+  font-size: max(var(--fs-min), 0.72em);
   font-style: italic;
   color: color-mix(in srgb, var(--ink) 58%, transparent);
 }
@@ -13788,7 +13807,7 @@ button:disabled,
 .talk__said {
   margin: 0;
   padding: 9px 12px;
-  font-size: 0.88em;
+  font-size: max(var(--fs-min), 0.88em);
   line-height: 1.5;
   background: color-mix(in srgb, var(--paper-muted) 62%, transparent);
   border-inline-start: 3px solid var(--brand-mark);
@@ -13813,7 +13832,7 @@ button:disabled,
   border-radius: 8px;
 }
 .talk__changed-label {
-  font-size: 0.52em;
+  font-size: max(var(--fs-min), 0.52em);
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -13831,7 +13850,7 @@ button:disabled,
   display: flex;
   align-items: baseline;
   gap: 5px;
-  font-size: 0.74em;
+  font-size: max(var(--fs-min), 0.74em);
 }
 .talk__changed li span {
   color: color-mix(in srgb, var(--ink) 62%, transparent);
@@ -13857,7 +13876,7 @@ button:disabled,
   width: 100%;
   padding: 10px 12px;
   text-align: start;
-  font-size: 0.86em;
+  font-size: max(var(--fs-min), 0.86em);
   font-weight: 600;
   color: var(--ink);
   background: var(--paper);
@@ -13887,7 +13906,7 @@ button:disabled,
   transform: none;
 }
 .talk-choice__req {
-  font-size: 0.72em;
+  font-size: max(var(--fs-min), 0.72em);
   font-weight: 700;
   letter-spacing: 0.04em;
   color: var(--negative);
@@ -13918,7 +13937,7 @@ button:disabled,
 }
 .talk__end-note {
   margin: 0;
-  font-size: 0.78em;
+  font-size: max(var(--fs-min), 0.78em);
   font-style: italic;
   color: color-mix(in srgb, var(--ink) 60%, transparent);
 }
@@ -13930,7 +13949,7 @@ button:disabled,
   background: var(--paper-muted);
 }
 .talk__stamp {
-  font-size: 0.5em;
+  font-size: max(var(--fs-min), 0.5em);
   font-weight: 800;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -14014,7 +14033,7 @@ button:disabled,
    active one carries weight. */
 .decorate__rooms .chip-btn {
   padding: 3px 9px;
-  font-size: 0.7em;
+  font-size: max(var(--fs-min), 0.7em);
   letter-spacing: 0.01em;
   border-radius: 4px;
   opacity: 0.82;
@@ -14046,7 +14065,7 @@ button:disabled,
 }
 .decorate__chiprow .tag-btn {
   padding: 2px 8px;
-  font-size: 0.66em;
+  font-size: max(var(--fs-min), 0.66em);
 }
 .decorate__search {
   flex: 1 1 190px;
@@ -14121,7 +14140,7 @@ button:disabled,
 
 /* --- card text: one clear name, one quiet line of metadata ---------------- */
 .decocard__title {
-  font-size: 0.86em;
+  font-size: max(var(--fs-min), 0.86em);
   line-height: 1.22;
   /* Two lines maximum, so a long name cannot push the grid around. */
   display: -webkit-box;
@@ -14141,7 +14160,7 @@ button:disabled,
   border: 0;
   padding: 0;
   color: var(--ink-dim);
-  font-size: 0.62em;
+  font-size: max(var(--fs-min), 0.62em);
   font-weight: 800;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -14149,7 +14168,7 @@ button:disabled,
 .decocard__comfort {
   margin-top: 5px;
   color: color-mix(in srgb, #6fbf7f 76%, var(--ink));
-  font-size: 0.68em;
+  font-size: max(var(--fs-min), 0.68em);
   font-weight: 800;
 }
 
@@ -14165,7 +14184,7 @@ button:disabled,
    without the oversized glossy slab it used to be. */
 .decocard__actions .buy-btn {
   padding: 4px 11px;
-  font-size: 0.78em;
+  font-size: max(var(--fs-min), 0.78em);
   border-radius: 5px;
 }
 .decocard__actions .buy-btn:disabled {
@@ -14188,7 +14207,7 @@ button:disabled,
   border: 0;
   background: none;
   box-shadow: none;
-  font-size: 0.66em;
+  font-size: max(var(--fs-min), 0.66em);
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -14372,7 +14391,7 @@ button:disabled,
 
 .deco-tray__chips .tag-btn {
   padding: 2px 8px;
-  font-size: 0.66em;
+  font-size: max(var(--fs-min), 0.66em);
 }
 
 /* ===========================================================================
@@ -14417,7 +14436,7 @@ button:disabled,
   gap: 5px;
   color: var(--ink);
   font-family: var(--type-caption-family, inherit);
-  font-size: 0.72em;
+  font-size: max(var(--fs-min), 0.72em);
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -14469,7 +14488,7 @@ button:disabled,
    A payout is the reward. It gets read at a glance, on any background.
    ========================================================================= */
 .tap-pop__value {
-  font-size: 1.22em;
+  font-size: max(var(--fs-min), 1.22em);
   letter-spacing: -0.01em;
   color: #fff3cf;
   /* A dark contact-ink outline rather than a blur: it holds the glyph shape at
@@ -14484,15 +14503,15 @@ button:disabled,
 }
 /* Crits and golden payouts are worth more, so they read as worth more. */
 .tap-pop--critical .tap-pop__value {
-  font-size: 1.4em;
+  font-size: max(var(--fs-min), 1.4em);
   color: #ffe6a2;
 }
 .tap-pop--golden .tap-pop__value {
-  font-size: 1.5em;
+  font-size: max(var(--fs-min), 1.5em);
   color: #ffd54a;
 }
 .tap-pop__combo {
-  font-size: 0.86em;
+  font-size: max(var(--fs-min), 0.86em);
   font-weight: 800;
   color: #ffd54a;
   opacity: 1;
@@ -14616,14 +14635,14 @@ html[data-station-tapping='true'] body > .tooltip[role='tooltip'] {
 }
 .moment-doc__kind {
   font-family: var(--type-caption-family, inherit);
-  font-size: 0.72em;
+  font-size: max(var(--fs-min), 0.72em);
   font-weight: 800;
   letter-spacing: 0.11em;
   text-transform: uppercase;
   color: var(--doc-accent);
 }
 .moment-doc__org {
-  font-size: 0.56em;
+  font-size: max(var(--fs-min), 0.56em);
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -14636,7 +14655,7 @@ html[data-station-tapping='true'] body > .tooltip[role='tooltip'] {
   display: flex;
   align-items: baseline;
   gap: 5px;
-  font-size: 0.6em;
+  font-size: max(var(--fs-min), 0.6em);
 }
 .moment-doc__ref-label {
   font-weight: 800;
@@ -14653,7 +14672,7 @@ html[data-station-tapping='true'] body > .tooltip[role='tooltip'] {
 .moment-doc__title {
   align-self: start;
   font-family: var(--type-display-family, inherit);
-  font-size: 0.98em;
+  font-size: max(var(--fs-min), 0.98em);
   font-weight: 700;
   line-height: 1.2;
   color: #2f2114;
@@ -14663,7 +14682,7 @@ html[data-station-tapping='true'] body > .tooltip[role='tooltip'] {
   display: inline-block;
   margin-top: -2px;
   padding: 1px 6px;
-  font-size: 0.62em;
+  font-size: max(var(--fs-min), 0.62em);
   font-weight: 800;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -14680,7 +14699,7 @@ html[data-station-tapping='true'] body > .tooltip[role='tooltip'] {
   gap: 8px;
   padding-top: 5px;
   border-top: 1px solid color-mix(in srgb, var(--doc-accent) 26%, transparent);
-  font-size: 0.58em;
+  font-size: max(var(--fs-min), 0.58em);
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -14699,7 +14718,7 @@ html[data-station-tapping='true'] body > .tooltip[role='tooltip'] {
   transform: rotate(-11deg);
   padding: 2px 7px;
   font-family: var(--type-caption-family, inherit);
-  font-size: 0.6em;
+  font-size: max(var(--fs-min), 0.6em);
   font-weight: 800;
   letter-spacing: 0.13em;
   text-transform: uppercase;
@@ -14868,7 +14887,7 @@ html[data-station-tapping='true'] body > .tooltip[role='tooltip'] {
 }
 .savebar__label {
   font-family: var(--type-caption-family, inherit);
-  font-size: 0.62em;
+  font-size: max(var(--fs-min), 0.62em);
   font-weight: 800;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -14877,7 +14896,7 @@ html[data-station-tapping='true'] body > .tooltip[role='tooltip'] {
 /* The timestamp is the headline of this panel, so it is typeset like one. */
 .savebar__value {
   font-family: var(--font-numeric);
-  font-size: 0.96em;
+  font-size: max(var(--fs-min), 0.96em);
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   color: var(--ink);
@@ -14905,14 +14924,14 @@ html[data-station-tapping='true'] body > .tooltip[role='tooltip'] {
   display: block;
   margin-bottom: 3px;
   color: var(--ink);
-  font-size: 0.94em;
+  font-size: max(var(--fs-min), 0.94em);
   font-weight: 800;
 }
 .savebar__confirm-body {
   margin: 0 0 9px;
   max-width: 64ch;
   color: color-mix(in srgb, var(--ink) 82%, transparent);
-  font-size: 0.84em;
+  font-size: max(var(--fs-min), 0.84em);
   line-height: 1.42;
   /* A filename can be long and arbitrary; it must not push the dialogue wider. */
   overflow-wrap: anywhere;
@@ -14935,7 +14954,7 @@ html[data-station-tapping='true'] body > .tooltip[role='tooltip'] {
   margin: 10px 0 0;
   padding: 7px 10px;
   border-radius: var(--r-sm);
-  font-size: 0.84em;
+  font-size: max(var(--fs-min), 0.84em);
   font-weight: 700;
   line-height: 1.4;
 }
@@ -15063,4 +15082,187 @@ html[data-station-tapping='true'] body > .tooltip[role='tooltip'] {
   padding: 2px 7px;
   border-radius: 5px;
   box-shadow: 0 2px 0 rgba(20, 12, 6, 0.45);
+}
+
+/* ===========================================================================
+   NATIVE FORM CONTROLS, IN THIS GAME'S MATERIALS
+   ---------------------------------------------------------------------------
+   Settings was five bright OS-blue range sliders and a row of pale grey system
+   checkboxes sitting in the middle of a warm wood-and-paper interface. Everything
+   around them — the memos, the stationery popups, the wooden panels — is drawn with
+   intent, and then the controls the player actually touches were whatever the OS
+   happened to draw. It is the single most "unfinished build" thing on the screen,
+   and the same instinct is already recorded a few thousand lines up: a 12px unfilled
+   square in the decoration catalogue was removed for reading as "an unstyled
+   checkbox … the single most debug-looking thing on the screen".
+
+   Rules followed here:
+     * the focus ring is never removed, only restyled, and :focus-visible still wins
+     * the checkbox tick is DRAWN, never a character — the bundled fonts are Latin
+       subsets and a check glyph renders as a tofu box
+     * high-contrast mode keeps its own stronger borders
+     * disabled states stay visibly disabled
+   ========================================================================= */
+
+/* --- sliders ------------------------------------------------------------- */
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  /* 24px is the hit target (WCAG 2.5.8 minimum); the visible groove is 10px, drawn on
+     the track, so a comfortable target costs nothing visually. */
+  height: 24px;
+  background: transparent;
+  cursor: pointer;
+}
+input[type='range']:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* The groove, with the filled portion painted from --fill (see RangeInput). */
+input[type='range']::-webkit-slider-runnable-track {
+  height: 10px;
+  border: 2px solid #1b120c;
+  border-radius: var(--r-pill);
+  background:
+    linear-gradient(90deg, #8d5835, #e3a44f 62%, #ffe58d) 0 / var(--fill, 50%) 100% no-repeat,
+    #2e2118;
+  box-shadow: inset 0 2px 2px rgba(0, 0, 0, 0.42);
+}
+input[type='range']::-moz-range-track {
+  height: 10px;
+  border: 2px solid #1b120c;
+  border-radius: var(--r-pill);
+  background: #2e2118;
+  box-shadow: inset 0 2px 2px rgba(0, 0, 0, 0.42);
+}
+/* Firefox has a real progress pseudo-element, so it does not need --fill. */
+input[type='range']::-moz-range-progress {
+  height: 10px;
+  border-radius: var(--r-pill);
+  background: linear-gradient(90deg, #8d5835, #e3a44f 62%, #ffe58d);
+}
+
+/* The knob: a physical cream disc, like the other tactile parts of the office. */
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  /* Centres the 18px knob on the 10px groove. Global `* { box-sizing: border-box }`
+     means the track's 10px INCLUDES its 2px borders, so the offset is (10-18)/2. */
+  margin-top: -4px;
+  border: 2px solid #3a2616;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 30%, #fff6e2, #e8cfa0 70%);
+  box-shadow: 0 2px 0 rgba(20, 12, 6, 0.4);
+}
+input[type='range']::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #3a2616;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 30%, #fff6e2, #e8cfa0 70%);
+  box-shadow: 0 2px 0 rgba(20, 12, 6, 0.4);
+}
+input[type='range']:focus-visible {
+  outline: 3px solid var(--focus, #ffd54a);
+  outline-offset: 3px;
+  border-radius: var(--r-pill);
+}
+
+/* --- checkboxes --------------------------------------------------------- */
+input[type='checkbox'] {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: none;
+  /* Sized in em so it grows with the type. A player who has turned the font scale up to
+     1.5 is exactly the player who should not be left aiming at a fixed 20px box beside
+     much larger text. The px floor keeps it comfortable at the smallest scale, and the
+     whole .toggle-row label is the real target either way. */
+  width: 1.25em;
+  height: 1.25em;
+  min-width: 20px;
+  min-height: 20px;
+  margin: 0;
+  position: relative;
+  border: 2px solid #3a2616;
+  border-radius: 5px;
+  background: linear-gradient(180deg, #f6ecd2, #e2cea6);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    0 2px 0 rgba(20, 12, 6, 0.28);
+  cursor: pointer;
+}
+input[type='checkbox']:checked {
+  background: linear-gradient(180deg, #7fa25c, #4f763e);
+  border-color: #2f4a24;
+}
+/* A DRAWN tick, never a character: the bundled fonts are Latin subsets and a check
+   glyph renders as a tofu box. One clip-path shape rather than two rotated bars, so it
+   stays correctly proportioned at any box size — the bar version was positioned in
+   fixed px and came apart as soon as the box scaled with the font. */
+input[type='checkbox']::after {
+  content: '';
+  position: absolute;
+  inset: 16%;
+  background: #fff6e2;
+  clip-path: polygon(41% 79%, 9% 47%, 19% 37%, 41% 59%, 81% 19%, 91% 29%);
+  opacity: 0;
+}
+input[type='checkbox']:checked::after {
+  opacity: 1;
+}
+input[type='checkbox']:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+input[type='checkbox']:focus-visible {
+  outline: 3px solid var(--focus, #ffd54a);
+  outline-offset: 2px;
+}
+
+/* --- selects ------------------------------------------------------------ */
+/* The popup list itself is drawn by the OS and cannot be styled; the closed control
+   can, and that is what sits in the page. */
+select,
+select.select {
+  color: var(--text);
+  background:
+    linear-gradient(180deg, rgba(255, 244, 224, 0.1), rgba(0, 0, 0, 0.18)), var(--wood-mid, #6f4a30);
+  /* Deliberately the SAME footprint as the plain control this replaces: 1px border and
+     6px/8px padding, inherited weight. The cohesion win here is the material — wood and
+     cream instead of system chrome — not extra bulk. A 2px border with 9px padding and a
+     bolder face measured ~5px wider, and a select sizes its PARENT by its intrinsic
+     width, which pushed the employee cards 5.5px past the play area at 320px. */
+  border: 1px solid var(--border-strong, #3a2616);
+  border-radius: var(--r-sm);
+  padding: 6px 8px;
+  font: inherit;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 244, 224, 0.14),
+    0 2px 0 rgba(20, 12, 6, 0.3);
+  cursor: pointer;
+  /* A select sizes itself to its WIDEST OPTION by default, so a long room name pushed
+     the room pickers in Team clean off a 420px window — measured 158px past the edge —
+     and the padding and heavier face here made it worse. It must never outgrow what
+     contains it. */
+  max-width: 100%;
+  min-width: 0;
+}
+select:focus-visible {
+  outline: 3px solid var(--focus, #ffd54a);
+  outline-offset: 2px;
+}
+/* Options are painted by the OS menu, so keep them plainly legible rather than themed. */
+select option {
+  color: #241a10;
+  background: #f6ecd2;
+}
+
+/* High contrast keeps its harder edges on the controls too. */
+[data-high-contrast='true'] input[type='checkbox'],
+[data-high-contrast='true'] select,
+[data-high-contrast='true'] input[type='range']::-webkit-slider-runnable-track {
+  border-color: var(--text);
 }

@@ -195,3 +195,90 @@ describe('visual stacking order', () => {
     expect(zIndexOf('.talk')).toBeLessThan(zIndexOf('.opening-seq'));
   });
 });
+
+/* ---------------------------------------------------------------------------
+ * Typography floor.
+ *
+ * A great deal of this UI sizes itself with `em` multipliers, and those COMPOUND: a
+ * 0.66em note inside a row that is already 0.62em of a small parent landed at 8.5px,
+ * and the reputation stamp's cycle label measured 6.81px. Thirty-one distinct selectors
+ * were rendering text under 11px. The fix is a floor — `max(var(--fs-min), <intent>)` —
+ * rather than 131 hand-picked sizes, so the intent survives wherever there is room.
+ *
+ * These guard the shape of that fix: that new relative sizes do not quietly bypass it,
+ * and that the floor stays switched OFF in the compact modes, where forcing it pushed
+ * destination tabs and the window controls out of reach.
+ * ------------------------------------------------------------------------- */
+describe('typography floor', () => {
+  const TOKENS = readFileSync(join(ROOT, 'ui', 'tokens.css'), 'utf8');
+
+  /** Relative font-size declarations that are NOT wrapped in the floor. */
+  function unflooredRelativeSizes(): string[] {
+    const out: string[] = [];
+    const rule = /([^{}]+)\{([^{}]*)\}/g;
+    let match: RegExpExecArray | null;
+    while ((match = rule.exec(STYLES))) {
+      const body = match[2];
+      const decl = /font-size:\s*([^;]+);/g;
+      let d: RegExpExecArray | null;
+      while ((d = decl.exec(body))) {
+        const value = d[1].trim();
+        if (!/^(?:0?\.\d+|\d+(?:\.\d+)?)(?:em|rem|%)$/.test(value)) continue;
+        out.push(`${match[1].trim().split('\n').pop()!.trim()} { font-size: ${value} }`);
+      }
+    }
+    return out;
+  }
+
+  it('routes every relative font size through the floor, except the documented few', () => {
+    /* The exemptions, and why each one has to be:
+       - the title bar shares its row with the window controls, and widening anything in
+         it pushes them off the right edge (window-chrome.spec.ts measures that). The
+         stamp is also *meant* to be small: it is a rubber stamp.
+       Everything else must go through max(var(--fs-min), …). */
+    const ALLOWED_UNFLOORED = [
+      '.header__stamp-tier',
+      '.header__stamp-cycle',
+      '.header__department',
+    ];
+    const offenders = unflooredRelativeSizes().filter(
+      (line) => !ALLOWED_UNFLOORED.some((sel) => line.startsWith(sel)),
+    );
+    expect(
+      offenders,
+      `These relative font sizes bypass the legibility floor. Wrap them as\n` +
+        `max(var(--fs-min), <size>) so they cannot compound below readable:\n${offenders.join('\n')}`,
+    ).toEqual([]);
+  });
+
+  it('keeps the floor off in compact windows and on for desktop windows', () => {
+    // Off by default: at 0 the max() is a no-op, so compact layouts are untouched.
+    expect(TOKENS).toMatch(/--fs-min:\s*0px/);
+    // On above a generous desktop threshold, and expressed as a media query so the
+    // switch is inspectable rather than hidden in a curve.
+    expect(TOKENS).toMatch(/@media \(min-width: 1000px\) and \(min-height: 620px\)/);
+    expect(TOKENS).toMatch(/--fs-min:\s*calc\(11px \* var\(--font-scale\)\)/);
+  });
+
+  it('exempts the dense tool surfaces by resetting the inherited token', () => {
+    // The decoration tray is documented as height-sensitive; the office toolbar shares
+    // its budget. Resetting --fs-min on the container is how the exemption is expressed.
+    expect(TOKENS).toMatch(/\.deco-tray,\s*\n\s*\.office__toolbar\s*\{\s*\n\s*--fs-min:\s*0px/);
+  });
+
+  it('never sets a tiny label in the display face', () => {
+    // tokens.css states the rule: "tiny labels deliberately stay in Nunito: DynaPuff's
+    // lively shapes become crowded below normal control sizes". The employee card's
+    // legal-name line broke it, and at that size the word space in "Marlow Stillwater"
+    // visually disappeared.
+    const displayFaceRule = /([^{}]*)\{[^{}]*font-family:\s*var\(--font-head\)[^{}]*\}/g;
+    const tiny: string[] = [];
+    let m: RegExpExecArray | null;
+    while ((m = displayFaceRule.exec(STYLES))) {
+      for (const sel of m[1].split(',').map((s) => s.trim())) {
+        if (/__fullname|__note|__hint|__caption|-cycle$/.test(sel)) tiny.push(sel);
+      }
+    }
+    expect(tiny, `${tiny.join(', ')} set a small secondary label in the display face`).toEqual([]);
+  });
+});
