@@ -2025,7 +2025,15 @@
     "undiscovered": "Undiscovered",
     "saveCard": "Save as PNG",
     "photoMode": "Photo Mode",
-    "view": "View"
+    "view": "View",
+    "emptyMoments": {
+      "title": "No moments filed yet",
+      "hint": "Nutshell Inc. keeps a souvenir whenever something worth remembering happens — a decision at a popup, a rare find, a day the team will bring up later. Handle a few events and the first one will be waiting here."
+    },
+    "emptySecrets": {
+      "title": "Nothing on record",
+      "hint": "Some things the company would rather not file. They turn up in the odder events, the stranger rooms, and the occasional conversation nobody scheduled."
+    }
   },
   "company": {
     "title": "Company Overview",

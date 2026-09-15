@@ -13054,16 +13054,41 @@ button:disabled,
   transform: none;
 }
 
+/* Empty states.
+   The dashed border went: a dashed rectangle with one muted word inside it is the
+   level-editor placeholder look this pass has been removing everywhere else, and it
+   made a collection the player has simply not started yet look like a broken panel.
+   It is now a soft recessed shelf — the same "nothing on it yet" reading a real
+   display case gives — with room for a line that says what belongs here. */
 .empty-state,
 .decorate__empty {
   margin: 8px 0;
-  padding: 18px 16px;
+  padding: 22px 18px;
   color: var(--text-secondary);
   font-style: normal;
   text-align: center;
-  background: color-mix(in srgb, var(--panel-surface-raised) 58%, transparent);
-  border: 1px dashed color-mix(in srgb, var(--text-muted) 48%, var(--border-strong));
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.16), transparent 42%),
+    color-mix(in srgb, var(--panel-surface-raised) 52%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-strong) 60%, transparent);
   border-radius: var(--corner-panel);
+  box-shadow: inset 0 2px 5px rgba(20, 12, 6, 0.22);
+}
+/* A heading and a sentence, not a single muted word. */
+.empty-state__title {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--text);
+  font-family: var(--font-head);
+  font-size: max(var(--fs-min), 1.02em);
+}
+.empty-state__hint {
+  display: block;
+  max-width: 46ch;
+  margin: 0 auto;
+  font-size: max(var(--fs-min), 0.92em);
+  line-height: var(--lh-normal);
+  text-wrap: pretty;
 }
 .deco-tray__empty {
   color: var(--text-secondary);
@@ -15308,4 +15333,86 @@ select option {
 [data-high-contrast='true'] select,
 [data-high-contrast='true'] input[type='range']::-webkit-slider-runnable-track {
   border-color: var(--text);
+}
+
+/* ===========================================================================
+   MINIGAME BOARDS MUST FIT THE WINDOW THEY ARE PLAYED IN
+   ---------------------------------------------------------------------------
+   Coffee Rescue puts the mug and the catch line at the BOTTOM of its board, so a
+   board that runs past the fold is not merely cramped — the pointer cannot reach the
+   mug at all, and a real-time catching game becomes unplayable rather than tight.
+   Measured, with the board's own geometry:
+
+     320x520   board ended 181px past the fold, mug 162px past    unsteerable
+     520x520   120px / 101px                                      unsteerable
+     900x420   139px / 120px                                      unsteerable
+     390x700    43px /  20px                                      unsteerable
+     900x700+  comfortably inside                                 fine
+
+   The cause is a stack of minimum heights inside a bounded scroll container:
+   `.app__main` is the scroller (clientHeight 331 at 320x520) while `.microgame`
+   demands >=270px, `.microgame__stage` >=260px and the board itself >=230px. Nothing
+   in the chain is a flex column, so none of it can give, and the board is pushed below
+   the visible area. The heights were also expressed in `vh`, which measures the whole
+   window rather than the room left under the header, nav and minigame chrome.
+
+   So below a tall window the floors come down and the board is capped against the
+   space that is actually available. The allowance is measured, not guessed: the header
+   and nav take 186-203px, and the minigame's own bar and status take a further 76-125px.
+   Above 780px tall none of this applies — the existing clamps already win there, so the
+   desktop presentation is untouched.
+   ========================================================================= */
+@media (max-height: 780px) {
+  /* The single biggest block above the board, and my own doing: this paragraph explains
+     the rules, and it grew when the Coffee and Cable descriptions were extended to cover
+     the new drop kinds and wiring shapes. At 320x520 it measured 135px of a 331px
+     scroller — 41% of the space the game had to live in — which is what pushed the board
+     off the bottom.
+     While a round is PLAYING the board is the game and the rules have already been read
+     on the card you pressed Start on, so the paragraph steps aside. It is hidden by
+     clipping rather than `display: none` so it stays in the accessibility tree, because
+     the cable board points `aria-describedby` at it. */
+  .microgame[data-phase='play'] .microgame__instructions {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .microgame {
+    min-height: 180px;
+  }
+  .microgame__stage {
+    min-height: 150px;
+  }
+  .coffee__area,
+  .bugsquash__desk {
+    /* Floors lowered so the board can actually give. The allowance is measured: the
+       header and nav take 176-203px, and the minigame's own bar and status a further
+       76-125px. 132px is the smallest board still worth playing on — below that it would
+       be technically on screen and useless, which is not an improvement. */
+    min-height: 132px;
+    max-height: max(132px, calc(100dvh - 350px));
+  }
+  .cable__board {
+    min-height: 150px;
+    max-height: max(150px, calc(100dvh - 330px));
+  }
+
+  /* Toasts are docked bottom-right, which is exactly where Coffee Rescue keeps its mug
+     and its catch line. On a narrow window the board is narrow too, so a toast lands
+     over the middle of it: at 320x520 elementFromPoint at the catch line returned
+     `button.toast`, the pointer never reached the play area, and the mug could not be
+     steered at all — the same symptom as the board being off-screen, from a different
+     cause. While a round is playing on a short window the stack docks to the top
+     instead, where it still notifies and is still clickable but cannot swallow the
+     input the game needs. */
+  .app:has(.microgame[data-phase='play']) .toasts {
+    top: 8px;
+    bottom: auto;
+  }
 }

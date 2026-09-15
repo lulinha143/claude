@@ -103,7 +103,13 @@ export function CollectionsView() {
 
       {tab === 'moments' ? (
         state.collections.moments.length === 0 ? (
-          <p className="empty-state">{t('collections.undiscovered')}</p>
+          /* An empty collection should say what belongs in it. This was a dashed box
+             containing the single word "Undiscovered", which tells a player who has
+             just opened the tab neither what a moment card IS nor how one arrives. */
+          <p className="empty-state">
+            <strong className="empty-state__title">{t('collections.emptyMoments.title')}</strong>
+            <span className="empty-state__hint">{t('collections.emptyMoments.hint')}</span>
+          </p>
         ) : (
           // A COLLECTION OF DOCUMENTS, not a list of rows.
           //
@@ -236,7 +242,10 @@ export function CollectionsView() {
               ))}
           </ul>
         ) : (
-          <p className="empty-state">{t('collections.undiscovered')}</p>
+          <p className="empty-state">
+            <strong className="empty-state__title">{t('collections.emptySecrets.title')}</strong>
+            <span className="empty-state__hint">{t('collections.emptySecrets.hint')}</span>
+          </p>
         )
       ) : null}
     </section>

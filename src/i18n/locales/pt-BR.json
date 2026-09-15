@@ -2025,7 +2025,15 @@
     "undiscovered": "Não descoberto",
     "saveCard": "Salvar como PNG",
     "photoMode": "Modo Foto",
-    "view": "Ver"
+    "view": "Ver",
+    "emptyMoments": {
+      "title": "Nenhum momento arquivado ainda",
+      "hint": "A Nutshell Inc. guarda uma lembrança sempre que algo digno de nota acontece — uma decisão num aviso, um achado raro, um dia que a equipe vai comentar depois. Resolva alguns eventos e o primeiro estará esperando aqui."
+    },
+    "emptySecrets": {
+      "title": "Nada registrado",
+      "hint": "Algumas coisas a empresa preferiria não arquivar. Elas aparecem nos eventos mais estranhos, nas salas mais esquisitas e naquela conversa que ninguém marcou."
+    }
   },
   "company": {
     "title": "Visão Geral da Empresa",

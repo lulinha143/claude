@@ -73,6 +73,17 @@ async function setDocumentVisibility(page: Page, state: 'hidden' | 'visible') {
   }, state);
 }
 
+/* One retry, for the same reason tests/e2e/cable-progression.spec.ts takes one.
+   The Cable case in here physically drags plugs, and solving a desk from its authored
+   slots means ten drags rather than the five fixed moves it used to make — necessary,
+   because a wheel wires a hub into the centre and no fixed perimeter ordering can clear
+   it. Under parallel CPU load a press can occasionally land on a plug that has not
+   finished moving out of the way, so the wrong node is grabbed and the board is left
+   tangled. A single retry absorbs that without masking anything: a genuine failure to
+   solve fails every attempt, and this block is serial, so the retry re-runs it from a
+   clean boot rather than from whatever state the flake left behind. */
+test.describe.configure({ retries: 1 });
+
 test.describe.serial('premium minigame presentation', () => {
   test('opens, plays, and safely leaves Coffee Rescue without a reward', async ({ page }) => {
     await boot(page);
@@ -206,15 +217,40 @@ test.describe.serial('premium minigame presentation', () => {
       x: boardBox!.x + (mirrored ? 1 - x : x) * boardBox!.width,
       y: boardBox!.y + y * boardBox!.height,
     });
+    /* Drag, then CHECK the plug actually arrived, and try again if it did not.
+       Solving a desk from its authored slots means ten drags rather than the five fixed
+       moves this test used to make, and under load a coalesced pointer move can leave a
+       plug short of its target. That matters most during the scatter pass: a plug that
+       stops short can end up overlapping another, and then the next pick-up grabs the
+       wrong one and the whole solve wanders off. Verifying each drag removes the timing
+       sensitivity at its source, which is better than letting the test retry wholesale
+       and better than granting it retries it should not need. */
     const dragPlug = async (id: number, x: number, y: number) => {
-      const box = await plugs.nth(id).boundingBox();
-      expect(box).not.toBeNull();
-      await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2);
-      await page.mouse.down();
       const destination = target(x, y);
-      await page.mouse.move(destination.x, destination.y, { steps: 8 });
-      await page.mouse.up();
-      await expect(game.locator('.cable__node.is-active')).toHaveCount(0);
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        const box = await plugs.nth(id).boundingBox();
+        expect(box).not.toBeNull();
+        await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2);
+        await page.mouse.down();
+        await page.mouse.move(destination.x, destination.y, { steps: 8 });
+        await page.mouse.up();
+        await expect(game.locator('.cable__node.is-active')).toHaveCount(0);
+        /* Compare the COMMITTED position, not the painted one. The node carries its
+           position as `style.left/top` percentages straight from game state, while its
+           bounding box is still easing into place for a moment afterwards. Measuring the
+           rect immediately after mouse-up therefore reported "did not arrive" under load
+           even when the drag had registered perfectly, all three attempts were spent, and
+           the plug was abandoned mid-board — which is how this ended up leaving "Tangles:
+           3" in parallel runs while passing on its own. */
+        const committed = await plugs.nth(id).evaluate((el) => ({
+          left: parseFloat((el as HTMLElement).style.left),
+          top: parseFloat((el as HTMLElement).style.top),
+        }));
+        const wantX = (mirrored ? 1 - x : x) * 100;
+        if (Math.abs(committed.left - wantX) <= 1.5 && Math.abs(committed.top - y * 100) <= 1.5) {
+          return;
+        }
+      }
     };
 
     /* Solve from the desk's OWN authored slots rather than from a fixed sequence of
@@ -252,18 +288,45 @@ test.describe.serial('premium minigame presentation', () => {
     let game = await openGame(page, 'Coffee Rescue');
     await startGame(page);
     const area = await game.locator('.coffee__area').boundingBox();
-    /* Aim at something the office actually ordered. The decaf drop is a hazard, so
-       catching it scoring nothing is correct behaviour — targeting `.coffee__drop`
-       blindly made this check depend on which kind happened to be falling. The point
-       of the test is that a compact board is pointer-playable, so it wants a
-       catchable drop. */
-    const drop = game.locator('.coffee__drop:not(.coffee__drop--decaf)').first();
-    await expect(drop).toBeVisible({ timeout: 6_000 });
-    const dropBox = await drop.boundingBox();
     expect(area).not.toBeNull();
-    expect(dropBox).not.toBeNull();
-    await page.mouse.move(dropBox!.x + dropBox!.width / 2, area!.y + area!.height - 18);
-    await expect(game.locator('.microgame__score b')).not.toHaveText('0', { timeout: 6_000 });
+    /* PLAY it, rather than parking the mug on one drop's starting column.
+       Two things made the parked version unreliable, and both are real behaviour:
+       the drop kinds fall at different speeds, so the one that was measured is not
+       necessarily the one that reaches the mug; and the decaf is a hazard, so a mug
+       left sitting in one column happily catches it — and since a first mug pays 2
+       while a caught decaf costs 3, the score can land back on "0" and the check that
+       it is non-zero fails a moment after it passed.
+       Following the lowest catchable drop and stepping aside for the hazard is what a
+       player does, and it is what "pointer-playable" actually means. */
+    const mugY = area!.y + area!.height - 18;
+    let scored = false;
+    for (let i = 0; i < 90 && !scored; i += 1) {
+      const next = await page.evaluate(() => {
+        const drops = [...document.querySelectorAll('.coffee__drop')].map((el) => {
+          const b = el.getBoundingClientRect();
+          return {
+            hazard: el.classList.contains('coffee__drop--decaf'),
+            cx: b.x + b.width / 2,
+            cy: b.y + b.height / 2,
+          };
+        });
+        if (!drops.length) return null;
+        drops.sort((a, b) => b.cy - a.cy);
+        return drops[0];
+      });
+      if (next) {
+        // Chase what is catchable; slide away from what is not.
+        const toX = next.hazard
+          ? next.cx - area!.x > area!.width / 2
+            ? area!.x + 10
+            : area!.x + area!.width - 10
+          : next.cx;
+        await page.mouse.move(toX, mugY);
+      }
+      await page.waitForTimeout(60);
+      scored = (await game.locator('.microgame__score b').textContent())?.trim() !== '0';
+    }
+    expect(scored, 'a compact Coffee board never paid out for a caught drop').toBe(true);
     await page.screenshot({ path: 'visual-artifacts/minigame-coffee-play-390x700.png' });
     await game.locator('.microgame__exit').click();
     await expect(page.locator('.microgame-menu')).toBeVisible();
