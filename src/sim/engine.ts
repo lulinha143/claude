@@ -18,6 +18,8 @@ import {
   isUpgradeUnlocked,
   moraleCap,
   moraleFloor,
+  prestigeMoraleBonus,
+  prestigeRareEventChance,
   reputationRate,
   upgradeCost,
 } from './economy';
@@ -403,7 +405,12 @@ export class GameEngine {
       cap,
       Math.max(
         BALANCE.morale.min,
-        BALANCE.morale.start + passives.moraleBonus + rooms.moraleTarget,
+        BALANCE.morale.start +
+          passives.moraleBonus +
+          rooms.moraleTarget +
+          // The run's permanent branch shifts where morale settles, which is the whole
+          // pitch of Cozy Cooperative (+20) and the stated cost of Industrial (-5).
+          prestigeMoraleBonus(this.state),
       ),
     );
     const m = this.state.resources.morale;
@@ -798,7 +805,10 @@ export class GameEngine {
     // Rooms that deal in the strange — the Lab, Research, the basement — make
     // something interesting happen more often, which is their real reward.
     const luck = aggregateCompanyModifiers(this.state).eventLuck;
-    const chance = BALANCE.eventBaseChance + passives.rareChance + luck;
+    // Questionable Science and Aggressive Marketing both sell "more rare events" on
+    // their branch card; this is the term that makes that true.
+    const chance =
+      BALANCE.eventBaseChance + passives.rareChance + luck + prestigeRareEventChance(this.state);
     if (!force && !this.rng.chance(chance)) return;
     const pool = this.eligibleEvents();
     if (pool.length === 0) return;

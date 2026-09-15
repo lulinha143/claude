@@ -3,7 +3,7 @@ import type { GameState, ProductionResult, ProductionBreakdownEntry } from './ty
 import { EMPLOYEES, EMPLOYEES_BY_ID } from '../content/employees';
 import { ROOMS } from '../content/rooms';
 import { UPGRADES_BY_ID } from '../content/upgrades';
-import type { EmployeeDef, UpgradeDef } from '../content/types';
+import type { EmployeeDef, PrestigeBranchDef, UpgradeDef } from '../content/types';
 import { PRESTIGE_BRANCHES_BY_ID, PRESTIGE_SKILLS_BY_ID } from '../content/prestige';
 import { teamMoodMultiplier } from './mood';
 import { affinityMultiplier } from './affinity';
@@ -179,6 +179,36 @@ export function prestigeMultiplier(state: GameState): number {
     mult *= 1 + skill.effect.perLevel * compound;
   }
   return mult;
+}
+
+/*
+ * A prestige branch defines THREE effects, and for a long time only
+ * `productionMultiplier` above was actually applied. The other two are read here.
+ *
+ * That mattered more than a normal dead field, because branch choice is permanent and
+ * once per run, and the branch cards describe these effects to the player in so many
+ * words: "Everyone's happy. High morale" (moraleBonus +20), "More rare events"
+ * (rareEventChance +5%), "Big rare-event chance" (+10%), "lower morale" (-5). Three of
+ * the five branches were selling a benefit that did not exist, and Cozy Cooperative —
+ * whose entire pitch is the morale — also carries the lowest production multiplier, so
+ * the branch that read as the friendly option was strictly the worst pick in the game.
+ *
+ * Kept as two small named accessors rather than folded into `aggregateCompanyModifiers`
+ * because these come from the run's permanent identity, not from the building, and the
+ * two are worth telling apart when balancing.
+ */
+function activeBranch(state: GameState): PrestigeBranchDef | undefined {
+  return state.prestige.branch ? PRESTIGE_BRANCHES_BY_ID[state.prestige.branch] : undefined;
+}
+
+/** Morale equilibrium shift from the run's permanent branch. */
+export function prestigeMoraleBonus(state: GameState): number {
+  return activeBranch(state)?.moraleBonus ?? 0;
+}
+
+/** Added chance per roll that something interesting happens, from the branch. */
+export function prestigeRareEventChance(state: GameState): number {
+  return activeBranch(state)?.rareEventChance ?? 0;
 }
 
 // --------------------------------------------------------------------------

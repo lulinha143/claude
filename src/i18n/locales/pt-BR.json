@@ -1793,24 +1793,29 @@
     "willEarn": "Você vai ganhar {{value}} Grãos Permanentes.",
     "lockedUntil": "Desbloqueia após ganhar {{value}} castanhas no total.",
     "chooseBranch": "Escolha um ramo da empresa",
+    "effect": {
+      "production": "{{value}} de produção",
+      "morale": "{{value}} de ânimo",
+      "rareEvents": "{{value}} de eventos raros"
+    },
     "skillTree": "Árvore de Habilidades Permanentes",
     "memory": "Você se lembra de uma linha do tempo anterior…",
     "branch": {
       "industrial": {
         "name": "Castanhas Industriais",
-        "desc": "Produção máxima, conforto mínimo. +35% de produção, moral menor."
+        "desc": "As máquinas nunca descansam. Nem ninguém mais."
       },
       "cooperative": {
         "name": "Cooperativa Aconchegante",
-        "desc": "Todos felizes. Moral alta, bônus suaves."
+        "desc": "Petiscos em todas as salas. Ninguém fica até tarde. Ninguém pergunta por quê."
       },
       "science": {
         "name": "Ciência Questionável",
-        "desc": "Descobertas e efeitos colaterais. Mais eventos raros."
+        "desc": "Descobertas, e os efeitos colaterais das descobertas."
       },
       "marketing": {
         "name": "Marketing Agressivo",
-        "desc": "Hype acima de tudo. Grande chance de evento raro."
+        "desc": "Diga alto o suficiente e vira verdade."
       },
       "underground": {
         "name": "Operações Subterrâneas",

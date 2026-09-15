@@ -5,8 +5,47 @@ import { useStore } from '../../state/store';
 import { useFmt } from '../useFmt';
 import { canPrestige, kernelsFromPrestige } from '../../sim/prestige';
 import { PRESTIGE_BRANCHES, PRESTIGE_SKILLS } from '../../content/prestige';
+import type { PrestigeBranchDef } from '../../content/types';
 import type { PrestigeBranchId } from '../../sim/types';
 import { Icon } from '../../art/UiIcon';
+
+/** Signed percentage, so a cost reads as a cost rather than as a bare number. */
+function signedPercent(value: number): string {
+  const percent = Math.round(value * 1000) / 10;
+  return `${percent > 0 ? '+' : ''}${percent}%`;
+}
+
+/**
+ * The effects a branch actually applies, read straight off the definition.
+ *
+ * Only non-zero terms are listed: a branch with no rare-event bonus should say nothing
+ * about rare events rather than advertise "+0%".
+ */
+function branchEffects(branch: PrestigeBranchDef) {
+  const effects: { label: string; value: string; good: boolean }[] = [];
+  if (branch.productionMultiplier !== 1) {
+    effects.push({
+      label: 'prestige.effect.production',
+      value: signedPercent(branch.productionMultiplier - 1),
+      good: branch.productionMultiplier > 1,
+    });
+  }
+  if (branch.moraleBonus !== 0) {
+    effects.push({
+      label: 'prestige.effect.morale',
+      value: `${branch.moraleBonus > 0 ? '+' : ''}${branch.moraleBonus}`,
+      good: branch.moraleBonus > 0,
+    });
+  }
+  if (branch.rareEventChance !== 0) {
+    effects.push({
+      label: 'prestige.effect.rareEvents',
+      value: signedPercent(branch.rareEventChance),
+      good: branch.rareEventChance > 0,
+    });
+  }
+  return effects;
+}
 
 export function PrestigeView() {
   const { t } = useTranslation();
@@ -31,7 +70,9 @@ export function PrestigeView() {
           <div className="bar">
             <div
               className="bar__fill"
-              style={{ width: `${Math.min(100, (state.stats.totalNutsEarned / 1_000_000) * 100)}%` }}
+              style={{
+                width: `${Math.min(100, (state.stats.totalNutsEarned / 1_000_000) * 100)}%`,
+              }}
             />
           </div>
         </div>
@@ -48,6 +89,20 @@ export function PrestigeView() {
               >
                 <strong>{t(b.nameKey)}</strong>
                 <span>{t(b.descriptionKey)}</span>
+                {/* The numbers, not just the adjectives.
+                    Branch choice is permanent and once per run, and the prose alone
+                    ("gentle bonuses", "Big rare-event chance") gives no way to compare
+                    two branches. These chips are derived from the SAME fields the
+                    simulation reads, so a card can never drift away from what the
+                    branch actually does — which is exactly how the morale and
+                    rare-event effects managed to be fictional for so long. */}
+                <span className="branch__effects">
+                  {branchEffects(b).map((effect) => (
+                    <em key={effect.label} className={effect.good ? '' : 'is-cost'}>
+                      {t(effect.label, { value: effect.value })}
+                    </em>
+                  ))}
+                </span>
               </button>
             ))}
           </div>
@@ -86,11 +141,17 @@ export function PrestigeView() {
                 <div className="card__body">
                   <div className="card__title">
                     {t(sk.nameKey)}
-                    <span className="pill">{maxed ? t('common.max') : t('common.level', { level })}</span>
+                    <span className="pill">
+                      {maxed ? t('common.max') : t('common.level', { level })}
+                    </span>
                   </div>
                   <div className="card__desc">{t(sk.descriptionKey)}</div>
                 </div>
-                <button className="buy-btn" disabled={maxed || !afford} onClick={() => buySkill(sk.id)}>
+                <button
+                  className="buy-btn"
+                  disabled={maxed || !afford}
+                  onClick={() => buySkill(sk.id)}
+                >
                   {maxed ? (
                     t('common.max')
                   ) : (

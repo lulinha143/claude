@@ -1793,24 +1793,29 @@
     "willEarn": "You will earn {{value}} Permanent Kernels.",
     "lockedUntil": "Unlocks after earning {{value}} total nuts.",
     "chooseBranch": "Choose a company branch",
+    "effect": {
+      "production": "{{value}} production",
+      "morale": "{{value}} morale",
+      "rareEvents": "{{value}} rare events"
+    },
     "skillTree": "Permanent Skill Tree",
     "memory": "You remember a previous timeline…",
     "branch": {
       "industrial": {
         "name": "Industrial Nuts",
-        "desc": "Maximum output, minimal comfort. +35% production, lower morale."
+        "desc": "The machines never rest. Neither does anyone else."
       },
       "cooperative": {
         "name": "Cozy Cooperative",
-        "desc": "Everyone's happy. High morale, gentle bonuses."
+        "desc": "Snacks in every room. Nobody works late. Nobody asks why."
       },
       "science": {
         "name": "Questionable Science",
-        "desc": "Breakthroughs and side effects. More rare events."
+        "desc": "Breakthroughs, and the side effects of breakthroughs."
       },
       "marketing": {
         "name": "Aggressive Marketing",
-        "desc": "Hype above all. Big rare-event chance."
+        "desc": "Say it loudly enough and it becomes true."
       },
       "underground": {
         "name": "Underground Operations",

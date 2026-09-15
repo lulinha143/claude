@@ -3068,6 +3068,48 @@ select,
   font-size: max(var(--fs-min), 0.78em);
   color: var(--cream-dim);
 }
+/* The concrete numbers under a branch's pitch. Chips rather than a sentence, because
+   the point is comparing five cards at a glance before a permanent choice. */
+.branch__effects {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: auto;
+  padding-top: 4px;
+  /* Cancel `.branch span`'s 0.78em shrink. This element is a span only because it is a
+     grouping wrapper, and inheriting the description's smaller size then compounding
+     the chip's own size on top of it drove the chips to 7.49px at compact width.
+     Still routed through the floor: this is a reset UP, so the floor never binds, but
+     the rule stays inspectable by the same ratchet as every other relative size. */
+  font-size: max(var(--fs-min), 1em);
+}
+/* Uses the game's own --positive/--negative, lifted toward cream so it carries as
+   TEXT on the branch card's dark surface. The raw tokens are tuned for fills and
+   for light panels; at 0.72em on rgba(0,0,0,0.25) they sit too close to the
+   background to read. */
+.branch__effects em {
+  font-style: normal;
+  font-weight: 700;
+  /* A literal 11px floor, not `var(--fs-min)`. The global floor is deliberately gated to
+     roomy windows, but these chips are the numbers a player compares before making a
+     PERMANENT choice, so they must stay readable in a small window too. Safe to pin
+     here because the grid reflows (`auto-fill, minmax(150px, 1fr)`) and the chips wrap,
+     which is verified for overflow down to 320px. */
+  font-size: max(11px, 0.72em);
+  color: color-mix(in srgb, var(--positive) 62%, var(--cream));
+  background: color-mix(in srgb, var(--positive) 18%, rgba(0, 0, 0, 0.34));
+  border: 1px solid color-mix(in srgb, var(--positive) 45%, transparent);
+  border-radius: 999px;
+  padding: 1px 7px;
+  white-space: nowrap;
+}
+/* A cost is stated in the same shape as a benefit, so the trade is legible rather
+   than buried in prose. */
+.branch__effects em.is-cost {
+  color: color-mix(in srgb, var(--negative) 55%, var(--cream));
+  background: color-mix(in srgb, var(--negative) 20%, rgba(0, 0, 0, 0.34));
+  border-color: color-mix(in srgb, var(--negative) 45%, transparent);
+}
 .confirm-row {
   display: flex;
   align-items: center;
