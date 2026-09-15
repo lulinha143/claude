@@ -74,14 +74,15 @@ async function setDocumentVisibility(page: Page, state: 'hidden' | 'visible') {
 }
 
 /* One retry, for the same reason tests/e2e/cable-progression.spec.ts takes one.
-   The Cable case in here physically drags plugs, and solving a desk from its authored
-   slots means ten drags rather than the five fixed moves it used to make — necessary,
-   because a wheel wires a hub into the centre and no fixed perimeter ordering can clear
-   it. Under parallel CPU load a press can occasionally land on a plug that has not
-   finished moving out of the way, so the wrong node is grabbed and the board is left
-   tangled. A single retry absorbs that without masking anything: a genuine failure to
-   solve fails every attempt, and this block is serial, so the retry re-runs it from a
-   clean boot rather than from whatever state the flake left behind. */
+   The Cable case in here plays a REAL-TIME round: the game gives 45 wall-clock seconds
+   and the test has to physically drag ten plugs inside them. Wrong-plug grabs, which
+   used to be the flake here, are now ruled out by hit-testing the press point (see
+   grabPoint), so what is left is honest timing exposure — a heavily loaded machine can
+   make twenty-five verified drags take longer than the round allows. That failure now
+   identifies itself (the phase assertion after the solve loop), and a single retry
+   absorbs it without masking anything: a genuine failure to solve fails every attempt,
+   and this block is serial, so the retry re-runs from a clean boot rather than from
+   whatever state the previous attempt left behind. */
 test.describe.configure({ retries: 1 });
 
 test.describe.serial('premium minigame presentation', () => {
@@ -217,20 +218,57 @@ test.describe.serial('premium minigame presentation', () => {
       x: boardBox!.x + (mirrored ? 1 - x : x) * boardBox!.width,
       y: boardBox!.y + y * boardBox!.height,
     });
+    /* Press where the intended plug is ACTUALLY on top, not at its centre and hope.
+       A plug is a round button about 40px across and a tangled desk routinely overlaps
+       two of them, so a press at plug N's centre can land on plug M and drag the wrong
+       node — the real cause of this test's intermittency. Rather than separating the
+       plugs first (a keyboard pass could do it, but 5 plugs x up to 48 nudges x a
+       position read per nudge does not fit inside the game's own 45-second round, which
+       is how that attempt ended up asserting against a board whose clock had already
+       expired), just ask the page who owns the pixel and offset within the plug until
+       the answer is the plug we mean. Costs one evaluate per drag in the common case. */
+    const grabPoint = async (id: number) => {
+      const box = await plugs.nth(id).boundingBox();
+      expect(box).not.toBeNull();
+      const offsets: [number, number][] = [
+        [0.5, 0.5],
+        [0.5, 0.25],
+        [0.5, 0.75],
+        [0.25, 0.5],
+        [0.75, 0.5],
+        [0.3, 0.3],
+        [0.7, 0.7],
+      ];
+      for (const [fx, fy] of offsets) {
+        const point = { x: box!.x + box!.width * fx, y: box!.y + box!.height * fy };
+        const owner = await page.evaluate(
+          ([px, py]) =>
+            document
+              .elementFromPoint(px, py)
+              ?.closest('.cable__node')
+              ?.getAttribute('data-node-id') ?? null,
+          [point.x, point.y],
+        );
+        if (owner === String(id)) return point;
+      }
+      return null;
+    };
+
     /* Drag, then CHECK the plug actually arrived, and try again if it did not.
        Solving a desk from its authored slots means ten drags rather than the five fixed
        moves this test used to make, and under load a coalesced pointer move can leave a
        plug short of its target. That matters most during the scatter pass: a plug that
        stops short can end up overlapping another, and then the next pick-up grabs the
        wrong one and the whole solve wanders off. Verifying each drag removes the timing
-       sensitivity at its source, which is better than letting the test retry wholesale
-       and better than granting it retries it should not need. */
+       sensitivity at its source. */
     const dragPlug = async (id: number, x: number, y: number) => {
       const destination = target(x, y);
       for (let attempt = 0; attempt < 3; attempt += 1) {
-        const box = await plugs.nth(id).boundingBox();
-        expect(box).not.toBeNull();
-        await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2);
+        const grab = await grabPoint(id);
+        // Stated rather than silently retried: if no pixel of this plug is reachable,
+        // every later assertion is meaningless and the failure should say why.
+        expect(grab, `plug ${id} is fully covered — no point on it is hit-testable`).not.toBeNull();
+        await page.mouse.move(grab!.x, grab!.y);
         await page.mouse.down();
         await page.mouse.move(destination.x, destination.y, { steps: 8 });
         await page.mouse.up();
@@ -273,6 +311,16 @@ test.describe.serial('premium minigame presentation', () => {
       const crossings = (await game.locator('.cable__crossings').textContent()) ?? '';
       if (/\b0\b/.test(crossings)) break;
     }
+    /* Say so if the ROUND ran out rather than the solve failing. A cable round lasts 45
+       real seconds, so a solve that gets slower — more drags, more verification, slower
+       CPU — eventually stops being a puzzle failure and becomes a clock failure. Those
+       look identical from the outside: plugs simply stop responding and sit wherever
+       they were, which reads as "a plug is stuck". Checking the phase first means the
+       next person gets told which of the two happened. */
+    await expect(
+      page.locator('.microgame'),
+      'the 45s round expired before the solve finished — this is a test-speed failure, not a stuck plug',
+    ).toHaveAttribute('data-phase', 'play');
     await expect(game.locator('.cable__crossings')).toContainText('0');
     await expect(game.locator('.cable__cleared')).toBeVisible();
     await expect(game.locator('.cable__cleared')).toContainText('All cables clear!');
