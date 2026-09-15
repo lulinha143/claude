@@ -1,6 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
 import { cableLevelSlots, cableLevelEdges } from '../../src/sim/minigames';
 import { cableScratchRows, cableScratchPoint } from './support/cable-scratch';
+import { watchCableClears, cableClears, cableTangleCount } from './support/cable-watch';
 
 // Regression cover for the highest-priority bug: after clearing a Cable
 // Untangle desk the next round must ALWAYS load. These tests complete many
@@ -111,19 +112,35 @@ async function solveCurrentBoard(page: Page) {
   // two groups cannot touch either.
   const rows = cableScratchRows(slots);
   const scratchPoint = (id: number) => cableScratchPoint(id, n, rows);
+
+  /* Stop the moment THIS desk is recorded as cleared, and check after every single drag.
+     Two reasons, both of which used to break this helper under load.
+     The scatter pass can solve the desk by itself — laying the plugs out in index order
+     across two rows is frequently already untangled — and the seating pass can obviously
+     finish early too. Because nothing is paused here (this suite needs the next desk to
+     actually arrive), a cleared desk advances 1450ms later. Any drag issued after that
+     point lands on the NEXT desk, dragging its plugs around before the test has even
+     looked at it; the caller then finds a partly-disturbed board and a tangle count that
+     belongs to a puzzle it never solved.
+     `alreadyCleared` is the count of clears seen before this desk, so "cleared" means
+     "one more than we started with" rather than "any clear has ever happened". */
+  const alreadyCleared = (await cableClears(page)).length;
+  const cleared = async () => (await cableClears(page)).length > alreadyCleared;
+
   for (let id = 0; id < n; id += 1) {
     const scratch = scratchPoint(id);
     await dragTo(id, scratch.x, scratch.y);
+    if (await cleared()) return;
   }
 
   // Place each plug onto its solution slot. Under heavy parallel CPU load a
   // pointer move can be coalesced and a plug may miss its slot, so re-seat any
   // remaining plugs until the desk reads clear (bounded retries).
   for (let attempt = 0; attempt < 8; attempt += 1) {
-    for (let id = 0; id < n; id += 1) await dragTo(id, slots[id].x, slots[id].y);
-    if ((await board.getAttribute('data-stage')) === 'cleared') return;
-    const crossings = (await page.locator('.cable__crossings').textContent()) ?? '';
-    if (/\b0\b/.test(crossings)) return;
+    for (let id = 0; id < n; id += 1) {
+      await dragTo(id, slots[id].x, slots[id].y);
+      if (await cleared()) return;
+    }
   }
 }
 
@@ -134,10 +151,13 @@ async function setVisibility(page: Page, state: 'hidden' | 'visible') {
   }, state);
 }
 
-// These tests physically drag many plugs; a single retry absorbs rare
-// pointer-timing hiccups under heavy parallel CPU load without masking a real
-// progression stall (which would fail every attempt).
-test.describe.configure({ retries: 1 });
+/* No retries, deliberately — see the same note in minigame-polish.spec.ts.
+   These tests physically drag many plugs and used to take one retry for "rare
+   pointer-timing hiccups under heavy parallel CPU load". That was a misdiagnosis. The
+   real cause was the 1450ms auto-advance between desks: the solve helper kept dragging
+   after a desk had cleared (so the next desk got disturbed), and the assertions polled a
+   cleared state that had already ended. Both are fixed at the source, and one assertion
+   here was simply wrong — `not.toContainText('0')` fails on "Tangles: 10". */
 
 test.describe.serial('cable untangle keeps loading round after round', () => {
   test('clears at least six consecutive desks without repeating the recent profile', async ({
@@ -145,6 +165,7 @@ test.describe.serial('cable untangle keeps loading round after round', () => {
   }) => {
     await boot(page);
     await startCable(page);
+    await watchCableClears(page);
     const board = page.locator('.cable__board');
     const seenLevels: string[] = [];
 
@@ -159,8 +180,14 @@ test.describe.serial('cable untangle keeps loading round after round', () => {
       }
 
       await solveCurrentBoard(page);
-      await expect(board).toHaveAttribute('data-stage', 'cleared', { timeout: 10_000 });
-      await expect(page.locator('.cable__cleared')).toBeVisible();
+      /* That this desk cleared is asserted from the RECORDING, not from the live DOM.
+         The cleared state only lasts 1450ms before the next desk loads, and this suite
+         deliberately lets that advance happen — so by the time a `toHaveAttribute` poll
+         runs, "solving" is the correct and expected answer. See support/cable-watch.ts. */
+      expect(
+        (await cableClears(page)).length,
+        `desk ${levelId} (round ${startRound}) never reached a cleared state`,
+      ).toBe(round + 1);
 
       // The very next desk MUST arrive: round counter advances, stage returns
       // to solving, and a fresh (tangled) board is presented.
@@ -168,13 +195,39 @@ test.describe.serial('cable untangle keeps loading round after round', () => {
         timeout: 10_000,
       });
       await expect(board).toHaveAttribute('data-stage', 'solving', { timeout: 10_000 });
-      await expect(page.locator('.cable__crossings')).not.toContainText('0');
+      // Compared as a NUMBER. `not.toContainText('0')` passed for years only because
+      // small desks never showed a count with a zero digit in it; "Tangles: 10" on a
+      // nine-plug desk contains "0" and failed a board that was correctly tangled.
+      await expect.poll(() => cableTangleCount(page), { timeout: 10_000 }).toBeGreaterThan(0);
     }
+
+    /* The whole sequence, checked once at the end: six distinct desks, each of which
+       reported zero crossings and announced itself at the instant it cleared, with the
+       round counter strictly increasing. */
+    const clears = await cableClears(page);
+    expect(clears).toHaveLength(6);
+    for (const record of clears) {
+      expect(record.crossings, `desk ${record.level} cleared without reporting zero`).toMatch(
+        /\b0\b/,
+      );
+      expect(record.panel, `desk ${record.level} cleared without announcing it`).toContain(
+        'All cables clear!',
+      );
+    }
+    const rounds = clears.map((record) => record.round);
+    expect(rounds, `rounds did not advance one per desk: ${rounds.join(',')}`).toEqual(
+      [...rounds].sort((a, b) => a - b),
+    );
+    expect(new Set(rounds).size, 'two desks cleared on the same round counter').toBe(6);
   });
 
   test('keeps a nine-plug hard desk playable inside a compact viewport', async ({ page }) => {
     await boot(page);
     await startCable(page);
+    // Required by solveCurrentBoard: without the recorder it cannot tell when a desk has
+    // cleared, so it would spend all eight seating attempts and keep dragging plugs onto
+    // desks that had already advanced.
+    await watchCableClears(page);
     const board = page.locator('.cable__board');
 
     for (let round = 0; round < 4; round += 1) {
@@ -219,11 +272,16 @@ test.describe.serial('cable untangle keeps loading round after round', () => {
   }) => {
     await boot(page);
     await startCable(page);
+    await watchCableClears(page);
     const board = page.locator('.cable__board');
 
     const startRound = Number(await board.getAttribute('data-round'));
     await solveCurrentBoard(page);
-    await expect(board).toHaveAttribute('data-stage', 'cleared', { timeout: 5_000 });
+    /* From the recording, not a live poll. The celebration is 1450ms long and this test
+       must storm visibility DURING it, so it cannot afford to spend that window asking
+       the DOM whether the window it is trying to catch is still open. solveCurrentBoard
+       returns as soon as the clear is recorded, which is the start of the window. */
+    expect((await cableClears(page)).length, 'the first desk never cleared').toBe(1);
 
     // Storm the visibility state during the celebration — the old timer would
     // restart forever and never load the next desk.
