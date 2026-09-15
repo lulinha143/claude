@@ -194,19 +194,34 @@ const SPRITES: Record<ClickStationKind, StationSprite> = {
   },
 
   // An announcement horn on a bracket.
+  /* A megaphone on a post, flaring to the right.
+     The old one went from a 4-wide throat to an 18-tall mouth in three steps, with the
+     red accent floating as a separate bar past the rim — at room size it read as grey
+     blocks with a detached red smear. A horn needs a readable CONE, so this flares in
+     six even steps (6, 8, 12, 14, 18, 20) from a gripped throat to a belled rim, with
+     the rim lit along the top and shaded underneath. The accent is the mouth of the
+     bell rather than something beside it, so a tap looks like the horn sounding. */
   megaphone: {
     base: [
-      [6, 22, 3, 5, C.ms],
-      [4, 26, 8, 1, C.k],
-      [8, 12, 4, 8, C.m],
-      [12, 9, 3, 14, C.ml],
-      [15, 7, 3, 18, C.m],
-      [15, 7, 3, 1, C.ml],
-      [15, 24, 3, 1, C.ms],
+      // post and plinth
+      [7, 26, 10, 2, C.k],
+      [10, 20, 3, 6, C.ms],
+      // grip behind the throat
+      [3, 12, 3, 5, C.k],
+      // throat flaring out to the bell
+      [6, 11, 2, 6, C.ms],
+      [8, 10, 2, 8, C.m],
+      [10, 8, 2, 12, C.m],
+      [12, 7, 2, 14, C.ml],
+      [14, 5, 2, 18, C.m],
+      [16, 4, 2, 20, C.ml],
+      // lit top rim, shaded underside
+      [16, 4, 2, 1, C.white],
+      [16, 23, 2, 1, C.ms],
     ],
     accent: [
-      [18, 10, 2, 12, C.red],
-      [18, 13, 2, 5, C.redl],
+      [16, 7, 2, 14, C.red],
+      [16, 10, 2, 8, C.redl],
     ],
   },
 
@@ -388,20 +403,37 @@ const SPRITES: Record<ClickStationKind, StationSprite> = {
   },
 
   // A rooftop signal dish.
+  /* A parabolic dish on a mast, aimed to the right.
+     The previous version stacked bars whose heights DESCENDED left to right (10, 12,
+     10, 7, 4), which draws a lopsided wedge rather than a dish, and parked its accent
+     as a detached 2x2 square in the top-left corner. Rendered at 70x81 in a room it
+     read as a handful of grey blocks — you could not tell what the object was.
+     A dish is a round thing, and the way pixel art draws round is by STEPPING: bars
+     that grow to the middle and shrink away again give a circular outline, the far rim
+     sits in shade, the near face catches the light, and a feed arm on a boom tells you
+     which way it is pointing. The face is the accent, so tapping it lights the dish. */
   antenna: {
     base: [
-      [11, 18, 2, 8, C.ms],
-      [7, 26, 10, 1, C.k],
-      [8, 16, 8, 2, C.m],
-      [5, 6, 3, 10, C.ml],
-      [8, 5, 3, 12, C.m],
-      [11, 6, 3, 10, C.ml],
-      [14, 8, 2, 7, C.m],
-      [16, 10, 1, 4, C.ms],
+      // plinth and mast
+      [7, 26, 10, 2, C.k],
+      [11, 20, 2, 6, C.ms],
+      [9, 19, 6, 2, C.m],
+      // dish, stepped to a round silhouette: far rim in shade, near face lighter
+      [7, 9, 2, 10, C.ms],
+      [9, 7, 2, 14, C.m],
+      [11, 6, 2, 16, C.ml],
+      [13, 7, 2, 14, C.ml],
+      [15, 9, 2, 10, C.m],
+      // top-left light catches the upper rim
+      [9, 7, 2, 1, C.white],
+      [11, 6, 2, 1, C.white],
+      // feed boom and horn, so the dish is clearly aimed somewhere
+      [17, 13, 3, 2, C.ms],
+      [20, 12, 2, 4, C.ml],
     ],
     accent: [
-      [4, 4, 2, 2, C.scrl],
-      [6, 10, 2, 3, C.scr],
+      [11, 9, 2, 10, C.scrl],
+      [13, 10, 2, 8, C.scr],
     ],
   },
 };
