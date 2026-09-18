@@ -14,7 +14,7 @@ ERROR: Cannot create symbolic link : ... winCodeSign\...\darwin\10.12\lib\libcry
 ### Why it happens
 
 To build the **NSIS installer**, electron-builder downloads a helper package
-(`winCodeSign`) that contains macOS files stored as *symbolic links*. Creating a
+(`winCodeSign`) that contains macOS files stored as _symbolic links_. Creating a
 symbolic link on Windows requires a special privilege. A normal (non-admin)
 account without Developer Mode cannot create them, so extraction fails.
 
@@ -71,11 +71,11 @@ Pick **one** of these, then re-run `npm run build:windows`:
 
 After a successful build, everything is in the `release\` folder:
 
-| Command | Output |
-| --- | --- |
-| `npm run build:windows:folder` | `release\win-unpacked\ZooWorkers.exe` (portable folder) |
-| `npm run build:portable` | `release\ZooWorkers-<version>-portable.exe` (single file) |
-| `npm run build:windows` | `release\ZooWorkers-<version>-x64.exe` (NSIS installer) |
+| Command                        | Output                                                    |
+| ------------------------------ | --------------------------------------------------------- |
+| `npm run build:windows:folder` | `release\win-unpacked\ZooWorkers.exe` (portable folder)   |
+| `npm run build:portable`       | `release\ZooWorkers-<version>-portable.exe` (single file) |
+| `npm run build:windows`        | `release\ZooWorkers-<version>-x64.exe` (NSIS installer)   |
 
 ## Note about the "default Electron icon is used" warning
 

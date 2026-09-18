@@ -6,6 +6,28 @@ import { hashStringToSeed } from './rng';
 
 export type MicroMode = 'coffeeRescue' | 'bugSquash' | 'cableUntangle';
 
+export interface MicroReward {
+  nuts: number;
+  boost: number;
+  best: number;
+  newBest: boolean;
+  mastered: boolean;
+  employeeIds: string[];
+  decorationId?: string;
+}
+
+export const MICRO_SOUVENIRS: Record<MicroMode, string> = {
+  coffeeRescue: 'menu-chalkboard',
+  bugSquash: 'specimen-shelf',
+  cableUntangle: 'pipe-cluster',
+};
+
+export const MICRO_TEAM: Record<MicroMode, readonly string[]> = {
+  coffeeRescue: ['marlow', 'pip'],
+  bugSquash: ['quincy', 'nixie'],
+  cableUntangle: ['nixie', 'bea'],
+};
+
 // --- Coffee Rescue --------------------------------------------------------
 // Drops fall; the mug catches them. Difficulty ramps gently with elapsed time,
 // and consecutive catches build a combo multiplier.

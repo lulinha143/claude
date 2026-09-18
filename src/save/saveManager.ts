@@ -2,6 +2,7 @@ import type { GameState } from '../sim/types';
 import { createInitialState } from '../sim/state';
 import { gameStateSchema } from './schema';
 import { migrate } from './migrations';
+import { SAVE_VERSION } from '../sim/config';
 
 // Storage abstraction so the save system is testable and works in the browser
 // (localStorage), in tests (in-memory), and in Electron (renderer localStorage,
@@ -130,6 +131,30 @@ export class SaveManager {
   }
 
   importSave(json: string): { ok: boolean; state?: GameState; error?: string } {
+    // A settings file or future game version must not silently become a fresh
+    // company through schema defaults. Old exports with resource data still migrate.
+    try {
+      const raw = JSON.parse(json) as Record<string, unknown> | null;
+      if (
+        !raw ||
+        Array.isArray(raw) ||
+        typeof raw !== 'object' ||
+        !raw.resources ||
+        typeof raw.resources !== 'object' ||
+        Array.isArray(raw.resources)
+      )
+        return { ok: false, error: 'invalid' };
+      if (
+        raw.version !== undefined &&
+        (typeof raw.version !== 'number' ||
+          !Number.isInteger(raw.version) ||
+          raw.version < 1 ||
+          raw.version > SAVE_VERSION)
+      )
+        return { ok: false, error: 'unsupported-version' };
+    } catch {
+      return { ok: false, error: 'invalid' };
+    }
     const parsed = this.parse(json);
     if (!parsed) return { ok: false, error: 'invalid' };
     // sanitize: clamp obviously-cheated / NaN values happens in schema catches

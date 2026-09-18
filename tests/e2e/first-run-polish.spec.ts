@@ -2,18 +2,17 @@ import { test, expect, type Page } from '@playwright/test';
 
 const DIR = 'visual-artifacts';
 
-async function seedFreshSettings(
-  page: Page,
-  language = 'en',
-  reducedMotion = true,
-) {
-  await page.addInitScript(({ locale, reduceMotion }) => {
-    localStorage.removeItem('wmno.save.v1');
-    localStorage.setItem(
-      'wmno.settings.v1',
-      JSON.stringify({ reducedMotion: reduceMotion, language: locale }),
-    );
-  }, { locale: language, reduceMotion: reducedMotion });
+async function seedFreshSettings(page: Page, language = 'en', reducedMotion = true) {
+  await page.addInitScript(
+    ({ locale, reduceMotion }) => {
+      localStorage.removeItem('wmno.save.v1');
+      localStorage.setItem(
+        'wmno.settings.v1',
+        JSON.stringify({ reducedMotion: reduceMotion, language: locale }),
+      );
+    },
+    { locale: language, reduceMotion: reducedMotion },
+  );
 }
 
 async function expectContained(page: Page, selector: string) {
@@ -74,7 +73,9 @@ test('premium first run is illustrated, keyboard-safe, and fully navigable', asy
   await expect(page.locator('.office')).toBeVisible();
 });
 
-test('compact localized first run stays contained and respects reduced motion', async ({ page }) => {
+test('compact localized first run stays contained and respects reduced motion', async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 390, height: 700 });
   await seedFreshSettings(page, 'pt-BR');
   await page.goto('/');
@@ -106,9 +107,9 @@ test('Escape offers a complete keyboard bypass without trapping focus', async ({
   await expect(page.locator('.office')).toBeVisible();
 });
 
-
-
-test('minimum desktop window keeps opening actions visible and focus locked during impact', async ({ page }) => {
+test('minimum desktop window keeps opening actions visible and focus locked during impact', async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 320, height: 420 });
   await seedFreshSettings(page, 'en', false);
   await page.goto('/');

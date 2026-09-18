@@ -121,6 +121,7 @@ export type PrestigeBranchId =
   'industrial' | 'cooperative' | 'science' | 'marketing' | 'underground';
 
 export interface PrestigeState {
+  nutsAtLastPrestige?: number;
   count: number;
   branch: PrestigeBranchId | null;
   skills: Record<string, number>; // skillId -> level
@@ -306,6 +307,12 @@ export interface GameState {
    * look profitable now and bill the company afterwards.
    */
   scheduled: ScheduledConsequence[];
+  /** Resume the exact unresolved decision after closing/reloading the game. */
+  eventInProgress: { eventId: string; step: string | null } | null;
+  /** Earned encouragement expires against wall-clock time, including while away. */
+  boosts: { multiplier: number; endsAt: number }[];
+  /** Personal bests and practice history survive company restructures. */
+  microgames: Record<string, { best: number; plays: number; lastRewardAt: number }>;
 }
 
 export interface ProductionBreakdownEntry {

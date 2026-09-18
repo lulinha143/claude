@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useGame } from '../../state/hooks';
 import { useStore } from '../../state/store';
 import { EMPLOYEES_BY_ID } from '../../content/employees';
+import { DiscoveryArt } from '../../art/DiscoveryArt';
 import { Critter } from '../../art/Critter';
 import { shapeFor } from '../../art/critterShapes';
 import {
@@ -109,6 +110,7 @@ export function EventModal() {
             size={68}
           />
         ) : null}
+        <DiscoveryArt eventId={def.id} />
         <h2 id={titleId}>{t(def.titleKey)}</h2>
       </div>
       <p className="event-modal__body">{t(body)}</p>

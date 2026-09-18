@@ -9,7 +9,15 @@ import {
 import { moodMultiplier, computeProduction } from '../src/sim/economy';
 import type { EmployeeMood } from '../src/sim/types';
 
-const ALL: EmployeeMood[] = ['focused', 'relaxed', 'inspired', 'tired', 'frustrated', 'curious', 'proud'];
+const ALL: EmployeeMood[] = [
+  'focused',
+  'relaxed',
+  'inspired',
+  'tired',
+  'frustrated',
+  'curious',
+  'proud',
+];
 
 describe('mood → productivity (modest, never punishing)', () => {
   it('keeps every emotion within ±5% and never zero', () => {

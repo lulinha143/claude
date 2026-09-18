@@ -109,7 +109,16 @@ export function eligibleTopics(state: GameState, employeeId: string, now: number
       return checkTalkRequirement(state, employeeId, topic.requires, now).length === 0;
     })
     .slice()
-    .sort((a, b) => b.weight - a.weight || a.id.localeCompare(b.id));
+    .sort((a, b) => {
+      // Urgent situations retain priority. Otherwise give unseen material a turn,
+      // then revisit the oldest exchange: a repeatable check-in must not permanently
+      // hide gifts, discoveries or any lower-weight authored topic.
+      if (a.weight >= 14 || b.weight >= 14) return b.weight - a.weight;
+      const seen = talkMemory(state, employeeId).seen;
+      return (
+        (seen[a.id] ?? 0) - (seen[b.id] ?? 0) || b.weight - a.weight || a.id.localeCompare(b.id)
+      );
+    });
 }
 
 /**
@@ -132,9 +141,8 @@ export function canTalk(state: GameState, employeeId: string, now: number): bool
  *
  * Options that fail are returned DISABLED WITH REASONS rather than dropped, because a
  * conversation where the interesting option silently vanishes teaches the player
- * nothing. A node always ends up with at least one enabled option: if gating would
- * close every door, the requirements are ignored on the first option so the
- * conversation can never trap the player.
+ * nothing. If every door closes, offer a consequence-free exit; never bypass a
+ * resource or relationship requirement to repair a dead end.
  */
 export function evaluateTalkNode(
   state: GameState,
@@ -147,7 +155,18 @@ export function evaluateTalkNode(
     return { choice, enabled: failures.length === 0, failures };
   });
   if (evaluated.length > 0 && !evaluated.some((e) => e.enabled)) {
-    evaluated[0] = { ...evaluated[0], enabled: true };
+    let id = 'defer';
+    while (choices.some((choice) => choice.id === id)) id += '-exit';
+    evaluated.push({
+      choice: {
+        id,
+        labelKey: 'talk.defer.label',
+        replyKey: 'talk.defer.reply',
+        effects: [],
+      },
+      enabled: true,
+      failures: [],
+    });
   }
   return evaluated;
 }

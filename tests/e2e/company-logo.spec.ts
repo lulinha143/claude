@@ -26,8 +26,10 @@ async function seed(page: Page) {
 async function clearModals(page: Page) {
   for (let i = 0; i < 4; i += 1) {
     const ok = page.locator('.modal .buy-btn, .modal button:has-text("OK")').first();
-    if (await ok.count()) { await ok.click({ timeout: 1500 }).catch(() => {}); await page.waitForTimeout(150); }
-    else break;
+    if (await ok.count()) {
+      await ok.click({ timeout: 1500 }).catch(() => {});
+      await page.waitForTimeout(150);
+    } else break;
   }
   await page.waitForTimeout(150);
 }
@@ -65,8 +67,7 @@ test('company logo picker applies, persists, and reflects everywhere', async ({ 
   await clearModals(page);
   expect(await savedIcon(page)).toBe('fox');
   await page.getByTestId('company-logo').click();
-  await expect(page.locator('.company-icon-picker').getByRole('radio', { name: 'Fox' })).toHaveAttribute(
-    'aria-checked',
-    'true',
-  );
+  await expect(
+    page.locator('.company-icon-picker').getByRole('radio', { name: 'Fox' }),
+  ).toHaveAttribute('aria-checked', 'true');
 });

@@ -54,20 +54,8 @@ async function openConstruction(page: Page) {
   await page.waitForTimeout(400);
 }
 
-// BLOCKED ON A MISSING ASSET, NOT ON CODE.
-//
-// `public/employees/` only contains Pip's artwork; bea.png / bea-poster.png (and
-// marlow / penguin / canela) are registered in EMPLOYEE_SPRITES but have never
-// been committed, so `npm run verify:assets` reports them missing and this test
-// cannot load frames to compare. It fails on the base branch for the same reason.
-//
-// Re-enable by committing Bea's APNG + poster. The behaviour that IS verifiable
-// today is covered by "a character with missing artwork falls back to the drawn
-// silhouette" below, and the animation/geometry contract is covered by the Pip
-// tests, which use the one character whose art is present.
-test.skip("Bea's animated workstation sprite renders and loops in her department", async ({
-  page,
-}) => {
+// The complete cast is present, including Bea's native-density animation.
+test("Bea's animated workstation sprite renders and loops in her department", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await seed(page, saveWith({}));
   await page.goto('/');
@@ -81,7 +69,7 @@ test.skip("Bea's animated workstation sprite renders and loops in her department
 
   // The animated APNG (not the poster) is the source, and it decoded.
   const src = await sprite.getAttribute('src');
-  expect(src).toContain('employees/bea.png');
+  expect(src).toMatch(/employees\/bea(-1x)?\.png$/);
   const natural = await sprite.evaluate((el) => (el as HTMLImageElement).naturalWidth);
   expect(natural).toBeGreaterThan(0);
 
@@ -97,10 +85,11 @@ test.skip("Bea's animated workstation sprite renders and loops in her department
   // re-render by interacting, and confirm the very same element persists and is
   // still the animated source (the loop is never reset by React state churn).
   const handle = await sprite.elementHandle();
-  await page.locator('.floor[data-room="construction"] .critter-btn').first().click();
+  await page.locator('.floor[data-room="construction"] .station-btn').first().click();
   await page.waitForTimeout(300);
   const stillThere = await handle!.evaluate(
-    (el) => el.isConnected && (el as HTMLImageElement).currentSrc.includes('employees/bea.png'),
+    (el) =>
+      el.isConnected && /employees\/bea(-1x)?\.png$/.test((el as HTMLImageElement).currentSrc),
   );
   expect(stillThere).toBe(true);
 

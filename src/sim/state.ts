@@ -134,6 +134,9 @@ export function createInitialState(now = Date.now(), settings?: Partial<GameSett
     eventCooldowns: {},
     flags: {},
     scheduled: [],
+    eventInProgress: null,
+    boosts: [],
+    microgames: {},
     pendingChain: null,
     eventHistory: [],
   };

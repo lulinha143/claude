@@ -384,6 +384,9 @@ export function autoCollectRate(state: GameState): number {
 }
 
 export function isEmployeeUnlocked(state: GameState, def: EmployeeDef): boolean {
+  // Hiring is permanent for this run. A reputation setback must not remove a
+  // colleague's conversation, coffee or promotion controls.
+  if (state.employees[def.id]?.hired) return true;
   if (def.unlock.reputation && state.resources.reputation < def.unlock.reputation) return false;
   if (def.unlock.prestige && state.prestige.count < def.unlock.prestige) return false;
   return true;

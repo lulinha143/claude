@@ -420,21 +420,33 @@
       "role": "Pesquisa e Regeneração",
       "story": "Axel, o axolote, encara todo problema com um sorriso e a certeza de que tudo pode crescer de novo.",
       "goal": "Descobrir algo que ninguém nunca cultivou."
-    }
+    },
+    "coffeeCooling": "Café em {{seconds}}s"
   },
   "item": {
     "coffeeMug": "Caneca de café lascada",
-    "beanbag": "Puff enorme",
+    "beanbag": "Pufe enorme",
     "stapler": "O único grampeador verdadeiro",
-    "plank": "Tábua suspeitosamente boa",
-    "megaphone": "Megafone um tico alto demais",
+    "plank": "Tábua boa até demais",
+    "megaphone": "Megafone um pouco alto demais",
     "goggles": "Óculos de escavação",
-    "gadget": "Geringonça caseira",
+    "gadget": "Engenhoca caseira",
     "ledger": "Livro-caixa impecável",
     "gavel": "Martelinho de juiz",
     "clipboard": "Prancheta lotada",
     "telescope": "Telescópio de latão",
-    "briefcase": "Maleta charmosa"
+    "briefcase": "Maleta charmosa",
+    "routeBook": "Caderno de rotas gasto",
+    "fieldNotebook": "Caderno de campo manchado de chuva",
+    "cushion": "Almofada aquecida pelo sol",
+    "honeyTin": "Lata de mel amassada",
+    "bugJar": "Pote de insetos com furinhos",
+    "hammock": "Rede cuidadosamente remendada",
+    "stampPad": "Almofada de carimbos de oito cores",
+    "tuningFork": "Diapasão do turno da noite",
+    "ribbon": "Fita de seda da inauguração",
+    "receiptBook": "Talão de recibos carbonado",
+    "cuttingJar": "Pote de mudas esperançosas"
   },
   "outfit": {
     "pip": {
@@ -1791,7 +1803,7 @@
     "explain": "Reinicie sua empresa para ganhar Grãos Permanentes. Mantenha suas coleções, cosméticos, conquistas, memórias dos funcionários e árvore de habilidades.",
     "confirm": "Ficar Completamente Louco?",
     "willEarn": "Você vai ganhar {{value}} Grãos Permanentes.",
-    "lockedUntil": "Desbloqueia após ganhar {{value}} castanhas no total.",
+    "lockedUntil": "Desbloqueia após produzir {{value}} castanhas neste ciclo da empresa.",
     "chooseBranch": "Escolha um ramo da empresa",
     "effect": {
       "production": "{{value}} de produção",
@@ -1959,7 +1971,14 @@
       "ok": "Bom trabalho!",
       "great": "Ótimo trabalho!",
       "perfect": "Sensacional!"
-    }
+    },
+    "practiceComplete": "Turno de prática registrado",
+    "actualReward": "{{nuts}} nozes · +{{percent}}% de produção por 90 segundos",
+    "newBest": "Novo recorde pessoal: {{score}}",
+    "personalBest": "Recorde pessoal: {{score}}",
+    "masteryReward": "Primeiro domínio: 1 noz dourada e uma lembrança da empresa",
+    "teamReward": "{{names}} agradeceram a ajuda (+3 de confiança)",
+    "souvenir": "Lembrança para o escritório: {{name}}. Disponível em Decorar."
   },
   "overview": {
     "workers": "{{count}} trabalhando aqui",
@@ -1976,7 +1995,10 @@
     "upgrade": "Você já pode comprar uma melhoria.",
     "prestige": "Você está pronto para Ficar Completamente Louco!",
     "focus": "Experimente uma sessão de Colheita de Foco.",
-    "decorate": "Você já pode comprar uma decoração."
+    "decorate": "Você já pode comprar uma decoração.",
+    "firstConversation": "Conheça {{name}} — uma conversa pode mudar o expediente.",
+    "firstActivity": "Faça uma pausa com a equipe. Experimente uma atividade.",
+    "firstDecoration": "Deixe sua marca no escritório. Você já pode comprar a primeira decoração."
   },
   "mood": {
     "focused": "Focado",
@@ -2083,7 +2105,8 @@
         "observer": "Observador",
         "keyhole": "Buraco de fechadura"
       }
-    }
+    },
+    "recordedChoice": "Decisão arquivada"
   },
   "prod": {
     "title": "Detalhes da produção",
@@ -2269,7 +2292,8 @@
       "confidential": "Confidencial",
       "posted": "A todo o pessoal"
     },
-    "from": "Nutshell Inc. — Pesquisa Comportamental"
+    "from": "Nutshell Inc. — Pesquisa Comportamental",
+    "unknownTitle": "Um dia na Nutshell Inc."
   },
   "consequence": {
     "nutsGain": "+{{value}} castanhas",
@@ -3123,6 +3147,513 @@
           "reply": "Claro. Aviso: demora, porque eu paro em tudo. É meio que o meu ponto."
         }
       }
+    },
+    "defer": {
+      "label": "Deixar essa decisão para outro momento.",
+      "reply": "Tudo bem. Não precisamos decidir agora."
+    },
+    "otherTopics": "Outros assuntos",
+    "favorite": "Objeto querido",
+    "discovered": "História conhecida",
+    "keepsakeFile": "Arquivo de objetos pessoais"
+  },
+  "keepsake": {
+    "pip": {
+      "scene": "Uma marca de caneca no primeiro livro da empresa.",
+      "prompt": "A alça quebrou no primeiro dia. Eu sempre dizia que ia trocar. Engraçado o que fica.",
+      "care": {
+        "label": "Consertar a alça. Manter a lasca.",
+        "reply": "Ah. Continua parecendo minha. Obrigado."
+      },
+      "other": {
+        "label": "Guardar no arquivo da empresa.",
+        "reply": "Uma peça de museu? Eu ainda bebia nela."
+      }
+    },
+    "marlow": {
+      "scene": "O RH reservou um canto tranquilo.",
+      "prompt": "Todo mundo chama de minha cadeira. É onde as pessoas sentam quando ainda não conseguem dizer o que aconteceu.",
+      "care": {
+        "label": "Encher o pufe. Deixar o canto tranquilo.",
+        "reply": "Sem precisar marcar horário. Essa é a parte importante."
+      },
+      "other": {
+        "label": "Deixar no RH, longe da produção.",
+        "reply": "Uma caminhada maior para quem já tem dificuldade de pedir."
+      }
+    },
+    "rizzo": {
+      "scene": "Um grampeador embrulhado num recibo antigo.",
+      "prompt": "Sem número de série. Sem garantia. Nunca emperra. Duas dessas coisas têm relação.",
+      "care": {
+        "label": "Comprar os grampos certos. Não perguntar.",
+        "reply": "Você entende de compras. Finalmente."
+      },
+      "other": {
+        "label": "Pedir o recibo original.",
+        "reply": "Claro. Me dê um minuto e sua caneta mais velha."
+      }
+    },
+    "bea": {
+      "scene": "Bea mediu a mesma tábua três vezes.",
+      "prompt": "Fibra reta. Sem nós. Uma prateleira seria desperdício. Uma ponte seria exibicionismo.",
+      "care": {
+        "label": "Fazer um degrau para os menores.",
+        "reply": "Útil. Aguenta peso. Gostei do seu jeito de pensar."
+      },
+      "other": {
+        "label": "Guardar para a próxima expansão.",
+        "reply": "Então ninguém corta para fazer uma placa de reunião. Combinado?"
+      }
+    },
+    "corvus": {
+      "scene": "O marketing marcou um ensaio silencioso.",
+      "prompt": "Com isso eu alcanço o prédio inteiro. Nunca perguntei se o prédio quer isso.",
+      "care": {
+        "label": "Instalar um limitador de volume.",
+        "reply": "Tudo bem. A campanha pode falar baixo."
+      },
+      "other": {
+        "label": "Marcar um anúncio espetacular.",
+        "reply": "Um só? Então vai valer a pena."
+      }
+    },
+    "mina": {
+      "scene": "Há poeira do lado de dentro das lentes.",
+      "prompt": "Esses riscos vieram de baixo do porão. Este veio de cima. Mesma pedra. Direção diferente.",
+      "care": {
+        "label": "Trocar as lentes e registrar a descoberta.",
+        "reply": "Ótimo. Eu não queria perder se acontecesse de novo."
+      },
+      "other": {
+        "label": "Fechar essa escavação por enquanto.",
+        "reply": "Eu posso parar de cavar. O barulho talvez não."
+      }
+    },
+    "nixie": {
+      "scene": "A engenhoca tem um botão escrito AINDA NÃO.",
+      "prompt": "Ela separa clipes por importância emocional. O travamento é um convite de casamento.",
+      "care": {
+        "label": "Construir uma liberação manual.",
+        "reply": "Uma saída que não precisa de autorização. Sim."
+      },
+      "other": {
+        "label": "Mandar o protótipo para testes.",
+        "reply": "Quincy vai encontrar o defeito. Peça para ele não comer."
+      }
+    },
+    "otto": {
+      "scene": "Uma página foi dobrada em vez de arquivada.",
+      "prompt": "As contas fecham. A equipe comprou o próprio bolo de aniversário. Essas coisas não deveriam coexistir.",
+      "care": {
+        "label": "Reembolsar o bolo.",
+        "reply": "Pronto. Agora as contas parecem certas."
+      },
+      "other": {
+        "label": "Manter a despesa fora do orçamento.",
+        "reply": "Equilibrado não é a mesma coisa que justo. Vou anotar."
+      }
+    },
+    "hazel": {
+      "scene": "O martelinho repousa num porta-copos, solenemente.",
+      "prompt": "Um martelinho também dá sentença. Hoje: pausa para chá sem pagamento conta como chá?",
+      "care": {
+        "label": "Reconhecer as pausas para chá como remuneradas.",
+        "reply": "Aprovado. Com biscoitos."
+      },
+      "other": {
+        "label": "Pedir um parecer por escrito.",
+        "reply": "Tenho dezessete páginas prontas. Os dois lados têm manchas de chá."
+      }
+    },
+    "junie": {
+      "scene": "Três reuniões ocupam o mesmo quadradinho.",
+      "prompt": "Consigo entregar tudo cinco minutos antes. Menos eu mesma. Só existe uma de mim.",
+      "care": {
+        "label": "Pagar um turno de apoio.",
+        "reply": "Um quadradinho vazio. Tinha esquecido como era."
+      },
+      "other": {
+        "label": "Cancelar a reunião menos útil.",
+        "reply": "Isso libera... quase toda a terça-feira."
+      }
+    },
+    "moss": {
+      "scene": "O telescópio aponta para uma parede interna.",
+      "prompt": "Sem estrelas hoje. Mas alguém do outro lado piscou. Parecia tão surpreso quanto eu.",
+      "care": {
+        "label": "Limpar a lente. Manter a observação em sigilo.",
+        "reply": "Obrigada por não chamar de reflexo."
+      },
+      "other": {
+        "label": "Enviar a observação para a pesquisa.",
+        "reply": "Use lápis. O último relatório se corrigiu sozinho."
+      }
+    },
+    "fenn": {
+      "scene": "Uma proposta sem assinatura aparece na maleta.",
+      "prompt": "O cliente quer a entrega amanhã. Podemos prometer hoje ou dizer a verdade hoje.",
+      "care": {
+        "label": "Financiar o prazo de entrega honesto.",
+        "reply": "Mais difícil vender. Mais fácil dormir. Eu consigo."
+      },
+      "other": {
+        "label": "Deixar o cliente ir embora.",
+        "reply": "Sabe, talvez eles respeitem isso. Eu quase respeito."
+      }
+    },
+    "pingo": {
+      "scene": "Todas as rotas terminam na mesma mancha de café.",
+      "prompt": "Tem uma rota mais curta pela câmara fria. Tem outra mais quente por quem dá bom-dia.",
+      "care": {
+        "label": "Dar tempo para a rota mais calorosa.",
+        "reply": "As encomendas vão chegar. Eu também."
+      },
+      "other": {
+        "label": "Mapear o atalho pela câmara fria.",
+        "reply": "Eficiente. Vou levar outro cachecol."
+      }
+    },
+    "canela": {
+      "scene": "Uma folha marca uma página sobre a samambaia.",
+      "prompt": "Ela se inclina para as conversas, não para as janelas. Mudei de lugar duas vezes para conferir.",
+      "care": {
+        "label": "Dar à samambaia um lugar perto da equipe.",
+        "reply": "Finalmente, um objeto de estudo com vida social saudável."
+      },
+      "other": {
+        "label": "Registrar uma semana de observações discretas.",
+        "reply": "Sem gaiola. Sem etiqueta nas folhas. Só um caderno."
+      }
+    },
+    "nino": {
+      "scene": "A cadeira da reunião tem uma placa de reservado.",
+      "prompt": "Aprovo a nova pauta. Ela tem uma página em branco. Eu e minha almofada vamos presidir essa parte.",
+      "care": {
+        "label": "Mover a almofada para o sol.",
+        "reply": "Uma decisão de gestão que apoio completamente."
+      },
+      "other": {
+        "label": "Deixar outra pessoa presidir a reunião.",
+        "reply": "Delegar. Meu talento mais cansativo."
+      }
+    },
+    "bia": {
+      "scene": "A lata de mel diz SÓ EM EMERGÊNCIAS.",
+      "prompt": "Dia ruim conta. Dia bom que vale compartilhar também. A segurança tem uma definição ampla de emergência.",
+      "care": {
+        "label": "Reabastecer para o próximo turno da noite.",
+        "reply": "Vou deixar a colher onde todos alcançam."
+      },
+      "other": {
+        "label": "Pedir que ela compartilhe agora.",
+        "reply": "Eu estava torcendo para você pedir."
+      }
+    },
+    "quincy": {
+      "scene": "O pote contém um inseto e um formulário de reclamação.",
+      "prompt": "Ele não é um defeito. É uma visita. Os bugs do sistema estão na outra mesa.",
+      "care": {
+        "label": "Montar um habitat lá fora.",
+        "reply": "Notas de lançamento: um besouro muito feliz."
+      },
+      "other": {
+        "label": "Registrar o inseto antes de soltá-lo.",
+        "reply": "Espécie: visitante. Gravidade: adorável."
+      }
+    },
+    "dorm": {
+      "scene": "Um remendo é mais antigo que o logo da empresa.",
+      "prompt": "Eu consertei... devagar. As coisas duram quando descansam entre uma utilidade e outra.",
+      "care": {
+        "label": "Trocar a corda desfiada da rede.",
+        "reply": "Excelente. Vou testar... com cuidado."
+      },
+      "other": {
+        "label": "Marcar uma pausa para toda a empresa.",
+        "reply": "Para todo mundo? Até os relógios?"
+      }
+    },
+    "inky": {
+      "scene": "Sete tentáculos esperam pelo oitavo.",
+      "prompt": "Uma cor para cada fila. Roxo é para o que ninguém quer assumir. Está quase acabando.",
+      "care": {
+        "label": "Repor a tinta e dividir as pendências.",
+        "reply": "Oito braços não significam oito funcionários. Obrigado."
+      },
+      "other": {
+        "label": "Separar juntos a fila sem responsável.",
+        "reply": "Ah. Este aqui está endereçado ao prédio."
+      }
+    },
+    "echo": {
+      "scene": "Uma nota grave paira num corredor vazio.",
+      "prompt": "O prédio zumbe em si bemol. Ontem respondeu em dó. Fui muito educada.",
+      "care": {
+        "label": "Colocar amortecedores nas máquinas barulhentas.",
+        "reply": "Agora ouço meus pensamentos. E talvez os de outra pessoa."
+      },
+      "other": {
+        "label": "Gravar a resposta depois do expediente.",
+        "reply": "Fique do meu lado. É menos estranho com companhia."
+      }
+    },
+    "rosa": {
+      "scene": "Uma fita desbotada está presa atrás do mural da campanha.",
+      "prompt": "Primeiro lançamento. Sem orçamento. Todo mundo usou um pedaço. Ficamos ridículos e ninguém ficou de fora.",
+      "care": {
+        "label": "Comprar fita para a equipe inteira.",
+        "reply": "Combinando? Nunca. Fazendo parte? Com certeza."
+      },
+      "other": {
+        "label": "Emoldurar a fita original.",
+        "reply": "Deixe uma ponta solta. História precisa de movimento."
+      }
+    },
+    "perry": {
+      "scene": "Um recibo foi emitido para ninguém.",
+      "prompt": "O fornecedor entregou no prazo. O fornecedor não existe. Eu gostaria de pagar mesmo assim.",
+      "care": {
+        "label": "Separar o pagamento e registrar direito.",
+        "reply": "Uma boa contabilidade faz poucas suposições."
+      },
+      "other": {
+        "label": "Pedir às compras que rastreiem a entrega.",
+        "reply": "Comece pelas pegadas. Elas só vão para fora."
+      }
+    },
+    "axel": {
+      "scene": "A menor muda criou uma segunda etiqueta.",
+      "prompt": "Cultivo reposições para o que as pessoas quebram. Esta é para algo que ninguém quebrou ainda.",
+      "care": {
+        "label": "Dar às mudas uma bandeja de cultivo.",
+        "reply": "Podemos esperar até alguém precisar."
+      },
+      "other": {
+        "label": "Perguntar o que diz a segunda etiqueta.",
+        "reply": "Diz obrigado. Com a minha letra. Eu não escrevi."
+      }
+    }
+  },
+  "callback": {
+    "mail": {
+      "title": "Uma carta do prédio",
+      "body": "Inky recebeu uma resposta. O envelope está morno. O remetente é o piso embaixo da mesa dele.",
+      "read": "Abrir com Inky.",
+      "return": "Devolver ao remetente, com muito cuidado.",
+      "returnReply": "O envelope some antes da chegada do carrinho de correspondência.",
+      "request": "Por favor, parem de chamar os canos de obsoletos. Eles estão dando o melhor de si.",
+      "quiet": "Pagar por conexões de cano mais silenciosas.",
+      "quietReply": "Na manhã seguinte, os radiadores fazem um som parecido demais com um suspiro.",
+      "listen": "Pedir a Echo que traduza a gravação.",
+      "listenReply": "Não era uma reclamação. Queria saber se estávamos confortáveis.",
+      "file": "Arquivar em manutenção predial.",
+      "fileReply": "Inky deixa a gaveta entreaberta. Por precaução."
+    },
+    "cutting": {
+      "title": "Um segundo agradecimento",
+      "body": "A muda de Axel produziu outra etiqueta: VOCÊ PODE RESPONDER. A letra está menor desta vez.",
+      "answer": "Escrever: você é bem-vinda aqui.",
+      "answerReply": "Axel coloca a resposta onde as raízes possam ler.",
+      "measure": "Analisar a tinta antes de responder.",
+      "measureReply": "A amostra contém tinta, água e uma quantidade bem pequena de decepção.",
+      "laterTitle": "Uma folha nova",
+      "laterBody": "Axel traz uma folha sem nada escrito. Pela primeira vez, a empresa não tem perguntas."
+    },
+    "coffee": {
+      "title": "Café para o turno da noite",
+      "body": "O café que você salvou ficou pronto. Pip separou xícaras para quem nunca aparece nas fotos do dia.",
+      "serve": "Servir uma xícara para cada um.",
+      "mug": "Usar a caneca consertada de Pip na primeira rodada.",
+      "mugReply": "Mesma caneca. Companhia melhor. Pip não faz discurso.",
+      "sell": "Vender as xícaras extras aos visitantes."
+    },
+    "bugs": {
+      "title": "Qualidade é um cuidado",
+      "body": "Quincy encontrou a última falha antes de a encomenda sair. Nada deu errado hoje. Ele tenta explicar por que isso merece comemoração.",
+      "credit": "Colocar o nome dele nas notas de lançamento.",
+      "creditReply": "Ele lê a frase duas vezes, depois finge conferir a ortografia.",
+      "habitat": "Comemorar junto à nova casa do besouro.",
+      "habitatReply": "Duas liberações bem-sucedidas. Nenhuma precisou de gaiola.",
+      "deadline": "Usar o tempo economizado para aumentar a meta."
+    },
+    "cable": {
+      "title": "O cabo sem etiqueta",
+      "body": "A mesa finalmente está desembaraçada. Sobrou um cabo. As duas pontas entram na parede, e Nixie garante que ele não estava lá.",
+      "trace": "Seguir o cabo juntos.",
+      "label": "Etiquetar: não desconectar.",
+      "labelReply": "Pela primeira vez, a parede recebe uma instrução clara.",
+      "wall": "Atrás do rodapé há um botão escrito AINDA NÃO. Ele foi apertado pelo outro lado.",
+      "release": "Usar a liberação manual da engenhoca.",
+      "releaseReply": "Um clique. O cabo afrouxa. Em algum lugar, um clipe está livre.",
+      "leave": "Deixar um bilhete para o próximo turno.",
+      "leaveReply": "Nixie escreve: NÓS TAMBÉM VIMOS. Ninguém deveria investigar sozinho."
+    },
+    "needsRecording": "Peça a Echo para gravar uma resposta primeiro.",
+    "needsMug": "Conserte a caneca favorita de Pip primeiro.",
+    "needsHabitat": "Ajude Quincy com o pote de insetos primeiro.",
+    "needsManual": "Ajude Nixie a documentar o aparelho primeiro."
+  },
+  "ensemble": {
+    "title": "Receitas de ambiente",
+    "intro": "Três peças, um propósito. Organize-as juntas na sala indicada. O benefício dura enquanto o conjunto completo estiver colocado lá.",
+    "active": "Em uso · contribuindo para a empresa",
+    "inactive": "Peças guardadas não contam. Coloque as peças que faltam nesta sala.",
+    "quiet-corner": {
+      "name": "Um canto para respirar",
+      "effect": "Uma planta, uma luminária, um lugar para os pés. Combos nas estações duram 10% mais."
+    },
+    "proper-break": {
+      "name": "Uma pausa de verdade",
+      "effect": "Os peixes fiscalizam os lanches. O moral de equilíbrio aumenta em 3."
+    },
+    "living-lab": {
+      "name": "Ciência com folhas",
+      "effect": "As plantas são o grupo de controle. A produção da empresa ganha 4%."
+    },
+    "paper-trail": {
+      "name": "Cada coisa no seu lugar",
+      "effect": "Menos requisições duplicadas: compras custam 2% menos. Uma gaveta está se organizando sozinha."
+    },
+    "night-watch": {
+      "name": "Alguém está olhando",
+      "effect": "As chaves abrem todas as portas, menos uma. A sorte de eventos raros ganha 4%. Confira os monitores."
+    },
+    "sprout-club": {
+      "name": "O menor departamento",
+      "effect": "Calor, água e expectativas irreais. O moral se recupera 8% mais rápido. Uma folha assinou o ponto."
+    }
+  },
+  "discovery": {
+    "inspect": "Nota sem registro",
+    "archive": {
+      "title": "Arquivado amanhã",
+      "body": "O novo catálogo está em perfeita ordem alfabética. Sob o nome da empresa há uma ficha datada de amanhã. O papel ainda está morno.",
+      "read": "Ler a última página primeiro.",
+      "return": "Devolver. Amanhã não está na pauta de hoje.",
+      "returned": "A gaveta fecha educadamente. Alguém lá dentro pigarreia.",
+      "signature": "O relatório descreve um dia extraordinariamente comum. Uma linha está errada: “Ninguém percebeu a assinatura extra.” Abaixo, um espaço espera pela sua.",
+      "correct": "Corrigir o relatório: alguém percebeu.",
+      "sign": "Assinar. Reembolsar hoje o material de amanhã.",
+      "corrected": "A tinta some e volta como “Obrigado”. Uma cópia entra nos arquivos restritos.",
+      "signed": "Duas nozes douradas escorregam da lombada. A assinatura é sua. A letra, não."
+    },
+    "security": {
+      "title": "Câmera treze",
+      "body": "A sala tem doze câmeras. O monitor treze mostra o escritório três segundos à frente. Nele, alguém está prestes a acenar.",
+      "wave": "Acenar primeiro. Não acenar seria falta de educação.",
+      "waved": "O outro escritório acena de volta, atrasado. Todos concordam em não medir o intervalo.",
+      "unplug": "Desligar e terminar o trabalho de hoje.",
+      "unplugged": "A tela apaga. Por quatro minutos, todas as tarefas chegam exatamente na hora.",
+      "trace": "Usar o treino de cabos para rastrear o sinal.",
+      "needsMastery": "Alcance 30 pontos em Desembaraçar Cabos primeiro.",
+      "traced": "O cabo termina numa mesa vazia. A placa diz “VAGA, ATÉ RECENTEMENTE”. Você arquiva a fotografia."
+    },
+    "incubator": {
+      "title": "A planta bateu ponto",
+      "body": "A folha de ponto da incubadora tem uma nova assinatura: uma folha molhada. A muda já se inclina para a fila do café.",
+      "badge": "Emitir um crachá minúsculo.",
+      "badged": "O funcionário 24 recusa uma mesa e pede uma janela ensolarada. Seu período de experiência é sazonal.",
+      "observe": "Observar em silêncio. Sem avaliação de desempenho.",
+      "observed": "Você deixa um formulário em branco ao lado do vaso. Algo começa a preenchê-lo.",
+      "laterTitle": "Um contracheque bem pequeno",
+      "laterBody": "A planta depositou uma noz dourada. O bilhete diz “aluguel”."
+    },
+    "return": {
+      "title": "O inquilino anterior",
+      "body": "Nova empresa. Nova papelada. Na primeira janela está a mesma planta, com um crachá da linha do tempo anterior. Ela guardou seu lugar.",
+      "welcome": "Dar boas-vindas. Manter o crachá antigo.",
+      "welcomed": "Uma folha se vira para você. Por uma vez, a empresa lembra de algo que vale a pena guardar.",
+      "rent": "Perguntar se o aluguel também atravessou as linhas do tempo.",
+      "rented": "Duas nozes douradas. Nenhum endereço para correspondência."
+    }
+  },
+  "secretFile": {
+    "classification": "Evidência restrita",
+    "stamp": "MANTER ARQUIVADO",
+    "unknown": {
+      "title": "Um achado sem índice",
+      "body": "A evidência sobreviveu. O departamento que lhe deu nome não deixou endereço."
+    },
+    "memo_basement": {
+      "title": "Um memorando lá de baixo",
+      "body": "O porão tem um porão. O desenho termina ali; a contagem dos degraus, não."
+    },
+    "basement_basement": {
+      "title": "Mais um lance para baixo",
+      "body": "Uma planta baixa com uma escada desenhada para fora do papel."
+    },
+    "break_room_nation": {
+      "title": "A constituição da copa",
+      "body": "Artigo primeiro: ninguém é importante demais para lavar a própria caneca."
+    },
+    "chair": {
+      "title": "A cadeira extra",
+      "body": "Ninguém a encomendou. O estofado se lembra de todos."
+    },
+    "fire_science": {
+      "title": "Um procedimento de segurança revisado",
+      "body": "O primeiro passo agora está sublinhado. Assim como a assinatura do extintor."
+    },
+    "ghost": {
+      "title": "Uma contratação transparente",
+      "body": "Sem reflexo. Frequência excelente. A folha de pagamento pede esclarecimentos."
+    },
+    "negative_nut": {
+      "title": "A quantidade ausente",
+      "body": "Uma noz a menos que uma gaveta vazia. Contá-la deixa a sala mais silenciosa."
+    },
+    "nutcoin": {
+      "title": "Uma moeda descontinuada",
+      "body": "Lastreada em otimismo coletivo e uma bolota bastante comum."
+    },
+    "secret_ledger": {
+      "title": "O segundo livro-caixa",
+      "body": "Todas as contas fecham. Ninguém reconhece as despesas."
+    },
+    "secret_requisition": {
+      "title": "Requisição sem remetente",
+      "body": "A entrega foi assinada antes de o pedido ser escrito."
+    },
+    "sideways": {
+      "title": "O departamento lateral",
+      "body": "Um corredor que cabe entre duas salas vizinhas. O arquiteto parou de responder."
+    },
+    "spreadsheet": {
+      "title": "Uma planilha não salva",
+      "body": "A célula B12 continua calculando o que teria acontecido se você tivesse ido para casa."
+    },
+    "too_round": {
+      "title": "Uma noz geometricamente suspeita",
+      "body": "Perfeitamente redonda. Rolou ladeira acima na inspeção. Marcada como “provavelmente normal”."
+    },
+    "wind_chime": {
+      "title": "A previsão de dentro",
+      "body": "Não há corrente de ar nesta sala. O sino discorda na hora do almoço."
+    },
+    "anomaly_tomorrow": {
+      "title": "O relatório de amanhã corrigido",
+      "body": "Alguém percebeu. O documento alterou sua previsão."
+    },
+    "anomaly_signature": {
+      "title": "Sua outra assinatura",
+      "body": "Mesmo nome. Outra letra. O pagamento caiu ontem."
+    },
+    "anomaly_wave": {
+      "title": "Um cumprimento atrasado",
+      "body": "Uma gravação do escritório acenando para si mesmo. Os horários discordam educadamente."
+    },
+    "anomaly_futureDesk": {
+      "title": "Vaga, até recentemente",
+      "body": "Uma mesa com o assento morno e um cabo ligado a amanhã."
+    },
+    "anomaly_employee24": {
+      "title": "Ficha funcional 024",
+      "body": "Cargo: janela. Horário preferencial: luz do dia. Folgas e folhas mediante solicitação."
+    },
+    "anomaly_previousTenant": {
+      "title": "Algo que vale a pena guardar",
+      "body": "A empresa mudou de linha do tempo. Uma plantinha se recusou a esquecer você."
     }
   }
 }

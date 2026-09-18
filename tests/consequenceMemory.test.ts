@@ -7,6 +7,8 @@ import { SAVE_VERSION } from '../src/sim/config';
 import { GAME_EVENTS, GAME_EVENTS_BY_ID } from '../src/content/events';
 import { ROOMS_BY_ID } from '../src/content/rooms';
 import { scoreChoice } from '../src/sim/eventAutoResolve';
+import { EMPLOYEE_TALKS } from '../src/content/employeeTalks';
+import { MICRO_TEAM, type MicroMode } from '../src/sim/minigames';
 import type { GameState } from '../src/sim/types';
 
 function engineAt(now: number, mutate?: (s: GameState) => void) {
@@ -279,6 +281,19 @@ describe('auto-resolution accounts for deferred costs', () => {
 describe('the authored memory content is coherent', () => {
   it('only references marks that some choice can actually set', () => {
     const settable = new Set<string>();
+    for (const topic of EMPLOYEE_TALKS) {
+      for (const node of Object.values(topic.nodes)) {
+        for (const choice of node.choices) {
+          for (const effect of choice.effects) {
+            if (effect.type === 'setFlag' && effect.flagId) settable.add(effect.flagId);
+          }
+        }
+      }
+    }
+    // Runtime awards must really create the keys that authored events consume.
+    const { engine } = engineAt(1_000_000);
+    for (const mode of Object.keys(MICRO_TEAM) as MicroMode[]) engine.rewardMicrogame(mode, 35);
+    for (const flag of Object.keys(engine.state.flags)) settable.add(flag);
     for (const ev of GAME_EVENTS) {
       const all = [...ev.choices, ...Object.values(ev.steps ?? {}).flatMap((s) => s.choices)];
       for (const c of all) {

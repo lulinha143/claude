@@ -10,6 +10,7 @@ import {
   upgradeCost,
 } from './economy';
 import { canPrestige } from './prestige';
+import { isRoomIdUnlocked } from './rooms';
 import { isDecorationOwned } from './decorations';
 
 export interface NextStep {
@@ -27,6 +28,29 @@ export function computeNextStep(state: GameState): NextStep | null {
   }
 
   const passives = aggregatePassives(state);
+
+  // Introduce the people and activities before the endless upgrade list can
+  // monopolize the guide. Each invitation retires when the player tries it.
+  if (
+    state.stats.playTimeSeconds >= 60 &&
+    Object.values(state.employees).every((employee) => !employee.talks?.count)
+  ) {
+    return { key: 'firstConversation', view: 'employees', employeeId: 'pip' };
+  }
+  if (state.stats.playTimeSeconds >= 180 && state.stats.microgamesPlayed === 0) {
+    return { key: 'firstActivity', view: 'focus' };
+  }
+
+  if (
+    state.stats.playTimeSeconds >= 120 &&
+    !state.collections.secrets.some((id) => id.startsWith('deco:')) &&
+    DECORATIONS.some(
+      (item) =>
+        isRoomIdUnlocked(state, item.room) &&
+        state.resources[item.cost.resource] >= item.cost.amount,
+    )
+  )
+    return { key: 'firstDecoration', view: 'decorate' };
 
   // 2. an unlocked employee you can afford to hire
   for (const def of EMPLOYEES) {

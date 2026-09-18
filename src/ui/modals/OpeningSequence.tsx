@@ -101,11 +101,14 @@ export function OpeningSequence() {
     audio.resume();
     audio.play('collect');
     setPhase('impact');
-    transitionTimer.current = window.setTimeout(() => {
-      transitionTimer.current = null;
-      setPhase('title');
-      audio.play('reward');
-    }, reducedMotion ? 0 : 520);
+    transitionTimer.current = window.setTimeout(
+      () => {
+        transitionTimer.current = null;
+        setPhase('title');
+        audio.play('reward');
+      },
+      reducedMotion ? 0 : 520,
+    );
   }
 
   function completeOpening() {
@@ -140,9 +143,13 @@ export function OpeningSequence() {
           <div className="opening-seq__desk" aria-hidden="true">
             <span className="opening-seq__paper opening-seq__paper--back" />
             <span className="opening-seq__paper opening-seq__paper--front">
-              <i /><i /><i />
+              <i />
+              <i />
+              <i />
             </span>
-            <span className="opening-seq__mug"><i /></span>
+            <span className="opening-seq__mug">
+              <i />
+            </span>
             <span className="opening-seq__spill" />
             <span className="opening-seq__pencil" />
           </div>
@@ -166,10 +173,14 @@ export function OpeningSequence() {
               <h1 id="opening-prompt" className="opening-seq__prompt">
                 {t('opening.prompt')}
               </h1>
-              <p id="opening-line" className="opening-seq__line">“{t('opening.line')}”</p>
+              <p id="opening-line" className="opening-seq__line">
+                “{t('opening.line')}”
+              </p>
               <button className="acorn-cta" onClick={claimAcorn} disabled={phase !== 'intro'}>
                 <span className="acorn-cta__halo" aria-hidden="true" />
-                <span className="acorn-cta__nut"><Acorn size={64} /></span>
+                <span className="acorn-cta__nut">
+                  <Acorn size={64} />
+                </span>
                 <span className="acorn-cta__label">{t('opening.clickAcorn')}</span>
               </button>
               <p className="opening-seq__founding-note">{t('opening.founded')}</p>
@@ -180,15 +191,22 @@ export function OpeningSequence() {
                 {t('opening.impact')}
               </p>
               <BrandEmblem size={78} title={GAME_TITLE} />
-              <h1 id="opening-title" className="title-card">{GAME_TITLE}</h1>
+              <h1 id="opening-title" className="title-card">
+                {GAME_TITLE}
+              </h1>
               <p className="title-card__sub">{t('app.subtitle')}</p>
               <p id="opening-title-note" className="opening-seq__title-note">
                 {t('opening.titleNote')}
               </p>
               <div className="opening-seq__rule" aria-hidden="true">
-                <span /><Acorn size={26} /><span />
+                <span />
+                <Acorn size={26} />
+                <span />
               </div>
-              <button className="buy-btn buy-btn--big opening-seq__continue" onClick={completeOpening}>
+              <button
+                className="buy-btn buy-btn--big opening-seq__continue"
+                onClick={completeOpening}
+              >
                 {t('opening.continue')}
               </button>
             </section>

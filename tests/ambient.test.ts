@@ -7,14 +7,20 @@ describe('ambient throttle', () => {
   });
 
   it('pauses when the window is hidden or minimized', () => {
-    expect(ambientState({ hidden: true, batterySaver: false, reducedMotion: false })).toBe('paused');
+    expect(ambientState({ hidden: true, batterySaver: false, reducedMotion: false })).toBe(
+      'paused',
+    );
   });
 
   it('pauses in battery-saver mode', () => {
-    expect(ambientState({ hidden: false, batterySaver: true, reducedMotion: false })).toBe('paused');
+    expect(ambientState({ hidden: false, batterySaver: true, reducedMotion: false })).toBe(
+      'paused',
+    );
   });
 
   it('pauses under reduced motion', () => {
-    expect(ambientState({ hidden: false, batterySaver: false, reducedMotion: true })).toBe('paused');
+    expect(ambientState({ hidden: false, batterySaver: false, reducedMotion: true })).toBe(
+      'paused',
+    );
   });
 });

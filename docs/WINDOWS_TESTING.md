@@ -116,9 +116,9 @@ every relative `./assets/...` path resolves next to it.
 
 Other targets, if you want them:
 
-| Command | Output |
-| --- | --- |
-| `npm run build:windows` | `release\ZooWorkers Setup 1.0.0.exe` (NSIS installer) |
+| Command                  | Output                                                        |
+| ------------------------ | ------------------------------------------------------------- |
+| `npm run build:windows`  | `release\ZooWorkers Setup 1.0.0.exe` (NSIS installer)         |
 | `npm run build:portable` | `release\ZooWorkers-1.0.0-portable.exe` (single portable exe) |
 
 > Note: these builds must be run **on Windows**. Building the Windows target on

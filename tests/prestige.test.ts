@@ -6,6 +6,7 @@ import {
   performPrestige,
   buyPrestigeSkill,
 } from '../src/sim/prestige';
+import { gameStateSchema } from '../src/save/schema';
 import { BALANCE } from '../src/sim/config';
 import { GameEngine } from '../src/sim/engine';
 import { moraleCap, prestigeMoraleBonus, prestigeRareEventChance } from '../src/sim/economy';
@@ -13,7 +14,24 @@ import { PRESTIGE_BRANCHES_BY_ID } from '../src/content/prestige';
 import type { PrestigeBranchId } from '../src/sim/types';
 
 describe('prestige', () => {
-  it('is locked until the lifetime nut threshold', () => {
+  it('cannot pay twice from lifetime production, including after save reload', () => {
+    const state = createInitialState(0);
+    state.stats.totalNutsEarned = 4_000_000;
+    const earned = kernelsFromPrestige(state);
+    const first = performPrestige(state, 'cooperative', 1000);
+    const loaded = gameStateSchema.parse(first) as unknown as import('../src/sim/types').GameState;
+    expect(loaded.stats.totalNutsEarned).toBe(4_000_000);
+    expect(canPrestige(loaded)).toBe(false);
+    expect(kernelsFromPrestige(loaded)).toBe(0);
+    expect(performPrestige(loaded, 'industrial', 2000)).toBe(loaded);
+    expect(loaded.resources.permanentKernels).toBe(earned);
+    loaded.stats.totalNutsEarned += BALANCE.prestige.unlockAtTotalNuts;
+    expect(canPrestige(loaded)).toBe(true);
+    const second = performPrestige(loaded, 'science', 3000);
+    expect(second.prestige.count).toBe(2);
+    expect(canPrestige(second)).toBe(false);
+  });
+  it('is locked until the current run reaches the nut threshold', () => {
     const s = createInitialState(0);
     expect(canPrestige(s)).toBe(false);
     s.stats.totalNutsEarned = BALANCE.prestige.unlockAtTotalNuts;

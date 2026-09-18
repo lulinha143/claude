@@ -28,6 +28,7 @@
 
 import type { EmployeeMood } from '../sim/types';
 import type { EventEffect } from './types';
+import { KEEPSAKE_TALKS } from './employeeKeepsakes';
 
 /** What a conversation option needs before it can be offered. */
 export interface TalkRequirement {
@@ -916,6 +917,7 @@ export const EMPLOYEE_TALKS: readonly TalkTopic[] = [
   SUSPICIOUS_MEMO,
   CHECK_IN,
   GIFT,
+  ...KEEPSAKE_TALKS,
 ];
 
 export const TALKS_BY_ID: Record<string, TalkTopic> = Object.fromEntries(

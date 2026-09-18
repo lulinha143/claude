@@ -94,7 +94,10 @@ export function moodProductivityMultiplier(mood: EmployeeMood): number {
  * little more and a struggling one a little less. Returns 1 when nobody is
  * working (so it never divides by zero). Pure + unit-tested.
  */
-export function teamMoodMultiplier(state: GameState, employeeWeight: (id: string) => number): number {
+export function teamMoodMultiplier(
+  state: GameState,
+  employeeWeight: (id: string) => number,
+): number {
   let weighted = 0;
   let total = 0;
   for (const [id, rt] of Object.entries(state.employees)) {

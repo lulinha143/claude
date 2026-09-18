@@ -127,7 +127,10 @@ function spriteFor(id: string, on: boolean, variant: number, accent: string): Sp
         ],
       };
     case 'lab-plants':
-      return { base: pot(C.ml, C.m, C.ml, C.ms), leaf: bush('#2f7d6b', '#3fae94', '#7fdcc4', true) };
+      return {
+        base: pot(C.ml, C.m, C.ml, C.ms),
+        leaf: bush('#2f7d6b', '#3fae94', '#7fdcc4', true),
+      };
     case 'rooftop-garden-bed':
       // low wide wooden planter with tufts + a bloom
       return {
@@ -669,7 +672,6 @@ function spriteFor(id: string, on: boolean, variant: number, accent: string): Sp
         lit: [[17, 11, 2, 1, C.white]],
         shadowR: 8,
       };
-
 
     // --- Second expansion --------------------------------------------------
     case 'coffee-urn':

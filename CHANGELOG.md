@@ -6,6 +6,31 @@ semantic versioning.
 
 ## [Unreleased] — audio, breakdown & start-screen pass
 
+### Added — personal histories and the unfiled office
+
+- Twenty-three personal keepsakes with original illustrations, remembered choices,
+  recurring conversation agendas and follow-up office events in English and pt-BR.
+- Six decoration ensembles that reward complete room arrangements with modest
+  additive benefits. Storage and room locks immediately deactivate the benefit.
+- Three room discoveries, branching evidence files, delayed consequences and a
+  returning-tenant story after restructuring. Discoveries have their own sketches.
+- Minigame records, first-mastery souvenirs, employee encouragement and collectible
+  memories that persist between company cycles.
+- Paper-and-ink management screens, readable compact team layouts, localized
+  archival documents and earlier introductions to conversation, activities and decor.
+
+### Fixed — state integrity and progression
+
+- Blocked conversation choices retain their requirements; effect-free deferral
+  replaces invalid fallback choices. Delayed promises retain their employee.
+- Events resume at their saved step; temporary boosts and minigame records persist.
+- Repeated boosts, coffee, duplicate completion callbacks and premium station power
+  cannot compound without bounds. Prestige pays only from the current cycle.
+- Already-hired employees retain their interaction controls after reputation falls.
+- Save import validates the file before overwrite confirmation and rejects unrelated
+  or unsupported future exports. Header audio labels use their actual locale keys.
+- Fast station/cable sound textures are rate-limited without delaying game input.
+
 ### Added — the cast is complete (23/23)
 
 - **The bear (`bia`) has real artwork, closing the last gap in the photographic
@@ -238,11 +263,11 @@ semantic versioning.
   productivity factor. Seeded examples: Bea proud/sad, Mina inspired + Bea
   worried, Corvus excited + Marlow embarrassed. The consequence panel now diffs
   real before/after state and lists **per-employee** emotion + productivity `±%`
-  + friendship delta + duration, alongside currency/morale/reputation deltas.
-  Covered by `tests/eventEmotions.test.ts` (report matches real sim state,
-  temporary-expiry, persistent emotions, migration). See
-  `docs/CHARACTER_EMOTIONS.md`. (Reopening a past report from event history
-  remains future work.)
+  - friendship delta + duration, alongside currency/morale/reputation deltas.
+    Covered by `tests/eventEmotions.test.ts` (report matches real sim state,
+    temporary-expiry, persistent emotions, migration). See
+    `docs/CHARACTER_EMOTIONS.md`. (Reopening a past report from event history
+    remains future work.)
 
 - **Replaced the Raccoon Inventory Check micro-game with the Procurement
   Conveyor** (brief §26). The old game was a random spot-the-swap memory test;
@@ -330,12 +355,12 @@ semantic versioning.
   Shell Sort (colourblind-safe bins, combo, keyboard), Coffee Rescue (mouse/arrow
   catch with a motion-free tap variant), Raccoon Inventory (deterministic
   spot-the-change memory). Pure logic in `src/sim/minigames.ts` is unit-tested.
-- **Employee identities:** creative full names (e.g. *Pip Acornsworth*,
-  *Rizzo "Receipts" Ringtail*) + personal goals, shown on the profile. Stable
+- **Employee identities:** creative full names (e.g. _Pip Acornsworth_,
+  _Rizzo "Receipts" Ringtail_) + personal goals, shown on the profile. Stable
   ids unchanged.
 - **Event decisions announce consequences:** a result panel spells out every
   effect (+/- with icons) plus team reactions; gated choices are disabled with a
-  reason. *The Office Is Technically On Fire* now offers four strategic choices.
+  reason. _The Office Is Technically On Fire_ now offers four strategic choices.
   A persisted event history feeds a "Recent decisions" timeline.
 - **Notifications:** centralized toast system (reduced-motion + `aria-live`) for
   hires, room unlocks, and achievements.

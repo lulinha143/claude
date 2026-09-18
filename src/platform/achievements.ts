@@ -32,7 +32,7 @@ export const STEAM_ACHIEVEMENT_IDS: Record<string, string> = {
   'first-day': 'ACH_FIRST_DAY',
   'working-nuts-off': 'ACH_WORKING_NUTS_OFF',
   'going-nuts': 'ACH_GOING_COMPLETELY_NUTS',
-  'nice': 'ACH_NICE',
+  nice: 'ACH_NICE',
   'one-nutillion': 'ACH_ONE_NUTILLION',
   'full-staff': 'ACH_FULL_STAFF',
 };

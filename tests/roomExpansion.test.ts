@@ -239,7 +239,8 @@ describe('the new rooms join the synergy network', () => {
     for (const id of NEW_ROOMS) {
       const profile = ROOM_PROFILES_BY_ID[id];
       for (const effect of [...profile.effects, ...profile.tradeoffs]) {
-        if (effect.requiresRoom) expect(ROOMS_BY_ID[effect.requiresRoom], effect.requiresRoom).toBeDefined();
+        if (effect.requiresRoom)
+          expect(ROOMS_BY_ID[effect.requiresRoom], effect.requiresRoom).toBeDefined();
       }
       for (const spec of profile.specialists ?? []) {
         expect(EMPLOYEES_BY_ID[spec], `${id} specialist ${spec}`).toBeDefined();

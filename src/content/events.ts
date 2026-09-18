@@ -1,4 +1,6 @@
 import type { EventChoice, GameEventDef } from './types';
+import { OFFICE_CALLBACKS } from './officeCallbacks';
+import { FACILITY_EVENTS } from './facilityDiscoveries';
 
 export type EventFallbackKind = 'decline' | 'postpone';
 
@@ -35,6 +37,8 @@ export interface EventContentRepair {
 // Data-driven random events. Every string is a localization key. The exported
 // collection is normalized below so authored mistakes can never trap a player.
 export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
+  ...OFFICE_CALLBACKS,
+  ...FACILITY_EVENTS,
   {
     id: 'printer-demands',
     titleKey: 'event.printer.title',

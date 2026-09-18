@@ -127,9 +127,7 @@ const probe = () => {
       floor: rect(floor),
       stage: rect(stage),
       floorBandPx: stage
-        ? +(
-            parseFloat(getComputedStyle(floor).getPropertyValue('--floor-h')) || 0
-          ).toFixed(1)
+        ? +(parseFloat(getComputedStyle(floor).getPropertyValue('--floor-h')) || 0).toFixed(1)
         : 0,
       critters,
       stations: all('.station-btn', floor).map((b) => ({
@@ -147,9 +145,8 @@ const probe = () => {
   return {
     viewport: { w: window.innerWidth, h: window.innerHeight, dpr: window.devicePixelRatio },
     assetScale,
-    uiScale: parseFloat(
-      getComputedStyle(document.documentElement).getPropertyValue('--ui-scale'),
-    ) || 1,
+    uiScale:
+      parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ui-scale')) || 1,
     header: rect(q('.header')),
     identity: rect(q('.header__identity')),
     strip: rect(q('.header__strip')),
@@ -157,7 +154,10 @@ const probe = () => {
     controlButtons: all('.wc-btn').map(rect),
     headerButtons: all('.header__controls button').map(rect),
     nav: rect(q('.nav')),
-    navTabs: all('.nav button, .nav a').map((b) => ({ label: b.textContent.trim(), rect: rect(b) })),
+    navTabs: all('.nav button, .nav a').map((b) => ({
+      label: b.textContent.trim(),
+      rect: rect(b),
+    })),
     main: rect(q('.app__main')),
     notifications: all('.notification, .notif, .toast').map(rect),
     docScrollW: document.documentElement.scrollWidth,
@@ -256,7 +256,9 @@ const main = async () => {
       // All three must sit on one row.
       const ys = m.controlButtons.map((b) => b.y);
       if (ys.length && Math.max(...ys) - Math.min(...ys) > 1) {
-        fail(`window controls are not on one row (y spread ${(Math.max(...ys) - Math.min(...ys)).toFixed(1)})`);
+        fail(
+          `window controls are not on one row (y spread ${(Math.max(...ys) - Math.min(...ys)).toFixed(1)})`,
+        );
       }
     }
     if (m.nav && m.header && m.nav.y < m.header.bottom - 0.5) fail('nav overlaps the letterhead');
@@ -277,7 +279,9 @@ const main = async () => {
           }
         }
         if (c.art && room.stage && c.art.bottom > room.stage.bottom + 24) {
-          fail(`${room.room}/${c.employee} sinks ${(c.art.bottom - room.stage.bottom).toFixed(1)}px below the stage`);
+          fail(
+            `${room.room}/${c.employee} sinks ${(c.art.bottom - room.stage.bottom).toFixed(1)}px below the stage`,
+          );
         }
       }
     }
@@ -302,7 +306,9 @@ const main = async () => {
   server.close();
 
   // ---- report -----------------------------------------------------------
-  console.log(`\n${'size'.padEnd(20)}${'scale'.padStart(7)}${'header h'.padStart(10)}${'wc y'.padStart(7)}${'nav y'.padStart(7)}`);
+  console.log(
+    `\n${'size'.padEnd(20)}${'scale'.padStart(7)}${'header h'.padStart(10)}${'wc y'.padStart(7)}${'nav y'.padStart(7)}`,
+  );
   for (const m of report) {
     console.log(
       m.size.padEnd(20) +
@@ -319,7 +325,9 @@ const main = async () => {
   const first = report[0];
   const last = report[report.length - 1];
   const pick = (m, room) => m.rooms.find((r) => r.room === room);
-  console.log(`\nscene coherence, ${first.size} -> ${last.size} (scale ${first.assetScale} -> ${last.assetScale})`);
+  console.log(
+    `\nscene coherence, ${first.size} -> ${last.size} (scale ${first.assetScale} -> ${last.assetScale})`,
+  );
   for (const roomId of wantRooms) {
     const a = pick(first, roomId);
     const b = pick(last, roomId);
@@ -342,8 +350,17 @@ const main = async () => {
     console.log(`  ${roomId.padEnd(16)}${ratios.join('  ')}`);
   }
 
-  const cast = (pick(report.find((m) => m.size === 'default-1280x800'), 'founder-desk')?.critters ?? [])
-    .concat(pick(report.find((m) => m.size === 'default-1280x800'), 'lab')?.critters ?? []);
+  const cast = (
+    pick(
+      report.find((m) => m.size === 'default-1280x800'),
+      'founder-desk',
+    )?.critters ?? []
+  ).concat(
+    pick(
+      report.find((m) => m.size === 'default-1280x800'),
+      'lab',
+    )?.critters ?? [],
+  );
   if (cast.length) {
     console.log('\ncharacter render @1280x800');
     for (const c of cast) {

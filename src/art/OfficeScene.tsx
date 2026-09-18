@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
+import { availableFacilityDiscoveries } from '../sim/facilityDiscoveries';
 import { useGame } from '../state/hooks';
 import { useStore } from '../state/store';
 import {
@@ -247,6 +248,7 @@ export function OfficeScene() {
   const reducedMotion = state.settings.reducedMotion;
   const [bubble, setBubble] = useState<Bubble | null>(null);
   const fmt = useFmt();
+  const discoveries = availableFacilityDiscoveries(state);
   // Re-render if a character's artwork turns out to be missing, so they switch to
   // the hand-drawn fallback silhouette rather than showing a broken image.
   useSpriteAvailabilityRevision();
@@ -1084,6 +1086,17 @@ export function OfficeScene() {
             >
               <div className="floor__header">
                 <span className="floor__label">{t(room.nameKey)}</span>
+                {!decorMode && discoveries.some((discovery) => discovery.roomId === room.id) ? (
+                  <button
+                    className="floor__discovery"
+                    onClick={() => {
+                      const discovery = discoveries.find((entry) => entry.roomId === room.id);
+                      if (discovery && engine.inspectFacility(discovery.id)) audio.play('paper');
+                    }}
+                  >
+                    {t('discovery.inspect')}
+                  </button>
+                ) : null}
                 <span className="floor__status">
                   {occupants.length > 0 ? (
                     <Tip

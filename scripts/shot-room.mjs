@@ -21,10 +21,8 @@ import { qaSave } from './qa-seed.mjs';
 
 const DIST = new URL('../dist/', import.meta.url).pathname;
 const OUT = new URL('../visual-artifacts/', import.meta.url).pathname;
-const METRICS = new URL(
-  '../assets/sources/characters/figure-metrics.json',
-  import.meta.url,
-).pathname;
+const METRICS = new URL('../assets/sources/characters/figure-metrics.json', import.meta.url)
+  .pathname;
 
 /**
  * Each character's dead transparent headroom, as a fraction of canvas height, so the
@@ -106,55 +104,52 @@ const main = async () => {
   await el.scrollIntoViewIfNeeded();
   await page.waitForTimeout(1600);
 
-  const info = await el.evaluate(
-    (node, headroom) => {
-      const r = node.getBoundingClientRect();
-      const figures = [...node.querySelectorAll('.employee-sprite')].map((s) => {
-        const b = s.getBoundingClientRect();
-        const asset = (s.getAttribute('src') || '')
-          .split('/')
-          .pop()
-          .replace(/-1x\.png$|\.png$/, '');
-        // The sprite box includes dead transparent headroom above the animal, so the
-        // top of the BOX is not the top of the head. Measuring the bubble against the
-        // box is exactly the mistake that left bubbles hanging a different distance
-        // above every character, so resolve the real head line here.
-        const topPad = headroom[asset] ?? 0;
-        const headTop = b.top + topPad * b.height;
-        const bubble = s.closest('.critter-btn')?.querySelector('.employee-bubble');
-        const bb = bubble?.getBoundingClientRect();
-        return {
-          src: (s.getAttribute('src') || '').split('/').pop(),
-          w: +b.width.toFixed(1),
-          h: +b.height.toFixed(1),
-          // distance from the sprite's feet to the room's floor line
-          footGap: +(r.bottom - b.bottom).toFixed(1),
-          // Positive = clear air between bubble and head. Negative = overlapping the
-          // head. Both are defects past a small tolerance.
-          bubbleGap: bb ? +(headTop - bb.bottom).toFixed(1) : null,
-          bubbleH: bb ? +bb.height.toFixed(1) : null,
-        };
-      });
-      // ONLY the code-drawn fallback critters. `svg.critter` and not `svg`, because
-      // the mood bubble is also an inline svg inside .critter-btn — matching every
-      // svg reported four phantom "vector" figures per full room, which would both
-      // mask a real fallback regression and invent one that was not there.
-      const vectors = [...node.querySelectorAll('.critter-btn svg.critter')].map((s) => {
-        const b = s.getBoundingClientRect();
-        return {
-          src: 'vector',
-          w: +b.width.toFixed(1),
-          h: +b.height.toFixed(1),
-          footGap: +(r.bottom - b.bottom).toFixed(1),
-        };
-      });
+  const info = await el.evaluate((node, headroom) => {
+    const r = node.getBoundingClientRect();
+    const figures = [...node.querySelectorAll('.employee-sprite')].map((s) => {
+      const b = s.getBoundingClientRect();
+      const asset = (s.getAttribute('src') || '')
+        .split('/')
+        .pop()
+        .replace(/-1x\.png$|\.png$/, '');
+      // The sprite box includes dead transparent headroom above the animal, so the
+      // top of the BOX is not the top of the head. Measuring the bubble against the
+      // box is exactly the mistake that left bubbles hanging a different distance
+      // above every character, so resolve the real head line here.
+      const topPad = headroom[asset] ?? 0;
+      const headTop = b.top + topPad * b.height;
+      const bubble = s.closest('.critter-btn')?.querySelector('.employee-bubble');
+      const bb = bubble?.getBoundingClientRect();
       return {
-        room: { w: +r.width.toFixed(1), h: +r.height.toFixed(1) },
-        figures: [...figures, ...vectors],
+        src: (s.getAttribute('src') || '').split('/').pop(),
+        w: +b.width.toFixed(1),
+        h: +b.height.toFixed(1),
+        // distance from the sprite's feet to the room's floor line
+        footGap: +(r.bottom - b.bottom).toFixed(1),
+        // Positive = clear air between bubble and head. Negative = overlapping the
+        // head. Both are defects past a small tolerance.
+        bubbleGap: bb ? +(headTop - bb.bottom).toFixed(1) : null,
+        bubbleH: bb ? +bb.height.toFixed(1) : null,
       };
-    },
-    headroomByAsset(),
-  );
+    });
+    // ONLY the code-drawn fallback critters. `svg.critter` and not `svg`, because
+    // the mood bubble is also an inline svg inside .critter-btn — matching every
+    // svg reported four phantom "vector" figures per full room, which would both
+    // mask a real fallback regression and invent one that was not there.
+    const vectors = [...node.querySelectorAll('.critter-btn svg.critter')].map((s) => {
+      const b = s.getBoundingClientRect();
+      return {
+        src: 'vector',
+        w: +b.width.toFixed(1),
+        h: +b.height.toFixed(1),
+        footGap: +(r.bottom - b.bottom).toFixed(1),
+      };
+    });
+    return {
+      room: { w: +r.width.toFixed(1), h: +r.height.toFixed(1) },
+      figures: [...figures, ...vectors],
+    };
+  }, headroomByAsset());
 
   const file = join(OUT, `${tag}-${room}-${width}.png`);
   await el.screenshot({ path: file });

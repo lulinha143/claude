@@ -32,15 +32,26 @@ export function ConsequenceModal() {
   const push = (icon: IconName, text: string, tone: Tone) => lines.push({ icon, text, tone });
 
   if (r.nuts > 0) push('nut', t('consequence.nutsGain', { value: fmt.num(r.nuts) }), 'positive');
-  else if (r.nuts < 0) push('nut', t('consequence.nutsLoss', { value: fmt.num(-r.nuts) }), 'negative');
-  if (r.goldenNuts > 0) push('golden', t('consequence.goldenGain', { value: fmt.num(r.goldenNuts) }), 'positive');
-  else if (r.goldenNuts < 0) push('golden', t('consequence.goldenLoss', { value: fmt.num(-r.goldenNuts) }), 'negative');
-  if (r.morale > 0) push('morale', t('consequence.moraleUp', { value: fmt.num(r.morale) }), 'positive');
-  else if (r.morale < 0) push('morale', t('consequence.moraleDown', { value: fmt.num(-r.morale) }), 'negative');
-  if (r.reputation > 0) push('reputation', t('consequence.repUp', { value: fmt.num(r.reputation) }), 'positive');
-  else if (r.reputation < 0) push('reputation', t('consequence.repDown', { value: fmt.num(-r.reputation) }), 'negative');
+  else if (r.nuts < 0)
+    push('nut', t('consequence.nutsLoss', { value: fmt.num(-r.nuts) }), 'negative');
+  if (r.goldenNuts > 0)
+    push('golden', t('consequence.goldenGain', { value: fmt.num(r.goldenNuts) }), 'positive');
+  else if (r.goldenNuts < 0)
+    push('golden', t('consequence.goldenLoss', { value: fmt.num(-r.goldenNuts) }), 'negative');
+  if (r.morale > 0)
+    push('morale', t('consequence.moraleUp', { value: fmt.num(r.morale) }), 'positive');
+  else if (r.morale < 0)
+    push('morale', t('consequence.moraleDown', { value: fmt.num(-r.morale) }), 'negative');
+  if (r.reputation > 0)
+    push('reputation', t('consequence.repUp', { value: fmt.num(r.reputation) }), 'positive');
+  else if (r.reputation < 0)
+    push('reputation', t('consequence.repDown', { value: fmt.num(-r.reputation) }), 'negative');
   if (r.boostMultiplier > 0)
-    push('production', t('consequence.boost', { value: r.boostMultiplier, seconds: r.boostSeconds }), 'positive');
+    push(
+      'production',
+      t('consequence.boost', { value: r.boostMultiplier, seconds: r.boostSeconds }),
+      'positive',
+    );
   // content flags that aren't numeric deltas
   for (const e of c.effects) {
     if (e.type === 'collectNut') push('encyclopedia', t('consequence.newNut'), 'positive');
@@ -57,23 +68,23 @@ export function ConsequenceModal() {
       ariaLabel={t('event.resultTitle')}
       closing={closing}
       onDismiss={close}
-      actions={(
+      actions={
         <button className="buy-btn buy-btn--big" disabled={closing} onClick={close}>
           {t('common.ok')}
         </button>
-      )}
+      }
     >
-        <div className="consequence-modal__head">
-          <Icon name="notification" size={20} />
-          <div>
-            <h2>{t('event.resultTitle')}</h2>
-            <p className="muted small">
-              {t(c.titleKey)} — {t(c.choiceLabelKey)}
-            </p>
-          </div>
+      <div className="consequence-modal__head">
+        <Icon name="notification" size={20} />
+        <div>
+          <h2>{t('event.resultTitle')}</h2>
+          <p className="muted small">
+            {t(c.titleKey)} — {t(c.choiceLabelKey)}
+          </p>
         </div>
+      </div>
 
-        <div className="modal__scroll">
+      <div className="modal__scroll">
         <ul className="consequence-list">
           {nothing ? (
             <li className="consequence-line consequence-line--neutral">
@@ -95,7 +106,9 @@ export function ConsequenceModal() {
               {r.employees.map((e) => {
                 const name = EMPLOYEES_BY_ID[e.id]?.nameKey;
                 const delta = Math.round(e.productivityDelta * 100);
-                const minutes = e.emotionUntil ? Math.round((e.emotionUntil - Date.now()) / 60000) : 0;
+                const minutes = e.emotionUntil
+                  ? Math.round((e.emotionUntil - Date.now()) / 60000)
+                  : 0;
                 return (
                   <li key={e.id} className="consequence-emp">
                     <span className="consequence-emp__name">{name ? t(name) : e.id}</span>
@@ -114,7 +127,9 @@ export function ConsequenceModal() {
                     <span className="consequence-emp__meta">
                       {e.emotion && delta !== 0 ? (
                         <span className={delta > 0 ? 'prod-pos' : 'prod-neg'}>
-                          {t('consequence.productivity', { value: `${delta > 0 ? '+' : ''}${delta}` })}
+                          {t('consequence.productivity', {
+                            value: `${delta > 0 ? '+' : ''}${delta}`,
+                          })}
                         </span>
                       ) : null}
                       {e.friendshipDelta !== 0 ? (
@@ -125,7 +140,9 @@ export function ConsequenceModal() {
                         </span>
                       ) : null}
                       {minutes > 0 ? (
-                        <span className="muted">{t('consequence.forMinutes', { value: minutes })}</span>
+                        <span className="muted">
+                          {t('consequence.forMinutes', { value: minutes })}
+                        </span>
                       ) : null}
                     </span>
                   </li>
@@ -145,9 +162,7 @@ export function ConsequenceModal() {
             ))}
           </div>
         ) : null}
-
-        </div>
-
+      </div>
     </PopupShell>
   );
 }

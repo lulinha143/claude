@@ -74,6 +74,9 @@ describe('offline progression', () => {
     const s = createInitialState(0);
     s.lastSaved = 0;
     const r = computeOffline(s, 3600 * 1000);
-    expect(r.nutsEarned).toBeCloseTo(r.ratePerSecond * r.cappedSeconds * BALANCE.offline.efficiency, 3);
+    expect(r.nutsEarned).toBeCloseTo(
+      r.ratePerSecond * r.cappedSeconds * BALANCE.offline.efficiency,
+      3,
+    );
   });
 });

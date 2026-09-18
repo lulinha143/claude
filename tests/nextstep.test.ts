@@ -4,6 +4,18 @@ import { computeNextStep } from '../src/sim/nextStep';
 import { employeeMood } from '../src/sim/mood';
 
 describe('recommended next step', () => {
+  it('introduces colleagues and activities even when upgrades remain affordable', () => {
+    const state = createInitialState(0);
+    state.resources.nuts = 100000;
+    state.stats.playTimeSeconds = 180;
+    expect(computeNextStep(state)?.key).toBe('firstConversation');
+    state.employees.pip.talks = { count: 1, lastAt: 0, seen: {} };
+    expect(computeNextStep(state)?.key).toBe('firstActivity');
+    state.stats.microgamesPlayed = 1;
+    expect(computeNextStep(state)?.key).toBe('firstDecoration');
+    state.collections.secrets.push('deco:potted-fern');
+    expect(computeNextStep(state)?.key).toBe('upgrade');
+  });
   it('suggests buying an upgrade when one is affordable', () => {
     const s = createInitialState(0);
     s.resources.nuts = 100000;

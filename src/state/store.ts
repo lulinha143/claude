@@ -187,6 +187,7 @@ export const useStore = create<StoreState>((set) => {
 
     doPrestige: (branch) => {
       const next = performPrestige(engine.state, branch, Date.now());
+      if (next === engine.state) return;
       replaceStateQuietly(next);
       engine.save();
       audio.play('prestige');

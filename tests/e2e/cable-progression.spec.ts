@@ -49,11 +49,12 @@ async function boot(page: Page, viewport = { width: 1280, height: 800 }) {
   await expect(page.locator('.microgame-menu')).toBeVisible();
 }
 
-async function startCable(page: Page) {
+async function startCable(page: Page, controlledClock = false) {
   await page.getByRole('button', { name: /Cable Untangle Desk/i }).click();
   const game = page.locator('.microgame');
   await expect(game).toHaveAttribute('data-phase', 'intro');
   await page.locator('.microgame__start').click();
+  if (controlledClock) await page.clock.runFor(3100);
   await expect(game).toHaveAttribute('data-phase', 'play', { timeout: 5_000 });
   await expect(page.locator('.cable__board')).toBeVisible();
   return game;
@@ -94,7 +95,7 @@ async function solveCurrentBoard(page: Page) {
     const dest = toPixels(x, y);
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
     await page.mouse.down();
-    await page.mouse.move(dest.x, dest.y, { steps: 3 });
+    await page.mouse.move(dest.x, dest.y);
     await page.mouse.up();
   };
 
@@ -133,14 +134,11 @@ async function solveCurrentBoard(page: Page) {
     if (await cleared()) return;
   }
 
-  // Place each plug onto its solution slot. Under heavy parallel CPU load a
-  // pointer move can be coalesced and a plug may miss its slot, so re-seat any
-  // remaining plugs until the desk reads clear (bounded retries).
-  for (let attempt = 0; attempt < 8; attempt += 1) {
-    for (let id = 0; id < n; id += 1) {
-      await dragTo(id, slots[id].x, slots[id].y);
-      if (await cleared()) return;
-    }
+  // One seating pass, with real pointer input. A failure must be visible rather
+  // than retried eight times and blamed on pointer coalescing.
+  for (let id = 0; id < n; id += 1) {
+    await dragTo(id, slots[id].x, slots[id].y);
+    if (await cleared()) return;
   }
 }
 
@@ -159,12 +157,17 @@ async function setVisibility(page: Page, state: 'hidden' | 'visible') {
    cleared state that had already ended. Both are fixed at the source, and one assertion
    here was simply wrong — `not.toContainText('0')` fails on "Tangles: 10". */
 
-test.describe.serial('cable untangle keeps loading round after round', () => {
+test.describe('cable untangle keeps loading round after round', () => {
   test('clears at least six consecutive desks without repeating the recent profile', async ({
     page,
   }) => {
+    // Drive the countdown and celebrations explicitly. The six desks still use
+    // real pointer drags; rendering/trace overhead cannot consume the round timer.
+    const time = new Date();
+    await page.clock.install({ time });
+    await page.clock.pauseAt(time);
     await boot(page);
-    await startCable(page);
+    await startCable(page, true);
     await watchCableClears(page);
     const board = page.locator('.cable__board');
     const seenLevels: string[] = [];
@@ -191,6 +194,7 @@ test.describe.serial('cable untangle keeps loading round after round', () => {
 
       // The very next desk MUST arrive: round counter advances, stage returns
       // to solving, and a fresh (tangled) board is presented.
+      await page.clock.runFor(1500);
       await expect(board).toHaveAttribute('data-round', String(startRound + 1), {
         timeout: 10_000,
       });

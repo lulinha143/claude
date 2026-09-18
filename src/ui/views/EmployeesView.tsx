@@ -280,12 +280,16 @@ export function EmployeesView() {
                     {rt.hired ? (
                       <button
                         className="ghost-btn"
+                        disabled={engine.coffeeCooldownRemaining(def.id) > 0}
                         onClick={() => {
-                          engine.giveCoffee(def.id);
-                          audio.play('coffee');
+                          if (engine.giveCoffee(def.id)) audio.play('coffee');
                         }}
                       >
-                        {t('employee.give_coffee')}
+                        {engine.coffeeCooldownRemaining(def.id) > 0
+                          ? t('employee.coffeeCooling', {
+                              seconds: engine.coffeeCooldownRemaining(def.id),
+                            })
+                          : t('employee.give_coffee')}
                       </button>
                     ) : null}
                     {/* The roster is the reliable way in: the office critter only opens

@@ -32,7 +32,13 @@ const RICH_SAVE = {
     outfits: [],
     logos: [],
     moments: [],
-    secrets: ['deco:potted-fern', 'deco:desk-lamp', 'deco:mini-couch', 'deco:water-cooler', 'deco:whiteboard'],
+    secrets: [
+      'deco:potted-fern',
+      'deco:desk-lamp',
+      'deco:mini-couch',
+      'deco:water-cooler',
+      'deco:whiteboard',
+    ],
   },
 };
 
@@ -103,109 +109,85 @@ async function clearModals(page: Page) {
   await page.waitForTimeout(300);
 }
 
-// One test captures the Office at every viewport (the highest-value screen for
-// responsiveness + adaptive rooms + decoration scale).
-test('office across the viewport matrix', async ({ page }) => {
-  for (const v of VIEWPORTS) {
+// Independent captures keep failures attributable to one screen and viewport.
+for (const v of VIEWPORTS) {
+  test('office composition ' + v.name, async ({ page }) => {
     await page.setViewportSize({ width: v.w, height: v.h });
     await seed(page, RICH_SAVE);
     await page.goto('/');
-    await page.locator('.office').first().waitFor({ timeout: 15000 });
+    await expect(page.locator('.office')).toBeVisible();
     await clearModals(page);
-    await page.waitForTimeout(400);
-    await shot(page, `office-${v.name}`);
+    await shot(page, 'office-' + v.name);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+  });
+}
+
+const REVIEW_VIEWS: [string, RegExp][] = [
+  ['upgrades', /^Upgrades$/i],
+  ['team', /^Team$/i],
+  ['company', /^Company$/i],
+  ['focus', /^Focus$/i],
+  ['collections', /^Collections$/i],
+  ['achievements', /^Achievements$/i],
+  ['stats', /^Stats$/i],
+  ['prestige', /^Prestige$/i],
+  ['settings', /^Settings$/i],
+  ['decorate', /^Decorate$/i],
+];
+for (const v of [
+  { name: '1280x720', w: 1280, h: 720 },
+  { name: '420x720', w: 420, h: 720 },
+]) {
+  for (const [key, name] of REVIEW_VIEWS) {
+    test('management ' + key + ' ' + v.name, async ({ page }) => {
+      await page.setViewportSize({ width: v.w, height: v.h });
+      await seed(page, RICH_SAVE);
+      await page.goto('/');
+      await expect(page.locator('.office')).toBeVisible();
+      await clearModals(page);
+      await page.getByRole('button', { name, exact: true }).first().click();
+      await expect(page.locator('.view')).toBeVisible();
+      await shot(page, 'view-' + key + '-' + v.name);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+        true,
+      );
+    });
   }
-});
-
-// Capture every major view at a representative desktop size and a compact size.
-test('all views at desktop + compact', async ({ page }) => {
-  for (const v of [
-    { name: '1280x720', w: 1280, h: 720 },
-    { name: '420x720', w: 420, h: 720 },
-  ]) {
-    await page.setViewportSize({ width: v.w, height: v.h });
-    await seed(page, RICH_SAVE);
-    await page.goto('/');
-    await page.locator('.office').first().waitFor({ timeout: 15000 });
-    await clearModals(page);
-
-    const views: [string, RegExp][] = [
-      ['upgrades', /^Upgrades$|^Melhorias$/i],
-      ['team', /^Team$|^Equipe$/i],
-      ['company', /^Company$|^Empresa$/i],
-      ['focus', /^Focus$|^Foco$/i],
-      ['collections', /^Collections$|^Coleções$/i],
-      ['achievements', /^Achievements$|^Conquistas$/i],
-      ['stats', /^Stats$|^Estatísticas$/i],
-      ['prestige', /^Prestige$|^Prestígio$/i],
-      ['settings', /^Settings$|^Ajustes$/i],
-    ];
-    for (const [key, name] of views) {
-      const btn = page.getByRole('button', { name }).first();
-      if (await btn.count()) {
-        await btn.click();
-        await page.waitForTimeout(300);
-        await shot(page, `view-${key}-${v.name}`);
-      }
-    }
-
-    // Decorate / arrange mode if a decorate nav button exists.
-    const deco = page.getByRole('button', { name: /Decorate|Decoraç/i }).first();
-    if (await deco.count()) {
-      await deco.click();
-      await page.waitForTimeout(300);
-      await shot(page, `view-decorate-${v.name}`);
-    }
-  }
-});
+}
 
 // Scroll to the populated room (Founder's Desk sits at the bottom of the trunk)
 // so the diorama can be inspected with characters + workbench + crate present.
-test('populated room (scrolled to Founder\'s Desk)', async ({ page }) => {
+test("populated room (scrolled to Founder's Desk)", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 720 });
   await seed(page, RICH_SAVE);
   await page.goto('/');
   await page.locator('.office').first().waitFor({ timeout: 15000 });
   await clearModals(page);
-  await page.locator('.floor').last().scrollIntoViewIfNeeded().catch(() => {});
+  await page
+    .locator('.floor')
+    .last()
+    .scrollIntoViewIfNeeded()
+    .catch(() => {});
   await page.waitForTimeout(500);
   await shot(page, 'office-populated');
 });
 
-// Trigger an event choice and capture the WHAT CHANGED consequence panel.
+// Exercise a real pending event in the production build, without developer UI.
 test('event WHAT CHANGED panel', async ({ page }) => {
   await page.setViewportSize({ width: 900, height: 760 });
-  await seed(page, RICH_SAVE);
+  await seed(page, {
+    ...RICH_SAVE,
+    settings: { autoResolveEvents: false },
+    eventInProgress: { eventId: 'building-replies', step: 'request' },
+  });
   await page.goto('/');
-  await page.locator('.office').first().waitFor({ timeout: 15000 });
-  // Force a known event via the dev panel if present, else skip gracefully.
-  const dev = page.locator('.dev-fab');
-  if (await dev.count()) {
-    await dev.click();
-    // switch to actions tab and pick the event from the select if available
-    const actions = page.getByRole('button', { name: /Actions/i }).first();
-    if (await actions.count()) await actions.click();
-    const select = page.locator('.dev-panel select').last();
-    if (await select.count()) {
-      await select.selectOption('bea-wood').catch(() => {});
-      await page.waitForTimeout(200);
-      // close dev panel
-      const close = page.getByRole('button', { name: /Close|Fechar/i }).first();
-      if (await close.count()) await close.click();
-      // choose the "approve" option in the event modal
-      const eventModal = page.locator('.event-modal, .modal');
-      if (await eventModal.count()) {
-        await page.waitForTimeout(300);
-        await shot(page, 'event-modal');
-        const firstChoice = page.locator('.event-modal button, .modal .choice-btn, .modal button').first();
-        if (await firstChoice.count()) {
-          await firstChoice.click();
-          await page.waitForTimeout(400);
-          await shot(page, 'what-changed');
-        }
-      }
-    }
-  }
+  await expect(page.locator('.event-modal')).toBeVisible();
+  await shot(page, 'event-modal');
+  await page.locator('.event-modal .event-choice').first().click();
+  await expect(page.locator('.consequence-modal')).toBeVisible();
+  await shot(page, 'what-changed');
 });
 
 // A localized capture (Brazilian Portuguese) of Office + Settings.
@@ -228,39 +210,33 @@ test('pt-BR localization capture', async ({ page }) => {
 // Exhaustive per-room review. This is deliberately one room per artifact—not
 // a tall overview—so lighting, negative space, built-ins and surface readability
 // can be judged at the size the player actually sees.
-test('every undecorated room is captured individually for art direction review', async ({ page }) => {
-  await page.setViewportSize({ width: 1280, height: 900 });
-  await seed(page, EMPTY_ROOM_REVIEW_SAVE);
-  await page.goto('/');
-  await page.locator('.office').first().waitFor({ timeout: 15_000 });
-  await clearModals(page);
-
-  for (const definition of ROOMS) {
-    const room = page.locator(`.floor[data-room="${definition.id}"]`);
-    await expect(room, `${definition.id} should be unlocked and rendered`).toHaveCount(1);
+for (const definition of ROOMS) {
+  test('room review ' + definition.id, async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await seed(page, EMPTY_ROOM_REVIEW_SAVE);
+    await page.goto('/');
+    await expect(page.locator('.office')).toBeVisible();
+    await clearModals(page);
+    const room = page.locator('.floor[data-room="' + definition.id + '"]');
+    await expect(room).toHaveCount(1);
     await room.scrollIntoViewIfNeeded();
-    await page.waitForTimeout(120);
-    await room.screenshot({ path: `${DIR}/review/rooms/${definition.id}.png` });
-  }
-});
-
-// Exhaustive per-item catalogue review. Cards use the real sprite renderer,
-// authored scale, surface stage, department accent and localized product name.
-test('every decoration is captured individually for catalogue art review', async ({ page }) => {
-  await page.setViewportSize({ width: 1280, height: 900 });
-  await seed(page, EMPTY_ROOM_REVIEW_SAVE);
-  await page.goto('/');
-  await page.locator('.office').first().waitFor({ timeout: 15_000 });
-  await clearModals(page);
-  await page.getByRole('button', { name: /^Decorate$/i }).click();
-
-  const cards = page.locator('.decocard');
-  await expect(cards).toHaveCount(DECORATIONS.length);
-  for (const definition of DECORATIONS) {
-    const card = page.locator(`.decocard[data-decoration="${definition.id}"]`);
-    await expect(card, `${definition.id} should have a catalogue card`).toHaveCount(1);
-    await card.scrollIntoViewIfNeeded();
-    await page.waitForTimeout(80);
-    await card.screenshot({ path: `${DIR}/review/decorations/${definition.id}.png` });
-  }
-});
+    await room.screenshot({ path: DIR + '/review/rooms/' + definition.id + '.png' });
+  });
+}
+for (let batch = 0; batch < DECORATIONS.length; batch += 7) {
+  test('catalogue review ' + (batch + 1), async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await seed(page, EMPTY_ROOM_REVIEW_SAVE);
+    await page.goto('/');
+    await expect(page.locator('.office')).toBeVisible();
+    await clearModals(page);
+    await page.getByRole('button', { name: /^Decorate$/i }).click();
+    await expect(page.locator('.decocard')).toHaveCount(DECORATIONS.length);
+    for (const definition of DECORATIONS.slice(batch, batch + 7)) {
+      const card = page.locator('.decocard[data-decoration="' + definition.id + '"]');
+      await expect(card).toHaveCount(1);
+      await card.scrollIntoViewIfNeeded();
+      await card.screenshot({ path: DIR + '/review/decorations/' + definition.id + '.png' });
+    }
+  });
+}

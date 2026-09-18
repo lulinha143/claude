@@ -5,7 +5,7 @@ import { useStore } from '../../state/store';
 import { useFmt } from '../useFmt';
 import { NUTS } from '../../content/nuts';
 import { EMPLOYEES } from '../../content/employees';
-import { GAME_EVENTS_BY_ID } from '../../content/events';
+import { historyLabelKeys } from '../../content/historyLabels';
 import { NutDot } from '../../art/Icons';
 import { Icon } from '../../art/UiIcon';
 import { momentCardToPng, type MomentCardData } from '../momentCard';
@@ -26,13 +26,13 @@ export function CollectionsView() {
   const allOutfits = EMPLOYEES.flatMap((e) => e.outfits);
 
   function cardData(card: MomentCard): MomentCardData {
-    const def = GAME_EVENTS_BY_ID[card.eventId];
+    const labels = historyLabelKeys(card.eventId);
     const employee = card.employeeId ? EMPLOYEES.find((e) => e.id === card.employeeId) : null;
     const spec = momentFormat(card);
     return {
       card,
       companyName: state.company.name,
-      title: def ? t(def.titleKey) : card.eventId,
+      title: t(labels.titleKey),
       caption: t(card.caption),
       rarityLabel: t(`moment.rarity.${card.rarity}`),
       employeeName: employee ? t(employee.nameKey) : null,
@@ -127,7 +127,7 @@ export function CollectionsView() {
               .slice()
               .reverse()
               .map((card) => {
-                const def = GAME_EVENTS_BY_ID[card.eventId];
+                const labels = historyLabelKeys(card.eventId);
                 const spec = momentFormat(card);
                 const employee = card.employeeId
                   ? EMPLOYEES.find((e) => e.id === card.employeeId)
@@ -160,9 +160,7 @@ export function CollectionsView() {
                         <span className="moment-doc__ref-code">{momentRef(card)}</span>
                       </span>
 
-                      <span className="moment-doc__title">
-                        {def ? t(def.titleKey) : card.eventId}
-                      </span>
+                      <span className="moment-doc__title">{t(labels.titleKey)}</span>
 
                       {/* Personnel notes are about somebody, so they say who. */}
                       {employee ? (
@@ -232,12 +230,25 @@ export function CollectionsView() {
 
       {tab === 'secrets' ? (
         state.collections.secrets.some((secret) => !secret.startsWith('deco:')) ? (
-          <ul className="nut-grid">
+          <ul className="secret-files">
             {state.collections.secrets
               .filter((secret) => !secret.startsWith('deco:'))
-              .map((secret) => (
-                <li key={secret} className="nut-cell">
-                  <span className="nut-cell__name">{secret}</span>
+              .map((secret, index) => (
+                <li key={secret} className="secret-file">
+                  <small>
+                    {t('secretFile.classification')} · {String(index + 1).padStart(3, '0')}
+                  </small>
+                  <h3>
+                    {t(`secretFile.${secret.replace(/[.-]/g, '_')}.title`, {
+                      defaultValue: t('secretFile.unknown.title'),
+                    })}
+                  </h3>
+                  <p>
+                    {t(`secretFile.${secret.replace(/[.-]/g, '_')}.body`, {
+                      defaultValue: t('secretFile.unknown.body'),
+                    })}
+                  </p>
+                  <span>{t('secretFile.stamp')}</span>
                 </li>
               ))}
           </ul>

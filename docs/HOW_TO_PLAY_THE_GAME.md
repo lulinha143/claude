@@ -23,12 +23,13 @@ after you build it yourself with Option B.
    - (Or, if you made the Steam folder: `release\steam\windows\`)
 2. Find the file named **`ZooWorkers.exe`**.
 3. **Double-click** it.
-4. Windows may show a blue box that says *"Windows protected your PC."* This is
+4. Windows may show a blue box that says _"Windows protected your PC."_ This is
    normal for new apps that aren't signed yet. Click **More info**, then
    **Run anyway**. (Only do this for a copy you trust.)
 5. The game opens in a small cozy window. 🐿️
 
 ### Playing in the little window
+
 - **Collect nuts:** click the glowing crate near Pip's desk.
 - **Pet Pip / talk to staff:** click any animal.
 - **Open menus:** use the tabs at the top (Upgrades, Team, Company, etc.).
@@ -47,6 +48,7 @@ after you build it yourself with Option B.
 - **Close completely:** right-click the tray icon → **Quit**, or close the window.
 
 ### Where is my save?
+
 Your progress saves automatically on your own computer. On Windows it lives in:
 
 ```
@@ -64,18 +66,22 @@ Do this if you downloaded the project (the code) and want to make the `.exe`
 yourself.
 
 ### Step 1 — Install Node.js (only once, ever)
+
 1. Go to **https://nodejs.org**
 2. Click the big button that says **LTS**.
 3. Open the downloaded file and click **Next / Install** until it finishes.
 
 To check it worked: open **PowerShell** (press the Windows key, type
 `powershell`, press Enter) and type:
+
 ```
 node --version
 ```
+
 If you see something like `v20.x.x`, you're good.
 
 ### Step 2 — Open the project folder in a terminal
+
 1. Unzip the project if it's a `.zip` (right-click → **Extract All**).
 2. Open **PowerShell**.
 3. Type `cd ` (the letters c, d, and a space), then **drag the project folder**
@@ -86,41 +92,52 @@ If you see something like `v20.x.x`, you're good.
 
 > If PowerShell says scripts are disabled when you run npm, run this once, press
 > `S` then Enter, and try again:
+>
 > ```
 > Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 > ```
 
 ### Step 3 — Install the game's parts (only once per download)
+
 ```
 npm install
 ```
+
 Wait for it to finish (1–2 minutes). Yellow "warn" lines are normal — ignore
 them.
 
 ### Step 4 — Try it in your browser first (fastest)
+
 ```
 npm run dev
 ```
+
 It prints a web address like `http://localhost:5173/`. Open your browser, type
 `localhost:5173`, press Enter — the game runs. Press **Ctrl + C** in PowerShell
 to stop it.
 
 ### Step 5 — Build the Windows app
+
 ```
 npm run build:windows
 ```
+
 When it finishes, your installer and app appear in the **`release`** folder:
+
 - Installer: `release\ZooWorkers-1.0.0-x64.exe`
 - Ready-to-run app folder: `release\win-unpacked\` → double-click
   **`ZooWorkers.exe`** inside it.
 
 A **portable** single-file version (no install needed):
+
 ```
 npm run build:portable
 ```
+
 → `release\ZooWorkers-1.0.0-portable.exe`
 
 ### Common problems
+
 - **"npm is not recognized"** → Node.js isn't installed or PowerShell needs to be
   reopened. Redo Step 1 and open a fresh PowerShell.
 - **"scripts is disabled"** → run the `Set-ExecutionPolicy` line above.

@@ -128,7 +128,8 @@ try {
   await page.locator('.drag-ghost').waitFor({ state: 'detached' });
   if (await page.locator('.office--dragging').count())
     throw new Error('dragging class survived Electron refocus');
-  if (!(await trayCard.isVisible())) throw new Error('cancelled inventory drag changed committed state');
+  if (!(await trayCard.isVisible()))
+    throw new Error('cancelled inventory drag changed committed state');
   await page.evaluate((start) => {
     window.dispatchEvent(
       new PointerEvent('pointerup', {
@@ -210,5 +211,5 @@ try {
   );
 } finally {
   await app.close();
-  fs.rmSync(userDataDir, { recursive: true, force: true });
+  fs.rmSync(userDataDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
 }

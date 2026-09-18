@@ -31,7 +31,16 @@ export function OfficeBackdrop({ reducedMotion = false }: { reducedMotion?: bool
         <rect x="0" y="0" width="100" height="200" fill="url(#bd-glow)" />
         {/* floor divisions */}
         {[42, 74, 106, 138, 170].map((y) => (
-          <line key={y} x1="10" y1={y} x2="90" y2={y} stroke="#241a12" strokeWidth="1.2" opacity="0.5" />
+          <line
+            key={y}
+            x1="10"
+            y1={y}
+            x2="90"
+            y2={y}
+            stroke="#241a12"
+            strokeWidth="1.2"
+            opacity="0.5"
+          />
         ))}
         {/* warm room lights */}
         {[30, 62, 94, 126, 158].map((y, i) => (

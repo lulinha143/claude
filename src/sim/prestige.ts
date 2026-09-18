@@ -3,13 +3,18 @@ import type { GameState, PrestigeBranchId } from './types';
 import { createInitialState } from './state';
 import { PRESTIGE_SKILLS_BY_ID } from '../content/prestige';
 
+/** Lifetime totals stay in the archive; only new production funds a restructure. */
+export function nutsThisRun(state: GameState): number {
+  return Math.max(0, state.stats.totalNutsEarned - (state.prestige.nutsAtLastPrestige ?? 0));
+}
+
 export function canPrestige(state: GameState): boolean {
-  return state.stats.totalNutsEarned >= BALANCE.prestige.unlockAtTotalNuts;
+  return nutsThisRun(state) >= BALANCE.prestige.unlockAtTotalNuts;
 }
 
 /** How many Permanent Kernels the player would earn by prestiging right now. */
 export function kernelsFromPrestige(state: GameState): number {
-  const total = state.stats.totalNutsEarned;
+  const total = nutsThisRun(state);
   if (total < BALANCE.prestige.unlockAtTotalNuts) return 0;
   const base = Math.floor(
     Math.pow(total / BALANCE.prestige.kernelDivisor, BALANCE.prestige.kernelExponent),
@@ -17,7 +22,8 @@ export function kernelsFromPrestige(state: GameState): number {
   // refinery skill boosts kernel gain
   const refinery = state.prestige.skills['kernel-refinery'] ?? 0;
   const skill = PRESTIGE_SKILLS_BY_ID['kernel-refinery'];
-  const mult = skill && skill.effect.kind === 'kernelGain' ? 1 + skill.effect.perLevel * refinery : 1;
+  const mult =
+    skill && skill.effect.kind === 'kernelGain' ? 1 + skill.effect.perLevel * refinery : 1;
   return Math.max(1, Math.floor(base * mult));
 }
 
@@ -27,7 +33,12 @@ export function kernelsFromPrestige(state: GameState): number {
  * employee memories (friendship), achievements and settings. Chooses/keeps a
  * branch.
  */
-export function performPrestige(state: GameState, branch: PrestigeBranchId, now: number): GameState {
+export function performPrestige(
+  state: GameState,
+  branch: PrestigeBranchId,
+  now: number,
+): GameState {
+  if (!canPrestige(state)) return state;
   const earned = kernelsFromPrestige(state);
   const fresh = createInitialState(now, state.settings);
 
@@ -38,6 +49,7 @@ export function performPrestige(state: GameState, branch: PrestigeBranchId, now:
     count: state.prestige.count + 1,
     branch,
     skills: { ...state.prestige.skills },
+    nutsAtLastPrestige: state.stats.totalNutsEarned,
   };
   fresh.achievements = { ...state.achievements };
   fresh.collections = {
@@ -61,6 +73,9 @@ export function performPrestige(state: GameState, branch: PrestigeBranchId, now:
   fresh.company.icon = state.company.icon;
   fresh.stats = { ...state.stats, prestiges: state.stats.prestiges + 1 };
   fresh.focus.completedSessions = state.focus.completedSessions;
+  fresh.microgames = Object.fromEntries(
+    Object.entries(state.microgames).map(([id, record]) => [id, { ...record }]),
+  );
 
   // preserve employee memories (friendship + chosen outfit + nickname) but
   // reset hire/level so the company rebuilds
@@ -69,6 +84,24 @@ export function performPrestige(state: GameState, branch: PrestigeBranchId, now:
       fresh.employees[id].friendship = rt.friendship;
       fresh.employees[id].outfitId = rt.outfitId;
       fresh.employees[id].nickname = rt.nickname;
+      fresh.employees[id].talks = {
+        count: rt.talks?.count ?? 0,
+        lastAt: 0,
+        seen: { ...rt.talks?.seen },
+      };
+    }
+  }
+
+  // Personal histories remain true after a restructure, including the decisions
+  // that unlock their follow-ups. Department crises and promises belong to the old run.
+  for (const [id, at] of Object.entries(state.flags)) {
+    if (
+      id.startsWith('favorite.') ||
+      id.startsWith('discovery.') ||
+      id.startsWith('microgame.') ||
+      Object.keys(state.employees).some((employeeId) => id.startsWith(`${employeeId}.`))
+    ) {
+      fresh.flags[id] = at;
     }
   }
 

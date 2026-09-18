@@ -1,5 +1,7 @@
 import { useEffect, useRef } from 'react';
+import '../employeeKeepsakes.css';
 import { useTranslation } from 'react-i18next';
+import { KeepsakeArt } from '../../art/KeepsakeArt';
 
 import { Critter } from '../../art/Critter';
 import { shapeFor } from '../../art/critterShapes';
@@ -11,7 +13,8 @@ import { affinityPercent, roomAffinity } from '../../sim/affinity';
 import { MOOD_POSITIVE, MOOD_TONE, employeeMood, moodProductivityMultiplier } from '../../sim/mood';
 import { ROOMS_BY_ID } from '../../content/rooms';
 import { resolveEmployeeRoom } from '../../sim/rooms';
-import { evaluateTalkNode, type TalkRequirementFailure } from '../../sim/talks';
+import { eligibleTopics, evaluateTalkNode, type TalkRequirementFailure } from '../../sim/talks';
+import { cancelTransientInteractions } from '../interactionLifecycle';
 import { useGame } from '../../state/hooks';
 import { useStore } from '../../state/store';
 import { useFmt } from '../useFmt';
@@ -44,17 +47,50 @@ export function EmployeeTalk() {
   const reducedMotion = state.settings.reducedMotion;
   const active = engine.activeTalk;
   const closeRef = useRef<HTMLButtonElement | null>(null);
+  const sheetRef = useRef<HTMLDivElement | null>(null);
+  const employeeId = active?.employeeId;
 
   // Escape always leaves. A conversation is never modal in the trapping sense —
   // whatever has been agreed is already applied and saved.
   useEffect(() => {
-    if (!active) return undefined;
+    if (!employeeId) return undefined;
+    const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    cancelTransientInteractions('popup-open');
+    closeRef.current?.focus();
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') engine.closeTalk();
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        engine.closeTalk();
+      }
+      if (e.key !== 'Tab') return;
+      const sheet = sheetRef.current;
+      const controls = [
+        ...(sheet?.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), summary, [href], [tabindex="0"]',
+        ) ?? []),
+      ].filter((element) => element.getClientRects().length > 0);
+      const first = controls[0];
+      const last = controls[controls.length - 1];
+      if (
+        e.shiftKey &&
+        (document.activeElement === first || !sheet?.contains(document.activeElement))
+      ) {
+        e.preventDefault();
+        last?.focus();
+      } else if (
+        !e.shiftKey &&
+        (document.activeElement === last || !sheet?.contains(document.activeElement))
+      ) {
+        e.preventDefault();
+        first?.focus();
+      }
     };
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [active, engine]);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      if (previous?.isConnected) previous.focus({ preventScroll: true });
+    };
+  }, [employeeId, engine]);
 
   // Move focus into the mode when it opens, so a keyboard player is not stranded
   // behind it, and so a screen reader announces the conversation. Keyed on the
@@ -82,6 +118,11 @@ export function EmployeeTalk() {
   const node = active.nodeId ? active.topic.nodes[active.nodeId] : null;
   const finished = !node;
   const evaluated = node ? evaluateTalkNode(state, def.id, node.choices, Date.now()) : [];
+  const otherTopics =
+    active.exchanges === 0
+      ? eligibleTopics(state, def.id, Date.now()).filter((topic) => topic.id !== active.topic.id)
+      : [];
+  const knowsFavorite = Boolean(rt.talks?.seen[`keepsake-${def.id}`]);
 
   const requirementText = (f: TalkRequirementFailure): string =>
     t(f.messageKey, { value: f.required !== undefined ? fmt.num(f.required) : '' });
@@ -119,7 +160,7 @@ export function EmployeeTalk() {
       data-node={active.nodeId || 'end'}
     >
       <div className="talk__scrim" onClick={() => engine.closeTalk()} aria-hidden="true" />
-      <div className="talk__sheet">
+      <div className="talk__sheet" ref={sheetRef}>
         {/* An internal-memo header, so the mode belongs to the same company as
             everything else rather than looking like a visual-novel overlay. */}
         <header className="talk__masthead">
@@ -174,6 +215,12 @@ export function EmployeeTalk() {
               {rt.nickname ?? t(def.nameKey)}
             </h2>
             <p className="talk__role">{t(def.roleKey)}</p>
+            <div className="talk__keepsake">
+              <KeepsakeArt employeeId={def.id} />
+              <span>{t('talk.favorite')}</span>
+              <strong>{t(def.favoriteItemKey)}</strong>
+              {knowsFavorite ? <small>{t('talk.discovered')}</small> : null}
+            </div>
 
             <dl className="talk__vitals">
               <div className="talk__vital">
@@ -215,12 +262,24 @@ export function EmployeeTalk() {
               <h3>{t(active.topic.titleKey)}</h3>
               <p>{t(active.topic.blurbKey)}</p>
             </div>
+            {otherTopics.length > 0 ? (
+              <details className="talk__agenda" key={active.topic.id}>
+                <summary>{t('talk.otherTopics')}</summary>
+                <div>
+                  {otherTopics.map((topic) => (
+                    <button key={topic.id} onClick={() => engine.openTalk(def.id, topic.id)}>
+                      {t(topic.titleKey)}
+                    </button>
+                  ))}
+                </div>
+              </details>
+            ) : null}
 
             {/* The reply to what was just said comes first: it is the payoff for the
                 previous choice, and putting it above the new prompt is what makes the
                 exchange read as a conversation rather than a list of questions. */}
             {active.lastReplyKey ? (
-              <blockquote className="talk__said talk__said--reply">
+              <blockquote className="talk__said talk__said--reply" aria-live="polite">
                 {t(active.lastReplyKey)}
               </blockquote>
             ) : null}

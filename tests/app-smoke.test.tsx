@@ -4,13 +4,14 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { initI18n } from '../src/i18n';
 
 describe('App renders without throwing', () => {
+  let App: (typeof import('../src/App'))['App'];
   beforeAll(async () => {
     await initI18n('en');
+    // Module transformation is setup, not part of the rendering assertion's budget.
+    App = (await import('../src/App')).App;
   });
 
-  it('mounts the header, nav and office scene', async () => {
-    // Import after i18n init so react-i18next has the instance ready.
-    const { App } = await import('../src/App');
+  it('mounts the header, nav and office scene', () => {
     const html = renderToStaticMarkup(<App />);
     // header + company name
     expect(html).toContain('header__company');

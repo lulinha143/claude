@@ -5,16 +5,8 @@
       "asset": "bia",
       "source": "URSO.png",
       "source_bytes": 109916653,
-      "crop": [
-        0,
-        0,
-        960,
-        960
-      ],
-      "crop_size": [
-        960,
-        960
-      ],
+      "crop": [0, 0, 960, 960],
+      "crop_size": [960, 960],
       "height_1x": 100,
       "height_2x": 200,
       "repaired_frames": {
@@ -23,28 +15,19 @@
       },
       "out_2x": {
         "file": "bia.png",
-        "size": [
-          200,
-          200
-        ],
+        "size": [200, 200],
         "frames": 134,
         "bytes": 7550978
       },
       "out_1x": {
         "file": "bia-1x.png",
-        "size": [
-          100,
-          100
-        ],
+        "size": [100, 100],
         "frames": 134,
         "bytes": 2229365
       },
       "poster": {
         "file": "bia-poster.png",
-        "size": [
-          280,
-          280
-        ],
+        "size": [280, 280],
         "frames": 1,
         "bytes": 99175
       },

@@ -238,12 +238,8 @@ app = await launch();
     fail(`persisted width lost after relaunch: ${stillPersisted.width}`);
   console.log('WINDOW SMOKE: relaunched with persisted bounds intact OK');
 }
-// Force the second process down instead of routing through window-close
-// handlers (which may intentionally hide to tray after persisted settings load).
-await Promise.race([
-  app.evaluate(({ app: electronApp }) => electronApp.exit(0)).catch(() => {}),
-  new Promise((resolve) => setTimeout(resolve, 3_000)),
-]);
+// Wait for Electron and its profile handles to close before removing the fixture.
+await app.close();
 
-fs.rmSync(userDataDir, { recursive: true, force: true });
+fs.rmSync(userDataDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
 console.log('WINDOW SMOKE OK');

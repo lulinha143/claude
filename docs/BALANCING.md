@@ -7,18 +7,18 @@ should be a scattered magic number.
 
 ## Where to tune what
 
-| Want to change… | Edit |
-| --- | --- |
-| Base production, click power, starting nuts | `BALANCE.baseProductionPerSecond`, `baseClickPower`, `startingNuts` |
-| Morale range and its production effect | `BALANCE.morale` |
-| Crate value | `BALANCE.crate` |
-| Offline efficiency and caps | `BALANCE.offline` |
-| Prestige unlock threshold and kernel formula | `BALANCE.prestige` |
-| Focus bonus and reward | `BALANCE.focus` |
-| Event frequency / base chance | `BALANCE.eventRollIntervalSeconds`, `eventBaseChance` |
-| Autosave cadence | `BALANCE.autosaveIntervalSeconds` |
-| An upgrade's cost/curve/effect | its entry in `src/content/upgrades.ts` |
-| An employee's rate/cost/passive | its entry in `src/content/employees.ts` |
+| Want to change…                              | Edit                                                                |
+| -------------------------------------------- | ------------------------------------------------------------------- |
+| Base production, click power, starting nuts  | `BALANCE.baseProductionPerSecond`, `baseClickPower`, `startingNuts` |
+| Morale range and its production effect       | `BALANCE.morale`                                                    |
+| Crate value                                  | `BALANCE.crate`                                                     |
+| Offline efficiency and caps                  | `BALANCE.offline`                                                   |
+| Prestige unlock threshold and kernel formula | `BALANCE.prestige`                                                  |
+| Focus bonus and reward                       | `BALANCE.focus`                                                     |
+| Event frequency / base chance                | `BALANCE.eventRollIntervalSeconds`, `eventBaseChance`               |
+| Autosave cadence                             | `BALANCE.autosaveIntervalSeconds`                                   |
+| An upgrade's cost/curve/effect               | its entry in `src/content/upgrades.ts`                              |
+| An employee's rate/cost/passive              | its entry in `src/content/employees.ts`                             |
 
 ## Key formulas
 

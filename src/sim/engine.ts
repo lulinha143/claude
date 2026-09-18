@@ -1,4 +1,6 @@
 import { BALANCE } from './config';
+import { MICRO_TEAM, MICRO_SOUVENIRS, type MicroMode, type MicroReward } from './minigames';
+import { availableFacilityDiscoveries } from './facilityDiscoveries';
 import { createRng, hashStringToSeed, type Rng } from './rng';
 import type {
   DecorationInstance,
@@ -32,7 +34,7 @@ import type { EventChoice, EventEffect, GameEventDef } from '../content/types';
 import { GAME_EVENTS, GAME_EVENTS_BY_ID } from '../content/events';
 import { eventChoicesForState } from './eventChoices';
 import { chooseAutoResolution } from './eventAutoResolve';
-import { evaluateTalkNode, pickTopic, talkCooldownRemaining } from './talks';
+import { eligibleTopics, evaluateTalkNode, pickTopic, talkCooldownRemaining } from './talks';
 import type { TalkChoice, TalkTopic } from '../content/employeeTalks';
 import { CLICK_STATIONS_BY_ID } from '../content/clickStations';
 import {
@@ -163,6 +165,19 @@ const EFFECTS_NEEDING_EMPLOYEE: ReadonlySet<EventEffect['type']> = new Set([
   'emotion',
 ]);
 
+/** Bind delayed promises too: they may settle after their conversation is gone. */
+function bindEmployeeEffect(effect: EventEffect, employeeId?: string | null): EventEffect {
+  return {
+    ...effect,
+    ...(employeeId && !effect.employeeId && EFFECTS_NEEDING_EMPLOYEE.has(effect.type)
+      ? { employeeId }
+      : {}),
+    ...(effect.scheduled
+      ? { scheduled: effect.scheduled.map((child) => bindEmployeeEffect(child, employeeId)) }
+      : {}),
+  };
+}
+
 /** One decision taken on the player's behalf while popups are disabled. */
 interface AutoResolvedDecision {
   def: GameEventDef;
@@ -209,7 +224,12 @@ export class GameEngine {
   activeEvent: ActiveEvent | null = null;
   /** transient: the result of the most recent event choice, for the result panel. */
   lastConsequence: Consequence | null = null;
-  tempBoosts: TempBoost[] = [];
+  get tempBoosts(): TempBoost[] {
+    return this.state.boosts;
+  }
+  set tempBoosts(boosts: TempBoost[]) {
+    this.state.boosts = boosts;
+  }
   /**
    * transient: the live click-station combo. A streak is a moment, not an asset,
    * so it is intentionally NOT persisted — it lapses on reload just as it lapses
@@ -250,6 +270,9 @@ export class GameEngine {
   constructor(state: GameState, opts: EngineOptions = {}) {
     this.state = state;
     this.now = opts.now ?? (() => Date.now());
+    this.state.boosts ??= [];
+    this.state.microgames ??= {};
+    this.restoreEvent();
     const seed = opts.deterministic ? (opts.seed ?? 12345) : (opts.seed ?? Date.now() & 0xffffffff);
     this.rng = createRng(seed);
     // Backfill any employees added to the game since this save was written, so
@@ -310,8 +333,8 @@ export class GameEngine {
   currentBoostMultiplier(): number {
     const t = this.now();
     let m = 1;
-    for (const b of this.tempBoosts) if (b.endsAt > t) m *= b.multiplier;
-    return m;
+    for (const b of this.tempBoosts) if (b.endsAt > t) m += b.multiplier - 1;
+    return Math.min(3, Math.max(1, m));
   }
 
   clickPower(): number {
@@ -361,6 +384,7 @@ export class GameEngine {
 
     // random events
     this.settleScheduled();
+    if (this.activeEvent && this.state.settings.autoResolveEvents) this.autoResolveActiveEvent();
 
     this.eventAccum += deltaSeconds;
     if (this.eventAccum >= BALANCE.eventRollIntervalSeconds) {
@@ -530,6 +554,7 @@ export class GameEngine {
       this.settledConsequences.push(item);
       if (this.settledConsequences.length > 8) this.settledConsequences.shift();
     }
+    this.save();
   }
 
   /**
@@ -743,22 +768,48 @@ export class GameEngine {
     return changes;
   }
 
-  giveCoffee(id: string): void {
+  coffeeCooldownRemaining(id: string): number {
+    const at = this.state.flags[`interaction.coffee.${id}`];
+    return at === undefined ? 0 : Math.max(0, Math.ceil(120 - (this.now() - at) / 1000));
+  }
+
+  giveCoffee(id: string): boolean {
     const rt = this.state.employees[id];
-    if (!rt) return;
+    if (!rt?.hired || this.coffeeCooldownRemaining(id) > 0) return false;
+    this.state.flags[`interaction.coffee.${id}`] = this.now();
     rt.friendship = Math.min(100, rt.friendship + 3);
     this.state.resources.morale = Math.min(moraleCap(this.state), this.state.resources.morale + 2);
     this.emit();
+    this.save();
+    return true;
   }
 
   petPip(): void {
     const pip = this.state.employees['pip'];
-    if (pip) pip.friendship = Math.min(100, pip.friendship + 1);
+    const last = this.state.flags['interaction.pet.pip'];
+    if (pip && (last === undefined || this.now() - last >= 15_000)) {
+      pip.friendship = Math.min(100, pip.friendship + 1);
+      this.state.flags['interaction.pet.pip'] = this.now();
+    }
     this.addBoost(1.05, 15);
     this.emit();
   }
 
   addBoost(multiplier: number, seconds: number): void {
+    if (
+      !Number.isFinite(multiplier) ||
+      !Number.isFinite(seconds) ||
+      multiplier <= 1 ||
+      seconds <= 0
+    )
+      return;
+    // Repeated pets/coffee refresh the same encouragement instead of multiplying
+    // production exponentially with every click.
+    const existing = this.tempBoosts.find((boost) => boost.multiplier === multiplier);
+    if (existing) {
+      existing.endsAt = Math.max(existing.endsAt, this.now() + seconds * 1000);
+      return;
+    }
     this.tempBoosts.push({ multiplier, endsAt: this.now() + seconds * 1000 });
   }
 
@@ -800,7 +851,7 @@ export class GameEngine {
   }
 
   maybeRollEvent(force = false): void {
-    if (this.activeEvent) return;
+    if (this.activeEvent || this.activeTalk) return;
     const passives = aggregatePassives(this.state);
     // Rooms that deal in the strange — the Lab, Research, the basement — make
     // something interesting happen more often, which is their real reward.
@@ -829,6 +880,7 @@ export class GameEngine {
     const def = GAME_EVENTS_BY_ID[id];
     if (!def || this.activeEvent) return false;
     this.activeEvent = { def, step: null, instanceId: this.nextEventInstanceId++ };
+    this.state.eventInProgress = { eventId: id, step: null };
     this.state.stats.eventsSeen += 1;
     this.progressDaily('employeeConversations', def.employeeId ? 1 : 0);
 
@@ -841,7 +893,26 @@ export class GameEngine {
     }
 
     this.emit();
+    this.save();
     return true;
+  }
+
+  inspectFacility(id: string): boolean {
+    if (this.activeTalk || this.activeEvent) return false;
+    const discovery = availableFacilityDiscoveries(this.state).find((entry) => entry.id === id);
+    return discovery ? this.triggerEvent(discovery.eventId) : false;
+  }
+
+  private restoreEvent(): void {
+    const pending = this.state.eventInProgress;
+    this.activeEvent = null;
+    if (!pending) return;
+    const def = GAME_EVENTS_BY_ID[pending.eventId];
+    if (!def || (pending.step !== null && !def.steps?.[pending.step])) {
+      this.state.eventInProgress = null;
+      return;
+    }
+    this.activeEvent = { def, step: pending.step, instanceId: this.nextEventInstanceId++ };
   }
 
   /**
@@ -874,17 +945,26 @@ export class GameEngine {
     if (decisions.length === 0) {
       // Nothing actionable (malformed content): do not leave a popup stranded.
       this.activeEvent = null;
+      this.state.eventInProgress = null;
       return false;
     }
 
     // The result panel is an interruption too, so it is suppressed; the summary
     // below is what the player sees.
+    if (this.activeEvent) {
+      // Malformed cyclic chains must not hold the event slot forever.
+      this.state.eventCooldowns[this.activeEvent.def.id] =
+        this.now() + this.activeEvent.def.cooldownSeconds * 1000;
+      this.activeEvent = null;
+      this.state.eventInProgress = null;
+    }
     this.lastConsequence = null;
     this.lastAutoResolved = {
       titleKey: decisions[0].def.titleKey,
       choiceLabelKey: decisions[decisions.length - 1].choice.labelKey,
       at: this.now(),
     };
+    this.save();
     return true;
   }
 
@@ -932,13 +1012,17 @@ export class GameEngine {
       // advance chain or close
       if (choice.next && def.steps?.[choice.next]) {
         this.activeEvent = { def, step: choice.next, instanceId: active.instanceId };
+        this.state.eventInProgress = { eventId: def.id, step: choice.next };
         // mid-chain steps don't show a standalone result panel
         this.lastConsequence = null;
       } else {
         this.state.eventCooldowns[def.id] = this.now() + def.cooldownSeconds * 1000;
         this.filePromisedMoment(def, choice);
+        report.momentCreated = this.state.collections.moments.length > before.moments;
         this.activeEvent = null;
+        this.state.eventInProgress = null;
       }
+      this.save();
       this.emit();
       return true;
     } finally {
@@ -990,12 +1074,19 @@ export class GameEngine {
    * ------------------------------------------------------------------------- */
 
   /** Open a conversation, choosing the most pressing topic. False if nobody is free. */
-  openTalk(employeeId: string): boolean {
+  openTalk(employeeId: string, topicId?: string): boolean {
     const rt = this.state.employees[employeeId];
     if (!rt?.hired) return false;
     const now = this.now();
     if (talkCooldownRemaining(this.state, employeeId, now) > 0) return false;
-    const topic = pickTopic(this.state, employeeId, now);
+    if (
+      this.activeTalk &&
+      (this.activeTalk.employeeId !== employeeId || this.activeTalk.exchanges > 0)
+    )
+      return false;
+    const topic = topicId
+      ? eligibleTopics(this.state, employeeId, now).find((candidate) => candidate.id === topicId)
+      : pickTopic(this.state, employeeId, now);
     if (!topic) return false;
     const node = topic.nodes[topic.root];
     if (!node) return false;
@@ -1040,10 +1131,8 @@ export class GameEngine {
       // Effects that name no employee are about THIS conversation's employee. That is
       // what lets one topic be written once and reused across the whole cast.
       this.applyEffect(
-        effect.employeeId || !EFFECTS_NEEDING_EMPLOYEE.has(effect.type)
-          ? effect
-          : { ...effect, employeeId: active.employeeId },
-        this.talkEventShim(active.topic, choice),
+        bindEmployeeEffect(effect, active.employeeId),
+        this.talkEventShim(active.topic, choice, active.employeeId),
       );
     }
     const report = this.diffReport(before, choice.effects, now);
@@ -1119,9 +1208,10 @@ export class GameEngine {
    * scheduled callback and to stamp a moment card — so this supplies exactly those
    * rather than forcing conversations to be authored as fake events.
    */
-  private talkEventShim(topic: TalkTopic, choice: TalkChoice): GameEventDef {
+  private talkEventShim(topic: TalkTopic, choice: TalkChoice, employeeId: string): GameEventDef {
     return {
       id: `talk:${topic.id}`,
+      employeeId,
       titleKey: topic.titleKey,
       bodyKey: choice.replyKey,
       rarity: 'common',
@@ -1255,7 +1345,8 @@ export class GameEngine {
       case 'friendship': {
         const rt = this.state.employees[effect.employeeId ?? def?.employeeId ?? ''];
         // Only unlocked employees participate in the simulation.
-        if (rt && rt.hired) rt.friendship = Math.min(100, rt.friendship + (effect.value ?? 5));
+        if (rt && rt.hired)
+          rt.friendship = Math.max(0, Math.min(100, rt.friendship + (effect.value ?? 5)));
         break;
       }
       case 'emotion': {
@@ -1292,7 +1383,7 @@ export class GameEngine {
           sourceEventId: def?.id ?? 'manual',
           titleKey: effect.scheduleTitleKey ?? def?.titleKey ?? 'notify.consequenceSettled',
           bodyKey: effect.scheduleBodyKey ?? def?.bodyKey ?? 'notify.consequenceSettled',
-          effects: effect.scheduled,
+          effects: effect.scheduled.map((child) => bindEmployeeEffect(child, def?.employeeId)),
         });
         // Keep the queue bounded; a save should never accumulate promises forever.
         if (this.state.scheduled.length > 24) this.state.scheduled.shift();
@@ -1380,13 +1471,69 @@ export class GameEngine {
   }
 
   // -- microgames -----------------------------------------------------------
-  rewardMicrogame(_kind: 'coffeeRescue' | 'bugSquash' | 'cableUntangle', score: number): void {
+  rewardMicrogame(kind: MicroMode, score: number): MicroReward | undefined {
+    if (!MICRO_TEAM[kind] || !Number.isFinite(score) || score < 0) return;
+    const now = this.now();
+    const record = this.state.microgames[kind] ?? { best: 0, plays: 0, lastRewardAt: 0 };
+    // A completed round lasts at least 30 seconds. Reject duplicate completion
+    // callbacks even across a save/reload without throttling legitimate replays.
+    if (record.plays > 0 && now - record.lastRewardAt < 25_000) return;
+    score = Math.floor(score);
+    const newBest = score > record.best;
+    const mastered = record.best < 30 && score >= 30;
+    record.best = Math.max(record.best, score);
+    record.plays += 1;
+    record.lastRewardAt = now;
+    this.state.microgames[kind] = record;
     this.state.stats.microgamesPlayed += 1;
     this.progressDaily('playMicrogame', 1);
     const boost = 1 + Math.min(0.5, score / 100);
+    // Pay from unboosted production, before granting this round's encouragement.
+    // A reward must not multiply itself or compound the previous round's payout.
+    const nuts =
+      score > 0
+        ? Math.round(
+            crateValue(this.state, this.isFocusActive()) * (0.5 + Math.min(2.5, score / 50)),
+          )
+        : 0;
     this.addBoost(boost, 90);
-    this.addNuts(this.crateValue() * (1 + score / 50), false);
+    this.addNuts(nuts, false);
+    const employeeIds =
+      score >= 18 ? MICRO_TEAM[kind].filter((id) => this.state.employees[id]?.hired) : [];
+    for (const id of employeeIds) {
+      this.applyEffect({ type: 'friendship', employeeId: id, value: 3 });
+      this.setEmployeeEmotion(id, 'proud', 180);
+    }
+    if (mastered) {
+      this.state.resources.goldenNuts += 1;
+      this.state.flags[`microgame.${kind}.mastered`] = now;
+      this.createMomentCard({
+        id: `microgame:${kind}`,
+        employeeId: employeeIds[0] ?? null,
+        titleKey: `microgame.${kind}.name`,
+        bodyKey: `microgame.${kind}.reaction`,
+        rarity: 'uncommon',
+        choices: [],
+        weight: 0,
+        cooldownSeconds: 0,
+      });
+    }
+    const decorationId =
+      mastered && !this.state.collections.secrets.includes(`deco:${MICRO_SOUVENIRS[kind]}`)
+        ? MICRO_SOUVENIRS[kind]
+        : undefined;
+    if (decorationId) this.applyDecorationPurchase(decorationId, `deco:${decorationId}`);
+    this.save();
     this.emit();
+    return {
+      nuts,
+      boost,
+      best: record.best,
+      newBest,
+      mastered,
+      employeeIds: [...employeeIds],
+      decorationId,
+    };
   }
 
   // -- prestige / skills / decorations --------------------------------------
@@ -1734,10 +1881,17 @@ export class GameEngine {
 
   replaceState(next: GameState): void {
     this.state = next;
-    this.activeEvent = null;
+    this.state.boosts ??= [];
+    this.state.microgames ??= {};
+    this.activeTalk = null;
+    this.combo = null;
+    this.lastAutoResolved = null;
+    this.settledConsequences = [];
+    this.restoreEvent();
     this.lastConsequence = null;
     this.resolvingEventInstanceId = null;
-    this.tempBoosts = [];
+    repairEmployees(this.state);
+    enforceRoomCapacity(this.state);
     this.repairedOnLoad = repairPlacements(this.state);
     repairDecorationInstances(this.state);
     repairDecorations(this.state);

@@ -14,7 +14,13 @@ const SAVE = {
     pip: { hired: true, level: 6, friendship: 70, room: 'founder-desk', x: 0.3 },
     marlow: { hired: true, level: 4, friendship: 55, room: 'founder-desk', x: 0.6 },
   },
-  collections: { nuts: [], outfits: [], logos: [], moments: [], secrets: ['deco:potted-fern', 'deco:motivational-poster'] },
+  collections: {
+    nuts: [],
+    outfits: [],
+    logos: [],
+    moments: [],
+    secrets: ['deco:potted-fern', 'deco:motivational-poster'],
+  },
 };
 
 async function seed(page: Page) {
@@ -28,7 +34,8 @@ async function seed(page: Page) {
     }
   });
   await page.addInitScript((data) => {
-    if (!localStorage.getItem('wmno.save.v1')) localStorage.setItem('wmno.save.v1', JSON.stringify(data));
+    if (!localStorage.getItem('wmno.save.v1'))
+      localStorage.setItem('wmno.save.v1', JSON.stringify(data));
   }, SAVE);
 }
 
@@ -43,7 +50,9 @@ async function clearModals(page: Page) {
   await page.waitForTimeout(200);
 }
 
-test('room stats and settings toggles are self-explanatory (hover + keyboard)', async ({ page }) => {
+test('room stats and settings toggles are self-explanatory (hover + keyboard)', async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await seed(page);
   await page.goto('/');
@@ -62,7 +71,9 @@ test('room stats and settings toggles are self-explanatory (hover + keyboard)', 
 
   // Settings: a desktop toggle reveals its hint on KEYBOARD FOCUS.
   await page.getByRole('button', { name: 'Settings' }).click();
-  const alwaysOnTop = page.locator('fieldset.desktop-controls .toggle-row span[tabindex="0"]').first();
+  const alwaysOnTop = page
+    .locator('fieldset.desktop-controls .toggle-row span[tabindex="0"]')
+    .first();
   await alwaysOnTop.scrollIntoViewIfNeeded();
   await alwaysOnTop.focus();
   await expect(tip).toBeVisible();

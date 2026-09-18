@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { EnsembleNotes } from '../EnsembleNotes';
 import { useGame } from '../../state/hooks';
 import { useStore } from '../../state/store';
 import { useFmt } from '../useFmt';
@@ -104,6 +105,7 @@ export function DecorateView() {
         </p>
       </div>
 
+      <EnsembleNotes />
       {/* room selector */}
       <div className="decorate__rooms" role="tablist" aria-label={t('decorate.allRooms')}>
         <button

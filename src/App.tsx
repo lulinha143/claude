@@ -72,6 +72,7 @@ export function App() {
   //                halo-stripped (ZERO semi-transparent pixels) variant, in place,
   //                so the real-GPU shimmer can be judged against one variable.
   useEffect(() => {
+    if (!devEnabled) return;
     const onKey = (e: KeyboardEvent) => {
       if (!e.ctrlKey || !e.altKey) return;
       if (e.key === 'd' || e.key === 'D') {
@@ -86,7 +87,7 @@ export function App() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, []);
+  }, [devEnabled]);
 
   // Mark the desktop (frameless) shell so the app can fill the window edge-to-
   // edge — no rounded margin/shadow gap — which keeps the native OS resize

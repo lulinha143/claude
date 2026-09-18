@@ -9,29 +9,29 @@ punishing micromanagement system (brief §16 / §18).
 `employeeMood(state, id)` in `src/sim/mood.ts` derives the emotion
 **deterministically** from the current company state (no extra save fields):
 
-| Condition (checked in order)        | Emotion       |
-| ----------------------------------- | ------------- |
-| A Focus Harvest session is active   | `focused`     |
-| Morale < 30                         | `frustrated`  |
-| Morale < 45                         | `tired`       |
-| Friendship ≥ 70 **and** morale ≥ 70 | `proud`       |
-| Morale ≥ 85                         | `inspired`    |
-| Friendship ≥ 40                     | `relaxed`     |
-| otherwise                           | `curious`     |
+| Condition (checked in order)        | Emotion      |
+| ----------------------------------- | ------------ |
+| A Focus Harvest session is active   | `focused`    |
+| Morale < 30                         | `frustrated` |
+| Morale < 45                         | `tired`      |
+| Friendship ≥ 70 **and** morale ≥ 70 | `proud`      |
+| Morale ≥ 85                         | `inspired`   |
+| Friendship ≥ 40                     | `relaxed`    |
+| otherwise                           | `curious`    |
 
 ## Effect on work (modest, understandable)
 
 `moodProductivityMultiplier(mood)` returns a small factor, always within **±5%**:
 
-| Emotion    | Multiplier |
-| ---------- | ---------- |
-| inspired   | 1.05       |
-| focused    | 1.05       |
-| proud      | 1.04       |
-| relaxed    | 1.02       |
+| Emotion    | Multiplier      |
+| ---------- | --------------- |
+| inspired   | 1.05            |
+| focused    | 1.05            |
+| proud      | 1.04            |
+| relaxed    | 1.02            |
 | curious    | 1.00 (baseline) |
-| tired      | 0.97       |
-| frustrated | 0.95       |
+| tired      | 0.97            |
+| frustrated | 0.95            |
 
 The **team mood multiplier** (`moodMultiplier(state)` → `teamMoodMultiplier`) is
 the **production-weighted average** of each hired employee's factor (weighted by
@@ -90,7 +90,7 @@ worried**; investing in Corvus's coin → **Corvus excited, Marlow embarrassed**
 ## "WHAT CHANGED" result panel (§17)
 
 `resolveEventChoice()` snapshots state **before** applying effects and diffs it
-**after**, producing a `ConsequenceReport` of the *real, measured* change:
+**after**, producing a `ConsequenceReport` of the _real, measured_ change:
 currency/morale/reputation deltas, a temporary-boost line, moment-card creation,
 and a **per-employee list** — each showing the new emotion, its productivity
 `±%`, friendship delta, and remaining minutes for temporary emotions. The
@@ -103,6 +103,6 @@ match the actual post-choice state.
 
 - The consequence report is shown once; **reopening a past report from the event
   history is not yet implemented** (individual emotions and the decision timeline
-  *are* persisted, but the full formatted report is transient).
+  _are_ persisted, but the full formatted report is transient).
 - Per-emotion body-pose/idle animation variants are minimal (the office shows the
   mood dot + colour); distinct art per emotion is future work.

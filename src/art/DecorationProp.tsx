@@ -19,15 +19,7 @@ function idHash(id: string): number {
 // decoration reads as its own distinct object.
 
 export type DecorKind =
-  | 'plant'
-  | 'lamp'
-  | 'poster'
-  | 'rug'
-  | 'aquarium'
-  | 'trophy'
-  | 'cushion'
-  | 'box'
-  | 'screen';
+  'plant' | 'lamp' | 'poster' | 'rug' | 'aquarium' | 'trophy' | 'cushion' | 'box' | 'screen';
 
 export function decorKind(id: string): DecorKind {
   if (/(fern|plant|garden|terrarium)/.test(id)) return 'plant';

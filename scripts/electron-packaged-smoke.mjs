@@ -50,12 +50,16 @@ try {
   // Inspect the packaged startup log for the success marker + forbidden errors.
   const logPath = path.join(userData, 'startup.log');
   const logText = fs.existsSync(logPath) ? fs.readFileSync(logPath, 'utf-8') : '';
-  if (!/STARTUP SUCCESS/.test(logText)) fail(`startup.log missing STARTUP SUCCESS marker. Log:\n${logText}`);
+  if (!/STARTUP SUCCESS/.test(logText))
+    fail(`startup.log missing STARTUP SUCCESS marker. Log:\n${logText}`);
   if (/ERR_FAILED/.test(logText)) fail(`startup.log contains ERR_FAILED:\n${logText}`);
-  if (/Object has been destroyed/.test(logText)) fail(`startup.log contains "Object has been destroyed":\n${logText}`);
+  if (/Object has been destroyed/.test(logText))
+    fail(`startup.log contains "Object has been destroyed":\n${logText}`);
   if (!/did-finish-load/.test(logText)) fail('startup.log missing did-finish-load');
 
-  console.log('PACKAGED SMOKE OK: packaged app rendered the game (isPackaged=true, from app.asar.unpacked).');
+  console.log(
+    'PACKAGED SMOKE OK: packaged app rendered the game (isPackaged=true, from app.asar.unpacked).',
+  );
   console.log('--- startup.log tail ---');
   console.log(logText.split('\n').slice(-10).join('\n'));
 } finally {

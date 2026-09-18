@@ -235,6 +235,14 @@ const v10ToV11: Migration = (raw) => {
   return { ...raw, employees, version: 11 };
 };
 
+const v11ToV12: Migration = (raw) => ({
+  ...raw,
+  eventInProgress: raw.eventInProgress ?? null,
+  boosts: Array.isArray(raw.boosts) ? raw.boosts : [],
+  microgames: isRawSave(raw.microgames) ? raw.microgames : {},
+  version: 12,
+});
+
 const MIGRATIONS: Record<number, Migration> = {
   1: v1ToV2,
   2: v2ToV3,
@@ -246,6 +254,7 @@ const MIGRATIONS: Record<number, Migration> = {
   8: v8ToV9,
   9: v9ToV10,
   10: v10ToV11,
+  11: v11ToV12,
 };
 
 export function migrate(raw: RawSave): RawSave {

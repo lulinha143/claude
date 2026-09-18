@@ -129,7 +129,6 @@ const automationUpgrades: UpgradeDef[] = [
   },
 ];
 
-
 /**
  * Upgrades that change how the company PLAYS, not how big its numbers are.
  *

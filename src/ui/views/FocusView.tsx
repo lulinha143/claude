@@ -98,8 +98,9 @@ export function FocusView() {
             seed={micro.seed}
             reducedMotion={state.settings.reducedMotion}
             onReward={(score) => {
-              engine.rewardMicrogame(micro.mode, score);
+              const reward = engine.rewardMicrogame(micro.mode, score);
               audio.play('celebrate');
+              return reward;
             }}
             onClose={() => setMicro(null)}
           />
@@ -117,6 +118,11 @@ export function FocusView() {
                 <span className="micro-card__copy">
                   <strong>{t(`microgame.${m}.name`)}</strong>
                   <span>{t(`microgame.${m}.desc`)}</span>
+                  {state.microgames[m]?.plays ? (
+                    <small>
+                      {t('microgame.personalBest', { score: state.microgames[m].best })}
+                    </small>
+                  ) : null}
                 </span>
                 <span className="micro-card__play" aria-hidden="true">
                   {t('microgame.play')} ›

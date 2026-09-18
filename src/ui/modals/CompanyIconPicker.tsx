@@ -37,8 +37,10 @@ export function CompanyIconPicker({ onClose }: { onClose: () => void }) {
 
   function handleChoiceKey(event: KeyboardEvent<HTMLButtonElement>, index: number) {
     let next = index;
-    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') next = (index + 1) % COMPANY_ICON_IDS.length;
-    else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') next = (index - 1 + COMPANY_ICON_IDS.length) % COMPANY_ICON_IDS.length;
+    if (event.key === 'ArrowRight' || event.key === 'ArrowDown')
+      next = (index + 1) % COMPANY_ICON_IDS.length;
+    else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp')
+      next = (index - 1 + COMPANY_ICON_IDS.length) % COMPANY_ICON_IDS.length;
     else if (event.key === 'Home') next = 0;
     else if (event.key === 'End') next = COMPANY_ICON_IDS.length - 1;
     else return;

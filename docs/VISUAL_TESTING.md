@@ -39,15 +39,15 @@ the browser).
 
 ## Findings from the first visual pass (and their fixes)
 
-| Finding (seen in a screenshot) | Status |
-| --- | --- |
-| **Team view rendered as a black frame** — crash on old saves missing later-added employees (`undefined.level`). | **Fixed** — `repairEmployees` backfills on load; regression test added. |
-| **"While You Were Away" modal fired for 0–6s reloads**, blocking the office every launch. | **Fixed** — `minModalSeconds` threshold; nuts still banked silently. |
-| `frame-ancestors` in the `<meta>` CSP logged a console warning. | **Fixed** — removed from meta (header-only directive). |
-| Compact header wraps and the nav becomes horizontally scrollable. | Good. |
-| Ultrawide uses a centered max-width column (intentional cap) rather than stretching. | By design. |
-| Team profiles show portrait, bio, goal, friendship, **mood chip (emotion + ±% productivity)**, outfits, room dropdown. | Good — validates §13/§18 UI. |
-| Decorate catalog: room/type/currency filters, search, cards with morale, owned/placed/comfort summary. | Good. |
+| Finding (seen in a screenshot)                                                                                         | Status                                                                  |
+| ---------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| **Team view rendered as a black frame** — crash on old saves missing later-added employees (`undefined.level`).        | **Fixed** — `repairEmployees` backfills on load; regression test added. |
+| **"While You Were Away" modal fired for 0–6s reloads**, blocking the office every launch.                              | **Fixed** — `minModalSeconds` threshold; nuts still banked silently.    |
+| `frame-ancestors` in the `<meta>` CSP logged a console warning.                                                        | **Fixed** — removed from meta (header-only directive).                  |
+| Compact header wraps and the nav becomes horizontally scrollable.                                                      | Good.                                                                   |
+| Ultrawide uses a centered max-width column (intentional cap) rather than stretching.                                   | By design.                                                              |
+| Team profiles show portrait, bio, goal, friendship, **mood chip (emotion + ±% productivity)**, outfits, room dropdown. | Good — validates §13/§18 UI.                                            |
+| Decorate catalog: room/type/currency filters, search, cards with morale, owned/placed/comfort summary.                 | Good.                                                                   |
 
 ## Known visual issue still open (needs a dedicated art/layout pass)
 

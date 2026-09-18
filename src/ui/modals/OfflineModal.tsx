@@ -21,13 +21,15 @@ export function OfflineModal() {
       titleId={titleId}
       closing={closing}
       onDismiss={close}
-      actions={(
+      actions={
         <button className="buy-btn buy-btn--big" disabled={closing} onClick={close}>
           {t('common.ok')}
         </button>
-      )}
+      }
     >
-      <div className="popup__hero-art"><Crate size={72} /></div>
+      <div className="popup__hero-art">
+        <Crate size={72} />
+      </div>
       <h2 id={titleId}>{t('offline.title')}</h2>
       <p>{t('offline.welcomeBack')}</p>
       <p>{t('offline.duration', { duration: fmt.dur(result.cappedSeconds) })}</p>

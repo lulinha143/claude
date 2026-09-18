@@ -34,11 +34,56 @@ const SAVE = {
     'window-view': { surface: 'wall', x: 0.7, y: 0.62 },
   },
   decorationInstances: [
-    { instanceId: 'deco-potted-fern-1', decorationId: 'potted-fern', roomId: 'founder-desk', surfaceType: 'floor', normalizedX: 0.2, normalizedY: 0.1, depth: 3, interactionState: {} },
-    { instanceId: 'deco-tiny-rug-1', decorationId: 'tiny-rug', roomId: 'founder-desk', surfaceType: 'floor', normalizedX: 0.5, normalizedY: 0.14, depth: 0, interactionState: {} },
-    { instanceId: 'deco-motivational-poster-1', decorationId: 'motivational-poster', roomId: 'founder-desk', surfaceType: 'wall', normalizedX: 0.32, normalizedY: 0.62, depth: 1, interactionState: {} },
-    { instanceId: 'deco-window-view-1', decorationId: 'window-view', roomId: 'founder-desk', surfaceType: 'wall', normalizedX: 0.7, normalizedY: 0.62, depth: 1, interactionState: {} },
-    { instanceId: 'deco-desk-lamp-1', decorationId: 'desk-lamp', roomId: null, surfaceType: 'floor', normalizedX: 0.5, normalizedY: 0.06, depth: 2, interactionState: {} },
+    {
+      instanceId: 'deco-potted-fern-1',
+      decorationId: 'potted-fern',
+      roomId: 'founder-desk',
+      surfaceType: 'floor',
+      normalizedX: 0.2,
+      normalizedY: 0.1,
+      depth: 3,
+      interactionState: {},
+    },
+    {
+      instanceId: 'deco-tiny-rug-1',
+      decorationId: 'tiny-rug',
+      roomId: 'founder-desk',
+      surfaceType: 'floor',
+      normalizedX: 0.5,
+      normalizedY: 0.14,
+      depth: 0,
+      interactionState: {},
+    },
+    {
+      instanceId: 'deco-motivational-poster-1',
+      decorationId: 'motivational-poster',
+      roomId: 'founder-desk',
+      surfaceType: 'wall',
+      normalizedX: 0.32,
+      normalizedY: 0.62,
+      depth: 1,
+      interactionState: {},
+    },
+    {
+      instanceId: 'deco-window-view-1',
+      decorationId: 'window-view',
+      roomId: 'founder-desk',
+      surfaceType: 'wall',
+      normalizedX: 0.7,
+      normalizedY: 0.62,
+      depth: 1,
+      interactionState: {},
+    },
+    {
+      instanceId: 'deco-desk-lamp-1',
+      decorationId: 'desk-lamp',
+      roomId: null,
+      surfaceType: 'floor',
+      normalizedX: 0.5,
+      normalizedY: 0.06,
+      depth: 2,
+      interactionState: {},
+    },
   ],
   collections: {
     nuts: [],
@@ -213,7 +258,9 @@ test.describe('decoration free-placement', () => {
     await expect(card).toBeVisible();
     await page.screenshot({ path: `${DIR}/deco-04-tray.png` });
 
-    const placedBefore = await page.locator('.floor[data-room="founder-desk"] .floor__deco').count();
+    const placedBefore = await page
+      .locator('.floor[data-room="founder-desk"] .floor__deco')
+      .count();
     const box = (await stage.boundingBox())!;
     await dragFromElementTo(page, card, box.x + box.width * 0.5, box.y + box.height * 0.85);
 
@@ -240,7 +287,13 @@ test.describe('decoration free-placement', () => {
     const deco = page.locator('.floor[data-room="founder-desk"] [data-deco="potted-fern"]');
     const before = styleNumbers((await deco.getAttribute('style')) ?? '');
     const box = (await stage.boundingBox())!;
-    await dragFromElementTo(page, deco, box.x + box.width * 0.78, box.y + box.height * 0.9, 54 / 56);
+    await dragFromElementTo(
+      page,
+      deco,
+      box.x + box.width * 0.78,
+      box.y + box.height * 0.9,
+      54 / 56,
+    );
     const moved = styleNumbers((await deco.getAttribute('style')) ?? '');
     // Sanity: the drag actually moved it before we test persistence.
     expect(Math.abs(moved.left - before.left)).toBeGreaterThan(8);
@@ -261,7 +314,9 @@ test.describe('decoration free-placement', () => {
     expect(Math.abs(reloaded.bottom - moved.bottom)).toBeLessThan(2);
   });
 
-  test('dragging highlights compatible rooms and moves the instance across floors', async ({ page }) => {
+  test('dragging highlights compatible rooms and moves the instance across floors', async ({
+    page,
+  }) => {
     // Morale is upstairs from the Founder's Desk; that difference is the point of
     // this test, so it is asserted rather than assumed.
     expect(ROOMS_BY_ID.morale.floor).not.toBe(ROOMS_BY_ID['founder-desk'].floor);
@@ -294,12 +349,20 @@ test.describe('decoration free-placement', () => {
     await expect(page.locator('.floor[data-room="morale"]')).toHaveClass(/is-deco-hover/);
     await page.mouse.up();
 
-    await expect(page.locator('.floor[data-room="founder-desk"] [data-deco="potted-fern"]')).toHaveCount(0);
-    await expect(page.locator('.floor[data-room="morale"] [data-deco="potted-fern"]')).toBeVisible();
+    await expect(
+      page.locator('.floor[data-room="founder-desk"] [data-deco="potted-fern"]'),
+    ).toHaveCount(0);
+    await expect(
+      page.locator('.floor[data-room="morale"] [data-deco="potted-fern"]'),
+    ).toBeVisible();
   });
 
-  test('Move To dialog supports keyboard dismissal and touch-friendly room choice', async ({ page }) => {
-    const decoration = page.locator('.floor[data-room="founder-desk"] [data-deco="potted-fern"] .decor');
+  test('Move To dialog supports keyboard dismissal and touch-friendly room choice', async ({
+    page,
+  }) => {
+    const decoration = page.locator(
+      '.floor[data-room="founder-desk"] [data-deco="potted-fern"] .decor',
+    );
     await decoration.click();
     const moveButton = page.getByRole('button', { name: 'Move To…' }).first();
     await moveButton.focus();
@@ -313,6 +376,8 @@ test.describe('decoration free-placement', () => {
     await moveButton.click();
     await page.getByRole('button', { name: /Move to Coffee & Morale Division/i }).click();
     await expect(page.getByRole('dialog')).toHaveCount(0);
-    await expect(page.locator('.floor[data-room="morale"] [data-deco="potted-fern"]')).toBeVisible();
+    await expect(
+      page.locator('.floor[data-room="morale"] [data-deco="potted-fern"]'),
+    ).toBeVisible();
   });
 });

@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { microGrade, type MicroMode } from '../../sim/minigames';
+import { microGrade, type MicroMode, type MicroReward } from '../../sim/minigames';
+import { useFmt } from '../useFmt';
+import { EMPLOYEES_BY_ID } from '../../content/employees';
 import { Icon } from '../../art/UiIcon';
 import { useStore } from '../../state/store';
 import { CoffeeRescue } from './CoffeeRescue';
@@ -20,7 +22,7 @@ export interface MicroGameProps {
   seed: number;
   reducedMotion: boolean;
   /** Granted exactly once per completed play. */
-  onReward: (score: number) => void;
+  onReward: (score: number) => MicroReward | void;
   onClose: () => void;
 }
 
@@ -52,6 +54,8 @@ function useSystemReducedMotion(): boolean {
 
 export function MicroGame({ mode, seed, reducedMotion, onReward, onClose }: MicroGameProps) {
   const { t } = useTranslation();
+  const fmt = useFmt();
+  const [reward, setReward] = useState<MicroReward | null>(null);
   const audio = useStore((state) => state.audio);
   const [phase, setPhase] = useState<Phase>('intro');
   const [round, setRound] = useState(0);
@@ -190,7 +194,7 @@ export function MicroGame({ mode, seed, reducedMotion, onReward, onClose }: Micr
     pausedRemaining.current = null;
     const score = liveScore.current;
     setFinalScore(score);
-    onReward(score);
+    setReward(onReward(score) ?? null);
     setPhase('result');
   }
 
@@ -203,6 +207,7 @@ export function MicroGame({ mode, seed, reducedMotion, onReward, onClose }: Micr
   }
 
   function replay() {
+    setReward(null);
     liveScore.current = 0;
     roundState.current = 'idle';
     deadline.current = null;
@@ -355,8 +360,35 @@ export function MicroGame({ mode, seed, reducedMotion, onReward, onClose }: Micr
           <div className="microgame__reward-slip">
             <Icon name="reputation" size={20} />
             <span>
-              <strong>{t('microgame.rewardEarned')}</strong>
-              <small>{t('microgame.rewardBoost')}</small>
+              <strong>
+                {t(finalScore > 0 ? 'microgame.rewardEarned' : 'microgame.practiceComplete')}
+              </strong>
+              <small>
+                {reward
+                  ? t('microgame.actualReward', {
+                      nuts: fmt.num(reward.nuts),
+                      percent: Math.round((reward.boost - 1) * 100),
+                    })
+                  : t('microgame.rewardBoost')}
+              </small>
+              {reward?.newBest ? (
+                <small>{t('microgame.newBest', { score: reward.best })}</small>
+              ) : null}
+              {reward?.mastered ? <small>{t('microgame.masteryReward')}</small> : null}
+              {reward?.decorationId ? (
+                <small>
+                  {t('microgame.souvenir', { name: t(`deco.${reward.decorationId}.name`) })}
+                </small>
+              ) : null}
+              {reward && reward.employeeIds.length > 0 ? (
+                <small>
+                  {t('microgame.teamReward', {
+                    names: reward.employeeIds
+                      .map((id) => t(EMPLOYEES_BY_ID[id].nameKey))
+                      .join(', '),
+                  })}
+                </small>
+              ) : null}
             </span>
           </div>
           <p className="microgame__reaction">{t(`microgame.${mode}.reaction`)}</p>

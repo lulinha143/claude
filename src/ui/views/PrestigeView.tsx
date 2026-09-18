@@ -3,10 +3,11 @@ import { useTranslation } from 'react-i18next';
 import { useGame } from '../../state/hooks';
 import { useStore } from '../../state/store';
 import { useFmt } from '../useFmt';
-import { canPrestige, kernelsFromPrestige } from '../../sim/prestige';
+import { canPrestige, kernelsFromPrestige, nutsThisRun } from '../../sim/prestige';
 import { PRESTIGE_BRANCHES, PRESTIGE_SKILLS } from '../../content/prestige';
 import type { PrestigeBranchDef } from '../../content/types';
 import type { PrestigeBranchId } from '../../sim/types';
+import { BALANCE } from '../../sim/config';
 import { Icon } from '../../art/UiIcon';
 
 /** Signed percentage, so a cost reads as a cost rather than as a bare number. */
@@ -66,12 +67,12 @@ export function PrestigeView() {
 
       {!unlocked ? (
         <div className="panel">
-          <p>{t('prestige.lockedUntil', { value: fmt.num(1_000_000) })}</p>
+          <p>{t('prestige.lockedUntil', { value: fmt.num(BALANCE.prestige.unlockAtTotalNuts) })}</p>
           <div className="bar">
             <div
               className="bar__fill"
               style={{
-                width: `${Math.min(100, (state.stats.totalNutsEarned / 1_000_000) * 100)}%`,
+                width: `${Math.min(100, (nutsThisRun(state) / BALANCE.prestige.unlockAtTotalNuts) * 100)}%`,
               }}
             />
           </div>

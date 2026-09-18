@@ -9,12 +9,12 @@ Collections → Secret Discoveries. Hidden achievements test for these via
 
 ## Secret ids and how to obtain them
 
-| Secret id | How to unlock | Related achievement |
-| --- | --- | --- |
-| `chair` | Event "The Chair Has Been Promoted" → approve | `chair-promoted` (The Chair Deserved It) |
-| `nutcoin` | Event "Corvus Launched NutCoin" → refuse, or ride the crash | `crypto-skeptic` |
-| `basement-basement` | Event "Mina Found the Basement's Basement" → follow → dig | — |
-| `spreadsheet` | Event "The Spreadsheet Knows Too Much" → ask → accept | `spreadsheet-knows` |
+| Secret id           | How to unlock                                               | Related achievement                      |
+| ------------------- | ----------------------------------------------------------- | ---------------------------------------- |
+| `chair`             | Event "The Chair Has Been Promoted" → approve               | `chair-promoted` (The Chair Deserved It) |
+| `nutcoin`           | Event "Corvus Launched NutCoin" → refuse, or ride the crash | `crypto-skeptic`                         |
+| `basement-basement` | Event "Mina Found the Basement's Basement" → follow → dig   | —                                        |
+| `spreadsheet`       | Event "The Spreadsheet Knows Too Much" → ask → accept       | `spreadsheet-knows`                      |
 
 ## Flag-only hidden achievements (no secret id)
 

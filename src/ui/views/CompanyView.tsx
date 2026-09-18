@@ -7,10 +7,11 @@ import { moraleCap } from '../../sim/economy';
 import { GoldenNut } from '../../art/Icons';
 import { CompanyIcon } from '../../art/companyIcons';
 import { CompanyIconPicker } from '../modals/CompanyIconPicker';
-import { GAME_EVENTS_BY_ID } from '../../content/events';
+import { historyLabelKeys } from '../../content/historyLabels';
 import { ProductionBreakdown } from '../ProductionBreakdown';
 import { DepartmentNetwork } from '../DepartmentNetwork';
 import { ReputationLadder } from '../ReputationLadder';
+import { EnsembleNotes } from '../EnsembleNotes';
 
 export function CompanyView() {
   const { t } = useTranslation();
@@ -23,6 +24,7 @@ export function CompanyView() {
   return (
     <section className="view view--company">
       <h2>{t('company.title')}</h2>
+      <EnsembleNotes activeOnly />
 
       <div className="panel">
         <div className="company-identity">
@@ -129,14 +131,11 @@ export function CompanyView() {
               .slice(-8)
               .reverse()
               .map((h, i) => {
-                const def = GAME_EVENTS_BY_ID[h.eventId];
-                const choice = def?.choices.find((c) => c.id === h.choiceId);
+                const labels = historyLabelKeys(h.eventId, h.choiceId);
                 return (
                   <li key={`${h.at}-${i}`} className="timeline__row">
-                    <span className="timeline__title">{def ? t(def.titleKey) : h.eventId}</span>
-                    <span className="timeline__choice">
-                      {choice ? t(choice.labelKey) : h.choiceId}
-                    </span>
+                    <span className="timeline__title">{t(labels.titleKey)}</span>
+                    <span className="timeline__choice">{t(labels.choiceKey)}</span>
                     <span className="timeline__date">{fmt.date(h.at)}</span>
                   </li>
                 );

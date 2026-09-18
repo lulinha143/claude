@@ -180,6 +180,14 @@ export function SettingsView() {
         audio.play('error');
         return;
       }
+      // Validate with the same read-only parser used by the actual import. A
+      // malformed file never needs an overwrite confirmation.
+      if (!useStore.getState().save.importSave(reader.result).ok) {
+        setPendingImport(null);
+        setSaveNote({ tone: 'bad', text: t('settings.importInvalid') });
+        audio.play('error');
+        return;
+      }
       setPendingImport({ name: file.name, json: reader.result });
       setSaveNote(null);
     };

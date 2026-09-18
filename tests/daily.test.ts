@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { generateDailyChallenges, ensureDailyForDate, localDateString } from '../src/sim/dailyChallenges';
+import {
+  generateDailyChallenges,
+  ensureDailyForDate,
+  localDateString,
+} from '../src/sim/dailyChallenges';
 
 describe('daily challenges (deterministic, offline)', () => {
   it('is identical for the same date', () => {

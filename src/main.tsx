@@ -19,6 +19,7 @@ import { App } from './App';
 import { getGameState } from './state/store';
 import { GAME_TITLE } from './brand';
 import './styles.css';
+import './ui/recordsDesk.css';
 
 async function bootstrap() {
   // Keep the browser/Electron window title in sync with the central brand.

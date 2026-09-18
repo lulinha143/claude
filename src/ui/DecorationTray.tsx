@@ -61,16 +61,26 @@ export function DecorationTray({
   });
 
   return (
-    <div className={`deco-tray ${dragging ? 'is-dragging' : ''}`} role="region" aria-label={t('decorate.inventory')}>
+    <div
+      className={`deco-tray ${dragging ? 'is-dragging' : ''}`}
+      role="region"
+      aria-label={t('decorate.inventory')}
+    >
       <div className="deco-tray__head">
         <span className="deco-tray__title">
           <Icon name="decorate" size={13} /> {t('decorate.inventory')}
         </span>
         <span className="deco-tray__summary">
-          {t('decorate.summary', { owned: owned.length, placed: placedCount, comfort: 0 }).split('·').slice(0, 2).join('·')}
+          {t('decorate.summary', { owned: owned.length, placed: placedCount, comfort: 0 })
+            .split('·')
+            .slice(0, 2)
+            .join('·')}
         </span>
         {selected ? (
-          <button className="mini-btn mini-btn--primary deco-tray__move" onClick={() => onRequestMove(selected)}>
+          <button
+            className="mini-btn mini-btn--primary deco-tray__move"
+            onClick={() => onRequestMove(selected)}
+          >
             <Icon name="rooms" size={12} /> {t('decorate.moveTo')}
           </button>
         ) : null}
@@ -87,11 +97,18 @@ export function DecorationTray({
       </div>
 
       <div className="deco-tray__chips">
-        <button className={`tag-btn ${kind === 'all' ? 'is-on' : ''}`} onClick={() => setKind('all')}>
+        <button
+          className={`tag-btn ${kind === 'all' ? 'is-on' : ''}`}
+          onClick={() => setKind('all')}
+        >
           {t('decorate.allTypes')}
         </button>
         {kinds.map((k) => (
-          <button key={k} className={`tag-btn ${kind === k ? 'is-on' : ''}`} onClick={() => setKind(k)}>
+          <button
+            key={k}
+            className={`tag-btn ${kind === k ? 'is-on' : ''}`}
+            onClick={() => setKind(k)}
+          >
             {t(`decorate.type.${k}`)}
           </button>
         ))}

@@ -5,7 +5,7 @@ How the in-office decoration editor ("Arrange" mode) works after the Part 2 pass
 ## Entering / leaving
 
 - The **Arrange** chip in the office toolbar toggles Decoration Mode.
-- The office scene stays fully visible — the editor is *not* a full-screen modal.
+- The office scene stays fully visible — the editor is _not_ a full-screen modal.
 - Leaving clears the current selection. Undo/Redo history is session-scoped.
 
 ## Bottom inventory tray (`src/ui/DecorationTray.tsx`)
@@ -16,7 +16,7 @@ How the in-office decoration editor ("Arrange" mode) works after the Part 2 pass
   clear.
 - Lists every decoration the player **owns but hasn't placed** (the "storage"),
   grouped from all unlocked rooms.
-- **Category filter** chips (All + each decoration *kind* present) and a **search**
+- **Category filter** chips (All + each decoration _kind_ present) and a **search**
   box (matches localized names).
 - Each card shows the decoration glyph, its name, and its room.
 - **While dragging**, the tray shrinks and fades (`.deco-tray.is-dragging`) so the

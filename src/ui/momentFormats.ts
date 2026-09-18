@@ -103,6 +103,10 @@ export function momentFormat(
   card: Pick<MomentCard, 'eventId' | 'rarity' | 'employeeId'>,
 ): MomentFormatSpec {
   if (card.rarity === 'legendary') return SPECS.confidential;
+  if (card.eventId === 'file-dated-tomorrow') return SPECS.confidential;
+  if (card.eventId === 'camera-thirteen') return SPECS.observation;
+  if (card.eventId.startsWith('microgame:') || card.eventId === 'the-plant-clocked-in')
+    return SPECS.notice;
   if (card.employeeId) return SPECS.personnel;
   return SPECS[NEUTRAL_FORMATS[hashEventId(card.eventId) % NEUTRAL_FORMATS.length]];
 }

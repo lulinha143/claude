@@ -203,6 +203,7 @@ export const gameStateSchema = z.object({
     .catch({ nuts: [], outfits: [], logos: ['default'], moments: [], secrets: [] }),
   prestige: z
     .object({
+      nutsAtLastPrestige: z.number().finite().nonnegative().catch(0),
       count: z.number().catch(0),
       branch: z
         .enum(['industrial', 'cooperative', 'science', 'marketing', 'underground'])
@@ -210,7 +211,7 @@ export const gameStateSchema = z.object({
         .catch(null),
       skills: z.record(z.number()).catch({}),
     })
-    .catch({ count: 0, branch: null, skills: {} }),
+    .catch({ count: 0, branch: null, skills: {}, nutsAtLastPrestige: 0 }),
   focus: z
     .object({
       active: z.boolean().catch(false),
@@ -255,6 +256,28 @@ export const gameStateSchema = z.object({
   onboardingComplete: z.boolean().catch(false),
   eventCooldowns: z.record(z.number()).catch({}),
   pendingChain: z.object({ eventId: z.string(), step: z.number() }).nullable().catch(null),
+  eventInProgress: z
+    .object({ eventId: z.string(), step: z.string().nullable() })
+    .nullable()
+    .catch(null),
+  boosts: z
+    .array(
+      z.object({
+        multiplier: z.number().finite().min(1).max(10),
+        endsAt: z.number().finite(),
+      }),
+    )
+    .max(64)
+    .catch([]),
+  microgames: z
+    .record(
+      z.object({
+        best: z.number().finite().nonnegative().catch(0),
+        plays: z.number().finite().nonnegative().catch(0),
+        lastRewardAt: z.number().finite().nonnegative().catch(0),
+      }),
+    )
+    .catch({}),
   eventHistory: z
     .array(z.object({ eventId: z.string(), choiceId: z.string(), at: z.number() }))
     .catch([]),

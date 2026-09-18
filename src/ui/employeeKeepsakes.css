@@ -1,0 +1,69 @@
+.talk__keepsake {
+  min-height: 76px;
+  margin: 12px 0;
+  padding: 10px 0;
+  border-block: 1px solid var(--stationery-rule);
+  text-align: left;
+}
+.talk__keepsake .keepsake-art {
+  float: left;
+  margin-right: 8px;
+}
+.talk__keepsake > span,
+.talk__keepsake > strong,
+.talk__keepsake > small {
+  display: block;
+}
+.talk__keepsake > span {
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.talk__keepsake > strong {
+  margin-top: 3px;
+  font-size: 0.95rem;
+}
+.talk__keepsake > small {
+  margin-top: 4px;
+  color: var(--primary-press);
+}
+.talk__agenda {
+  border-block: 1px solid var(--stationery-rule);
+  margin-bottom: 12px;
+  padding: 8px 0;
+}
+.talk__agenda summary {
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+.talk__agenda > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-top: 8px;
+}
+.talk__agenda button {
+  color: var(--ink);
+  background: var(--paper-muted);
+  border: 1px solid var(--paper-edge);
+  border-radius: 2px;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.talk__agenda button:hover {
+  background: var(--paper);
+}
+.talk__agenda :focus-visible {
+  outline: 2px solid var(--primary-press);
+  outline-offset: 3px;
+}
+@media (max-width: 600px) {
+  .talk__keepsake {
+    grid-column: 1 / -1;
+    margin: 0;
+    padding: 8px 0;
+  }
+}

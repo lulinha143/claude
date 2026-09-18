@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, relative, sep } from 'node:path';
 
 // The bundled fonts (DynaPuff, Nunito) ship as LATIN SUBSETS for offline use, so a
 // decorative symbol from Arrows, Dingbats or Mathematical Operators has no glyph
@@ -109,7 +109,10 @@ describe('glyph safety: every rendered character exists in the bundled fonts', (
   it('introduces no new unsupported symbols in UI source', () => {
     const offenders: string[] = [];
     for (const file of sourceFiles(SRC)) {
-      const rel = file.replace(SRC, 'src');
+      // Only the repository-relative lookup key uses '/'. Actual filesystem
+      // paths stay native; substring replacement confused Windows separators
+      // with new, unapproved source files.
+      const rel = `src/${relative(SRC, file).split(sep).join('/')}`;
       const allowed = new Set(KNOWN_BASELINE[rel] ?? []);
       const risky = riskyIn(readFileSync(file, 'utf8')).filter((c) => !allowed.has(c));
       if (risky.length) offenders.push(`${rel}: ${describeChars(risky)}`);

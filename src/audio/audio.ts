@@ -6,6 +6,7 @@
 
 export type SfxName =
   | 'click'
+  | 'paper'
   | 'collect'
   | 'upgrade'
   | 'event'
@@ -134,6 +135,7 @@ export interface AudioDiagnostics {
 }
 
 export class AudioManager {
+  private lastTextureAt = new Map<SfxName, number>();
   private ctx: AudioContext | null = null;
   private master: GainNode | null = null;
   private musicGain: GainNode | null = null;
@@ -170,6 +172,7 @@ export class AudioManager {
         null;
       if (!Ctor) return;
       this.ctx = new Ctor();
+      this.lastTextureAt.clear();
       this.master = this.ctx.createGain();
       // A gentle master limiter catches peaks so the louder mix never clips.
       this.limiter = this.ctx.createDynamicsCompressor();
@@ -520,7 +523,7 @@ export class AudioManager {
 
   // -- SFX ------------------------------------------------------------------
   play(name: SfxName, opts: SfxOptions = {}): void {
-    const isUi = name === 'click' || name === 'error';
+    const isUi = name === 'click' || name === 'error' || name === 'paper';
     // A combo can run long, so clamp the pitch into a range that stays musical
     // instead of climbing into a whistle.
     const pitch = Math.max(0.5, Math.min(2.4, opts.pitch ?? 1));
@@ -532,6 +535,11 @@ export class AudioManager {
     // Skip creating nodes entirely when the channel is silent (CPU saving).
     if (channelGain(isUi ? 'ui' : 'sfx', this.volumes, this.flags, this.channelMuted) <= 0) return;
     const now = this.ctx.currentTime;
+    if (name === 'stationTap' || name === 'cableMove') {
+      const previous = this.lastTextureAt.get(name);
+      if (previous !== undefined && now - previous < 0.04) return;
+      this.lastTextureAt.set(name, now);
+    }
 
     const beep = (
       freq: number,
@@ -607,6 +615,10 @@ export class AudioManager {
         break;
       case 'event':
         beep(330, 0.18, 'sawtooth', 0, 0.2, 494);
+        break;
+      case 'paper':
+        beep(1800, 0.035, 'triangle', 0, 0.035, 700);
+        beep(1100, 0.045, 'triangle', 0.04, 0.025, 460);
         break;
       case 'footstep':
         beep(180, 0.04, 'triangle', 0, 0.12);

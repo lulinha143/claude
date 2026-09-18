@@ -118,13 +118,13 @@ export function Header() {
   );
   const tipMute = useTooltip(
     <TipContent
-      title={muted ? t('office.restoreAll') : t('office.muteAll')}
+      title={muted ? t('settings.restoreAll') : t('settings.muteAll')}
       lines={[t('tip.mute.d')]}
     />,
   );
   const tipMusic = useTooltip(
     <TipContent
-      title={musicMuted ? t('office.restoreMusic') : t('office.muteMusic')}
+      title={musicMuted ? t('settings.restoreMusic') : t('settings.muteMusic')}
       lines={[t('tip.music.d')]}
     />,
   );
@@ -162,7 +162,7 @@ export function Header() {
             className={`mute-toggle ${muted ? 'is-muted' : ''}`}
             onClick={toggleMute}
             aria-pressed={muted}
-            aria-label={muted ? t('office.restoreAll') : t('office.muteAll')}
+            aria-label={muted ? t('settings.restoreAll') : t('settings.muteAll')}
             data-testid="mute-toggle"
             {...tipMute}
           >
@@ -172,7 +172,7 @@ export function Header() {
             className={`music-toggle ${musicMuted ? 'is-muted' : ''}`}
             onClick={toggleMusic}
             aria-pressed={musicMuted}
-            aria-label={musicMuted ? t('office.restoreMusic') : t('office.muteMusic')}
+            aria-label={musicMuted ? t('settings.restoreMusic') : t('settings.muteMusic')}
             data-testid="music-toggle"
             {...tipMusic}
           >

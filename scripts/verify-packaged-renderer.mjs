@@ -35,16 +35,26 @@ for (const dist of roots) {
   need('index.html', fs.existsSync(index));
 
   const assets = fs.existsSync(assetsDir) ? fs.readdirSync(assetsDir) : [];
-  need('a JavaScript bundle (assets/*.js)', assets.some((f) => f.endsWith('.js')));
-  need('a CSS bundle (assets/*.css)', assets.some((f) => f.endsWith('.css')));
-  need('a bundled font (assets/*.woff2)', assets.some((f) => f.endsWith('.woff2')));
+  need(
+    'a JavaScript bundle (assets/*.js)',
+    assets.some((f) => f.endsWith('.js')),
+  );
+  need(
+    'a CSS bundle (assets/*.css)',
+    assets.some((f) => f.endsWith('.css')),
+  );
+  need(
+    'a bundled font (assets/*.woff2)',
+    assets.some((f) => f.endsWith('.woff2')),
+  );
 
   // Background assets (video / poster / gif) — the animated office.
   const bg = path.join(dist, 'backgrounds');
-  const bgFiles = fs.existsSync(bg)
-    ? fs.readdirSync(bg, { recursive: true }).map(String)
-    : [];
-  need('animated background asset (backgrounds/**)', bgFiles.some((f) => /\.(mp4|gif|jpg|jpeg|png|webm)$/i.test(f)));
+  const bgFiles = fs.existsSync(bg) ? fs.readdirSync(bg, { recursive: true }).map(String) : [];
+  need(
+    'animated background asset (backgrounds/**)',
+    bgFiles.some((f) => /\.(mp4|gif|jpg|jpeg|png|webm)$/i.test(f)),
+  );
 
   // The CAST. Every registered animal's three files must be in the packaged build.
   //
@@ -58,7 +68,11 @@ for (const dist of roots) {
   const cast = readRegistry();
   const missingArt = [];
   for (const entry of cast) {
-    for (const file of [`${entry.asset}.png`, `${entry.asset}-1x.png`, `${entry.asset}-poster.png`]) {
+    for (const file of [
+      `${entry.asset}.png`,
+      `${entry.asset}-1x.png`,
+      `${entry.asset}-poster.png`,
+    ]) {
       if (!shipped.has(file)) missingArt.push(file);
     }
   }

@@ -37,6 +37,9 @@ export const CLICK = {
   chargeRecoveryMs: 620,
   /** Tapping a charge station early still pays at least this share. */
   chargeMinShare: 0.35,
+  /** Premium stations benefit gently from clicking upgrades, without converting
+   * the nut economy's late-game multipliers into unlimited premium currency. */
+  premiumPowerCap: 3,
   /** Base chance a tap crits, before station/passive/morale bonuses. */
   baseCritChance: 0.04,
   /** A critical tap multiplies its payout by this. */
@@ -189,7 +192,9 @@ export function resolveClick(
   const combo = comboMultiplier(def, streak);
   const cadence = cadenceMultiplier(def, tracker, now);
   const synergy = synergyMultiplier(state, def);
-  const power = clickPower(state);
+  const rawPower = clickPower(state);
+  const power =
+    def.resource === 'goldenNuts' ? Math.min(CLICK.premiumPowerCap, Math.sqrt(rawPower)) : rawPower;
 
   let amount = power * def.payout * cadence * combo * synergy;
   if (rolls.critical) amount *= CLICK.critMultiplier;
