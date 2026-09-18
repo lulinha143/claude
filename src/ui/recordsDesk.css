@@ -248,3 +248,33 @@ html:not([data-high-contrast='true'])
     flex-basis: 70px;
   }
 }
+
+.ensemble-notes__browse {
+  display: block;
+  margin-top: 10px;
+}
+.ensemble-selection {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px;
+  margin: 12px 0;
+  border-left: 3px solid var(--positive);
+  background: var(--paper);
+}
+.ensemble-selection p {
+  margin: 4px 0 0;
+  max-width: 66ch;
+  font-size: 0.85rem;
+}
+.view .micro-card__copy > .micro-card__souvenir {
+  color: var(--positive);
+  font-weight: 800;
+}
+@media (max-width: 520px) {
+  .ensemble-selection {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

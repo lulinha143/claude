@@ -4,6 +4,14 @@ import { computeNextStep } from '../src/sim/nextStep';
 import { employeeMood } from '../src/sim/mood';
 
 describe('recommended next step', () => {
+  it('offers a return cycle before repeatable upgrades and retires the invitation after prestige', () => {
+    const state = createInitialState(0);
+    state.resources.nuts = 100000;
+    state.stats.totalNutsEarned = 1000000;
+    expect(computeNextStep(state)?.key).toBe('prestige');
+    state.prestige.nutsAtLastPrestige = 1000000;
+    expect(computeNextStep(state)?.key).toBe('upgrade');
+  });
   it('introduces colleagues and activities even when upgrades remain affordable', () => {
     const state = createInitialState(0);
     state.resources.nuts = 100000;

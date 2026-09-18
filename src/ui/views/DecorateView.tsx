@@ -1,9 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { EnsembleNotes } from '../EnsembleNotes';
 import { useGame } from '../../state/hooks';
 import { useStore } from '../../state/store';
 import { useFmt } from '../useFmt';
+import { DECORATION_ENSEMBLES } from '../../content/decorationEnsembles';
 import { DECORATIONS } from '../../content/decorations';
 import { ROOMS_BY_ID } from '../../content/rooms';
 import { unlockedRooms } from '../../sim/rooms';
@@ -55,6 +56,12 @@ export function DecorateView() {
   const [type, setType] = useState<TypeFilter>('all');
   const [resource, setResource] = useState<ResourceFilter>('all');
   const [query, setQuery] = useState('');
+  const [ensembleId, setEnsembleId] = useState<string | null>(null);
+  const ensemble = DECORATION_ENSEMBLES.find((set) => set.id === ensembleId);
+  const selectionRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (ensembleId) selectionRef.current?.focus();
+  }, [ensembleId]);
   const [movingId, setMovingId] = useState<string | null>(null);
 
   // Decoration rooms that are actually unlocked (so the selector only offers
@@ -76,6 +83,7 @@ export function DecorateView() {
 
   const q = query.trim().toLowerCase();
   const filtered = available.filter((d) => {
+    if (ensemble && !ensemble.items.includes(d.id)) return false;
     const owned = isDecorationOwned(state, d.id);
     const assignedRoom = owned ? decorationRoom(state, d.id) : null;
     if (room !== 'all' && (assignedRoom ?? d.room) !== room) return false;
@@ -105,12 +113,35 @@ export function DecorateView() {
         </p>
       </div>
 
-      <EnsembleNotes />
+      <EnsembleNotes
+        onBrowse={(id) => {
+          setRoom('all');
+          setType('all');
+          setResource('all');
+          setQuery('');
+          setEnsembleId(id);
+          audio.play('paper');
+        }}
+      />
+      {ensemble ? (
+        <div className="ensemble-selection" ref={selectionRef} tabIndex={-1}>
+          <div>
+            <strong>{t(`ensemble.${ensemble.id}.name`)}</strong>
+            <p>{t('ensemble.selection', { room: t(ROOMS_BY_ID[ensemble.roomId].nameKey) })}</p>
+          </div>
+          <button className="ghost-btn" onClick={() => setEnsembleId(null)}>
+            {t('ensemble.allPieces')}
+          </button>
+        </div>
+      ) : null}
       {/* room selector */}
       <div className="decorate__rooms" role="tablist" aria-label={t('decorate.allRooms')}>
         <button
           className={`chip-btn ${room === 'all' ? 'is-on' : ''}`}
-          onClick={() => setRoom('all')}
+          onClick={() => {
+            setRoom('all');
+            setEnsembleId(null);
+          }}
           role="tab"
           aria-selected={room === 'all'}
         >
@@ -120,7 +151,10 @@ export function DecorateView() {
           <button
             key={r.id}
             className={`chip-btn ${room === r.id ? 'is-on' : ''}`}
-            onClick={() => setRoom(r.id)}
+            onClick={() => {
+              setRoom(r.id);
+              setEnsembleId(null);
+            }}
             role="tab"
             aria-selected={room === r.id}
           >

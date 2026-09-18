@@ -1905,7 +1905,8 @@
       "missMark": "Caiu",
       "hazardMark": "Descaf.",
       "hazard": "Descafeinado pego · -{{value}} pontos",
-      "hazardStreak": "Descafeinado pego · -{{value}} pontos · sequência de {{count}} encerrada"
+      "hazardStreak": "Descafeinado pego · -{{value}} pontos · sequência de {{count}} encerrada",
+      "assignment": "Mantenha a pausa funcionando. Salve o café bom; deixe o descafeinado cair."
     },
     "bugSquash": {
       "name": "Caça-Insetos",
@@ -1916,7 +1917,8 @@
       "hit": "Inseto corrigido · +{{value}} pontos",
       "penalty": "Gaveta vazia · -{{value}} pontos",
       "empty": "Gaveta vazia — sem pontos para descontar",
-      "cracked": "Carapaça rachada — bata de novo!"
+      "cracked": "Carapaça rachada — bata de novo!",
+      "assignment": "O controle de qualidade precisa de mão firme. Cada gaveta vazia custa pontos."
     },
     "cableUntangle": {
       "name": "Mesa de Cabos Embolados",
@@ -1952,7 +1954,8 @@
         "usb": "USB",
         "repair": "Reparo",
         "employee": "Funcionário"
-      }
+      },
+      "assignment": "A manutenção deixou outro diagrama impossível. Existe uma solução."
     },
     "bug": "Esmague a praga!",
     "burrow": "Toca vazia",
@@ -1978,7 +1981,11 @@
     "personalBest": "Recorde pessoal: {{score}}",
     "masteryReward": "Primeiro domínio: 1 noz dourada e uma lembrança da empresa",
     "teamReward": "{{names}} agradeceram a ajuda (+3 de confiança)",
-    "souvenir": "Lembrança para o escritório: {{name}}. Disponível em Decorar."
+    "souvenir": "Lembrança para o escritório: {{name}}. Disponível em Decorar.",
+    "colleagues": "18 pontos: incentivo para {{names}}.",
+    "masteryGoal": "30 pontos: uma lembrança e {{name}} para o escritório.",
+    "masteryFiled": "Maestria registrada. Próxima meta: seu recorde.",
+    "masteryGoalOwned": "30 pontos: uma lembrança e seu primeiro prêmio de maestria."
   },
   "overview": {
     "workers": "{{count}} trabalhando aqui",
@@ -3522,7 +3529,11 @@
     "sprout-club": {
       "name": "O menor departamento",
       "effect": "Calor, água e expectativas irreais. O moral se recupera 8% mais rápido. Uma folha assinou o ponto."
-    }
+    },
+    "browse": "Ver as três peças",
+    "roomLocked": "Abra esta sala primeiro",
+    "selection": "Coloque estas peças em {{room}}. Peças guardadas ou em outra sala não ativam a receita.",
+    "allPieces": "Voltar ao catálogo"
   },
   "discovery": {
     "inspect": "Nota sem registro",

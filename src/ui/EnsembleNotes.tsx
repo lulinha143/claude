@@ -1,9 +1,16 @@
 import { useTranslation } from 'react-i18next';
 import { useGame } from '../state/hooks';
 import { decorationEnsembles } from '../sim/decorationEnsembles';
+import { isRoomIdUnlocked } from '../sim/rooms';
 import { ROOMS_BY_ID } from '../content/rooms';
 
-export function EnsembleNotes({ activeOnly = false }: { activeOnly?: boolean }) {
+export function EnsembleNotes({
+  activeOnly = false,
+  onBrowse,
+}: {
+  activeOnly?: boolean;
+  onBrowse?: (id: string) => void;
+}) {
   const { t } = useTranslation();
   const { state } = useGame();
   const sets = decorationEnsembles(state).filter((set) => !activeOnly || set.active);
@@ -36,6 +43,15 @@ export function EnsembleNotes({ activeOnly = false }: { activeOnly?: boolean }) 
               ))}
             </p>
             <small>{t(active ? 'ensemble.active' : 'ensemble.inactive')}</small>
+            {onBrowse ? (
+              <button
+                className="ghost-btn ensemble-notes__browse"
+                disabled={!isRoomIdUnlocked(state, set.roomId)}
+                onClick={() => onBrowse(set.id)}
+              >
+                {t(isRoomIdUnlocked(state, set.roomId) ? 'ensemble.browse' : 'ensemble.roomLocked')}
+              </button>
+            ) : null}
           </li>
         ))}
       </ul>

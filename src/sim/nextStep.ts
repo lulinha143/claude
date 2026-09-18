@@ -52,6 +52,9 @@ export function computeNextStep(state: GameState): NextStep | null {
   )
     return { key: 'firstDecoration', view: 'decorate' };
 
+  // A new company cycle is a meaningful decision, not another upgrade in the queue.
+  if (canPrestige(state)) return { key: 'prestige', view: 'prestige' };
+
   // 2. an unlocked employee you can afford to hire
   for (const def of EMPLOYEES) {
     const rt = state.employees[def.id];
@@ -75,9 +78,6 @@ export function computeNextStep(state: GameState): NextStep | null {
     }
   }
 
-  // 4. prestige is available
-  if (canPrestige(state)) return { key: 'prestige', view: 'prestige' };
-
   // 5. try Focus Harvest once it's had time to matter
   if (!state.settings.focusHarvestEnabled && state.stats.playTimeSeconds > 120) {
     return { key: 'focus', view: 'focus' };
@@ -85,7 +85,7 @@ export function computeNextStep(state: GameState): NextStep | null {
 
   // 6. an affordable decoration you don't own
   for (const d of DECORATIONS) {
-    if (isDecorationOwned(state, d.id)) continue;
+    if (isDecorationOwned(state, d.id) || !isRoomIdUnlocked(state, d.room)) continue;
     if (state.resources[d.cost.resource] >= d.cost.amount) {
       return { key: 'decorate', view: 'decorate' };
     }

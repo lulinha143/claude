@@ -1905,7 +1905,8 @@
       "missMark": "Miss",
       "hazardMark": "Decaf",
       "hazard": "Decaf caught · -{{value}} points",
-      "hazardStreak": "Decaf caught · -{{value}} points · {{count}} catch streak ended"
+      "hazardStreak": "Decaf caught · -{{value}} points · {{count}} catch streak ended",
+      "assignment": "Keep the break room running. Save the good coffee; let the decaf fall."
     },
     "bugSquash": {
       "name": "Bug Squash",
@@ -1916,7 +1917,8 @@
       "hit": "Bug fixed · +{{value}} points",
       "penalty": "Empty drawer · -{{value}} points",
       "empty": "Empty drawer — no points to deduct",
-      "cracked": "Shell cracked — hit it again!"
+      "cracked": "Shell cracked — hit it again!",
+      "assignment": "Quality control needs a steady hand. Every empty drawer costs points."
     },
     "cableUntangle": {
       "name": "Cable Untangle Desk",
@@ -1952,7 +1954,8 @@
         "usb": "USB",
         "repair": "Repair",
         "employee": "Employee"
-      }
+      },
+      "assignment": "Maintenance left another impossible diagram. There is a way through."
     },
     "bug": "Squash the pest!",
     "burrow": "Empty burrow",
@@ -1978,7 +1981,11 @@
     "personalBest": "Personal best: {{score}}",
     "masteryReward": "First mastery: 1 golden nut and a company moment",
     "teamReward": "{{names}} appreciated the help (+3 trust)",
-    "souvenir": "Keepsake for the office: {{name}}. Available in Decorate."
+    "souvenir": "Keepsake for the office: {{name}}. Available in Decorate.",
+    "colleagues": "18 points: encouragement for {{names}}.",
+    "masteryGoal": "30 points: a memory and {{name}} for the office.",
+    "masteryFiled": "Mastery on file. Next challenge: your personal best.",
+    "masteryGoalOwned": "30 points: a memory and your first mastery award."
   },
   "overview": {
     "workers": "{{count}} working here",
@@ -3522,7 +3529,11 @@
     "sprout-club": {
       "name": "The smallest department",
       "effect": "Warmth, water, and unreasonable expectations. Morale recovers 8% faster. A leaf has signed the attendance sheet."
-    }
+    },
+    "browse": "Find the three pieces",
+    "roomLocked": "Open this room first",
+    "selection": "Arrange these pieces in {{room}}. Stored pieces or pieces in another room do not activate the recipe.",
+    "allPieces": "Back to the catalogue"
   },
   "discovery": {
     "inspect": "Unfiled note",

@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useGame } from '../../state/hooks';
 import { useStore } from '../../state/store';
+import { MICRO_SOUVENIRS, MICRO_TEAM } from '../../sim/minigames';
+import { EMPLOYEES_BY_ID } from '../../content/employees';
 import { BALANCE } from '../../sim/config';
 import { formatClock } from '../../sim/format';
 import { MicroGame, MicroGameEmblem, type MicroMode } from '../minigames/MicroGame';
@@ -117,7 +119,29 @@ export function FocusView() {
                 </span>
                 <span className="micro-card__copy">
                   <strong>{t(`microgame.${m}.name`)}</strong>
-                  <span>{t(`microgame.${m}.desc`)}</span>
+                  <span>{t(`microgame.${m}.assignment`)}</span>
+                  {MICRO_TEAM[m].some((id) => state.employees[id]?.hired) ? (
+                    <small>
+                      {t('microgame.colleagues', {
+                        names: MICRO_TEAM[m]
+                          .filter((id) => state.employees[id]?.hired)
+                          .map(
+                            (id) => state.employees[id].nickname || t(EMPLOYEES_BY_ID[id].nameKey),
+                          )
+                          .join(', '),
+                      })}
+                    </small>
+                  ) : null}
+                  <small className="micro-card__souvenir">
+                    {t(
+                      (state.microgames[m]?.best ?? 0) >= 30
+                        ? 'microgame.masteryFiled'
+                        : state.collections.secrets.includes(`deco:${MICRO_SOUVENIRS[m]}`)
+                          ? 'microgame.masteryGoalOwned'
+                          : 'microgame.masteryGoal',
+                      { name: t(`deco.${MICRO_SOUVENIRS[m]}.name`) },
+                    )}
+                  </small>
                   {state.microgames[m]?.plays ? (
                     <small>
                       {t('microgame.personalBest', { score: state.microgames[m].best })}
