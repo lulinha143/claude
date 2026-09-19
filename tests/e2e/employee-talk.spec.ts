@@ -160,7 +160,7 @@ test('the sheet fits and the portrait is never enlarged, at every window size', 
       const img = document.querySelector('.talk__portrait img') as HTMLImageElement | null;
       const box = img?.getBoundingClientRect();
       return {
-        fits: sheet.bottom <= window.innerHeight + 1 && sheet.top >= -1,
+        fits: sheet.left >= -1 && sheet.right <= window.innerWidth + 1,
         upscale:
           img && box ? Math.max(box.width / img.naturalWidth, box.height / img.naturalHeight) : 0,
         optionsVisible: [...document.querySelectorAll('.talk-choice')].every((el) => {
@@ -169,7 +169,13 @@ test('the sheet fits and the portrait is never enlarged, at every window size', 
         }),
       };
     });
-    expect(m.fits, `${w}x${h}: sheet must fit the window`).toBe(true);
+    expect(m.fits, `${w}x${h}: destination must fit horizontally`).toBe(true);
+    await page.locator('.talk-choice').last().scrollIntoViewIfNeeded();
+    const lastChoice = (await page.locator('.talk-choice').last().boundingBox())!;
+    expect(
+      lastChoice.y + lastChoice.height,
+      'last choice is reachable in the main scroll area',
+    ).toBeLessThanOrEqual(h + 1);
     expect(m.optionsVisible, `${w}x${h}: every option must be laid out`).toBe(true);
     // Enlarging the portrait is what made the founder read soft in the one screen that
     // shows her largest; it is capped at the densest build that exists.

@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { AnnexArchitecture } from './AnnexArchitecture';
 import { ROOM_BUILTIN } from '../content/roomSurfaces';
 
 // Built-in, non-interactive room architecture. Department identity comes from
@@ -79,6 +80,9 @@ interface ScenePiece {
 // every object that visually rests on the floor belongs to the movable player
 // decoration system instead of being baked into the room.
 const ROOM_SCENE: Record<string, ScenePiece[]> = {
+  broadcast: [{ prop: 'recordWall', slot: 'wallLeft' }],
+  repair: [{ prop: 'pegboard', slot: 'wallLeft' }],
+  conservatory: [{ prop: 'skyline', slot: 'wallLeft' }],
   'founder-desk': [{ prop: 'corkboard', slot: 'wallLeft' }],
   sorting: [{ prop: 'binShelf', slot: 'wallLeft' }],
   morale: [{ prop: 'menuBoard', slot: 'wallLeft' }],
@@ -1201,6 +1205,7 @@ export const RoomDressing = memo(function RoomDressing({ roomId }: { roomId: str
       {/* Per-department mood lighting wash (warm cafe, cool lab, gold vault
           spotlight, dim night, bright rooftop day). */}
       <span className="room-dressing__light" />
+      <AnnexArchitecture roomId={roomId} />
     </div>
   );
 });

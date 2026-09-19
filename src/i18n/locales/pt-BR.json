@@ -157,7 +157,9 @@
     "dragHint": "Arraste um colega para uma sala para movê-lo para lá.",
     "roomFull": "{{room}} está cheia.",
     "roomFullSuggest": "{{room}} está cheia — tente {{other}}.",
-    "roomFullShort": "lotada"
+    "roomFullShort": "lotada",
+    "directory": "Diretório",
+    "chooseDepartment": "Visitar departamento…"
   },
   "decorate": {
     "searchPlaceholder": "Buscar decorações…",
@@ -218,7 +220,14 @@
       "box": "Móveis"
     },
     "resetRoomTip": "Reorganiza todas as peças já presentes nesta sala em um layout padrão arrumado. Desfazer está aqui ao lado, se você preferia do seu jeito.",
-    "resetDone": "Sala arrumada — Desfazer está ao lado do botão."
+    "resetDone": "Sala arrumada — Desfazer está ao lado do botão.",
+    "catalogueSections": "Seções do catálogo",
+    "section": {
+      "available": "Disponíveis",
+      "owned": "Seus objetos",
+      "locked": "Próximos departamentos"
+    },
+    "arrangeHere": "Arrumar no escritório"
   },
   "decoReact": {
     "plant": "Essa plantinha deixa o ambiente bem mais fresco.",
@@ -421,7 +430,12 @@
       "story": "Axel, o axolote, encara todo problema com um sorriso e a certeza de que tudo pode crescer de novo.",
       "goal": "Descobrir algo que ninguém nunca cultivou."
     },
-    "coffeeCooling": "Café em {{seconds}}s"
+    "coffeeCooling": "Café em {{seconds}}s",
+    "personnelFile": "Pessoas, antes dos números",
+    "readyCount": "{{count}} disponíveis para conversar",
+    "everyone": "Mostrar todos",
+    "onlyReady": "Quem pode conversar?",
+    "noneReady": "Ninguém disponível agora. Volte depois de uma pausa."
   },
   "item": {
     "coffeeMug": "Caneca de café lascada",
@@ -615,6 +629,18 @@
     "incubator": {
       "name": "Incubadora Comportamental",
       "desc": "Seis cápsulas. Seis pranchetas. Não bata no vidro."
+    },
+    "broadcast": {
+      "name": "Estúdio de rádio",
+      "desc": "Uma cabine revestida de cortiça. Alguém deixou a luz NO AR acesa desde ontem."
+    },
+    "repair": {
+      "name": "Oficina de reparos",
+      "desc": "Um box de manutenção para coisas que Compras insiste que ainda estão ótimas."
+    },
+    "conservatory": {
+      "name": "Jardim de inverno",
+      "desc": "Um anexo de ferro e vidro. A chuva interna não segue o clima lá fora."
     }
   },
   "station": {
@@ -701,6 +727,18 @@
     "incubationPod": {
       "name": "Cápsula de Incubação",
       "hint": "Registre a leitura. A leitura registra você de volta."
+    },
+    "broadcast": {
+      "name": "Sintonizar o boletim da tarde",
+      "hint": "Trabalhe aqui e experimente a especialidade da equipe."
+    },
+    "repair": {
+      "name": "Testar o mecanismo reparado",
+      "hint": "Trabalhe aqui e experimente a especialidade da equipe."
+    },
+    "conservatory": {
+      "name": "Medir a chuva interna",
+      "hint": "Trabalhe aqui e experimente a especialidade da equipe."
     }
   },
   "upgrade": {
@@ -1796,6 +1834,54 @@
     },
     "planter-row": {
       "name": "Fileira de Canteiros"
+    },
+    "ribbon-microphone": {
+      "name": "Microfone de fita",
+      "desc": "Uma pequena voz de latão para a pessoa mais quieta da sala."
+    },
+    "reel-recorder": {
+      "name": "Gravador de rolo",
+      "desc": "Os dois rolos giram. Só um tem fita."
+    },
+    "on-air-sign": {
+      "name": "Luz no ar",
+      "desc": "Aguarde o silêncio terminar."
+    },
+    "acoustic-mobile": {
+      "name": "Móbile acústico",
+      "desc": "Defletores de feltro costurados pelo turno da noite."
+    },
+    "parts-trolley": {
+      "name": "Carrinho de peças",
+      "desc": "Toda gaveta tem etiqueta. Nenhuma diz diversos."
+    },
+    "repair-vise": {
+      "name": "Morsa de reparos",
+      "desc": "Segura coisas difíceis enquanto Bia pensa."
+    },
+    "borrow-board": {
+      "name": "Quadro de ferramentas emprestadas",
+      "desc": "A chave ausente tem devolução marcada para 1987."
+    },
+    "inspection-lamp": {
+      "name": "Pendente de inspeção",
+      "desc": "Luz honesta. Mostra cada arranhão que vale preservar."
+    },
+    "rain-collector": {
+      "name": "Coletor de chuva interna",
+      "desc": "Chuva na segunda. Um pedido de desculpas na quinta."
+    },
+    "folding-bench": {
+      "name": "Banco para dois",
+      "desc": "Um lugar para você; outro para quem precisar de um minuto."
+    },
+    "growth-chart": {
+      "name": "Registro de crescimento",
+      "desc": "Axel mede a planta. A planta mede Axel."
+    },
+    "glass-chimes": {
+      "name": "Sinos de chuva de vidro",
+      "desc": "Um som de colheres lembrando uma canção."
     }
   },
   "prestige": {
@@ -1855,7 +1941,12 @@
         "name": "Boas Vibrações",
         "desc": "Aumente o piso mínimo de moral."
       }
-    }
+    },
+    "transferFile": "TERMO DE CONTINUIDADE",
+    "keptTitle": "Segue com a equipe",
+    "keptSummary": "{{objects}} objetos, {{moments}} momentos e {{talks}} conversas. Amizades, histórias, recordes e lembranças permanecem.",
+    "rebuiltTitle": "Recomeça neste ciclo",
+    "rebuiltSummary": "Contratações, níveis, departamentos, melhorias e recursos da empresa recomeçam. Promessas pendentes pertencem ao ciclo anterior."
   },
   "focus": {
     "title": "Colheita de Foco",
@@ -1906,7 +1997,8 @@
       "hazardMark": "Descaf.",
       "hazard": "Descafeinado pego · -{{value}} pontos",
       "hazardStreak": "Descafeinado pego · -{{value}} pontos · sequência de {{count}} encerrada",
-      "assignment": "Mantenha a pausa funcionando. Salve o café bom; deixe o descafeinado cair."
+      "assignment": "Mantenha a pausa funcionando. Salve o café bom; deixe o descafeinado cair.",
+      "brief": "Mova o copo. Pegue café; evite o descafeinado cinza."
     },
     "bugSquash": {
       "name": "Caça-Insetos",
@@ -1918,7 +2010,8 @@
       "penalty": "Gaveta vazia · -{{value}} pontos",
       "empty": "Gaveta vazia — sem pontos para descontar",
       "cracked": "Carapaça rachada — bata de novo!",
-      "assignment": "O controle de qualidade precisa de mão firme. Cada gaveta vazia custa pontos."
+      "assignment": "O controle de qualidade precisa de mão firme. Cada gaveta vazia custa pontos.",
+      "brief": "Pegue os insetos. Armadura exige dois toques; errar custa pontos."
     },
     "cableUntangle": {
       "name": "Mesa de Cabos Embolados",
@@ -1955,7 +2048,8 @@
         "repair": "Reparo",
         "employee": "Funcionário"
       },
-      "assignment": "A manutenção deixou outro diagrama impossível. Existe uma solução."
+      "assignment": "A manutenção deixou outro diagrama impossível. Existe uma solução.",
+      "brief": "Mova os conectores até nenhum fio se cruzar."
     },
     "bug": "Esmague a praga!",
     "burrow": "Toca vazia",
@@ -1985,7 +2079,8 @@
     "colleagues": "18 pontos: incentivo para {{names}}.",
     "masteryGoal": "30 pontos: uma lembrança e {{name}} para o escritório.",
     "masteryFiled": "Maestria registrada. Próxima meta: seu recorde.",
-    "masteryGoalOwned": "30 pontos: uma lembrança e seu primeiro prêmio de maestria."
+    "masteryGoalOwned": "30 pontos: uma lembrança e seu primeiro prêmio de maestria.",
+    "placeSouvenir": "Encontrar um lugar para {{name}}"
   },
   "overview": {
     "workers": "{{count}} trabalhando aqui",
@@ -2005,7 +2100,8 @@
     "decorate": "Você já pode comprar uma decoração.",
     "firstConversation": "Conheça {{name}} — uma conversa pode mudar o expediente.",
     "firstActivity": "Faça uma pausa com a equipe. Experimente uma atividade.",
-    "firstDecoration": "Deixe sua marca no escritório. Você já pode comprar a primeira decoração."
+    "firstDecoration": "Deixe sua marca no escritório. Você já pode comprar a primeira decoração.",
+    "investigate": "Há um documento sem registro no escritório."
   },
   "mood": {
     "focused": "Focado",
@@ -2067,7 +2163,10 @@
     "emptySecrets": {
       "title": "Nada registrado",
       "hint": "Algumas coisas a empresa preferiria não arquivar. Elas aparecem nos eventos mais estranhos, nas salas mais esquisitas e naquela conversa que ninguém marcou."
-    }
+    },
+    "searchArchive": "Buscar no arquivo por história, colega ou referência",
+    "archiveMatches_one": "{{count}} documento encontrado",
+    "archiveMatches_other": "{{count}} documentos encontrados"
   },
   "company": {
     "title": "Visão Geral da Empresa",
@@ -2237,7 +2336,8 @@
     "importDone": "Save importado. Bem-vindo de volta.",
     "importInvalid": "Esse arquivo não é um save do ZooWorkers, ou está danificado. Sua empresa atual não foi alterada.",
     "importUnreadable": "Não foi possível ler esse arquivo. Sua empresa atual não foi alterada.",
-    "localOnly": "Os saves ficam guardados neste computador. Exporte uma cópia se quiser um backup."
+    "localOnly": "Os saves ficam guardados neste computador. Exporte uma cópia se quiser um backup.",
+    "directory": "Índice de preferências"
   },
   "onboarding": {
     "skip": "Pular guia",
@@ -2249,15 +2349,15 @@
     "progressLabel": "Páginas do tutorial",
     "goTo": "Página {{current}}: {{title}}",
     "collectTitle": "Sua primeira caixa",
-    "growthTitle": "Transforme castanhas em impulso",
+    "growthTitle": "Um canto que é seu",
     "teamTitle": "Conheça sua pequena equipe",
-    "companyTitle": "Veja a empresa crescer",
+    "companyTitle": "A empresa guarda suas escolhas",
     "desktopTitle": "Deixe o escritório do seu jeito",
     "step1": "A caixa brilhante está pronta para coletar. Pegue sempre que passar pelo escritório — a produção continua entre visitas.",
-    "step2": "Gaste castanhas em Melhorias para aumentar produção, automação, conforto e as salas que sua empresa pode alcançar.",
-    "step3": "Clique no Tico para dar um empurrãozinho na moral. Cada colega tem humores, salas favoritas, histórias e amizades para descobrir.",
-    "step4": "Empresa registra seu império crescente, enquanto Coleções, Conquistas e Estatísticas guardam os detalhes divertidos de cada rodada.",
-    "step5": "No desktop, redimensione ou encaixe este pequeno escritório onde ele combinar melhor com seu dia.",
+    "step2": "A primeira samambaia custa 100 nozes. Escolha-a em Decorar e leve-a ao escritório: a etiqueta também serve para arrastar. Móveis podem se encostar, e cada objeto tem seu chão, parede ou teto.",
+    "step3": "Clique em Tico para ouvir uma frase, ou use Conversar em Equipe para conhecê-lo melhor. As escolhas mudam o ânimo, a amizade e o que volta a acontecer depois.",
+    "step4": "Faça uma pausa em Foco: os jogos podem render lembranças e objetos. Conjuntos de decoração revelam documentos nas salas. Coleções guarda essas descobertas. Melhorias e novos departamentos vêm junto — e Reestruturar conserva o que vocês viveram.",
+    "step5": "Trabalho, pequenas pausas, conversas e objetos: volte ao escritório do seu jeito. Não é preciso comprar uma melhoria a cada visita.",
     "step6": "Sempre no topo mantém a equipe por perto enquanto você trabalha — é opcional e fácil de mudar nos Ajustes.",
     "step7": "Quer tranquilidade? O Modo Silencioso suaviza som e movimento, e as opções de acessibilidade ajustam a experiência a qualquer momento."
   },
@@ -2757,7 +2857,10 @@
     "mailroom": "Deixa todo o prédio mais barato e mais sortudo.",
     "security": "Vigia as salas estranhas para custarem menos reputação.",
     "archive": "Transforma a própria papelada da empresa em descobertas.",
-    "incubator": "A sala mais forte em nozes douradas, e a menos agradável."
+    "incubator": "A sala mais forte em nozes douradas, e a menos agradável.",
+    "broadcast": "Transforma pausas compartilhadas em reputação. Funciona melhor com alguém no Marketing.",
+    "repair": "Conserte antes de trocar: reduz preços com alguém na Construção.",
+    "conservatory": "Recuperação tranquila: restaura o ânimo mais rápido com alguém na Incubadora."
   },
   "repTier": {
     "unlisted": {
@@ -3162,7 +3265,10 @@
     "otherTopics": "Outros assuntos",
     "favorite": "Objeto querido",
     "discovered": "História conhecida",
-    "keepsakeFile": "Arquivo de objetos pessoais"
+    "keepsakeFile": "Arquivo de objetos pessoais",
+    "memoryFile": "O que já vivemos",
+    "memoryEntry": "Uma conversa lembrada",
+    "noMemoriesYet": "Esta pasta começa com a primeira conversa. Suas escolhas ficam conosco."
   },
   "keepsake": {
     "pip": {
@@ -3533,7 +3639,19 @@
     "browse": "Ver as três peças",
     "roomLocked": "Abra esta sala primeiro",
     "selection": "Coloque estas peças em {{room}}. Peças guardadas ou em outra sala não ativam a receita.",
-    "allPieces": "Voltar ao catálogo"
+    "allPieces": "Voltar ao catálogo",
+    "broadcast-set": {
+      "name": "Estúdio de rádio",
+      "effect": "Janela de combo +12%."
+    },
+    "repair-set": {
+      "name": "Oficina de reparos",
+      "effect": "Produção +4%."
+    },
+    "conservatory-set": {
+      "name": "Jardim de inverno",
+      "effect": "Ânimo-alvo +3."
+    }
   },
   "discovery": {
     "inspect": "Nota sem registro",
@@ -3665,6 +3783,137 @@
     "anomaly_previousTenant": {
       "title": "Algo que vale a pena guardar",
       "body": "A empresa mudou de linha do tempo. Uma plantinha se recusou a esquecer você."
+    },
+    "anomaly_silence": {
+      "title": "Fita de transmissão em branco",
+      "body": "Registro do estúdio, gravado por Echo. Três minutos de quase silêncio; uma chaleira estala em 01:42. A gravação fez o prédio parecer habitado, em vez de ocupado."
+    },
+    "anomaly_deskNames": {
+      "title": "Decalque da mesa",
+      "body": "Ordem de reparo R-23. Decalque a lápis feito antes da devolução da mesa. O último nome é legível; a data, não. Bea se recusa a classificar como dano."
+    },
+    "anomaly_thursday": {
+      "title": "Uma folha de calendário úmida",
+      "body": "Jardim de inverno, testemunhado por Axel. Duas marcas de xícara, uma de cada lado do banco. Nenhuma anomalia química sobreviveu. O convite, sim."
+    }
+  },
+  "annex": {
+    "remember": "Guardar isso na nossa história",
+    "work": "Levar essa ideia ao trabalho",
+    "broadcast": {
+      "title": "O pedido de silêncio",
+      "body": "O rádio recebe um pedido assinado por todas as salas do prédio. Elas gostariam de três minutos sem precisar ser úteis. Echo já colocou uma fita em branco.",
+      "a": "Transmitir o silêncio",
+      "b": "Vender o espaço publicitário",
+      "reply": "O escritório para de fazer barulho. Quando a fita termina, alguém continua cantarolando o silêncio.",
+      "other": "O patrocinador pede os números de audiência. Todas as salas informam zero.",
+      "evidence": "Registro do estúdio, gravado por Echo. Três minutos de quase silêncio; uma chaleira estala em 01:42. A gravação fez o prédio parecer habitado, em vez de ocupado.",
+      "workReply": "Echo vira o microfone para quem costuma fazer a ata.",
+      "activity": "Consertar a conexão",
+      "roomQuip": "Este microfone também pega suspiros?",
+      "afterQuip": "Desde aquela transmissão, o silêncio aqui parece companhia.",
+      "remember": "Reservar três minutos de silêncio em cada transmissão.",
+      "work": "Dar o microfone a quem costuma escrever a ata.",
+      "keptQuip": "Três minutos. Sem metas. Echo colocou na programação."
+    },
+    "repair": {
+      "title": "Não conserte este arranhão",
+      "body": "Bea encontra vinte e três nomes sob uma mesa devolvida. Quase todos são conhecidos. Um é o seu, numa letra que você ainda não aprendeu. A ordem de reparo diz: remover toda evidência de uso.",
+      "a": "Preservar a parte de baixo",
+      "b": "Seguir a ordem de reparo",
+      "reply": "Bea conserta os pés e preserva os nomes. Na nota: estrutura firme, importância pessoal.",
+      "other": "A mesa passa na inspeção. Bea guarda uma cópia dos nomes no avental.",
+      "evidence": "Ordem de reparo R-23. Decalque a lápis feito antes da devolução da mesa. O último nome é legível; a data, não. Bea se recusa a classificar como dano.",
+      "workReply": "Bea guarda os parafusos antigos numa lata etiquetada. Ainda servem, ela diz.",
+      "activity": "Limpar a bancada",
+      "roomQuip": "Nada quebrado entra aqui sem contar como aconteceu.",
+      "afterQuip": "Essa mesa tem mais história que o manual de instruções.",
+      "remember": "Manter os nomes. Deixar uma linha para a próxima pessoa.",
+      "work": "Guardar os parafusos para o próximo conserto.",
+      "keptReply": "Bea desenha uma linha vazia abaixo das assinaturas. “Um conserto precisa deixar espaço para quem vem depois.”",
+      "keptQuip": "Tem uma linha vazia debaixo daquela mesa. Estamos guardando."
+    },
+    "conservatory": {
+      "title": "Quinta-feira, do lado de dentro",
+      "body": "O coletor está cheio de chá quente. Axel confere o teto, os canos e finalmente o calendário. Alguém escreveu: QUINTA — SEJA GENTIL. É terça-feira.",
+      "a": "Colocar duas xícaras",
+      "b": "Engarrafar como amostra",
+      "reply": "A segunda xícara esvazia antes de alguém chegar. Axel deixa o banco aberto para amanhã.",
+      "other": "A etiqueta fica úmida. Na hora do almoço, a amostra é água da chuva comum.",
+      "evidence": "Jardim de inverno, testemunhado por Axel. Duas marcas de xícara, uma de cada lado do banco. Nenhuma anomalia química sobreviveu. O convite, sim.",
+      "workReply": "Axel abre a janela. A chuva para educadamente no peitoril.",
+      "activity": "Levar café ao jardim",
+      "roomQuip": "Lá fora está sol. Aqui dentro, aparentemente, não.",
+      "afterQuip": "Deixei a segunda xícara. Por via das dúvidas.",
+      "remember": "Deixar a segunda xícara no banco, mesmo às terças.",
+      "work": "Abrir a janela e deixar o jardim respirar.",
+      "keptReply": "Axel escreve DUAS XÍCARAS na escala de rega. Ninguém precisa explicar para quem é a segunda.",
+      "keptQuip": "A segunda xícara ainda está morna. Ninguém tocou nela."
+    }
+  },
+  "gifts": {
+    "preference": "Pequenas coisas que importam",
+    "unknown": "Traga um presente para conhecer suas preferências.",
+    "preferenceNames": {
+      "coffee": "Um café passado na hora",
+      "acorn": "Uma boa noz de lanche",
+      "golden": "Uma noz dourada para guardar"
+    },
+    "visitActions": "Passar um tempo juntos",
+    "conversation": "Como você está?",
+    "bring": "Trazer um presente",
+    "break": "Uma pausa para respirar. Nova conversa em {{seconds}}s.",
+    "quietVisit": "Fique um pouco. Pode rever nossas memórias enquanto termino este pensamento.",
+    "memoryFiled": "O presente favorito virou uma lembrança no arquivo da empresa.",
+    "reactions": {
+      "pip": "Você lembrou do café. Posso parar de fingir que esta caneca é só um peso de papel.",
+      "marlow": "Um lanche sem reunião junto. Você me entende.",
+      "rizzo": "Ouro de verdade? Vou registrar a localização. Em particular. No meu bolso.",
+      "bea": "Boa casca. Sem rachaduras. Vou guardar metade para a volta.",
+      "corvus": "Uma edição limitada com público de uma pessoa. Excelente posicionamento.",
+      "mina": "Café. Finalmente, um experimento com resultado confiável.",
+      "nixie": "Quente o bastante para soldar. É brincadeira. Quase.",
+      "otto": "Uma noz perfeitamente comum. Entre amigos, não precisa de recibo.",
+      "hazel": "Aceito, sem obrigação implícita. Exceto gratidão.",
+      "junie": "Ainda quente! Você achou a janela de doze segundos na minha agenda.",
+      "moss": "Café para a vigília. Agora a décima terceira porta pode esperar.",
+      "fenn": "Uma noz dourada, sem negociação. Esse acordo vale a lembrança.",
+      "pingo": "Café viaja mal. Você trouxe até aqui sem derramar.",
+      "canela": "Encontrei esta variedade na trilha oeste. Tem gosto de voltar.",
+      "nino": "Uma noz. E tempo para comer devagar. A melhor entrega possível.",
+      "bia": "Uma xícara quente encurta a vigília. Vou guardar um lugar para você.",
+      "quincy": "Café para mim, não para as amostras. Precisamos deixar isso claro.",
+      "dorm": "Um lanche que espera com paciência. Temos isso em comum.",
+      "inky": "Uma xícara. Oito mãos se voluntariaram. Vamos nos entender.",
+      "echo": "Escute a casca. Esse estalinho daria uma ótima gravação.",
+      "rosa": "O ouro pega a luz tão bem. Sei exatamente qual fita combina.",
+      "perry": "Neste recibo vou escrever: recebido com carinho. Valor: não se aplica.",
+      "axel": "Uma noz é um futuro pequeno. Vamos plantar esta?"
+    },
+    "polite": {
+      "pip": "Vou deixar ao lado da primeira noz. Aquela é a prateleira importante.",
+      "marlow": "Obrigado. Vamos sentar antes de decidir para que serve.",
+      "rizzo": "Conheço um lugar seguro para isso. Vários, na verdade.",
+      "bea": "Um presente não precisa de conserto. Estou aprendendo.",
+      "corvus": "Sem campanha? Sem slogan? Isso é surpreendentemente bom.",
+      "mina": "Vou escrever PESSOAL na etiqueta. O laboratório tem dificuldade com essa categoria.",
+      "nixie": "Prometo não desmontar antes do almoço.",
+      "otto": "Criei uma coluna no livro: coisas que não precisam fechar.",
+      "hazel": "Sem letras miúdas. Conferi duas vezes. Obrigada.",
+      "junie": "Agendei um momento para apreciar isso. Agora mesmo.",
+      "moss": "Vou deixar onde a lua alcança a mesa.",
+      "fenn": "Você não pediu nada em troca. Eu reparei.",
+      "pingo": "Este fica aqui. Nem tudo precisa de endereço de encaminhamento.",
+      "canela": "Tenho um bolso seco para isso. O campo ensina a abrir espaço.",
+      "nino": "Posso deixar ao lado da almofada? É onde ficam as coisas boas.",
+      "bia": "Não precisa registrar a entrada para isso. Você é de casa.",
+      "quincy": "Vou deixar fora da linha de quarentena. Isso é um elogio.",
+      "dorm": "Posso parecer dormindo. Estou apreciando com muito cuidado.",
+      "inky": "Um presente de verdade, não outra tarefa. As oito mãos aprovaram.",
+      "echo": "Vou deixar um pouquinho de silêncio depois do obrigado.",
+      "rosa": "Não vou mudar nada. Às vezes, o gesto é o desenho.",
+      "perry": "Posso arquivar em gentilezas inesperadas. Ainda cabe.",
+      "axel": "Vou deixar perto das mudas. As coisas crescem melhor com companhia."
     }
   }
 }

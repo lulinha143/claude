@@ -133,6 +133,42 @@ export const ROOM_FULL_STAFF = 4;
 export const SPECIALIST_BONUS = 0.25;
 
 export const ROOM_PROFILES: readonly RoomProfile[] = [
+  {
+    roomId: 'broadcast',
+    temper: 'social',
+    summaryKey: 'roomProfile.broadcast',
+    effects: [
+      { kind: 'reputationRate', value: 0.01 },
+      { kind: 'reputationRate', value: 0.025, requiresRoom: 'marketing' },
+    ],
+    tradeoffs: [],
+    feeds: ['marketing'],
+    specialists: ['echo'],
+  },
+  {
+    roomId: 'repair',
+    temper: 'industrial',
+    summaryKey: 'roomProfile.repair',
+    effects: [
+      { kind: 'costReduction', value: 0.02 },
+      { kind: 'costReduction', value: 0.045, requiresRoom: 'construction' },
+    ],
+    tradeoffs: [{ kind: 'moraleTarget', value: -2 }],
+    feeds: ['construction'],
+    specialists: ['bea'],
+  },
+  {
+    roomId: 'conservatory',
+    temper: 'irregular',
+    summaryKey: 'roomProfile.conservatory',
+    effects: [
+      { kind: 'moraleRegen', value: 0.1 },
+      { kind: 'moraleRegen', value: 0.18, requiresRoom: 'incubator' },
+    ],
+    tradeoffs: [],
+    feeds: ['incubator'],
+    specialists: ['axel'],
+  },
   // --- The company as it starts: modest, and the home of the first tap -------
   {
     roomId: 'founder-desk',

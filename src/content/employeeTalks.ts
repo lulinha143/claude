@@ -28,6 +28,8 @@
 
 import type { EmployeeMood } from '../sim/types';
 import type { EventEffect } from './types';
+import { ANNEX_TALKS } from './annexTalks';
+import { GIFT_PREFERENCES } from './employeeGifts';
 import { KEEPSAKE_TALKS } from './employeeKeepsakes';
 
 /** What a conversation option needs before it can be offered. */
@@ -290,7 +292,6 @@ const GIFT: TalkTopic = {
   blurbKey: k('gift', 'blurb'),
   root: 'open',
   weight: 7,
-  requires: { nuts: 500 },
   nodes: {
     open: {
       id: 'open',
@@ -918,6 +919,7 @@ export const EMPLOYEE_TALKS: readonly TalkTopic[] = [
   CHECK_IN,
   GIFT,
   ...KEEPSAKE_TALKS,
+  ...ANNEX_TALKS,
 ];
 
 export const TALKS_BY_ID: Record<string, TalkTopic> = Object.fromEntries(
@@ -926,5 +928,29 @@ export const TALKS_BY_ID: Record<string, TalkTopic> = Object.fromEntries(
 
 /** Every topic that could ever be offered to this employee, ignoring live state. */
 export function topicsForEmployee(employeeId: string): readonly TalkTopic[] {
-  return EMPLOYEE_TALKS.filter((t) => !t.employeeId || t.employeeId === employeeId);
+  return EMPLOYEE_TALKS.filter((t) => !t.employeeId || t.employeeId === employeeId).map((topic) => {
+    if (topic.id !== 'gift') return topic;
+    return {
+      ...topic,
+      nodes: {
+        open: {
+          ...topic.nodes.open,
+          choices: topic.nodes.open.choices.map((choice) => ({
+            ...choice,
+            replyKey:
+              choice.id === GIFT_PREFERENCES[employeeId]
+                ? `gifts.reactions.${employeeId}`
+                : `gifts.polite.${employeeId}`,
+            effects: [
+              ...choice.effects,
+              { type: 'setFlag' as const, flagId: `favorite.${employeeId}.giftKnown` },
+              ...(choice.id === GIFT_PREFERENCES[employeeId]
+                ? [{ type: 'friendship' as const, value: 3 }]
+                : []),
+            ],
+          })),
+        },
+      },
+    };
+  });
 }

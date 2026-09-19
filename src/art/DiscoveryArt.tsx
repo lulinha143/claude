@@ -1,5 +1,18 @@
-/** Small evidence sketches attached only to the facility's authored discoveries. */
+import { AnnexDecorArt } from './AnnexDecorArt';
+/** Evidence sketches retain the incident's own object and silhouette. */
 export function DiscoveryArt({ eventId }: { eventId: string }) {
+  const annex = {
+    'annex-broadcast': 'reel-recorder',
+    'annex-repair': 'repair-vise',
+    'annex-conservatory': 'rain-collector',
+  }[eventId];
+  if (annex)
+    return (
+      <div className={`annex-evidence annex-evidence--${eventId}`} aria-hidden="true">
+        <AnnexDecorArt id={annex} scale={2} />
+        <span>NI / {eventId.slice(6).toUpperCase()} / 23</span>
+      </div>
+    );
   const type =
     eventId === 'file-dated-tomorrow'
       ? 'file'

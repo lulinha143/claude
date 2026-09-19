@@ -21,6 +21,9 @@
 
 /** Visual/behavioural archetype. Drives the station's art and feedback. */
 export type ClickStationKind =
+  | 'mixing-desk'
+  | 'test-bench'
+  | 'rain-gauge'
   | 'crate'
   | 'chute'
   | 'urn'
@@ -78,6 +81,45 @@ function station(def: ClickStationDef): ClickStationDef {
 }
 
 export const CLICK_STATIONS: readonly ClickStationDef[] = [
+  {
+    id: 'broadcast-station',
+    roomId: 'broadcast',
+    kind: 'mixing-desk',
+    nameKey: 'station.broadcast.name',
+    hintKey: 'station.broadcast.hint',
+    x: 0.2,
+    bottom: 0,
+    cadence: 'burst',
+    payout: 0.7,
+    resource: 'nuts',
+    synergy: ['echo'],
+  },
+  {
+    id: 'repair-station',
+    roomId: 'repair',
+    kind: 'test-bench',
+    nameKey: 'station.repair.name',
+    hintKey: 'station.repair.hint',
+    x: 0.78,
+    bottom: 0,
+    cadence: 'charge',
+    payout: 1.3,
+    resource: 'nuts',
+    synergy: ['bea'],
+  },
+  {
+    id: 'conservatory-station',
+    roomId: 'conservatory',
+    kind: 'rain-gauge',
+    nameKey: 'station.conservatory.name',
+    hintKey: 'station.conservatory.hint',
+    x: 0.2,
+    bottom: 0,
+    cadence: 'steady',
+    payout: 0.8,
+    resource: 'nuts',
+    synergy: ['axel'],
+  },
   // --- Founder's desk: where the whole company starts -----------------------
   station({
     id: 'nut-crate',

@@ -1,4 +1,5 @@
 import { test, expect, type Locator, type Page } from '@playwright/test';
+import { SCENE_DEPTH } from '../../src/sim/depth';
 
 // Placement-feel proof for the semantic floor/rug path: live full-size ghost,
 // authored region and footprint guides, collision feedback, transaction-safe
@@ -206,7 +207,7 @@ test('floor preview is continuous, allows overlap, keeps props in the room, and 
   const validGhost = page.locator('.drag-ghost[data-region-kind="floor"][data-valid="true"]');
   const validGuide = room.locator('.floor__region-guide[data-region-kind="floor"].is-valid');
   await expect(validGhost).toBeVisible();
-  await expect(validGhost.locator('.drag-ghost__surface')).toHaveText(/Floor/i);
+  await expect(validGhost.locator('.drag-ghost__surface')).toHaveCount(0);
   await expect(validGuide).toBeVisible();
   await expect(validGuide.locator('.floor__region-plane')).toBeVisible();
   const validFootprint = validGuide.locator('.floor__region-footprint');
@@ -225,10 +226,9 @@ test('floor preview is continuous, allows overlap, keeps props in the room, and 
   //
   // Overlap between player-owned props is deliberately unrestricted now (see
   // `evaluatePlacement` in sim/placement.ts): layering is a creative tool, and the old
-  // rule amounted to an invisible exclusion zone around every object that blocked exactly
-  // the dense arrangements free placement exists for. It is safe because the depth bands
-  // in sim/depth.ts put every decoration strictly below the character band, so a prop can
-  // never paint over a teammate's face regardless of where it sits.
+  // rule amounted to an invisible exclusion zone around every object that blocked
+  // dense arrangements. Furnishings now paint in front of employees; the tray
+  // and room personnel controls keep both independently reachable.
   //
   // So the preview over another prop must stay VALID...
   const lampBox = (await lamp.boundingBox())!;
@@ -289,7 +289,7 @@ test('pointercancel removes provisional floor state without saving', async ({ pa
   expect(await savedInstance(page, 'potted-fern')).toEqual(originalInstance);
 });
 
-test('rug uses its full footprint, stays at depth zero, and persists after resize/reload', async ({
+test('rug uses its full footprint, keeps its surface depth, and persists after resize/reload', async ({
   page,
 }) => {
   await prepare(page);
@@ -310,7 +310,7 @@ test('rug uses its full footprint, stays at depth zero, and persists after resiz
   const guide = room.locator('.floor__region-guide[data-region-kind="floor"].is-valid');
   const footprint = guide.locator('.floor__region-footprint');
   await expect(ghost).toBeVisible();
-  await expect(ghost.locator('.drag-ghost__surface')).toHaveText(/Floor/i);
+  await expect(ghost.locator('.drag-ghost__surface')).toHaveCount(0);
   await expect(guide).toBeVisible();
   // The rug's support footprint is a wide, shallow ellipse — it lies FLAT, so what
   // matters is the shape, not two exact radii. Pinning `ry` to a literal made this fail
@@ -342,7 +342,7 @@ test('rug uses its full footprint, stays at depth zero, and persists after resiz
   await expect(page.locator('.drag-ghost')).toHaveCount(0);
   const moved = await savedInstance(page, 'tiny-rug');
   expect(moved).not.toEqual(before);
-  expect(moved).toMatchObject({ roomId: 'founder-desk', depth: 0 });
+  expect(moved).toMatchObject({ roomId: 'founder-desk', depth: SCENE_DEPTH.rug.min });
   await expect(rug).toHaveAttribute('data-region-kind', 'floor');
   const movedStyle = await rug.getAttribute('style');
 

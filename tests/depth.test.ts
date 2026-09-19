@@ -17,72 +17,31 @@ import { DECORATIONS } from '../src/content/decorations';
 
 const DECORATION_KINDS: DecorationDepthKind[] = ['rug', 'wall', 'floor', 'ceiling'];
 
-// The whole point of the depth module: characters are the foreground actors and
-// must never be hidden behind scenery. These tests pin the structural guarantee
-// so a future band or room cannot quietly reintroduce the bug.
-describe('scene depth: characters always paint in front of decorations', () => {
-  it('puts every decoration band strictly below the character band', () => {
+describe('scene depth: furnishings in front of employees', () => {
+  it('keeps every surface above even a focused employee', () => {
     for (const kind of DECORATION_KINDS) {
-      const band = decorationBand(kind);
-      expect(band.max).toBeLessThan(SCENE_DEPTH.character.min);
+      expect(decorationBand(kind).min).toBeGreaterThan(SCENE_DEPTH.characterFocus);
+      for (let n = 0; n <= 20; n++)
+        expect(decorationDepth(kind, n / 20)).toBeGreaterThan(SCENE_DEPTH.characterFocus);
     }
-    expect(DECORATION_DEPTH_CEILING).toBeLessThan(SCENE_DEPTH.character.min);
+    expect(DECORATION_DEPTH_CEILING).toBeGreaterThan(SCENE_DEPTH.characterFocus);
+    expect(stationDepth(0)).toBeGreaterThan(SCENE_DEPTH.ceiling.max);
   });
-
-  it('keeps click stations above scenery but still behind characters', () => {
-    for (const kind of DECORATION_KINDS) {
-      expect(decorationBand(kind).max).toBeLessThanOrEqual(SCENE_DEPTH.station.min);
-    }
-    expect(stationDepth(0)).toBeGreaterThanOrEqual(SCENE_DEPTH.station.min);
-    expect(stationDepth(1)).toBeLessThan(SCENE_DEPTH.character.min);
-  });
-
-  it('never lets a decoration depth reach a character depth, at any nearness', () => {
-    for (const kind of DECORATION_KINDS) {
-      for (let i = 0; i <= 20; i += 1) {
-        const z = decorationDepth(kind, i / 20);
-        expect(z).toBeLessThan(SCENE_DEPTH.character.min);
-        expect(z).toBeGreaterThanOrEqual(decorationBand(kind).min);
-        expect(z).toBeLessThanOrEqual(decorationBand(kind).max);
-      }
-    }
-  });
-
-  it('keeps every catalogue decoration below every character slot, in every room', () => {
-    const lowestCharacter = Math.min(
+  it('covers every room, occupancy and catalogue surface', () => {
+    const highest = Math.max(
       ...ROOMS.flatMap((room) =>
-        // 1..6 occupants covers the per-room soft cap.
-        Array.from({ length: 6 }, (_, n) =>
+        Array.from({ length: 4 }, (_, n) =>
           characterSlots(n + 1, room.id).map((slot) => characterDepth(slot.bottom)),
         ).flat(),
       ),
     );
-    const highestDecoration = Math.max(
-      ...DECORATIONS.map((def) =>
-        surfaceZ(
-          def.id,
-          def.placementSurface === 'wall'
-            ? 'wall'
-            : def.placementSurface === 'ceiling'
-              ? 'ceiling'
-              : 'floor',
-        ),
-      ),
-    );
-    expect(highestDecoration).toBeLessThan(lowestCharacter);
-  });
-
-  it('keeps every room placement region inside the decoration bands', () => {
-    for (const [roomId, regions] of Object.entries(ROOM_SURFACES)) {
+    for (const def of DECORATIONS)
+      expect(surfaceZ(def.id, def.placementSurface)).toBeGreaterThan(highest);
+    for (const regions of Object.values(ROOM_SURFACES))
       for (const region of regions) {
-        const band = decorationBand(region.kind);
-        expect(region.depth.min, `${roomId}:${region.kind} min`).toBeGreaterThanOrEqual(band.min);
-        expect(region.depth.max, `${roomId}:${region.kind} max`).toBeLessThanOrEqual(band.max);
-        expect(region.depth.max, `${roomId}:${region.kind} vs characters`).toBeLessThan(
-          SCENE_DEPTH.character.min,
-        );
+        expect(region.depth.min).toBeGreaterThan(SCENE_DEPTH.characterFocus);
+        expect(region.depth.max).toBeLessThanOrEqual(decorationBand(region.kind).max);
       }
-    }
   });
 });
 

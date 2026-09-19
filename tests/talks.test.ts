@@ -136,8 +136,12 @@ describe('conversation eligibility', () => {
       s.resources.nuts = 0;
       s.resources.goldenNuts = 0;
     });
-    // The gift topic needs something to give.
-    expect(eligibleTopics(poor.state, 'dorm', 1_000).map((t) => t.id)).not.toContain('gift');
+    // A shared coffee is available without funds; paid gifts remain gated.
+    const gift = eligibleTopics(poor.state, 'dorm', 1_000).find((topic) => topic.id === 'gift')!;
+    const choices = evaluateTalkNode(poor.state, 'dorm', gift.nodes.open.choices, 1_000);
+    expect(choices.find((item) => item.choice.id === 'acorn')?.enabled).toBe(false);
+    expect(choices.find((item) => item.choice.id === 'golden')?.enabled).toBe(false);
+    expect(choices.find((item) => item.choice.id === 'coffee')?.enabled).toBe(true);
   });
 
   it('requires trust before a private topic is offered', () => {

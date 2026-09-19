@@ -29,6 +29,7 @@ import { upgradeBonus } from './upgradeEffects';
 import { employeeMood, moodProductivityMultiplier } from './mood';
 import { repairEmployees } from './state';
 import { EMPLOYEES_BY_ID } from '../content/employees';
+import { GIFT_PREFERENCES } from '../content/employeeGifts';
 import { UPGRADES_BY_ID } from '../content/upgrades';
 import type { EventChoice, EventEffect, GameEventDef } from '../content/types';
 import { GAME_EVENTS, GAME_EVENTS_BY_ID } from '../content/events';
@@ -137,6 +138,7 @@ export interface EventChoiceContext {
 
 /** An open employee conversation. Transient — see `GameEngine.activeTalk`. */
 export interface ActiveTalk {
+  profileOnly?: boolean;
   employeeId: string;
   topic: TalkTopic;
   /** Current node; empty string once the conversation has ended. */
@@ -1074,14 +1076,16 @@ export class GameEngine {
    * ------------------------------------------------------------------------- */
 
   /** Open a conversation, choosing the most pressing topic. False if nobody is free. */
-  openTalk(employeeId: string, topicId?: string): boolean {
+  openTalk(employeeId: string, topicId?: string, visit = false): boolean {
     const rt = this.state.employees[employeeId];
     if (!rt?.hired) return false;
     const now = this.now();
-    if (talkCooldownRemaining(this.state, employeeId, now) > 0) return false;
+    const profileOnly = talkCooldownRemaining(this.state, employeeId, now) > 0;
+    if (profileOnly && !visit) return false;
     if (
       this.activeTalk &&
-      (this.activeTalk.employeeId !== employeeId || this.activeTalk.exchanges > 0)
+      (this.activeTalk.employeeId !== employeeId ||
+        (this.activeTalk.exchanges > 0 && this.activeTalk.nodeId !== ''))
     )
       return false;
     const topic = topicId
@@ -1091,9 +1095,10 @@ export class GameEngine {
     const node = topic.nodes[topic.root];
     if (!node) return false;
     this.activeTalk = {
+      profileOnly,
       employeeId,
       topic,
-      nodeId: topic.root,
+      nodeId: profileOnly ? '' : topic.root,
       instanceId: `${employeeId}:${topic.id}:${now}`,
       // The reply to the option just taken, shown before the next node's prompt.
       lastReplyKey: null,
@@ -1114,7 +1119,7 @@ export class GameEngine {
    */
   chooseTalkOption(choiceId: string, instanceId?: string): boolean {
     const active = this.activeTalk;
-    if (!active) return false;
+    if (!active || active.profileOnly) return false;
     if (instanceId && instanceId !== active.instanceId) return false;
     const node = active.topic.nodes[active.nodeId];
     if (!node) return false;
@@ -1123,6 +1128,10 @@ export class GameEngine {
     const picked = evaluated.find((e) => e.choice.id === choiceId);
     if (!picked?.enabled) return false;
     const choice = picked.choice;
+    const firstPreferredGift =
+      active.topic.id === 'gift' &&
+      choice.id === GIFT_PREFERENCES[active.employeeId] &&
+      this.state.flags[`favorite.${active.employeeId}.giftMemory`] === undefined;
 
     // Snapshot BEFORE, so what the player is shown afterwards is measured rather
     // than a restatement of the authored effect list.
@@ -1136,6 +1145,13 @@ export class GameEngine {
       );
     }
     const report = this.diffReport(before, choice.effects, now);
+    if (firstPreferredGift) {
+      this.state.flags[`favorite.${active.employeeId}.giftMemory`] = now;
+      this.createMomentCard(
+        this.talkEventShim(active.topic, choice, active.employeeId),
+        choice.replyKey,
+      );
+    }
 
     this.state.eventHistory.push({
       eventId: `talk:${active.topic.id}`,

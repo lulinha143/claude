@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { useState } from 'react';
 import { useGame } from '../../state/hooks';
 import { useStore } from '../../state/store';
 import { useFmt } from '../useFmt';
@@ -39,6 +40,10 @@ export function EmployeesView() {
   const now = Date.now();
   const talkReady = (id: string) => canTalk(state, id, now);
   const cooldown = (id: string) => talkCooldownRemaining(state, id, now);
+  const [showReady, setShowReady] = useState(false);
+  const readyCount = EMPLOYEES.filter(
+    (def) => state.employees[def.id].hired && talkReady(def.id),
+  ).length;
 
   return (
     <section className="view view--employees">
@@ -71,7 +76,23 @@ export function EmployeesView() {
         ) : null}
       </div>
       <ul className="employee-list">
-        {EMPLOYEES.map((def) => {
+        <li className="personnel-index">
+          <div>
+            <strong>{t('employee.personnelFile')}</strong>
+            <span>{t('employee.readyCount', { count: readyCount })}</span>
+          </div>
+          <button
+            className="ghost-btn"
+            aria-pressed={showReady}
+            onClick={() => setShowReady((v) => !v)}
+          >
+            {t(showReady ? 'employee.everyone' : 'employee.onlyReady')}
+          </button>
+          {showReady && !readyCount ? <p>{t('employee.noneReady')}</p> : null}
+        </li>
+        {EMPLOYEES.filter(
+          (def) => !showReady || (state.employees[def.id].hired && talkReady(def.id)),
+        ).map((def) => {
           const rt = state.employees[def.id];
           const unlocked = isEmployeeUnlocked(state, def);
           const reduction = def.hireCost.resource === 'nuts' ? passives.costReduction : 0;
@@ -310,9 +331,8 @@ export function EmployeesView() {
                         <button
                           className="ghost-btn employee-card__talk"
                           data-employee={def.id}
-                          aria-disabled={!talkReady(def.id)}
                           onClick={() => {
-                            if (engine.openTalk(def.id)) audio.play('click');
+                              if (engine.openTalk(def.id, undefined, true)) audio.play('paper');
                             else audio.play('error');
                           }}
                         >

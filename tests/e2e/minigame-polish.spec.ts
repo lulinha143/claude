@@ -110,12 +110,15 @@ test.describe.serial('premium minigame presentation', () => {
 
   test('opens and plays Bug Squash with a tactile hit', async ({ page }) => {
     await boot(page);
+    await page.clock.install();
     const game = await openGame(page, 'Bug Squash');
     await page.screenshot({ path: 'visual-artifacts/minigame-bug-intro-1280x800.png' });
     await startGame(page);
     await expect(game.locator('.bugsquash__desk')).toBeVisible();
     const activeBug = game.locator('.burrow.is-up');
     await expect(activeBug).toBeVisible({ timeout: 3_000 });
+    // Keep the duplicate click inside its grace window regardless of host load.
+    await page.clock.pauseAt(new Date(Date.now() + 100));
     const activeIndex = await activeBug.evaluate((element) =>
       [...element.parentElement!.children].indexOf(element),
     );
@@ -131,7 +134,7 @@ test.describe.serial('premium minigame presentation', () => {
     await claimedBurrow.dispatchEvent('click');
     await expect(game.locator('.microgame__score b')).toHaveText('2');
     await page.screenshot({ path: 'visual-artifacts/minigame-bug-hit-1280x800.png' });
-    await page.waitForTimeout(220);
+    await page.clock.runFor(220);
     const emptyBurrow = game.locator('.burrow').nth((activeIndex + 1) % 9);
     await emptyBurrow.click();
     await expect(emptyBurrow).toHaveClass(/is-wrong/);
@@ -139,7 +142,7 @@ test.describe.serial('premium minigame presentation', () => {
     // typographic minus sign renders as a tofu box without a system fallback.
     await expect(emptyBurrow.locator('.burrow__miss b')).toHaveText('-2');
     await expect(emptyBurrow.locator('.burrow__miss b')).toBeVisible();
-    await page.waitForTimeout(120);
+    await page.clock.runFor(120);
     await page.screenshot({ path: 'visual-artifacts/minigame-bug-penalty-1280x800.png' });
     await expect(game.locator('.microgame__score b')).toHaveText('0');
     await game.locator('.microgame__exit').click();
@@ -604,11 +607,13 @@ test.describe.serial('premium minigame presentation', () => {
 
     const timer = game.locator('.microgame__timer');
     const pause = game.locator('.microgame__pause');
-    const timeBefore = await timer.textContent();
-    const activeBefore = await game.locator('.burrow.is-up').count();
     await pause.click();
     await expect(pause).toHaveAttribute('aria-pressed', 'true');
     await expect(game.locator('.microgame__paused')).toBeVisible();
+    // Capture the frozen state after pause; time can advance while click waits
+    // for actionability on a busy machine.
+    const timeBefore = await timer.textContent();
+    const activeBefore = await game.locator('.burrow.is-up').count();
     await page.waitForTimeout(1_250);
     await expect(timer).toHaveText(timeBefore ?? '');
     expect(await game.locator('.burrow.is-up').count()).toBe(activeBefore);

@@ -64,6 +64,32 @@ export function PrestigeView() {
     <section className="view view--prestige">
       <h2>{t('prestige.title')}</h2>
       <p className="muted">{t('prestige.explain')}</p>
+      <div className="restructure-file">
+        <header>
+          <span>{t('prestige.transferFile')}</span>
+          <strong>
+            {String(state.prestige.count + 1).padStart(2, '0')} →{' '}
+            {String(state.prestige.count + 2).padStart(2, '0')}
+          </strong>
+        </header>
+        <div>
+          <h3>{t('prestige.keptTitle')}</h3>
+          <p>
+            {t('prestige.keptSummary', {
+              objects: state.collections.secrets.filter((id) => id.startsWith('deco:')).length,
+              moments: state.collections.moments.length,
+              talks: Object.values(state.employees).reduce(
+                (sum, employee) => sum + (employee.talks?.count ?? 0),
+                0,
+              ),
+            })}
+          </p>
+        </div>
+        <div>
+          <h3>{t('prestige.rebuiltTitle')}</h3>
+          <p>{t('prestige.rebuiltSummary')}</p>
+        </div>
+      </div>
 
       {!unlocked ? (
         <div className="panel">

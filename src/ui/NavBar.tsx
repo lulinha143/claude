@@ -23,6 +23,7 @@
 // behind a gesture the player has no reason to expect.
 
 import { useTranslation } from 'react-i18next';
+import { useGame } from '../state/hooks';
 import { useStore, type ViewId } from '../state/store';
 import { Icon, type IconName } from '../art/UiIcon';
 import { Tip, TipContent } from './Tooltip';
@@ -99,7 +100,12 @@ function NavTab({
 export function NavBar() {
   const { t } = useTranslation();
   const view = useStore((state) => state.view);
-  const setView = useStore((state) => state.setView);
+  const changeView = useStore((state) => state.setView);
+  const { engine } = useGame();
+  const setView = (id: ViewId) => {
+    engine.closeTalk();
+    changeView(id);
+  };
 
   return (
     <nav className="nav" aria-label={t('nav.mainNavigation')}>

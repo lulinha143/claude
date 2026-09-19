@@ -341,7 +341,11 @@ export function CoffeeRescue({ seed, reducedMotion, paused, onScore, onCombo }: 
     const rect = area.getBoundingClientRect();
     const geometry = geometryRef.current;
     const x = ((clientX - rect.left) / rect.width) * 100;
-    setMugX(Math.max(geometry.minMugX, Math.min(geometry.maxMugX, x)));
+    const next = Math.max(geometry.minMugX, Math.min(geometry.maxMugX, x));
+    // Input, visible position and collision share the same immediate coordinate.
+    mugXRef.current = next;
+    if (mugRef.current) mugRef.current.style.left = `${next}%`;
+    setMugX(next);
   }
 
   function handlePointer(event: React.PointerEvent<HTMLDivElement>) {
@@ -398,7 +402,7 @@ export function CoffeeRescue({ seed, reducedMotion, paused, onScore, onCombo }: 
           {streak > 0 ? t('microgame.combo', { value: mult }) : t('microgame.coffeeRescue.steady')}
         </span>
       </div>
-      <span className="sr-only" role="status" aria-live="polite">
+      <span className="micro-feedback" role="status" aria-live="polite">
         {feedback}
       </span>
       <div

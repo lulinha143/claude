@@ -98,6 +98,7 @@ export function performPrestige(
     if (
       id.startsWith('favorite.') ||
       id.startsWith('discovery.') ||
+      id.startsWith('annex.') ||
       id.startsWith('microgame.') ||
       Object.keys(state.employees).some((employeeId) => id.startsWith(`${employeeId}.`))
     ) {

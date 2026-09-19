@@ -9634,9 +9634,7 @@ button:disabled,
   box-shadow:
     0 6px 0 rgba(30, 17, 8, 0.32),
     inset 3px 2px 0 rgba(255, 255, 255, 0.34);
-  transition:
-    left 90ms linear,
-    transform var(--dur-fast) var(--ease-settle);
+  transition: transform var(--dur-fast) var(--ease-settle);
 }
 .coffee__mug::before {
   content: '';

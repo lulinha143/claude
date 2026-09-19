@@ -17,7 +17,7 @@ import { decorationBand, decorationDefaultDepth } from '../sim/depth';
 
 /**
  * Depth range a region hands to its props, taken from the shared scene bands so
- * every decoration stays behind every character (see `sim/depth.ts`).
+ * all objects follow the same surface-specific painter order (see `sim/depth.ts`).
  */
 function regionDepth(kind: PlacementRegionKind): PlacementRegion['depth'] {
   const band = decorationBand(kind);
@@ -28,6 +28,9 @@ export type RoomBuiltInKind =
   'shelf' | 'counter' | 'cabinet' | 'lab' | 'board' | 'toolwall' | 'pipes' | 'plant';
 
 export const ROOM_BUILTIN: Record<string, RoomBuiltInKind> = {
+  broadcast: 'board',
+  repair: 'toolwall',
+  conservatory: 'plant',
   'founder-desk': 'shelf',
   sorting: 'cabinet',
   morale: 'counter',

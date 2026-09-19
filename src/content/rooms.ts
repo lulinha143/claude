@@ -134,6 +134,27 @@ export const ROOMS: RoomDef[] = [
     floor: 4,
     unlock: { reputation: 300 },
   },
+  {
+    id: 'broadcast',
+    nameKey: 'room.broadcast.name',
+    descriptionKey: 'room.broadcast.desc',
+    floor: 2,
+    unlock: { reputation: 22 },
+  },
+  {
+    id: 'repair',
+    nameKey: 'room.repair.name',
+    descriptionKey: 'room.repair.desc',
+    floor: 3,
+    unlock: { reputation: 65 },
+  },
+  {
+    id: 'conservatory',
+    nameKey: 'room.conservatory.name',
+    descriptionKey: 'room.conservatory.desc',
+    floor: 5,
+    unlock: { reputation: 145 },
+  },
 ];
 
 export const ROOMS_BY_ID: Record<string, RoomDef> = Object.fromEntries(ROOMS.map((r) => [r.id, r]));

@@ -26,7 +26,7 @@ export function CompanyView() {
       <h2>{t('company.title')}</h2>
       <EnsembleNotes activeOnly />
 
-      <div className="panel">
+      <div className="panel company-charter">
         <div className="company-identity">
           <button
             type="button"
@@ -55,7 +55,7 @@ export function CompanyView() {
 
       <ProductionBreakdown />
 
-      <div className="panel">
+      <div className="panel company-standing">
         <div className="meter">
           <span>{t('resource.morale')}</span>
           <div className="bar">
@@ -73,7 +73,7 @@ export function CompanyView() {
         <ReputationLadder />
       </div>
 
-      <div className="panel">
+      <div className="panel company-network">
         <h3 className="panel__title">
           <span className="panel__marker" aria-hidden />
           {t('synergy.title')}
@@ -82,7 +82,7 @@ export function CompanyView() {
         <DepartmentNetwork />
       </div>
 
-      <div className="panel">
+      <div className="panel company-assignments">
         <h3>{t('daily.title')}</h3>
         <ul className="daily-list">
           {state.daily.challenges.map((ch) => {
@@ -121,7 +121,7 @@ export function CompanyView() {
         <p className="muted small">{t('daily.resetsIn')}</p>
       </div>
 
-      <div className="panel">
+      <div className="panel company-timeline">
         <h3>{t('company.timeline')}</h3>
         {state.eventHistory.length === 0 ? (
           <p className="muted small">{t('company.timelineEmpty')}</p>

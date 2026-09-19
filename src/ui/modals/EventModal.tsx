@@ -95,7 +95,7 @@ export function EventModal() {
   return (
     <PopupShell
       variant={variant}
-      className={`event-modal event-modal--${def.rarity}`}
+      className={`event-modal event-modal--${def.rarity} event-file--${def.id}`}
       titleId={titleId}
       closing={closing}
     >

@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react';
 import '../employeeKeepsakes.css';
 import { useTranslation } from 'react-i18next';
 import { KeepsakeArt } from '../../art/KeepsakeArt';
+import { TALKS_BY_ID } from '../../content/employeeTalks';
+import { GIFT_PREFERENCES } from '../../content/employeeGifts';
 
 import { Critter } from '../../art/Critter';
 import { shapeFor } from '../../art/critterShapes';
@@ -13,7 +15,12 @@ import { affinityPercent, roomAffinity } from '../../sim/affinity';
 import { MOOD_POSITIVE, MOOD_TONE, employeeMood, moodProductivityMultiplier } from '../../sim/mood';
 import { ROOMS_BY_ID } from '../../content/rooms';
 import { resolveEmployeeRoom } from '../../sim/rooms';
-import { eligibleTopics, evaluateTalkNode, type TalkRequirementFailure } from '../../sim/talks';
+import {
+  eligibleTopics,
+  evaluateTalkNode,
+  talkCooldownRemaining,
+  type TalkRequirementFailure,
+} from '../../sim/talks';
 import { cancelTransientInteractions } from '../interactionLifecycle';
 import { useGame } from '../../state/hooks';
 import { useStore } from '../../state/store';
@@ -49,6 +56,12 @@ export function EmployeeTalk() {
   const closeRef = useRef<HTMLButtonElement | null>(null);
   const sheetRef = useRef<HTMLDivElement | null>(null);
   const employeeId = active?.employeeId;
+  useEffect(() => {
+    if (!employeeId) return;
+    audio.play(GIFT_PREFERENCES[employeeId] === 'coffee' ? 'coffee' : 'paper', {
+      pitch: GIFT_PREFERENCES[employeeId] === 'golden' ? 1.12 : 0.92,
+    });
+  }, [audio, employeeId]);
 
   // Escape always leaves. A conversation is never modal in the trapping sense —
   // whatever has been agreed is already applied and saved.
@@ -61,28 +74,6 @@ export function EmployeeTalk() {
       if (e.key === 'Escape') {
         e.preventDefault();
         engine.closeTalk();
-      }
-      if (e.key !== 'Tab') return;
-      const sheet = sheetRef.current;
-      const controls = [
-        ...(sheet?.querySelectorAll<HTMLElement>(
-          'button:not([disabled]), summary, [href], [tabindex="0"]',
-        ) ?? []),
-      ].filter((element) => element.getClientRects().length > 0);
-      const first = controls[0];
-      const last = controls[controls.length - 1];
-      if (
-        e.shiftKey &&
-        (document.activeElement === first || !sheet?.contains(document.activeElement))
-      ) {
-        e.preventDefault();
-        last?.focus();
-      } else if (
-        !e.shiftKey &&
-        (document.activeElement === last || !sheet?.contains(document.activeElement))
-      ) {
-        e.preventDefault();
-        first?.focus();
       }
     };
     window.addEventListener('keydown', onKey);
@@ -117,6 +108,8 @@ export function EmployeeTalk() {
   const affinity = roomAffinity(def.id, roomId);
   const node = active.nodeId ? active.topic.nodes[active.nodeId] : null;
   const finished = !node;
+  const cooldown = talkCooldownRemaining(state, def.id, Date.now());
+  const canChangeTopic = cooldown === 0 && (active.exchanges === 0 || finished);
   const evaluated = node ? evaluateTalkNode(state, def.id, node.choices, Date.now()) : [];
   const otherTopics =
     active.exchanges === 0
@@ -151,15 +144,13 @@ export function EmployeeTalk() {
 
   return (
     <div
-      className="talk"
-      role="dialog"
-      aria-modal="true"
+      className="talk talk--destination"
+      role="region"
       aria-labelledby="talk-name"
       data-employee={def.id}
       data-topic={active.topic.id}
       data-node={active.nodeId || 'end'}
     >
-      <div className="talk__scrim" onClick={() => engine.closeTalk()} aria-hidden="true" />
       <div className="talk__sheet" ref={sheetRef}>
         {/* An internal-memo header, so the mode belongs to the same company as
             everything else rather than looking like a visual-novel overlay. */}
@@ -221,6 +212,14 @@ export function EmployeeTalk() {
               <strong>{t(def.favoriteItemKey)}</strong>
               {knowsFavorite ? <small>{t('talk.discovered')}</small> : null}
             </div>
+            <div className="talk__gift-preference">
+              <strong>{t('gifts.preference')}</strong>
+              <span>
+                {state.flags[`favorite.${def.id}.giftKnown`] !== undefined
+                  ? t(`gifts.preferenceNames.${GIFT_PREFERENCES[def.id]}`)
+                  : t('gifts.unknown')}
+              </span>
+            </div>
 
             <dl className="talk__vitals">
               <div className="talk__vital">
@@ -254,10 +253,48 @@ export function EmployeeTalk() {
                 </dd>
               </div>
             </dl>
+            <details className="talk__memories" open>
+              <summary>{t('talk.memoryFile')}</summary>
+              {Object.keys(rt.talks?.seen ?? {}).length ? (
+                <ol>
+                  {Object.entries(rt.talks?.seen ?? {})
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([id, at]) => (
+                      <li key={id}>
+                        <span>{t(TALKS_BY_ID[id]?.titleKey ?? 'talk.memoryEntry')}</span>
+                        <time dateTime={new Date(at).toISOString()}>{fmt.date(at)}</time>
+                      </li>
+                    ))}
+                </ol>
+              ) : (
+                <p>{t('talk.noMemoriesYet')}</p>
+              )}
+            </details>
           </div>
 
           {/* --- the conversation ------------------------------------------ */}
           <div className="talk__convo">
+            <nav className="talk__visit-actions" aria-label={t('gifts.visitActions')}>
+              <button
+                className="ghost-btn"
+                disabled={!canChangeTopic}
+                onClick={() => engine.openTalk(def.id, 'check-in')}
+              >
+                {t('gifts.conversation')}
+              </button>
+              <button
+                className="ghost-btn"
+                disabled={!canChangeTopic}
+                onClick={() => {
+                  if (engine.openTalk(def.id, 'gift')) audio.play('paper');
+                }}
+              >
+                {t('gifts.bring')}
+              </button>
+              {cooldown > 0 ? (
+                <span role="status">{t('gifts.break', { seconds: cooldown })}</span>
+              ) : null}
+            </nav>
             <div className="talk__topic">
               <h3>{t(active.topic.titleKey)}</h3>
               <p>{t(active.topic.blurbKey)}</p>
@@ -311,8 +348,16 @@ export function EmployeeTalk() {
                     aria-disabled={!enabled}
                     onClick={() => {
                       if (!enabled) return;
-                      audio.play(enabled ? 'click' : 'error');
-                      engine.chooseTalkOption(choice.id, active.instanceId);
+                      if (engine.chooseTalkOption(choice.id, active.instanceId)) {
+                        audio.play(
+                          active.topic.id === 'gift'
+                            ? choice.id === 'coffee'
+                              ? 'coffee'
+                              : 'reward'
+                            : 'paper',
+                          { pitch: GIFT_PREFERENCES[def.id] === 'golden' ? 1.12 : 0.92 },
+                        );
+                      }
                     }}
                   >
                     <span className="talk-choice__label">{t(choice.labelKey)}</span>
@@ -326,7 +371,13 @@ export function EmployeeTalk() {
               </div>
             ) : (
               <div className="talk__end">
-                <p className="talk__end-note">{t('talk.ended')}</p>
+                <p className="talk__end-note">
+                  {t(active.profileOnly ? 'gifts.quietVisit' : 'talk.ended')}
+                </p>
+                {active.topic.id === 'gift' &&
+                state.flags[`favorite.${def.id}.giftMemory`] !== undefined ? (
+                  <p className="talk__gift-filed">{t('gifts.memoryFiled')}</p>
+                ) : null}
                 <button className="buy-btn talk__done" onClick={() => engine.closeTalk()}>
                   {t('talk.backToWork')}
                 </button>

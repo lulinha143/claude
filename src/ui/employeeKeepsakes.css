@@ -1,4 +1,8 @@
 .talk__keepsake {
+  width: min(100%, 290px);
+  display: grid;
+  grid-template-columns: 68px minmax(0, 1fr);
+  column-gap: 10px;
   min-height: 76px;
   margin: 12px 0;
   padding: 10px 0;
@@ -6,13 +10,15 @@
   text-align: left;
 }
 .talk__keepsake .keepsake-art {
-  float: left;
-  margin-right: 8px;
+  grid-row: 1 / 4;
+  width: 68px;
+  align-self: center;
 }
 .talk__keepsake > span,
 .talk__keepsake > strong,
 .talk__keepsake > small {
   display: block;
+  grid-column: 2;
 }
 .talk__keepsake > span {
   font-size: 0.75rem;

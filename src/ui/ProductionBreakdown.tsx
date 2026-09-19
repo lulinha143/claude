@@ -20,10 +20,13 @@ export function ProductionBreakdown() {
   const mult = (m: number) => `×${m.toFixed(2)}`;
 
   return (
-    <div className="panel">
-      <h3>
-        <Icon name="production" size={15} /> {t('prod.title')}
-      </h3>
+    <details className="panel production-ledger">
+      <summary>
+        <span>
+          <Icon name="production" size={15} /> {t('prod.title')}
+        </span>
+        <strong className="tabular">{fmt.num(b.total * boost)}/s</strong>
+      </summary>
       <ul className="prod-list">
         <li>
           <span>{t('prod.base')}</span>
@@ -94,6 +97,6 @@ export function ProductionBreakdown() {
           <span className="tabular">{fmt.num(b.total * boost)}/s</span>
         </li>
       </ul>
-    </div>
+    </details>
   );
 }

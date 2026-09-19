@@ -6,7 +6,7 @@ import { Icon, type IconName } from '../art/UiIcon';
 export const NOTIFICATION_PUSH_EVENT = 'wmno:notification';
 export const NOTIFICATION_CLEAR_EVENT = 'wmno:notifications-clear';
 
-const BLOCKING_OVERLAYS = '.popup-backdrop, .modal-backdrop, .photo-mode';
+const BLOCKING_OVERLAYS = '.popup-backdrop, .modal-backdrop, .photo-mode, .talk--destination';
 
 function visibleLimit(): number {
   if (window.innerWidth <= 480) return 1;

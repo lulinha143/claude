@@ -10,6 +10,8 @@ import { availableFacilityDiscoveries } from '../src/sim/facilityDiscoveries';
 import { MICRO_SOUVENIRS, type MicroMode } from '../src/sim/minigames';
 import { SaveManager } from '../src/save/saveManager';
 import { SAVE_VERSION } from '../src/sim/config';
+import { performPrestige } from '../src/sim/prestige';
+import { eligibleTopics } from '../src/sim/talks';
 
 function furnished(id: string) {
   const state = createInitialState(1000);
@@ -24,6 +26,43 @@ function furnished(id: string) {
 }
 
 describe('facility integration', () => {
+  for (const [room, employee, secret] of [
+    ['broadcast', 'echo', 'anomaly.silence'],
+    ['repair', 'bea', 'anomaly.deskNames'],
+    ['conservatory', 'axel', 'anomaly.thursday'],
+  ]) {
+    it(`${room} turns furnishing into a remembered incident and a later conversation`, () => {
+      const engine = furnished(`${room}-set`);
+      engine.state.employees[employee].hired = true;
+      expect(engine.inspectFacility(room)).toBe(true);
+      engine.resolveEventChoice('care');
+      expect(engine.state.collections.secrets).toContain(secret);
+      expect(
+        engine.state.collections.moments.some((moment) => moment.eventId === `annex-${room}`),
+      ).toBe(true);
+      expect(engine.inspectFacility(room)).toBe(false);
+      // The return topic is earned only when the delayed effect has landed.
+      expect(
+        eligibleTopics(engine.state, employee, 1000).some(
+          (topic) => topic.id === `annex-${room}-return`,
+        ),
+      ).toBe(false);
+      engine.state.flags[`annex.${room}.returned`] = 121000;
+      expect(
+        eligibleTopics(engine.state, employee, 121000).some(
+          (topic) => topic.id === `annex-${room}-return`,
+        ),
+      ).toBe(true);
+      expect(engine.openTalk(employee, `annex-${room}-return`)).toBe(true);
+      expect(engine.chooseTalkOption('remember')).toBe(true);
+      expect(engine.state.flags[`annex.${room}.kept`]).toBeDefined();
+      engine.state.stats.totalNutsEarned = 1e9;
+      const fresh = performPrestige(engine.state, 'industrial', 122000);
+      expect(fresh.flags[`annex.${room}.returned`]).toBe(121000);
+      expect(fresh.flags[`annex.${room}.kept`]).toBeDefined();
+      expect(fresh.collections.secrets).toContain(secret);
+    });
+  }
   for (const set of DECORATION_ENSEMBLES)
     it(`${set.id} requires all real pieces placed in its room`, () => {
       for (const id of set.items) expect(DECORATIONS_BY_ID[id]).toBeDefined();

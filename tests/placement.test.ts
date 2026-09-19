@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { SCENE_DEPTH } from '../src/sim/depth';
 import { GameEngine } from '../src/sim/engine';
 import { createInitialState } from '../src/sim/state';
 import {
@@ -126,7 +127,7 @@ describe('semantic floor and rug placement previews', () => {
     });
     expect(preview).not.toBeNull();
     expect(preview!.ok).toBe(true);
-    expect(preview!.depth).toBe(0);
+    expect(preview!.depth).toBe(SCENE_DEPTH.rug.min);
     expect(decorationFootprintFitsRegion('tiny-rug', floor, preview!.point)).toBe(true);
   });
 

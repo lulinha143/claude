@@ -11,6 +11,24 @@ export interface DecorationEnsemble {
 // complete arrangement, never a reward for repeatedly buying or moving a piece.
 export const DECORATION_ENSEMBLES: readonly DecorationEnsemble[] = [
   {
+    id: 'broadcast-set',
+    roomId: 'broadcast',
+    items: ['ribbon-microphone', 'reel-recorder', 'on-air-sign'],
+    effect: { kind: 'comboWindow', value: 0.12 },
+  },
+  {
+    id: 'repair-set',
+    roomId: 'repair',
+    items: ['parts-trolley', 'repair-vise', 'borrow-board'],
+    effect: { kind: 'production', value: 0.04 },
+  },
+  {
+    id: 'conservatory-set',
+    roomId: 'conservatory',
+    items: ['rain-collector', 'folding-bench', 'growth-chart'],
+    effect: { kind: 'moraleTarget', value: 3 },
+  },
+  {
     id: 'quiet-corner',
     roomId: 'founder-desk',
     items: ['potted-fern', 'desk-lamp', 'tiny-rug'],

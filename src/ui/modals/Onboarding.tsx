@@ -4,6 +4,7 @@ import { useStore } from '../../state/store';
 import { Acorn, Crate } from '../../art/Icons';
 import { Critter } from '../../art/Critter';
 import { shapeFor } from '../../art/critterShapes';
+import { DecoArt } from '../../art/decoArt';
 import { PopupShell, usePopupExit } from './PopupShell';
 
 const CHAPTERS = [
@@ -138,20 +139,10 @@ function TutorialArt({ chapter, reducedMotion }: { chapter: ChapterId; reducedMo
       ) : null}
 
       {chapter === 'growth' ? (
-        <div className="onboarding-art__report">
-          <span className="onboarding-art__report-title" />
-          <span className="onboarding-art__bar onboarding-art__bar--one" />
-          <span className="onboarding-art__bar onboarding-art__bar--two" />
-          <span className="onboarding-art__bar onboarding-art__bar--three" />
-          {/* Drawn arrow, not U+2197: the bundled fonts are Latin subsets and the
-              character rendered as a tofu box in the very first thing a new player
-              sees. */}
-          <span className="onboarding-art__trend" aria-hidden="true">
-            <i />
-          </span>
-          <span className="onboarding-art__report-nut">
-            <Acorn size={32} />
-          </span>
+        <div className="onboarding-art__furnish">
+          <DecoArt id="potted-fern" on accent="#778866" reducedMotion={reducedMotion} scale={1.8} />
+          <DecoArt id="desk-lamp" on accent="#b29561" reducedMotion={reducedMotion} scale={1.8} />
+          <DecoArt id="tiny-rug" on accent="#92795a" reducedMotion={reducedMotion} scale={1.8} />
         </div>
       ) : null}
 

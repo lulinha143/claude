@@ -51,6 +51,8 @@ export function DecorateView() {
   const fmt = useFmt();
   const buy = useStore((s) => s.buyDecoration);
   const audio = useStore((s) => s.audio);
+  const arrangeDecoration = useStore((s) => s.arrangeDecoration);
+  const [availability, setAvailability] = useState<'available' | 'owned' | 'locked'>('available');
 
   const [room, setRoom] = useState<RoomFilter>('all');
   const [type, setType] = useState<TypeFilter>('all');
@@ -72,7 +74,13 @@ export function DecorateView() {
   );
   const roomIds = useMemo(() => new Set(rooms.map((r) => r.id)), [rooms]);
 
-  const available = useMemo(() => DECORATIONS.filter((d) => roomIds.has(d.room)), [roomIds]);
+  const available = DECORATIONS.filter((d) =>
+    availability === 'owned'
+      ? isDecorationOwned(state, d.id)
+      : availability === 'locked'
+        ? !roomIds.has(d.room) && !isDecorationOwned(state, d.id)
+        : roomIds.has(d.room),
+  );
 
   // The decoration kinds present among available items (for the type filter).
   const kinds = useMemo(() => {
@@ -119,6 +127,7 @@ export function DecorateView() {
           setType('all');
           setResource('all');
           setQuery('');
+          setAvailability('available');
           setEnsembleId(id);
           audio.play('paper');
         }}
@@ -216,6 +225,21 @@ export function DecorateView() {
       ) : null}
 
       {/* filters */}
+      <div className="catalogue-sections" aria-label={t('decorate.catalogueSections')}>
+        {(['available', 'owned', 'locked'] as const).map((value) => (
+          <button
+            key={value}
+            aria-pressed={availability === value}
+            onClick={() => {
+              setAvailability(value);
+              setRoom('all');
+              setEnsembleId(null);
+            }}
+          >
+            {t(`decorate.section.${value}`)}
+          </button>
+        ))}
+      </div>
       <div className="decorate__filters">
         <label className="decorate__search">
           <Icon name="shop" size={14} />
@@ -299,6 +323,9 @@ export function DecorateView() {
                 </div>
                 <div className="decocard__body">
                   <div className="decocard__title">{t(`deco.${d.id}.name`)}</div>
+                  {t(`deco.${d.id}.desc`, { defaultValue: '' }) ? (
+                    <p className="decocard__description">{t(`deco.${d.id}.desc`)}</p>
+                  ) : null}
                   <div className="decocard__meta">
                     <span className="pill">
                       {currentRoom
@@ -315,10 +342,18 @@ export function DecorateView() {
                   </div>
                 </div>
                 <div className="decocard__actions">
+                  {owned ? (
+                    <button
+                      className="mini-btn mini-btn--primary"
+                      onClick={() => arrangeDecoration(d.id)}
+                    >
+                      {t('decorate.arrangeHere')}
+                    </button>
+                  ) : null}
                   {!owned ? (
                     <button
                       className="buy-btn"
-                      disabled={!afford}
+                      disabled={!afford || !roomIds.has(d.room)}
                       onClick={(e) => {
                         if (buy(d.id)) {
                           audio.play('upgrade');
@@ -332,6 +367,7 @@ export function DecorateView() {
                         <Acorn size={15} />
                       )}
                       <span>{fmt.num(d.cost.amount)}</span>
+                      {!roomIds.has(d.room) ? <span>{t('common.locked')}</span> : null}
                     </button>
                   ) : placed ? (
                     <>

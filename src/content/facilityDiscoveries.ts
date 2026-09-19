@@ -1,6 +1,14 @@
 import type { GameEventDef } from './types';
 
 export const FACILITY_DISCOVERIES = [
+  { id: 'broadcast', roomId: 'broadcast', ensembleId: 'broadcast-set', eventId: 'annex-broadcast' },
+  { id: 'repair', roomId: 'repair', ensembleId: 'repair-set', eventId: 'annex-repair' },
+  {
+    id: 'conservatory',
+    roomId: 'conservatory',
+    ensembleId: 'conservatory-set',
+    eventId: 'annex-conservatory',
+  },
   { id: 'archive', roomId: 'archive', ensembleId: 'paper-trail', eventId: 'file-dated-tomorrow' },
   { id: 'security', roomId: 'security', ensembleId: 'night-watch', eventId: 'camera-thirteen' },
   {
@@ -14,6 +22,129 @@ export const FACILITY_DISCOVERIES = [
 // These are discoveries the player opens from the room, not interruptions that
 // compete with ordinary office events. Resolving one leaves an archival memory.
 export const FACILITY_EVENTS: GameEventDef[] = [
+  {
+    id: 'annex-broadcast',
+    titleKey: 'annex.broadcast.title',
+    bodyKey: 'annex.broadcast.body',
+    rarity: 'rare',
+    weight: 0,
+    cooldownSeconds: 86400,
+    momentWorthy: true,
+    requires: { room: 'broadcast' },
+    choices: [
+      {
+        id: 'care',
+        labelKey: 'annex.broadcast.a',
+        effects: [
+          { type: 'morale', value: 6 },
+          { type: 'setFlag', flagId: 'discovery.broadcast' },
+          { type: 'unlockSecret', secretId: 'anomaly.silence' },
+          {
+            type: 'schedule',
+            delaySeconds: 120,
+            scheduleTitleKey: 'annex.broadcast.title',
+            scheduleBodyKey: 'annex.broadcast.reply',
+            scheduled: [
+              { type: 'morale', value: 2 },
+              { type: 'setFlag', flagId: 'annex.broadcast.returned' },
+            ],
+          },
+        ],
+        reactions: ['annex.broadcast.reply'],
+      },
+      {
+        id: 'procedure',
+        labelKey: 'annex.broadcast.b',
+        effects: [
+          { type: 'nuts', value: 250 },
+          { type: 'setFlag', flagId: 'discovery.broadcast' },
+        ],
+        reactions: ['annex.broadcast.other'],
+      },
+    ],
+  },
+  {
+    id: 'annex-repair',
+    titleKey: 'annex.repair.title',
+    bodyKey: 'annex.repair.body',
+    rarity: 'rare',
+    weight: 0,
+    cooldownSeconds: 86400,
+    momentWorthy: true,
+    requires: { room: 'repair' },
+    choices: [
+      {
+        id: 'care',
+        labelKey: 'annex.repair.a',
+        effects: [
+          { type: 'reputation', value: 7 },
+          { type: 'setFlag', flagId: 'discovery.repair' },
+          { type: 'unlockSecret', secretId: 'anomaly.deskNames' },
+          {
+            type: 'schedule',
+            delaySeconds: 120,
+            scheduleTitleKey: 'annex.repair.title',
+            scheduleBodyKey: 'annex.repair.reply',
+            scheduled: [
+              { type: 'morale', value: 2 },
+              { type: 'setFlag', flagId: 'annex.repair.returned' },
+            ],
+          },
+        ],
+        reactions: ['annex.repair.reply'],
+      },
+      {
+        id: 'procedure',
+        labelKey: 'annex.repair.b',
+        effects: [
+          { type: 'nuts', value: 250 },
+          { type: 'setFlag', flagId: 'discovery.repair' },
+        ],
+        reactions: ['annex.repair.other'],
+      },
+    ],
+  },
+  {
+    id: 'annex-conservatory',
+    titleKey: 'annex.conservatory.title',
+    bodyKey: 'annex.conservatory.body',
+    rarity: 'rare',
+    weight: 0,
+    cooldownSeconds: 86400,
+    momentWorthy: true,
+    requires: { room: 'conservatory' },
+    choices: [
+      {
+        id: 'care',
+        labelKey: 'annex.conservatory.a',
+        effects: [
+          { type: 'morale', value: 8 },
+          { type: 'setFlag', flagId: 'discovery.conservatory' },
+          { type: 'unlockSecret', secretId: 'anomaly.thursday' },
+          {
+            type: 'schedule',
+            delaySeconds: 120,
+            scheduleTitleKey: 'annex.conservatory.title',
+            scheduleBodyKey: 'annex.conservatory.reply',
+            scheduled: [
+              { type: 'morale', value: 2 },
+              { type: 'setFlag', flagId: 'annex.conservatory.returned' },
+            ],
+          },
+        ],
+        reactions: ['annex.conservatory.reply'],
+      },
+      {
+        id: 'procedure',
+        labelKey: 'annex.conservatory.b',
+        effects: [
+          { type: 'nuts', value: 250 },
+          { type: 'setFlag', flagId: 'discovery.conservatory' },
+        ],
+        reactions: ['annex.conservatory.other'],
+      },
+    ],
+  },
   {
     id: 'file-dated-tomorrow',
     titleKey: 'discovery.archive.title',

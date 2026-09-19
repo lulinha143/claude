@@ -92,6 +92,56 @@ function legs(x: number, w: number, y: number): Rect[] {
 }
 
 const SPRITES: Record<ClickStationKind, StationSprite> = {
+  'mixing-desk': {
+    base: [
+      [2, 14, 20, 9, C.w],
+      [4, 23, 2, 4, C.k],
+      [18, 23, 2, 4, C.k],
+      [3, 13, 18, 6, C.ms],
+      [4, 14, 4, 3, C.paper],
+      [10, 14, 1, 4, C.ml],
+      [13, 14, 1, 4, C.ml],
+      [16, 14, 1, 4, C.ml],
+      [19, 14, 1, 4, C.ml],
+      [4, 5, 2, 8, C.k],
+      [3, 3, 4, 5, C.m],
+    ],
+    accent: [
+      [10, 15, 2, 1, C.gl],
+      [16, 16, 2, 1, C.gold],
+    ],
+  },
+  'test-bench': {
+    base: [
+      [2, 16, 20, 4, C.wl],
+      [3, 20, 3, 7, C.ms],
+      [18, 20, 3, 7, C.ms],
+      [4, 6, 10, 10, C.ms],
+      [5, 7, 8, 7, C.scrd],
+      [16, 10, 5, 6, C.m],
+      [17, 8, 3, 3, C.ml],
+    ],
+    accent: [
+      [6, 11, 2, 1, C.gl],
+      [8, 9, 1, 3, C.gl],
+      [9, 9, 3, 1, C.gl],
+    ],
+  },
+  'rain-gauge': {
+    base: [
+      [10, 7, 4, 18, C.ml],
+      [5, 25, 14, 2, C.ms],
+      [5, 5, 14, 3, C.m],
+      [7, 8, 10, 2, C.m],
+      [11, 14, 2, 9, C.scr],
+      [15, 13, 5, 7, C.w],
+      [16, 14, 3, 3, C.paper],
+    ],
+    accent: [
+      [10, 2, 1, 2, C.scrl],
+      [15, 1, 1, 2, C.scrl],
+    ],
+  },
   // A nut crate, lid slightly ajar, acorns showing.
   crate: {
     base: [

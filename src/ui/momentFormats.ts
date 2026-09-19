@@ -104,6 +104,9 @@ export function momentFormat(
 ): MomentFormatSpec {
   if (card.rarity === 'legendary') return SPECS.confidential;
   if (card.eventId === 'file-dated-tomorrow') return SPECS.confidential;
+  if (card.eventId === 'annex-broadcast') return SPECS.notice;
+  if (card.eventId === 'annex-repair') return SPECS.incident;
+  if (card.eventId === 'annex-conservatory') return SPECS.observation;
   if (card.eventId === 'camera-thirteen') return SPECS.observation;
   if (card.eventId.startsWith('microgame:') || card.eventId === 'the-plant-clocked-in')
     return SPECS.notice;

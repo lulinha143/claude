@@ -12,6 +12,7 @@ import {
 import { canPrestige } from './prestige';
 import { isRoomIdUnlocked } from './rooms';
 import { isDecorationOwned } from './decorations';
+import { availableFacilityDiscoveries } from './facilityDiscoveries';
 
 export interface NextStep {
   key: string; // localization key under `nextStep.`
@@ -54,6 +55,7 @@ export function computeNextStep(state: GameState): NextStep | null {
 
   // A new company cycle is a meaningful decision, not another upgrade in the queue.
   if (canPrestige(state)) return { key: 'prestige', view: 'prestige' };
+  if (availableFacilityDiscoveries(state).length) return { key: 'investigate', view: 'office' };
 
   // 2. an unlocked employee you can afford to hire
   for (const def of EMPLOYEES) {

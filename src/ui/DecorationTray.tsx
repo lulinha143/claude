@@ -132,6 +132,8 @@ export function DecorationTray({
                 }`}
                 data-decoration={d.id}
                 data-placement={placed ? 'placed' : 'stored'}
+                onPointerDown={(e) => onBeginDrag(e, d.id)}
+                onClick={() => onSelect(d.id)}
               >
                 <DecorationProp
                   id={d.id}
@@ -139,8 +141,6 @@ export function DecorationTray({
                   mode="toggle"
                   selected={selected === d.id}
                   title={t(`deco.${d.id}.name`)}
-                  onToggle={() => onSelect(d.id)}
-                  onPointerDown={(e) => onBeginDrag(e, d.id)}
                 />
                 <span className="deco-tray__card-name">{t(`deco.${d.id}.name`)}</span>
                 <span className="deco-tray__card-room">

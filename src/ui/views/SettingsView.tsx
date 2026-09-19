@@ -212,8 +212,22 @@ export function SettingsView() {
   return (
     <section className="view view--settings">
       <h2>{t('settings.title')}</h2>
+      <nav className="settings-directory" aria-label={t('settings.directory')}>
+        {['language', 'audio', 'gameplay', 'accessibility', 'bg.title', 'data'].map((key) => (
+          <button
+            key={key}
+            onClick={() =>
+              document
+                .getElementById('settings-' + key.replace('.', '-'))
+                ?.scrollIntoView({ block: 'start' })
+            }
+          >
+            {t('settings.' + key)}
+          </button>
+        ))}
+      </nav>
 
-      <div className="panel">
+      <div className="panel" id="settings-language">
         <h3>{t('settings.language')}</h3>
         <select
           value={i18n.language}
@@ -228,7 +242,7 @@ export function SettingsView() {
         </select>
       </div>
 
-      <div className="panel">
+      <div className="panel" id="settings-audio">
         <h3>{t('settings.audio')}</h3>
         <p className="muted small">{t('settings.audioNote')}</p>
         <Toggle
@@ -280,7 +294,7 @@ export function SettingsView() {
         </button>
       </div>
 
-      <div className="panel">
+      <div className="panel" id="settings-gameplay">
         <h3>{t('settings.gameplay')}</h3>
         <Toggle
           label={t('settings.autoResolveEvents')}
@@ -296,7 +310,7 @@ export function SettingsView() {
         </p>
       </div>
 
-      <div className="panel">
+      <div className="panel" id="settings-accessibility">
         <h3>{t('settings.accessibility')}</h3>
         <Toggle
           label={t('settings.reducedMotion')}
@@ -384,7 +398,7 @@ export function SettingsView() {
         </label>
       </div>
 
-      <div className="panel">
+      <div className="panel" id="settings-bg-title">
         <h3>{t('settings.bg.title')}</h3>
         <p className="muted small">{t('settings.bg.note')}</p>
         <Toggle

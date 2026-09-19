@@ -87,6 +87,7 @@ test('a dormant effect explains exactly what is missing', async ({ page }) => {
 
 test('the production breakdown attributes output to the room network', async ({ page }) => {
   await openCompany(page);
+  await page.locator('.production-ledger summary').click();
   const prod = page.locator('.prod-list');
   await expect(prod).toBeVisible();
   await expect(prod).toContainText('From your departments');

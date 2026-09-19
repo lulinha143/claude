@@ -39,6 +39,7 @@ export function BugSquash({
   const [streak, setStreak] = useState(0);
   const [hit, setHit] = useState<{ hole: number; species: BugSpecies } | null>(null);
   const [wrong, setWrong] = useState<number | null>(null);
+  const [lostPoints, setLostPoints] = useState(0);
   const [feedback, setFeedback] = useState('');
   const activeRef = useRef<{
     hole: number;
@@ -158,6 +159,7 @@ export function BugSquash({
       onCombo(1);
       audio.play('error');
       setWrong(hole);
+      setLostPoints(penalty.lost);
       setFeedback(
         penalty.lost > 0
           ? t('microgame.bugSquash.penalty', { value: penalty.lost })
@@ -205,7 +207,7 @@ export function BugSquash({
 
   return (
     <div className={`bugsquash ${wrong != null ? 'is-wrong' : ''}`}>
-      <span className="sr-only" role="status" aria-live="polite">
+      <span className="micro-feedback" role="status" aria-live="polite">
         {feedback}
       </span>
       <div className="bugsquash__status">
@@ -270,7 +272,7 @@ export function BugSquash({
               ) : null}
               {wrong === index ? (
                 <span className="burrow__miss" aria-hidden="true">
-                  <b>-2</b>
+                  <b>{lostPoints > 0 ? `-${lostPoints}` : '×'}</b>
                 </span>
               ) : null}
             </button>

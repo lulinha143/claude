@@ -12,8 +12,15 @@ export function FocusView() {
   const { t } = useTranslation();
   const { engine, state } = useGame();
   const audio = useStore((s) => s.audio);
+  const activityRequest = useStore((s) => s.activityRequest);
+  const requestActivity = useStore((s) => s.requestActivity);
   const [custom, setCustom] = useState(30);
-  const [micro, setMicro] = useState<{ mode: MicroMode; seed: number } | null>(null);
+  const [micro, setMicro] = useState<{ mode: MicroMode; seed: number } | null>(() =>
+    activityRequest ? { mode: activityRequest, seed: Date.now() & 0xffff } : null,
+  );
+  useEffect(() => {
+    requestActivity(null);
+  }, [requestActivity]);
   const [, forceTick] = useState(0);
 
   // live countdown

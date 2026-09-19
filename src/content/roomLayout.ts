@@ -37,6 +37,9 @@ const PRESENCE = CHARACTER_PRESENCE_SCALE;
 type SlotStyle = 'founder' | 'pairs' | 'social' | 'row' | 'cluster';
 
 const ROOM_STYLE: Record<string, SlotStyle> = {
+  broadcast: 'row',
+  repair: 'pairs',
+  conservatory: 'cluster',
   'founder-desk': 'founder',
   sorting: 'pairs',
   lab: 'pairs',

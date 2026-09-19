@@ -1,5 +1,6 @@
-import { useMemo, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
+import { DiscoveryArt } from '../../art/DiscoveryArt';
 import { useGame } from '../../state/hooks';
 import { useStore } from '../../state/store';
 import { useFmt } from '../useFmt';
@@ -21,6 +22,19 @@ export function CollectionsView() {
   const setPhotoMode = useStore((s) => s.setPhotoMode);
   const [tab, setTab] = useState<Tab>('nuts');
   const [viewing, setViewing] = useState<MomentCard | null>(null);
+  const [query, setQuery] = useState('');
+  const matchingMoments = state.collections.moments.filter((card) => {
+    const employee = EMPLOYEES.find((person) => person.id === card.employeeId);
+    return [
+      t(historyLabelKeys(card.eventId).titleKey),
+      t(card.caption),
+      employee ? t(employee.nameKey) : '',
+      momentRef(card),
+    ]
+      .join(' ')
+      .toLocaleLowerCase()
+      .includes(query.trim().toLocaleLowerCase());
+  });
 
   const discoveredNuts = new Set(state.collections.nuts);
   const allOutfits = EMPLOYEES.flatMap((e) => e.outfits);
@@ -101,6 +115,15 @@ export function CollectionsView() {
         </>
       ) : null}
 
+      {tab === 'moments' && state.collections.moments.length > 0 ? (
+        <label className="archive-search field">
+          <span>{t('collections.searchArchive')}</span>
+          <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} />
+          <small role="status">
+            {t('collections.archiveMatches', { count: matchingMoments.length })}
+          </small>
+        </label>
+      ) : null}
       {tab === 'moments' ? (
         state.collections.moments.length === 0 ? (
           /* An empty collection should say what belongs in it. This was a dashed box
@@ -123,7 +146,7 @@ export function CollectionsView() {
           // card in the collection and the card in the downloaded PNG are the same
           // artefact.
           <ul className="moment-grid">
-            {state.collections.moments
+            {matchingMoments
               .slice()
               .reverse()
               .map((card) => {
@@ -161,6 +184,9 @@ export function CollectionsView() {
                       </span>
 
                       <span className="moment-doc__title">{t(labels.titleKey)}</span>
+                      {card.eventId.startsWith('annex-') ? (
+                        <DiscoveryArt eventId={card.eventId} />
+                      ) : null}
 
                       {/* Personnel notes are about somebody, so they say who. */}
                       {employee ? (
@@ -234,7 +260,16 @@ export function CollectionsView() {
             {state.collections.secrets
               .filter((secret) => !secret.startsWith('deco:'))
               .map((secret, index) => (
-                <li key={secret} className="secret-file">
+                <li key={secret} className="secret-file" data-artifact={secret}>
+                  <DiscoveryArt
+                    eventId={
+                      {
+                        'anomaly.silence': 'annex-broadcast',
+                        'anomaly.deskNames': 'annex-repair',
+                        'anomaly.thursday': 'annex-conservatory',
+                      }[secret] ?? ''
+                    }
+                  />
                   <small>
                     {t('secretFile.classification')} · {String(index + 1).padStart(3, '0')}
                   </small>
@@ -276,11 +311,50 @@ function MomentModal({
   saveLabel: string;
   closeLabel: string;
 }) {
+  const sheet = useRef<HTMLDivElement>(null);
+  const close = useRef(onClose);
+  close.current = onClose;
+  useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null;
+    const controls = () => [
+      ...(sheet.current?.querySelectorAll<HTMLButtonElement>('button') ?? []),
+    ];
+    controls()[0]?.focus();
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        close.current();
+      }
+      if (event.key !== 'Tab') return;
+      const buttons = controls();
+      const first = buttons[0];
+      const last = buttons[buttons.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last?.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first?.focus();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      previous?.focus();
+    };
+  }, []);
   // Render the card image once when the modal opens (robust to a null context).
   const png = useMemo(() => momentCardToPng(data), [data]);
   return (
-    <div className="modal-backdrop" role="dialog" aria-modal="true" onClick={onClose}>
+    <div
+      className="modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-label={data.title}
+      onClick={onClose}
+    >
       <div
+        ref={sheet}
         className={`moment-modal moment-modal--${data.card.rarity}`}
         onClick={(e) => e.stopPropagation()}
       >
@@ -292,6 +366,7 @@ function MomentModal({
             <p>{data.caption}</p>
           </div>
         )}
+        <p className="moment-modal__caption">{data.caption}</p>
         <div className="moment-modal__actions">
           <button className="buy-btn" onClick={onSave}>
             <Icon name="export" size={14} /> {saveLabel}

@@ -36,6 +36,18 @@ function deco(
 }
 
 export const DECORATIONS: DecorationDef[] = [
+  deco('ribbon-microphone', 'floor', 'broadcast', 2, 'nuts', 1800),
+  deco('reel-recorder', 'floor', 'broadcast', 2, 'nuts', 2400),
+  deco('on-air-sign', 'wall', 'broadcast', 2, 'nuts', 1100),
+  deco('acoustic-mobile', 'ceiling', 'broadcast', 2, 'nuts', 1300),
+  deco('parts-trolley', 'floor', 'repair', 2, 'nuts', 3400),
+  deco('repair-vise', 'floor', 'repair', 2, 'nuts', 2800),
+  deco('borrow-board', 'wall', 'repair', 2, 'nuts', 2100),
+  deco('inspection-lamp', 'ceiling', 'repair', 2, 'nuts', 2600),
+  deco('rain-collector', 'floor', 'conservatory', 2, 'nuts', 5200),
+  deco('folding-bench', 'floor', 'conservatory', 2, 'nuts', 4600),
+  deco('growth-chart', 'wall', 'conservatory', 2, 'nuts', 3000),
+  deco('glass-chimes', 'ceiling', 'conservatory', 2, 'nuts', 3800),
   // Founder's Desk
   deco('potted-fern', 'floor', 'founder-desk', 1, 'nuts', 100),
   deco('desk-lamp', 'floor', 'founder-desk', 1, 'nuts', 150),

@@ -57,6 +57,8 @@ export function MicroGame({ mode, seed, reducedMotion, onReward, onClose }: Micr
   const fmt = useFmt();
   const [reward, setReward] = useState<MicroReward | null>(null);
   const audio = useStore((state) => state.audio);
+  const arrangeDecoration = useStore((state) => state.arrangeDecoration);
+  const setView = useStore((state) => state.setView);
   const [phase, setPhase] = useState<Phase>('intro');
   const [round, setRound] = useState(0);
   const [countdown, setCountdown] = useState(3);
@@ -309,7 +311,7 @@ export function MicroGame({ mode, seed, reducedMotion, onReward, onClose }: Micr
               </button>
             </div>
           </div>
-          <p className="microgame__instructions">{t(`microgame.${mode}.desc`)}</p>
+          <p className="microgame__instructions">{t(`microgame.${mode}.brief`)}</p>
           <div className={`microgame__stage ${paused ? 'is-paused' : ''}`} aria-busy={paused}>
             <div
               ref={playfieldRef}
@@ -393,10 +395,21 @@ export function MicroGame({ mode, seed, reducedMotion, onReward, onClose }: Micr
           </div>
           <p className="microgame__reaction">{t(`microgame.${mode}.reaction`)}</p>
           <div className="button-row">
+            {reward?.decorationId ? (
+              <button className="buy-btn" onClick={() => arrangeDecoration(reward.decorationId!)}>
+                {t('microgame.placeSouvenir', { name: t(`deco.${reward.decorationId}.name`) })}
+              </button>
+            ) : null}
             <button className="buy-btn" onClick={replay}>
               {t('microgame.playAgain')}
             </button>
-            <button className="ghost-btn" onClick={onClose}>
+            <button
+              className="ghost-btn"
+              onClick={() => {
+                onClose();
+                setView('office');
+              }}
+            >
               {t('microgame.backToOffice')}
             </button>
           </div>

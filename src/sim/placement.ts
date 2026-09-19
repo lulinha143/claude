@@ -273,7 +273,7 @@ export function evaluateRegionPlacement(
     u: constrained.u,
     v: constrained.v,
     // Rugs lie flat under everything else; other props take perspective depth.
-    depth: isRug(id) ? 0 : depthAt(region, constrained.v),
+    depth: isRug(id) ? decorationDepth('rug') : depthAt(region, constrained.v),
     planeFootprint: decorationPlaneFootprint(id),
     ok: rawFits && collision.ok,
     reasonKey: rawFits ? collision.reasonKey : 'decorate.reject.moveInside',

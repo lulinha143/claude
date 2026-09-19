@@ -90,6 +90,10 @@ interface StoreState {
   recovered: boolean;
 
   setView: (v: ViewId) => void;
+  decorationRequest: string | null;
+  activityRequest: 'coffeeRescue' | 'bugSquash' | 'cableUntangle' | null;
+  requestActivity: (mode: 'coffeeRescue' | 'bugSquash' | 'cableUntangle' | null) => void;
+  arrangeDecoration: (id: string | null) => void;
   dismissOffline: () => void;
   setPhotoMode: (v: boolean) => void;
   setBatterySaver: (v: boolean) => void;
@@ -130,6 +134,16 @@ export const useStore = create<StoreState>((set) => {
     recovered: loaded.recoveredFromBackup,
 
     setView: (v) => set({ view: v }),
+    decorationRequest: null,
+    activityRequest: null,
+    requestActivity: (mode) => {
+      if (mode) engine.closeTalk();
+      set(mode ? { activityRequest: mode, view: 'focus' } : { activityRequest: null });
+    },
+    arrangeDecoration: (id) => {
+      if (id) engine.closeTalk();
+      set(id ? { decorationRequest: id, view: 'office' } : { decorationRequest: null });
+    },
     dismissOffline: () => set({ offlineResult: null }),
     setPhotoMode: (v) => set({ photoMode: v }),
     setBatterySaver: (v) => set({ batterySaver: v }),

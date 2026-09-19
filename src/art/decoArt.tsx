@@ -1,4 +1,5 @@
 import { Fragment, type CSSProperties } from 'react';
+import { AnnexDecorArt, ANNEX_DECOR_IDS } from './AnnexDecorArt';
 
 // ============================================================================
 //  Unified pixel-art decoration sprites
@@ -1118,6 +1119,7 @@ export function DecoArt({
   /** Horizontally flip the sprite (deterministic per item) for variety. */
   mirror?: boolean;
 }) {
+  if (ANNEX_DECOR_IDS.includes(id)) return <AnnexDecorArt id={id} scale={scale} />;
   const sp = spriteFor(id, on, variant, accent);
   const shadowR = sp.shadowR ?? 8;
   return (

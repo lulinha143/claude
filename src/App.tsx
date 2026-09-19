@@ -51,7 +51,7 @@ const VIEWS: Record<ViewId, () => JSX.Element> = {
 
 export function App() {
   const { i18n } = useTranslation();
-  const { state } = useGame();
+  const { state, engine } = useGame();
   const view = useStore((s) => s.view);
   const setView = useStore((s) => s.setView);
   const devEnabled = useStore((s) => s.devEnabled);
@@ -189,13 +189,12 @@ export function App() {
       <OfficeBackground visible={view === 'office'} />
       <Header />
       <NavBar />
-      <RecommendedStep />
+      {!engine.activeTalk ? <RecommendedStep /> : null}
       <main className="app__main">
         <div className="view-anim" key={view}>
-          <Current />
+          {engine.activeTalk ? <EmployeeTalk /> : <Current />}
         </div>
       </main>
-      <EmployeeTalk />
       <EventModal />
       <ConsequenceModal />
       <OfflineModal />

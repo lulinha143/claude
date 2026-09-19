@@ -224,15 +224,6 @@ function ghostAnchorClass(drag: DragState): string {
 }
 
 // i18n suffix naming the surface being targeted (Floor / Wall / Ceiling).
-const REGION_LABEL: Record<PlacementRegionKind, string> = {
-  floor: 'floor',
-  wall: 'wall',
-  ceiling: 'ceiling',
-};
-function ghostSurfaceLabel(drag: DragState): string {
-  if (drag.kind === 'decoration' && drag.preview) return REGION_LABEL[drag.preview.regionKind];
-  return decorationSurface(drag.id);
-}
 
 // Persistent per-employee state machines (kept across renders).
 const machines: Record<string, CritterStateMachine> = {};
@@ -245,6 +236,7 @@ export function OfficeScene() {
   const { t } = useTranslation();
   const { engine, state } = useGame();
   const audio = useStore((s) => s.audio);
+  const requestActivity = useStore((s) => s.requestActivity);
   const reducedMotion = state.settings.reducedMotion;
   const [bubble, setBubble] = useState<Bubble | null>(null);
   const fmt = useFmt();
@@ -261,9 +253,25 @@ export function OfficeScene() {
     scopeRef: sceneScopeRef,
     sceneScale,
   } = useSceneScale<HTMLDivElement, HTMLDivElement>();
-  const [decorMode, setDecorMode] = useState(false);
+  const decorationRequest = useStore((s) => s.decorationRequest);
+  const arrangeDecoration = useStore((s) => s.arrangeDecoration);
+  const [decorMode, setDecorMode] = useState(Boolean(decorationRequest));
   // The decoration currently picked up for arranging (its id), or null.
-  const [selected, setSelected] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string | null>(decorationRequest);
+  useEffect(() => {
+    if (!decorationRequest) return;
+    const room =
+      decorationRoom(state, decorationRequest) ?? DECORATIONS_BY_ID[decorationRequest]?.room;
+    const timer = window.setTimeout(
+      () =>
+        document.querySelector(`.floor[data-room="${room}"]`)?.scrollIntoView({ block: 'nearest' }),
+      100,
+    );
+    arrangeDecoration(null);
+    return () => window.clearTimeout(timer);
+    // Consume the navigation request once; game ticks must not scroll the room.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [moveDialog, setMoveDialog] = useState<string | null>(null);
   // A decoration that was just placed, for a brief settle animation.
   const [justPlaced, setJustPlaced] = useState<string | null>(null);
@@ -422,6 +430,25 @@ export function OfficeScene() {
   }
 
   function speak(employeeId: string, category: string) {
+    const room = resolveEmployeeRoom(state, employeeId);
+    if (
+      ['broadcast', 'repair', 'conservatory'].includes(room) &&
+      state.resources.morale > 45 &&
+      Math.random() < 0.4
+    ) {
+      const reaction =
+        state.flags[`annex.${room}.kept`] !== undefined
+          ? 'keptQuip'
+          : state.flags[`discovery.${room}`] !== undefined
+            ? 'afterQuip'
+            : 'roomQuip';
+      setBubble({
+        employeeId,
+        text: t(`annex.${room}.${reaction}`),
+        until: Date.now() + 4000,
+      });
+      return;
+    }
     const idx = pickDialogueIndex(category, rngRef.current);
     if (idx < 0) return;
     setBubble({ employeeId, text: t(dialogueKey(category, idx)), until: Date.now() + 4000 });
@@ -672,6 +699,8 @@ export function OfficeScene() {
     if (e.button != null && e.button !== 0) return;
     if (kind === 'decoration' && !decorMode) return;
     if (kind === 'employee' && decorMode) return;
+    e.preventDefault();
+    window.getSelection()?.removeAllRanges();
 
     // A second press must never strand the first pointer session.
     cancelActiveDragRef.current?.();
@@ -979,6 +1008,32 @@ export function OfficeScene() {
       </div>
 
       {/* organic tree-trunk frame behind the floors */}
+      {rooms.length > 2 ? (
+        <label className="office-directory">
+          <span>{t('office.directory')}</span>
+          <select
+            defaultValue=""
+            onChange={(event) => {
+              const room = document.querySelector<HTMLElement>(
+                `.floor[data-room="${event.target.value}"]`,
+              );
+              room?.scrollIntoView({
+                block: 'nearest',
+                behavior: reducedMotion ? 'instant' : 'smooth',
+              });
+            }}
+          >
+            <option value="" disabled>
+              {t('office.chooseDepartment')}
+            </option>
+            {rooms.map((room) => (
+              <option key={room.id} value={room.id}>
+                {t(room.nameKey)}
+              </option>
+            ))}
+          </select>
+        </label>
+      ) : null}
       <svg className="office__frame" viewBox="0 0 100 200" preserveAspectRatio="none" aria-hidden>
         <defs>
           <linearGradient id="bark" x1="0" y1="0" x2="1" y2="0">
@@ -1086,6 +1141,36 @@ export function OfficeScene() {
             >
               <div className="floor__header">
                 <span className="floor__label">{t(room.nameKey)}</span>
+                {!decorMode && ['broadcast', 'repair', 'conservatory'].includes(room.id) ? (
+                  <button
+                    className="floor__activity"
+                    onClick={() =>
+                      requestActivity(
+                        room.id === 'broadcast'
+                          ? 'cableUntangle'
+                          : room.id === 'repair'
+                            ? 'bugSquash'
+                            : 'coffeeRescue',
+                      )
+                    }
+                  >
+                    {t(`annex.${room.id}.activity`)}
+                  </button>
+                ) : null}
+                {!decorMode && occupants.length > 0 ? (
+                  <div className="floor__people">
+                    {occupants.map(([id, rt]) => (
+                      <button
+                        key={id}
+                        onClick={() => {
+                          if (engine.openTalk(id, undefined, true)) audio.play('paper');
+                        }}
+                      >
+                        {rt.nickname ?? t(EMPLOYEES_BY_ID[id].nameKey)}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
                 {!decorMode && discoveries.some((discovery) => discovery.roomId === room.id) ? (
                   <button
                     className="floor__discovery"
@@ -1163,17 +1248,15 @@ export function OfficeScene() {
                       ...decorationAnchorStyle(def.id),
                       left: `${placement.x * 100}%`,
                       bottom: `${placement.y * 100}%`,
-                      // Depth comes from the shared scene bands, so a prop can
-                      // never paint over a teammate (see sim/depth.ts). The
-                      // arrange-mode lift is the one deliberate exception: the
-                      // piece being placed must stay visible while dragging.
+                      // Legacy saved depths belong to the previous scene bands.
                       zIndex:
                         decorMode && selected === def.id
                           ? SCENE_DEPTH.arranging
                           : Math.min(
                               DECORATION_DEPTH_CEILING,
-                              decorationInstance(state, def.id)?.depth ??
-                                surfaceZ(def.id, placement.surface),
+                              (decorationInstance(state, def.id)?.depth ?? 0) >= SCENE_DEPTH.rug.min
+                                ? decorationInstance(state, def.id)!.depth
+                                : surfaceZ(def.id, placement.surface),
                             ),
                     }}
                   >
@@ -1434,10 +1517,6 @@ export function OfficeScene() {
                     mode="interact"
                     title={t(`deco.${drag.id}.name`)}
                   />
-                  <span className="drag-ghost__surface">
-                    <Icon name={drag.valid ? 'success' : 'close'} size={10} />
-                    {t(`decorate.surface.${ghostSurfaceLabel(drag)}`)}
-                  </span>
                 </>
               )}
             </div>,
