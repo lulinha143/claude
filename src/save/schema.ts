@@ -66,6 +66,7 @@ const decorationInstanceSchema = z
     normalizedX: z.number().min(0).max(1).catch(0.5),
     normalizedY: z.number().min(0).max(1).catch(0.1),
     depth: z.number().finite().catch(0),
+    layer: z.enum(['front', 'back']).optional().catch(undefined),
     variantId: z.string().optional().catch(undefined),
     flipped: z.boolean().optional().catch(undefined),
     rotation: z.number().finite().optional().catch(undefined),

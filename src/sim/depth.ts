@@ -1,6 +1,14 @@
-// Room painter order: architecture, employees, purchased furnishings, equipment.
-// Each surface retains its own depth band; manipulating a piece lifts it temporarily.
-// Furniture remains in front even while a colleague visits it.
+import type { DecorationLayer } from './types';
+
+// Room painter order: architecture, the pieces BEHIND the team (rugs, wall art,
+// anything the player sent back), employees, the pieces IN FRONT of the team
+// (free-standing floor furniture, hanging ceiling pieces), then equipment.
+//
+// `SCENE_DEPTH.rug/wall/floor/ceiling` are the STORED depth scale: placement
+// writes a piece's nearness on its surface into `DecorationInstance.depth` in
+// these bands, and old saves carry values on the same scale. Which side of the
+// team a piece is painted on is decided separately, by its surface and the
+// player's layer choice (`decorationRenderZ`).
 export interface DepthBand {
   readonly min: number;
   readonly max: number;
@@ -22,6 +30,9 @@ export const SCENE_DEPTH = {
   characterFocus: 170,
 
   arranging: 300,
+
+  /** Emotion stickers: above every piece and every character, so a feeling is never hidden. */
+  sticker: 260,
 } as const;
 
 export const DECORATION_DEPTH_CEILING = SCENE_DEPTH.station.max;
@@ -58,6 +69,66 @@ const CHARACTER_DEPTH_SPAN = SCENE_DEPTH.character.max - SCENE_DEPTH.character.m
 export function characterDepth(bottomPx: number): number {
   const back = Math.max(0, Math.min(CHARACTER_DEPTH_SPAN, Math.round(bottomPx)));
   return SCENE_DEPTH.character.max - back;
+}
+
+// ---- front / back -----------------------------------------------------------
+
+/** Painter bands for pieces drawn BEHIND every employee. */
+export const BACK_DEPTH: Record<DecorationDepthKind, DepthBand> = {
+  rug: { min: 20, max: 20 },
+  wall: { min: 22, max: 29 },
+  floor: { min: 30, max: 55 },
+  ceiling: { min: 56, max: 59 },
+};
+
+/**
+ * The natural side for a kind of piece: art on the back wall and rugs under the
+ * team's feet sit behind employees; free-standing floor furniture and hanging
+ * ceiling pieces sit in front of them.
+ */
+export function defaultDecorationLayer(kind: DecorationDepthKind): DecorationLayer {
+  return kind === 'wall' || kind === 'rug' ? 'back' : 'front';
+}
+
+/**
+ * Whether the player can swap a piece's side. Wall and floor pieces can; a rug is
+ * always under everyone's feet and a ceiling piece always hangs over their heads.
+ */
+export function decorationLayerAdjustable(kind: DecorationDepthKind): boolean {
+  return kind === 'wall' || kind === 'floor';
+}
+
+/** The side a piece is painted on, honouring the player's choice where allowed. */
+export function decorationSide(
+  kind: DecorationDepthKind,
+  layer?: DecorationLayer,
+): DecorationLayer {
+  return layer && decorationLayerAdjustable(kind) ? layer : defaultDecorationLayer(kind);
+}
+
+// A stored depth's nearness (0 = back of its surface, 1 = front) on the stored
+// scale. Anything outside the band (an ancient save) reads as the default spot.
+function storedNearness(kind: DecorationDepthKind, stored: number | undefined): number {
+  const band = DECORATION_BANDS[kind];
+  if (band.max === band.min) return 0.5;
+  if (stored === undefined || !Number.isFinite(stored) || stored < band.min || stored > band.max)
+    return kind === 'floor' ? 0.4 : 0.5;
+  return (stored - band.min) / (band.max - band.min);
+}
+
+/**
+ * The z-index a placed decoration is painted at: its side of the team (surface
+ * default or the player's choice), ordered within that side by how near the
+ * front of its surface it stands.
+ */
+export function decorationRenderZ(
+  kind: DecorationDepthKind,
+  stored?: number,
+  layer?: DecorationLayer,
+): number {
+  const band = decorationSide(kind, layer) === 'back' ? BACK_DEPTH[kind] : DECORATION_BANDS[kind];
+  const t = storedNearness(kind, stored);
+  return clampInt(band.min + (band.max - band.min) * t, band);
 }
 
 export function stationDepth(nearness = 0.5): number {

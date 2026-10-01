@@ -4,6 +4,7 @@ import { availableFacilityDiscoveries } from './facilityDiscoveries';
 import { createRng, hashStringToSeed, type Rng } from './rng';
 import type {
   DecorationInstance,
+  DecorationLayer,
   EmployeeMood,
   GameState,
   MomentCard,
@@ -71,9 +72,16 @@ import {
   ownedDecorationsInRoom,
   placedCountOnSurface,
   placementAt,
+  decorationInstance,
 } from './decorations';
 import { DECORATIONS_BY_ID } from '../content/decorations';
-import { decorationSurface, projectSurfaceType, regionKindForSurface } from './surfaces';
+import {
+  decorationDepthKind,
+  decorationSurface,
+  projectSurfaceType,
+  regionKindForSurface,
+} from './surfaces';
+import { decorationLayerAdjustable, decorationSide } from './depth';
 import {
   evaluateRegionPlacement,
   resolveRegionByKind,
@@ -212,7 +220,14 @@ export interface CollectResult {
 type DecorationArrangement = Array<
   Pick<
     DecorationInstance,
-    'instanceId' | 'roomId' | 'surfaceType' | 'regionKind' | 'normalizedX' | 'normalizedY' | 'depth'
+    | 'instanceId'
+    | 'roomId'
+    | 'surfaceType'
+    | 'regionKind'
+    | 'normalizedX'
+    | 'normalizedY'
+    | 'depth'
+    | 'layer'
   >
 >;
 
@@ -1591,6 +1606,7 @@ export class GameEngine {
       normalizedX: instance.normalizedX,
       normalizedY: instance.normalizedY,
       depth: instance.depth,
+      layer: instance.layer,
     }));
   }
 
@@ -1830,7 +1846,28 @@ export class GameEngine {
     this.pushDecoHistory();
     for (const item of plan) {
       this.applyRegionPlacement(item.id, roomId, item.check);
+      // A tidy room puts every piece back on its natural side of the team.
+      const instance = decorationInstance(this.state, item.id);
+      if (instance) delete instance.layer;
     }
+    this.save();
+    this.emit();
+    return true;
+  }
+
+  /**
+   * Put a placed wall or floor piece in front of or behind the team. Persisted on
+   * the instance, undoable, and a no-op for rugs and ceiling pieces (their side
+   * never changes) or when the piece is already on that side.
+   */
+  setDecorationLayer(id: string, layer: DecorationLayer): boolean {
+    const instance = decorationInstance(this.state, id);
+    if (!instance || instance.roomId === null) return false;
+    const kind = decorationDepthKind(id, instance.surfaceType);
+    if (!decorationLayerAdjustable(kind)) return false;
+    if (decorationSide(kind, instance.layer) === layer) return false;
+    this.pushDecoHistory();
+    instance.layer = layer;
     this.save();
     this.emit();
     return true;

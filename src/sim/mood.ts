@@ -1,4 +1,7 @@
 import type { EmployeeMood, GameState } from './types';
+import { ROOM_PROFILES_BY_ID, type RoomTemper } from '../content/roomProfiles';
+import { resolveEmployeeRoom } from './rooms';
+import { hashStringToSeed } from './rng';
 
 /** Every emotion the game can display, in a stable order (profiles, tests). */
 export const EMOTIONS: EmployeeMood[] = [
@@ -19,11 +22,51 @@ export const EMOTIONS: EmployeeMood[] = [
   'sad',
 ];
 
+/** How long a conversation keeps someone visibly happy afterwards. */
+export const RECENT_TALK_MOOD_MS = 10 * 60_000;
+
+// What a settled teammate tends to feel in each kind of room. Roommates are dealt
+// these in turn, so a room of colleagues shows a few different faces rather than
+// one company-wide one, and moving someone to another room can change theirs.
+const ROOM_MOODS: Record<RoomTemper, readonly EmployeeMood[]> = {
+  operational: ['relaxed', 'focused', 'happy'],
+  social: ['happy', 'relaxed', 'excited'],
+  analytical: ['focused', 'curious', 'inspired'],
+  industrial: ['focused', 'tired', 'proud'],
+  secure: ['focused', 'suspicious', 'relaxed'],
+  irregular: ['curious', 'suspicious', 'excited'],
+};
+
+// A thriving company lifts everyone, each in their own way.
+const THRIVING_MOODS: readonly EmployeeMood[] = ['inspired', 'excited', 'happy'];
+
+/**
+ * One of a room's typical moods for this person. Roommates are dealt the options
+ * in turn (in a stable order), so people sharing a room do not all wear the same
+ * face; which option a room starts from depends on the room.
+ */
+function roomPick(
+  state: GameState,
+  options: readonly EmployeeMood[],
+  id: string,
+  room: string,
+  salt: string,
+): EmployeeMood {
+  let seat = 0;
+  for (const [other, rt] of Object.entries(state.employees)) {
+    if (other < id && rt?.hired && resolveEmployeeRoom(state, other) === room) seat += 1;
+  }
+  const start = hashStringToSeed(`${room}:${salt}`) % options.length;
+  return options[(start + seat) % options.length];
+}
+
 /**
  * An employee's current emotion. An event-driven emotion (persisted in
- * `rt.emotion`) takes priority while it is still active; otherwise the mood is
- * derived deterministically from company conditions (morale / friendship /
- * focus). `now` is injectable so the logic stays pure and testable.
+ * `rt.emotion`) takes priority while it is still active. Otherwise it is read
+ * from that person's own situation — the kind of room they work in, how close
+ * they are to the founder, whether you just talked — with company morale as the
+ * weather everyone shares. Deterministic: the same state always gives the same
+ * face, so nothing flickers on its own. `now` is injectable for tests.
  */
 export function employeeMood(state: GameState, id: string, now = Date.now()): EmployeeMood {
   const rt = state.employees[id];
@@ -32,15 +75,22 @@ export function employeeMood(state: GameState, id: string, now = Date.now()): Em
 
   const morale = state.resources.morale;
   const friendship = rt?.friendship ?? 0;
-  const focus = state.focus.active;
+  if (state.focus.active) return 'focused';
 
-  if (focus) return 'focused';
-  if (morale < 30) return 'frustrated';
-  if (morale < 45) return 'tired';
+  const room = resolveEmployeeRoom(state, id);
+  const temper = ROOM_PROFILES_BY_ID[room]?.temper ?? 'operational';
+  // Hard times reach everyone, but not in the same way.
+  if (morale < 30) return friendship >= 60 ? 'worried' : 'frustrated';
+  if (morale < 45) return friendship < 60 && temper === 'industrial' ? 'frustrated' : 'tired';
+  // A close friend in a good company is proud of it.
   if (friendship >= 70 && morale >= 70) return 'proud';
-  if (morale >= 85) return 'inspired';
-  if (friendship >= 40) return 'relaxed';
-  return 'curious';
+  // Someone you just sat down with is still smiling about it.
+  const talkedAt = rt?.talks?.lastAt ?? 0;
+  if (talkedAt > 0 && now >= talkedAt && now - talkedAt < RECENT_TALK_MOOD_MS) return 'happy';
+  // A newcomer (and a founder on day one) is still working the place out.
+  if (friendship < 25) return 'curious';
+  if (morale >= 85) return roomPick(state, THRIVING_MOODS, id, room, 'thriving');
+  return roomPick(state, ROOM_MOODS[temper], id, room, temper);
 }
 
 // Emotions gently colour how well someone works. Effects are deliberately SMALL

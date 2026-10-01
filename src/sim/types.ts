@@ -238,6 +238,13 @@ export interface GameSettings {
 /** Stable persisted decoration instance. Coordinates are normalized to its destination surface. */
 export type DecorationSurfaceType = 'floor' | 'wall' | 'ceiling';
 
+/**
+ * Which side of the team a placed piece is painted on. Unset means the natural
+ * side for its surface: wall pieces and rugs behind employees, free-standing
+ * floor pieces and hanging ceiling pieces in front of them.
+ */
+export type DecorationLayer = 'front' | 'back';
+
 export interface DecorationInstance {
   instanceId: string;
   decorationId: string;
@@ -253,6 +260,8 @@ export interface DecorationInstance {
   normalizedX: number;
   normalizedY: number;
   depth: number;
+  /** The player's front/back choice (optional: older saves use the natural side). */
+  layer?: DecorationLayer;
   variantId?: string;
   flipped?: boolean;
   rotation?: number;
