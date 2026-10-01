@@ -98,7 +98,10 @@ export function SpeechNote({ name, text, color }: SpeechNoteProps) {
       const note = noteRef.current;
       if (!anchor.isConnected || !note) return;
       const a = anchor.getBoundingClientRect();
-      const n = note.getBoundingClientRect();
+      // The note's LAYOUT size, not its painted box: it pops in with a scale
+      // animation, and measuring mid-pop placed a shrunken note that then grew
+      // past the window edge (a transform never fires the ResizeObserver again).
+      const n = { width: note.offsetWidth, height: note.offsetHeight };
       const vw = window.visualViewport?.width ?? window.innerWidth;
       const vh = window.visualViewport?.height ?? window.innerHeight;
       const b = officeBounds(anchor, vw, vh);

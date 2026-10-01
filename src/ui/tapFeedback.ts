@@ -46,7 +46,7 @@ function retire(node: HTMLElement): void {
   node.remove();
 }
 
-export type TapTone = 'normal' | 'critical' | 'golden';
+export type TapTone = 'normal' | 'critical' | 'golden' | 'collect' | 'rush';
 
 export interface TapPopOptions {
   /** viewport coordinates of the tap. */
@@ -164,5 +164,64 @@ export function clearTapFeedback(): void {
   burstTimer = null;
   if (typeof document !== 'undefined') {
     document.documentElement.removeAttribute('data-station-tapping');
+  }
+}
+
+/**
+ * A handful of nuts arc from where something was collected to the nut counter in
+ * the HUD, which gives a little bump when they land. One short burst per collect
+ * (never per tap), removed as soon as it finishes; reduced motion skips the
+ * flight and only bumps the counter.
+ */
+export function flyToCounter(fromX: number, fromY: number, count = 6): void {
+  if (typeof document === 'undefined') return;
+  const counter = document.querySelector<HTMLElement>('.hud__nuts');
+  if (!counter) return;
+  const bump = () => {
+    counter.classList.remove('is-gaining');
+    // restart the bump animation
+    void counter.offsetWidth;
+    counter.classList.add('is-gaining');
+    window.setTimeout(() => counter.classList.remove('is-gaining'), 520);
+  };
+  const host = ensureLayer();
+  if (!host || reducedMotion() || typeof Element.prototype.animate !== 'function') {
+    bump();
+    return;
+  }
+  const target = counter.getBoundingClientRect();
+  const tx = target.left + 16;
+  const ty = target.top + target.height / 2;
+  let landed = 0;
+  const n = Math.max(1, Math.min(8, count));
+  for (let i = 0; i < n; i += 1) {
+    const nut = document.createElement('span');
+    nut.className = 'fly-nut';
+    nut.style.left = `${fromX}px`;
+    nut.style.top = `${fromY}px`;
+    host.appendChild(nut);
+    const spread = (i - (n - 1) / 2) * 9;
+    const lift = 34 + Math.random() * 26;
+    const animation = nut.animate(
+      [
+        { transform: 'translate(-50%, -50%) scale(0.6)', opacity: 0 },
+        {
+          transform: `translate(calc(-50% + ${spread}px), calc(-50% - ${lift}px)) scale(1)`,
+          opacity: 1,
+          offset: 0.32,
+        },
+        {
+          transform: `translate(calc(-50% + ${tx - fromX}px), calc(-50% + ${ty - fromY}px)) scale(0.55)`,
+          opacity: 0.9,
+        },
+      ],
+      { duration: 620 + i * 45, easing: 'cubic-bezier(0.3, 0, 0.4, 1)', fill: 'forwards' },
+    );
+    animation.onfinish = () => {
+      nut.remove();
+      landed += 1;
+      if (landed === 1) bump();
+    };
+    window.setTimeout(() => nut.remove(), 1400);
   }
 }

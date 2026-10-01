@@ -8,6 +8,10 @@ export function OfflineModal() {
   const { t } = useTranslation();
   const fmt = useFmt();
   const result = useStore((s) => s.offlineResult);
+  // What is waiting in the office right now (the crate holds what it held before,
+  // plus what was packed while away; finds wait until taken).
+  const crateNuts = useStore((s) => s.engine.state.crate.nuts);
+  const finds = useStore((s) => s.engine.state.finds.length);
   const dismiss = useStore((s) => s.dismissOffline);
   const { closing, exitThen } = usePopupExit();
   if (!result) return null;
@@ -36,6 +40,14 @@ export function OfflineModal() {
       <p className="big-number">{t('offline.earned', { value: fmt.num(result.nutsEarned) })}</p>
       <p className="muted small">{t('offline.rate', { value: fmt.num(result.ratePerSecond) })}</p>
       {result.wasCapped ? <p className="muted small">{t('offline.capped')}</p> : null}
+      {(result.crateFilled ?? 0) >= 1 ? (
+        <p className="offline-modal__crate">
+          {t('awayExtra.crate', { value: fmt.num(crateNuts) })}
+        </p>
+      ) : null}
+      {finds > 0 ? (
+        <p className="offline-modal__finds">{t('awayExtra.finds', { count: finds })}</p>
+      ) : null}
     </PopupShell>
   );
 }

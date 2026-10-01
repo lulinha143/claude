@@ -18,16 +18,38 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StationArt } from './StationArt';
 import { Tip } from '../ui/Tooltip';
-import { markTapBurst, tapPop, tapPunch, type TapTone } from '../ui/tapFeedback';
+import { flyToCounter, markTapBurst, tapPop, tapPunch, type TapTone } from '../ui/tapFeedback';
 import { stationDepth } from '../sim/depth';
-import { comboWindowMs, type ClickResolution } from '../sim/clickStations';
+import { CLICK, comboWindowMs } from '../sim/clickStations';
+import type { StationTapResult } from '../sim/engine';
 import type { ClickStationDef } from '../content/clickStations';
 import type { SfxName } from '../audio/audio';
+
+/** The founder's crate, as the crate station shows it. */
+export interface CrateView {
+  /** 0..1 */
+  fill: number;
+  full: boolean;
+  /** formatted amounts / time, ready to show. */
+  stored: string;
+  capacity: string;
+  eta: string | null;
+}
 
 export interface ClickStationProps {
   def: ClickStationDef;
   /** Resolve a tap. Returns null when the station is unavailable. */
-  onTap: (stationId: string) => ClickResolution | null;
+  onTap: (stationId: string) => StationTapResult | null;
+  /** the crate's contents (crate station only). */
+  crate?: CrateView;
+  /** taps of combo that set this room rushing. */
+  rushAt: number;
+  /** epoch ms this station's room stops rushing (0 when it is not). */
+  rushEndsAt: number;
+  /** nobody works in this room, so a rush would speed up no one. */
+  roomEmpty?: boolean;
+  /** the first-run coach is pointing at this station. */
+  coached?: boolean;
   /** Formatted payout preview for the tooltip. */
   previewText: string;
   /** Names of teammates in the room boosting this station (already localized). */
@@ -39,6 +61,11 @@ export interface ClickStationProps {
 export function ClickStation({
   def,
   onTap,
+  crate,
+  rushAt,
+  rushEndsAt,
+  roomEmpty = false,
+  coached = false,
   previewText,
   synergyNames,
   play,
@@ -79,6 +106,7 @@ export function ClickStation({
       if (!result) return;
 
       const tone: TapTone = result.golden ? 'golden' : result.critical ? 'critical' : 'normal';
+      const box = element.getBoundingClientRect();
 
       // Sound: pitch climbs with the streak so a combo audibly builds.
       const sfx: SfxName = result.golden
@@ -103,6 +131,34 @@ export function ClickStation({
       // Get the station's own tooltip out from over the machine for the burst.
       markTapBurst();
 
+      // The crate pays out what the team packed into it: the big moment of a visit.
+      if (result.crate && result.crate > 0) {
+        const worth = result.crate >= 1 ? result.crate : 0;
+        if (worth > 0) {
+          tapPop({
+            x: box.left + box.width / 2,
+            y: box.top - 6,
+            text: `+${formatAmount(worth)}`,
+            tone: 'collect',
+          });
+          // A crate worth noticing gets the full flight to the counter.
+          if (result.crate >= Math.max(5, result.amount * 3)) {
+            flyToCounter(box.left + box.width / 2, box.top + box.height / 3, 6);
+            play('collect');
+          }
+        }
+      }
+      // Keeping the rhythm sets the whole room rushing.
+      if (result.rush === 'started') {
+        tapPop({
+          x: box.left + box.width / 2,
+          y: box.top - 24,
+          text: t('rush.started'),
+          tone: 'rush',
+        });
+        play('celebrate');
+      }
+
       // Coalesced combo readout.
       pendingStreakRef.current = result.streak;
       if (frameRef.current === null) {
@@ -117,7 +173,7 @@ export function ClickStation({
         setStreak(0);
       }, comboWindowMs(def.cadence));
     },
-    [def.cadence, def.id, flushStreak, formatAmount, onTap, play],
+    [def.cadence, def.id, flushStreak, formatAmount, onTap, play, t],
   );
 
   const cadenceLabel = t(`station.cadence.${def.cadence}`);
@@ -133,20 +189,49 @@ export function ClickStation({
         <span className="station-tip__label">{t('station.tip.cadence')}</span>
         <span className="station-tip__value">{cadenceLabel}</span>
       </span>
+      {crate ? (
+        <>
+          <span className="station-tip__row">
+            <span className="station-tip__label">{t('crate.inside')}</span>
+            <span className="station-tip__value">
+              {crate.stored} / {crate.capacity}
+            </span>
+          </span>
+          <span className="station-tip__synergy">
+            {crate.full
+              ? t('crate.full')
+              : crate.eta
+                ? t('crate.fullIn', { time: crate.eta })
+                : null}
+          </span>
+          <span className="station-tip__hint">{t('crate.why')}</span>
+        </>
+      ) : null}
       {synergyNames.length > 0 ? (
         <span className="station-tip__synergy">
           {t('station.tip.synergy', { names: synergyNames.join(', ') })}
         </span>
       ) : null}
+      <span className="station-tip__hint">
+        {roomEmpty ? t('rush.empty') : t('rush.tip', { taps: rushAt, seconds: CLICK.rushSeconds })}
+      </span>
     </span>
   );
+  const rushing = rushEndsAt > Date.now();
+  const rushLeft = Math.max(0, (rushEndsAt - Date.now()) / 1000);
+  const meter = rushing ? 1 : Math.min(1, streak / rushAt);
 
   return (
     <Tip content={tip}>
       <button
         type="button"
-        className={`station-btn station-btn--${def.kind} station-btn--${def.cadence}`}
+        className={`station-btn station-btn--${def.kind} station-btn--${def.cadence} ${
+          rushing ? 'is-rushing' : ''
+        } ${crate?.full ? 'is-full' : ''} ${coached ? 'is-coached' : ''}`}
+        data-fill={crate ? Math.round(crate.fill * 4) : undefined}
         style={{
+          ['--rush-meter' as string]: meter.toFixed(3),
+          ['--crate-fill' as string]: crate ? crate.fill.toFixed(3) : undefined,
           left: `${def.x * 100}%`,
           // Authored in scene pixels, so it tracks the scene scale exactly like a
           // character's slot depth does; a station is furniture in the same room.
@@ -171,7 +256,29 @@ export function ClickStation({
         aria-label={t(def.nameKey)}
         data-station={def.id}
       >
+        {/* Combo meter: fills toward the room's rush, glows while it rushes. */}
+        {streak >= 2 || rushing ? (
+          <span className="station-btn__meter" aria-hidden>
+            {rushing ? (
+              <span
+                key={rushEndsAt}
+                className="station-btn__meter-drain"
+                style={{ animationDuration: `${rushLeft.toFixed(2)}s` }}
+              />
+            ) : null}
+          </span>
+        ) : null}
         <StationArt kind={def.kind} />
+        {crate ? (
+          <span className="station-btn__heap" aria-hidden>
+            <span className="station-btn__heap-nuts" />
+          </span>
+        ) : null}
+        {crate && (crate.fill >= 0.15 || crate.full) ? (
+          <span className="station-btn__stash" aria-hidden>
+            {crate.full ? t('crate.fullShort') : crate.stored}
+          </span>
+        ) : null}
         {streak >= 3 ? (
           <span className="station-btn__combo" aria-hidden>
             {`\u00d7${streak}`}

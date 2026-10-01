@@ -26,6 +26,8 @@ interface SceneControlsProps {
   onRedo: () => void;
   hint: string | null;
   occupancy: (roomId: string) => number;
+  /** something waiting on that floor: a full crate, a teammate's find. */
+  news?: (roomId: string) => 'crate' | 'find' | null;
 }
 
 export function SceneControls({
@@ -42,7 +44,10 @@ export function SceneControls({
   onRedo,
   hint,
   occupancy,
+  news = () => null,
 }: SceneControlsProps) {
+  // Something is waiting on a floor that is not the one in view.
+  const elsewhere = rooms.some((room) => room.id !== currentFloor && news(room.id) !== null);
   const { t } = useTranslation();
   // `rooms` is in display order: the top floor first, the ground floor last.
   const index = Math.max(
@@ -81,6 +86,7 @@ export function SceneControls({
             <button
               type="button"
               className={`scene-btn elevator__list-btn ${floorsOpen ? 'is-on' : ''}`}
+              data-news={elsewhere ? 'true' : undefined}
               onClick={() => setFloorsOpen((open) => !open)}
               aria-expanded={floorsOpen}
               aria-haspopup="listbox"
@@ -121,6 +127,14 @@ export function SceneControls({
                       }}
                     >
                       <span className="elevator__floor-name">{t(room.nameKey)}</span>
+                      {news(room.id) ? (
+                        <span
+                          className={`elevator__floor-news elevator__floor-news--${news(room.id)}`}
+                          aria-label={news(room.id) === 'crate' ? t('crate.full') : t('find.take')}
+                        >
+                          <Icon name={news(room.id) === 'crate' ? 'nut' : 'moment'} size={11} />
+                        </span>
+                      ) : null}
                       {people > 0 ? (
                         <span
                           className="elevator__floor-people"

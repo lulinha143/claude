@@ -149,7 +149,10 @@ export function NextStepHint() {
   const view = useStore((s) => s.view);
   const setView = useStore((s) => s.setView);
   const opening = useStore((s) => s.showOpening || s.showOnboarding);
-  const step = useNextStep();
+  const suggestion = useNextStep();
+  // Purchases are the goal tag's job; the note only brings up everything else.
+  const step =
+    suggestion && suggestion.key !== 'hire' && suggestion.key !== 'upgrade' ? suggestion : null;
   const stepId = step ? `${step.key}:${step.employeeId ?? ''}` : null;
   const [visibleFor, setVisibleFor] = useState<string | null>(null);
 

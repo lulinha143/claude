@@ -2,6 +2,7 @@ import {
   Fragment,
   memo,
   useCallback,
+  useMemo,
   useEffect,
   useLayoutEffect,
   useRef,
@@ -21,7 +22,8 @@ import {
   resolveEmployeeRoom,
   employeesInRoom,
 } from '../sim/rooms';
-import { ROOMS, ROOMS_BY_ID } from '../content/rooms';
+import { ROOMS_BY_ID } from '../content/rooms';
+import { UPGRADES } from '../content/upgrades';
 import { EMPLOYEES_BY_ID } from '../content/employees';
 import { DECORATIONS_BY_ID } from '../content/decorations';
 import { Critter } from './Critter';
@@ -39,9 +41,13 @@ import {
   stationsInRoom,
   type ClickStationDef,
 } from '../content/clickStations';
-import { previewClickValue, synergyEmployees } from '../sim/clickStations';
+import { previewClickValue, rushStreak, synergyEmployees, CLICK } from '../sim/clickStations';
+import { crateCapacity as crateCapacityFor, secondsToFull } from '../sim/crate';
+import { nextFloor } from '../sim/goals';
+import { FindArt } from './FindArt';
 import { chooseVoice } from '../sim/employeeVoice';
-import { clearTapFeedback } from '../ui/tapFeedback';
+import { clearTapFeedback, flyToCounter, tapPop } from '../ui/tapFeedback';
+import { focusFloor } from '../ui/officeEvents';
 import { useFmt } from '../ui/useFmt';
 import { Icon } from './UiIcon';
 import { DecorationProp, decorKind, interactSound } from './DecorationProp';
@@ -435,6 +441,7 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
   const { engine, state } = useGameUnlessCovered(covered);
   const audio = useStore((s) => s.audio);
   const requestActivity = useStore((s) => s.requestActivity);
+  const opening = useStore((s) => s.showOpening || s.showOnboarding);
   const reducedMotion = state.settings.reducedMotion;
   const [bubble, setBubble] = useState<Bubble | null>(null);
   const fmt = useFmt();
@@ -534,10 +541,13 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
   const now = Date.now();
 
   const rooms = unlockedRooms(state).slice().reverse();
-  // the next room the player can work toward (for an "under construction" hint)
-  const nextLocked = ROOMS.filter((r) => !isRoomUnlocked(state, r)).sort(
-    (a, b) => a.floor - b.floor,
-  )[0];
+  // The floor under construction at the top of the tower: the locked room the
+  // company can open soonest (by reputation or by buying it).
+  // Re-picked at most once a second (it times every locked room at the current pace).
+  const floorSecond = Math.floor(now / 1000);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const floorGoal = useMemo(() => nextFloor(stateRef.current), [floorSecond, rooms.length]);
+  const nextLocked = floorGoal?.room;
   // Floors scrolled out of sight stop their ambient motion (the stylesheet keys
   // off data-onscreen), so a tall company costs no more than the floors in view.
   const floorKey = rooms.map((room) => room.id).join(',');
@@ -555,7 +565,9 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
     scroller.querySelectorAll('.floor[data-room]').forEach((floor) => observer.observe(floor));
     return () => observer.disconnect();
   }, [floorKey]);
-  const producing = engine.productionPerSecond() > 0;
+  // Measured once per render and shared by everything below that needs it.
+  const nps = engine.productionPerSecond();
+  const producing = nps > 0;
   const focusMode = engine.isFocusActive();
   const lowMorale = state.resources.morale < 35;
 
@@ -897,6 +909,48 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
     },
     [engine, scheduleLife],
   );
+
+  /** Take a teammate's find: payout, a flight to the counter, and a word of thanks. */
+  function takeFind(findId: string, element: HTMLElement) {
+    const reward = engine.collectFind(findId);
+    if (!reward) return;
+    const box = element.getBoundingClientRect();
+    tapPop({
+      x: box.left + box.width / 2,
+      y: box.top,
+      text: `+${fmt.int(reward.nuts)}`,
+      tone: reward.golden ? 'golden' : 'collect',
+    });
+    flyToCounter(box.left + box.width / 2, box.top + box.height / 2, 5);
+    audio.play(reward.golden ? 'stationGolden' : 'collect');
+    setBubble({
+      employeeId: reward.find.employeeId,
+      text: `${t(`find.line.${reward.find.kind}`)}${reward.golden ? ` (${t('find.golden')})` : ''}`,
+      until: Date.now() + 4200,
+    });
+    setCelebratingEmployee(reward.find.employeeId);
+    const generation = ++celebrationGenerationRef.current;
+    scheduleLife(() => {
+      if (celebrationGenerationRef.current !== generation) return;
+      setCelebratingEmployee((current) => (current === reward.find.employeeId ? null : current));
+    }, 950);
+  }
+
+  // The floor under construction: built with reputation (shown as progress) or
+  // bought outright, right here, the moment the company can afford it.
+  const buildUpgrade =
+    floorGoal?.via === 'purchase'
+      ? UPGRADES.find((def) => def.id === floorGoal.upgradeId)
+      : undefined;
+  const buildCost = floorGoal?.via === 'purchase' ? floorGoal.need : 0;
+  function buildNextFloor() {
+    if (!buildUpgrade || !nextLocked) return;
+    if (engine.buyUpgrade(buildUpgrade.id)) {
+      audio.play('celebrate');
+      const roomId = nextLocked.id;
+      window.setTimeout(() => focusFloor(roomId), 120);
+    }
+  }
 
   const playSfx = useCallback(
     (name: Parameters<typeof audio.play>[0], opts?: { pitch?: number }) => audio.play(name, opts),
@@ -1428,6 +1482,24 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
     setSelected(null);
   }
 
+  const capacity = crateCapacityFor(nps);
+  const crateEta = secondsToFull(state.crate.nuts, capacity, nps);
+  const crateView = {
+    fill: Math.min(1, capacity > 0 ? state.crate.nuts / capacity : 0),
+    full: state.crate.nuts >= capacity - 0.5,
+    stored: fmt.int(state.crate.nuts),
+    capacity: fmt.int(capacity),
+    eta: crateEta && crateEta > 0 ? fmt.dur(crateEta) : null,
+  };
+  const finds = engine.waitingFinds();
+  // A brand-new company that has not tapped anything yet: the coach points at the
+  // crate. (Only the founder hired and nothing bought, so an old or seeded save
+  // that never recorded a tap is never coached.)
+  const newCompany =
+    state.stats.totalClicks < 3 &&
+    Object.keys(state.upgrades).length === 0 &&
+    Object.entries(state.employees).every(([id, rt]) => id === 'pip' || !rt.hired);
+
   return (
     <div
       className={`office ${decorMode ? 'office--decorating' : ''} ${
@@ -1460,9 +1532,39 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
                     <Icon name="lock" size={12} /> {t(nextLocked.nameKey)}
                   </div>
                   <div className="floor__construction">
-                    {nextLocked.unlock.reputation
-                      ? t('employee.unlockAt', { value: nextLocked.unlock.reputation })
-                      : t('common.locked')}
+                    {nextLocked.unlock.reputation ? (
+                      <>
+                        <span>
+                          {t('construction.reputation', {
+                            have: fmt.int(
+                              Math.min(state.resources.reputation, nextLocked.unlock.reputation),
+                            ),
+                            need: fmt.int(nextLocked.unlock.reputation),
+                          })}
+                        </span>
+                        <span
+                          className="floor__construction-bar"
+                          style={{
+                            ['--built' as string]: Math.min(
+                              1,
+                              state.resources.reputation / nextLocked.unlock.reputation,
+                            ).toFixed(3),
+                          }}
+                          aria-hidden
+                        />
+                      </>
+                    ) : buildUpgrade ? (
+                      <button
+                        type="button"
+                        className="mini-btn mini-btn--primary floor__build"
+                        disabled={state.resources.nuts < buildCost}
+                        onClick={buildNextFloor}
+                      >
+                        {t('construction.build', { cost: fmt.int(buildCost) })}
+                      </button>
+                    ) : (
+                      t('common.locked')
+                    )}
                   </div>
                 </div>
               ) : null}
@@ -1501,7 +1603,7 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
                 }
                 return (
                   <div
-                    className={`floor ${dropClass}`}
+                    className={`floor ${dropClass} ${engine.rushEndsAt(room.id) ? 'is-rushing' : ''}`}
                     key={room.id}
                     data-room={room.id}
                     // Every room is the same width, so the first one is measured and its
@@ -1511,6 +1613,18 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
                   >
                     <div className="floor__header">
                       <span className="floor__label">{t(room.nameKey)}</span>
+                      {engine.rushEndsAt(room.id) ? (
+                        <span className="floor__rush" role="status">
+                          {t('rush.label', { mult: CLICK.rushMultiplier })}
+                          <span
+                            key={engine.rushEndsAt(room.id)}
+                            className="floor__rush-bar"
+                            style={{
+                              animationDuration: `${Math.max(0, (engine.rushEndsAt(room.id) - Date.now()) / 1000).toFixed(2)}s`,
+                            }}
+                          />
+                        </span>
+                      ) : null}
                       {!decorMode && ['broadcast', 'repair', 'conservatory'].includes(room.id) ? (
                         <button
                           className="floor__activity"
@@ -1849,6 +1963,29 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
                                 zIndex: SCENE_DEPTH.sticker,
                               }}
                             />
+                            {!decorMode
+                              ? finds
+                                  .filter((find) => find.employeeId === id)
+                                  .map((find) => (
+                                    <button
+                                      key={find.id}
+                                      type="button"
+                                      className={`office-find office-find--${find.kind}`}
+                                      data-find={find.id}
+                                      data-employee={id}
+                                      style={{
+                                        left: `${ex * 100}%`,
+                                        bottom: stickerBottom,
+                                        zIndex: SCENE_DEPTH.sticker + 1,
+                                      }}
+                                      title={t('find.title', { name: label })}
+                                      aria-label={`${t('find.title', { name: label })}: ${t(`find.kind.${find.kind}`)}. ${t('find.take')}`}
+                                      onClick={(event) => takeFind(find.id, event.currentTarget)}
+                                    >
+                                      <FindArt kind={find.kind} />
+                                    </button>
+                                  ))
+                              : null}
                           </Fragment>
                         );
                       })}
@@ -1860,6 +1997,11 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
                               key={stationDef.id}
                               def={stationDef}
                               onTap={onTapStation}
+                              rushAt={rushStreak(stationDef)}
+                              rushEndsAt={engine.rushEndsAt(room.id)}
+                              roomEmpty={occupants.length === 0 && room.id !== FOUNDER_FLOOR}
+                              crate={stationDef.kind === 'crate' ? crateView : undefined}
+                              coached={stationDef.kind === 'crate' && newCompany && !opening}
                               previewText={stationPreview(stationDef)}
                               synergyNames={stationSynergyNames(stationDef)}
                               play={playSfx}
@@ -1924,6 +2066,13 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
         </div>
 
         <SceneControls
+          news={(roomId) =>
+            roomId === FOUNDER_FLOOR && crateView.full
+              ? 'crate'
+              : finds.some((find) => resolveEmployeeRoom(state, find.employeeId) === roomId)
+                ? 'find'
+                : null
+          }
           rooms={rooms}
           currentFloor={currentFloor}
           floorsOpen={floorsOpen}

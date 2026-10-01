@@ -17,7 +17,7 @@
 // Narrow windows drop stickers progressively via container queries (hud.css), so
 // the strip is one row at every size down to Electron's 320px minimum.
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useGame } from '../state/hooks';
 import { useStore } from '../state/store';
@@ -73,6 +73,23 @@ export function GameHud() {
   const toggleMusic = useStore((s) => s.toggleMusic);
   const reduced = state.settings.reducedMotion;
   const nps = engine.productionPerSecond();
+  // When production jumps (a purchase, a hire, a rush) the rate says by how much
+  // for a moment. Morale's slow drift moves it by a hair per tick and never
+  // triggers this: only a real step does.
+  const lastNps = useRef(nps);
+  const [gain, setGain] = useState<{ value: number; key: number } | null>(null);
+  useEffect(() => {
+    const previous = lastNps.current;
+    lastNps.current = nps;
+    if (nps > previous * 1.02 && nps - previous >= 0.05) {
+      setGain({ value: nps - previous, key: Date.now() });
+    }
+  }, [nps]);
+  useEffect(() => {
+    if (!gain) return undefined;
+    const timer = window.setTimeout(() => setGain(null), 2400);
+    return () => window.clearTimeout(timer);
+  }, [gain]);
   const tier = reputationTier(state.resources.reputation);
   const moraleBonus = moraleProductionBonusPct(state.resources.morale);
   const nextRep = nextReputationUnlock(state);
@@ -173,6 +190,11 @@ export function GameHud() {
           <span className="hud__rate" aria-hidden>
             +{fmt.num(nps)}/s
           </span>
+          {gain ? (
+            <span key={gain.key} className="hud__gain" aria-hidden>
+              <Icon name="up" size={10} />+{fmt.num(gain.value)}/s
+            </span>
+          ) : null}
         </div>
       </div>
 

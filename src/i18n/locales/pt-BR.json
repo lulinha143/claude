@@ -737,7 +737,7 @@
     },
     "autoCollector": {
       "name": "Coletor Automático",
-      "desc": "Guarda automaticamente parte da produção. Sem precisar clicar."
+      "desc": "Quando o caixote enche, mais do que a equipe embala ainda chega ao cofre. Com automação total, nada espera por você."
     },
     "conveyor": {
       "name": "Esteira Transportadora",
@@ -3909,5 +3909,73 @@
     "here": "Você está em: {{room}}",
     "people_one": "{{count}} colega",
     "people_other": "{{count}} colegas"
+  },
+  "crate": {
+    "inside": "No caixote",
+    "full": "Cheio! Toque para recolher",
+    "fullIn": "Cheio em {{time}}",
+    "fullShort": "Cheio",
+    "why": "Metade do que a equipe produz é guardada aqui. Recolha para ganhar cada castanha.",
+    "waiting": "Seu caixote tem {{value}} castanhas. Toque nele para recolher."
+  },
+  "rush": {
+    "label": "Pique ×{{mult}}",
+    "started": "PIQUE!",
+    "toRush": "Mantenha o ritmo: faltam {{left}} toques para o pique",
+    "tip": "Mantenha um combo por {{taps}} toques e todo mundo nesta sala trabalha em dobro por {{seconds}}s.",
+    "empty": "Ninguém trabalha aqui ainda: o pique só acelera quem está na sala."
+  },
+  "find": {
+    "title": "{{name}} achou algo",
+    "take": "Pegar",
+    "kind": {
+      "operational": "uma pilha arrumada de castanhas",
+      "social": "uma cesta de lanches",
+      "analytical": "uma amostra curiosa",
+      "industrial": "um parafuso sobrando (e castanhas)",
+      "secure": "uma bolsinha de moedas",
+      "irregular": "uma caixa misteriosa"
+    },
+    "line": {
+      "operational": "Achei isto atrás do arquivo. É seu!",
+      "social": "Deixaram uma cesta inteira. Vamos dividir.",
+      "analytical": "Esta amostra produziu castanhas. Ciência!",
+      "industrial": "Sacudi a máquina. Caíram castanhas.",
+      "secure": "Estava nos achados e perdidos. Achado não é roubado.",
+      "irregular": "Não pergunte de onde veio. Só pegue."
+    },
+    "golden": "e uma castanha dourada!"
+  },
+  "goal": {
+    "next": "Próximo",
+    "buy": "Comprar",
+    "hire": "Contratar {{name}}",
+    "level": "{{name}} Nv. {{level}}",
+    "perSecond": "+{{value}}/s",
+    "perTap": "+{{value}} por toque",
+    "opens": "Abre um andar novo",
+    "bought": "Feito!",
+    "open": "Ver tudo para comprar",
+    "progress": "{{have}} / {{need}}",
+    "effect": {
+      "moraleCap": "Teto de ânimo maior",
+      "offlineCapHours": "Mais tempo fora contado",
+      "autoCollect": "Menos espera no caixote",
+      "reputationRate": "Reputação mais rápida",
+      "critChance": "Mais toques de sorte",
+      "goldenChance": "Mais castanhas douradas",
+      "comboWindow": "Combos mais fáceis",
+      "eventReward": "Eventos melhores",
+      "roomEfficiency": "Salas rendem mais"
+    }
+  },
+  "construction": {
+    "reputation": "Reputação {{have}} / {{need}}",
+    "build": "Construir por {{cost}}"
+  },
+  "awayExtra": {
+    "crate": "O caixote encheu com {{value}} castanhas: toque nele no escritório para recolher.",
+    "finds_one": "Alguém achou algo enquanto você estava fora.",
+    "finds_other": "{{count}} colegas acharam algo enquanto você estava fora."
   }
 }

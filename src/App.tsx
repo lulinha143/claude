@@ -8,6 +8,7 @@ import { useGame } from './state/hooks';
 import { GameHud } from './ui/GameHud';
 import { GameDock, NextStepHint, dockFor } from './ui/GameDock';
 import { Sheet } from './ui/Sheet';
+import { GoalTag } from './ui/GoalTag';
 import { EmployeeTalk } from './ui/modals/EmployeeTalk';
 import { OfficeScene } from './art/OfficeScene';
 import { EventModal } from './ui/modals/EventModal';
@@ -210,7 +211,14 @@ export function App() {
         {/* The office never unmounts: sheets open over it and closing one returns
             to the same floor and scroll position. */}
         <OfficeScene covered={officeCovered} />
-        {!talk ? <NextStepHint /> : null}
+        {/* The office's two notes: what the game suggests (when it has a new idea)
+            and the immediate goal, bought right here. */}
+        {!talk ? (
+          <div className="stage-notes">
+            <NextStepHint />
+            <GoalTag />
+          </div>
+        ) : null}
         {/* A visit is its own full-stage mode (the office dims behind it); every
             other screen is a sheet over the office. */}
         {talk ? <EmployeeTalk /> : sheetOpen ? <Sheet view={view} /> : null}

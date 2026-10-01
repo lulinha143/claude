@@ -737,7 +737,7 @@
     },
     "autoCollector": {
       "name": "Auto-Collector",
-      "desc": "Automatically banks a fraction of production. No clicking required."
+      "desc": "When the crate is full, more of what the team packs still reaches the vault. At full automation nothing waits on you."
     },
     "conveyor": {
       "name": "Conveyor Belt",
@@ -3909,5 +3909,73 @@
     "here": "You are at: {{room}}",
     "people_one": "{{count}} teammate",
     "people_other": "{{count}} teammates"
+  },
+  "crate": {
+    "inside": "In the crate",
+    "full": "Full! Tap to collect",
+    "fullIn": "Full in {{time}}",
+    "fullShort": "Full",
+    "why": "Half of what the team makes is packed here. Collect it to get every nut.",
+    "waiting": "Your crate holds {{value}} nuts. Tap it to collect."
+  },
+  "rush": {
+    "label": "Rush ×{{mult}}",
+    "started": "RUSH!",
+    "toRush": "Keep the rhythm: {{left}} more taps to rush",
+    "tip": "Keep a combo going for {{taps}} taps and everyone in this room works at double pace for {{seconds}}s.",
+    "empty": "Nobody works here yet: a rush only speeds up the people in the room."
+  },
+  "find": {
+    "title": "{{name}} found something",
+    "take": "Take it",
+    "kind": {
+      "operational": "a tidy stack of nuts",
+      "social": "a snack basket",
+      "analytical": "a curious sample",
+      "industrial": "a spare bolt (and nuts)",
+      "secure": "a coin pouch",
+      "irregular": "a mystery box"
+    },
+    "line": {
+      "operational": "Found these behind the filing cabinet. For you!",
+      "social": "Someone left a whole basket. Sharing is caring.",
+      "analytical": "This sample produced nuts. Science!",
+      "industrial": "Shook the machine. Nuts fell out.",
+      "secure": "Found this in the lost and found. Finders keepers.",
+      "irregular": "Don't ask where this came from. Just take it."
+    },
+    "golden": "and a golden nut!"
+  },
+  "goal": {
+    "next": "Next",
+    "buy": "Buy",
+    "hire": "Hire {{name}}",
+    "level": "{{name}} Lv. {{level}}",
+    "perSecond": "+{{value}}/s",
+    "perTap": "+{{value}} per tap",
+    "opens": "Opens a new floor",
+    "bought": "Done!",
+    "open": "See everything to buy",
+    "progress": "{{have}} / {{need}}",
+    "effect": {
+      "moraleCap": "Higher morale ceiling",
+      "offlineCapHours": "Longer time away counted",
+      "autoCollect": "Less waiting on the crate",
+      "reputationRate": "Faster reputation",
+      "critChance": "More lucky taps",
+      "goldenChance": "More golden nuts",
+      "comboWindow": "Easier combos",
+      "eventReward": "Better events",
+      "roomEfficiency": "Rooms work better"
+    }
+  },
+  "construction": {
+    "reputation": "Reputation {{have}} / {{need}}",
+    "build": "Build for {{cost}}"
+  },
+  "awayExtra": {
+    "crate": "The crate filled up with {{value}} nuts: tap it in the office to collect.",
+    "finds_one": "Someone found something while you were out.",
+    "finds_other": "{{count}} teammates found something while you were out."
   }
 }
