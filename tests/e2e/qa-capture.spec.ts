@@ -66,7 +66,9 @@ test('a mood bubble belongs to its character, not the ceiling', async ({ page })
   const pairs = await page.locator('.critter-btn--sprite').evaluateAll((els) =>
     els
       .map((el) => {
-        const bubble = el.querySelector('.employee-bubble');
+        const bubble = el.parentElement?.querySelector(
+          `.employee-bubble[data-employee="${(el as HTMLElement).dataset.employee}"]`,
+        );
         if (!bubble) return null;
         const c = el.getBoundingClientRect();
         const b = bubble.getBoundingClientRect();

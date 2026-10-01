@@ -7,17 +7,48 @@ punishing micromanagement system (brief §16 / §18).
 ## Where an emotion comes from
 
 `employeeMood(state, id)` in `src/sim/mood.ts` derives the emotion
-**deterministically** from the current company state (no extra save fields):
+**deterministically** from that person's own situation, with company morale as
+the weather everyone shares (no extra save fields):
 
-| Condition (checked in order)        | Emotion      |
-| ----------------------------------- | ------------ |
-| A Focus Harvest session is active   | `focused`    |
-| Morale < 30                         | `frustrated` |
-| Morale < 45                         | `tired`      |
-| Friendship ≥ 70 **and** morale ≥ 70 | `proud`      |
-| Morale ≥ 85                         | `inspired`   |
-| Friendship ≥ 40                     | `relaxed`    |
-| otherwise                           | `curious`    |
+| Condition (checked in order)                 | Emotion                                                   |
+| -------------------------------------------- | --------------------------------------------------------- |
+| An event-driven emotion is active            | that emotion                                              |
+| A Focus Harvest session is active            | `focused`                                                 |
+| Morale < 30                                  | `worried` (friendship ≥ 60) / `frustrated`                |
+| Morale < 45                                  | `frustrated` (industrial room, friendship < 60) / `tired` |
+| Friendship ≥ 70 **and** morale ≥ 70          | `proud`                                                   |
+| Talked to them in the last 10 minutes        | `happy`                                                   |
+| Friendship < 25 (newcomers, day-one founder) | `curious`                                                 |
+| Morale ≥ 85                                  | dealt from `inspired` / `excited` / `happy`               |
+| otherwise                                    | dealt from the room temperament's three moods             |
+
+"Dealt" means roommates take the options in turn (stable order), so people who
+share a room show different faces, and moving someone can change theirs. The
+temperament sets (`ROOM_MOODS`) are: operational relaxed/focused/happy, social
+happy/relaxed/excited, analytical focused/curious/inspired, industrial
+focused/tired/proud, secure focused/suspicious/relaxed, irregular
+curious/suspicious/excited.
+
+## Emotion stickers (`src/art/EmotionSticker.tsx`)
+
+The fifteen moods read on screen as **nine stickers**, each with its own die-cut
+silhouette, colour and glyph: joy (sunburst), proud (star), calm (circle with a
+leaf), focused (rounded square), idea (light bulb), curious (speech blob with a
+question mark), sleepy (moon face with a "z" bubble), stressed (droplet with a
+sweat drop) and upset (storm cloud). All drawn in SVG, no image assets.
+
+- The office sticker lives in the stage's top layer (`SCENE_DEPTH.sticker`), not
+  inside the character's button, so furniture standing in front of a teammate
+  never hides it. It is positioned from the same slot and sprite metrics
+  (headroom and baseline) that place the character, follows them when they walk
+  over to a piece, and hides while they are carried or the room is being arranged.
+- Size: `clamp(30px, 42px × scene scale, 42px)`, readable in a 320×420 window.
+- `steadyMood` holds a sticker on screen: a new mood must persist 2.5 s, and the
+  current one stays at least 6 s, so a teammate sitting on a threshold never
+  flickers. Event emotions show at once.
+- Speech notes anchor to the sticker and stay inside the visible office (never
+  over the HUD, the dock or a side sheet); a note whose speaker scrolls out of
+  view hides instead of talking from nowhere.
 
 ## Effect on work (modest, understandable)
 
@@ -50,7 +81,9 @@ breakdown total always matches the live nuts/second.
 - **Employees tab**: each hired employee shows a **mood chip** (coloured dot +
   emotion name + the `+/-%` effect) with a tooltip explaining the emotion and its
   effect. Colours come from `MOOD_TONE`.
-- **Office scene**: the existing small mood dot on each working critter.
+- **Office scene**: an emotion sticker above each working teammate (see above);
+  the Team sheet, the visit header and consequence lists show the same sticker
+  art inline.
 
 ## Tests
 

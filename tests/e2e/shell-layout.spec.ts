@@ -83,7 +83,9 @@ async function homeFloorReport(page: Page) {
     const floor = home.getBoundingClientRect();
     const people = [...home.querySelectorAll<HTMLElement>('.critter-btn')].map((button) => {
       const sprite = button.querySelector('.employee-sprite, svg.critter')!.getBoundingClientRect();
-      const bubble = button.querySelector('.employee-bubble')!.getBoundingClientRect();
+      const bubble = home
+        .querySelector(`.employee-bubble[data-employee="${button.dataset.employee}"]`)!
+        .getBoundingClientRect();
       return {
         name: button.getAttribute('aria-label'),
         top: Math.min(sprite.top, bubble.top),

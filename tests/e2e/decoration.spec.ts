@@ -326,26 +326,41 @@ test.describe('decoration free-placement', () => {
     const destination = page.locator('.floor[data-room="morale"] .floor__stage');
     await expect(source).toBeVisible();
     await expect(destination).toBeVisible();
-    // `toBeVisible` only means "rendered and non-empty"; a room scrolled up behind
-    // the letterhead still passes it. The drop is a real pointer gesture, so both
-    // ends have to be inside the office's scroll window and clear of the tray, or
-    // the pointer silently lands on whatever chrome is in the way.
+    // The storage strip sits under the rooms while arranging, so the upstairs room
+    // may be out of sight: the drag itself has to bring it into reach. The source
+    // must be reachable for the pointer to pick it up at all.
     await expectReachableForPointer(source);
-    await expectReachableForPointer(destination);
 
     const sourceBox = (await source.boundingBox())!;
-    const destinationBox = (await destination.boundingBox())!;
     const sx = sourceBox.x + sourceBox.width / 2;
     const sy = sourceBox.y + sourceBox.height / 2;
-    const desiredAnchorX = destinationBox.x + destinationBox.width * 0.75;
-    const desiredAnchorY = destinationBox.y + destinationBox.height * 0.9;
-    const tx = desiredAnchorX + (sx - (sourceBox.x + sourceBox.width / 2));
-    const ty = desiredAnchorY + (sy - (sourceBox.y + sourceBox.height * (54 / 56)));
 
     await page.mouse.move(sx, sy);
     await page.mouse.down();
     await page.mouse.move(sx + 12, sy + 4, { steps: 3 });
     await expect(page.locator('.floor[data-room="morale"]')).toHaveClass(/is-deco-target/);
+
+    // Hold the piece at the top of the tower view: the building scrolls the upper
+    // floors down to it. Then step back into the middle so the scrolling stops.
+    const view = (await page.locator('.office__world').boundingBox())!;
+    await page.mouse.move(sx, view.y + 10, { steps: 6 });
+    await expect
+      .poll(
+        async () => {
+          const box = await destination.boundingBox();
+          return Boolean(box && box.y >= view.y + 60 && box.y + box.height <= view.y + view.height);
+        },
+        { timeout: 10_000 },
+      )
+      .toBe(true);
+    await page.mouse.move(sx, view.y + view.height / 2, { steps: 4 });
+    await expectReachableForPointer(destination);
+
+    const destinationBox = (await destination.boundingBox())!;
+    const desiredAnchorX = destinationBox.x + destinationBox.width * 0.75;
+    const desiredAnchorY = destinationBox.y + destinationBox.height * 0.9;
+    const tx = desiredAnchorX + (sx - (sourceBox.x + sourceBox.width / 2));
+    const ty = desiredAnchorY + (sy - (sourceBox.y + sourceBox.height * (54 / 56)));
     await page.mouse.move(tx, ty, { steps: 10 });
     await expect(page.locator('.floor[data-room="morale"]')).toHaveClass(/is-deco-hover/);
     await page.mouse.up();

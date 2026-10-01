@@ -167,17 +167,26 @@ test('characters stay grounded and unclipped inside their rooms', async ({ page 
     const floor = page.locator(`.floor[data-room="${room}"]`);
     if ((await floor.count()) === 0) continue;
     await floor.scrollIntoViewIfNeeded();
-    const roomBox = (await floor.boundingBox())!;
-    const critters = floor.locator('.critter-btn');
-    const n = await critters.count();
-    for (let i = 0; i < n; i += 1) {
-      const box = (await critters.nth(i).boundingBox())!;
+    // The room and its cast are measured in the SAME frame: the tower may still be
+    // settling its scroll position under load, and two separate reads taken either
+    // side of that would compare a room and a character from different scrolls.
+    const { roomBox, boxes } = await floor.evaluate((element) => {
+      const rect = (el: Element) => {
+        const r = el.getBoundingClientRect();
+        return { y: r.y, height: r.height };
+      };
+      return {
+        roomBox: rect(element),
+        boxes: [...element.querySelectorAll('.critter-btn')].map(rect),
+      };
+    });
+    boxes.forEach((box, i) => {
       // Feet on the floor, head not cut off by the room's overflow clip.
       expect(box.y + box.height, `${room} critter ${i} bottom`).toBeLessThanOrEqual(
         roomBox.y + roomBox.height + 2,
       );
       expect(box.y, `${room} critter ${i} top`).toBeGreaterThanOrEqual(roomBox.y - 2);
-    }
+    });
   }
   await page.screenshot({ path: 'visual-artifacts/qa-characters-all.png', fullPage: true });
 });

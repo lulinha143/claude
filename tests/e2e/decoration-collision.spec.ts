@@ -235,12 +235,15 @@ test.describe('decoration composition protection', () => {
     await expect(lampCard).toHaveAttribute('data-placement', 'placed');
     await lampCard.locator('.decor').click();
     await expect(lamp).toHaveClass(/is-selected/);
-    // The piece being arranged is lifted above EVERYTHING (characters included)
-    // so it can never be lost mid-drag. Assert the intent via the shared depth
-    // bands rather than a magic number that goes stale when the bands move.
+    // A picked piece keeps its own side of the team (so "Put behind / in front"
+    // is visible while it is picked); a floor lamp stands in front of everyone.
+    // Being buried under another piece never makes it unreachable: the tray
+    // picks it directly, and clicking a stack hands the pick down (see
+    // living-office.spec).
     const selectedZ = Number(await lamp.evaluate((element) => getComputedStyle(element).zIndex));
-    expect(selectedZ).toBe(SCENE_DEPTH.arranging);
+    await expect(lamp).toHaveAttribute('data-layer', 'front');
     expect(selectedZ).toBeGreaterThan(SCENE_DEPTH.character.max);
+    expect(selectedZ).toBeLessThan(SCENE_DEPTH.sticker);
     await page.screenshot({ path: `${DIR}/collide-02-dense-overlap.png` });
   });
 
