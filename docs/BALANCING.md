@@ -11,7 +11,10 @@ should be a scattered magic number.
 | -------------------------------------------- | ------------------------------------------------------------------- |
 | Base production, click power, starting nuts  | `BALANCE.baseProductionPerSecond`, `baseClickPower`, `startingNuts` |
 | Morale range and its production effect       | `BALANCE.morale`                                                    |
-| Crate value                                  | `BALANCE.crate`                                                     |
+| Crate share, capacity (minutes of packing)   | `BALANCE.crate`                                                     |
+| Teammates' finds (frequency, reward, limit)  | `BALANCE.finds`                                                     |
+| Rush streak, multiplier and length           | `CLICK.rushStreak`, `rushMultiplier`, `rushSeconds`                 |
+| When a long tick counts as time away         | `BALANCE.awayGapSeconds`                                            |
 | Offline efficiency and caps                  | `BALANCE.offline`                                                   |
 | Prestige unlock threshold and kernel formula | `BALANCE.prestige`                                                  |
 | Focus bonus and reward                       | `BALANCE.focus`                                                     |

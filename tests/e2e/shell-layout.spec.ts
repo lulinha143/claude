@@ -67,7 +67,7 @@ async function boot(page: Page, save: object | null, lang = 'en') {
 
 async function skipFirstRun(page: Page) {
   await page.getByRole('button', { name: 'Skip opening' }).click();
-  await page.getByRole('button', { name: 'Skip guide' }).click();
+  // No guide follows the opening any more: the office is the first screen.
   await expect(page.locator('.popup-backdrop')).toHaveCount(0);
 }
 
@@ -237,6 +237,9 @@ test('3 — popups are centred and as tall as what they say', async ({ browser }
     await guidePage.setViewportSize({ width, height });
     await boot(guidePage, null);
     await guidePage.getByRole('button', { name: 'Skip opening' }).click();
+    // The field guide opens from Settings now.
+    await openView(guidePage, 'settings');
+    await guidePage.getByRole('button', { name: 'Replay tutorial' }).click();
     await expect(guidePage.locator('.popup.guide')).toBeVisible();
     await guidePage.waitForTimeout(400);
     await expectPopupFitsContent(guidePage, `guide at ${width}`);

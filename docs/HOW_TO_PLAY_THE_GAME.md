@@ -30,7 +30,14 @@ after you build it yourself with Option B.
 
 ### Playing in the little window
 
-- **Collect nuts:** click the glowing crate near Pip's desk.
+- **Collect nuts:** click the crate near Pip's desk. The team packs half of
+  what it makes into it; it is full after about ten minutes, then it glows.
+- **Keep a rhythm:** tap a room's machine steadily and the ring around it fills;
+  at the top the whole room **rushes** (everyone there works double for 30 s).
+- **Take what they found:** when a teammate holds something out beside their
+  mood sticker, click it.
+- **Buy the next thing:** the paper tag in the corner of the office is your next
+  goal; when it turns green, one click buys it.
 - **Pet Pip / talk to staff:** click any animal.
 - **Open menus:** use the tabs at the top (Upgrades, Team, Company, etc.).
 - **Move the window:** click-and-drag the **top bar** (the part with the company

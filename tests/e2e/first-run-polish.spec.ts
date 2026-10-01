@@ -1,6 +1,8 @@
 import { test, expect, type Page } from '@playwright/test';
+import { openView } from './support/shell';
 
 const DIR = 'visual-artifacts';
+const REPLAY_PT = 'Repetir tutorial';
 
 async function seedFreshSettings(page: Page, language = 'en', reducedMotion = true) {
   await page.addInitScript(
@@ -49,6 +51,16 @@ test('premium first run is illustrated, keyboard-safe, and fully navigable', asy
   await shot(page, 'first-run-opening-title-1280x720');
 
   await start.click();
+  // The first run teaches by doing: no guide is forced open; the coach points at
+  // the founder's crate instead.
+  await expect(page.locator('.office')).toBeVisible();
+  await expect(page.locator('.popup.onboarding')).toHaveCount(0);
+  await expect(page.locator('.station-btn--crate.is-coached')).toBeVisible();
+  await shot(page, 'first-run-coach-1280x720');
+
+  // The field guide is still there to read, from Settings.
+  await openView(page, 'settings');
+  await page.getByRole('button', { name: 'Replay tutorial' }).click();
   const guide = page.locator('.popup.onboarding');
   await expect(guide).toBeVisible();
   await expect(page.getByRole('heading', { name: 'A company in a tree' })).toBeVisible();
@@ -89,6 +101,12 @@ test('compact localized first run stays contained and respects reduced motion', 
 
   await page.getByRole('button', { name: 'Pegar a primeira bolota' }).click();
   await page.getByRole('button', { name: 'Abrir a empresa' }).click();
+  // Straight into the office, the coach on the crate, everything inside the window.
+  await expect(page.locator('.station-btn--crate.is-coached')).toBeVisible();
+  await expectContained(page, '.station-btn--crate');
+  await expectContained(page, '.goal-tag');
+  await openView(page, 'settings');
+  await page.getByRole('button', { name: REPLAY_PT }).click();
   await expect(
     page.getByRole('heading', { name: 'Uma empresa dentro de uma árvore' }),
   ).toBeVisible();
@@ -105,10 +123,11 @@ test('Escape offers a complete keyboard bypass without trapping focus', async ({
   await expect(page.getByRole('button', { name: 'Claim the first acorn' })).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(page.locator('.opening-seq')).toHaveCount(0);
-  await expect(page.locator('.popup.onboarding')).toBeVisible();
-  await page.keyboard.press('Escape');
+  // Nothing else is stacked behind the opening: the office is playable at once.
   await expect(page.locator('.popup.onboarding')).toHaveCount(0);
   await expect(page.locator('.office')).toBeVisible();
+  await page.keyboard.press('Tab');
+  await expect(page.locator(':focus')).toHaveCount(1);
 });
 
 test('minimum desktop window keeps opening actions visible and focus locked during impact', async ({

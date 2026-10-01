@@ -9,17 +9,31 @@ collectible decoration game. Understandable in seconds; hours of depth.
 
 ## Core loop
 
-1. Employees automatically generate **Nuts**.
-2. The player collects **crates** (satisfying but optional — automation exists).
-3. Nuts buy machines, rooms, employees, and improvements.
-4. Improvements raise production and visibly expand the office upward.
+1. Employees automatically generate **Nuts**. Half goes straight to the vault;
+   the team packs the other half into **the founder's crate** (10 minutes of
+   packing fills it). Tapping the crate collects it. A full crate's share still
+   reaches the vault at the offline efficiency, and automation raises that until
+   nothing waits on the player (`src/sim/crate.ts`).
+2. **Stations** in every room pay per tap and build a combo. Keep the rhythm for
+   10 taps (8 on charge stations) and the room **rushes**: the people working in
+   it produce double for 30 s, renewed by every tap that keeps the streak. A
+   short burst of attention therefore scales with the company, and who works in
+   which room matters.
+3. Now and then a teammate **finds** something in their room (more often when
+   they are in a good mood) and holds it out beside their sticker. A find waits,
+   pays 45 s of production, and leaves the finder happy and a little friendlier.
+4. Nuts buy machines, rooms, employees and improvements. The office always shows
+   the **next goal** (the cheapest purchase, with what it will change) and buys
+   it with one tap; the top of the tower shows the **next floor** being built.
 5. **Random events** create short, funny decisions.
 6. Milestones unlock new systems (rooms, employees, prestige).
 7. **Go Completely Nuts** (prestige) grants Permanent Kernels for a skill tree
    and alternate company branches.
 
-Clicking is useful and juicy, but automation becomes the primary path — there
-are no arbitrary waiting walls.
+Keeping the game open is never worse than closing it: open time is credited in
+full however rarely a hidden window ticks, and a gap long enough to mean the
+computer slept is settled like time away (offline rules, crate filled, finds
+waiting). There are no arbitrary waiting walls.
 
 ## Resources
 
