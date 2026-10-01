@@ -111,6 +111,7 @@ const settingsSchema = z
     focusHarvestEnabled: z.boolean().catch(false),
     offlineCapHours: z.number().catch(8),
     showHints: z.boolean().catch(true),
+    officeFloor: z.string().nullable().catch(null),
     background: z
       .object({
         enabled: z.boolean().catch(true),

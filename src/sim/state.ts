@@ -27,6 +27,7 @@ export function defaultSettings(): GameSettings {
     focusHarvestEnabled: false,
     offlineCapHours: BALANCE.offline.defaultCapHours,
     showHints: true,
+    officeFloor: null,
     background: {
       enabled: true,
       brightness: 1,

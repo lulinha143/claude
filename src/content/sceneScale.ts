@@ -69,20 +69,25 @@
 /**
  * Room width, in CSS px, at which the scene is drawn at its authored size.
  *
- * Measured, not guessed: this is the rendered width of `.floor` once the app has
- * reached its maximum content width, i.e. the widest the room ever gets. Scale is
- * therefore 1 at every window from ~1216px up, and only ever reduces — the
- * authored pixel geometry is a maximum, never something we inflate past.
+ * This is also the maximum width of a floor in the tree-trunk tower (world.css
+ * reads the same number as `--floor-max-w`): large windows show more floors and
+ * more world around the trunk instead of stretching a room into a 6:1 strip.
+ *
+ * Why 700: a full room seats four animals at x ≈ 0.22 / 0.43 / 0.63 / 0.83, i.e.
+ * one teammate per ~0.2 of the room's width, and the widest workstation sprite is
+ * ~124px at scale 1. 0.2 × 700 = 140px per teammate leaves a clear gap between
+ * desks at every scale, so a full room never overlaps. (The old 1140px reference
+ * clamped at 0.7 put 87px-wide desks 64px apart in the 380px default window.)
  */
-export const SCENE_REFERENCE_ROOM_WIDTH = 1140;
+export const SCENE_REFERENCE_ROOM_WIDTH = 700;
 
 /**
- * Floor on the scale. At the smallest supported window the room is ~824px wide,
- * which is 0.72 of the reference, so this bound is deliberately just below what
- * the real minimum window produces: it exists to stop a pathologically narrow
- * window rendering an unreadable cast, not to clip normal use.
+ * Floor on the scale. The smallest window Electron allows is 320px wide, which
+ * leaves a ~296px floor: 0.42 of the reference. This bound sits just below that
+ * so the real minimum window is still drawn in proportion, and only a
+ * pathologically narrow container is clamped.
  */
-export const SCENE_SCALE_MIN = 0.7;
+export const SCENE_SCALE_MIN = 0.4;
 
 /** Ceiling. The authored sizes are the intended maximum. */
 export const SCENE_SCALE_MAX = 1;

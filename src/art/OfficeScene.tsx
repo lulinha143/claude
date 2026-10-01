@@ -1,8 +1,16 @@
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+} from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { availableFacilityDiscoveries } from '../sim/facilityDiscoveries';
-import { useGame } from '../state/hooks';
+import { useGameUnlessCovered } from '../state/hooks';
 import { useStore } from '../state/store';
 import {
   ROOM_CAP,
@@ -22,7 +30,6 @@ import { useSceneScale } from './useSceneScale';
 import { useSpriteAvailabilityRevision } from './spriteAvailability';
 import { EmployeeSprite } from './EmployeeSprite';
 import { EmployeeBubble } from './EmployeeMoodBadge';
-import { Acorn } from './Icons';
 import { ClickStation } from './ClickStation';
 import {
   CLICK_STATIONS_BY_ID,
@@ -36,6 +43,8 @@ import { useFmt } from '../ui/useFmt';
 import { Icon } from './UiIcon';
 import { DecorationProp, decorKind, interactSound } from './DecorationProp';
 import { RoomDressing } from './RoomDressing';
+import { SceneControls } from './SceneControls';
+import { TreeBranches, TreeCanopy, TreeRoots } from './TreeWorld';
 import {
   placedDecorationsInRoom,
   isDecorationPlaced,
@@ -60,6 +69,10 @@ import { createRng } from '../sim/rng';
 import { notify } from '../ui/notificationsStore';
 import { dustPuff } from '../ui/sparkle';
 import { INTERACTION_CANCEL_EVENT, INTERACTION_FOCUS_EVENT } from '../ui/interactionLifecycle';
+import { FOCUS_FLOOR_EVENT } from '../ui/officeEvents';
+
+/** The ground floor of the tower, where a new company opens. */
+const FOUNDER_FLOOR = 'founder-desk';
 
 const DRAG_THRESHOLD = 7; // px before a press becomes a drag (vs a tap)
 
@@ -232,9 +245,15 @@ function machineFor(id: string): CritterStateMachine {
   return machines[id];
 }
 
-export function OfficeScene() {
+/**
+ * The office. It never unmounts (every other screen opens over it), so while it
+ * is fully covered — a minigame in play, a visit, or a full-window sheet — it
+ * stops following sim ticks and catches up the moment it is uncovered. Memoised
+ * so the shell re-rendering around it does not drag the whole tower along.
+ */
+export const OfficeScene = memo(function OfficeScene({ covered = false }: { covered?: boolean }) {
   const { t } = useTranslation();
-  const { engine, state } = useGame();
+  const { engine, state } = useGameUnlessCovered(covered);
   const audio = useStore((s) => s.audio);
   const requestActivity = useStore((s) => s.requestActivity);
   const reducedMotion = state.settings.reducedMotion;
@@ -253,25 +272,53 @@ export function OfficeScene() {
     scopeRef: sceneScopeRef,
     sceneScale,
   } = useSceneScale<HTMLDivElement, HTMLDivElement>();
+  // -- the tower's scroll position ---------------------------------------------
+  // The office is a vertical tree trunk of floors inside one scroller. It opens on
+  // the player's home floor (the Founder's Desk, or the floor they last looked at)
+  // instead of the rooftop, keeps that floor centred while the window is resized
+  // or the scene scale settles, and remembers it for the next session.
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const currentFloorRef = useRef<string | null>(null);
+  const [currentFloor, setCurrentFloor] = useState<string | null>(null);
+  const scrollToFloor = useCallback(
+    (roomId: string, behavior: ScrollBehavior = 'auto') => {
+      const scroller = scrollerRef.current;
+      const floor = scroller?.querySelector<HTMLElement>(`.floor[data-room="${roomId}"]`);
+      if (!scroller || !floor) return;
+      const top =
+        floor.getBoundingClientRect().top -
+        scroller.getBoundingClientRect().top +
+        scroller.scrollTop;
+      const centred = top - Math.max(8, (scroller.clientHeight - floor.offsetHeight) / 2);
+      currentFloorRef.current = roomId;
+      setCurrentFloor(roomId);
+      engine.rememberOfficeFloor(roomId);
+      scroller.scrollTo({ top: Math.max(0, centred), behavior });
+    },
+    [engine],
+  );
   const decorationRequest = useStore((s) => s.decorationRequest);
   const arrangeDecoration = useStore((s) => s.arrangeDecoration);
   const [decorMode, setDecorMode] = useState(Boolean(decorationRequest));
   // The decoration currently picked up for arranging (its id), or null.
   const [selected, setSelected] = useState<string | null>(decorationRequest);
+  // The office never unmounts any more (sheets open over it), so an "Arrange in
+  // office" request can arrive at any time — not only at mount. Consume each one:
+  // enter arrange mode, pick the item, bring its floor into view, then clear it.
   useEffect(() => {
-    if (!decorationRequest) return;
+    if (!decorationRequest) return undefined;
+    setDecorMode(true);
+    setSelected(decorationRequest);
     const room =
       decorationRoom(state, decorationRequest) ?? DECORATIONS_BY_ID[decorationRequest]?.room;
-    const timer = window.setTimeout(
-      () =>
-        document.querySelector(`.floor[data-room="${room}"]`)?.scrollIntoView({ block: 'nearest' }),
-      100,
-    );
-    arrangeDecoration(null);
+    const timer = window.setTimeout(() => {
+      if (room) scrollToFloor(room, reducedMotion ? 'auto' : 'smooth');
+      arrangeDecoration(null);
+    }, 60);
     return () => window.clearTimeout(timer);
-    // Consume the navigation request once; game ticks must not scroll the room.
+    // Game ticks must not re-run this; only a new request does.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [decorationRequest]);
   const [moveDialog, setMoveDialog] = useState<string | null>(null);
   // A decoration that was just placed, for a brief settle animation.
   const [justPlaced, setJustPlaced] = useState<string | null>(null);
@@ -316,6 +363,107 @@ export function OfficeScene() {
   const focusMode = engine.isFocusActive();
   const lowMorale = state.resources.morale < 35;
 
+  // Open on the home floor, and keep the current floor centred whenever the
+  // scene scale settles, the window is resized or a new floor is built on top.
+  const roomIds = rooms.map((room) => room.id).join('|');
+  useLayoutEffect(() => {
+    const ids = roomIds.split('|');
+    const saved = engine.state.settings.officeFloor;
+    const current = currentFloorRef.current;
+    const home =
+      current && ids.includes(current)
+        ? current
+        : saved && ids.includes(saved)
+          ? saved
+          : ids.includes(FOUNDER_FLOOR)
+            ? FOUNDER_FLOOR
+            : ids[ids.length - 1];
+    if (home) scrollToFloor(home);
+  }, [sceneScale, roomIds, scrollToFloor, engine]);
+
+  // Track the floor nearest the middle of the view (for the elevator and for the
+  // next session), and re-centre it when the scroller changes size.
+  useEffect(() => {
+    const scroller = scrollerRef.current;
+    if (!scroller) return undefined;
+    let frame = 0;
+    const measure = () => {
+      frame = 0;
+      const box = scroller.getBoundingClientRect();
+      const middle = box.top + scroller.clientHeight / 2;
+      let best: string | null = null;
+      let bestDistance = Infinity;
+      scroller.querySelectorAll<HTMLElement>('.floor[data-room]').forEach((element) => {
+        const rect = element.getBoundingClientRect();
+        const distance = Math.abs(rect.top + rect.height / 2 - middle);
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          best = element.dataset.room ?? null;
+        }
+      });
+      if (best && best !== currentFloorRef.current) {
+        currentFloorRef.current = best;
+        setCurrentFloor(best);
+        engine.rememberOfficeFloor(best);
+      }
+    };
+    const onScroll = () => {
+      if (!frame) frame = window.requestAnimationFrame(measure);
+    };
+    scroller.addEventListener('scroll', onScroll, { passive: true });
+    // Only a change of HEIGHT moves the floors relative to the view. A side sheet
+    // opening narrows the scroller without changing any floor's offset, and
+    // re-centring then would nudge the player's own scroll position. (A change of
+    // scene scale re-centres through the layout effect above.)
+    let lastHeight = scroller.clientHeight;
+    const observer =
+      typeof ResizeObserver === 'undefined'
+        ? null
+        : new ResizeObserver(() => {
+            const height = scroller.clientHeight;
+            if (Math.abs(height - lastHeight) < 2) return;
+            lastHeight = height;
+            if (currentFloorRef.current) scrollToFloor(currentFloorRef.current);
+          });
+    observer?.observe(scroller);
+    return () => {
+      scroller.removeEventListener('scroll', onScroll);
+      observer?.disconnect();
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, [engine, scrollToFloor]);
+
+  // Other parts of the game (the next-step note, discoveries) can ask for a floor.
+  useEffect(() => {
+    const onFocusFloor = (event: Event) => {
+      const roomId = (event as CustomEvent<{ roomId?: string }>).detail?.roomId;
+      if (roomId) scrollToFloor(roomId, reducedMotion ? 'auto' : 'smooth');
+    };
+    window.addEventListener(FOCUS_FLOOR_EVENT, onFocusFloor);
+    return () => window.removeEventListener(FOCUS_FLOOR_EVENT, onFocusFloor);
+  }, [scrollToFloor, reducedMotion]);
+
+  // The elevator's floor list closes on any press outside it, or Escape.
+  const [floorsOpen, setFloorsOpen] = useState(false);
+  useEffect(() => {
+    if (!floorsOpen) return undefined;
+    const onDown = (event: PointerEvent) => {
+      if (!(event.target as Element | null)?.closest('.elevator')) setFloorsOpen(false);
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setFloorsOpen(false);
+      }
+    };
+    document.addEventListener('pointerdown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('pointerdown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [floorsOpen]);
+
   // Stable identity so callbacks that schedule office life (station taps, employee
   // reactions) are not rebuilt on every render.
   const scheduleLife = useCallback((callback: () => void, delay: number) => {
@@ -346,9 +494,15 @@ export function OfficeScene() {
       const preferred = pendingFocusRestoreRef.current;
       if (!preferred) return;
       pendingFocusRestoreRef.current = null;
-      const fallback = document.querySelector<HTMLElement>('.office__toolbar button, .nav__item');
-      const target =
-        preferred.isConnected && !preferred.hasAttribute('disabled') ? preferred : fallback;
+      const fallback = document.querySelector<HTMLElement>('.scene-controls button, .dock__item');
+      // A drag can start on a whole tray card (a plain container): hand focus to the
+      // card's own control, since focusing the container itself silently fails.
+      const FOCUSABLE =
+        'button:not([disabled]), [href], input, select, [tabindex]:not([tabindex="-1"])';
+      const control = preferred.matches(FOCUSABLE)
+        ? preferred
+        : preferred.querySelector<HTMLElement>(FOCUSABLE);
+      const target = preferred.isConnected && control ? control : fallback;
       target?.focus({ preventScroll: true });
     };
     const cancelForBlur = () =>
@@ -383,11 +537,13 @@ export function OfficeScene() {
     };
   }, []);
 
+  // Ambient life only runs while someone can see it.
   useEffect(() => {
+    if (covered) return undefined;
     const h = setInterval(ambientChatter, 11000);
     return () => clearInterval(h);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [covered]);
 
   // Every so often a hired critter comes alive: often it wanders over to a
   // nearby decoration and interacts with it (lean toward it + react bubble +
@@ -962,10 +1118,9 @@ export function OfficeScene() {
     setSelected(null);
   }
 
-  const overGif = state.settings.background.enabled;
   return (
     <div
-      className={`office ${decorMode ? 'office--decorating' : ''} ${overGif ? 'office--overgif' : ''} ${
+      className={`office ${decorMode ? 'office--decorating' : ''} ${
         drag ? 'office--dragging' : ''
       }`}
       aria-label="office diorama"
@@ -973,493 +1128,436 @@ export function OfficeScene() {
       // fixture and decoration inside the diorama — and to nothing in the HUD.
       ref={sceneScopeRef}
     >
-      <div className="office__toolbar">
-        <button
-          className={`chip-btn ${decorMode ? 'is-on' : ''}`}
-          onClick={toggleDecorMode}
-          aria-pressed={decorMode}
-        >
-          <Icon name="decorate" size={14} /> {t('office.decorate')}
-        </button>
-        {!decorMode ? <span className="office__toolbar-hint">{t('office.dragHint')}</span> : null}
-        {decorMode ? (
-          <>
-            <button
-              className="chip-btn chip-btn--ghost"
-              onClick={() => engine.undoDecoration()}
-              disabled={!engine.canUndoDecoration()}
-              title={t('decorate.undo')}
-            >
-              <Icon name="undo" size={13} /> {t('decorate.undo')}
-            </button>
-            <button
-              className="chip-btn chip-btn--ghost"
-              onClick={() => engine.redoDecoration()}
-              disabled={!engine.canRedoDecoration()}
-              title={t('decorate.redo')}
-            >
-              <Icon name="redo" size={13} /> {t('decorate.redo')}
-            </button>
-            <span className="office__toolbar-hint">
-              {selected ? t('decorate.pickedHint') : t('office.decorateHint')}
-            </span>
-          </>
-        ) : null}
-      </div>
+      {/* The world behind the tree: a fixed sky that the trunk scrolls in front of.
+          On a companion-sized window it is only a sliver at the bark's edges; on
+          a big window it becomes the landscape around the company. */}
+      <div className="office__view">
+        <div className="office__sky" aria-hidden>
+          <span className="office__cloud office__cloud--1" />
+          <span className="office__cloud office__cloud--2" />
+          <span className="office__cloud office__cloud--3" />
+          <span className="office__hills" />
+        </div>
 
-      {/* organic tree-trunk frame behind the floors */}
-      {rooms.length > 2 ? (
-        <label className="office-directory">
-          <span>{t('office.directory')}</span>
-          <select
-            defaultValue=""
-            onChange={(event) => {
-              const room = document.querySelector<HTMLElement>(
-                `.floor[data-room="${event.target.value}"]`,
-              );
-              room?.scrollIntoView({
-                block: 'nearest',
-                behavior: reducedMotion ? 'instant' : 'smooth',
-              });
-            }}
-          >
-            <option value="" disabled>
-              {t('office.chooseDepartment')}
-            </option>
-            {rooms.map((room) => (
-              <option key={room.id} value={room.id}>
-                {t(room.nameKey)}
-              </option>
-            ))}
-          </select>
-        </label>
-      ) : null}
-      <svg className="office__frame" viewBox="0 0 100 200" preserveAspectRatio="none" aria-hidden>
-        <defs>
-          <linearGradient id="bark" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0" stopColor="#3a2c1f" />
-            <stop offset="0.5" stopColor="#4a3826" />
-            <stop offset="1" stopColor="#33261a" />
-          </linearGradient>
-        </defs>
-        {/* trunk body with slightly irregular sides */}
-        <path
-          d="M8 12 C 2 40, 6 90, 4 140 C 3 168, 10 184, 14 196 L86 196 C 90 184, 97 168, 96 140 C 94 90, 98 40, 92 12 C 80 4, 20 4, 8 12 Z"
-          fill="url(#bark)"
-          stroke="#241a12"
-          strokeWidth="1.5"
-        />
-        {/* bark grooves */}
-        <path
-          d="M16 20 C 12 70, 14 120, 12 180"
-          stroke="#33261a"
-          strokeWidth="1.4"
-          fill="none"
-          opacity="0.6"
-        />
-        <path
-          d="M84 20 C 88 70, 86 120, 88 180"
-          stroke="#33261a"
-          strokeWidth="1.4"
-          fill="none"
-          opacity="0.6"
-        />
-        {/* knots */}
-        <ellipse cx="14" cy="60" rx="3" ry="5" fill="#2a2016" opacity="0.7" />
-        <ellipse cx="87" cy="110" rx="3" ry="5" fill="#2a2016" opacity="0.7" />
-        {/* roots at the base */}
-        <path
-          d="M14 196 c -6 -2 -8 -8 -12 -6 M86 196 c 6 -2 8 -8 12 -6"
-          stroke="#241a12"
-          strokeWidth="3"
-          fill="none"
-          strokeLinecap="round"
-        />
-        {/* moss */}
-        <path
-          d="M6 150 q4 6 10 4 M94 40 q-5 6 -10 3"
-          stroke="#3f7d4f"
-          strokeWidth="3"
-          fill="none"
-          opacity="0.5"
-          strokeLinecap="round"
-        />
-      </svg>
-
-      <div className="office__trunk">
-        {nextLocked ? (
-          <div className="floor floor--locked" aria-label={t('common.locked')}>
-            <div className="floor__label">
-              <Icon name="lock" size={12} /> {t(nextLocked.nameKey)}
-            </div>
-            <div className="floor__construction">
-              {nextLocked.unlock.reputation
-                ? t('employee.unlockAt', { value: nextLocked.unlock.reputation })
-                : t('common.locked')}
-            </div>
-          </div>
-        ) : null}
-
-        {rooms.map((room, roomIndex) => {
-          const occupants = Object.entries(state.employees).filter(
-            ([id, rt]) => rt.hired && resolveEmployeeRoom(state, id) === room.id,
-          );
-          const slots = characterSlots(occupants.length, room.id);
-          const comfort = roomComfort(state, room.id);
-          const placed = placedDecorationsInRoom(state, room.id);
-          const canDropHere = decorMode && drag?.kind === 'decoration' && drag.overRoom === room.id;
-          const selectedPlacedHere =
-            selected !== null && selectedRoom() === room.id && isDecorationPlaced(state, selected);
-          let dropClass = '';
-          if (drag) {
-            if (drag.kind === 'employee') {
-              dropClass =
-                drag.overRoom === room.id
-                  ? drag.valid
-                    ? 'is-drop-hover'
-                    : 'is-drop-invalid'
-                  : 'is-drop-target';
-            } else if (drag.kind === 'decoration') {
-              const compatible =
-                DECORATIONS_BY_ID[drag.id]?.compatibleRooms.includes(room.id) ?? false;
-              if (drag.overRoom === room.id) {
-                dropClass = drag.valid ? 'is-deco-hover' : 'is-deco-invalid';
-              } else if (compatible) {
-                dropClass = 'is-deco-target';
-              }
-            }
-          }
-          return (
-            <div
-              className={`floor ${dropClass}`}
-              key={room.id}
-              data-room={room.id}
-              // Every room is the same width, so the first one is measured and its
-              // width drives the scale for the whole diorama.
-              ref={roomIndex === 0 ? sceneMeasureRef : undefined}
-              style={{ ['--dept' as string]: DEPT[room.id] ?? 'var(--dept-founder)' }}
-            >
-              <div className="floor__header">
-                <span className="floor__label">{t(room.nameKey)}</span>
-                {!decorMode && ['broadcast', 'repair', 'conservatory'].includes(room.id) ? (
-                  <button
-                    className="floor__activity"
-                    onClick={() =>
-                      requestActivity(
-                        room.id === 'broadcast'
-                          ? 'cableUntangle'
-                          : room.id === 'repair'
-                            ? 'bugSquash'
-                            : 'coffeeRescue',
-                      )
-                    }
-                  >
-                    {t(`annex.${room.id}.activity`)}
-                  </button>
-                ) : null}
-                {!decorMode && occupants.length > 0 ? (
-                  <div className="floor__people">
-                    {occupants.map(([id, rt]) => (
-                      <button
-                        key={id}
-                        onClick={() => {
-                          if (engine.openTalk(id, undefined, true)) audio.play('paper');
-                        }}
-                      >
-                        {rt.nickname ?? t(EMPLOYEES_BY_ID[id].nameKey)}
-                      </button>
-                    ))}
+        <div className="office__world" ref={scrollerRef} data-testid="office-world">
+          <div className="office__tower">
+            <TreeBranches />
+            <TreeCanopy />
+            <div className="office__trunk">
+              {nextLocked ? (
+                <div className="floor floor--locked" aria-label={t('common.locked')}>
+                  <div className="floor__label">
+                    <Icon name="lock" size={12} /> {t(nextLocked.nameKey)}
                   </div>
-                ) : null}
-                {!decorMode && discoveries.some((discovery) => discovery.roomId === room.id) ? (
-                  <button
-                    className="floor__discovery"
-                    onClick={() => {
-                      const discovery = discoveries.find((entry) => entry.roomId === room.id);
-                      if (discovery && engine.inspectFacility(discovery.id)) audio.play('paper');
-                    }}
-                  >
-                    {t('discovery.inspect')}
-                  </button>
-                ) : null}
-                <span className="floor__status">
-                  {occupants.length > 0 ? (
-                    <Tip
-                      content={
-                        <TipContent
-                          title={t('overview.capacityTitle')}
-                          lines={[t('overview.capacityTip'), `${occupants.length} / ${ROOM_CAP}`]}
-                        />
-                      }
-                    >
-                      <span className="floor__stat" tabIndex={0}>
-                        <Icon name="employees" size={11} /> {occupants.length}
-                      </span>
-                    </Tip>
-                  ) : null}
-                  {comfort > 0 ? (
-                    <Tip
-                      content={
-                        <TipContent
-                          title={t('overview.comfortTitle')}
-                          lines={[t('overview.comfortTip'), `+${comfort}`]}
-                        />
-                      }
-                    >
-                      <span className="floor__stat floor__stat--comfort" tabIndex={0}>
-                        <Icon name="morale" size={11} /> +{comfort}
-                      </span>
-                    </Tip>
-                  ) : null}
-                </span>
-              </div>
-              <div
-                className={`floor__ambient floor__ambient--${AMBIENT[room.id] ?? 'dust'}`}
-                aria-hidden
-              >
-                {reducedMotion ? null : (
-                  <>
-                    <span className="floor__dust" />
-                    <span className="floor__dust floor__dust--2" />
-                    <span className="floor__dust floor__dust--3" />
-                  </>
-                )}
-              </div>
-
-              <div className={`floor__stage ${canDropHere ? 'floor__stage--dropping' : ''}`}>
-                {/* built-in room identity (window, rug, department fixture) */}
-                <RoomDressing roomId={room.id} />
-
-                {/* placed decorations sit at their chosen normalized position,
-                    layered by surface (wall behind, floor grounded, ceiling above) */}
-                {placed.map(({ def, placement }) => (
-                  <div
-                    key={def.id}
-                    data-deco={def.id}
-                    data-region-kind={decorationInstance(state, def.id)?.regionKind ?? undefined}
-                    data-anchor={placementSpec(def.id).anchor}
-                    data-depth={decorationInstance(state, def.id)?.depth}
-                    className={`floor__deco floor__deco--${placement.surface} ${decorationAnchorClass(def.id)} ${
-                      isRug(def.id) ? 'floor__deco--rug' : ''
-                    } ${selected === def.id ? 'is-selected' : ''} ${
-                      drag?.kind === 'decoration' && drag.id === def.id ? 'is-dragging' : ''
-                    } ${justPlaced === def.id ? 'is-placing' : ''}`}
-                    style={{
-                      ...decorationAnchorStyle(def.id),
-                      left: `${placement.x * 100}%`,
-                      bottom: `${placement.y * 100}%`,
-                      // Legacy saved depths belong to the previous scene bands.
-                      zIndex:
-                        decorMode && selected === def.id
-                          ? SCENE_DEPTH.arranging
-                          : Math.min(
-                              DECORATION_DEPTH_CEILING,
-                              (decorationInstance(state, def.id)?.depth ?? 0) >= SCENE_DEPTH.rug.min
-                                ? decorationInstance(state, def.id)!.depth
-                                : surfaceZ(def.id, placement.surface),
-                            ),
-                    }}
-                  >
-                    <DecorationProp
-                      id={def.id}
-                      reducedMotion={reducedMotion}
-                      mode={decorMode ? 'toggle' : 'interact'}
-                      selected={decorMode && selected === def.id}
-                      reacting={!decorMode && reactingDeco === def.id}
-                      title={t(`deco.${def.id}.name`)}
-                      onToggle={() => selectDeco(def.id)}
-                      onInteract={() => audio.play(interactSound(decorKind(def.id)))}
-                      onPointerDown={
-                        decorMode ? (e) => beginDrag(e, 'decoration', def.id) : undefined
-                      }
-                    />
+                  <div className="floor__construction">
+                    {nextLocked.unlock.reputation
+                      ? t('employee.unlockAt', { value: nextLocked.unlock.reputation })
+                      : t('common.locked')}
                   </div>
-                ))}
-
-                {/* semantic region + live footprint/collision preview */}
-                {drag?.kind === 'decoration' && drag.preview?.roomId === room.id ? (
-                  <RegionGuide preview={drag.preview} />
-                ) : canDropHere ? (
-                  <div
-                    className={`floor__surface-guide floor__surface-guide--${decorationSurface(drag.id)}`}
-                    aria-hidden
-                  />
-                ) : null}
-
-                {occupants.map(([id, rt], idx) => {
-                  const def = EMPLOYEES_BY_ID[id];
-                  const shape = shapeFor(id);
-                  const sprite = employeeSprite(id);
-                  const slot = slots[idx] ?? { x: 0.5, bottom: 0 };
-                  // How far back this teammate stands, as a size cue. Without it a
-                  // raised character reads as hovering rather than as distant.
-                  const perspective = depthScale(slot.bottom);
-                  const visiting = interaction?.employeeId === id;
-                  const ex = visiting
-                    ? slot.x * 0.55 + (interaction?.targetX ?? slot.x) * 0.45
-                    : slot.x;
-                  const interactedRecently =
-                    recentEmployee === id || (visiting && interaction?.phase === 'interacting');
-                  const inputs = {
-                    hired: rt.hired,
-                    producing,
-                    moving:
-                      (drag?.kind === 'employee' && drag.id === id) ||
-                      (visiting && interaction?.phase === 'walking'),
-                    lowMorale,
-                    celebrating: celebratingEmployee === id,
-                    focusMode,
-                    interactedRecently,
-                    // A click/keyboard activation or ambient interaction should be
-                    // visible even while the control remains hovered or focused.
-                    hovered:
-                      !interactedRecently && (hoveredEmployee === id || focusedEmployee === id),
-                  };
-                  const anim: CritterState = machineFor(id).update(inputs, now);
-                  const accent =
-                    def?.outfits.find((o) => o.id === rt.outfitId)?.accent ??
-                    def?.accent ??
-                    '#3f7d4f';
-                  const label = rt.nickname ?? t(def?.nameKey ?? id);
-                  const mood = employeeMood(state, id);
-                  const moodLabel = t(`mood.${mood}`);
-                  return (
-                    <button
-                      key={id}
-                      className={`critter-btn ${sprite ? 'critter-btn--sprite' : ''} ${
-                        drag?.kind === 'employee' && drag.id === id ? 'is-dragging' : ''
-                      } ${!decorMode ? 'is-draggable' : ''} ${visiting ? 'is-visiting' : ''}`}
-                      style={{
-                        left: `${ex * 100}%`,
-                        // Slot depth is authored in scene pixels, so it scales with
-                        // the scene. Without this the cast kept its spacing up the
-                        // floor while the floor itself shrank, and characters at the
-                        // back drifted off the top of a small room.
-                        bottom: `calc(${slot.bottom}px * var(--asset-scale))`,
-                        // Hang the mood bubble off the top of the HEAD. Sprite
-                        // canvases carry between 0% and 11% dead headroom, so a
-                        // single shared percentage sat a different distance above
-                        // every animal.
-                        ...(sprite
-                          ? {
-                              ['--bubble-anchor' as string]: `${((1 - sprite.figureTop) * 100).toFixed(1)}%`,
-                            }
-                          : null),
-                        // Characters occupy the band above every decoration, and
-                        // sort among themselves by how near the camera they
-                        // stand, so the whole team stays readable.
-                        zIndex: visiting ? SCENE_DEPTH.characterFocus : characterDepth(slot.bottom),
-                      }}
-                      onPointerDown={(e) => beginDrag(e, 'employee', id)}
-                      onPointerEnter={() => setHoveredEmployee(id)}
-                      onPointerLeave={() =>
-                        setHoveredEmployee((current) => (current === id ? null : current))
-                      }
-                      onFocus={() => setFocusedEmployee(id)}
-                      onBlur={() =>
-                        setFocusedEmployee((current) => (current === id ? null : current))
-                      }
-                      onClick={() => onCritterClick(id)}
-                      title={`${label} · ${moodLabel}`}
-                      aria-label={`${label}, ${moodLabel}`}
-                      // The reaction state lives on the BUTTON, not only on the
-                      // vector critter's <svg>. The nine animals with photographic
-                      // artwork have no <svg> to carry a class, so every hover,
-                      // focus, celebration and panic reaction was silently doing
-                      // nothing for them.
-                      data-anim={anim}
-                    >
-                      {focusMode ? <span className="focus-hat" aria-hidden /> : null}
-                      {sprite ? (
-                        <EmployeeSprite
-                          config={sprite}
-                          reducedMotion={reducedMotion}
-                          // Scaled by distance, not by character: a teammate at the
-                          // front of the room is always exactly cast scale, and one
-                          // standing further back is smaller because it is further
-                          // back. Height only — EmployeeSprite derives width, so the
-                          // aspect ratio is untouched.
-                          height={Math.round(sprite.officeHeight * perspective)}
-                        />
-                      ) : (
-                        <Critter
-                          species={shape.species}
-                          color={def?.color ?? '#c65b3c'}
-                          accent={accent}
-                          state={anim}
-                          hasGlasses={shape.hasGlasses}
-                          reducedMotion={reducedMotion}
-                          // The vector fallback renders an <svg> at a raw pixel
-                          // size, so unlike EmployeeSprite it cannot pick the scene
-                          // scale up from CSS and has to be told. Without this the
-                          // animals still awaiting artwork — the bear — would be the
-                          // only ones that did not shrink with the room.
-                          size={Math.round(VECTOR_CRITTER_OFFICE_SIZE * perspective * sceneScale)}
-                          title={label}
-                          seed={idx + room.floor}
-                        />
-                      )}
-                      <EmployeeBubble
-                        mood={mood}
-                        color={MOOD_TONE[mood]}
-                        label={moodLabel}
-                        name={label}
-                        speech={bubble?.employeeId === id ? bubble.text : null}
-                      />
-                    </button>
-                  );
-                })}
-                {/* Every room has its own equipment to work. Stations are hidden
-                    while arranging so a drag can never be eaten by a tap. */}
-                {!decorMode
-                  ? stationsInRoom(room.id).map((stationDef) => (
-                      <ClickStation
-                        key={stationDef.id}
-                        def={stationDef}
-                        onTap={onTapStation}
-                        previewText={stationPreview(stationDef)}
-                        synergyNames={stationSynergyNames(stationDef)}
-                        play={playSfx}
-                        formatAmount={fmt.int}
-                      />
-                    ))
-                  : null}
-              </div>
-
-              {/* arrange-mode per-room actions (inventory lives in the bottom tray) */}
-              {decorMode ? (
-                <div className="floor__tray floor__tray--actions">
-                  {selectedPlacedHere ? (
-                    <>
-                      <button
-                        className="mini-btn mini-btn--primary"
-                        onClick={() => setMoveDialog(selected)}
-                      >
-                        <Icon name="rooms" size={12} /> {t('decorate.moveTo')}
-                      </button>
-                      <button className="mini-btn" onClick={sendSelectedToInventory}>
-                        <Icon name="close" size={12} /> {t('decorate.stow')}
-                      </button>
-                    </>
-                  ) : null}
-                  <button
-                    className="mini-btn"
-                    onClick={() => {
-                      if (engine.resetRoomDecorations(room.id)) audio.play('upgrade');
-                      else {
-                        notify('rooms', t('decorate.resetFull'), 'neutral');
-                        audio.play('error');
-                      }
-                      setSelected(null);
-                    }}
-                  >
-                    <Icon name="refresh" size={12} /> {t('decorate.resetRoom')}
-                  </button>
                 </div>
               ) : null}
+
+              {rooms.map((room, roomIndex) => {
+                const occupants = Object.entries(state.employees).filter(
+                  ([id, rt]) => rt.hired && resolveEmployeeRoom(state, id) === room.id,
+                );
+                const slots = characterSlots(occupants.length, room.id);
+                const comfort = roomComfort(state, room.id);
+                const placed = placedDecorationsInRoom(state, room.id);
+                const canDropHere =
+                  decorMode && drag?.kind === 'decoration' && drag.overRoom === room.id;
+                const selectedPlacedHere =
+                  selected !== null &&
+                  selectedRoom() === room.id &&
+                  isDecorationPlaced(state, selected);
+                let dropClass = '';
+                if (drag) {
+                  if (drag.kind === 'employee') {
+                    dropClass =
+                      drag.overRoom === room.id
+                        ? drag.valid
+                          ? 'is-drop-hover'
+                          : 'is-drop-invalid'
+                        : 'is-drop-target';
+                  } else if (drag.kind === 'decoration') {
+                    const compatible =
+                      DECORATIONS_BY_ID[drag.id]?.compatibleRooms.includes(room.id) ?? false;
+                    if (drag.overRoom === room.id) {
+                      dropClass = drag.valid ? 'is-deco-hover' : 'is-deco-invalid';
+                    } else if (compatible) {
+                      dropClass = 'is-deco-target';
+                    }
+                  }
+                }
+                return (
+                  <div
+                    className={`floor ${dropClass}`}
+                    key={room.id}
+                    data-room={room.id}
+                    // Every room is the same width, so the first one is measured and its
+                    // width drives the scale for the whole diorama.
+                    ref={roomIndex === 0 ? sceneMeasureRef : undefined}
+                    style={{ ['--dept' as string]: DEPT[room.id] ?? 'var(--dept-founder)' }}
+                  >
+                    <div className="floor__header">
+                      <span className="floor__label">{t(room.nameKey)}</span>
+                      {!decorMode && ['broadcast', 'repair', 'conservatory'].includes(room.id) ? (
+                        <button
+                          className="floor__activity"
+                          onClick={() =>
+                            requestActivity(
+                              room.id === 'broadcast'
+                                ? 'cableUntangle'
+                                : room.id === 'repair'
+                                  ? 'bugSquash'
+                                  : 'coffeeRescue',
+                            )
+                          }
+                        >
+                          {t(`annex.${room.id}.activity`)}
+                        </button>
+                      ) : null}
+                      {!decorMode && occupants.length > 0 ? (
+                        <div className="floor__people">
+                          {occupants.map(([id, rt]) => (
+                            <button
+                              key={id}
+                              onClick={() => {
+                                if (engine.openTalk(id, undefined, true)) audio.play('paper');
+                              }}
+                            >
+                              {rt.nickname ?? t(EMPLOYEES_BY_ID[id].nameKey)}
+                            </button>
+                          ))}
+                        </div>
+                      ) : null}
+                      {!decorMode &&
+                      discoveries.some((discovery) => discovery.roomId === room.id) ? (
+                        <button
+                          className="floor__discovery"
+                          onClick={() => {
+                            const discovery = discoveries.find((entry) => entry.roomId === room.id);
+                            if (discovery && engine.inspectFacility(discovery.id))
+                              audio.play('paper');
+                          }}
+                        >
+                          {t('discovery.inspect')}
+                        </button>
+                      ) : null}
+                      <span className="floor__status">
+                        {occupants.length > 0 ? (
+                          <Tip
+                            content={
+                              <TipContent
+                                title={t('overview.capacityTitle')}
+                                lines={[
+                                  t('overview.capacityTip'),
+                                  `${occupants.length} / ${ROOM_CAP}`,
+                                ]}
+                              />
+                            }
+                          >
+                            <span className="floor__stat" tabIndex={0}>
+                              <Icon name="employees" size={11} /> {occupants.length}
+                            </span>
+                          </Tip>
+                        ) : null}
+                        {comfort > 0 ? (
+                          <Tip
+                            content={
+                              <TipContent
+                                title={t('overview.comfortTitle')}
+                                lines={[t('overview.comfortTip'), `+${comfort}`]}
+                              />
+                            }
+                          >
+                            <span className="floor__stat floor__stat--comfort" tabIndex={0}>
+                              <Icon name="morale" size={11} /> +{comfort}
+                            </span>
+                          </Tip>
+                        ) : null}
+                      </span>
+                    </div>
+                    <div
+                      className={`floor__ambient floor__ambient--${AMBIENT[room.id] ?? 'dust'}`}
+                      aria-hidden
+                    >
+                      {reducedMotion ? null : (
+                        <>
+                          <span className="floor__dust" />
+                          <span className="floor__dust floor__dust--2" />
+                          <span className="floor__dust floor__dust--3" />
+                        </>
+                      )}
+                    </div>
+
+                    <div className={`floor__stage ${canDropHere ? 'floor__stage--dropping' : ''}`}>
+                      {/* built-in room identity (window, rug, department fixture) */}
+                      <RoomDressing roomId={room.id} />
+
+                      {/* placed decorations sit at their chosen normalized position,
+                    layered by surface (wall behind, floor grounded, ceiling above) */}
+                      {placed.map(({ def, placement }) => (
+                        <div
+                          key={def.id}
+                          data-deco={def.id}
+                          data-region-kind={
+                            decorationInstance(state, def.id)?.regionKind ?? undefined
+                          }
+                          data-anchor={placementSpec(def.id).anchor}
+                          data-depth={decorationInstance(state, def.id)?.depth}
+                          className={`floor__deco floor__deco--${placement.surface} ${decorationAnchorClass(def.id)} ${
+                            isRug(def.id) ? 'floor__deco--rug' : ''
+                          } ${selected === def.id ? 'is-selected' : ''} ${
+                            drag?.kind === 'decoration' && drag.id === def.id ? 'is-dragging' : ''
+                          } ${justPlaced === def.id ? 'is-placing' : ''}`}
+                          style={{
+                            ...decorationAnchorStyle(def.id),
+                            left: `${placement.x * 100}%`,
+                            bottom: `${placement.y * 100}%`,
+                            // Legacy saved depths belong to the previous scene bands.
+                            zIndex:
+                              decorMode && selected === def.id
+                                ? SCENE_DEPTH.arranging
+                                : Math.min(
+                                    DECORATION_DEPTH_CEILING,
+                                    (decorationInstance(state, def.id)?.depth ?? 0) >=
+                                      SCENE_DEPTH.rug.min
+                                      ? decorationInstance(state, def.id)!.depth
+                                      : surfaceZ(def.id, placement.surface),
+                                  ),
+                          }}
+                        >
+                          <DecorationProp
+                            id={def.id}
+                            reducedMotion={reducedMotion}
+                            mode={decorMode ? 'toggle' : 'interact'}
+                            selected={decorMode && selected === def.id}
+                            reacting={!decorMode && reactingDeco === def.id}
+                            title={t(`deco.${def.id}.name`)}
+                            onToggle={() => selectDeco(def.id)}
+                            onInteract={() => audio.play(interactSound(decorKind(def.id)))}
+                            onPointerDown={
+                              decorMode ? (e) => beginDrag(e, 'decoration', def.id) : undefined
+                            }
+                          />
+                        </div>
+                      ))}
+
+                      {/* semantic region + live footprint/collision preview */}
+                      {drag?.kind === 'decoration' && drag.preview?.roomId === room.id ? (
+                        <RegionGuide preview={drag.preview} />
+                      ) : canDropHere ? (
+                        <div
+                          className={`floor__surface-guide floor__surface-guide--${decorationSurface(drag.id)}`}
+                          aria-hidden
+                        />
+                      ) : null}
+
+                      {occupants.map(([id, rt], idx) => {
+                        const def = EMPLOYEES_BY_ID[id];
+                        const shape = shapeFor(id);
+                        const sprite = employeeSprite(id);
+                        const slot = slots[idx] ?? { x: 0.5, bottom: 0 };
+                        // How far back this teammate stands, as a size cue. Without it a
+                        // raised character reads as hovering rather than as distant.
+                        const perspective = depthScale(slot.bottom);
+                        const visiting = interaction?.employeeId === id;
+                        const ex = visiting
+                          ? slot.x * 0.55 + (interaction?.targetX ?? slot.x) * 0.45
+                          : slot.x;
+                        const interactedRecently =
+                          recentEmployee === id ||
+                          (visiting && interaction?.phase === 'interacting');
+                        const inputs = {
+                          hired: rt.hired,
+                          producing,
+                          moving:
+                            (drag?.kind === 'employee' && drag.id === id) ||
+                            (visiting && interaction?.phase === 'walking'),
+                          lowMorale,
+                          celebrating: celebratingEmployee === id,
+                          focusMode,
+                          interactedRecently,
+                          // A click/keyboard activation or ambient interaction should be
+                          // visible even while the control remains hovered or focused.
+                          hovered:
+                            !interactedRecently &&
+                            (hoveredEmployee === id || focusedEmployee === id),
+                        };
+                        const anim: CritterState = machineFor(id).update(inputs, now);
+                        const accent =
+                          def?.outfits.find((o) => o.id === rt.outfitId)?.accent ??
+                          def?.accent ??
+                          '#3f7d4f';
+                        const label = rt.nickname ?? t(def?.nameKey ?? id);
+                        const mood = employeeMood(state, id);
+                        const moodLabel = t(`mood.${mood}`);
+                        return (
+                          <button
+                            key={id}
+                            className={`critter-btn ${sprite ? 'critter-btn--sprite' : ''} ${
+                              drag?.kind === 'employee' && drag.id === id ? 'is-dragging' : ''
+                            } ${!decorMode ? 'is-draggable' : ''} ${visiting ? 'is-visiting' : ''}`}
+                            style={{
+                              left: `${ex * 100}%`,
+                              // Slot depth is authored in scene pixels, so it scales with
+                              // the scene. Without this the cast kept its spacing up the
+                              // floor while the floor itself shrank, and characters at the
+                              // back drifted off the top of a small room.
+                              bottom: `calc(${slot.bottom}px * var(--asset-scale))`,
+                              // Hang the mood bubble off the top of the HEAD. Sprite
+                              // canvases carry between 0% and 11% dead headroom, so a
+                              // single shared percentage sat a different distance above
+                              // every animal.
+                              ...(sprite
+                                ? {
+                                    ['--bubble-anchor' as string]: `${((1 - sprite.figureTop) * 100).toFixed(1)}%`,
+                                  }
+                                : null),
+                              // Characters occupy the band above every decoration, and
+                              // sort among themselves by how near the camera they
+                              // stand, so the whole team stays readable.
+                              zIndex: visiting
+                                ? SCENE_DEPTH.characterFocus
+                                : characterDepth(slot.bottom),
+                            }}
+                            onPointerDown={(e) => beginDrag(e, 'employee', id)}
+                            onPointerEnter={() => setHoveredEmployee(id)}
+                            onPointerLeave={() =>
+                              setHoveredEmployee((current) => (current === id ? null : current))
+                            }
+                            onFocus={() => setFocusedEmployee(id)}
+                            onBlur={() =>
+                              setFocusedEmployee((current) => (current === id ? null : current))
+                            }
+                            onClick={() => onCritterClick(id)}
+                            title={`${label} · ${moodLabel}`}
+                            aria-label={`${label}, ${moodLabel}`}
+                            // The reaction state lives on the BUTTON, not only on the
+                            // vector critter's <svg>. The nine animals with photographic
+                            // artwork have no <svg> to carry a class, so every hover,
+                            // focus, celebration and panic reaction was silently doing
+                            // nothing for them.
+                            data-anim={anim}
+                          >
+                            {focusMode ? <span className="focus-hat" aria-hidden /> : null}
+                            {sprite ? (
+                              <EmployeeSprite
+                                config={sprite}
+                                reducedMotion={reducedMotion}
+                                // Scaled by distance, not by character: a teammate at the
+                                // front of the room is always exactly cast scale, and one
+                                // standing further back is smaller because it is further
+                                // back. Height only — EmployeeSprite derives width, so the
+                                // aspect ratio is untouched.
+                                height={Math.round(sprite.officeHeight * perspective)}
+                              />
+                            ) : (
+                              <Critter
+                                species={shape.species}
+                                color={def?.color ?? '#c65b3c'}
+                                accent={accent}
+                                state={anim}
+                                hasGlasses={shape.hasGlasses}
+                                reducedMotion={reducedMotion}
+                                // The vector fallback renders an <svg> at a raw pixel
+                                // size, so unlike EmployeeSprite it cannot pick the scene
+                                // scale up from CSS and has to be told. Without this the
+                                // animals still awaiting artwork — the bear — would be the
+                                // only ones that did not shrink with the room.
+                                size={Math.round(
+                                  VECTOR_CRITTER_OFFICE_SIZE * perspective * sceneScale,
+                                )}
+                                title={label}
+                                seed={idx + room.floor}
+                              />
+                            )}
+                            <EmployeeBubble
+                              mood={mood}
+                              color={MOOD_TONE[mood]}
+                              label={moodLabel}
+                              name={label}
+                              speech={bubble?.employeeId === id ? bubble.text : null}
+                            />
+                          </button>
+                        );
+                      })}
+                      {/* Every room has its own equipment to work. Stations are hidden
+                    while arranging so a drag can never be eaten by a tap. */}
+                      {!decorMode
+                        ? stationsInRoom(room.id).map((stationDef) => (
+                            <ClickStation
+                              key={stationDef.id}
+                              def={stationDef}
+                              onTap={onTapStation}
+                              previewText={stationPreview(stationDef)}
+                              synergyNames={stationSynergyNames(stationDef)}
+                              play={playSfx}
+                              formatAmount={fmt.int}
+                            />
+                          ))
+                        : null}
+                    </div>
+
+                    {/* arrange-mode per-room actions (inventory lives in the bottom tray) */}
+                    {decorMode ? (
+                      <div className="floor__tray floor__tray--actions">
+                        {selectedPlacedHere ? (
+                          <>
+                            <button
+                              className="mini-btn mini-btn--primary"
+                              onClick={() => setMoveDialog(selected)}
+                            >
+                              <Icon name="rooms" size={12} /> {t('decorate.moveTo')}
+                            </button>
+                            <button className="mini-btn" onClick={sendSelectedToInventory}>
+                              <Icon name="close" size={12} /> {t('decorate.stow')}
+                            </button>
+                          </>
+                        ) : null}
+                        <button
+                          className="mini-btn"
+                          onClick={() => {
+                            if (engine.resetRoomDecorations(room.id)) audio.play('upgrade');
+                            else {
+                              notify('rooms', t('decorate.resetFull'), 'neutral');
+                              audio.play('error');
+                            }
+                            setSelected(null);
+                          }}
+                        >
+                          <Icon name="refresh" size={12} /> {t('decorate.resetRoom')}
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+                );
+              })}
             </div>
-          );
-        })}
+            <TreeRoots />
+          </div>
+        </div>
+
+        <SceneControls
+          rooms={rooms}
+          currentFloor={currentFloor}
+          floorsOpen={floorsOpen}
+          setFloorsOpen={setFloorsOpen}
+          onGo={(roomId) => scrollToFloor(roomId, reducedMotion ? 'auto' : 'smooth')}
+          decorMode={decorMode}
+          onToggleDecor={toggleDecorMode}
+          canUndo={engine.canUndoDecoration()}
+          canRedo={engine.canRedoDecoration()}
+          onUndo={() => engine.undoDecoration()}
+          onRedo={() => engine.redoDecoration()}
+          hint={decorMode ? (selected ? t('decorate.pickedHint') : t('office.decorateHint')) : null}
+          occupancy={(roomId) =>
+            Object.entries(state.employees).filter(
+              ([id, rt]) => rt.hired && resolveEmployeeRoom(state, id) === roomId,
+            ).length
+          }
+        />
       </div>
 
       {decorMode ? (
@@ -1485,10 +1583,6 @@ export function OfficeScene() {
           onDismiss={() => setMoveDialog(null)}
         />
       ) : null}
-
-      <div className="office__floating" aria-hidden>
-        <Acorn size={24} />
-      </div>
 
       {drag && typeof document !== 'undefined'
         ? createPortal(
@@ -1525,4 +1619,4 @@ export function OfficeScene() {
         : null}
     </div>
   );
-}
+});

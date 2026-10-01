@@ -1882,6 +1882,15 @@ export class GameEngine {
     this.emit();
   }
 
+  /**
+   * Remember which office floor the player is looking at. Deliberately silent (no
+   * emit, no immediate save): it changes while scrolling, so it rides along with
+   * the next autosave instead of re-rendering the scene on every scroll step.
+   */
+  rememberOfficeFloor(roomId: string | null): void {
+    this.state.settings.officeFloor = roomId;
+  }
+
   markOnboardingComplete(): void {
     this.state.onboardingComplete = true;
     this.save(); // finishing onboarding is deliberate — don't replay it after a quick reload

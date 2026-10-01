@@ -215,8 +215,13 @@ export interface GameSettings {
   autoResolveEvents: boolean;
   focusHarvestEnabled: boolean;
   offlineCapHours: number;
-  /** show the "recommended next step" hint banner. */
+  /** show the "recommended next step" hint (a sticker by the dock). */
   showHints: boolean;
+  /**
+   * The office floor (room id) the player last looked at, so the tower reopens
+   * there instead of at the rooftop. null = the Founder's Desk (home).
+   */
+  officeFloor: string | null;
   /** animated Office background (the official GIF asset) settings. */
   background: {
     enabled: boolean;
