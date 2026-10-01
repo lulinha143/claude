@@ -8,6 +8,7 @@ import {
   type OfflineResult,
 } from '../sim/offline';
 import { performPrestige, buyPrestigeSkill } from '../sim/prestige';
+import { BALANCE } from '../sim/config';
 import type { GameState, PrestigeBranchId } from '../sim/types';
 import { getPlatform } from '../platform/adapter';
 import { audio } from '../audio/audio';
@@ -68,6 +69,8 @@ let bootOffline: OfflineResult | null = null;
 if (!loaded.isNew) {
   bootOffline = computeOffline(engine.state, Date.now());
   applyOffline(engine.state, bootOffline);
+  // ...and the finds the team set aside for the player meanwhile.
+  if (!bootOffline.ignored) engine.catchUpFinds(bootOffline.cappedSeconds);
 }
 
 interface StoreState {
@@ -126,9 +129,15 @@ export const useStore = create<StoreState>((set) => {
     audio,
     devEnabled: isDevEnabled(),
     offlineResult: shouldShowOfflineModal(bootOffline) ? bootOffline : null,
-    showOnboarding: !engine.state.onboardingComplete,
+    // The first run teaches by doing (the coach points at the crate, then at the
+    // first goal); the field guide is no longer forced open. It is still there to
+    // read from Settings (replayOnboarding).
+    showOnboarding: false,
     showOpening: loaded.isNew && !engine.state.onboardingComplete,
-    finishOpening: () => set({ showOpening: false }),
+    finishOpening: () => {
+      if (!engine.state.onboardingComplete) engine.markOnboardingComplete();
+      set({ showOpening: false });
+    },
     photoMode: false,
     quietMode: engine.state.settings.quietMode,
     masterMuted: engine.state.settings.masterMuted,
@@ -446,16 +455,41 @@ engine.subscribe(() => {
 let loopHandle: ReturnType<typeof setInterval> | null = null;
 let lastTick = Date.now();
 
+/**
+ * Advance the company by the real time since the last tick.
+ *
+ * ZooWorkers is meant to be left open in a corner of the desktop, so open time
+ * must never be lost: a minimized window, a hidden tab or a battery-saving
+ * browser can stretch the 100ms interval to a second or a whole minute, and all
+ * of that time is credited as play. (This used to be clamped to five seconds,
+ * which quietly threw most of a hidden hour away.) A gap longer than
+ * `awayGapSeconds` means the computer slept or the process was frozen; that is
+ * settled exactly like time with the game closed (offline rules, the crate
+ * filled, finds waiting) rather than as open play.
+ */
+export function advanceGame(now = Date.now()): void {
+  const elapsed = (now - lastTick) / 1000;
+  lastTick = now;
+  if (!(elapsed > 0)) return; // clock moved backwards: skip, never subtract
+  if (elapsed > BALANCE.awayGapSeconds) {
+    const result = engine.settleAway(elapsed);
+    if (shouldShowOfflineModal(result)) useStore.setState({ offlineResult: result });
+    return;
+  }
+  engine.tick(elapsed);
+}
+
 export function startGameLoop(): void {
   if (loopHandle) return;
   lastTick = Date.now();
-  loopHandle = setInterval(() => {
-    const now = Date.now();
-    const delta = Math.min(5, (now - lastTick) / 1000);
-    lastTick = now;
-    // Battery-friendly / quiet mode reduces frequency implicitly via delta.
-    engine.tick(delta);
-  }, 100);
+  loopHandle = setInterval(() => advanceGame(), 100);
+  // Coming back to the window catches up at once instead of waiting for the next
+  // (possibly throttled) interval.
+  if (typeof document !== 'undefined') {
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && loopHandle) advanceGame();
+    });
+  }
 }
 
 export function stopGameLoop(): void {

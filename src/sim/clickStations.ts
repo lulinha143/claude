@@ -50,7 +50,18 @@ export const CLICK = {
   synergyPerEmployee: 0.35,
   /** Morale adds up to this much crit chance at full morale. */
   moraleCritBonus: 0.05,
+  /** A streak this long (or the station's combo ceiling, if lower) sets the room rushing. */
+  rushStreak: 10,
+  /** While a room rushes, the people working in it produce this much more. */
+  rushMultiplier: 2,
+  /** A rush lasts this long, and every tap that keeps the streak renews it. */
+  rushSeconds: 30,
 } as const;
+
+/** The streak at which a station's room starts to rush. */
+export function rushStreak(def: ClickStationDef): number {
+  return Math.min(CLICK.comboCeiling[def.cadence] + 1, CLICK.rushStreak);
+}
 
 /** Transient per-station combo tracking. Never persisted — a combo is a moment. */
 export interface ComboTracker {

@@ -27,13 +27,21 @@ describe('GameEngine core actions', () => {
     expect(engine.state.stats.totalClicks).toBe(1);
   });
 
-  it('collecting a crate grants crate value', () => {
-    const { engine } = makeEngine();
+  it('collecting the crate grants what the team packed into it', () => {
+    const { engine, advance } = makeEngine();
+    // A new crate is empty: nothing to collect yet.
+    expect(engine.collectCrate().gained).toBe(0);
+    for (let i = 0; i < 60; i += 1) {
+      advance(1000);
+      engine.tick(1);
+    }
+    const stored = engine.state.crate.nuts;
+    expect(stored).toBeGreaterThan(0);
     const before = engine.state.resources.nuts;
     const res = engine.collectCrate();
-    expect(res.gained).toBeGreaterThan(0);
-    expect(engine.state.resources.nuts).toBeGreaterThan(before);
-    expect(engine.state.stats.cratesCollected).toBe(1);
+    expect(res.gained).toBeGreaterThanOrEqual(stored);
+    expect(engine.state.resources.nuts).toBeCloseTo(before + res.gained, 6);
+    expect(engine.state.crate.nuts).toBe(0);
   });
 
   it('tick accumulates production over time', () => {

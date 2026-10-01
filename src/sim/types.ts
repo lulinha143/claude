@@ -184,6 +184,29 @@ export interface ClickerState {
   goldenTaps: number;
   /** best combo streak ever reached. */
   bestStreak: number;
+  /** lifetime rushes started (a room run at full pace by keeping a combo going). */
+  rushes?: number;
+  /** lifetime finds handed over by teammates. */
+  findsCollected?: number;
+}
+
+/**
+ * The founder's crate: the share of production the team packs by hand instead of
+ * sending straight to the vault. It waits, up to a capacity, until the player
+ * collects it (see `sim/crate.ts`).
+ */
+export interface CrateState {
+  nuts: number;
+}
+
+/** Something a teammate found in their room and is holding out for the player. */
+export interface OfficeFind {
+  id: string;
+  employeeId: string;
+  roomId: string;
+  /** what kind of thing it is: the temperament of the room it was found in. */
+  kind: 'operational' | 'social' | 'analytical' | 'industrial' | 'secure' | 'irregular';
+  createdAt: number;
 }
 
 export interface GameSettings {
@@ -299,6 +322,10 @@ export interface GameState {
   stats: StatsState;
   /** active-play (click station) record. */
   clicker: ClickerState;
+  /** the founder's crate (optional in older saves; the schema defaults it). */
+  crate: CrateState;
+  /** finds waiting in the office for the player to take (at most a few). */
+  finds: OfficeFind[];
   settings: GameSettings;
   onboardingComplete: boolean;
   /** Cooldown bookkeeping for the event system: eventId -> next-eligible epoch ms. */

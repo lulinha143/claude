@@ -1,4 +1,5 @@
 import { BALANCE } from './config';
+import { crateCapacity, splitAway } from './crate';
 import { computeProduction, offlineCapHours } from './economy';
 import type { GameState } from './types';
 
@@ -9,6 +10,8 @@ export interface OfflineResult {
   ratePerSecond: number;
   wasCapped: boolean;
   ignored: boolean; // true when the elapsed time was invalid and skipped
+  /** nuts the team packed into the crate meanwhile (collected by the player). */
+  crateFilled?: number;
 }
 
 /**
@@ -19,40 +22,57 @@ export interface OfflineResult {
  * This function is pure and does NOT mutate state; the caller applies the nuts.
  */
 export function computeOffline(state: GameState, now: number): OfflineResult {
+  return computeAway(state, (now - state.lastSaved) / 1000);
+}
+
+/**
+ * Settle `elapsed` seconds the company ran unattended: the game was closed, or
+ * the computer slept with it open. Production runs at the current rate up to the
+ * offline cap; the crate fills first (see `sim/crate.ts`) and the rest banks at
+ * the offline efficiency. Nothing is invented for time beyond the cap.
+ */
+export function computeAway(state: GameState, elapsed: number): OfflineResult {
   const rate = computeProduction(state, false).nutsPerSecond;
-  const elapsedMs = now - state.lastSaved;
-  const elapsed = elapsedMs / 1000;
 
   const MAX_PLAUSIBLE = 60 * 60 * 24 * 60; // 60 days; anything more is corruption
   if (!Number.isFinite(elapsed) || elapsed < 0 || elapsed > MAX_PLAUSIBLE) {
     return {
-      seconds: Math.max(0, elapsed),
+      seconds: Math.max(0, Number.isFinite(elapsed) ? elapsed : 0),
       cappedSeconds: 0,
       nutsEarned: 0,
       ratePerSecond: rate,
       wasCapped: false,
       ignored: true,
+      crateFilled: 0,
     };
   }
 
   const capSeconds = offlineCapHours(state) * 3600;
   const capped = Math.min(elapsed, capSeconds);
-  const nutsEarned = rate * capped * BALANCE.offline.efficiency;
+  const split = splitAway(state.crate?.nuts ?? 0, crateCapacity(rate), rate * capped);
 
   return {
     seconds: elapsed,
     cappedSeconds: capped,
-    nutsEarned,
+    nutsEarned: split.banked,
     ratePerSecond: rate,
     wasCapped: elapsed > capSeconds,
     ignored: false,
+    crateFilled: split.packed,
   };
 }
 
 export function applyOffline(state: GameState, result: OfflineResult): void {
-  if (result.ignored || result.nutsEarned <= 0) return;
-  state.resources.nuts += result.nutsEarned;
-  state.stats.totalNutsEarned += result.nutsEarned;
+  if (result.ignored) return;
+  if (result.nutsEarned > 0) {
+    state.resources.nuts += result.nutsEarned;
+    state.stats.totalNutsEarned += result.nutsEarned;
+  }
+  // Packed nuts count as earned when the player collects them, not before.
+  if ((result.crateFilled ?? 0) > 0) {
+    state.crate ??= { nuts: 0 };
+    state.crate.nuts += result.crateFilled ?? 0;
+  }
 }
 
 /**
@@ -65,5 +85,5 @@ export function shouldShowOfflineModal(
   minSeconds: number = BALANCE.offline.minModalSeconds,
 ): boolean {
   if (!result || result.ignored) return false;
-  return result.nutsEarned > 0 && result.seconds >= minSeconds;
+  return result.nutsEarned + (result.crateFilled ?? 0) > 0 && result.seconds >= minSeconds;
 }

@@ -6,6 +6,7 @@ import type {
   DecorationInstance,
   DecorationLayer,
   EmployeeMood,
+  OfficeFind,
   GameState,
   MomentCard,
   ScheduledConsequence,
@@ -27,6 +28,10 @@ import {
   upgradeCost,
 } from './economy';
 import { upgradeBonus } from './upgradeEffects';
+import { crateCapacity, crateFill, splitProduction } from './crate';
+import { applyOffline, computeAway, type OfflineResult } from './offline';
+import { ROOM_PROFILES_BY_ID } from '../content/roomProfiles';
+import { MOOD_POSITIVE } from './mood';
 import { employeeMood, moodProductivityMultiplier } from './mood';
 import { repairEmployees } from './state';
 import { EMPLOYEES_BY_ID } from '../content/employees';
@@ -44,6 +49,7 @@ import {
   critChance,
   goldenTapChance,
   resolveClick,
+  rushStreak,
   stationComboWindowMs,
   type ClickResolution,
   type ComboTracker,
@@ -212,10 +218,28 @@ export interface EngineOptions {
 
 export type EngineListener = () => void;
 
+/** The founder's floor, whose own output (the company base rate) a rush there doubles. */
+const FOUNDER_ROOM = 'founder-desk';
+
 export interface CollectResult {
   gained: number;
   bonus: boolean;
 }
+
+/** What taking a teammate's find gave the player. */
+export interface FindReward {
+  find: OfficeFind;
+  nuts: number;
+  golden: number;
+}
+
+/** A tap's payout, plus what else the tap did to the office. */
+export type StationTapResult = ClickResolution & {
+  /** nuts collected from the crate by this tap (crate station only). */
+  crate?: number;
+  /** this tap started the room's rush, or kept it going. */
+  rush?: 'started' | 'extended';
+};
 
 type DecorationArrangement = Array<
   Pick<
@@ -282,6 +306,9 @@ export class GameEngine {
   private nextEventInstanceId = 1;
   /** Rooms unlocked as of the last check, so a new one can re-seat the team. */
   private unlockedRoomCount = 0;
+  /** roomId -> epoch ms its rush ends. A rush is a moment: never persisted. */
+  private rushes = new Map<string, number>();
+  private findAccum = 0;
   private resolvingEventInstanceId: number | null = null;
 
   constructor(state: GameState, opts: EngineOptions = {}) {
@@ -343,8 +370,68 @@ export class GameEngine {
   }
 
   productionPerSecond(): number {
-    const base = computeProduction(this.state, this.isFocusActive()).nutsPerSecond;
-    return base * this.currentBoostMultiplier();
+    const prod = computeProduction(this.state, this.isFocusActive());
+    return prod.nutsPerSecond * this.currentBoostMultiplier() * this.rushMultiplier(prod);
+  }
+
+  // -- rushes -----------------------------------------------------------------
+  // Keep a station's combo going long enough and its room rushes: the people who
+  // work there produce double for a while, and every tap that keeps the rhythm
+  // keeps it going. A short burst of attention therefore scales with the company
+  // instead of fading into a rounding error, and who sits in which room matters.
+
+  /** Epoch ms the room's rush ends (0 when it is not rushing). */
+  rushEndsAt(roomId: string): number {
+    const ends = this.rushes.get(roomId) ?? 0;
+    return ends > this.now() ? ends : 0;
+  }
+
+  /** Rooms rushing right now. */
+  activeRushes(): string[] {
+    const t = this.now();
+    return [...this.rushes].filter(([, ends]) => ends > t).map(([room]) => room);
+  }
+
+  /** The share of the company's raw output made in `roomId` (0..1). */
+  roomShare(roomId: string, prod = computeProduction(this.state, this.isFocusActive())): number {
+    let total = 0;
+    let room = 0;
+    for (const entry of prod.breakdown) {
+      total += entry.nutsPerSecond;
+      if (entry.source === 'base') {
+        if (roomId === FOUNDER_ROOM) room += entry.nutsPerSecond;
+      } else if (entry.source.startsWith('employee:')) {
+        const id = entry.source.slice('employee:'.length);
+        if (resolveEmployeeRoom(this.state, id) === roomId) room += entry.nutsPerSecond;
+      }
+    }
+    return total > 0 ? room / total : 0;
+  }
+
+  private rushMultiplier(prod: ReturnType<typeof computeProduction>): number {
+    const rushing = this.activeRushes();
+    if (!rushing.length) return 1;
+    let share = 0;
+    for (const room of rushing) share += this.roomShare(room, prod);
+    return 1 + (CLICK.rushMultiplier - 1) * Math.min(1, share);
+  }
+
+  private startRush(roomId: string): 'started' | 'extended' {
+    const was = this.rushEndsAt(roomId) > 0;
+    this.rushes.set(roomId, this.now() + CLICK.rushSeconds * 1000);
+    if (!was) this.state.clicker.rushes = (this.state.clicker.rushes ?? 0) + 1;
+    return was ? 'extended' : 'started';
+  }
+
+  // -- the crate --------------------------------------------------------------
+  /** What a full crate holds at the current pace. */
+  crateCapacity(): number {
+    return crateCapacity(this.productionPerSecond());
+  }
+
+  /** How full the crate is, 0..1. */
+  crateFill(): number {
+    return crateFill(this.state.crate.nuts, this.crateCapacity());
   }
 
   currentBoostMultiplier(): number {
@@ -389,6 +476,8 @@ export class GameEngine {
     // prune expired boosts to avoid unbounded growth
     const t = this.now();
     this.tempBoosts = this.tempBoosts.filter((b) => b.endsAt > t);
+    for (const [room, ends] of this.rushes) if (ends <= t) this.rushes.delete(room);
+    this.rollFinds(Math.min(deltaSeconds, 3600));
     // drop expired temporary employee emotions
     this.expireEmotions(t);
 
@@ -417,18 +506,19 @@ export class GameEngine {
     const prod = computeProduction(this.state, this.isFocusActive());
     const passives = aggregatePassives(this.state);
     const boost = this.currentBoostMultiplier();
-    const nps = prod.nutsPerSecond * boost;
+    const nps = prod.nutsPerSecond * boost * this.rushMultiplier(prod);
 
-    // Auto-collector banks a fraction of production automatically.
-    const autoRate = autoCollectRate(this.state);
-    const gained = nps * dt * autoRate;
-    if (gained > 0) this.addNuts(gained, false);
-
-    // The rest accumulates as pending crates the player collects — but for a
-    // cozy experience without mandatory clicking, uncollected production still
-    // trickles in at reduced rate.
-    const trickle = nps * dt * (1 - autoRate) * 0.5;
-    if (trickle > 0) this.addNuts(trickle, false);
+    // Half goes straight to the vault; the team packs the other half into the
+    // crate for the player to collect. A full crate's share still banks at the
+    // overflow rate (offline efficiency, more with automation). See sim/crate.ts.
+    const split = splitProduction(
+      this.state.crate.nuts,
+      crateCapacity(nps),
+      nps * dt,
+      autoCollectRate(this.state),
+    );
+    if (split.banked > 0) this.addNuts(split.banked, false);
+    if (split.packed > 0) this.state.crate.nuts += split.packed;
 
     this.state.stats.highestNutsPerSecond = Math.max(this.state.stats.highestNutsPerSecond, nps);
 
@@ -480,17 +570,18 @@ export class GameEngine {
     return gained;
   }
 
+  /**
+   * Empty the crate into the vault. A lucky crate (the company's find bonus)
+   * turns out to hold half as much again.
+   */
   collectCrate(): CollectResult {
+    const stored = this.state.crate.nuts;
+    if (!(stored > 0)) return { gained: 0, bonus: false };
     const passives = aggregatePassives(this.state);
-    let gained = this.crateValue();
-    let bonus = false;
-    if (this.rng.chance(passives.resourceFind)) {
-      gained *= 3;
-      bonus = true;
-    }
+    const bonus = this.rng.chance(passives.resourceFind);
+    const gained = stored * (bonus ? 1.5 : 1);
+    this.state.crate.nuts = 0;
     this.addNuts(gained, false);
-    this.state.stats.cratesCollected += 1;
-    this.progressDaily('collectCrates', 1);
     this.emit();
     return { gained, bonus };
   }
@@ -504,7 +595,7 @@ export class GameEngine {
    * never zero — payout for tapping early), which is a balancing choice the
    * player can see and learn, not an input limiter.
    */
-  tapStation(stationId: string): ClickResolution | null {
+  tapStation(stationId: string): StationTapResult | null {
     const def = CLICK_STATIONS_BY_ID[stationId];
     if (!def) return null;
     // A station is available exactly when its room is.
@@ -515,7 +606,7 @@ export class GameEngine {
       critical: this.rng.chance(critChance(this.state, def)),
       golden: this.rng.chance(goldenTapChance(this.state)),
     };
-    const result = resolveClick(this.state, def, this.combo, now, rolls);
+    const result: StationTapResult = resolveClick(this.state, def, this.combo, now, rolls);
 
     // Advance the transient combo tracker.
     this.combo = { stationId: def.id, streak: result.streak, lastTapAt: now };
@@ -540,10 +631,114 @@ export class GameEngine {
     if (def.kind === 'crate') {
       this.state.stats.cratesCollected += 1;
       this.progressDaily('collectCrates', 1);
+      // Tapping the crate takes out whatever the team has packed so far.
+      const collected = this.collectCrate();
+      if (collected.gained > 0) result.crate = collected.gained;
     }
+
+    // Keeping the rhythm long enough sets the room rushing.
+    if (result.streak >= rushStreak(def)) result.rush = this.startRush(def.roomId);
 
     this.emit();
     return result;
+  }
+
+  // -- finds --------------------------------------------------------------------
+  // Now and then a teammate finds something in their room and holds it out. It
+  // waits for the player (finds never expire), is worth some production, and the
+  // finder is pleased to hand it over. Content-wise a find is the room's
+  // temperament: a snack in a social room, a sample in a lab, a bolt on a
+  // production floor, so the same verb reads differently all over the building.
+
+  /** Finds waiting in the office. */
+  waitingFinds(): OfficeFind[] {
+    return this.state.finds;
+  }
+
+  /** Roll for a new find (`seconds` of company time has passed). */
+  private rollFinds(seconds: number): void {
+    if (this.state.stats.playTimeSeconds < BALANCE.finds.firstAfterSeconds) return;
+    this.findAccum += seconds;
+    const ROLL = 15;
+    while (this.findAccum >= ROLL) {
+      this.findAccum -= ROLL;
+      if (this.rng.chance(ROLL / BALANCE.finds.meanIntervalSeconds)) this.spawnFind();
+    }
+  }
+
+  /** Hand one new find to a teammate, weighted towards the ones in a good mood. */
+  private spawnFind(): OfficeFind | null {
+    if (this.state.finds.length >= BALANCE.finds.maxWaiting) return null;
+    const holding = new Set(this.state.finds.map((find) => find.employeeId));
+    const now = this.now();
+    const candidates: Array<{ id: string; weight: number }> = [];
+    for (const [id, rt] of Object.entries(this.state.employees)) {
+      if (!rt?.hired || rt.level <= 0 || holding.has(id)) continue;
+      const mood = employeeMood(this.state, id, now);
+      candidates.push({ id, weight: MOOD_POSITIVE[mood] ? 3 : 1 });
+    }
+    const total = candidates.reduce((sum, c) => sum + c.weight, 0);
+    if (total <= 0) return null;
+    let roll = this.rng.next() * total;
+    const pick = candidates.find((c) => (roll -= c.weight) < 0) ?? candidates[0];
+    const roomId = resolveEmployeeRoom(this.state, pick.id);
+    const find: OfficeFind = {
+      id: `find-${now.toString(36)}-${this.state.finds.length}-${Math.floor(this.rng.next() * 1e6).toString(36)}`,
+      employeeId: pick.id,
+      roomId,
+      kind: ROOM_PROFILES_BY_ID[roomId]?.temper ?? 'operational',
+      createdAt: now,
+    };
+    this.state.finds.push(find);
+    return find;
+  }
+
+  /** Take a teammate's find. */
+  collectFind(id: string): FindReward | null {
+    const index = this.state.finds.findIndex((find) => find.id === id);
+    if (index < 0) return null;
+    const [find] = this.state.finds.splice(index, 1);
+    const nuts = Math.max(
+      BALANCE.finds.minReward,
+      this.productionPerSecond() * BALANCE.finds.rewardSeconds,
+    );
+    this.addNuts(nuts, false);
+    const golden = this.rng.chance(BALANCE.finds.goldenChance) ? 1 : 0;
+    if (golden) this.state.resources.goldenNuts += golden;
+    const rt = this.state.employees[find.employeeId];
+    if (rt?.hired) {
+      rt.friendship = Math.min(100, (rt.friendship ?? 0) + 1);
+      this.setEmployeeEmotion(find.employeeId, 'happy', BALANCE.finds.happySeconds);
+    }
+    this.state.clicker.findsCollected = (this.state.clicker.findsCollected ?? 0) + 1;
+    this.save();
+    this.emit();
+    return { find, nuts, golden };
+  }
+
+  /**
+   * Settle time the game was not running even though it was open (the computer
+   * slept, the process was frozen) exactly as if it had been closed: production at
+   * the offline rules, the crate filled, and the finds that time would have
+   * brought. Returns what happened, for the welcome-back note.
+   */
+  settleAway(seconds: number): OfflineResult {
+    const result = computeAway(this.state, seconds);
+    applyOffline(this.state, result);
+    this.catchUpFinds(result.cappedSeconds);
+    this.state.lastSaved = this.now();
+    this.save();
+    this.emit();
+    return result;
+  }
+
+  /** The finds `seconds` away from the office would have produced (bounded). */
+  catchUpFinds(seconds: number): void {
+    if (!(seconds > 0)) return;
+    const expected = Math.floor(seconds / BALANCE.finds.meanIntervalSeconds);
+    for (let i = 0; i < expected && this.state.finds.length < BALANCE.finds.maxWaiting; i += 1) {
+      if (!this.spawnFind()) break;
+    }
   }
 
   /**
@@ -622,6 +817,8 @@ export class GameEngine {
     this.state.resources[def.resource] -= cost;
     this.state.upgrades[id] = owned + 1;
     this.emit();
+    // A purchase is a deliberate step: keep it even if the game closes now.
+    this.save();
     return true;
   }
 
@@ -650,6 +847,8 @@ export class GameEngine {
       enforceRoomCapacity(this.state);
     }
     this.emit();
+    // A purchase is a deliberate step: keep it even if the game closes now.
+    this.save();
     return true;
   }
 

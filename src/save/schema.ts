@@ -56,6 +56,14 @@ const dailyChallengeSchema = z.object({
   claimed: z.boolean().catch(false),
 });
 
+const officeFindSchema = z.object({
+  id: z.string().min(1),
+  employeeId: z.string().min(1),
+  roomId: z.string().min(1),
+  kind: z.enum(['operational', 'social', 'analytical', 'industrial', 'secure', 'irregular']),
+  createdAt: z.number().finite(),
+});
+
 const decorationInstanceSchema = z
   .object({
     instanceId: z.string().min(1),
@@ -252,8 +260,28 @@ export const gameStateSchema = z.object({
       criticalTaps: z.number().finite().nonnegative().catch(0),
       goldenTaps: z.number().finite().nonnegative().catch(0),
       bestStreak: z.number().finite().nonnegative().catch(0),
+      rushes: z.number().finite().nonnegative().catch(0),
+      findsCollected: z.number().finite().nonnegative().catch(0),
     })
-    .catch({ stationTaps: {}, criticalTaps: 0, goldenTaps: 0, bestStreak: 0 }),
+    .catch({
+      stationTaps: {},
+      criticalTaps: 0,
+      goldenTaps: 0,
+      bestStreak: 0,
+      rushes: 0,
+      findsCollected: 0,
+    }),
+  crate: z.object({ nuts: z.number().finite().nonnegative().catch(0) }).catch({ nuts: 0 }),
+  finds: z
+    .array(z.unknown())
+    .catch([])
+    .transform((items) =>
+      items
+        .map((item) => officeFindSchema.safeParse(item))
+        .filter((r): r is { success: true; data: z.infer<typeof officeFindSchema> } => r.success)
+        .map((r) => r.data)
+        .slice(0, 6),
+    ),
   settings: settingsSchema,
   onboardingComplete: z.boolean().catch(false),
   eventCooldowns: z.record(z.number()).catch({}),

@@ -29,12 +29,49 @@ export const BALANCE = {
     baseRatePerSecond: 0.02,
   },
 
-  /** how a crate's worth scales; crates hold this many seconds of production. */
+  /**
+   * The founder's crate. Half of what the company makes goes straight to the
+   * vault; the team packs the other half into the crate, which waits for the
+   * player. A full crate stops taking more; its share then still reaches the
+   * vault at `crateOverflowRate` — never less than the offline efficiency, so a
+   * game left open always earns at least what a closed one would.
+   */
   crate: {
+    /** share of production packed into the crate instead of the vault. */
+    share: 0.5,
+    /** the crate is full after this many minutes of packing. */
+    capacityMinutes: 10,
+    /** a crate always holds at least this much, so the first fills feel real. */
+    minCapacity: 40,
+    /** legacy: a "crate's worth" in seconds of production (dailies, old tests). */
     secondsOfProduction: 8,
-    /** minimum nuts a crate is worth so early clicks feel good. */
     minValue: 1,
   },
+
+  /**
+   * Teammates now and then find something in their room and hold it out for the
+   * player. A find waits (it never expires) and is worth some production.
+   */
+  finds: {
+    /** at most this many finds wait in the office at once. */
+    maxWaiting: 3,
+    /** average time between finds while the company runs. */
+    meanIntervalSeconds: 150,
+    /** a find is worth this many seconds of production... */
+    rewardSeconds: 45,
+    /** ...but never less than this. */
+    minReward: 20,
+    /** chance a find also holds a golden nut. */
+    goldenChance: 0.12,
+    /** how long the finder stays visibly pleased. */
+    happySeconds: 180,
+    /** no finds until a new founder has had this long to find their feet. */
+    firstAfterSeconds: 60,
+  },
+
+  /** A gap between game-loop ticks longer than this means the computer slept (or
+   *  the process was frozen): it is settled like time away, not as open play. */
+  awayGapSeconds: 300,
 
   offline: {
     defaultCapHours: 8,

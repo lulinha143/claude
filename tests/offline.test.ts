@@ -70,13 +70,20 @@ describe('offline progression', () => {
     expect(shouldShowOfflineModal(null)).toBe(false);
   });
 
-  it('offline efficiency is applied', () => {
+  it('offline efficiency is applied to everything the crate does not hold', () => {
     const s = createInitialState(0);
     s.lastSaved = 0;
     const r = computeOffline(s, 3600 * 1000);
+    // The crate fills first (it waits for the player to collect it); the rest
+    // banks at the offline efficiency, so the total never falls below the old
+    // flat rate.
+    expect(r.crateFilled).toBeGreaterThan(0);
     expect(r.nutsEarned).toBeCloseTo(
-      r.ratePerSecond * r.cappedSeconds * BALANCE.offline.efficiency,
+      (r.ratePerSecond * r.cappedSeconds - r.crateFilled!) * BALANCE.offline.efficiency,
       3,
+    );
+    expect(r.nutsEarned + r.crateFilled!).toBeGreaterThanOrEqual(
+      r.ratePerSecond * r.cappedSeconds * BALANCE.offline.efficiency,
     );
   });
 });
