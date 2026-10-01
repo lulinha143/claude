@@ -42,7 +42,7 @@ test('company logo picker applies, persists, and reflects everywhere', async ({ 
   await page.setViewportSize({ width: 1280, height: 860 });
   await seed(page);
   await page.goto('/');
-  await page.locator('.header').first().waitFor({ timeout: 15000 });
+  await page.locator('.hud').first().waitFor({ timeout: 15000 });
   await clearModals(page);
 
   const logo = page.getByTestId('company-logo');
@@ -63,7 +63,7 @@ test('company logo picker applies, persists, and reflects everywhere', async ({ 
   await dialog.getByRole('button', { name: /done/i }).click();
   await expect(dialog).toBeHidden();
   await page.reload();
-  await page.locator('.header').first().waitFor({ timeout: 15000 });
+  await page.locator('.hud').first().waitFor({ timeout: 15000 });
   await clearModals(page);
   expect(await savedIcon(page)).toBe('fox');
   await page.getByTestId('company-logo').click();

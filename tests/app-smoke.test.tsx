@@ -11,16 +11,19 @@ describe('App renders without throwing', () => {
     App = (await import('../src/App')).App;
   });
 
-  it('mounts the header, nav and office scene', () => {
+  it('mounts the HUD, the dock and the office scene', () => {
     const html = renderToStaticMarkup(<App />);
-    // header + company name
-    expect(html).toContain('header__company');
-    expect(html).toContain('Nutshell Inc.');
-    // navigation is present and localized
-    expect(html).toContain('class="nav"');
-    // the office diorama scene rendered
+    // the HUD shelf with the company's logo sticker and the nut counter
+    expect(html).toContain('class="hud"');
+    expect(html).toContain('data-testid="company-logo"');
+    expect(html).toContain('data-testid="hud-nuts"');
+    // the dock is present and localized
+    expect(html).toContain('class="dock"');
+    expect(html).toContain('aria-label="Team"');
+    expect(html).toContain('aria-label="Archive"');
+    // the office diorama scene is the screen, inside the tree-trunk tower
     expect(html).toContain('office diorama');
-    // the redesigned tree-trunk frame is present
-    expect(html).toContain('office__frame');
+    expect(html).toContain('office__trunk');
+    expect(html).toContain('tree-canopy');
   });
 });

@@ -1,8 +1,10 @@
 import { test, expect, type Page } from '@playwright/test';
+import { openView } from './support/shell';
 
-// The masthead has to hold company identity plus four resources plus controls at
-// every supported window size without clipping or crushing a value. These assert
-// the layout contract and write screenshots for the art-direction pass.
+// The HUD is one slim shelf: the company's logo sticker, the nut counter as the hero
+// number, a few stat stickers and the tools. It must hold 7-figure numbers without
+// clipping at every size, stay one row, and the company's identity (name,
+// department, standing stamp, cycle) must still be readable — in the Archive.
 
 const SAVE = {
   version: 10,
@@ -10,7 +12,7 @@ const SAVE = {
   lastSaved: Date.now(),
   createdAt: Date.now() - 900_000,
   company: { name: 'Nutshell Inc.' },
-  // Large values on purpose: the strip must survive 7-figure numbers.
+  // Large values on purpose: the stickers must survive 7-figure numbers.
   resources: { nuts: 7_670_000, goldenNuts: 36, permanentKernels: 0, morale: 82, reputation: 167 },
   employees: {
     pip: {
@@ -35,100 +37,96 @@ async function boot(page: Page, width: number, height = 900) {
     }
   }, SAVE);
   await page.goto('/');
-  await expect(page.locator('.header')).toBeVisible();
+  await expect(page.locator('.hud')).toBeVisible();
   await page.waitForTimeout(250);
 }
 
 const WIDTHS = [
-  { name: 'compact', width: 400 },
+  { name: 'minimum', width: 320 },
+  { name: 'companion', width: 380 },
   { name: 'default', width: 720 },
   { name: 'wide', width: 1280 },
 ];
 
-test('the masthead states the company and its live standing', async ({ page }) => {
+test('the Company page states the company, its department and live standing', async ({ page }) => {
   await boot(page, 720);
-  await expect(page.locator('.header__company')).toHaveText('Nutshell Inc.');
-  // The subtitle is now the DEPARTMENT: a fixed identity, not a changing value.
-  await expect(page.locator('.header__department')).toContainText('Behavioural Research');
-  await expect(page.locator('.header__department')).toContainText('Department');
-  // The company's standing moved to the stamp, where a changing status belongs —
-  // and it must be a real tier name plus the operating cycle, not placeholder text.
-  const stamp = page.locator('.header__stamp');
+  await openView(page, 'company');
+  await expect(page.locator('.company-letterhead__name')).toHaveText('Nutshell Inc.');
+  await expect(page.locator('.company-letterhead__dept')).toContainText('Behavioural Research');
+  const stamp = page.locator('.company-letterhead__stamp');
   await expect(stamp).toBeVisible();
-  await expect(stamp.locator('.header__stamp-tier')).not.toBeEmpty();
-  await expect(stamp.locator('.header__stamp-cycle')).toContainText(/Cycle\s*\d+/i);
+  await expect(stamp.locator('span').first()).not.toBeEmpty();
+  await expect(stamp).toContainText(/Cycle\s*\d+/i);
 });
 
-test('the resource strip labels every value and explains what is happening to it', async ({
+test('the HUD names every value for assistive tech and shows the production rate', async ({
   page,
 }) => {
   await boot(page, 720);
-  const cells = page.locator('.res-cell');
-  await expect(cells).toHaveCount(4);
-  // Self-describing: each cell names its resource rather than relying on an icon.
-  for (const label of ['Nuts', 'Golden', 'Morale', 'Standing']) {
-    await expect(page.locator('.res-cell__label').filter({ hasText: label })).toHaveCount(1);
+  await expect(page.getByTestId('hud-nuts')).toHaveAttribute('aria-label', /^Nuts: 7\.\d+M$/);
+  await expect(page.locator('.hud__rate')).toContainText('/s');
+  for (const label of ['Golden Nuts', 'Morale', 'Reputation']) {
+    await expect(page.locator(`.hud-stat[aria-label^="${label}:"]`)).toHaveCount(1);
   }
-  // Nuts show the production rate; morale shows its effect on output.
-  await expect(page.locator('.res-cell--nuts .res-cell__note')).toContainText('/s');
-  await expect(page.locator('.res-cell--morale .res-cell__note')).toContainText('%');
 });
 
-test('the audio and window controls are still reachable', async ({ page }) => {
+test('the audio controls, settings gear and logo are reachable', async ({ page }) => {
   await boot(page, 720);
   const mute = page.getByTestId('mute-toggle');
   await expect(mute).toBeVisible();
   await mute.click();
   await expect(mute).toHaveAttribute('aria-pressed', 'true');
   await expect(page.getByTestId('company-logo')).toBeVisible();
+  await page.locator('.hud__settings').click();
+  await expect(page.locator('.sheet[data-sheet="settings"]')).toBeVisible();
+  await page.locator('.hud__settings').click();
+  await expect(page.locator('.sheet')).toHaveCount(0);
 });
 
 for (const size of WIDTHS) {
-  test(`the masthead fits without clipping at ${size.name} (${size.width}px)`, async ({ page }) => {
+  test(`the HUD fits on one row without clipping at ${size.name} (${size.width}px)`, async ({
+    page,
+  }) => {
     await boot(page, size.width);
-    const header = page.locator('.header');
-    const box = (await header.boundingBox())!;
+    const hud = page.locator('.hud');
+    const box = (await hud.boundingBox())!;
     expect(box.width).toBeLessThanOrEqual(size.width + 1);
+    expect(box.height).toBeLessThanOrEqual(46);
 
-    // No resource value may be cut off horizontally.
-    const overflow = await page.locator('.res-cell__value').evaluateAll((els) =>
-      els.map((el) => ({
-        text: el.textContent ?? '',
-        clipped: el.scrollWidth > el.clientWidth + 1,
-      })),
-    );
-    expect(overflow.length).toBe(4);
-    for (const cell of overflow) {
-      expect(cell.clipped, `"${cell.text}" clipped at ${size.width}px`).toBe(false);
+    // No visible value may be cut off, and nothing may leave the window.
+    const values = await page
+      .locator('.hud__nuts-value, .hud-stat:visible .hud-stat__value')
+      .evaluateAll((els) =>
+        els.map((el) => ({
+          text: el.textContent ?? '',
+          clipped: el.scrollWidth > el.clientWidth + 1,
+          rect: el.getBoundingClientRect().toJSON() as DOMRect,
+        })),
+      );
+    expect(values.length).toBeGreaterThanOrEqual(3);
+    for (const value of values) {
+      expect(value.clipped, `"${value.text}" clipped at ${size.width}px`).toBe(false);
+      expect(value.rect.left).toBeGreaterThanOrEqual(-1);
+      expect(value.rect.right).toBeLessThanOrEqual(size.width + 1);
     }
+    const overflow = await hud.evaluate((el) => el.scrollWidth - el.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(1);
 
-    // Every cell stays inside the window.
-    const cells = await page
-      .locator('.res-cell')
-      .evaluateAll((els) => els.map((el) => el.getBoundingClientRect()));
-    for (const rect of cells) {
-      expect(rect.left).toBeGreaterThanOrEqual(-1);
-      expect(rect.right).toBeLessThanOrEqual(size.width + 1);
-    }
-
-    await header.screenshot({ path: `visual-artifacts/qa-header-${size.name}.png` });
+    await hud.screenshot({ path: `visual-artifacts/qa-hud-${size.name}.png` });
   });
 }
 
-test('the masthead survives a 150% UI scale', async ({ page }) => {
+test('the HUD survives a 150% UI scale', async ({ page }) => {
   await boot(page, 720);
-  // Drive the real setting rather than a CSS hack.
   await page.evaluate(() => {
     document.documentElement.style.setProperty('--ui-scale', '1.5');
     document.documentElement.dataset.uiScale = '150';
   });
   await page.waitForTimeout(200);
-  const cells = await page
-    .locator('.res-cell')
-    .evaluateAll((els) => els.map((el) => el.getBoundingClientRect()));
-  expect(cells).toHaveLength(4);
-  for (const rect of cells) {
-    expect(rect.right).toBeLessThanOrEqual(721);
-  }
-  await page.locator('.header').screenshot({ path: 'visual-artifacts/qa-header-scaled.png' });
+  const rects = await page
+    .locator('.hud__nuts, .hud-stat:visible, .hud__tool:visible')
+    .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().right));
+  expect(rects.length).toBeGreaterThanOrEqual(4);
+  for (const right of rects) expect(right).toBeLessThanOrEqual(721);
+  await page.locator('.hud').screenshot({ path: 'visual-artifacts/qa-hud-scaled.png' });
 });

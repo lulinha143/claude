@@ -51,24 +51,26 @@ test('premium first run is illustrated, keyboard-safe, and fully navigable', asy
   await start.click();
   const guide = page.locator('.popup.onboarding');
   await expect(guide).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Your first crate' })).toBeVisible();
-  await expect(page.getByText('Page 1 of 5')).toBeVisible();
-  await shot(page, 'first-run-guide-collect-1280x720');
+  await expect(page.getByRole('heading', { name: 'A company in a tree' })).toBeVisible();
+  await expect(page.getByText('Page 1 of 4')).toBeVisible();
+  // The guide shows the real cast artwork, not a drawn stand-in.
+  await expect(guide.locator('.employee-sprite').first()).toBeVisible();
+  await shot(page, 'first-run-guide-office-1280x720');
 
-  await page.getByRole('button', { name: 'Page 4: Watch the company grow' }).click();
-  await expect(page.getByRole('heading', { name: 'Watch the company grow' })).toBeVisible();
-  await shot(page, 'first-run-guide-company-1280x720');
+  await page.getByRole('button', { name: 'Page 3: Make it yours' }).click();
+  await expect(page.getByRole('heading', { name: 'Make it yours' })).toBeVisible();
+  await shot(page, 'first-run-guide-grow-1280x720');
 
-  await page.getByRole('button', { name: 'Page 5: Make the office yours' }).click();
-  await expect(page.getByRole('heading', { name: 'Make the office yours' })).toBeVisible();
+  await page.getByRole('button', { name: 'Page 4: Come back any time' }).click();
+  await expect(page.getByRole('heading', { name: 'Come back any time' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Open the office' })).toBeVisible();
-  await shot(page, 'first-run-guide-desktop-1280x720');
+  await shot(page, 'first-run-guide-return-1280x720');
 
   // Direct page navigation is reversible and all progress is announced in text,
   // not by colour or dots alone.
-  await page.getByRole('button', { name: 'Back' }).click();
-  await expect(page.getByText('Page 4 of 5')).toBeVisible();
-  await page.getByRole('button', { name: 'Page 5: Make the office yours' }).click();
+  await page.getByRole('button', { name: 'Back', exact: true }).click();
+  await expect(page.getByText('Page 3 of 4')).toBeVisible();
+  await page.getByRole('button', { name: 'Page 4: Come back any time' }).click();
   await page.getByRole('button', { name: 'Open the office' }).click();
   await expect(page.locator('.office')).toBeVisible();
 });
@@ -87,12 +89,14 @@ test('compact localized first run stays contained and respects reduced motion', 
 
   await page.getByRole('button', { name: 'Pegar a primeira bolota' }).click();
   await page.getByRole('button', { name: 'Abrir a empresa' }).click();
-  await expect(page.getByRole('heading', { name: 'Sua primeira caixa' })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Uma empresa dentro de uma árvore' }),
+  ).toBeVisible();
   await expectContained(page, '.popup.onboarding');
-  await page.getByRole('button', { name: 'Página 5: Deixe o escritório do seu jeito' }).click();
-  await expect(page.getByText('Página 5 de 5')).toBeVisible();
+  await page.getByRole('button', { name: 'Página 4: Volte quando quiser' }).click();
+  await expect(page.getByText('Página 4 de 4')).toBeVisible();
   await expectContained(page, '.popup.onboarding');
-  await shot(page, 'first-run-guide-desktop-390x700-ptBR');
+  await shot(page, 'first-run-guide-return-390x700-ptBR');
 });
 
 test('Escape offers a complete keyboard bypass without trapping focus', async ({ page }) => {

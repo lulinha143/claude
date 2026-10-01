@@ -2,6 +2,7 @@ import { test, expect, type Page } from '@playwright/test';
 import { cableLevelSlots, cableLevelEdges } from '../../src/sim/minigames';
 import { cableScratchRows, cableScratchPoint } from './support/cable-scratch';
 import { watchCableClears, cableClears, cableTangleCount } from './support/cable-watch';
+import { openView } from './support/shell';
 
 // Regression cover for the highest-priority bug: after clearing a Cable
 // Untangle desk the next round must ALWAYS load. These tests complete many
@@ -45,7 +46,7 @@ async function boot(page: Page, viewport = { width: 1280, height: 800 }) {
     if (await dismiss.count()) await dismiss.click({ timeout: 1_000 }).catch(() => {});
     await page.waitForTimeout(100);
   }
-  await page.getByRole('button', { name: 'Focus', exact: true }).click();
+  await openView(page, 'focus');
   await expect(page.locator('.microgame-menu')).toBeVisible();
 }
 
@@ -140,6 +141,13 @@ async function solveCurrentBoard(page: Page) {
     await dragTo(id, slots[id].x, slots[id].y);
     if (await cleared()) return;
   }
+  // The last drop is in; under parallel load React may not have committed it (and
+  // the board announced its clear) yet. Give it a moment instead of reporting a
+  // false "never cleared" — a desk that really stayed tangled still fails below.
+  await expect
+    .poll(cleared, { timeout: 5_000 })
+    .toBe(true)
+    .catch(() => {});
 }
 
 async function setVisibility(page: Page, state: 'hidden' | 'visible') {
@@ -161,6 +169,9 @@ test.describe('cable untangle keeps loading round after round', () => {
   test('clears at least six consecutive desks without repeating the recent profile', async ({
     page,
   }) => {
+    // Six desks of real pointer drags: a long sequence, budgeted like the other
+    // multi-step journeys (30s was only ever enough on an idle machine).
+    test.setTimeout(60_000);
     // Drive the countdown and celebrations explicitly. The six desks still use
     // real pointer drags; rendering/trace overhead cannot consume the round timer.
     const time = new Date();
@@ -187,10 +198,12 @@ test.describe('cable untangle keeps loading round after round', () => {
          The cleared state only lasts 1450ms before the next desk loads, and this suite
          deliberately lets that advance happen — so by the time a `toHaveAttribute` poll
          runs, "solving" is the correct and expected answer. See support/cable-watch.ts. */
-      expect(
-        (await cableClears(page)).length,
-        `desk ${levelId} (round ${startRound}) never reached a cleared state`,
-      ).toBe(round + 1);
+      await expect
+        .poll(async () => (await cableClears(page)).length, {
+          message: `desk ${levelId} (round ${startRound}) never reached a cleared state`,
+          timeout: 5_000,
+        })
+        .toBe(round + 1);
 
       // The very next desk MUST arrive: round counter advances, stage returns
       // to solving, and a fresh (tangled) board is presented.
@@ -226,6 +239,7 @@ test.describe('cable untangle keeps loading round after round', () => {
   });
 
   test('keeps a nine-plug hard desk playable inside a compact viewport', async ({ page }) => {
+    test.setTimeout(60_000);
     await boot(page);
     await startCable(page);
     // Required by solveCurrentBoard: without the recorder it cannot tell when a desk has

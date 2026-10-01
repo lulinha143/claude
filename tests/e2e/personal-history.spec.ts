@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import { EMPLOYEES } from '../../src/content/employees';
 import { createInitialState } from '../../src/sim/state';
 import { readFileSync } from 'node:fs';
+import { openView } from './support/shell';
 const en = JSON.parse(
   readFileSync(new URL('../../src/i18n/locales/en.json', import.meta.url), 'utf8'),
 ) as unknown;
@@ -28,7 +29,7 @@ for (const employee of EMPLOYEES) {
     }, state);
     await page.setViewportSize({ width: 1000, height: 800 });
     await page.goto('/');
-    await page.getByRole('button', { name: 'Team', exact: true }).click();
+    await openView(page, 'employees');
     await page.locator('.employee-card__talk[data-employee="' + employee.id + '"]').click();
     await expect(page.locator('.talk__sheet')).toBeVisible();
     await expect(page.locator('.talk__portrait img')).toHaveAttribute('src', /poster\.png$/);

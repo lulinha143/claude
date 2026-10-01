@@ -24,12 +24,12 @@ for (const config of [
     }, state);
     await page.setViewportSize({ width: config.width, height: 800 });
     await page.goto('/');
-    await page
-      .getByRole('button', { name: config.lang === 'en' ? 'Decorate' : 'Decorar', exact: true })
-      .click();
+    await page.locator('.dock__item[data-dock="decorate"]').click();
     await page.locator('.decorate__search input').fill('nothing-matches');
     await page.locator('.ensemble-notes summary').click();
-    await page.locator('.ensemble-notes__browse').first().click();
+    // The first recipe for a room the new company already has (the annex sets that
+    // lead the list belong to rooms that are still locked).
+    await page.locator('.ensemble-notes__browse:not([disabled])').first().click();
     await expect(page.locator('.ensemble-selection')).toBeFocused();
     await expect(page.locator('.decocard')).toHaveCount(3);
     await expect(page.locator('.decorate__search input')).toHaveValue('');
@@ -41,7 +41,10 @@ for (const config of [
     await page.locator('.ensemble-selection button').click();
     await expect(page.locator('.decocard')).toHaveCount(5);
     await page
-      .getByRole('button', { name: config.lang === 'en' ? 'Focus' : 'Foco', exact: true })
+      .getByRole('button', {
+        name: config.lang === 'en' ? 'Activities' : 'Atividades',
+        exact: true,
+      })
       .click();
     await expect(page.locator('.micro-card--coffeeRescue')).toContainText(
       config.lang === 'en' ? 'Pip' : 'Tico',

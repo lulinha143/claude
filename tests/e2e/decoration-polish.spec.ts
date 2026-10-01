@@ -1,5 +1,6 @@
 import { test, expect, type Locator, type Page } from '@playwright/test';
 import { SCENE_DEPTH } from '../../src/sim/depth';
+import { arrangeToggle } from './support/shell';
 
 // Placement-feel proof for the semantic floor/rug path: live full-size ghost,
 // authored region and footprint guides, collision feedback, transaction-safe
@@ -117,7 +118,7 @@ async function clearModals(page: Page) {
 }
 
 async function enterDecorateMode(page: Page) {
-  await page.locator('.office__toolbar button').first().click();
+  await arrangeToggle(page).click();
   await expect(page.locator('.office--decorating')).toHaveCount(1);
   await page.locator('.floor[data-room="founder-desk"]').scrollIntoViewIfNeeded();
   await page.waitForTimeout(300);

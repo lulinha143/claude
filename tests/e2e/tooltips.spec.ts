@@ -45,7 +45,7 @@ test('every top-bar resource shows a rich tooltip', async ({ page }) => {
   const tip = page.locator('.tooltip[role="tooltip"]');
 
   // Reputation: name + explanation + next-unlock + current value.
-  await page.locator('.res-cell--rep').hover();
+  await page.locator('.hud-stat--rep').hover();
   await expect(tip).toBeVisible();
   await expect(tip).toContainText('Reputation');
   await expect(tip).toContainText(/Unlocks new rooms/i);
@@ -54,15 +54,14 @@ test('every top-bar resource shows a rich tooltip', async ({ page }) => {
   await page.screenshot({ path: `${DIR}/tooltip-reputation.png` });
 
   // Morale: shows the live production impact.
-  await page.locator('.res-cell--morale').hover();
+  await page.locator('.hud-stat--morale').hover();
   await expect(tip).toBeVisible();
   await expect(tip).toContainText('Morale');
   await expect(tip).toContainText(/% production right now/i);
 
   // Nuts, Golden and the rate badge all resolve a titled tooltip.
-  // The production rate is now the nuts cell's secondary line rather than a
-  // separate badge, so the nuts tooltip covers it.
-  for (const sel of ['.res-cell--nuts', '.res-cell--golden']) {
+  // The production rate sits beside the nut counter, so the nuts tooltip covers it.
+  for (const sel of ['.hud__nuts', '.hud-stat--golden']) {
     await page.locator(sel).hover();
     await expect(tip).toBeVisible();
     await expect(tip.locator('.tooltip__title')).toHaveCount(1);

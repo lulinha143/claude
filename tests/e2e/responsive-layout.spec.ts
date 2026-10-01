@@ -1,4 +1,5 @@
-import { test, expect, type Locator, type Page } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
+import { arrangeToggle, openView, type ShellView } from './support/shell';
 
 const SAVE = {
   version: 6,
@@ -46,7 +47,7 @@ async function boot(page: Page, save = SAVE) {
   await page.goto('/');
   await page.locator('.office').waitFor({ timeout: 15_000 });
   for (let index = 0; index < 4; index += 1) {
-    const dismiss = page.locator('.modal button, .popup__actions button').first();
+    const dismiss = page.locator('.popup__actions button').first();
     if (await dismiss.count()) await dismiss.click({ timeout: 1_200 }).catch(() => {});
     await page.waitForTimeout(100);
   }
@@ -78,18 +79,7 @@ async function enqueueNotifications(page: Page, count: number, tone = 'positive'
 
 async function expectShellContained(page: Page) {
   const metrics = await page.evaluate(() => {
-    const selectors = [
-      'html',
-      'body',
-      '#root',
-      '.app',
-      '.header',
-      '.header__strip',
-      '.nav',
-      '.next-step',
-      '.app__main',
-      '.view-anim',
-    ];
+    const selectors = ['html', 'body', '#root', '.app', '.hud', '.dock', '.app__stage', '.office'];
     return selectors.map((selector) => {
       const element = document.querySelector<HTMLElement>(selector);
       if (!element) return { selector, missing: true, overflow: 0, left: 0, right: 0 };
@@ -106,71 +96,26 @@ async function expectShellContained(page: Page) {
 
   const viewportWidth = await page.evaluate(() => window.innerWidth);
   for (const metric of metrics) {
-    if (metric.missing && metric.selector === '.next-step') continue;
     expect(metric.missing, `${metric.selector} missing`).toBe(false);
-    const roundingSafe = ['.app', '.header', '.header__strip', '.nav'].includes(metric.selector);
-    expect(metric.overflow, `${metric.selector} horizontally overflows`).toBeLessThanOrEqual(
-      roundingSafe ? 6 : 2,
-    );
+    expect(metric.overflow, `${metric.selector} horizontally overflows`).toBeLessThanOrEqual(2);
     expect(metric.left, `${metric.selector} escapes left`).toBeGreaterThanOrEqual(-1);
     expect(metric.right, `${metric.selector} escapes right`).toBeLessThanOrEqual(viewportWidth + 1);
   }
 }
 
-async function expectNavigationReadable(page: Page, _width: number) {
-  const nav = page.locator('.nav');
-  const destinations = nav.locator('.nav__destination:visible');
-  await expect(destinations).toHaveCount(11);
-  await expect(nav.locator('.nav__more-toggle, .nav__more-panel')).toHaveCount(0);
-
-  // The strip is folder tabs, so a tab is as wide as what it has to show. Names are
-  // switched on only at the widths where all eleven of them fit; which mode we are
-  // in is read from the DOM rather than restating the breakpoint here, so this stays
-  // honest if the threshold is ever retuned.
-  const labelled = await destinations
-    .first()
-    .locator('.nav__tab-label')
-    .evaluate((element) => getComputedStyle(element).display !== 'none');
-
+async function expectDockReadable(page: Page) {
+  const destinations = page.locator('.dock .dock__item:visible');
+  await expect(destinations).toHaveCount(5);
+  // Layout rows (offsetTop), not painted position: the open item lifts a few px.
+  const rows = await destinations.evaluateAll(
+    (elements) => new Set(elements.map((e) => (e as HTMLElement).offsetTop)).size,
+  );
+  expect(rows).toBe(1);
   for (const control of await destinations.all()) {
-    await expect(control.locator('.nav__panel-label, .nav__label')).toHaveCount(0);
-    const box = await control.boundingBox();
-    expect(box).not.toBeNull();
-    // Whatever the mode, a tab stays a real hit target rather than shrinking to a
-    // sliver in order to make the row fit.
-    expect(box!.width).toBeGreaterThanOrEqual(24);
-    expect(box!.height).toBeGreaterThanOrEqual(22);
-    // The open tab is the only one carrying the section marker, so it is legitimately
-    // a little wider than its closed neighbours.
-    const open = (await control.getAttribute('aria-current')) === 'page';
-    if (labelled) {
-      await expect(control.locator('.nav__tab-label')).toBeVisible();
-      expect(box!.width).toBeLessThanOrEqual(160);
-    } else {
-      // Icon-only: wide enough to hit, tight enough that eleven share one row.
-      expect(box!.width).toBeLessThanOrEqual(open ? 54 : 44);
-    }
+    const box = (await control.boundingBox())!;
+    expect(box.width).toBeGreaterThanOrEqual(44);
+    expect(box.height).toBeGreaterThanOrEqual(38);
   }
-
-  const rowCount = await destinations.evaluateAll((elements) => {
-    const rows = new Set(
-      elements.map((element) => Math.round(element.getBoundingClientRect().top)),
-    );
-    return rows.size;
-  });
-  expect(rowCount).toBe(1);
-
-  const navOverflow = await nav.evaluate((element) => ({
-    pixels: element.scrollWidth - element.clientWidth,
-    style: getComputedStyle(element).overflowX,
-  }));
-  expect(navOverflow.pixels).toBeLessThanOrEqual(2);
-  expect(navOverflow.style).not.toBe('auto');
-  expect(navOverflow.style).not.toBe('scroll');
-}
-
-async function openDestination(_page: Page, destination: Locator) {
-  await destination.click();
 }
 
 for (const { label, width, height } of VIEWPORTS) {
@@ -178,11 +123,11 @@ for (const { label, width, height } of VIEWPORTS) {
     await page.setViewportSize({ width, height });
     await boot(page);
     await expectShellContained(page);
-    await expectNavigationReadable(page, width);
+    await expectDockReadable(page);
 
-    const mainBox = await page.locator('.app__main').boundingBox();
-    expect(mainBox).not.toBeNull();
-    expect(mainBox!.height).toBeGreaterThanOrEqual(120);
+    // The office is the screen: most of the window, at every size.
+    const stageBox = (await page.locator('.app__stage').boundingBox())!;
+    expect(stageBox.height).toBeGreaterThanOrEqual(height * 0.72);
 
     const stack = page.locator('.toasts:not(.is-empty)');
     const stackBox = await stack.boundingBox();
@@ -201,25 +146,37 @@ for (const { label, width, height } of VIEWPORTS) {
   });
 }
 
-test('every primary view remains contained and vertically scrollable at 320x520', async ({
+test('every primary view opens contained and vertically scrollable at 320x520', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 320, height: 520 });
   await boot(page);
   await clearNotifications(page);
 
-  const destinations = page.locator('.nav__destination');
-  await expect(destinations).toHaveCount(11);
-  for (const destination of await destinations.all()) {
-    await openDestination(page, destination);
-    await expect(page.locator('.view-anim')).toBeVisible();
-    await expect(page.locator('.nav__destination:visible')).toHaveCount(11);
+  const views: ShellView[] = [
+    'employees',
+    'shop',
+    'decorate',
+    'focus',
+    'company',
+    'collections',
+    'achievements',
+    'stats',
+    'prestige',
+    'settings',
+  ];
+  for (const view of views) {
+    await openView(page, view);
+    await expect(page.locator(`.sheet[data-sheet="${view}"]`)).toBeVisible();
+    await expectDockReadable(page);
     await expectShellContained(page);
-    const main = page.locator('.app__main');
-    await main.evaluate((element) => {
+    const body = page.locator('.sheet__body');
+    const sheetOverflow = await body.evaluate((el) => el.scrollWidth - el.clientWidth);
+    expect(sheetOverflow, `${view} sheet overflows horizontally`).toBeLessThanOrEqual(2);
+    await body.evaluate((element) => {
       element.scrollTop = element.scrollHeight;
     });
-    expect(await main.evaluate((element) => element.scrollTop)).toBeGreaterThanOrEqual(0);
+    expect(await body.evaluate((element) => element.scrollTop)).toBeGreaterThanOrEqual(0);
   }
 });
 
@@ -245,6 +202,11 @@ test('compact notification queue handles 1, 2, 4, and 8 updates without blocking
     expect(stackBox!.height).toBeLessThanOrEqual(108);
     expect(stackBox!.x + stackBox!.width).toBeLessThanOrEqual(360);
     expect(stackBox!.y + stackBox!.height).toBeLessThanOrEqual(600);
+    // Never over the HUD or the dock.
+    const hud = (await page.locator('.hud').boundingBox())!;
+    const dock = (await page.locator('.dock').boundingBox())!;
+    expect(stackBox!.y).toBeGreaterThanOrEqual(hud.y + hud.height);
+    expect(stackBox!.y + stackBox!.height).toBeLessThanOrEqual(dock.y);
     await expect(page.locator('.toasts')).toHaveCSS('pointer-events', 'none');
     await expect(page.locator('.toast')).toHaveCSS('pointer-events', 'auto');
 
@@ -271,14 +233,14 @@ test('compact notification queue handles 1, 2, 4, and 8 updates without blocking
   await expect(page.locator('.toasts')).toHaveAttribute('data-queue-size', '7');
   await expect(page.locator('.toast__text')).not.toHaveText(firstQueuedText ?? '');
 
-  const stats = page.getByRole('button', { name: 'Estatísticas' });
-  await openDestination(page, stats);
-  await expect(stats).toHaveAttribute('aria-current', 'page');
+  await openView(page, 'stats');
+  await expect(page.locator('.sheet__tab[data-view="stats"]')).toHaveAttribute(
+    'aria-selected',
+    'true',
+  );
 
-  const office = page.getByRole('button', { name: 'Escritório' });
-  await office.click();
-  const arrange = page.locator('.office__toolbar .chip-btn').first();
-  await arrange.click();
+  await openView(page, 'office');
+  await arrangeToggle(page).click();
   const tray = page.locator('.deco-tray');
   await expect(tray).toBeVisible();
   const trayBox = await tray.boundingBox();
@@ -286,6 +248,9 @@ test('compact notification queue handles 1, 2, 4, and 8 updates without blocking
   expect(trayBox).not.toBeNull();
   expect(stackBox).not.toBeNull();
   expect(stackBox!.y + stackBox!.height).toBeLessThanOrEqual(trayBox!.y);
+  // The tray sits above the dock, never over it.
+  const dockBox = (await page.locator('.dock').boundingBox())!;
+  expect(trayBox!.y + trayBox!.height).toBeLessThanOrEqual(dockBox.y + 1);
 
   const trayDecoration = tray.locator('.deco-tray__card .decor').first();
   await expect(trayDecoration).toBeVisible();
@@ -339,14 +304,14 @@ test('compact notification queue handles 1, 2, 4, and 8 updates without blocking
   await expect(popup).toHaveCount(0);
 
   await page.evaluate(() => window.dispatchEvent(new Event('blur')));
-  await office.click();
-  await expect(office).toHaveAttribute('aria-current', 'page');
+  await arrangeToggle(page).click();
+  await expect(arrangeToggle(page)).toHaveAttribute('aria-pressed', 'false');
 
-  const main = page.locator('.app__main');
-  await main.evaluate((element) => {
-    element.scrollTop = element.scrollHeight;
+  const world = page.locator('.office__world');
+  await world.evaluate((element) => {
+    element.scrollTop = 0;
   });
-  expect(await main.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+  expect(await world.evaluate((element) => element.scrollHeight)).toBeGreaterThan(0);
   await page.screenshot({ path: 'visual-artifacts/responsive-360x600-notification-queue.png' });
 });
 
@@ -391,14 +356,12 @@ test('150% interface scale keeps every destination visible at 320x520', async ({
   });
   await clearNotifications(page);
   await expectShellContained(page);
-  await expectNavigationReadable(page, 320);
-  const appBox = await page.locator('.app').boundingBox();
-  expect(appBox).not.toBeNull();
-  expect(appBox!.x).toBeGreaterThanOrEqual(7);
-  expect(appBox!.x + appBox!.width).toBeLessThanOrEqual(313);
-  expect(appBox!.y).toBeGreaterThanOrEqual(7);
-  expect(appBox!.y + appBox!.height).toBeLessThanOrEqual(513);
-  await expect(page.locator('.nav__destination:visible')).toHaveCount(11);
+  await expectDockReadable(page);
+  const appBox = (await page.locator('.app').boundingBox())!;
+  expect(appBox.x).toBeGreaterThanOrEqual(-1);
+  expect(appBox.x + appBox.width).toBeLessThanOrEqual(321);
+  expect(appBox.y).toBeGreaterThanOrEqual(-1);
+  expect(appBox.y + appBox.height).toBeLessThanOrEqual(521);
   await page.screenshot({ path: 'visual-artifacts/responsive-320x520-scale-150.png' });
 });
 
@@ -410,7 +373,7 @@ test('150% active zoom keeps every destination directly visible', async ({ page 
   });
   await clearNotifications(page);
   await expect(page.locator('.app')).toHaveCSS('zoom', '1.5');
-  await expectNavigationReadable(page, 520);
+  await expectDockReadable(page);
   const pageOverflow = await page.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
   );

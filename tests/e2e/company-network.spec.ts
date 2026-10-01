@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { openView } from './support/shell';
 
 // Proves the synergy network is DISCOVERABLE, not just implemented: the Company
 // screen must show what each department contributes, what it costs, and what it
@@ -40,7 +41,7 @@ async function openCompany(page: Page) {
   }, SAVE);
   await page.goto('/');
   await expect(page.locator('.office')).toBeVisible();
-  await page.getByRole('button', { name: 'Company', exact: true }).click();
+  await openView(page, 'company');
   await expect(page.locator('.dept-network')).toBeVisible();
 }
 

@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { SCENE_DEPTH } from '../../src/sim/depth';
+import { arrangeToggle } from './support/shell';
 
 // Proves the composition rules on the RENDERED scene: an invalid drop is
 // rejected with a message and leaves the piece put; valid neighbours, a big
@@ -171,7 +172,7 @@ async function clearModals(page: Page) {
 }
 
 async function enterDecorateMode(page: Page) {
-  await page.locator('.office__toolbar button').first().click();
+  await arrangeToggle(page).click();
   await expect(page.locator('.office--decorating')).toHaveCount(1);
 }
 

@@ -3,6 +3,7 @@ import { ACHIEVEMENTS } from '../../src/content/achievements';
 import { ROOMS } from '../../src/content/rooms';
 import { DECORATIONS } from '../../src/content/decorations';
 import { EMPLOYEES } from '../../src/content/employees';
+import { openView, type ShellView } from './support/shell';
 
 // Visual-capture harness. Unlike smoke.spec, this does not assert — it seeds a
 // rich save, drives the app to each key screen at a matrix of window sizes and
@@ -124,17 +125,17 @@ for (const v of VIEWPORTS) {
   });
 }
 
-const REVIEW_VIEWS: [string, RegExp][] = [
-  ['upgrades', /^Upgrades$/i],
-  ['team', /^Team$/i],
-  ['company', /^Company$/i],
-  ['focus', /^Focus$/i],
-  ['collections', /^Collections$/i],
-  ['achievements', /^Achievements$/i],
-  ['stats', /^Stats$/i],
-  ['prestige', /^Prestige$/i],
-  ['settings', /^Settings$/i],
-  ['decorate', /^Decorate$/i],
+const REVIEW_VIEWS: [string, ShellView][] = [
+  ['upgrades', 'shop'],
+  ['team', 'employees'],
+  ['company', 'company'],
+  ['focus', 'focus'],
+  ['collections', 'collections'],
+  ['achievements', 'achievements'],
+  ['stats', 'stats'],
+  ['prestige', 'prestige'],
+  ['settings', 'settings'],
+  ['decorate', 'decorate'],
 ];
 for (const v of [
   { name: '1280x720', w: 1280, h: 720 },
@@ -147,8 +148,8 @@ for (const v of [
       await page.goto('/');
       await expect(page.locator('.office')).toBeVisible();
       await clearModals(page);
-      await page.getByRole('button', { name, exact: true }).first().click();
-      await expect(page.locator('.view')).toBeVisible();
+      await openView(page, name);
+      await expect(page.locator('.sheet .view')).toBeVisible();
       await shot(page, 'view-' + key + '-' + v.name);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
         true,

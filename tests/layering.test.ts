@@ -122,9 +122,18 @@ describe('architecture: the simulation stays framework-independent', () => {
  * quietly invert it, and does not have to trust a comment.
  * ------------------------------------------------------------------------- */
 
+// The effective stylesheet, in cascade order: the `legacy` layer (styles.css) first,
+// then the `game` layer (src/ui/game/*.css, in main.tsx import order), which wins
+// over legacy regardless of specificity — so "the last declaration wins" below
+// matches the browser.
 // Comments are stripped first: a section banner sitting directly above a rule becomes
 // part of the selector text otherwise, and the lookup silently finds nothing.
-const STYLES = readFileSync(join(ROOT, 'styles.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+const GAME_LAYER = ['base', 'shell', 'popup', 'opening', 'world'].map((name) =>
+  readFileSync(join(ROOT, 'ui', 'game', `${name}.css`), 'utf8'),
+);
+const STYLES = [readFileSync(join(ROOT, 'styles.css'), 'utf8'), ...GAME_LAYER]
+  .join('\n')
+  .replace(/\/\*[\s\S]*?\*\//g, '');
 
 /**
  * The effective z-index declared for an exact selector.
@@ -153,7 +162,13 @@ function zIndexOf(selector: string): number {
 describe('visual stacking order', () => {
   it('keeps ambient flavour underneath anything the player must read', () => {
     const note = zIndexOf('.speech-note');
-    for (const selector of ['.popup-backdrop', '.toasts', '.talk', '.opening-seq']) {
+    for (const selector of [
+      '.popup-backdrop',
+      '.modal-backdrop',
+      '.toasts',
+      '.talk',
+      '.opening-seq',
+    ]) {
       expect(
         note,
         `.speech-note (${note}) must paint BELOW ${selector} (${zIndexOf(selector)}): an ambient ` +
@@ -164,8 +179,14 @@ describe('visual stacking order', () => {
 
   it('still keeps a speech note above the office scene it belongs to', () => {
     // The note is portaled to the body, so it has to out-rank the scene's own layers.
+    // (The moment-card viewer used to sit below the note at z 100; it is a modal the
+    // player reads, so it now shares the popup tier and the note stays under it.)
     const note = zIndexOf('.speech-note');
-    for (const selector of ['.photo-mode', '.modal-backdrop']) {
+    for (const selector of ['.photo-mode']) {
+      expect(note, `.speech-note must stay above ${selector}`).toBeGreaterThan(zIndexOf(selector));
+    }
+    // ...and above the whole office shell it is anchored to.
+    for (const selector of ['.hud', '.dock', '.sheet']) {
       expect(note, `.speech-note must stay above ${selector}`).toBeGreaterThan(zIndexOf(selector));
     }
   });
@@ -206,8 +227,8 @@ describe('visual stacking order', () => {
  * rather than 131 hand-picked sizes, so the intent survives wherever there is room.
  *
  * These guard the shape of that fix: that new relative sizes do not quietly bypass it,
- * and that the floor stays switched OFF in the compact modes, where forcing it pushed
- * destination tabs and the window controls out of reach.
+ * and that the floor now applies at every window size (the compact-window exemption
+ * existed only for the old 11-tab rail and letterhead, which the Phase 1 shell replaced).
  * ------------------------------------------------------------------------- */
 describe('typography floor', () => {
   const TOKENS = readFileSync(join(ROOT, 'ui', 'tokens.css'), 'utf8');
@@ -236,11 +257,9 @@ describe('typography floor', () => {
          it pushes them off the right edge (window-chrome.spec.ts measures that). The
          stamp is also *meant* to be small: it is a rubber stamp.
        Everything else must go through max(var(--fs-min), …). */
-    const ALLOWED_UNFLOORED = [
-      '.header__stamp-tier',
-      '.header__stamp-cycle',
-      '.header__department',
-    ];
+    // (The old letterhead's stamp and department line were the only exemptions; the
+    // letterhead is gone and the game-layer shell sizes its text in tokens and px.)
+    const ALLOWED_UNFLOORED: string[] = [];
     const offenders = unflooredRelativeSizes().filter(
       (line) => !ALLOWED_UNFLOORED.some((sel) => line.startsWith(sel)),
     );
@@ -251,19 +270,18 @@ describe('typography floor', () => {
     ).toEqual([]);
   });
 
-  it('keeps the floor off in compact windows and on for desktop windows', () => {
-    // Off by default: at 0 the max() is a no-op, so compact layouts are untouched.
-    expect(TOKENS).toMatch(/--fs-min:\s*0px/);
-    // On above a generous desktop threshold, and expressed as a media query so the
-    // switch is inspectable rather than hidden in a curve.
-    expect(TOKENS).toMatch(/@media \(min-width: 1000px\) and \(min-height: 620px\)/);
-    expect(TOKENS).toMatch(/--fs-min:\s*calc\(11px \* var\(--font-scale\)\)/);
+  it('keeps the legibility floor on at every window size', () => {
+    // It used to be gated behind a 1000×620 media query because the 11-tab rail and
+    // the letterhead needed sub-11px text to fit a companion window. The Phase 1 HUD
+    // and dock are built for 320×420 at legible sizes, so the floor is always on.
+    expect(TOKENS).toMatch(/--fs-min:\s*calc\(11px \* var\(--font-scale\)\);/);
+    expect(TOKENS).not.toMatch(/@media \(min-width: 1000px\) and \(min-height: 620px\)/);
   });
 
   it('exempts the dense tool surfaces by resetting the inherited token', () => {
-    // The decoration tray is documented as height-sensitive; the office toolbar shares
-    // its budget. Resetting --fs-min on the container is how the exemption is expressed.
-    expect(TOKENS).toMatch(/\.deco-tray,\s*\n\s*\.office__toolbar\s*\{\s*\n\s*--fs-min:\s*0px/);
+    // The decoration tray is documented as height-sensitive (rebuilt in Phase 2).
+    // Resetting --fs-min on the container is how the exemption is expressed.
+    expect(TOKENS).toMatch(/\.deco-tray\s*\{\s*\n\s*--fs-min:\s*0px/);
   });
 
   it('never sets a tiny label in the display face', () => {

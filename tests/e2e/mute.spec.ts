@@ -73,7 +73,7 @@ test('the visible mute button silences every audio bus and persists', async ({ p
   // a sound started AFTER muting is also silent (no new source is created)
   const srcBefore = muted.activeSources;
   await page
-    .getByRole('button', { name: /Upgrades|Melhorias/i })
+    .locator('.dock__item[data-dock="upgrades"]')
     .click()
     .catch(() => {});
   await page.waitForTimeout(200);
@@ -83,7 +83,7 @@ test('the visible mute button silences every audio bus and persists', async ({ p
 
   // opening a minigame while muted stays silent too
   await page
-    .getByRole('button', { name: /Focus|Foco/i })
+    .locator('.dock__item[data-dock="activities"]')
     .click()
     .catch(() => {});
   await page.waitForTimeout(150);
@@ -98,7 +98,12 @@ test('the visible mute button silences every audio bus and persists', async ({ p
   for (const ch of ['music', 'ambience', 'ui', 'sfx'] as const) expect(inGame.buses[ch]).toBe(0);
   // back out to the office for the reload check
   await page
-    .getByRole('button', { name: /Office|Escritório/i })
+    .locator('.microgame button', { hasText: /Leave shift|Back/ })
+    .first()
+    .click()
+    .catch(() => {});
+  await page
+    .locator('.sheet__close')
     .click()
     .catch(() => {});
   await page.waitForTimeout(150);

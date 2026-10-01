@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { arrangeToggle } from './support/shell';
 
 // End-to-end proof of the three placement surfaces in the RUNNING game: floor
 // items can never land on the wall/ceiling, wall items stay on walls, ceiling
@@ -112,7 +113,7 @@ async function boot(page: Page, w = 1280, h = 900) {
     if (await b.count()) await b.click({ timeout: 800 }).catch(() => {});
     await page.waitForTimeout(120);
   }
-  await page.locator('.office__toolbar button').first().click();
+  await arrangeToggle(page).click();
   await expect(page.locator('.office--decorating')).toHaveCount(1);
   await page.locator('.floor[data-room="founder-desk"]').scrollIntoViewIfNeeded();
   await page.waitForTimeout(300);

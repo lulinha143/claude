@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { openView } from './support/shell';
 
 /**
  * The full-screen employee interaction mode, driven through the real DOM.
@@ -42,7 +43,7 @@ async function boot(page: Page) {
 
 /** Into the roster, which carries the explicit Talk affordance. */
 async function openViaRoster(page: Page, employee: string) {
-  await page.locator('.nav button').filter({ hasText: 'Team' }).first().click();
+  await openView(page, 'employees');
   const talk = page.locator(`.employee-card__talk[data-employee="${employee}"]`);
   await talk.first().scrollIntoViewIfNeeded();
   await talk.first().click();

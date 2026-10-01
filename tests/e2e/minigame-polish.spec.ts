@@ -2,6 +2,7 @@ import { test, expect, type Page } from '@playwright/test';
 import { cableLevelEdges, cableLevelSlots } from '../../src/sim/minigames';
 import { cableScratchRows, cableScratchPoint } from './support/cable-scratch';
 import { watchCableClears, cableClears } from './support/cable-watch';
+import { openView } from './support/shell';
 
 const SAVE = {
   version: 7,
@@ -40,7 +41,7 @@ async function boot(page: Page, viewport = { width: 1280, height: 800 }) {
     if (await dismiss.count()) await dismiss.click({ timeout: 1_000 }).catch(() => {});
     await page.waitForTimeout(100);
   }
-  await page.getByRole('button', { name: 'Focus', exact: true }).click();
+  await openView(page, 'focus');
   await expect(page.locator('.microgame-menu')).toBeVisible();
 }
 
@@ -646,7 +647,7 @@ test.describe.serial('premium minigame presentation', () => {
     await startGame(page);
     await expect(game.locator('.microgame__score b')).toHaveText('0');
     await game.locator('.microgame__exit').click();
-    await page.getByRole('button', { name: 'Stats', exact: true }).click();
+    await openView(page, 'stats');
     const row = page.locator('.stats-table tr').filter({ hasText: 'Micro-games played' });
     await expect(row.locator('td')).toHaveText('0');
   });

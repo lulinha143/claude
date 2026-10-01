@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { ROOM_CAP } from '../../src/sim/rooms';
+import { openView } from './support/shell';
 
 // Audit proof for the newly-covered controls: the office room stats explain
 // themselves on hover, and Settings toggles reveal their hint on KEYBOARD FOCUS
@@ -70,7 +71,7 @@ test('room stats and settings toggles are self-explanatory (hover + keyboard)', 
   await expect(tip).toContainText(new RegExp(`/\\s*${ROOM_CAP}|of\\s*${ROOM_CAP}|four`, 'i'));
 
   // Settings: a desktop toggle reveals its hint on KEYBOARD FOCUS.
-  await page.getByRole('button', { name: 'Settings' }).click();
+  await openView(page, 'settings');
   const alwaysOnTop = page
     .locator('fieldset.desktop-controls .toggle-row span[tabindex="0"]')
     .first();

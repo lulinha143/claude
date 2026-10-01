@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { openView } from './support/shell';
 
 // LOADING A SAVE MUST NOT BURY THE GAME IN TOASTS.
 //
@@ -102,7 +103,7 @@ test('the catch-up records the achievements and pays their rewards rather than h
   // necessarily fired this early, so the stored copy is still the seed and proves
   // nothing either way. The screen renders live engine state, which is also what
   // the player would actually go and check.
-  await page.locator('.nav button').filter({ hasText: 'Goals' }).first().click();
+  await openView(page, 'achievements');
   await expect(page.locator('.view--achievements')).toBeVisible();
   const unlocked = page.locator('.ach.is-unlocked');
 

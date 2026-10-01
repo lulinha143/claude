@@ -3,12 +3,13 @@ import { DECORATIONS } from '../../src/content/decorations';
 import { EMPLOYEES } from '../../src/content/employees';
 import { ROOMS } from '../../src/content/rooms';
 import { GAME_EVENTS } from '../../src/content/events';
+import { openView, arrangeToggle } from './support/shell';
 
 test('a personal gift becomes a keepsake and the employee remains visitable during a break', async ({
   page,
 }) => {
   await boot(page, 1280, true);
-  await page.getByRole('button', { name: 'Team', exact: true }).click();
+  await openView(page, 'employees');
   await page.locator('.employee-card__talk[data-employee="pip"]').click();
   await page.getByRole('button', { name: 'Bring a present', exact: true }).click();
   await page.locator('.talk-choice[data-option-id="coffee"]').click();
@@ -32,7 +33,7 @@ test('a personal gift becomes a keepsake and the employee remains visitable duri
 
 test('company ledger and archive support focused reading and keyboard return', async ({ page }) => {
   await boot(page, 1280, true);
-  await page.getByRole('button', { name: 'Company', exact: true }).click();
+  await openView(page, 'company');
   await expect(page.locator('.prod-list')).toBeHidden();
   await page.locator('.production-ledger summary').click();
   await expect(page.locator('.prod-list')).toContainText('From your departments');
@@ -42,7 +43,7 @@ test('company ledger and archive support focused reading and keyboard return', a
     path: 'visual-artifacts/review/final-company.png',
     animations: 'disabled',
   });
-  await page.getByRole('button', { name: 'Collections', exact: true }).click();
+  await openView(page, 'collections');
   await page.getByRole('tab', { name: /moment/i }).click();
   await page.locator('.archive-search input').fill('Pip');
   await expect(page.locator('.moment-doc')).toHaveCount(1);
@@ -148,7 +149,7 @@ async function boot(page: Page, width: number, mature = false) {
 for (const width of [1280, 390, 320]) {
   test(`whole-card drag and immediate coffee input at ${width}`, async ({ page }) => {
     await boot(page, width);
-    await page.locator('.office__toolbar button').first().click();
+    await arrangeToggle(page).click();
     const stage = page.locator('[data-room="founder-desk"] .floor__stage');
     await stage.scrollIntoViewIfNeeded();
     // The title and lower room label are real drag surfaces, not just the image.
@@ -167,7 +168,7 @@ for (const width of [1280, 390, 320]) {
       await expect(page.locator('.drag-ghost')).toHaveCount(0);
     }
     await page.screenshot({ path: `visual-artifacts/review/rc-drag-${width}.png` });
-    await page.getByRole('button', { name: 'Focus', exact: true }).click();
+    await openView(page, 'focus');
     await page.locator('.micro-card--coffeeRescue').click();
     await page.locator('.microgame__start').click();
     await expect(page.locator('.microgame')).toHaveAttribute('data-phase', 'play');
@@ -197,7 +198,7 @@ test('new departments, evidence and employee destination are visible in real pla
 }) => {
   test.setTimeout(60_000);
   await boot(page, 1280, true);
-  await page.locator('.office__toolbar button').first().click();
+  await arrangeToggle(page).click();
   const inventory = page.locator('.deco-tray__card');
   for (const index of [0, Math.floor(DECORATIONS.length / 2), DECORATIONS.length - 1]) {
     const item = inventory.nth(index);
@@ -212,7 +213,7 @@ test('new departments, evidence and employee destination are visible in real pla
     await page.mouse.up();
     await expect(page.locator('.drag-ghost')).toHaveCount(0);
   }
-  await page.locator('.office__toolbar button').first().click();
+  await arrangeToggle(page).click();
   for (const id of ['broadcast', 'repair', 'conservatory']) {
     const room = page.locator(`.floor[data-room="${id}"]`);
     await room.scrollIntoViewIfNeeded();
@@ -226,22 +227,37 @@ test('new departments, evidence and employee destination are visible in real pla
     await page.locator('.consequence-modal .popup__actions button').click();
     await expect(page.locator('.popup-backdrop')).toHaveCount(0);
   }
-  await page.getByRole('button', { name: 'Team', exact: true }).click();
+  await openView(page, 'employees');
   await page.locator('.employee-card__talk[data-employee="pip"]').click();
   await expect(page.locator('main .talk--destination')).toBeVisible();
   await expect(page.locator('.talk')).toHaveAttribute('role', 'region');
   await page.screenshot({ path: 'visual-artifacts/review/rc-conversation.png' });
-  for (const name of [
-    'Office',
-    'Decorate',
-    'Team',
-    'Company',
-    'Collections',
-    'Settings',
-    'Prestige',
-  ]) {
-    await page.getByRole('button', { name, exact: true }).click();
-    await page.screenshot({ path: `visual-artifacts/review/rc-${name.toLowerCase()}.png` });
+  // A visit is its own full-stage mode; leaving it returns to the Team sheet.
+  await page.locator('.talk__close').click();
+  await expect(page.locator('.talk')).toHaveCount(0);
+  await expect(page.locator('.sheet[data-sheet="employees"]')).toBeVisible();
+  for (const view of [
+    'office',
+    'decorate',
+    'employees',
+    'company',
+    'collections',
+    'settings',
+  ] as const) {
+    await openView(page, view);
+    await page.screenshot({ path: `visual-artifacts/review/rc-${view}.png` });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+  }
+  // Prestige joins the Archive once this run has earned enough to start a cycle
+  // (this busy company crosses the line while the test plays); when it is
+  // offered it must open like every other page. The tab rule itself is pinned
+  // deterministically in navigation.spec.
+  await openView(page, 'company');
+  if (await page.locator('.sheet__tab[data-view="prestige"]').count()) {
+    await openView(page, 'prestige');
+    await page.screenshot({ path: 'visual-artifacts/review/rc-prestige.png' });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
     );

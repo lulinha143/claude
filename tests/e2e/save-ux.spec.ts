@@ -2,6 +2,7 @@ import { test, expect, type Page } from '@playwright/test';
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
+import { openView } from './support/shell';
 
 // IMPORTING A SAVE REPLACES THE ENTIRE COMPANY.
 //
@@ -33,11 +34,15 @@ async function openSettings(page: Page) {
   }, SAVE);
   await page.goto('/');
   await page.locator('.office').first().waitFor({ timeout: 15_000 });
-  await page.locator('.nav button').filter({ hasText: 'Settings' }).first().click();
+  await openView(page, 'settings');
   await expect(page.locator('.savebar')).toBeVisible();
 }
 
-const company = (page: Page) => page.locator('.header__company').innerText();
+// The company's name lives on its letterhead in the Archive's Company page.
+async function company(page: Page) {
+  await openView(page, 'company');
+  return page.locator('.company-letterhead__name').innerText();
+}
 
 test('the save panel states when progress was last filed, and confirms a manual save', async ({
   page,
@@ -98,7 +103,9 @@ test('confirming an import actually replaces the company', async ({ page }) => {
 
   await page.locator('.file-btn input[type=file]').setInputFiles(file);
   await page.locator('.savebar__confirm .danger-btn').click();
-  await expect(page.locator('.header__company')).toContainText('Acorn Holdings', {
+  await expect(page.locator('.savebar__confirm')).toHaveCount(0, { timeout: 10_000 });
+  await openView(page, 'company');
+  await expect(page.locator('.company-letterhead__name')).toContainText('Acorn Holdings', {
     timeout: 10_000,
   });
 });

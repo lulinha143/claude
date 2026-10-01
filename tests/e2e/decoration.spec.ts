@@ -1,5 +1,6 @@
 import { test, expect, type Locator, type Page } from '@playwright/test';
 import { ROOMS_BY_ID } from '../../src/content/rooms';
+import { arrangeToggle } from './support/shell';
 
 // Decoration surface-category + controlled free-placement E2E.
 //
@@ -124,7 +125,7 @@ async function clearModals(page: Page) {
 }
 
 async function enterDecorateMode(page: Page) {
-  const toggle = page.locator('.office__toolbar button').first();
+  const toggle = arrangeToggle(page);
   await toggle.click();
   await expect(page.locator('.office--decorating')).toHaveCount(1);
 }
@@ -162,7 +163,7 @@ async function dragFromElementTo(
 async function expectReachableForPointer(target: Locator) {
   const probe = await target.evaluate((element) => {
     const box = element.getBoundingClientRect();
-    const main = document.querySelector<HTMLElement>('.app__main')!.getBoundingClientRect();
+    const main = document.querySelector<HTMLElement>('.office__world')!.getBoundingClientRect();
     const tray = document.querySelector<HTMLElement>('.deco-tray')?.getBoundingClientRect();
     return {
       top: box.top,

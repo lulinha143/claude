@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { openView } from './support/shell';
 
 // Turn on the in-game "reduced motion" setting so the app stops its looping
 // decorative animations (the bobbing acorn, the pulsing crate). Those never
@@ -55,13 +56,8 @@ test('new game onboarding flow can be completed', async ({ page }) => {
 
   // Read every authored page and finish normally rather than bypassing the
   // first-run experience this smoke test is intended to protect.
-  await expect(page.getByRole('heading', { name: 'Your first crate' })).toBeVisible();
-  for (const heading of [
-    'Turn nuts into momentum',
-    'Know your tiny team',
-    'Watch the company grow',
-    'Make the office yours',
-  ]) {
+  await expect(page.getByRole('heading', { name: 'A company in a tree' })).toBeVisible();
+  for (const heading of ['Know your tiny team', 'Make it yours', 'Come back any time']) {
     await page.getByRole('button', { name: 'Next page' }).click();
     await expect(page.getByRole('heading', { name: heading })).toBeVisible();
   }
@@ -85,7 +81,7 @@ test('collect, purchase an upgrade, settings, language, persistence', async ({ p
   await page.locator('.station-btn').first().dispatchEvent('pointerdown', { button: 0 });
 
   // Go to the Upgrades shop and buy the first upgrade.
-  await page.getByRole('button', { name: 'Upgrades' }).click();
+  await openView(page, 'shop');
   const firstBuy = page.locator('.card-list .buy-btn').first();
   await expect(firstBuy).toBeEnabled();
   await firstBuy.click();
@@ -93,21 +89,21 @@ test('collect, purchase an upgrade, settings, language, persistence', async ({ p
   await expect(page.locator('.card-list .pill').first()).toBeVisible();
 
   // Open Settings and switch language to Brazilian Portuguese.
-  await page.getByRole('button', { name: 'Settings' }).click();
+  await openView(page, 'settings');
   await page.locator('select.select').first().selectOption('pt-BR');
 
-  // The nav should now be localized (Escritório = Office).
-  await expect(page.getByRole('button', { name: 'Escritório' })).toBeVisible();
+  // The dock should now be localized (Equipe = Team).
+  await expect(page.getByRole('button', { name: 'Equipe', exact: true })).toBeVisible();
 
   // Reload and confirm the language persisted.
   await page.reload();
-  await expect(page.getByRole('button', { name: 'Escritório' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Equipe', exact: true })).toBeVisible();
 });
 
 test('desktop-only settings are disabled in the browser demo', async ({ page }) => {
   await seedSave(page);
   await page.goto('/');
-  await page.getByRole('button', { name: 'Settings' }).click();
+  await openView(page, 'settings');
   // Without the Electron bridge the whole desktop-controls fieldset is disabled.
   // `toBeDisabled()` on a <fieldset> is unreliable (Playwright only treats
   // button/input/select/textarea/option/optgroup as disable-able), so assert
