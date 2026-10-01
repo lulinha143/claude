@@ -22,7 +22,8 @@
     "claim": "Claim",
     "claimed": "Claimed",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "dismiss": "Dismiss"
   },
   "app": {
     "title": "ZooWorkers",
@@ -47,14 +48,7 @@
     "permanentKernels": "Permanent Kernels",
     "morale": "Morale",
     "reputation": "Reputation",
-    "perSecond": "{{value}}/s",
-    "short": {
-      "nuts": "Nuts",
-      "golden": "Golden",
-      "morale": "Morale",
-      "reputation": "Standing",
-      "kernels": "Kernels"
-    }
+    "perSecond": "{{value}}/s"
   },
   "nav": {
     "mainNavigation": "Main navigation",
@@ -71,21 +65,7 @@
     "prestige": "Prestige",
     "more": "More",
     "moreCurrent": "More, current destination: {{destination}}",
-    "moreDestinations": "More destinations",
-    "short": {
-      "office": "Office",
-      "shop": "Upgrade",
-      "employees": "Team",
-      "company": "Company",
-      "collections": "Collect.",
-      "achievements": "Goals",
-      "focus": "Focus",
-      "decorate": "Decorate",
-      "settings": "Settings",
-      "stats": "Stats",
-      "prestige": "Prestige",
-      "more": "More"
-    }
+    "moreDestinations": "More destinations"
   },
   "tip": {
     "nuts": {
@@ -126,18 +106,7 @@
     },
     "affinity": "How well this teammate works in their current room. Move them to a favourite room for a production bonus.",
     "nav": {
-      "office": "Your cozy office and the team at work.",
-      "shop": "Buy upgrades to grow production and automation.",
-      "employees": "Hire, place and befriend your team.",
-      "company": "Company overview, milestones and modifiers.",
-      "collections": "Everything you've discovered so far.",
-      "achievements": "Goals to chase and their rewards.",
-      "focus": "Focus sessions and relaxing micro-games.",
-      "decorate": "Buy decorations and arrange each room.",
-      "stats": "Detailed lifetime statistics.",
-      "prestige": "Reset for permanent bonuses.",
-      "settings": "Options, audio and accessibility.",
-      "more": "Open every other company destination."
+      "settings": "Options, audio and accessibility."
     },
     "kernels": {
       "t": "Permanent Kernels",
@@ -154,12 +123,10 @@
     "empty": "No crates yet — keep working!",
     "decorate": "Arrange",
     "decorateHint": "Drag a decoration to move it, or drop it on the tray to stow it. Buy more in the Decorate tab.",
-    "dragHint": "Drag a teammate onto a room to move them there.",
     "roomFull": "{{room}} is full.",
     "roomFullSuggest": "{{room}} is full — try {{other}} instead.",
     "roomFullShort": "full",
-    "directory": "Directory",
-    "chooseDepartment": "Visit a department…"
+    "arrangeTip": "Move, stow and tidy the decorations on every floor. Drag a teammate onto another floor to move them."
   },
   "decorate": {
     "searchPlaceholder": "Search decorations…",
@@ -2212,7 +2179,9 @@
         "keyhole": "Keyhole"
       }
     },
-    "recordedChoice": "Decision filed"
+    "recordedChoice": "Decision filed",
+    "recent": "Recently in the office",
+    "recentEmpty": "Nothing new yet. Notes from the office will collect here."
   },
   "prod": {
     "title": "Production breakdown",
@@ -2348,18 +2317,14 @@
     "progress": "Page {{current}} of {{total}}",
     "progressLabel": "Tutorial pages",
     "goTo": "Page {{current}}: {{title}}",
-    "collectTitle": "Your first crate",
-    "growthTitle": "A corner of your own",
     "teamTitle": "Know your tiny team",
-    "companyTitle": "The company remembers",
-    "desktopTitle": "Make the office yours",
-    "step1": "The glowing crate is ready to collect. Grab it whenever you pass the office — production continues between visits.",
-    "step2": "Your first fern costs 100 nuts. Find it in Decorate and arrange it in the office: the label is a drag handle too. Objects can nestle together, each on its own floor, wall or ceiling.",
-    "step3": "Click Pip for a passing remark, or choose Talk in Team to get to know her. Your choices affect mood, trust and what happens later.",
-    "step4": "Take a break in Focus: games can earn memories and objects. Furniture ensembles reveal documents in rooms. Collections keeps those discoveries. Upgrades and new departments follow — and Restructure keeps the things you lived through.",
-    "step5": "Work, small breaks, conversations and objects: return to the office your own way. You do not need to buy an upgrade every visit.",
-    "step6": "Always-on-top keeps the team nearby while you work — completely optional and easy to change in Settings.",
-    "step7": "Need calm? Quiet Mode softens sound and motion, and accessibility options let you tune the experience at any time."
+    "officeTitle": "A company in a tree",
+    "office": "Your animals work floor by floor and earn nuts even while you are away. Tap the stations in each room for a bonus — the crate is the founder’s favourite.",
+    "team": "Tap an animal to hear what is on their mind, or visit them from Team. Drag one onto another floor to move them. Your choices change mood, trust and what happens later.",
+    "growTitle": "Make it yours",
+    "grow": "Upgrades grow the company and open new floors. Decorate furnishes every room — complete a set and something in that room may turn up. Activities are short breaks with the team.",
+    "returnTitle": "Come back any time",
+    "return": "Leave the office open in a corner of the screen or close it: the team keeps working. Always on top and Quiet mode live in Settings (the gear)."
   },
   "offline": {
     "title": "While You Were Away",
@@ -2950,8 +2915,7 @@
   "header": {
     "department": "Behavioural Research",
     "departmentFull": "Behavioural Research Department",
-    "cycle": "Cycle {{n}}",
-    "cycleTip": "Operating cycle {{n}}. Each restructure begins a new one."
+    "cycle": "Cycle {{n}}"
   },
   "talk": {
     "open": "Talk",
@@ -3915,5 +3879,31 @@
       "perry": "I can file it under unexpected kindness. There is room.",
       "axel": "I will keep it by the cuttings. Things grow better with company."
     }
+  },
+  "dock": {
+    "team": "Team",
+    "upgrades": "Upgrades",
+    "decorate": "Decorate",
+    "activities": "Activities",
+    "archive": "Archive",
+    "tip": {
+      "team": "Hire, place and get to know your animals.",
+      "upgrades": "Machines, rooms and improvements for the company.",
+      "decorate": "Buy furniture and arrange every floor.",
+      "activities": "Short breaks with the team: office minigames and Focus.",
+      "archive": "The company, collections, achievements and records."
+    }
+  },
+  "sheet": {
+    "backToOffice": "Back to the office"
+  },
+  "elevator": {
+    "label": "Elevator",
+    "up": "Floor above",
+    "down": "Floor below",
+    "floors": "All floors",
+    "here": "You are at: {{room}}",
+    "people_one": "{{count}} teammate",
+    "people_other": "{{count}} teammates"
   }
 }

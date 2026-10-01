@@ -61,6 +61,29 @@ surfaced by the checker rather than crashing the UI.
 3. Set `_meta.complete` appropriately.
 4. Run `npm run check:i18n`.
 
+## pt-BR glossary
+
+Use these terms everywhere (HUD, dock, sheets, events, tooltips). Sentence case for
+titles and buttons; curly quotes (“ ”) in prose.
+
+| English                                           | pt-BR                                               | Notes                                              |
+| ------------------------------------------------- | --------------------------------------------------- | -------------------------------------------------- |
+| Nuts                                              | castanhas                                           | lower case in prose; the HUD shows only the number |
+| Golden Nuts                                       | Castanhas Douradas                                  | premium currency, always capitalised               |
+| Permanent Kernels                                 | Grãos Permanentes                                   | prestige currency                                  |
+| Morale                                            | Ânimo                                               |                                                    |
+| Reputation                                        | Reputação                                           |                                                    |
+| Team · Upgrades · Decorate · Activities · Archive | Equipe · Melhorias · Decorar · Atividades · Arquivo | the dock                                           |
+| Settings                                          | Ajustes                                             | the HUD gear                                       |
+| Focus Harvest                                     | Colheita de Foco                                    |                                                    |
+| minigames                                         | minijogos                                           |                                                    |
+| Prestige                                          | Prestígio                                           |                                                    |
+
+Characters keep one localized name each (`employee.<id>.name`): Pip is **Tico** in
+pt-BR, Marlow is Bento, Rizzo is Nino, Bea is Bia, and so on. Never mix the English
+and Portuguese name inside the pt-BR file. Known clash to resolve in the pt-BR
+editorial pass: `rizzo`/`nino` are both “Nino” and `bea`/`bia` are both “Bia”.
+
 ## Notes for translators
 
 - German and Russian strings can be long — UI layouts use wrapping/flex and were

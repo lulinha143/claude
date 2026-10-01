@@ -22,15 +22,16 @@
     "claim": "Resgatar",
     "claimed": "Resgatado",
     "yes": "Sim",
-    "no": "Não"
+    "no": "Não",
+    "dismiss": "Dispensar"
   },
   "app": {
     "title": "ZooWorkers",
-    "subtitle": "Um Aconchegante Jogo Idle de Escritório Animal",
+    "subtitle": "Um jogo idle aconchegante num escritório de bichos",
     "tagline": "Um escritório inteiro de animais adoráveis tocando uma empresa bem pequena."
   },
   "opening": {
-    "eyebrow": "Uma pequena história empresarial",
+    "eyebrow": "Uma pequena história de empresa",
     "skip": "Pular abertura",
     "prompt": "Uma bolota. Um esquilo ambicioso.",
     "line": "Todo império começa com uma castanha.",
@@ -45,16 +46,9 @@
     "nuts": "Castanhas",
     "goldenNuts": "Castanhas Douradas",
     "permanentKernels": "Grãos Permanentes",
-    "morale": "Moral",
+    "morale": "Ânimo",
     "reputation": "Reputação",
-    "perSecond": "{{value}}/s",
-    "short": {
-      "nuts": "Nozes",
-      "golden": "Douradas",
-      "morale": "Ânimo",
-      "reputation": "Posição",
-      "kernels": "Sementes"
-    }
+    "perSecond": "{{value}}/s"
   },
   "nav": {
     "mainNavigation": "Navegação principal",
@@ -71,21 +65,7 @@
     "prestige": "Prestígio",
     "more": "Mais",
     "moreCurrent": "Mais, destino atual: {{destination}}",
-    "moreDestinations": "Mais destinos",
-    "short": {
-      "office": "Escrit.",
-      "shop": "Melhor.",
-      "employees": "Equipe",
-      "company": "Empresa",
-      "collections": "Coleções",
-      "achievements": "Conq.",
-      "focus": "Foco",
-      "decorate": "Decorar",
-      "settings": "Ajustes",
-      "stats": "Estat.",
-      "prestige": "Prestígio",
-      "more": "Mais"
-    }
+    "moreDestinations": "Mais destinos"
   },
   "tip": {
     "nuts": {
@@ -94,11 +74,11 @@
     },
     "golden": {
       "t": "Castanhas Douradas",
-      "d": "Moeda premium rara, de marcos e prestígio. Compra melhorias e habilidades poderosas."
+      "d": "Moeda rara, ganha em marcos e na reestruturação. Compra melhorias e habilidades poderosas."
     },
     "morale": {
-      "t": "Moral",
-      "d": "A felicidade da equipe. Moral alta aumenta a produção; café, decorações e bons eventos elevam.",
+      "t": "Ânimo",
+      "d": "A felicidade da equipe. Com ânimo alto a produção sobe; café, decoração e bons eventos ajudam.",
       "impact": "{{sign}}{{pct}}% de produção agora"
     },
     "reputation": {
@@ -126,21 +106,10 @@
     },
     "affinity": "O quão bem este colega trabalha na sala atual. Leve-o para uma sala favorita para um bônus de produção.",
     "nav": {
-      "office": "Seu escritório aconchegante e a equipe trabalhando.",
-      "shop": "Compre melhorias para crescer produção e automação.",
-      "employees": "Contrate, posicione e faça amizade com a equipe.",
-      "company": "Visão geral da empresa, marcos e modificadores.",
-      "collections": "Tudo o que você já descobriu.",
-      "achievements": "Metas para perseguir e suas recompensas.",
-      "focus": "Sessões de foco e mini-jogos relaxantes.",
-      "decorate": "Compre decorações e organize cada sala.",
-      "stats": "Estatísticas detalhadas de toda a jornada.",
-      "prestige": "Reinicie para bônus permanentes.",
-      "settings": "Opções, áudio e acessibilidade.",
-      "more": "Abra todos os outros destinos da empresa."
+      "settings": "Opções, áudio e acessibilidade."
     },
     "kernels": {
-      "t": "Sementes Permanentes",
+      "t": "Grãos Permanentes",
       "d": "Guardadas ao reestruturar. Sobrevivem a todos os ciclos e financiam habilidades permanentes."
     }
   },
@@ -152,14 +121,12 @@
     "production": "Produção",
     "clickReward": "+{{value}} castanhas",
     "empty": "Nenhuma caixa ainda — continue trabalhando!",
-    "decorate": "Organizar",
+    "decorate": "Arrumar",
     "decorateHint": "Arraste uma decoração para movê-la, ou solte na bandeja para guardá-la. Compre mais na aba Decorar.",
-    "dragHint": "Arraste um colega para uma sala para movê-lo para lá.",
     "roomFull": "{{room}} está cheia.",
     "roomFullSuggest": "{{room}} está cheia — tente {{other}}.",
     "roomFullShort": "lotada",
-    "directory": "Diretório",
-    "chooseDepartment": "Visitar departamento…"
+    "arrangeTip": "Mova, guarde e arrume as decorações de cada andar. Arraste um colega até outro andar para mudá-lo de lugar."
   },
   "decorate": {
     "searchPlaceholder": "Buscar decorações…",
@@ -2092,10 +2059,10 @@
     "autoRoom": "Padrão (departamento)"
   },
   "nextStep": {
-    "claimDaily": "Um desafio diário está pronto para resgatar!",
+    "claimDaily": "Tem recompensa de desafio diário esperando por você!",
     "hire": "Você já pode contratar {{name}}!",
     "upgrade": "Você já pode comprar uma melhoria.",
-    "prestige": "Você está pronto para Ficar Completamente Louco!",
+    "prestige": "A empresa está pronta para Pirar na Castanha!",
     "focus": "Experimente uma sessão de Colheita de Foco.",
     "decorate": "Você já pode comprar uma decoração.",
     "firstConversation": "Conheça {{name}} — uma conversa pode mudar o expediente.",
@@ -2212,7 +2179,9 @@
         "keyhole": "Buraco de fechadura"
       }
     },
-    "recordedChoice": "Decisão arquivada"
+    "recordedChoice": "Decisão arquivada",
+    "recent": "Últimas do escritório",
+    "recentEmpty": "Nada de novo ainda. Os recados do escritório aparecem aqui."
   },
   "prod": {
     "title": "Detalhes da produção",
@@ -2348,18 +2317,14 @@
     "progress": "Página {{current}} de {{total}}",
     "progressLabel": "Páginas do tutorial",
     "goTo": "Página {{current}}: {{title}}",
-    "collectTitle": "Sua primeira caixa",
-    "growthTitle": "Um canto que é seu",
     "teamTitle": "Conheça sua pequena equipe",
-    "companyTitle": "A empresa guarda suas escolhas",
-    "desktopTitle": "Deixe o escritório do seu jeito",
-    "step1": "A caixa brilhante está pronta para coletar. Pegue sempre que passar pelo escritório — a produção continua entre visitas.",
-    "step2": "A primeira samambaia custa 100 nozes. Escolha-a em Decorar e leve-a ao escritório: a etiqueta também serve para arrastar. Móveis podem se encostar, e cada objeto tem seu chão, parede ou teto.",
-    "step3": "Clique em Tico para ouvir uma frase, ou use Conversar em Equipe para conhecê-lo melhor. As escolhas mudam o ânimo, a amizade e o que volta a acontecer depois.",
-    "step4": "Faça uma pausa em Foco: os jogos podem render lembranças e objetos. Conjuntos de decoração revelam documentos nas salas. Coleções guarda essas descobertas. Melhorias e novos departamentos vêm junto — e Reestruturar conserva o que vocês viveram.",
-    "step5": "Trabalho, pequenas pausas, conversas e objetos: volte ao escritório do seu jeito. Não é preciso comprar uma melhoria a cada visita.",
-    "step6": "Sempre no topo mantém a equipe por perto enquanto você trabalha — é opcional e fácil de mudar nos Ajustes.",
-    "step7": "Quer tranquilidade? O Modo Silencioso suaviza som e movimento, e as opções de acessibilidade ajustam a experiência a qualquer momento."
+    "officeTitle": "Uma empresa dentro de uma árvore",
+    "office": "Seus bichos trabalham andar por andar e rendem castanhas até quando você está longe. Toque nos equipamentos de cada sala para ganhar um bônus — a caixa é a favorita do fundador.",
+    "team": "Toque num bicho para ouvir o que ele está pensando, ou visite pela Equipe. Arraste um colega até outro andar para mudá-lo de lugar. Suas escolhas mudam o ânimo, a confiança e o que acontece depois.",
+    "growTitle": "Deixe do seu jeito",
+    "grow": "As Melhorias fazem a empresa crescer e abrem novos andares. Em Decorar você mobília cada sala — complete um conjunto e algo pode aparecer por lá. As Atividades são pausas curtas com a equipe.",
+    "returnTitle": "Volte quando quiser",
+    "return": "Deixe o escritório aberto num cantinho da tela ou feche: a equipe continua trabalhando. “Sempre no topo” e o Modo silencioso ficam nos Ajustes (a engrenagem)."
   },
   "offline": {
     "title": "Enquanto Você Estava Fora",
@@ -2950,8 +2915,7 @@
   "header": {
     "department": "Pesquisa Comportamental",
     "departmentFull": "Departamento de Pesquisa Comportamental",
-    "cycle": "Ciclo {{n}}",
-    "cycleTip": "Ciclo operacional {{n}}. Cada reestruturação inicia um novo."
+    "cycle": "Ciclo {{n}}"
   },
   "talk": {
     "open": "Conversar",
@@ -3575,10 +3539,10 @@
     },
     "coffee": {
       "title": "Café para o turno da noite",
-      "body": "O café que você salvou ficou pronto. Pip separou xícaras para quem nunca aparece nas fotos do dia.",
+      "body": "O café que você salvou ficou pronto. Tico separou xícaras para quem nunca aparece nas fotos do dia.",
       "serve": "Servir uma xícara para cada um.",
-      "mug": "Usar a caneca consertada de Pip na primeira rodada.",
-      "mugReply": "Mesma caneca. Companhia melhor. Pip não faz discurso.",
+      "mug": "Usar a caneca consertada do Tico na primeira rodada.",
+      "mugReply": "Mesma caneca. Companhia melhor. Tico não faz discurso.",
       "sell": "Vender as xícaras extras aos visitantes."
     },
     "bugs": {
@@ -3603,7 +3567,7 @@
       "leaveReply": "Nixie escreve: NÓS TAMBÉM VIMOS. Ninguém deveria investigar sozinho."
     },
     "needsRecording": "Peça a Echo para gravar uma resposta primeiro.",
-    "needsMug": "Conserte a caneca favorita de Pip primeiro.",
+    "needsMug": "Conserte a caneca favorita do Tico primeiro.",
     "needsHabitat": "Ajude Quincy com o pote de insetos primeiro.",
     "needsManual": "Ajude Nixie a documentar o aparelho primeiro."
   },
@@ -3915,5 +3879,31 @@
       "perry": "Posso arquivar em gentilezas inesperadas. Ainda cabe.",
       "axel": "Vou deixar perto das mudas. As coisas crescem melhor com companhia."
     }
+  },
+  "dock": {
+    "team": "Equipe",
+    "upgrades": "Melhorias",
+    "decorate": "Decorar",
+    "activities": "Atividades",
+    "archive": "Arquivo",
+    "tip": {
+      "team": "Contrate, organize e conheça seus bichos.",
+      "upgrades": "Máquinas, salas e melhorias para a empresa.",
+      "decorate": "Compre móveis e arrume cada andar.",
+      "activities": "Pausas curtas com a equipe: minijogos do escritório e Foco.",
+      "archive": "A empresa, coleções, conquistas e registros."
+    }
+  },
+  "sheet": {
+    "backToOffice": "Voltar ao escritório"
+  },
+  "elevator": {
+    "label": "Elevador",
+    "up": "Andar de cima",
+    "down": "Andar de baixo",
+    "floors": "Todos os andares",
+    "here": "Você está em: {{room}}",
+    "people_one": "{{count}} colega",
+    "people_other": "{{count}} colegas"
   }
 }
