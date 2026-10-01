@@ -98,9 +98,21 @@ const ROOM_SCENE: Record<string, ScenePiece[]> = {
   rooftop: [{ prop: 'skyline', slot: 'wallLeft' }],
   // Second expansion. Each gets the fixture that says what the room is for.
   cafeteria: [{ prop: 'menuBoard', slot: 'wallLeft' }],
-  mailroom: [{ prop: 'binShelf', slot: 'wallLeft' }],
-  security: [{ prop: 'cameraWall', slot: 'wallLeft' }],
-  archive: [{ prop: 'recordWall', slot: 'wallLeft' }],
+  // These three keep their window off the right-hand wall, so they carry a
+  // second signature piece there: the post room's notice board, the guard's
+  // wanted posters, the archive's overflow shelf.
+  mailroom: [
+    { prop: 'binShelf', slot: 'wallLeft' },
+    { prop: 'corkboard', slot: 'wallRight' },
+  ],
+  security: [
+    { prop: 'cameraWall', slot: 'wallLeft' },
+    { prop: 'corkboard', slot: 'wallRight' },
+  ],
+  archive: [
+    { prop: 'recordWall', slot: 'wallLeft' },
+    { prop: 'binShelf', slot: 'wallRight' },
+  ],
   incubator: [{ prop: 'flaskShelf', slot: 'wallLeft' }],
 };
 
