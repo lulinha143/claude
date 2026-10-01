@@ -28,6 +28,7 @@ import './ui/game/shell.css';
 import './ui/game/popup.css';
 import './ui/game/opening.css';
 import './ui/game/world.css';
+import './ui/game/office-life.css';
 
 async function bootstrap() {
   // Keep the browser/Electron window title in sync with the central brand.

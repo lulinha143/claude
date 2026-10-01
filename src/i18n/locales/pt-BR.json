@@ -171,7 +171,7 @@
     "undo": "Desfazer",
     "redo": "Refazer",
     "placeHere": "Colocar aqui",
-    "pickedHint": "Toque num espaço vazio para colocá-la, ou toque nela de novo para cancelar.",
+    "pickedHint": "Toque num lugar para levá-la até lá, ou arraste. Toque nela de novo para soltar.",
     "inventory": "Depósito",
     "inventoryEmpty": "Depósito vazio",
     "summary": "{{owned}} obtidas · {{placed}} colocadas · +{{comfort}} conforto",
@@ -194,7 +194,11 @@
       "owned": "Seus objetos",
       "locked": "Próximos departamentos"
     },
-    "arrangeHere": "Arrumar no escritório"
+    "arrangeHere": "Arrumar no escritório",
+    "layerBack": "Pôr atrás",
+    "layerFront": "Pôr na frente",
+    "layerBackTip": "Pôr atrás da equipe",
+    "layerFrontTip": "Pôr na frente da equipe"
   },
   "decoReact": {
     "plant": "Essa plantinha deixa o ambiente bem mais fresco.",

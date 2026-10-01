@@ -171,7 +171,7 @@
     "undo": "Undo",
     "redo": "Redo",
     "placeHere": "Place here",
-    "pickedHint": "Tap an empty spot to place it, or tap it again to cancel.",
+    "pickedHint": "Tap a spot to move it there, or drag it. Tap it again to let go.",
     "inventory": "Storage",
     "inventoryEmpty": "Storage empty",
     "summary": "{{owned}} owned · {{placed}} placed · +{{comfort}} comfort",
@@ -194,7 +194,11 @@
       "owned": "Your objects",
       "locked": "Future departments"
     },
-    "arrangeHere": "Arrange in office"
+    "arrangeHere": "Arrange in office",
+    "layerBack": "Put behind",
+    "layerFront": "Put in front",
+    "layerBackTip": "Put it behind the team",
+    "layerFrontTip": "Put it in front of the team"
   },
   "decoReact": {
     "plant": "This little plant really freshens up the place.",

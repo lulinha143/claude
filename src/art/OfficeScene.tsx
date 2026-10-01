@@ -1,10 +1,12 @@
 import {
+  Fragment,
   memo,
   useCallback,
   useEffect,
   useLayoutEffect,
   useRef,
   useState,
+  useSyncExternalStore,
   type CSSProperties,
 } from 'react';
 import { createPortal } from 'react-dom';
@@ -30,6 +32,7 @@ import { useSceneScale } from './useSceneScale';
 import { useSpriteAvailabilityRevision } from './spriteAvailability';
 import { EmployeeSprite } from './EmployeeSprite';
 import { EmployeeBubble } from './EmployeeMoodBadge';
+import { steadyMood, stickerTilt } from './EmotionSticker';
 import { ClickStation } from './ClickStation';
 import {
   CLICK_STATIONS_BY_ID,
@@ -52,12 +55,18 @@ import {
   decorationInstance,
   roomComfort,
 } from '../sim/decorations';
-import { surfaceZ, decorationSurface, isRug } from '../sim/surfaces';
-import { DECORATION_DEPTH_CEILING, SCENE_DEPTH, characterDepth } from '../sim/depth';
+import { decorationSurface, decorationZ, decorationDepthKind, isRug } from '../sim/surfaces';
+import {
+  SCENE_DEPTH,
+  characterDepth,
+  decorationLayerAdjustable,
+  decorationSide,
+} from '../sim/depth';
 import { pointerRegionPlacement } from '../sim/placement';
 import { placementRegionById } from '../content/roomSurfaces';
 import { type PlacementAnchorMode, type PlacementRegionKind } from '../sim/placementRegions';
 import { characterSlots, depthScale } from '../content/roomLayout';
+import type { DecorationLayer } from '../sim/types';
 import { placementSpec } from '../content/placementSpecs';
 import { pickOfficeInteraction } from '../sim/officeLife';
 import { DecorationTray } from '../ui/DecorationTray';
@@ -70,6 +79,8 @@ import { notify } from '../ui/notificationsStore';
 import { dustPuff } from '../ui/sparkle';
 import { INTERACTION_CANCEL_EVENT, INTERACTION_FOCUS_EVENT } from '../ui/interactionLifecycle';
 import { FOCUS_FLOOR_EVENT } from '../ui/officeEvents';
+import { ROOM_PROFILES_BY_ID, type RoomTemper } from '../content/roomProfiles';
+import type { SfxName } from '../audio/audio';
 
 /** The ground floor of the tower, where a new company opens. */
 const FOUNDER_FLOOR = 'founder-desk';
@@ -90,15 +101,72 @@ interface DecorationDragPreview {
   reasonKey?: string;
 }
 
+// What a drag looks like to the WHOLE office: which piece, over which room, and
+// whether a drop would be accepted. Only this coarse state is React state, and it
+// is only replaced when one of these values changes, so the tower re-renders a
+// handful of times per drag rather than once per pointer move.
 interface DragState {
   kind: 'employee' | 'decoration';
   id: string;
-  x: number;
-  y: number;
   room: string | null; // for decorations: the source room; employees: null
   overRoom: string | null;
   valid: boolean;
+  previewRoomId?: string;
+  regionId?: string;
+  regionKind?: PlacementRegionKind;
+}
+
+function sameDrag(a: DragState | null, b: DragState): boolean {
+  return Boolean(
+    a &&
+    a.kind === b.kind &&
+    a.id === b.id &&
+    a.room === b.room &&
+    a.overRoom === b.overRoom &&
+    a.valid === b.valid &&
+    a.previewRoomId === b.previewRoomId &&
+    a.regionId === b.regionId &&
+    a.regionKind === b.regionKind,
+  );
+}
+
+// The per-frame part of a drag (the pointer, and the exact landing preview) lives
+// in this tiny external store. Only the ghost and the landing guide subscribe, so
+// following the pointer re-renders two small components and nothing else.
+interface DragLive {
+  x: number;
+  y: number;
   preview?: DecorationDragPreview;
+}
+let dragLive: DragLive | null = null;
+const dragLiveListeners = new Set<() => void>();
+function setDragLive(next: DragLive | null): void {
+  dragLive = next;
+  dragLiveListeners.forEach((listener) => listener());
+}
+function subscribeDragLive(listener: () => void): () => void {
+  dragLiveListeners.add(listener);
+  return () => dragLiveListeners.delete(listener);
+}
+function useDragLive(): DragLive | null {
+  return useSyncExternalStore(
+    subscribeDragLive,
+    () => dragLive,
+    () => null,
+  );
+}
+
+/**
+ * The pieces under a point, topmost first (the real paint order), so a click
+ * can hand the selection down through a stack of overlapping decorations.
+ */
+function decorationStackAt(x: number, y: number): string[] {
+  const ids: string[] = [];
+  for (const element of document.elementsFromPoint(x, y)) {
+    const id = (element.closest('.floor__deco') as HTMLElement | null)?.dataset.deco;
+    if (id && !ids.includes(id)) ids.push(id);
+  }
+  return ids;
 }
 
 interface CancelDragOptions {
@@ -136,6 +204,26 @@ const DEPT: Record<string, string> = {
 };
 
 // which ambient decoration each room shows (styled in styles.css)
+// Each kind of room answers in its own small sound when the elevator arrives
+// (a page turn at the desks, a cup in the social rooms, glassware in the labs, a
+// heavy thunk on the industrial floors, a coin in the secure ones, a click from
+// the rooms nobody puts in the brochure).
+const ROOM_TONE: Record<RoomTemper, { sfx: SfxName; pitch: number }> = {
+  operational: { sfx: 'paper', pitch: 1 },
+  social: { sfx: 'coffee', pitch: 1.06 },
+  analytical: { sfx: 'chime', pitch: 1.26 },
+  industrial: { sfx: 'place', pitch: 0.78 },
+  secure: { sfx: 'collect', pitch: 0.88 },
+  irregular: { sfx: 'toggle', pitch: 0.74 },
+};
+
+/** A teammate's own pitch, so a poke sounds like that particular animal. */
+function voicePitch(id: string): number {
+  let h = 7;
+  for (let i = 0; i < id.length; i += 1) h = (h * 33 + id.charCodeAt(i)) | 0;
+  return [0.82, 0.9, 1, 1.1, 1.2][Math.abs(h) % 5];
+}
+
 const AMBIENT: Record<string, string> = {
   'founder-desk': 'desk',
   sorting: 'conveyor',
@@ -228,11 +316,102 @@ function RegionGuide({ preview }: { preview: DecorationDragPreview }) {
   );
 }
 
+/**
+ * Front/back for the picked piece, offered only where it means something: wall
+ * and floor pieces (a rug is always underfoot, a ceiling lamp always overhead).
+ * The label says what pressing it will do, in plain words.
+ */
+function LayerToggle({
+  id,
+  surface,
+  layer,
+  onChange,
+}: {
+  id: string;
+  surface: 'floor' | 'wall' | 'ceiling';
+  layer?: DecorationLayer;
+  onChange: (layer: DecorationLayer) => void;
+}) {
+  const { t } = useTranslation();
+  const kind = decorationDepthKind(id, surface);
+  if (!decorationLayerAdjustable(kind)) return null;
+  const side = decorationSide(kind, layer);
+  const target: DecorationLayer = side === 'front' ? 'back' : 'front';
+  const tip = t(target === 'back' ? 'decorate.layerBackTip' : 'decorate.layerFrontTip');
+  return (
+    <button
+      className="mini-btn deco-layer-btn"
+      data-layer={side}
+      data-layer-target={target}
+      title={tip}
+      aria-label={tip}
+      onClick={() => onChange(target)}
+    >
+      <Icon name={target === 'back' ? 'layerBack' : 'layerFront'} size={12} />{' '}
+      {t(target === 'back' ? 'decorate.layerBack' : 'decorate.layerFront')}
+    </button>
+  );
+}
+
+/** The landing guide for the room under the pointer, fed by the live drag store. */
+function LiveRegionGuide({ roomId }: { roomId: string }) {
+  const live = useDragLive();
+  if (!live?.preview || live.preview.roomId !== roomId) return null;
+  return <RegionGuide preview={live.preview} />;
+}
+
+/**
+ * The piece in the player's hand. Drawn at exactly the size it has in the room
+ * (the scene scale is handed over explicitly: the ghost is portalled to the body,
+ * outside the office that publishes it) and moved 1:1 with the pointer.
+ */
+function DragGhost({
+  drag,
+  sceneScale,
+  reducedMotion,
+  title,
+}: {
+  drag: DragState;
+  sceneScale: number;
+  reducedMotion: boolean;
+  title: string;
+}) {
+  const live = useDragLive();
+  if (!live || typeof document === 'undefined') return null;
+  const x = live.preview?.clientX ?? live.x;
+  const y = live.preview?.clientY ?? live.y;
+  return createPortal(
+    <div
+      className={`drag-ghost ${drag.kind === 'decoration' ? 'drag-ghost--decoration' : ''} ${
+        drag.valid ? 'is-ok' : 'is-no'
+      } ${ghostAnchorClass(drag)}`}
+      style={{
+        left: `${x}px`,
+        top: `${y}px`,
+        ['--asset-scale' as string]: String(sceneScale),
+        ...(drag.kind === 'decoration' ? decorationAnchorStyle(drag.id) : {}),
+      }}
+      data-region={live.preview?.regionId}
+      data-region-kind={live.preview?.regionKind}
+      data-anchor={drag.kind === 'decoration' ? placementSpec(drag.id).anchor : undefined}
+      data-valid={drag.valid}
+      aria-hidden
+    >
+      {drag.kind === 'employee' ? (
+        <GhostCritter id={drag.id} reducedMotion={reducedMotion} />
+      ) : (
+        <DecorationProp id={drag.id} reducedMotion mode="interact" title={title} />
+      )}
+    </div>,
+    document.body,
+  );
+}
+
 // The ghost and committed item consume the same authored baseline. Surface
 // selection decides where the support point is; item metadata decides which
 // visual contact point (base, mount, or suspension) sits on it.
 function ghostAnchorClass(drag: DragState): string {
-  if (drag.kind !== 'decoration' || !drag.preview) return 'drag-ghost--pointer-anchor';
+  if (drag.kind !== 'decoration' || !drag.previewRoomId) return 'drag-ghost--pointer-anchor';
   return `drag-ghost--anchored ${decorationAnchorClass(drag.id)}`;
 }
 
@@ -359,6 +538,23 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
   const nextLocked = ROOMS.filter((r) => !isRoomUnlocked(state, r)).sort(
     (a, b) => a.floor - b.floor,
   )[0];
+  // Floors scrolled out of sight stop their ambient motion (the stylesheet keys
+  // off data-onscreen), so a tall company costs no more than the floors in view.
+  const floorKey = rooms.map((room) => room.id).join(',');
+  useEffect(() => {
+    const scroller = scrollerRef.current;
+    if (!scroller || typeof IntersectionObserver === 'undefined') return undefined;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          (entry.target as HTMLElement).dataset.onscreen = String(entry.isIntersecting);
+        }
+      },
+      { root: scroller, rootMargin: '60px 0px' },
+    );
+    scroller.querySelectorAll('.floor[data-room]').forEach((floor) => observer.observe(floor));
+    return () => observer.disconnect();
+  }, [floorKey]);
   const producing = engine.productionPerSecond() > 0;
   const focusMode = engine.isFocusActive();
   const lowMorale = state.resources.morale < 35;
@@ -393,7 +589,8 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
       const middle = box.top + scroller.clientHeight / 2;
       let best: string | null = null;
       let bestDistance = Infinity;
-      scroller.querySelectorAll<HTMLElement>('.floor[data-room]').forEach((element) => {
+      const floors = [...scroller.querySelectorAll<HTMLElement>('.floor[data-room]')];
+      floors.forEach((element) => {
         const rect = element.getBoundingClientRect();
         const distance = Math.abs(rect.top + rect.height / 2 - middle);
         if (distance < bestDistance) {
@@ -401,6 +598,20 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
           best = element.dataset.room ?? null;
         }
       });
+      // The floors at either end of the tower can never reach the middle of the
+      // view (the ground floor sits on the roots), so at either end of the scroll
+      // the floor the player is looking at is the end-most one fully in view.
+      const max = scroller.scrollHeight - scroller.clientHeight;
+      const atBottom = max > 0 && scroller.scrollTop >= max - 2;
+      const atTop = scroller.scrollTop <= 2;
+      if (atBottom || atTop) {
+        const inView = floors.filter((element) => {
+          const rect = element.getBoundingClientRect();
+          return rect.top >= box.top - 1 && rect.bottom <= box.top + scroller.clientHeight + 1;
+        });
+        const end = atBottom ? inView[inView.length - 1] : inView[0];
+        if (end?.dataset.room) best = end.dataset.room;
+      }
       if (best && best !== currentFloorRef.current) {
         currentFloorRef.current = best;
         setCurrentFloor(best);
@@ -636,7 +847,7 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
     }
     if (employeeId === 'pip') {
       engine.petPip();
-      audio.play('click');
+      audio.play('click', { pitch: voicePitch('pip') });
       // Petting the founder is its own interaction, but she still notices a
       // company-wide mood or a bad assignment before falling back to it.
       const voice = chooseVoice(state, 'pip');
@@ -645,7 +856,7 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
       // Everyone else comments on what is actually happening to them: the company
       // mood, or the department they have been put in.
       speak(employeeId, chooseVoice(state, employeeId).category);
-      audio.play('footstep');
+      audio.play('footstep', { pitch: voicePitch(employeeId) });
     }
   }
 
@@ -723,10 +934,31 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
     });
   }
 
-  function selectDeco(id: string) {
+  /**
+   * Pick a piece up (or put it down). A click lands on the topmost piece under the
+   * pointer; clicking the picked piece again where others overlap it hands the
+   * pick to the next one down, in paint order, so a piece buried under another is
+   * always one or two clicks away. A piece on its own toggles. Keyboard
+   * activation always means the focused piece itself.
+   */
+  function selectDeco(id: string, point?: { x: number; y: number }) {
     if (draggedRef.current) return; // suppress the click that follows a drag
-    setSelected((prev) => (prev === id ? null : id));
+    const stack = point ? decorationStackAt(point.x, point.y) : [];
+    setSelected((prev) => {
+      if (!point || stack.length === 0) return prev === id ? null : id;
+      if (prev && stack.includes(prev)) {
+        if (stack.length === 1) return null;
+        return stack[(stack.indexOf(prev) + 1) % stack.length];
+      }
+      return stack[0];
+    });
     audio.play('click');
+  }
+
+  /** The piece a press on `id` should move: the picked piece if it is under the pointer. */
+  function decorationToDrag(e: React.PointerEvent, id: string): string {
+    if (!selected || selected === id) return id;
+    return decorationStackAt(e.clientX, e.clientY).includes(selected) ? selected : id;
   }
 
   // -- drag & drop ------------------------------------------------------------
@@ -851,7 +1083,12 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
     pendingReleaseCleanupsRef.current.set(pointerId, clear);
   }
 
-  function beginDrag(e: React.PointerEvent, kind: 'employee' | 'decoration', id: string) {
+  function beginDrag(
+    e: React.PointerEvent,
+    kind: 'employee' | 'decoration',
+    id: string,
+    sourceOverride?: HTMLElement | null,
+  ) {
     if (e.button != null && e.button !== 0) return;
     if (kind === 'decoration' && !decorMode) return;
     if (kind === 'employee' && decorMode) return;
@@ -862,7 +1099,7 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
     cancelActiveDragRef.current?.();
     pendingFocusRestoreRef.current = null;
 
-    const source = e.currentTarget as HTMLElement;
+    const source = sourceOverride ?? (e.currentTarget as HTMLElement);
     const pointerId = e.pointerId;
     // Pointer ids may be reused after an OS-swallowed release. A fresh press
     // with the same id proves that stale stream is over without disturbing
@@ -896,15 +1133,9 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
     function applyMove(clientX: number, clientY: number) {
       if (kind === 'employee') {
         const target = employeeTarget(clientX, clientY, id);
-        setDrag({
-          kind,
-          id,
-          x: clientX,
-          y: clientY,
-          room,
-          overRoom: target.room,
-          valid: target.valid,
-        });
+        setDragLive({ x: clientX, y: clientY });
+        const next: DragState = { kind, id, room, overRoom: target.room, valid: target.valid };
+        setDrag((prev) => (sameDrag(prev, next) ? prev : next));
         return;
       }
       // Bias toward the support already being targeted (hysteresis) so the
@@ -916,22 +1147,49 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
         : lastPreview
           ? { ...lastPreview, valid: false, reasonKey: 'decorate.reject.moveInside' }
           : undefined;
-      setDrag({
+      setDragLive({ x: clientX, y: clientY, preview });
+      const next: DragState = {
         kind,
         id,
-        x: preview?.clientX ?? clientX,
-        y: preview?.clientY ?? clientY,
         room,
         overRoom: target.room,
         valid: Boolean(preview ? preview.valid && target.room === preview.roomId : target.valid),
-        preview,
-      });
+        previewRoomId: preview?.roomId,
+        regionId: preview?.regionId,
+        regionKind: preview?.regionKind,
+      };
+      setDrag((prev) => (sameDrag(prev, next) ? prev : next));
     }
 
     function flush() {
       rafId = 0;
       if (!latest) return;
       applyMove(latest.x, latest.y);
+    }
+
+    // Hold a piece (or a teammate) near the top or bottom edge of the tower view
+    // and the building scrolls the other floors to you — the only way to reach a
+    // floor that is out of sight in a corner window. Faster the closer to the edge;
+    // nothing happens over the HUD, the dock or the storage strip.
+    let scrollRafId = 0;
+    function edgeScroll() {
+      scrollRafId = 0;
+      const scroller = scrollerRef.current;
+      if (!scroller || !latest || cleaned) return;
+      const box = scroller.getBoundingClientRect();
+      const zone = Math.min(56, box.height * 0.2);
+      const y = latest.y;
+      let dy = 0;
+      if (y >= box.top && y < box.top + zone) dy = -Math.ceil(((box.top + zone - y) / zone) * 14);
+      else if (y <= box.bottom && y > box.bottom - zone)
+        dy = Math.ceil(((y - (box.bottom - zone)) / zone) * 14);
+      if (dy === 0) return;
+      const before = scroller.scrollTop;
+      scroller.scrollTop = before + dy;
+      if (scroller.scrollTop !== before) {
+        applyMove(latest.x, latest.y);
+        scrollRafId = requestAnimationFrame(edgeScroll);
+      }
     }
 
     function move(ev: PointerEvent) {
@@ -941,12 +1199,14 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
       started = true;
       latest = { x: ev.clientX, y: ev.clientY };
       if (!rafId) rafId = requestAnimationFrame(flush);
+      if (!scrollRafId) scrollRafId = requestAnimationFrame(edgeScroll);
     }
 
     function cleanup() {
       if (cleaned) return;
       cleaned = true;
       if (rafId) cancelAnimationFrame(rafId);
+      if (scrollRafId) cancelAnimationFrame(scrollRafId);
       window.removeEventListener('pointermove', move);
       window.removeEventListener('pointerup', up);
       window.removeEventListener('pointercancel', cancelPointer);
@@ -970,8 +1230,22 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
       pendingFocusRestoreRef.current = restoreOnFocus ? source : null;
       cleanup();
       if (awaitRelease) armCancelledPointerRelease(pointerId);
-      draggedRef.current = false;
+      // A drag that had begun never turns into a click on whatever is under the
+      // pointer when the button finally comes up (a release the OS swallowed, or
+      // a cancelled stream whose mouse is still down). The next deliberate press
+      // or key starts clean.
+      draggedRef.current = started;
+      if (started) {
+        const reset = () => {
+          draggedRef.current = false;
+          window.removeEventListener('pointerdown', reset, true);
+          window.removeEventListener('keydown', reset, true);
+        };
+        window.addEventListener('pointerdown', reset, true);
+        window.addEventListener('keydown', reset, true);
+      }
       setDrag(null);
+      setDragLive(null);
     }
 
     function cancelPointer(ev: PointerEvent) {
@@ -998,6 +1272,7 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
         }, 0);
       }
       setDrag(null);
+      setDragLive(null);
     }
 
     function onKey(ev: KeyboardEvent) {
@@ -1091,6 +1366,41 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
     ) {
       audio.play('place');
       dustPuff(preview.clientX, preview.clientY);
+      setJustPlaced(id);
+      window.setTimeout(() => setJustPlaced((current) => (current === id ? null : current)), 320);
+    }
+  }
+
+  /**
+   * Tap-to-place: with a piece picked (on a floor or in the tray), a tap on an
+   * empty spot of a room puts it there, exactly as a drop at that point would.
+   */
+  function placePickedAt(event: React.MouseEvent<HTMLElement>) {
+    if (!decorMode || !selected || draggedRef.current) return;
+    const hit = event.target as HTMLElement;
+    if (hit.closest('.floor__deco, .critter-btn, .station-btn, button')) return;
+    const target = decorationTarget(event.clientX, event.clientY, selected);
+    const preview = target.preview;
+    if (!preview || !target.valid || preview.roomId !== target.room) {
+      if (target.room) {
+        notify('rooms', t(preview?.reasonKey ?? 'decorate.reject.invalid'), 'neutral');
+        audio.play('error');
+      }
+      return;
+    }
+    if (
+      engine.moveDecorationToRoom(
+        selected,
+        preview.roomId,
+        preview.point.x,
+        preview.point.y,
+        preview.depth,
+        preview.regionKind,
+      )
+    ) {
+      audio.play('place');
+      dustPuff(preview.clientX, preview.clientY);
+      const id = selected;
       setJustPlaced(id);
       window.setTimeout(() => setJustPlaced((current) => (current === id ? null : current)), 320);
     }
@@ -1291,7 +1601,10 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
                       )}
                     </div>
 
-                    <div className={`floor__stage ${canDropHere ? 'floor__stage--dropping' : ''}`}>
+                    <div
+                      className={`floor__stage ${canDropHere ? 'floor__stage--dropping' : ''}`}
+                      onClick={decorMode ? placePickedAt : undefined}
+                    >
                       {/* built-in room identity (window, rug, department fixture) */}
                       <RoomDressing roomId={room.id} />
 
@@ -1306,6 +1619,10 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
                           }
                           data-anchor={placementSpec(def.id).anchor}
                           data-depth={decorationInstance(state, def.id)?.depth}
+                          data-layer={decorationSide(
+                            decorationDepthKind(def.id, placement.surface),
+                            decorationInstance(state, def.id)?.layer,
+                          )}
                           className={`floor__deco floor__deco--${placement.surface} ${decorationAnchorClass(def.id)} ${
                             isRug(def.id) ? 'floor__deco--rug' : ''
                           } ${selected === def.id ? 'is-selected' : ''} ${
@@ -1315,17 +1632,16 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
                             ...decorationAnchorStyle(def.id),
                             left: `${placement.x * 100}%`,
                             bottom: `${placement.y * 100}%`,
-                            // Legacy saved depths belong to the previous scene bands.
-                            zIndex:
-                              decorMode && selected === def.id
-                                ? SCENE_DEPTH.arranging
-                                : Math.min(
-                                    DECORATION_DEPTH_CEILING,
-                                    (decorationInstance(state, def.id)?.depth ?? 0) >=
-                                      SCENE_DEPTH.rug.min
-                                      ? decorationInstance(state, def.id)!.depth
-                                      : surfaceZ(def.id, placement.surface),
-                                  ),
+                            // Its side of the team (wall art and rugs behind, floor
+                            // furniture in front, unless the player swapped it), then
+                            // its nearness on its surface. A picked-up piece keeps its
+                            // place in the room, so front/back is visible while chosen.
+                            zIndex: decorationZ(
+                              def.id,
+                              placement.surface,
+                              decorationInstance(state, def.id)?.depth,
+                              decorationInstance(state, def.id)?.layer,
+                            ),
                           }}
                         >
                           <DecorationProp
@@ -1335,18 +1651,39 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
                             selected={decorMode && selected === def.id}
                             reacting={!decorMode && reactingDeco === def.id}
                             title={t(`deco.${def.id}.name`)}
-                            onToggle={() => selectDeco(def.id)}
+                            onToggle={(event) =>
+                              selectDeco(
+                                def.id,
+                                event && event.detail > 0
+                                  ? { x: event.clientX, y: event.clientY }
+                                  : undefined,
+                              )
+                            }
                             onInteract={() => audio.play(interactSound(decorKind(def.id)))}
                             onPointerDown={
-                              decorMode ? (e) => beginDrag(e, 'decoration', def.id) : undefined
+                              decorMode
+                                ? (e) => {
+                                    const pick = decorationToDrag(e, def.id);
+                                    beginDrag(
+                                      e,
+                                      'decoration',
+                                      pick,
+                                      pick === def.id
+                                        ? null
+                                        : document.querySelector<HTMLElement>(
+                                            `.floor__deco[data-deco="${pick}"] .decor`,
+                                          ),
+                                    );
+                                  }
+                                : undefined
                             }
                           />
                         </div>
                       ))}
 
                       {/* semantic region + live footprint/collision preview */}
-                      {drag?.kind === 'decoration' && drag.preview?.roomId === room.id ? (
-                        <RegionGuide preview={drag.preview} />
+                      {drag?.kind === 'decoration' && drag.previewRoomId === room.id ? (
+                        <LiveRegionGuide roomId={room.id} />
                       ) : canDropHere ? (
                         <div
                           className={`floor__surface-guide floor__surface-guide--${decorationSurface(drag.id)}`}
@@ -1391,96 +1728,128 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
                           def?.accent ??
                           '#3f7d4f';
                         const label = rt.nickname ?? t(def?.nameKey ?? id);
-                        const mood = employeeMood(state, id);
+                        // What they feel, held steady on screen (a threshold never
+                        // makes a sticker flicker); an event's emotion shows at once.
+                        const eventEmotion = Boolean(
+                          rt.emotion && (rt.emotion.until === null || rt.emotion.until > now),
+                        );
+                        const mood = steadyMood(
+                          id,
+                          employeeMood(state, id, now),
+                          now,
+                          eventEmotion,
+                        );
                         const moodLabel = t(`mood.${mood}`);
+                        // The sticker sits just above the top of the head: the sprite's
+                        // own measured headroom and baseline, in scene pixels.
+                        const stickerBottom = sprite
+                          ? `calc((${slot.bottom}px + ${(
+                              sprite.officeHeight *
+                              perspective *
+                              Math.max(0.3, 1 - sprite.figureTop - Math.max(0, sprite.baseline))
+                            ).toFixed(1)}px) * var(--asset-scale) + 2px)`
+                          : `calc(${slot.bottom}px * var(--asset-scale) + ${Math.round(
+                              VECTOR_CRITTER_OFFICE_SIZE * perspective * sceneScale * 0.92,
+                            )}px)`;
+                        const carried = drag?.kind === 'employee' && drag.id === id;
                         return (
-                          <button
-                            key={id}
-                            className={`critter-btn ${sprite ? 'critter-btn--sprite' : ''} ${
-                              drag?.kind === 'employee' && drag.id === id ? 'is-dragging' : ''
-                            } ${!decorMode ? 'is-draggable' : ''} ${visiting ? 'is-visiting' : ''}`}
-                            style={{
-                              left: `${ex * 100}%`,
-                              // Slot depth is authored in scene pixels, so it scales with
-                              // the scene. Without this the cast kept its spacing up the
-                              // floor while the floor itself shrank, and characters at the
-                              // back drifted off the top of a small room.
-                              bottom: `calc(${slot.bottom}px * var(--asset-scale))`,
-                              // Hang the mood bubble off the top of the HEAD. Sprite
-                              // canvases carry between 0% and 11% dead headroom, so a
-                              // single shared percentage sat a different distance above
-                              // every animal.
-                              ...(sprite
-                                ? {
-                                    ['--bubble-anchor' as string]: `${((1 - sprite.figureTop) * 100).toFixed(1)}%`,
-                                  }
-                                : null),
-                              // Characters occupy the band above every decoration, and
-                              // sort among themselves by how near the camera they
-                              // stand, so the whole team stays readable.
-                              zIndex: visiting
-                                ? SCENE_DEPTH.characterFocus
-                                : characterDepth(slot.bottom),
-                            }}
-                            onPointerDown={(e) => beginDrag(e, 'employee', id)}
-                            onPointerEnter={() => setHoveredEmployee(id)}
-                            onPointerLeave={() =>
-                              setHoveredEmployee((current) => (current === id ? null : current))
-                            }
-                            onFocus={() => setFocusedEmployee(id)}
-                            onBlur={() =>
-                              setFocusedEmployee((current) => (current === id ? null : current))
-                            }
-                            onClick={() => onCritterClick(id)}
-                            title={`${label} · ${moodLabel}`}
-                            aria-label={`${label}, ${moodLabel}`}
-                            // The reaction state lives on the BUTTON, not only on the
-                            // vector critter's <svg>. The nine animals with photographic
-                            // artwork have no <svg> to carry a class, so every hover,
-                            // focus, celebration and panic reaction was silently doing
-                            // nothing for them.
-                            data-anim={anim}
-                          >
-                            {focusMode ? <span className="focus-hat" aria-hidden /> : null}
-                            {sprite ? (
-                              <EmployeeSprite
-                                config={sprite}
-                                reducedMotion={reducedMotion}
-                                // Scaled by distance, not by character: a teammate at the
-                                // front of the room is always exactly cast scale, and one
-                                // standing further back is smaller because it is further
-                                // back. Height only — EmployeeSprite derives width, so the
-                                // aspect ratio is untouched.
-                                height={Math.round(sprite.officeHeight * perspective)}
-                              />
-                            ) : (
-                              <Critter
-                                species={shape.species}
-                                color={def?.color ?? '#c65b3c'}
-                                accent={accent}
-                                state={anim}
-                                hasGlasses={shape.hasGlasses}
-                                reducedMotion={reducedMotion}
-                                // The vector fallback renders an <svg> at a raw pixel
-                                // size, so unlike EmployeeSprite it cannot pick the scene
-                                // scale up from CSS and has to be told. Without this the
-                                // animals still awaiting artwork — the bear — would be the
-                                // only ones that did not shrink with the room.
-                                size={Math.round(
-                                  VECTOR_CRITTER_OFFICE_SIZE * perspective * sceneScale,
-                                )}
-                                title={label}
-                                seed={idx + room.floor}
-                              />
-                            )}
+                          <Fragment key={id}>
+                            <button
+                              data-employee={id}
+                              className={`critter-btn ${sprite ? 'critter-btn--sprite' : ''} ${
+                                drag?.kind === 'employee' && drag.id === id ? 'is-dragging' : ''
+                              } ${!decorMode ? 'is-draggable' : ''} ${visiting ? 'is-visiting' : ''}`}
+                              style={{
+                                left: `${ex * 100}%`,
+                                // Slot depth is authored in scene pixels, so it scales with
+                                // the scene. Without this the cast kept its spacing up the
+                                // floor while the floor itself shrank, and characters at the
+                                // back drifted off the top of a small room.
+                                bottom: `calc(${slot.bottom}px * var(--asset-scale))`,
+                                // Hang the mood bubble off the top of the HEAD. Sprite
+                                // canvases carry between 0% and 11% dead headroom, so a
+                                // single shared percentage sat a different distance above
+                                // every animal.
+                                ...(sprite
+                                  ? {
+                                      ['--bubble-anchor' as string]: `${((1 - sprite.figureTop) * 100).toFixed(1)}%`,
+                                    }
+                                  : null),
+                                // Characters occupy the band above every decoration, and
+                                // sort among themselves by how near the camera they
+                                // stand, so the whole team stays readable.
+                                zIndex: visiting
+                                  ? SCENE_DEPTH.characterFocus
+                                  : characterDepth(slot.bottom),
+                              }}
+                              onPointerDown={(e) => beginDrag(e, 'employee', id)}
+                              onPointerEnter={() => setHoveredEmployee(id)}
+                              onPointerLeave={() =>
+                                setHoveredEmployee((current) => (current === id ? null : current))
+                              }
+                              onFocus={() => setFocusedEmployee(id)}
+                              onBlur={() =>
+                                setFocusedEmployee((current) => (current === id ? null : current))
+                              }
+                              onClick={() => onCritterClick(id)}
+                              title={`${label} · ${moodLabel}`}
+                              aria-label={`${label}, ${moodLabel}`}
+                              // The reaction state lives on the BUTTON, not only on the
+                              // vector critter's <svg>. The nine animals with photographic
+                              // artwork have no <svg> to carry a class, so every hover,
+                              // focus, celebration and panic reaction was silently doing
+                              // nothing for them.
+                              data-anim={anim}
+                            >
+                              {focusMode ? <span className="focus-hat" aria-hidden /> : null}
+                              {sprite ? (
+                                <EmployeeSprite
+                                  config={sprite}
+                                  reducedMotion={reducedMotion}
+                                  // Scaled by distance, not by character: a teammate at the
+                                  // front of the room is always exactly cast scale, and one
+                                  // standing further back is smaller because it is further
+                                  // back. Height only — EmployeeSprite derives width, so the
+                                  // aspect ratio is untouched.
+                                  height={Math.round(sprite.officeHeight * perspective)}
+                                />
+                              ) : (
+                                <Critter
+                                  species={shape.species}
+                                  color={def?.color ?? '#c65b3c'}
+                                  accent={accent}
+                                  state={anim}
+                                  hasGlasses={shape.hasGlasses}
+                                  reducedMotion={reducedMotion}
+                                  // The vector fallback renders an <svg> at a raw pixel
+                                  // size, so unlike EmployeeSprite it cannot pick the scene
+                                  // scale up from CSS and has to be told. Without this the
+                                  // animals still awaiting artwork — the bear — would be the
+                                  // only ones that did not shrink with the room.
+                                  size={Math.round(
+                                    VECTOR_CRITTER_OFFICE_SIZE * perspective * sceneScale,
+                                  )}
+                                  title={label}
+                                  seed={idx + room.floor}
+                                />
+                              )}
+                            </button>
                             <EmployeeBubble
+                              employeeId={id}
                               mood={mood}
                               color={MOOD_TONE[mood]}
                               label={moodLabel}
                               name={label}
+                              tilt={stickerTilt(id)}
                               speech={bubble?.employeeId === id ? bubble.text : null}
+                              className={`${carried ? 'is-carried' : ''} ${visiting ? 'is-visiting' : ''}`}
+                              style={{
+                                left: `${ex * 100}%`,
+                                bottom: stickerBottom,
+                                zIndex: SCENE_DEPTH.sticker,
+                              }}
                             />
-                          </button>
+                          </Fragment>
                         );
                       })}
                       {/* Every room has its own equipment to work. Stations are hidden
@@ -1514,6 +1883,21 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
                             <button className="mini-btn" onClick={sendSelectedToInventory}>
                               <Icon name="close" size={12} /> {t('decorate.stow')}
                             </button>
+                            {selected ? (
+                              <LayerToggle
+                                id={selected}
+                                surface={
+                                  decorationInstance(state, selected)?.surfaceType ??
+                                  decorationSurface(selected)
+                                }
+                                layer={decorationInstance(state, selected)?.layer}
+                                onChange={(layer) => {
+                                  if (engine.setDecorationLayer(selected, layer)) {
+                                    audio.play('place');
+                                  }
+                                }}
+                              />
+                            ) : null}
                           </>
                         ) : null}
                         <button
@@ -1544,14 +1928,18 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
           currentFloor={currentFloor}
           floorsOpen={floorsOpen}
           setFloorsOpen={setFloorsOpen}
-          onGo={(roomId) => scrollToFloor(roomId, reducedMotion ? 'auto' : 'smooth')}
+          onGo={(roomId) => {
+            scrollToFloor(roomId, reducedMotion ? 'auto' : 'smooth');
+            const tone = ROOM_TONE[ROOM_PROFILES_BY_ID[roomId]?.temper ?? 'operational'];
+            audio.play(tone.sfx, { pitch: tone.pitch });
+          }}
           decorMode={decorMode}
           onToggleDecor={toggleDecorMode}
           canUndo={engine.canUndoDecoration()}
           canRedo={engine.canRedoDecoration()}
           onUndo={() => engine.undoDecoration()}
           onRedo={() => engine.redoDecoration()}
-          hint={decorMode ? (selected ? t('decorate.pickedHint') : t('office.decorateHint')) : null}
+          hint={null}
           occupancy={(roomId) =>
             Object.entries(state.employees).filter(
               ([id, rt]) => rt.hired && resolveEmployeeRoom(state, id) === roomId,
@@ -1572,6 +1960,7 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
             setMoveDialog(id);
           }}
           dragging={drag?.kind === 'decoration'}
+          hint={selected ? t('decorate.pickedHint') : t('office.decorateHint')}
         />
       ) : null}
 
@@ -1584,39 +1973,14 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
         />
       ) : null}
 
-      {drag && typeof document !== 'undefined'
-        ? createPortal(
-            <div
-              className={`drag-ghost ${drag.kind === 'decoration' ? 'drag-ghost--decoration' : ''} ${
-                drag.valid ? 'is-ok' : 'is-no'
-              } ${ghostAnchorClass(drag)}`}
-              style={{
-                left: `${drag.x}px`,
-                top: `${drag.y}px`,
-                ...(drag.kind === 'decoration' ? decorationAnchorStyle(drag.id) : {}),
-              }}
-              data-region={drag.preview?.regionId}
-              data-region-kind={drag.preview?.regionKind}
-              data-anchor={drag.kind === 'decoration' ? placementSpec(drag.id).anchor : undefined}
-              data-valid={drag.valid}
-              aria-hidden
-            >
-              {drag.kind === 'employee' ? (
-                <GhostCritter id={drag.id} reducedMotion={reducedMotion} />
-              ) : (
-                <>
-                  <DecorationProp
-                    id={drag.id}
-                    reducedMotion
-                    mode="interact"
-                    title={t(`deco.${drag.id}.name`)}
-                  />
-                </>
-              )}
-            </div>,
-            document.body,
-          )
-        : null}
+      {drag ? (
+        <DragGhost
+          drag={drag}
+          sceneScale={sceneScale}
+          reducedMotion={reducedMotion}
+          title={drag.kind === 'decoration' ? t(`deco.${drag.id}.name`) : ''}
+        />
+      ) : null}
     </div>
   );
 });

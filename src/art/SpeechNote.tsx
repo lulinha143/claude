@@ -22,10 +22,10 @@ const SAFE_MARGIN = 10;
 /**
  * Gap between the character's head and the note's tail.
  *
- * Sized to clear the in-scene mood bubble, which also sits directly above the
- * character — otherwise the note lands on top of it and the two overlap.
+ * The anchor IS the teammate's emotion sticker (above their head), so the note
+ * only needs a small gap above it.
  */
-const ANCHOR_GAP = 44;
+const ANCHOR_GAP = 8;
 
 interface Position {
   left: number;
@@ -34,6 +34,38 @@ interface Position {
   below: boolean;
   /** how far the tail is from the note's left edge, in px. */
   tailLeft: number;
+  /** the speaker is scrolled out of the office's visible area. */
+  offstage: boolean;
+}
+
+interface Bounds {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+}
+
+/**
+ * Where a note may go: the part of the office the player can actually see.
+ * Never over the HUD, the dock or an open side sheet: a line of dialogue
+ * belongs to the room, not to the interface around it.
+ */
+function officeBounds(anchor: Element, vw: number, vh: number): Bounds {
+  const bounds: Bounds = { left: 0, top: 0, right: vw, bottom: vh };
+  const clip = (rect: DOMRect | undefined) => {
+    if (!rect) return;
+    bounds.left = Math.max(bounds.left, rect.left);
+    bounds.top = Math.max(bounds.top, rect.top);
+    bounds.right = Math.min(bounds.right, rect.right);
+    bounds.bottom = Math.min(bounds.bottom, rect.bottom);
+  };
+  clip(anchor.closest('.office__view, .office')?.getBoundingClientRect());
+  clip(document.querySelector('.app__stage')?.getBoundingClientRect());
+  // A side sheet covers the right of the stage; keep the note on the office side.
+  const sheet = document.querySelector('.sheet')?.getBoundingClientRect();
+  if (sheet && sheet.left > bounds.left + 120)
+    bounds.right = Math.min(bounds.right, sheet.left - 6);
+  return bounds;
 }
 
 export interface SpeechNoteProps {
@@ -69,19 +101,27 @@ export function SpeechNote({ name, text, color }: SpeechNoteProps) {
       const n = note.getBoundingClientRect();
       const vw = window.visualViewport?.width ?? window.innerWidth;
       const vh = window.visualViewport?.height ?? window.innerHeight;
+      const b = officeBounds(anchor, vw, vh);
+      const cx = a.left + a.width / 2;
+      const offstage = a.bottom < b.top || a.top > b.bottom || cx < b.left || cx > b.right;
 
       // Prefer above the character; flip below only if there is genuinely no room.
       const above = a.top - ANCHOR_GAP - n.height;
-      const below = above < SAFE_MARGIN;
-      const top = below ? Math.min(vh - n.height - SAFE_MARGIN, a.bottom + ANCHOR_GAP) : above;
+      const below = above < b.top + SAFE_MARGIN;
+      const top = below
+        ? Math.min(b.bottom - n.height - SAFE_MARGIN, a.bottom + ANCHOR_GAP)
+        : above;
 
-      // Centre on the character, then clamp so the note is always fully visible.
-      const desiredLeft = a.left + a.width / 2 - n.width / 2;
-      const left = Math.max(SAFE_MARGIN, Math.min(desiredLeft, vw - n.width - SAFE_MARGIN));
+      // Centre on the character, then clamp so the note stays inside the office.
+      const desiredLeft = cx - n.width / 2;
+      const left = Math.max(
+        b.left + SAFE_MARGIN,
+        Math.min(desiredLeft, b.right - n.width - SAFE_MARGIN),
+      );
       // The tail follows the character even after the note has been clamped.
-      const tailLeft = Math.max(12, Math.min(n.width - 12, a.left + a.width / 2 - left));
+      const tailLeft = Math.max(12, Math.min(n.width - 12, cx - left));
 
-      setPos({ left, top: Math.max(SAFE_MARGIN, top), below, tailLeft });
+      setPos({ left, top: Math.max(b.top + SAFE_MARGIN, top), below, tailLeft, offstage });
     };
 
     const schedule = () => {
@@ -117,7 +157,8 @@ export function SpeechNote({ name, text, color }: SpeechNoteProps) {
     left: pos ? `${pos.left}px` : '-9999px',
     top: pos ? `${pos.top}px` : '-9999px',
     // Hidden until measured so it never flashes in the wrong place.
-    visibility: pos ? 'visible' : 'hidden',
+    // ...and while the speaker is scrolled out of view: a note never talks from nowhere.
+    visibility: pos && !pos.offstage ? 'visible' : 'hidden',
   };
 
   return (

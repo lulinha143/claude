@@ -566,11 +566,4 @@
   .deco-tray {
     bottom: calc(var(--dock-h) + 8px);
   }
-
-  /* Mood bubbles keep their proportion to the (now smaller) companion-size cast.
-     The bubble itself is redesigned in Phase 2. */
-  .employee-bubble {
-    scale: max(0.72, var(--asset-scale));
-    transform-origin: 50% 100%;
-  }
 }

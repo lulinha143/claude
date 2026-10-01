@@ -66,8 +66,34 @@ interface TooltipHandlers {
 // The focus that a mouse/touch press gives a button arrives in the same moment as
 // the press. Focus from the keyboard, or moved programmatically later, does not.
 let lastPressAt = -Infinity;
+// True from a press until the pointer really moves again. A click often changes
+// what is under a still pointer (a button relabels, a mode opens), and the
+// browser reports that as a fresh "enter": that is not the player hovering.
+let pressedStill = false;
+// The control that was pressed keeps its tooltip closed until the pointer leaves it.
+let pressedTarget: Element | null = null;
 if (typeof window !== 'undefined') {
-  window.addEventListener('pointerdown', () => (lastPressAt = performance.now()), true);
+  window.addEventListener(
+    'pointerdown',
+    (event) => {
+      lastPressAt = performance.now();
+      pressedStill = true;
+      pressedTarget = event.target instanceof Element ? event.target : null;
+    },
+    true,
+  );
+  window.addEventListener(
+    'pointermove',
+    (event) => {
+      if (pressedStill && (event.movementX !== 0 || event.movementY !== 0)) pressedStill = false;
+    },
+    true,
+  );
+  // The keyboard is a deliberate new interaction.
+  window.addEventListener('keydown', () => (pressedStill = false), true);
+}
+function pressedHere(anchor: HTMLElement): boolean {
+  return Boolean(pressedTarget && (anchor === pressedTarget || anchor.contains(pressedTarget)));
 }
 function isKeyboardFocus(): boolean {
   return performance.now() - lastPressAt > 80;
@@ -84,12 +110,22 @@ export function useTooltip(content: ReactNode): TooltipHandlers {
 
   if (content == null || content === '') return {};
   return {
-    onMouseEnter: (event) => showHovered({ content, anchor: event.currentTarget, id }),
-    onMouseLeave: (event) => hideHovered(event.currentTarget),
+    onMouseEnter: (event) => {
+      if (pressedStill || pressedHere(event.currentTarget)) return;
+      showHovered({ content, anchor: event.currentTarget, id });
+    },
+    onMouseLeave: (event) => {
+      if (pressedHere(event.currentTarget)) pressedTarget = null;
+      hideHovered(event.currentTarget);
+    },
     // Keyboard focus only: a mouse click also focuses a button, and a tooltip
     // re-opening over the page the click just opened is exactly what we remove.
     onFocus: (event) => {
-      if (isKeyboardFocus()) showFocused({ content, anchor: event.currentTarget, id });
+      // ...and not on the very control that was just pressed, when a click
+      // re-renders it and focus is handed back to it.
+      if (isKeyboardFocus() && !(pressedStill && pressedHere(event.currentTarget))) {
+        showFocused({ content, anchor: event.currentTarget, id });
+      }
     },
     onBlur: (event) => hideFocused(event.currentTarget),
     onKeyDown: (event) => {

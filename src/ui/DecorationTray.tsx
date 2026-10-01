@@ -24,6 +24,7 @@ export function DecorationTray({
   onBeginDrag,
   onRequestMove,
   dragging,
+  hint = null,
 }: {
   state: GameState;
   reducedMotion: boolean;
@@ -33,6 +34,8 @@ export function DecorationTray({
   onRequestMove: (id: string) => void;
   /** true while a drag is in progress, so the tray can shrink out of the way */
   dragging: boolean;
+  /** What to do next, said where the player is looking while arranging. */
+  hint?: string | null;
 }) {
   const { t } = useTranslation();
   const [kind, setKind] = useState<'all' | DecorKind>('all');
@@ -76,6 +79,7 @@ export function DecorationTray({
             .slice(0, 2)
             .join('·')}
         </span>
+        {hint ? <span className="deco-tray__hint">{hint}</span> : null}
         {selected ? (
           <button
             className="mini-btn mini-btn--primary deco-tray__move"
