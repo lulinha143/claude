@@ -1,11 +1,54 @@
 /* ==========================================================================
    Design tokens — the single source of truth for colour, elevation, spacing,
-   radius, and motion. Components reference these semantic tokens rather than
-   hardcoding hex values, so the whole game can be re-themed from one place and
-   high-contrast / colourblind modes stay consistent.
+   radius, type and motion. Components reference these semantic tokens rather
+   than hardcoding hex values, so the whole game can be re-themed from one place
+   and high-contrast / colourblind modes stay consistent.
+
+   CASCADE LAYERS. This file is imported first (main.tsx), so the order below is
+   the order of the whole game:
+     legacy — styles.css and the older per-screen sheets (pre-Phase-1 passes)
+     game   — the rebuilt shell, world and shared primitives (src/ui/game/*.css)
+   A rule in `game` beats any rule in `legacy` regardless of specificity, so the
+   new shell never fights the old passes; what it replaces was deleted instead.
    ========================================================================== */
+@layer legacy, game;
+
 :root {
-  /* --- raw palette (warm cozy tree-trunk office) --- */
+  /* --- the treehouse palette -------------------------------------------------
+     Anchored on the existing art: the cast's warm fur and baked-in walnut desks,
+     cream stationery, leaf greens. Frames are walnut, cards are cream paper,
+     actions are acorn orange, text and outlines are dark-brown ink (never black). */
+  --c-walnut-900: #2e1d10;
+  --c-walnut-800: #3d2716;
+  --c-walnut-700: #52341d;
+  --c-walnut-600: #6a4526;
+  --c-walnut-500: #875a33;
+  --c-walnut-400: #a8733f;
+  --c-paper-50: #fffaf0;
+  --c-paper-150: #fdf0d8;
+  --c-paper-250: #f6e3bf;
+  --c-paper-edge: #d9b98a;
+  --c-ink-900: #2b1b10;
+  --c-ink-700: #4a3322;
+  --c-ink-500: #6f5238;
+  --c-acorn-600: #b85a1c;
+  --c-acorn-500: #d9722a;
+  --c-acorn-400: #ee9444;
+  --c-acorn-200: #fbd3a4;
+  --c-leaf-700: #2f5e2c;
+  --c-leaf-600: #3f7a3a;
+  --c-leaf-500: #5c9a45;
+  --c-leaf-400: #86bd5c;
+  --c-leaf-200: #d4ebb5;
+  --c-sky-700: #22606b;
+  --c-sky-500: #4aa3b1;
+  --c-sky-300: #9fd6dc;
+  --c-sky-100: #e3f4f0;
+  --c-berry-700: #8e2634;
+  --c-berry-500: #c94452;
+  --c-berry-200: #f7c6c6;
+
+  /* --- raw palette (pre-Phase-1 names, still referenced by legacy rules) --- */
   --c-bark-900: #1c150d;
   --c-bark-800: #241a12;
   --c-bark-700: #2a2016;
@@ -205,15 +248,17 @@
   --tracking-tight: -0.01em;
   --tracking-wide: 0.06em;
 
-  /* Fluid type scale. Each step scales gently with the viewport and with the
-     player's font-size preference. */
-  --fs-2xs: calc(clamp(11px, 0.55vw + 0.5vh, 12px) * var(--font-scale));
-  --fs-xs: calc(clamp(12px, 0.6vw + 0.55vh, 13.5px) * var(--font-scale));
-  --fs-sm: calc(clamp(12.5px, 0.65vw + 0.6vh, 14.5px) * var(--font-scale));
-  --fs-base: calc(clamp(13px, 0.7vw + 0.65vh, 16.5px) * var(--font-scale));
-  --fs-lg: calc(clamp(15px, 0.8vw + 0.7vh, 19px) * var(--font-scale));
-  --fs-xl: calc(clamp(18px, 1vw + 0.9vh, 24px) * var(--font-scale));
-  --fs-2xl: calc(clamp(22px, 1.4vw + 1.1vh, 32px) * var(--font-scale));
+  /* Fluid type scale. Each step grows with the window between the 380px
+     companion size and a 1440px desktop (≈13.5px → 16px body), is held back by
+     short windows (the vh term), and follows the player's font-size setting.
+     The old scale sat flat at its 13px floor until ~1200px wide. */
+  --fs-2xs: calc(clamp(11px, min(10.6px + 0.12vw, 10px + 0.25vh), 12.5px) * var(--font-scale));
+  --fs-xs: calc(clamp(11.5px, min(11.2px + 0.16vw, 10.5px + 0.3vh), 13.5px) * var(--font-scale));
+  --fs-sm: calc(clamp(12.5px, min(11.8px + 0.2vw, 11px + 0.4vh), 15px) * var(--font-scale));
+  --fs-base: calc(clamp(13px, min(12.6px + 0.235vw, 11.5px + 0.5vh), 16.5px) * var(--font-scale));
+  --fs-lg: calc(clamp(15px, min(14.2px + 0.3vw, 13px + 0.6vh), 19px) * var(--font-scale));
+  --fs-xl: calc(clamp(18px, min(16.5px + 0.42vw, 15px + 0.8vh), 24px) * var(--font-scale));
+  --fs-2xl: calc(clamp(22px, min(19.5px + 0.65vw, 17px + 1.2vh), 32px) * var(--font-scale));
 
   /* The smallest size any text in this game is allowed to render at.
      The scale above already floors at 11px, but a great deal of the UI sizes itself
@@ -225,14 +270,10 @@
      room and refuses to go below legible. Scales with the player's font preference so
      turning type up still works.
 
-     It is DISABLED by default and switched on only when the window can afford it (see
-     the media query below). A hard floor at every size is the wrong answer: in the
-     compact modes the nav rail, the window controls and the dense views genuinely need
-     their smaller type to stay complete, and forcing 11px there pushed destination tabs
-     and the window controls out of reach — six responsive/nav/window-chrome specs failed
-     on exactly that, and they were right to. At 0 the max() is a no-op, so compact
-     windows keep the layout they already had, byte for byte. */
-  --fs-min: 0px;
+     It used to be disabled below 1000×620 because the old 11-tab rail and letterhead
+     needed sub-11px type to fit a companion window. The Phase 1 HUD and dock are sized
+     for 320×420 at legible sizes, so the floor now applies at every window size. */
+  --fs-min: calc(11px * var(--font-scale));
 
   /* Semantic role tokens. Tiny labels deliberately stay in Nunito: DynaPuff's
      lively shapes become crowded below normal control sizes. */
@@ -279,27 +320,64 @@
   --text-xl: var(--fs-xl);
   --text-title: var(--fs-2xl);
   --text-hero: var(--type-hero-size);
-}
 
-/**
- * Turn the legibility floor ON once the window is big enough to absorb it.
- *
- * Below this the game is in its compact modes, where the smaller type is load-bearing:
- * the destination rail, the window controls and the dense panels all need it to stay
- * complete, and a floor there pushed tabs and window buttons out of reach. Above it,
- * nothing in the game renders text under 11px.
- *
- * The threshold is deliberately generous (1000x620) so it only engages on a genuine
- * desktop window — which is how a Steam player will actually run this — and it is a
- * media query rather than a clamp() so the switch is explicit and inspectable rather
- * than a curve nobody can reason about. Media queries evaluate against the real
- * viewport, not the zoomed `.app` space, so the interface-scale settings do not
- * accidentally trip it.
- */
-@media (min-width: 1000px) and (min-height: 620px) {
-  :root {
-    --fs-min: calc(11px * var(--font-scale));
-  }
+  /* --- game shell semantics (Phase 1) ------------------------------------------
+     Hierarchy: dark walnut frame (HUD, dock) → bright paper (sheets, cards,
+     popups) → the colourful scene. Every shell rule reads these, never raw hex. */
+  --frame-bg: var(--c-walnut-800);
+  --frame-bg-raised: var(--c-walnut-700);
+  --frame-edge: var(--c-walnut-900);
+  --frame-grain: repeating-linear-gradient(
+    90deg,
+    rgb(255 250 240 / 0.035) 0 2px,
+    transparent 2px 11px,
+    rgb(46 29 16 / 0.12) 11px 12px,
+    transparent 12px 23px
+  );
+  --frame-text: var(--c-paper-150);
+  --frame-text-muted: var(--c-acorn-200);
+  --paper-bg: var(--c-paper-150);
+  --paper-bg-bright: var(--c-paper-50);
+  --paper-bg-sunken: var(--c-paper-250);
+  --paper-line: var(--c-paper-edge);
+  --paper-grain:
+    radial-gradient(circle at 20% 10%, rgb(255 255 255 / 0.5), transparent 40%),
+    repeating-linear-gradient(0deg, rgb(111 82 56 / 0.035) 0 1px, transparent 1px 26px);
+  --ink-strong: var(--c-ink-900);
+  --ink-body: var(--c-ink-700);
+  --ink-soft: var(--c-ink-500);
+  --action-bg: var(--c-acorn-400);
+  --action-bg-hover: #f4a55c;
+  --action-edge: var(--c-acorn-600);
+  --action-ink: var(--c-ink-900);
+  --calm-bg: var(--c-leaf-500);
+  --calm-edge: var(--c-leaf-700);
+  --calm-ink: var(--c-paper-50);
+  --alert: var(--c-berry-500);
+  --alert-deep: var(--c-berry-700);
+  --cool: var(--c-sky-500);
+  --sticker-edge: var(--c-paper-50);
+  --sticker-shadow: 0 2px 0 rgb(46 29 16 / 0.35), 0 4px 10px rgb(46 29 16 / 0.18);
+  --lift-shadow: 0 10px 28px rgb(46 29 16 / 0.28), 0 2px 0 rgb(46 29 16 / 0.2);
+  --tape: color-mix(in srgb, var(--c-acorn-200) 72%, transparent);
+  --tape-cool: color-mix(in srgb, var(--c-sky-300) 70%, transparent);
+  --world-sky-top: #a9dbe3;
+  --world-sky-mid: #d7eee6;
+  --world-sky-low: #fbeed4;
+  --world-cloud: #fffdf7;
+  --world-hill-far: #b7d59a;
+  --world-hill-near: #8dbd66;
+  --world-ground: #6f8f3f;
+  --world-leaf: var(--c-leaf-500);
+  --world-leaf-light: var(--c-leaf-400);
+  --world-leaf-deep: var(--c-leaf-600);
+  --trunk-bark: var(--c-walnut-600);
+  --trunk-bark-light: var(--c-walnut-500);
+  --trunk-bark-deep: var(--c-walnut-700);
+  --radius-sticker: 12px;
+  --radius-sheet: 16px;
+  --hud-h: 44px;
+  --dock-h: 54px;
 }
 
 /**
@@ -313,12 +391,9 @@
  * documented as height-sensitive — growing its card height once pushed the search row
  * over the first card and the "Move To…" button, and enlarging its chips made a tray
  * drag intermittently unstartable. Its labels are supplementary anyway: the Decorate
- * catalogue shows the same items at full size.
- *
- * The office toolbar sits directly above that shelf and shares its budget.
+ * catalogue shows the same items at full size. (Rebuilt in Phase 2.)
  */
-.deco-tray,
-.office__toolbar {
+.deco-tray {
   --fs-min: 0px;
 }
 
@@ -354,4 +429,25 @@
   --control-surface: #000000;
   --control-edge: #ffffff;
   --control-highlight: transparent;
+  --frame-bg: #000000;
+  --frame-bg-raised: #000000;
+  --frame-edge: #ffffff;
+  --frame-grain: none;
+  --frame-text: #ffffff;
+  --frame-text-muted: #ffffff;
+  --paper-bg: #ffffff;
+  --paper-bg-bright: #ffffff;
+  --paper-bg-sunken: #ffffff;
+  --paper-line: #000000;
+  --paper-grain: none;
+  --ink-strong: #000000;
+  --ink-body: #000000;
+  --ink-soft: #000000;
+  --action-bg: #ffd54a;
+  --action-bg-hover: #ffe27a;
+  --action-edge: #000000;
+  --action-ink: #000000;
+  --calm-bg: #000000;
+  --calm-edge: #ffffff;
+  --calm-ink: #ffffff;
 }

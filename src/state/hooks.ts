@@ -10,3 +10,18 @@ export function useGame(): { engine: GameEngine; state: GameState; frame: number
   const engine = useStore((s) => s.engine);
   return { engine, state: engine.state, frame };
 }
+
+/**
+ * `useGame`, but it stops following sim ticks while `paused` — for a big scene
+ * that is fully covered (the office behind a minigame, a visit or a full-window
+ * sheet). The component catches up in one render as soon as it is uncovered.
+ */
+export function useGameUnlessCovered(paused: boolean): {
+  engine: GameEngine;
+  state: GameState;
+  frame: number;
+} {
+  const frame = useStore((s) => (paused ? -1 : s.frame));
+  const engine = useStore((s) => s.engine);
+  return { engine, state: engine.state, frame };
+}

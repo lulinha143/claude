@@ -93,6 +93,9 @@ interface StoreState {
   decorationRequest: string | null;
   activityRequest: 'coffeeRescue' | 'bugSquash' | 'cableUntangle' | null;
   requestActivity: (mode: 'coffeeRescue' | 'bugSquash' | 'cableUntangle' | null) => void;
+  /** A minigame is open on the Activities stage (the office is covered). */
+  minigameOpen: boolean;
+  setMinigameOpen: (open: boolean) => void;
   arrangeDecoration: (id: string | null) => void;
   dismissOffline: () => void;
   setPhotoMode: (v: boolean) => void;
@@ -140,6 +143,8 @@ export const useStore = create<StoreState>((set) => {
       if (mode) engine.closeTalk();
       set(mode ? { activityRequest: mode, view: 'focus' } : { activityRequest: null });
     },
+    minigameOpen: false,
+    setMinigameOpen: (open) => set({ minigameOpen: open }),
     arrangeDecoration: (id) => {
       if (id) engine.closeTalk();
       set(id ? { decorationRequest: id, view: 'office' } : { decorationRequest: null });

@@ -1,0 +1,274 @@
+/* ==========================================================================
+   Game layer — base: the window, the app frame and the shared primitives.
+   Colours come from ui/tokens.css only. See tokens.css for the layer order.
+   ========================================================================== */
+@layer game {
+  html,
+  body {
+    background: var(--frame-bg);
+    color: var(--ink-strong);
+  }
+
+  /* The game fills the window edge to edge at every size: no floating card,
+     no 1200px cap, no blank gutters. Large windows show more world instead. */
+  #root {
+    display: block;
+    padding: 0;
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  .app {
+    position: relative;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    width: calc(100% / var(--ui-scale));
+    height: calc(100% / var(--ui-scale));
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    zoom: var(--ui-scale);
+    font-size: var(--fs-base);
+    color: var(--ink-strong);
+    background: var(--frame-bg);
+    /* Container for the shell's size bands (HUD stickers, dock labels, sheets). */
+    container: app / inline-size;
+  }
+
+  /* UI scaling must never shrink the logical layout below Electron's 320×420
+     minimum: at undersized windows, defer the whole-shell zoom. */
+  @media (max-width: 415px), (max-height: 540px) {
+    [data-ui-scale='125'] .app {
+      width: 100%;
+      height: 100%;
+      zoom: 1;
+    }
+  }
+  @media (max-width: 495px), (max-height: 645px) {
+    [data-ui-scale='150'] .app {
+      width: 100%;
+      height: 100%;
+      zoom: 1;
+    }
+  }
+
+  .app__stage {
+    position: relative;
+    min-height: 0;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  /* --- accessibility that lived on the old shell ---------------------------- */
+  [data-high-contrast='true'] .app {
+    background: #000;
+  }
+  [data-colorblind='deuteranopia'] .app {
+    filter: saturate(0.8) hue-rotate(-15deg);
+  }
+  [data-colorblind='protanopia'] .app {
+    filter: saturate(0.8) hue-rotate(12deg);
+  }
+  [data-colorblind='tritanopia'] .app {
+    filter: saturate(0.85) hue-rotate(200deg);
+  }
+  /* "Pause animations in menus": the office stops moving while a sheet is open. */
+  [data-pause-menus='true'] .app--sheet-open .office *,
+  [data-pause-menus='true'] .app--sheet-open .office *::before,
+  [data-pause-menus='true'] .app--sheet-open .office *::after {
+    animation-play-state: paused;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--c-sky-500);
+    outline-offset: 2px;
+  }
+
+  /* --- type ------------------------------------------------------------------
+     DynaPuff for display, numbers and titles; Nunito for everything read. */
+  .app :is(h1, h2, h3, h4) {
+    font-family: var(--font-display);
+    letter-spacing: 0;
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* --- shared primitives: buttons ------------------------------------------------
+     One family of chunky, friendly buttons. Visual skin only: the legacy layer
+     still owns each button's size and placement inside its own screen. */
+  .app :is(.buy-btn, .ghost-btn, .chip-btn, .mini-btn, .tag-btn, .tab) {
+    font-family: var(--font-body);
+    font-weight: 800;
+    border-radius: 10px;
+    text-shadow: none;
+    transition:
+      transform var(--dur-fast) var(--ease),
+      box-shadow var(--dur-fast) var(--ease),
+      background-color var(--dur-fast) var(--ease);
+  }
+  .app .buy-btn,
+  .app .mini-btn--primary {
+    color: var(--action-ink);
+    background: var(--action-bg);
+    border: 2px solid var(--action-edge);
+    box-shadow: 0 3px 0 var(--action-edge);
+  }
+  .app .buy-btn:hover:not(:disabled),
+  .app .mini-btn--primary:hover:not(:disabled) {
+    background: var(--action-bg-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 0 var(--action-edge);
+  }
+  .app .buy-btn:active:not(:disabled),
+  .app .mini-btn--primary:active:not(:disabled) {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 var(--action-edge);
+  }
+  .app :is(.ghost-btn, .chip-btn, .mini-btn:not(.mini-btn--primary), .tag-btn, .tab) {
+    color: var(--ink-strong);
+    background: var(--paper-bg-bright);
+    border: 2px solid var(--paper-line);
+    box-shadow: 0 2px 0 var(--paper-line);
+  }
+  .app :is(.ghost-btn, .chip-btn, .mini-btn, .tag-btn, .tab):hover:not(:disabled) {
+    border-color: var(--c-walnut-400);
+  }
+  .app :is(.chip-btn, .tab, .tag-btn).is-on,
+  .app :is(.chip-btn, .tab, .tag-btn).is-active,
+  .app :is(.chip-btn, .tab, .tag-btn)[aria-selected='true'] {
+    color: var(--calm-ink);
+    background: var(--calm-bg);
+    border-color: var(--calm-edge);
+    box-shadow: 0 2px 0 var(--calm-edge);
+  }
+  .app :is(.buy-btn, .ghost-btn, .chip-btn, .mini-btn, .tag-btn, .tab):disabled {
+    color: var(--ink-soft);
+    background: var(--paper-bg-sunken);
+    border-color: var(--paper-line);
+    box-shadow: none;
+    transform: none;
+    cursor: not-allowed;
+    opacity: 0.8;
+  }
+
+  /* --- paper pages inside sheets ---------------------------------------------------
+     The legacy pages keep their layouts; the sheet gives them one material: cream
+     cards with a soft ink outline instead of greige boxes. */
+  .sheet .view {
+    --panel-surface: var(--paper-bg-bright);
+    --panel-surface-raised: var(--paper-bg-bright);
+    --surface: var(--paper-bg);
+    --surface-raised: var(--paper-bg-bright);
+    --surface-sunken: var(--paper-bg-sunken);
+    --border: var(--paper-line);
+    --border-strong: var(--c-walnut-400);
+    --text: var(--ink-strong);
+    --text-secondary: var(--ink-body);
+    --text-muted: var(--ink-soft);
+    --cream: var(--ink-strong);
+    --cream-dim: var(--ink-soft);
+    --gold: var(--c-acorn-600);
+    --amber: var(--c-acorn-600);
+    color: var(--ink-strong);
+  }
+  .sheet
+    .view
+    :is(.panel, .card, .employee-card, .micro-card, .branch, .ach, .nut-cell, .decocard) {
+    background-color: var(--paper-bg-bright);
+    background-image: none;
+    border: 2px solid var(--paper-line);
+    border-radius: 14px;
+    box-shadow: 0 2px 0 rgb(111 82 56 / 0.18);
+  }
+  .sheet .view :is(h3, .panel__title) {
+    font-family: var(--font-display);
+    color: var(--ink-strong);
+  }
+
+  .company-letterhead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+    padding: 12px 14px;
+    background: var(--paper-bg-bright);
+    border: 2px solid var(--paper-line);
+    border-radius: 14px;
+  }
+  .company-letterhead__who {
+    min-width: 0;
+  }
+  .company-letterhead__name {
+    margin: 0;
+    font: 700 var(--fs-xl) / 1.1 var(--font-display);
+    color: var(--ink-strong);
+    overflow-wrap: anywhere;
+  }
+  .company-letterhead__dept {
+    margin: 2px 0 0;
+    font: 800 var(--fs-2xs) / 1.3 var(--font-body);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .company-letterhead__stamp {
+    display: grid;
+    justify-items: center;
+    flex: 0 0 auto;
+    padding: 4px 9px;
+    color: var(--c-berry-700);
+    border: 2px solid currentColor;
+    border-radius: 7px;
+    font: 800 var(--fs-2xs) / 1.25 var(--font-body);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    transform: rotate(-4deg);
+  }
+  .company-recent__list {
+    display: grid;
+    gap: 5px;
+    margin: 6px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .company-recent__list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    font: 600 var(--fs-sm) / 1.35 var(--font-body);
+    color: var(--ink-body);
+  }
+  .company-recent__list li > .ui-icon {
+    flex: 0 0 auto;
+    margin-top: 2px;
+    color: var(--c-sky-700);
+  }
+  .company-recent__list li[data-tone='positive'] > .ui-icon {
+    color: var(--c-leaf-600);
+  }
+  .company-recent__list li[data-tone='negative'] > .ui-icon {
+    color: var(--c-berry-500);
+  }
+  .company-recent__list li[data-tone='gold'] > .ui-icon {
+    color: var(--c-gold-600);
+  }
+  .company-recent__list b {
+    margin-left: auto;
+    font-size: var(--fs-2xs);
+  }
+}

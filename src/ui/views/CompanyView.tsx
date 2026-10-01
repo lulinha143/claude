@@ -12,6 +12,33 @@ import { ProductionBreakdown } from '../ProductionBreakdown';
 import { DepartmentNetwork } from '../DepartmentNetwork';
 import { ReputationLadder } from '../ReputationLadder';
 import { EnsembleNotes } from '../EnsembleNotes';
+import { reputationTier } from '../../content/reputationTiers';
+import { useNotifications } from '../notificationsStore';
+import { Icon } from '../../art/UiIcon';
+
+/** The last few office notes — toasts are brief, this is where you catch up. */
+function RecentNotes() {
+  const { t } = useTranslation();
+  const history = useNotifications((s) => s.history);
+  return (
+    <div className="panel company-recent">
+      <h3>{t('company.recent')}</h3>
+      {history.length === 0 ? (
+        <p className="muted small">{t('company.recentEmpty')}</p>
+      ) : (
+        <ul className="company-recent__list">
+          {history.map((note) => (
+            <li key={note.id} data-tone={note.tone}>
+              <Icon name={note.icon} size={13} />
+              <span>{note.text}</span>
+              {note.count > 1 ? <b>×{note.count}</b> : null}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
 
 export function CompanyView() {
   const { t } = useTranslation();
@@ -20,10 +47,26 @@ export function CompanyView() {
   const audio = useStore((s) => s.audio);
   const cap = moraleCap(state);
   const [iconPicker, setIconPicker] = useState(false);
+  const tier = reputationTier(state.resources.reputation);
 
   return (
     <section className="view view--company">
       <h2>{t('company.title')}</h2>
+
+      {/* The letterhead that used to crowd the HUD: who the company is, which
+          department it calls itself, and how the outside world stamps it. */}
+      <div className="company-letterhead">
+        <div className="company-letterhead__who">
+          <p className="company-letterhead__name">{state.company.name}</p>
+          <p className="company-letterhead__dept">{t('header.departmentFull')}</p>
+        </div>
+        <div className="company-letterhead__stamp" title={t(tier.blurbKey)}>
+          <span>{t(tier.nameKey)}</span>
+          <span>{t('header.cycle', { n: state.prestige.count + 1 })}</span>
+        </div>
+      </div>
+
+      <RecentNotes />
       <EnsembleNotes activeOnly />
 
       <div className="panel company-charter">

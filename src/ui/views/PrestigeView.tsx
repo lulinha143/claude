@@ -68,7 +68,8 @@ export function PrestigeView() {
         <header>
           <span>{t('prestige.transferFile')}</span>
           <strong>
-            {String(state.prestige.count + 1).padStart(2, '0')} →{' '}
+            {/* An en dash: U+2192 is not in the bundled Latin subsets (tofu box). */}
+            {String(state.prestige.count + 1).padStart(2, '0')} –{' '}
             {String(state.prestige.count + 2).padStart(2, '0')}
           </strong>
         </header>

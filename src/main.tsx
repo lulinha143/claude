@@ -1,3 +1,5 @@
+// Tokens first: they declare the cascade-layer order (legacy, game) for the game.
+import './ui/tokens.css';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 // Two-font identity, bundled locally via Fontsource (both SIL Open Font License
@@ -18,9 +20,14 @@ import { initI18n } from './i18n';
 import { App } from './App';
 import { getGameState } from './state/store';
 import { GAME_TITLE } from './brand';
+// `legacy` layer (pre-Phase-1 screens), then the `game` layer (the rebuilt shell).
 import './styles.css';
 import './ui/recordsDesk.css';
-import './ui/releaseIdentity.css';
+import './ui/game/base.css';
+import './ui/game/shell.css';
+import './ui/game/popup.css';
+import './ui/game/opening.css';
+import './ui/game/world.css';
 
 async function bootstrap() {
   // Keep the browser/Electron window title in sync with the central brand.

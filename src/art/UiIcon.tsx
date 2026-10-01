@@ -51,6 +51,9 @@ export type IconName =
   | 'hidden'
   | 'close'
   | 'back'
+  | 'up'
+  | 'down'
+  | 'home'
   | 'undo'
   | 'redo'
   | 'menu'
@@ -339,6 +342,15 @@ const PATHS: Record<IconName, JSX.Element> = {
   ),
   close: <path d="M6 6l12 12M18 6 6 18" strokeWidth="2" />,
   back: <path d="M15 5l-7 7 7 7" strokeWidth="2" />,
+  up: <path d="M5 15l7-7 7 7" strokeWidth="2.2" />,
+  down: <path d="M5 9l7 7 7-7" strokeWidth="2.2" />,
+  home: (
+    <>
+      <path d="M4 11.5 12 5l8 6.5" strokeWidth="2" />
+      <path d="M6.5 10v9h11v-9" />
+      <path d="M10.5 19v-4.5h3V19" />
+    </>
+  ),
   undo: (
     <>
       <path d="M9 7 4 12l5 5" />

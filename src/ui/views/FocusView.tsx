@@ -21,6 +21,12 @@ export function FocusView() {
   useEffect(() => {
     requestActivity(null);
   }, [requestActivity]);
+  // Tell the shell a game is on stage, so the office behind it can rest.
+  const setMinigameOpen = useStore((s) => s.setMinigameOpen);
+  useEffect(() => {
+    setMinigameOpen(Boolean(micro));
+    return () => setMinigameOpen(false);
+  }, [micro, setMinigameOpen]);
   const [, forceTick] = useState(0);
 
   // live countdown

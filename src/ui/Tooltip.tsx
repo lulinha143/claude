@@ -7,6 +7,7 @@ import {
   type FocusEvent as ReactFocusEvent,
   type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
+  type PointerEvent as ReactPointerEvent,
   type ReactElement,
   type ReactNode,
 } from 'react';
@@ -56,7 +57,20 @@ interface TooltipHandlers {
   onFocus?: (event: ReactFocusEvent<HTMLElement>) => void;
   onBlur?: (event: ReactFocusEvent<HTMLElement>) => void;
   onKeyDown?: (event: ReactKeyboardEvent<HTMLElement>) => void;
+  /** Pressing the anchor dismisses its tooltip: it has done its job, and a
+      tooltip left open over the page the click just opened would cover it. */
+  onPointerDown?: (event: ReactPointerEvent<HTMLElement>) => void;
   'aria-describedby'?: string;
+}
+
+// The focus that a mouse/touch press gives a button arrives in the same moment as
+// the press. Focus from the keyboard, or moved programmatically later, does not.
+let lastPressAt = -Infinity;
+if (typeof window !== 'undefined') {
+  window.addEventListener('pointerdown', () => (lastPressAt = performance.now()), true);
+}
+function isKeyboardFocus(): boolean {
+  return performance.now() - lastPressAt > 80;
 }
 
 /** Returns handlers to spread onto one tooltip trigger (top-level use only). */
@@ -72,11 +86,16 @@ export function useTooltip(content: ReactNode): TooltipHandlers {
   return {
     onMouseEnter: (event) => showHovered({ content, anchor: event.currentTarget, id }),
     onMouseLeave: (event) => hideHovered(event.currentTarget),
-    onFocus: (event) => showFocused({ content, anchor: event.currentTarget, id }),
+    // Keyboard focus only: a mouse click also focuses a button, and a tooltip
+    // re-opening over the page the click just opened is exactly what we remove.
+    onFocus: (event) => {
+      if (isKeyboardFocus()) showFocused({ content, anchor: event.currentTarget, id });
+    },
     onBlur: (event) => hideFocused(event.currentTarget),
     onKeyDown: (event) => {
-      if (event.key === 'Escape') hideAll();
+      if (event.key === 'Escape' || event.key === 'Enter' || event.key === ' ') hideAll();
     },
+    onPointerDown: () => hideAll(),
     'aria-describedby': id,
   };
 }
@@ -115,6 +134,10 @@ export function Tip({ content, children }: { content: ReactNode; children: React
     onKeyDown: (event) => {
       props.onKeyDown?.(event);
       if (!event.defaultPrevented) tip.onKeyDown?.(event);
+    },
+    onPointerDown: (event) => {
+      props.onPointerDown?.(event);
+      tip.onPointerDown?.(event);
     },
     'aria-describedby': mergeDescriptionIds(props['aria-describedby'], tip['aria-describedby']),
   });
@@ -212,7 +235,7 @@ export function TooltipLayer() {
          count, morale and standing, which are exactly the numbers a player is watching
          while they decide where to go. Opening downward there costs nothing: it lands
          on the content area, which the tooltip is describing anyway. */
-      const headerRect = document.querySelector('.header')?.getBoundingClientRect();
+      const headerRect = document.querySelector('.hud')?.getBoundingClientRect();
       const wouldCoverHeader =
         !!headerRect &&
         anchor.top - ANCHOR_GAP - measured.height < headerRect.bottom &&

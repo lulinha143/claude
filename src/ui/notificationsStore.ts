@@ -23,6 +23,8 @@ export interface Toast {
 
 interface NotificationState {
   items: Toast[];
+  /** The last few notes, newest first, so a toast you missed can still be read. */
+  history: Toast[];
   push: (toast: { icon: IconName; text: string; tone?: ToastTone }) => void;
   dismiss: (id: number) => void;
   clear: () => void;
@@ -30,10 +32,17 @@ interface NotificationState {
 
 let nextId = 1;
 const MAX_QUEUE = 32;
+const MAX_HISTORY = 12;
 const GROUP_WINDOW_MS = 8_000;
+
+function remember(history: Toast[], toast: Toast): Toast[] {
+  const rest = history.filter((entry) => entry.id !== toast.id);
+  return [toast, ...rest].slice(0, MAX_HISTORY);
+}
 
 export const useNotifications = create<NotificationState>((set, get) => ({
   items: [],
+  history: [],
   push: ({ icon, text, tone = 'neutral' }) => {
     const now = Date.now();
     const queued = get().items;
@@ -46,10 +55,10 @@ export const useNotifications = create<NotificationState>((set, get) => ({
     );
 
     if (repeated) {
+      const updated = { ...repeated, at: now, count: repeated.count + 1 };
       set({
-        items: queued.map((toast) =>
-          toast.id === repeated.id ? { ...toast, at: now, count: toast.count + 1 } : toast,
-        ),
+        items: queued.map((toast) => (toast.id === repeated.id ? updated : toast)),
+        history: remember(get().history, updated),
       });
       return;
     }
@@ -62,7 +71,7 @@ export const useNotifications = create<NotificationState>((set, get) => ({
       const routineIndex = next.findIndex((item) => item.tone !== 'negative');
       next.splice(routineIndex >= 0 ? routineIndex : 0, 1);
     }
-    set({ items: next });
+    set({ items: next, history: remember(get().history, toast) });
   },
   dismiss: (id) => set({ items: get().items.filter((toast) => toast.id !== id) }),
   clear: () => set({ items: [] }),
