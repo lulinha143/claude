@@ -1,0 +1,205 @@
+/* ==========================================================================
+   Game layer — the opening: the authored office loop, softly, behind one paper
+   card with the real Pip on it. Ink on paper, so every word is readable.
+   ========================================================================== */
+@layer game {
+  .opening-seq {
+    position: fixed;
+    inset: 0;
+    z-index: 260;
+    display: grid;
+    place-items: center;
+    padding: 12px;
+    overflow: hidden;
+    background: var(--frame-bg);
+  }
+  .opening-seq__backdrop {
+    position: absolute;
+    inset: 0;
+  }
+  .opening-seq__backdrop .office-bg {
+    opacity: 1;
+  }
+  .opening-seq__backdrop .office-bg__media {
+    filter: blur(3px) saturate(1.05);
+    transform: scale(1.06);
+  }
+  .opening-seq__backdrop::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(120% 90% at 50% 40%, rgb(46 29 16 / 0.15), rgb(46 29 16 / 0.62));
+  }
+  .opening-seq__dialog {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    outline: none;
+  }
+  .opening-seq__skip {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 2;
+  }
+  .opening-card {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    gap: 8px;
+    width: min(420px, 100%);
+    margin-top: clamp(40px, 12dvh, 110px);
+    padding: clamp(64px, 16dvh, 118px) clamp(16px, 5vw, 28px) clamp(16px, 4dvh, 26px);
+    color: var(--ink-strong);
+    text-align: center;
+    background: var(--paper-grain), var(--paper-bg-bright);
+    border: 3px solid var(--frame-edge);
+    border-radius: 20px;
+    box-shadow: var(--lift-shadow);
+    animation: opening-card-in 0.5s var(--ease-pop) both;
+  }
+  .opening-card::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    width: 96px;
+    height: 18px;
+    background: var(--tape);
+    border-radius: 2px;
+    transform: translateX(-50%) rotate(-2deg);
+  }
+  @keyframes opening-card-in {
+    from {
+      opacity: 0;
+      transform: translateY(16px) scale(0.97);
+    }
+  }
+  .opening-card__cast {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    display: grid;
+    justify-items: center;
+    transform: translate(-50%, -52%);
+    transform-origin: 50% 100%;
+    filter: drop-shadow(0 6px 6px rgb(46 29 16 / 0.3));
+  }
+  .opening-seq--impact .opening-card__cast {
+    animation: opening-hop 0.5s var(--ease-pop);
+  }
+  @keyframes opening-hop {
+    40% {
+      translate: 0 -12px;
+    }
+  }
+  .opening-card__pop {
+    position: absolute;
+    top: -6px;
+    right: -18px;
+    animation: opening-pop 0.55s var(--ease-pop) both;
+  }
+  @keyframes opening-pop {
+    from {
+      opacity: 0;
+      transform: translateY(30px) scale(0.4) rotate(-40deg);
+    }
+  }
+  .opening-card__eyebrow,
+  .opening-card__stamp {
+    margin: 0;
+    font: 800 var(--fs-2xs) / 1.2 var(--font-body);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--c-leaf-700);
+  }
+  .opening-card__stamp {
+    padding: 3px 9px;
+    color: var(--c-berry-700);
+    border: 2px solid currentColor;
+    border-radius: 6px;
+    transform: rotate(-3deg);
+  }
+  .opening-card__prompt {
+    margin: 0;
+    font: 700 clamp(23px, 3.2vw + 12px, 36px) / 1.12 var(--font-display);
+    color: var(--ink-strong);
+  }
+  .opening-card__line,
+  .opening-card__note {
+    margin: 0;
+    max-width: 34ch;
+    font: 600 var(--fs-base) / 1.4 var(--font-body);
+    color: var(--ink-body);
+  }
+  .acorn-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 6px;
+    padding: 8px 18px 8px 10px;
+    color: var(--action-ink);
+    background: var(--action-bg);
+    border: 3px solid var(--action-edge);
+    border-radius: 16px;
+    box-shadow: 0 4px 0 var(--action-edge);
+    font: 700 var(--fs-lg) / 1.1 var(--font-display);
+    cursor: pointer;
+  }
+  /* The acorn bobs; the button itself stays still so it is easy to hit. */
+  .acorn-cta:not(:disabled) .acorn-cta__nut {
+    animation: acorn-cta-breathe 2.6s ease-in-out infinite;
+  }
+  .acorn-cta:hover:not(:disabled) {
+    background: var(--action-bg-hover);
+  }
+  .acorn-cta:active:not(:disabled) {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 var(--action-edge);
+  }
+  .acorn-cta:disabled {
+    animation: none;
+    opacity: 0.85;
+  }
+  @keyframes acorn-cta-breathe {
+    50% {
+      transform: translateY(-3px) rotate(-8deg);
+    }
+  }
+  .acorn-cta__nut {
+    display: grid;
+    filter: drop-shadow(0 2px 0 rgb(46 29 16 / 0.3));
+  }
+  .opening-card--title {
+    padding-top: clamp(22px, 5dvh, 34px);
+    margin-top: 0;
+  }
+  .title-card {
+    margin: 0;
+    font: 700 clamp(30px, 4vw + 16px, 50px) / 1 var(--font-logo);
+    color: var(--c-acorn-600);
+    text-shadow: 0 3px 0 var(--c-walnut-800);
+  }
+  .title-card__sub {
+    margin: 0;
+    font: 700 var(--fs-base) / 1.3 var(--font-display);
+    color: var(--ink-strong);
+  }
+  .opening-seq__continue {
+    margin-top: 8px;
+    padding: 10px 22px;
+    font-size: var(--fs-lg);
+  }
+  @media (max-height: 520px) {
+    .opening-card {
+      margin-top: 60px;
+      padding-top: 64px;
+      gap: 6px;
+    }
+    .opening-card__cast {
+      transform: translate(-50%, -52%) scale(0.72);
+    }
+  }
+}

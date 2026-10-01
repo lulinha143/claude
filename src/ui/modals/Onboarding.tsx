@@ -1,21 +1,18 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../state/store';
-import { Acorn, Crate } from '../../art/Icons';
-import { Critter } from '../../art/Critter';
-import { shapeFor } from '../../art/critterShapes';
+import { Crate } from '../../art/Icons';
 import { DecoArt } from '../../art/decoArt';
+import { EmployeeSprite } from '../../art/EmployeeSprite';
+import { employeeSprite } from '../../art/employeeSprites';
 import { PopupShell, usePopupExit } from './PopupShell';
 
-const CHAPTERS = [
-  { id: 'collect', bodyKeys: ['step1'] },
-  { id: 'growth', bodyKeys: ['step2'] },
-  { id: 'team', bodyKeys: ['step3'] },
-  { id: 'company', bodyKeys: ['step4'] },
-  { id: 'desktop', bodyKeys: ['step5', 'step6', 'step7'] },
-] as const;
-
-type ChapterId = (typeof CHAPTERS)[number]['id'];
+// The new-founder field guide: four short pages, each pointing at something the
+// player can see right now (the office, the dock, the HUD gear). Every sentence is
+// true of the game — the old first page promised a crate that stored production
+// between visits, which nothing implemented.
+const CHAPTERS = ['office', 'team', 'grow', 'return'] as const;
+type ChapterId = (typeof CHAPTERS)[number];
 
 export function Onboarding() {
   const { t } = useTranslation();
@@ -23,7 +20,6 @@ export function Onboarding() {
   const opening = useStore((s) => s.showOpening);
   const finish = useStore((s) => s.finishOnboarding);
   const audio = useStore((s) => s.audio);
-  const reducedMotion = useStore((s) => s.engine.state.settings.reducedMotion);
   const [index, setIndex] = useState(0);
   const { closing, exitThen } = usePopupExit();
   if (!show || opening) return null;
@@ -51,13 +47,13 @@ export function Onboarding() {
   return (
     <PopupShell
       variant="standard"
-      className={`onboarding onboarding--${chapter.id}`}
+      className={`guide onboarding onboarding--${chapter}`}
       titleId={titleId}
       closing={closing}
       onDismiss={close}
       actions={
         <>
-          <div className="onboarding__secondary-actions">
+          <div className="guide__secondary">
             <button className="ghost-btn" disabled={closing} onClick={close}>
               {t('onboarding.skip')}
             </button>
@@ -73,42 +69,33 @@ export function Onboarding() {
         </>
       }
     >
-      <header className="onboarding__header">
-        <p className="onboarding__eyebrow">{t('onboarding.eyebrow')}</p>
-        <p className="onboarding__progress" aria-live="polite">
+      <p className="guide__head">
+        <span>{t('onboarding.eyebrow')}</span>
+        <span aria-live="polite">
           {t('onboarding.progress', { current: index + 1, total: CHAPTERS.length })}
-        </p>
-      </header>
+        </span>
+      </p>
 
-      <TutorialArt chapter={chapter.id} reducedMotion={reducedMotion} />
+      <GuideArt chapter={chapter} />
 
-      <div className="onboarding__copy" key={chapter.id}>
-        <h2 id={titleId}>{t(`onboarding.${chapter.id}Title`)}</h2>
-        {chapter.bodyKeys.map((key) => (
-          <p key={key} className="onboarding__text">
-            {t(`onboarding.${key}`)}
-          </p>
-        ))}
+      <div className="guide__copy" key={chapter}>
+        <h2 id={titleId}>{t(`onboarding.${chapter}Title`)}</h2>
+        <p>{t(`onboarding.${chapter}`)}</p>
       </div>
 
-      <ol className="onboarding__steps" aria-label={t('onboarding.progressLabel')}>
+      <ol className="guide__dots" aria-label={t('onboarding.progressLabel')}>
         {CHAPTERS.map((item, itemIndex) => (
-          <li
-            key={item.id}
-            className={itemIndex === index ? 'is-active' : itemIndex < index ? 'is-complete' : ''}
-          >
+          <li key={item}>
             <button
               type="button"
               aria-label={t('onboarding.goTo', {
                 current: itemIndex + 1,
-                title: t(`onboarding.${item.id}Title`),
+                title: t(`onboarding.${item}Title`),
               })}
               aria-current={itemIndex === index ? 'step' : undefined}
               disabled={closing}
               onClick={() => move(itemIndex)}
-            >
-              <span>{itemIndex + 1}</span>
-            </button>
+            />
           </li>
         ))}
       </ol>
@@ -116,108 +103,40 @@ export function Onboarding() {
   );
 }
 
-function TutorialArt({ chapter, reducedMotion }: { chapter: ChapterId; reducedMotion: boolean }) {
-  const shape = shapeFor('pip');
+function Cast({ id, height }: { id: string; height: number }) {
+  const sprite = employeeSprite(id);
+  return sprite ? <EmployeeSprite config={sprite} reducedMotion height={height} /> : null;
+}
 
+function GuideArt({ chapter }: { chapter: ChapterId }) {
   return (
-    <div className={`onboarding-art onboarding-art--${chapter}`} aria-hidden="true">
-      <span className="onboarding-art__wash" />
-      {chapter === 'collect' ? (
+    <div className={`guide__art guide__art--${chapter}`} aria-hidden="true">
+      {chapter === 'office' ? (
         <>
-          <span className="onboarding-art__crate">
-            <Crate size={88} />
+          <Cast id="pip" height={112} />
+          <span className="guide__crate">
+            <Crate size={46} />
           </span>
-          <span className="onboarding-art__nut onboarding-art__nut--one">
-            <Acorn size={30} />
-          </span>
-          <span className="onboarding-art__nut onboarding-art__nut--two">
-            <Acorn size={26} />
-          </span>
-          <span className="onboarding-art__click-ring" />
-          <span className="onboarding-art__plus">+12</span>
+          <span className="guide__chip">+12</span>
         </>
       ) : null}
-
-      {chapter === 'growth' ? (
-        <div className="onboarding-art__furnish">
-          <DecoArt id="potted-fern" on accent="#778866" reducedMotion={reducedMotion} scale={1.8} />
-          <DecoArt id="desk-lamp" on accent="#b29561" reducedMotion={reducedMotion} scale={1.8} />
-          <DecoArt id="tiny-rug" on accent="#92795a" reducedMotion={reducedMotion} scale={1.8} />
-        </div>
-      ) : null}
-
       {chapter === 'team' ? (
         <>
-          <span className="onboarding-art__pip">
-            <Critter
-              species={shape.species}
-              color="#c65b3c"
-              accent="#3f7d4f"
-              state="talk"
-              hasGlasses
-              size={118}
-              reducedMotion={reducedMotion}
-            />
-          </span>
-          <span className="onboarding-art__speech">
-            <i />
-            <i />
-            <i />
-          </span>
-          <span className="onboarding-art__morale">
-            <b>+1</b>
-            <i />
-          </span>
+          <Cast id="marlow" height={92} />
+          <Cast id="pip" height={104} />
+          <Cast id="nino" height={88} />
+          <span className="guide__speech">…!</span>
         </>
       ) : null}
-
-      {chapter === 'company' ? (
-        <div className="onboarding-art__dossier">
-          <span className="onboarding-art__dossier-tab" />
-          <span className="onboarding-art__dossier-heading" />
-          <span className="onboarding-art__department onboarding-art__department--one">
-            <i />
-            <b />
-          </span>
-          <span className="onboarding-art__department onboarding-art__department--two">
-            <i />
-            <b />
-          </span>
-          <span className="onboarding-art__department onboarding-art__department--three">
-            <i />
-            <b />
-          </span>
-          <span className="onboarding-art__stamp">CO.</span>
-        </div>
+      {chapter === 'grow' ? (
+        <>
+          {/* The same accents the previous guide art used. */}
+          <DecoArt id="potted-fern" on accent="#778866" reducedMotion scale={1.5} />
+          <DecoArt id="desk-lamp" on accent="#b29561" reducedMotion scale={1.5} />
+          <DecoArt id="tiny-rug" on accent="#92795a" reducedMotion scale={1.5} />
+        </>
       ) : null}
-
-      {chapter === 'desktop' ? (
-        <div className="onboarding-art__window">
-          <span className="onboarding-art__window-bar">
-            <i />
-            <i />
-            <i />
-          </span>
-          <span className="onboarding-art__mini-office">
-            <b />
-            <b />
-            <b />
-            <i>
-              <Acorn size={22} />
-            </i>
-          </span>
-          {/* The pin is already a styled circle; the U+25CF inside it was a second,
-              tofu-rendered dot. Drawn as an inner dot instead. */}
-          <span className="onboarding-art__pin" aria-hidden="true">
-            <i />
-          </span>
-          <span className="onboarding-art__quiet">
-            <i />
-            <i />
-            <i />
-          </span>
-        </div>
-      ) : null}
+      {chapter === 'return' ? <span className="guide__window" /> : null}
     </div>
   );
 }

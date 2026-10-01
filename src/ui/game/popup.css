@@ -1,0 +1,305 @@
+/* ==========================================================================
+   Game layer — popups: small pieces of stationery, centred at every size and
+   exactly as big as what they say. No fixed heights, no 440px sheet for a
+   one-line message, no bottom sheets at the default window.
+   ========================================================================== */
+@layer game {
+  /* Stacking (tests/layering.test.ts): speech notes 130 < popups 180 < toasts 200
+     < visit mode 210 < opening 260 < cursor-attached (drag ghost, tooltip). */
+  .popup-backdrop,
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 180;
+    display: grid;
+    place-items: center;
+    padding: 12px;
+    overflow-y: auto;
+    background: rgb(46 29 16 / 0.44);
+    animation: backdrop-in var(--dur) var(--ease) both;
+  }
+  [data-bg-blur='true'] :is(.popup-backdrop, .modal-backdrop) {
+    backdrop-filter: blur(2px);
+  }
+  .popup-backdrop.is-closing {
+    animation: backdrop-out 0.13s var(--ease) both;
+  }
+  @keyframes backdrop-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes backdrop-out {
+    to {
+      opacity: 0;
+    }
+  }
+  .popup {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: fit-content;
+    min-width: min(300px, 100%);
+    max-width: min(440px, 100%);
+    max-height: calc(100dvh - 24px);
+    margin: auto;
+    padding: 20px 18px 16px;
+    overflow: auto;
+    color: var(--ink-strong);
+    background: var(--paper-grain), var(--paper-bg-bright);
+    border: 3px solid var(--frame-edge);
+    border-radius: var(--radius-sheet);
+    box-shadow: var(--lift-shadow);
+    font: 500 var(--fs-base) / 1.45 var(--font-body);
+    outline: none;
+    animation: popup-in var(--dur-slow) var(--ease-pop) both;
+  }
+  .is-closing > .popup {
+    animation: popup-out 0.13s var(--ease) both;
+  }
+  @keyframes popup-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px) scale(0.96);
+    }
+  }
+  @keyframes popup-out {
+    to {
+      opacity: 0;
+      transform: translateY(6px) scale(0.98);
+    }
+  }
+  /* One strip of washi tape holds the note on; the folder tab and clip are gone. */
+  .popup__tape {
+    position: absolute;
+    top: 7px;
+    left: 50%;
+    width: 84px;
+    height: 16px;
+    background: var(--tape);
+    border-radius: 2px;
+    transform: translateX(-50%) rotate(-2deg);
+    pointer-events: none;
+  }
+  .popup--reward .popup__tape,
+  .popup--unlock .popup__tape {
+    background: color-mix(in srgb, var(--c-gold-500) 60%, transparent);
+  }
+  .popup--employee .popup__tape,
+  .popup--decoration .popup__tape {
+    background: var(--tape-cool);
+  }
+  .popup__folder-tab,
+  .popup__clip {
+    display: none;
+  }
+  .popup--warning,
+  .popup--critical {
+    border-color: var(--c-berry-700);
+  }
+  .popup--warning .popup__tape,
+  .popup--critical .popup__tape {
+    background: color-mix(in srgb, var(--c-berry-200) 80%, transparent);
+  }
+  .popup__content {
+    display: grid;
+    gap: 10px;
+    min-width: 0;
+  }
+  .popup__content > :first-child {
+    margin-top: 0;
+  }
+  .popup__content :is(h2, h3) {
+    margin: 0;
+    font: 700 var(--fs-lg) / 1.2 var(--font-display);
+    color: var(--ink-strong);
+  }
+  .popup__content p {
+    margin: 0;
+    color: var(--ink-body);
+  }
+  .popup__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .popup__header {
+    display: grid;
+    gap: 2px;
+  }
+  .popup__eyebrow {
+    font: 800 var(--fs-2xs) / 1.2 var(--font-body);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .popup__title {
+    margin: 0;
+    font: 700 var(--fs-lg) / 1.2 var(--font-display);
+  }
+  .popup__hero-art {
+    display: grid;
+    place-items: center;
+    padding: 4px 0;
+  }
+
+  /* ---- the new-founder field guide (Onboarding.tsx) ---------------------------- */
+  .popup.guide {
+    width: min(400px, 100%);
+    padding-top: 22px;
+  }
+  .guide__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 0;
+    font: 800 var(--fs-2xs) / 1.2 var(--font-body);
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--c-leaf-700);
+  }
+  .guide__head span:last-child {
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--ink-soft);
+  }
+  .guide__art {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 10px;
+    height: clamp(96px, 22dvh, 150px);
+    overflow: hidden;
+    border: 2px solid var(--paper-line);
+    border-radius: 12px;
+    background: linear-gradient(
+      180deg,
+      var(--world-sky-top),
+      var(--world-sky-low) 70%,
+      var(--world-hill-near) 70%
+    );
+  }
+  .guide__art--team,
+  .guide__art--office {
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--dept-founder) 24%, var(--c-paper-150)) 0 72%,
+      var(--c-paper-250) 72%
+    );
+  }
+  .guide__art .employee-sprite {
+    position: relative;
+    flex: 0 0 auto;
+  }
+  .guide__chip {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    padding: 3px 8px;
+    color: var(--c-leaf-700);
+    background: var(--paper-bg-bright);
+    border: 2px solid var(--sticker-edge);
+    border-radius: 9px;
+    box-shadow: var(--sticker-shadow);
+    font: 700 var(--fs-sm) / 1 var(--font-display);
+    transform: rotate(4deg);
+  }
+  .guide__crate {
+    align-self: center;
+    display: grid;
+    margin-bottom: 8px;
+  }
+  .guide__speech {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    padding: 4px 10px;
+    color: var(--ink-strong);
+    background: var(--paper-bg-bright);
+    border: 2px solid var(--ink-strong);
+    border-radius: 12px;
+    font: 700 var(--fs-sm) / 1 var(--font-display);
+    transform: translateX(-10%);
+  }
+  .guide__window {
+    position: relative;
+    align-self: center;
+    width: 46%;
+    height: 72%;
+    background: var(--frame-bg);
+    border: 3px solid var(--frame-edge);
+    border-radius: 8px;
+    box-shadow: var(--lift-shadow);
+  }
+  .guide__window::before {
+    content: '';
+    position: absolute;
+    inset: 12px 18% 8px;
+    background: linear-gradient(
+      90deg,
+      var(--trunk-bark-deep),
+      var(--trunk-bark-light),
+      var(--trunk-bark-deep)
+    );
+    border-radius: 8px 8px 3px 3px;
+  }
+  .guide__window::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: -14px;
+    width: 64%;
+    height: 30px;
+    background: var(--world-leaf);
+    border-radius: 50%;
+    transform: translateX(-50%);
+  }
+  .guide__copy {
+    display: grid;
+    gap: 6px;
+  }
+  .guide__copy h2 {
+    margin: 4px 0 0;
+    font: 700 var(--fs-xl) / 1.15 var(--font-display);
+    color: var(--ink-strong);
+  }
+  .guide__copy p {
+    margin: 0;
+    color: var(--ink-body);
+  }
+  .guide__dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin: 12px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .guide__dots button {
+    width: 12px;
+    height: 12px;
+    padding: 0;
+    background: var(--paper-bg-sunken);
+    border: 2px solid var(--paper-line);
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  .guide__dots [aria-current='step'] button,
+  .guide__dots button[aria-current='step'] {
+    background: var(--c-leaf-500);
+    border-color: var(--c-leaf-700);
+    transform: scale(1.2);
+  }
+  .guide .popup__actions {
+    justify-content: space-between;
+  }
+  .guide__secondary {
+    display: flex;
+    gap: 6px;
+  }
+}
