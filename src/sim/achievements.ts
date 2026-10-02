@@ -21,6 +21,12 @@ export function computeFlags(state: GameState): Set<string> {
   if (state.stats.playTimeSeconds >= 3600) flags.add('playtime:3600');
   if (state.collections.outfits.length >= 6) flags.add('outfits:6');
   for (const s of state.collections.secrets) flags.add(`secret:${s}`);
+  // What the player has noticed around the office (sim/roomPlay.ts).
+  const noticed = Object.keys(state.flags).filter((id) => id.startsWith('oddity.'));
+  if (noticed.filter((id) => !id.startsWith('oddity.room.')).length >= 10) {
+    flags.add('curiosities:10');
+  }
+  if (noticed.some((id) => id.startsWith('oddity.room.'))) flags.add('roomFile:1');
   return flags;
 }
 

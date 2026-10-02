@@ -1540,6 +1540,14 @@
     "collectorOutfits": {
       "name": "Dressed to Impress",
       "desc": "Own 6 outfits."
+    },
+    "officeDetective": {
+      "name": "Office Detective",
+      "desc": "Notice 10 curiosities around the office."
+    },
+    "everyNook": {
+      "name": "Every Nook",
+      "desc": "Notice every curiosity in one room."
     }
   },
   "nut": {
@@ -2137,7 +2145,13 @@
     },
     "searchArchive": "Search the archive by story, colleague or file reference",
     "archiveMatches_one": "{{count}} document found",
-    "archiveMatches_other": "{{count}} documents found"
+    "archiveMatches_other": "{{count}} documents found",
+    "curiosities": "Office curiosities",
+    "curiositiesIntro": "Odd things noticed around the building. Some turn up on their own; some only come out of a room's routine.",
+    "curiositiesCount": "{{count}} of {{total}} noticed",
+    "curiosityLocked": "Not noticed yet",
+    "roomFile": "Room file complete",
+    "nutWhere": "Turns up somewhere in the {{room}}."
   },
   "company": {
     "title": "Company Overview",
@@ -2478,7 +2492,8 @@
     "resetSave": "Reset save",
     "deterministic": "Deterministic seed",
     "unlockAll": "Unlock all employees",
-    "note": "This panel only appears in development builds or when ?dev=1 is set."
+    "note": "This panel only appears in development builds or when ?dev=1 is set.",
+    "officeMoment": "Office moment"
   },
   "dialogue": {
     "pip": [
@@ -2933,7 +2948,8 @@
       "industrial": "Production",
       "secure": "Holdings",
       "irregular": "Irregular"
-    }
+    },
+    "inRoom": "In the room: {{name}}."
   },
   "effect": {
     "production": "Production",
@@ -5284,6 +5300,570 @@
         "a": "You're doing well. Truly.",
         "b": "I'm writing that down and framing it."
       }
+    }
+  },
+  "play": {
+    "news": {
+      "play": "Something needs a hand here",
+      "oddity": "Something odd turned up here"
+    },
+    "needsSomeone": "Nobody here",
+    "readyIn": "Ready in {{time}}",
+    "tendLeft_one": "Tap the machine once more",
+    "tendLeft_other": "Tap the machine {{count}} more times",
+    "parcelFor": "For {{name}}",
+    "tuneFirst": "Pick a mode: each one gives one steady bonus.",
+    "tuneNeedsSomeone": "It works once someone is working here.",
+    "modeNow": "Now: {{mode}}",
+    "doneCount_one": "Done here once.",
+    "doneCount_other": "Done here {{count}} times.",
+    "helpers": {
+      "title": "Helping: {{names}}",
+      "specialist": "{{name}} (specialist)",
+      "close": "{{name}} (close friend)",
+      "set": "{{name}} (set)",
+      "brew": "Each helper makes it 20% faster (up to two).",
+      "tend": "A helper frees it on their own after a minute.",
+      "watch": "With help, it stays on screen 50% longer.",
+      "deliver": "With help here, deliveries come more often.",
+      "none": {
+        "brew": "Specialists and close friends working here make it faster.",
+        "tend": "A specialist or a close friend here would free it on their own.",
+        "watch": "Specialists and close friends here keep it on screen longer.",
+        "deliver": "Specialists and close friends here bring more deliveries."
+      }
+    },
+    "payout": {
+      "boost": "×{{value}} output · {{time}}",
+      "rush": "Rush {{seconds}}s"
+    },
+    "oddity": {
+      "look": "Something odd here. Take a look.",
+      "discovery": "Something here doesn't add up. Look into it.",
+      "new": "Curiosity noticed",
+      "nut": "New in the Nut Encyclopedia",
+      "complete": "That was the last curiosity in this room."
+    },
+    "react": {
+      "funny": {
+        "1": "Okay, that's actually funny.",
+        "2": "I'm telling everyone about this."
+      },
+      "wholesome": {
+        "1": "Oh. That's lovely.",
+        "2": "Leave it there. It's nice."
+      },
+      "strange": {
+        "1": "That wasn't there this morning.",
+        "2": "I'm going to pretend that's normal."
+      },
+      "absurd": {
+        "1": "I have so many questions. I'll ask none.",
+        "2": "This company, honestly."
+      },
+      "paranormal": {
+        "1": "Did anyone else feel that?",
+        "2": "Not scared. Just paying attention."
+      }
+    },
+    "parcel": {
+      "pip": "For me? From someone who believes in us. This goes on the corkboard.",
+      "marlow": "A parcel. Let's not open it in a rush. Let's open it in a moment.",
+      "rizzo": "I don't remember ordering this. Which means I definitely did.",
+      "bea": "Planks! No. Better: a catalogue of planks.",
+      "corvus": "Fan mail. I knew this day would come. It came on a Tuesday.",
+      "mina": "Soil samples from a pen pal. We understand each other.",
+      "nixie": "Spare parts! Unlabelled! My favourite kind of mystery.",
+      "otto": "A receipt for a receipt. Somebody gets me.",
+      "hazel": "A contract, delivered by hand. I'll read it twice before I say thank you.",
+      "junie": "Right on time. I scheduled this parcel to arrive right now.",
+      "moss": "Letters for the night shift. I'll read them when the building is quiet.",
+      "fenn": "A sample, with a price tag. I'm already negotiating with it.",
+      "pingo": "Delivered by a route I didn't plan. Impressive. Annoying. Impressive.",
+      "canela": "Entry one: a parcel. Entry two: it's for me. Entry three: hooray.",
+      "nino": "A box. I will sit in it. The contents may wait.",
+      "bia": "Honey? No, a padlock. Also good. Thank you.",
+      "quincy": "Test equipment! Or a toaster. I'll test which.",
+      "dorm": "A parcel… I'll open it… after this… nap.",
+      "inky": "Eight stamps. One for each arm. Somebody did the maths.",
+      "echo": "A letter at night is a letter twice. Thank you.",
+      "rosa": "Ribbons! In pink! Darling, you shouldn't have. You absolutely should have.",
+      "perry": "A briefcase inside a briefcase. Finally, storage.",
+      "axel": "A seed packet! I'm naming every one of them."
+    },
+    "founder-desk": {
+      "name": "Letters for the team",
+      "tip": "Letters turn up at the founder's desk for someone on the team. Hand them over: they're glad you did.",
+      "say": "Mail's here!",
+      "delivered": "Delivered to {{name}}."
+    },
+    "mailroom": {
+      "name": "Parcels",
+      "tip": "Parcels arrive for the team. Deliver them: a little friendship, a little production.",
+      "say": "Another one for the pile!",
+      "delivered": "Delivered to {{name}}, signed with a pawprint."
+    },
+    "procurement": {
+      "name": "Orders",
+      "tip": "Orders arrive for the company. Sign for them: production, now and then a golden nut, and now and then something nobody ordered.",
+      "order": "Order in",
+      "say": "Sign here, here and… there. Lovely.",
+      "delivered": "Signed for. The crate was mostly what it said it was."
+    },
+    "sorting": {
+      "name": "The sorting chute",
+      "tip": "Now and then something wedges in the chute. Three quick taps free it and the room rushes.",
+      "problem": "Clogged!",
+      "jam": "Something's stuck in the chute again!",
+      "fixed": "Unclogged. Everything that was stuck comes down at once.",
+      "selfFix": "Got it. Chute's clear.",
+      "say": "Back in business!"
+    },
+    "construction": {
+      "name": "The shell press",
+      "tip": "The press sticks sometimes. Three firm taps and it runs hot: the room rushes, and the next batch is a good one.",
+      "problem": "Stuck!",
+      "jam": "The press is stuck. It's making the noise.",
+      "fixed": "Free. The next batch comes out perfect.",
+      "selfFix": "One good thump. That's all it wanted.",
+      "say": "Lovely. Smell that sawdust."
+    },
+    "repair": {
+      "name": "The test bench",
+      "tip": "Things from all over the building come in broken. Three taps fix one: the room rushes and the building cheers up.",
+      "problem": "Broken!",
+      "jam": "Someone brought the break-room kettle in. It's sparking.",
+      "fixed": "Fixed. The kettle goes back upstairs to applause.",
+      "selfFix": "Fixed it. Don't tell the kettle it was easy.",
+      "say": "Good as new. Better, honestly."
+    },
+    "basement": {
+      "name": "The furnace",
+      "tip": "Pressure builds in the furnace. Vent it with three taps: the room rushes, and sometimes a golden spark flies out.",
+      "problem": "Pressure!",
+      "jam": "The needle's in the red. Again.",
+      "fixed": "Vented. The whole basement breathes out.",
+      "selfFix": "Valve's open. We're fine. Probably.",
+      "say": "Warm in here. Nice warm."
+    },
+    "morale": {
+      "name": "The coffee urn",
+      "tip": "Brew a pot (3 minutes) and pour it for the room: everyone here cheers up, morale rises, and production picks up for a while.",
+      "start": "Brew a pot",
+      "ready": "Pour",
+      "say": "Fresh pot. Everybody sit down for a second.",
+      "done": {
+        "pot": "Fresh coffee all round. The room perks up."
+      }
+    },
+    "cafeteria": {
+      "name": "Lunch service",
+      "tip": "Cook lunch (6 minutes) and serve it: the whole company eats together, every friendship grows a little and morale rises.",
+      "start": "Cook lunch",
+      "ready": "Serve lunch",
+      "say": "Lunch! Come and get it before Nino sits on it.",
+      "done": {
+        "lunch": "Lunch is served. Even the vault came up for it."
+      }
+    },
+    "lab": {
+      "name": "The centrifuge",
+      "tip": "Spin a sample (4 minutes) and read the result: a steady boost, a fizzle worth a few nuts, or something nobody can explain.",
+      "start": "Spin a sample",
+      "ready": "Read result",
+      "say": "Write it down before it changes its mind.",
+      "done": {
+        "stable": "Stable sample. The whole building runs a little faster.",
+        "unstable": "It fizzed, it popped, it smelled of toast. Still worth something.",
+        "anomalous": "Anomalous result. Everyone has taken a step back from the centrifuge."
+      }
+    },
+    "incubator": {
+      "name": "The incubation pod",
+      "tip": "Warm a seed (15 minutes) and open the pod when it's ready: golden nuts, and once in a while something unexpected grows.",
+      "start": "Warm a seed",
+      "ready": "Open the pod",
+      "say": "It's sprouted! Everyone be very quiet and very proud.",
+      "done": {
+        "sprout": "A golden sprout. It's already dropping nuts.",
+        "bloom": "It bloomed. Something else came up with it."
+      }
+    },
+    "conservatory": {
+      "name": "The beds",
+      "tip": "Water the beds (8 minutes) and pick what grew: morale, a little production, and now and then a surprise in the soil.",
+      "start": "Water the beds",
+      "ready": "Pick",
+      "say": "Look at that. We grew that.",
+      "done": {
+        "harvest": "A basket of herbs and the smell of wet soil. Everyone breathes easier.",
+        "chestnut": "Something extra came up between the herbs."
+      }
+    },
+    "nap": {
+      "name": "The dream log",
+      "tip": "Tuck someone in (5 minutes) and read the dream log when they wake: production, morale, and the dreams are worth collecting.",
+      "start": "Tuck in",
+      "ready": "Read the dream",
+      "say": "Mm. What did I… oh. Write that down.",
+      "done": {
+        "dream": "A quiet dream about spreadsheets. Very restful."
+      }
+    },
+    "security": {
+      "name": "The camera bank",
+      "tip": "Now and then something moves on the cameras for half a minute. Catch it: reputation, a few nuts, and sometimes footage worth keeping.",
+      "blip": "Movement!",
+      "spot": "Camera four! Did you see that?",
+      "caught": "It was a moth. A very confident moth. Logged anyway.",
+      "say": "Logged. Nobody gets past this desk."
+    },
+    "research": {
+      "name": "The observation terminal",
+      "tip": "Readings spike on the terminal from time to time. Log one while it lasts: production and a little reputation.",
+      "blip": "Reading spike!",
+      "spot": "The needle's jumping. Quick, someone log it!",
+      "caught": "Logged: a spike, a dip, and a very small cheer from the plotter.",
+      "say": "Fascinating. Do it again."
+    },
+    "rooftop": {
+      "name": "The signal dish",
+      "tip": "Signals come in on the dish for half a minute. Tune in: production, a chance of a golden nut, and some messages are worth keeping.",
+      "blip": "Signal!",
+      "spot": "The dish just turned on its own. Something's coming in.",
+      "caught": "A clear signal: somewhere, someone is playing very good jazz.",
+      "say": "Got it! Hello, out there."
+    },
+    "archive": {
+      "name": "The document scanner",
+      "tip": "Now and then a page comes out of the scanner with no file number. File it before it's lost again: reputation, a few nuts, and some pages are worth keeping.",
+      "blip": "Loose page!",
+      "spot": "There's a page in the tray. Nobody scanned it.",
+      "caught": "Filed: a lunch order from last spring. Someone got extra pickles.",
+      "say": "Filed, cross-referenced, loved."
+    },
+    "broadcast": {
+      "name": "On air",
+      "tip": "Choose what the booth plays. Each show gives one steady bonus while someone works here, and the room takes to it.",
+      "off": "Off air",
+      "say": "And we're live.",
+      "mode": {
+        "calm": {
+          "name": "Calm hour",
+          "effect": "Morale recovers 15% faster.",
+          "react": "Ahh. Rain sounds and a soft piano."
+        },
+        "upbeat": {
+          "name": "Upbeat",
+          "effect": "Station combos last 15% longer.",
+          "react": "Oh, I love this one!"
+        },
+        "late": {
+          "name": "Late show",
+          "effect": "Reputation grows a little faster.",
+          "react": "Tonight's guest: a fern."
+        }
+      }
+    },
+    "meeting": {
+      "name": "The agenda",
+      "tip": "Set the meeting room's agenda. Each one gives one steady bonus while someone works here.",
+      "off": "No agenda",
+      "say": "Item one: the agenda.",
+      "mode": {
+        "plan": {
+          "name": "Planning",
+          "effect": "Purchases cost 3% less.",
+          "react": "A plan! With headings!"
+        },
+        "ship": {
+          "name": "Ship it",
+          "effect": "Production rises 5%.",
+          "react": "No more slides. We ship."
+        },
+        "retro": {
+          "name": "Retro",
+          "effect": "Resting morale rises by 4.",
+          "react": "What went well? Lunch went well."
+        }
+      }
+    },
+    "marketing": {
+      "name": "The campaign",
+      "tip": "Pick the campaign. Each one gives one steady bonus while someone works here.",
+      "off": "No campaign",
+      "say": "Campaign's live. Everybody look natural.",
+      "mode": {
+        "brand": {
+          "name": "Brand",
+          "effect": "Reputation grows a little faster.",
+          "react": "Polished. Iconic. Very us."
+        },
+        "buzz": {
+          "name": "Buzz",
+          "effect": "Taps are worth 10% more.",
+          "react": "Everyone's talking about us! Mostly us."
+        },
+        "giveaway": {
+          "name": "Giveaway",
+          "effect": "Rarer, better events turn up a little more often.",
+          "react": "Free tote bags! People love a tote bag."
+        }
+      }
+    },
+    "vault": {
+      "name": "Vault policy",
+      "tip": "Set how the vault is run. Each policy gives one steady bonus while someone works here.",
+      "off": "No policy",
+      "say": "Policy noted. The vault approves.",
+      "mode": {
+        "hoard": {
+          "name": "Hoard",
+          "effect": "Taps find golden nuts a little more often.",
+          "react": "Nobody touches the shiny ones."
+        },
+        "invest": {
+          "name": "Invest",
+          "effect": "Production rises 4%.",
+          "react": "Put it to work. Carefully."
+        },
+        "audit": {
+          "name": "Audit",
+          "effect": "Purchases cost 2.5% less.",
+          "react": "Every nut counted. Twice."
+        }
+      }
+    }
+  },
+  "oddity": {
+    "memo": {
+      "title": "The memo",
+      "hint": "Someone pinned a new memo to the corkboard.",
+      "found": "MEMO: 'Whoever keeps alphabetising the acorns: thank you. Please stop.' — Management"
+    },
+    "first-acorn": {
+      "hint": "The founder's drawer is open a crack. Something in there is glowing.",
+      "found": "The Founder Acorn, in a nest of old receipts. The label still says 'Do not reorganise.'"
+    },
+    "bin-seven": {
+      "title": "Bin seven",
+      "hint": "One of the bins is humming.",
+      "found": "Bin 7 hums in B flat when it's full. Nobody ever labelled a bin 7."
+    },
+    "intern-acorn": {
+      "found": "Out of the chute: an Intern Acorn, wedged sideways. It apologised for the trouble."
+    },
+    "corporate-cashew": {
+      "found": "Out of the chute: a Corporate Cashew. It fit the bend perfectly. That was the problem."
+    },
+    "onboarding-walnut": {
+      "found": "Out of the chute: an Onboarding Walnut, still holding its 40-page handbook."
+    },
+    "agile-almond": {
+      "found": "Out of the chute: an Agile Almond. It had been stuck for exactly one sprint."
+    },
+    "compliance-cob-nut": {
+      "found": "Out of the chute: a Compliance Cob Nut, with the paperwork for being stuck."
+    },
+    "special": {
+      "title": "Today's special",
+      "hint": "The menu board has a new special.",
+      "found": "TODAY'S SPECIAL: Soup of the Day. (It's Tuesday's.)"
+    },
+    "fish-arrow": {
+      "title": "The fish know",
+      "hint": "The fish are all facing the same way.",
+      "found": "The fish have arranged the gravel into an arrow pointing at the snack bar. They know."
+    },
+    "missing-stapler": {
+      "title": "Missing: one stapler",
+      "hint": "There's a 'missing' poster on the corkboard.",
+      "found": "MISSING: one stapler. REWARD: one stapler. CONTACT: Procurement."
+    },
+    "stakeholder-cashew": {
+      "found": "In the order: a Stakeholder Cashew. It asked to be looped in on the unpacking."
+    },
+    "crypto-nut": {
+      "found": "In the order: a Crypto Nut. Its value changed twice while you were signing for it."
+    },
+    "synergy-pecan": {
+      "found": "In the order: a Synergy Pecan, leveraging the packing peanuts."
+    },
+    "outline": {
+      "title": "The empty outline",
+      "hint": "There's an empty outline on the pegboard.",
+      "found": "An outline of a tiny hammer. Underneath, in careful pencil: 'Lent to the intern. Come back safe.'"
+    },
+    "overtime-acorn": {
+      "found": "Out of the press: an Overtime Acorn, still glowing. It's two in the afternoon."
+    },
+    "glowing-flask": {
+      "title": "Flask three",
+      "hint": "One of the flasks is glowing. It isn't plugged into anything.",
+      "found": "Flask 3 glows whenever someone says 'deadline'. Someone has started saying it on purpose. Output is up."
+    },
+    "smiley-sample": {
+      "title": "A cheerful sample",
+      "found": "The sample settled into a perfect smiley face. Then it winked."
+    },
+    "disruptive-pine-nut": {
+      "found": "At the bottom of the tube: a Disruptive Pine Nut. It has already pitched a startup."
+    },
+    "slogan": {
+      "title": "The new slogan",
+      "hint": "Someone added a slogan to the campaign board.",
+      "found": "NEW SLOGAN: 'Nutshell Inc. — We'll crack it.' Underneath, in different ink: 'Please don't.'"
+    },
+    "focus-macadamia": {
+      "hint": "There's a nut sitting in the focus group's chair.",
+      "found": "A Management Macadamia, chairing the focus group. It has notes. They all say 'circle back'."
+    },
+    "extra-nut": {
+      "title": "One too many",
+      "hint": "The vault counter is one higher than it should be.",
+      "found": "The vault holds one more nut than the books say. It's older than the building. It's yours now."
+    },
+    "kernel": {
+      "hint": "The nut statue's eyes look… shinier today.",
+      "found": "Behind the statue's ear: the Golden Kernel. The purest form of nut wealth, and slightly warm."
+    },
+    "equation": {
+      "title": "The equation",
+      "hint": "There's an equation on the whiteboard nobody remembers writing.",
+      "found": "E = mc² + 1 acorn. Someone has circled the acorn and written 'yes'."
+    },
+    "hello-tremor": {
+      "title": "The tremor",
+      "found": "The seismograph spelled out HELLO in tiny tremors. Twice. Then it signed off."
+    },
+    "item-four": {
+      "title": "Item four",
+      "hint": "Item four on the agenda just says 'the thing'.",
+      "found": "ITEM 4: The thing. Everyone nods. Nobody knows. It has been item four for three years."
+    },
+    "brazil-chair": {
+      "hint": "There's a Brazil nut at the head of the table.",
+      "found": "A Quarterly Brazil Nut, presiding. It only turns up four times a year. Today is one of them."
+    },
+    "snore-round": {
+      "title": "The snoring round",
+      "hint": "Someone's snoring in perfect rhythm.",
+      "found": "Three teammates, snoring in a round. Someone has started conducting."
+    },
+    "dream-floor-zero": {
+      "title": "Dream: floor zero",
+      "found": "DREAM: the elevator had a floor zero, carpeted in moss. Everyone was there. Nobody was in a hurry."
+    },
+    "dream-fish-slides": {
+      "title": "Dream: the quarterly fish",
+      "found": "DREAM: the aquarium fish gave a presentation on quarterly growth. The slides were bubbles. It went well."
+    },
+    "burnout-brazil": {
+      "found": "DREAM: a Brazil nut asked if it could lie down too. When they woke up, it was still there, asleep."
+    },
+    "pipe-jingle": {
+      "title": "The knocking",
+      "hint": "The pipes are knocking. In a pattern.",
+      "found": "Knock, knock-knock, knock. It's the company jingle. Nobody taught the pipes the company jingle."
+    },
+    "forbidden-peanut": {
+      "found": "Out of the vent: a Forbidden Peanut. Technically a legume. Nobody down here will talk about it."
+    },
+    "skyline-blink": {
+      "title": "Someone waving",
+      "hint": "A light on the skyline is blinking back at us.",
+      "found": "Short, long, short. Someone across town is waving at the office. The team has started waving back."
+    },
+    "moon-thanks": {
+      "title": "A message from above",
+      "found": "SIGNAL: 'Thank you for the nuts. — The Moon.' It came in at an hour when only the Moon is up."
+    },
+    "weather-elsewhere": {
+      "title": "The other forecast",
+      "found": "SIGNAL: the weather for a city on no map. Sunny, with light acorns."
+    },
+    "soup-week": {
+      "title": "Soup of the week",
+      "hint": "Someone has… edited the menu board.",
+      "found": "SOUP OF THE DAY has been crossed out and replaced with SOUP OF THE WEEK (sorry)."
+    },
+    "tray-almond": {
+      "hint": "Someone left an almond on a tray. With a note.",
+      "found": "An Emotional Support Almond. The note says: 'For whoever needs it today.'"
+    },
+    "letter-1987": {
+      "title": "The 1987 letter",
+      "hint": "There's a letter on the board, postmarked 1987.",
+      "found": "Addressed to Nutshell Inc., postmarked 1987. The company was founded last year. It just says: 'Keep going.'"
+    },
+    "pigeon": {
+      "title": "The pigeonhole",
+      "hint": "One of the pigeonholes has a pigeon in it.",
+      "found": "It's a pigeon. In a pigeonhole. It brought a tiny parcel and has no plans to leave."
+    },
+    "wanted-fridge": {
+      "title": "Wanted",
+      "hint": "There's a new 'wanted' poster on the board.",
+      "found": "WANTED: whoever keeps leaving the fridge open. Last seen: the fridge. Reward: a firm conversation."
+    },
+    "tie-corridor": {
+      "title": "Camera nine",
+      "found": "CAMERA 9: an empty corridor. Something in it is wearing a tie. It straightens the tie, and is gone."
+    },
+    "stapler-return": {
+      "title": "The return",
+      "found": "CAMERA 2, 3:04 AM: a stripy tail, returning a stapler to its desk. Then a second stapler. Then a third."
+    },
+    "severance-acorn": {
+      "found": "CAMERA 1: someone leaves a gift-wrapped acorn at the front desk. A Severance Acorn, generously portioned. Nobody left today."
+    },
+    "sticky-box": {
+      "title": "The sticky-note box",
+      "hint": "A box on the shelf has your name on it.",
+      "found": "Inside: every sticky note you've ever left on someone's desk. Someone kept them all. 'For the history.'"
+    },
+    "future-minutes": {
+      "title": "The perfect meeting",
+      "found": "MINUTES: everyone agreed, it ended early, and someone brought cake. Undated. Possibly aspirational."
+    },
+    "legacy-hazelnut": {
+      "found": "Filed under LEGACY: one Legacy Hazelnut. A sticky note on it says: 'Nobody knows how it works. Don't touch it.'"
+    },
+    "seedling-tag": {
+      "title": "The name tag",
+      "hint": "One of the seedlings is wearing a name tag.",
+      "found": "The seedling's tag says 'Axel Jr.' Somehow, it has already grown a smile."
+    },
+    "visionary-pistachio": {
+      "found": "Inside the pod: a Visionary Pistachio. It sees a future no one asked for, and it's thrilled about it."
+    },
+    "applause-reel": {
+      "title": "The applause",
+      "hint": "One of the reels is turning on its own.",
+      "found": "The reel plays three seconds of applause, recorded in a room that sounds exactly like this one."
+    },
+    "fern-request": {
+      "title": "A request",
+      "hint": "The request line is blinking.",
+      "found": "A song request: 'Something calm, for the fern in the founder's office.' The fern has not commented."
+    },
+    "borrowed-wrench": {
+      "title": "The borrow board",
+      "hint": "There's a new entry on the borrow board.",
+      "found": "BORROWED: one wrench. BY: the wrench. PURPOSE: personal growth."
+    },
+    "dont-button": {
+      "title": "The DON'T button",
+      "hint": "There's a machine on the bench nobody brought in.",
+      "found": "A small machine with one button, labelled DON'T. Someone has put a blanket over it. 'For its own good.'"
+    },
+    "rainbow": {
+      "title": "The indoor rainbow",
+      "hint": "There's a little rainbow over the beds.",
+      "found": "A rainbow exactly the width of the room. It ends in a watering can. Of course it does."
+    },
+    "startup-chestnut": {
+      "found": "Between the herbs: a Startup Chestnut, roasting on an open pivot."
     }
   }
 }

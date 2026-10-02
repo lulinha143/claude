@@ -303,6 +303,21 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     goldenReward: 3,
     condition: { kind: 'flag', flag: 'outfits:6' },
   },
+  // The office as a playground: paying attention to the rooms.
+  {
+    id: 'office-detective',
+    nameKey: 'ach.officeDetective.name',
+    descriptionKey: 'ach.officeDetective.desc',
+    goldenReward: 3,
+    condition: { kind: 'flag', flag: 'curiosities:10' },
+  },
+  {
+    id: 'every-nook',
+    nameKey: 'ach.everyNook.name',
+    descriptionKey: 'ach.everyNook.desc',
+    goldenReward: 3,
+    condition: { kind: 'flag', flag: 'roomFile:1' },
+  },
 ];
 
 export const ACHIEVEMENTS_BY_ID = Object.fromEntries(ACHIEVEMENTS.map((a) => [a.id, a]));

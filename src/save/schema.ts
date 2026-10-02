@@ -158,6 +158,26 @@ const effectSchema = z
   })
   .passthrough();
 
+/** One room's routine (see content/roomPlay.ts). Every field optional; junk is dropped. */
+const roomPlaySchema = z.object({
+  startedAt: z.number().finite().optional().catch(undefined),
+  readyAt: z.number().finite().optional().catch(undefined),
+  jamAt: z.number().finite().optional().catch(undefined),
+  taps: z.number().finite().nonnegative().optional().catch(undefined),
+  blipAt: z.number().finite().optional().catch(undefined),
+  blipUntil: z.number().finite().optional().catch(undefined),
+  parcelAt: z.number().finite().optional().catch(undefined),
+  parcelFor: z.string().optional().catch(undefined),
+  mode: z.string().optional().catch(undefined),
+  done: z.number().finite().nonnegative().optional().catch(undefined),
+});
+
+const officeOdditySchema = z.object({
+  id: z.string(),
+  roomId: z.string(),
+  at: z.number().finite(),
+});
+
 const scheduledConsequenceSchema = z.object({
   id: z.string(),
   at: z.number().finite(),
@@ -283,6 +303,38 @@ export const gameStateSchema = z.object({
         .map((r) => r.data)
         .slice(0, 6),
     ),
+  // The rooms' routines and waiting curiosities. Older saves have none, and a bad
+  // entry costs only that entry.
+  office: z
+    .object({
+      rooms: z
+        .record(z.unknown())
+        .catch({})
+        .transform((rooms) =>
+          Object.fromEntries(
+            Object.entries(rooms)
+              .map(([roomId, value]) => [roomId, roomPlaySchema.safeParse(value)] as const)
+              .filter(([, parsed]) => parsed.success)
+              .map(([roomId, parsed]) => [
+                roomId,
+                (parsed as { success: true; data: z.infer<typeof roomPlaySchema> }).data,
+              ]),
+          ),
+        ),
+      oddities: z
+        .array(z.unknown())
+        .catch([])
+        .transform((items) =>
+          items
+            .map((item) => officeOdditySchema.safeParse(item))
+            .filter(
+              (r): r is { success: true; data: z.infer<typeof officeOdditySchema> } => r.success,
+            )
+            .map((r) => r.data)
+            .slice(0, 4),
+        ),
+    })
+    .catch({ rooms: {}, oddities: [] }),
   settings: settingsSchema,
   onboardingComplete: z.boolean().catch(false),
   eventCooldowns: z.record(z.number()).catch({}),

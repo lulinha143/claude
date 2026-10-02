@@ -101,6 +101,8 @@ export function performPrestige(
       id.startsWith('annex.') ||
       id.startsWith('microgame.') ||
       id.startsWith('pair.') ||
+      // What the player has noticed around the office stays noticed.
+      id.startsWith('oddity.') ||
       Object.keys(state.employees).some((employeeId) => id.startsWith(`${employeeId}.`))
     ) {
       fresh.flags[id] = at;

@@ -9,6 +9,7 @@ import type {
   OfficeFind,
   GameState,
   MomentCard,
+  RoomPlayState,
   ScheduledConsequence,
 } from './types';
 import {
@@ -62,6 +63,7 @@ import { ensureDailyForDate } from './dailyChallenges';
 import {
   ROOM_CAP,
   bestRoomWithSpace,
+  employeesInRoom,
   enforceRoomCapacity,
   isRoomIdUnlocked,
   repairPlacements,
@@ -99,6 +101,28 @@ import {
 import type { RegionPlacementCheck } from './placement';
 import { REGION_KIND_SURFACE, type PlacementRegionKind } from './placementRegions';
 import { compatibleRegionsForProfile } from '../content/roomSurfaces';
+import {
+  ODDITIES_BY_ID,
+  ROOM_PLAY,
+  ROOM_ROUTINES,
+  odditiesInRoom,
+  oddityFlag,
+  roomFileFlag,
+  type BrewOutcome,
+  type OddityDef,
+  type RoomReward,
+  type RoutineKind,
+} from '../content/roomPlay';
+import {
+  brewSeconds,
+  peopleHelpers,
+  roomHelpers,
+  routineOddities,
+  routineView,
+  speakerFor,
+  spontaneousOddities,
+  watchSeconds,
+} from './roomPlay';
 
 /** A single employee's measured change from an event choice (WHAT CHANGED). */
 export interface EmployeeChange {
@@ -263,7 +287,66 @@ export type StationTapResult = ClickResolution & {
   crate?: number;
   /** this tap started the room's rush, or kept it going. */
   rush?: 'started' | 'extended';
+  /** the machine was acting up: this tap went toward freeing it. */
+  tend?: { taps: number; needed: number; fixed?: RoomPlayResult };
 };
+
+/** What a room's routine (or a curiosity) just paid, for the office to show. */
+export interface RoomPayout {
+  nuts: number;
+  golden: number;
+  morale: number;
+  reputation: number;
+  boost?: { value: number; seconds: number };
+  rush?: number;
+}
+
+/** Something done in a room, and what came of it. */
+export interface RoomPlayResult {
+  roomId: string;
+  kind: RoutineKind | 'oddity';
+  /** the brew outcome or tune mode, or 'fixed' | 'selfFixed' | 'caught' | 'delivered' | 'noticed'. */
+  outcome: string;
+  payout: RoomPayout;
+  /** a curiosity noticed through this (for `oddity`, the one noticed). */
+  oddityId?: string;
+  /** the Nut Encyclopedia entry it turned out to be. */
+  nutId?: string;
+  /** who a delivery was for. */
+  recipient?: string;
+  /** who in the room reacts. */
+  speaker: string | null;
+  /** every curiosity in the room has now been noticed. */
+  roomComplete?: boolean;
+}
+
+/** Something the office did on its own, for the scene to show once (drained by the UI). */
+export interface OfficeNews {
+  kind: 'jam' | 'blip' | 'parcel' | 'oddity' | 'selfFix';
+  roomId: string;
+  oddityId?: string;
+  result?: RoomPlayResult;
+}
+
+function emptyPayout(): RoomPayout {
+  return { nuts: 0, golden: 0, morale: 0, reputation: 0 };
+}
+
+function addPayout(into: RoomPayout, more: RoomPayout): void {
+  into.nuts += more.nuts;
+  into.golden += more.golden;
+  into.morale += more.morale;
+  into.reputation += more.reputation;
+  into.boost ??= more.boost;
+  into.rush ??= more.rush;
+}
+
+/** Saves and test states from before room play have no office yet. */
+function ensureOffice(state: GameState): void {
+  state.office ??= { rooms: {}, oddities: [] };
+  state.office.rooms ??= {};
+  state.office.oddities ??= [];
+}
 
 type DecorationArrangement = Array<
   Pick<
@@ -319,6 +402,8 @@ export class GameEngine {
    * mid-sentence loses only the sentence.
    */
   activeTalk: ActiveTalk | null = null;
+  /** transient: what the office did on its own since the scene last looked. */
+  officeNews: OfficeNews[] = [];
 
   private listeners = new Set<EngineListener>();
   private now: () => number;
@@ -333,6 +418,7 @@ export class GameEngine {
   /** roomId -> epoch ms its rush ends. A rush is a moment: never persisted. */
   private rushes = new Map<string, number>();
   private findAccum = 0;
+  private officeAccum = 0;
   private resolvingEventInstanceId: number | null = null;
 
   constructor(state: GameState, opts: EngineOptions = {}) {
@@ -340,6 +426,7 @@ export class GameEngine {
     this.now = opts.now ?? (() => Date.now());
     this.state.boosts ??= [];
     this.state.microgames ??= {};
+    ensureOffice(this.state);
     this.restoreEvent();
     const seed = opts.deterministic ? (opts.seed ?? 12345) : (opts.seed ?? Date.now() & 0xffffffff);
     this.rng = createRng(seed);
@@ -441,9 +528,9 @@ export class GameEngine {
     return 1 + (CLICK.rushMultiplier - 1) * Math.min(1, share);
   }
 
-  private startRush(roomId: string): 'started' | 'extended' {
+  private startRush(roomId: string, seconds: number = CLICK.rushSeconds): 'started' | 'extended' {
     const was = this.rushEndsAt(roomId) > 0;
-    this.rushes.set(roomId, this.now() + CLICK.rushSeconds * 1000);
+    this.rushes.set(roomId, Math.max(this.now() + seconds * 1000, this.rushes.get(roomId) ?? 0));
     if (!was) this.state.clicker.rushes = (this.state.clicker.rushes ?? 0) + 1;
     return was ? 'extended' : 'started';
   }
@@ -503,6 +590,7 @@ export class GameEngine {
     this.tempBoosts = this.tempBoosts.filter((b) => b.endsAt > t);
     for (const [room, ends] of this.rushes) if (ends <= t) this.rushes.delete(room);
     this.rollFinds(Math.min(deltaSeconds, 3600));
+    this.stepOffice(Math.min(deltaSeconds, 3600));
     // drop expired temporary employee emotions
     this.expireEmotions(t);
 
@@ -661,6 +749,18 @@ export class GameEngine {
       if (collected.gained > 0) result.crate = collected.gained;
     }
 
+    // A machine that is acting up takes the tap toward freeing it.
+    const routine = ROOM_ROUTINES[def.roomId];
+    const play = this.state.office.rooms[def.roomId];
+    if (routine?.kind === 'tend' && play?.jamAt) {
+      play.taps = (play.taps ?? 0) + 1;
+      result.tend = { taps: play.taps, needed: routine.taps };
+      if (play.taps >= routine.taps) {
+        result.tend.fixed = this.fixMachine(def.roomId, false) ?? undefined;
+        this.save();
+      }
+    }
+
     // Keeping the rhythm long enough sets the room rushing.
     if (result.streak >= rushStreak(def)) result.rush = this.startRush(def.roomId);
 
@@ -765,6 +865,401 @@ export class GameEngine {
     for (let i = 0; i < expected && this.state.finds.length < BALANCE.finds.maxWaiting; i += 1) {
       if (!this.spawnFind()) break;
     }
+  }
+
+  // -- room play --------------------------------------------------------------
+  // Each room's station has a routine of its own (content/roomPlay.ts): brew,
+  // tend, watch, deliver or tune. Starting, sharing, freeing, catching, handing
+  // over and switching all go through here; what turns up on its own is rolled
+  // in `stepOffice`. Every payout goes through `grantRoomReward`, which only uses
+  // systems the rest of the game already has (nuts, golden nuts, morale,
+  // reputation, boosts, rushes, moods and friendship).
+
+  private roomPlay(roomId: string): RoomPlayState {
+    const rooms = this.state.office.rooms;
+    rooms[roomId] ??= {};
+    return rooms[roomId];
+  }
+
+  /** Start a brew: a pot, lunch, a lab sample, a seed, the beds, a dream. */
+  startRoutine(roomId: string): boolean {
+    const routine = ROOM_ROUTINES[roomId];
+    const now = this.now();
+    if (routine?.kind !== 'brew' || routineView(this.state, roomId, now)?.status !== 'idle') {
+      return false;
+    }
+    const play = this.roomPlay(roomId);
+    play.startedAt = now;
+    play.readyAt = now + brewSeconds(this.state, roomId) * 1000;
+    this.save();
+    this.emit();
+    return true;
+  }
+
+  /** Share out a finished brew. */
+  collectRoutine(roomId: string): RoomPlayResult | null {
+    const routine = ROOM_ROUTINES[roomId];
+    if (
+      routine?.kind !== 'brew' ||
+      routineView(this.state, roomId, this.now())?.status !== 'ready'
+    ) {
+      return null;
+    }
+    const play = this.roomPlay(roomId);
+    delete play.startedAt;
+    delete play.readyAt;
+    play.done = (play.done ?? 0) + 1;
+    const outcome = this.pickOutcome(routine.outcomes);
+    const result: RoomPlayResult = {
+      roomId,
+      kind: 'brew',
+      outcome: outcome.id,
+      payout: this.grantRoomReward(roomId, outcome.reward),
+      speaker: this.speaker(roomId),
+    };
+    if (outcome.reveal) this.revealInto(result);
+    return this.finishPlay(result);
+  }
+
+  /** Catch what is on a room's screen before it goes. */
+  catchBlip(roomId: string): RoomPlayResult | null {
+    const routine = ROOM_ROUTINES[roomId];
+    if (
+      routine?.kind !== 'watch' ||
+      routineView(this.state, roomId, this.now())?.status !== 'blip'
+    ) {
+      return null;
+    }
+    const play = this.roomPlay(roomId);
+    delete play.blipAt;
+    delete play.blipUntil;
+    play.done = (play.done ?? 0) + 1;
+    const result: RoomPlayResult = {
+      roomId,
+      kind: 'watch',
+      outcome: 'caught',
+      payout: this.grantRoomReward(roomId, routine.reward),
+      speaker: this.speaker(roomId),
+    };
+    if (this.rng.chance(routine.revealChance)) this.revealInto(result);
+    return this.finishPlay(result);
+  }
+
+  /** Hand over what arrived: a letter or parcel for a teammate, or an order for the company. */
+  deliverParcel(roomId: string): RoomPlayResult | null {
+    const routine = ROOM_ROUTINES[roomId];
+    if (routine?.kind !== 'deliver' || !isRoomIdUnlocked(this.state, roomId)) return null;
+    const play = this.roomPlay(roomId);
+    if (!play.parcelAt) return null;
+    const addressee = play.parcelFor ?? '';
+    const recipient =
+      routine.to === 'teammate' && this.state.employees[addressee]?.hired ? addressee : undefined;
+    delete play.parcelAt;
+    delete play.parcelFor;
+    play.done = (play.done ?? 0) + 1;
+    const result: RoomPlayResult = {
+      roomId,
+      kind: 'deliver',
+      outcome: 'delivered',
+      payout: this.grantRoomReward(roomId, routine.reward, recipient),
+      recipient,
+      speaker: recipient ?? this.speaker(roomId),
+    };
+    if (routine.revealChance > 0 && this.rng.chance(routine.revealChance)) this.revealInto(result);
+    return this.finishPlay(result);
+  }
+
+  /** Switch a room to its next mode. The room's people take to it at once. */
+  cycleRoomMode(roomId: string): RoomPlayResult | null {
+    const routine = ROOM_ROUTINES[roomId];
+    if (routine?.kind !== 'tune' || !isRoomIdUnlocked(this.state, roomId)) return null;
+    const play = this.roomPlay(roomId);
+    const index = routine.modes.findIndex((mode) => mode.id === play.mode);
+    const next = routine.modes[(index + 1) % routine.modes.length];
+    play.mode = next.id;
+    for (const id of employeesInRoom(this.state, roomId)) {
+      this.setEmployeeEmotion(id, next.mood, 300);
+    }
+    return this.finishPlay({
+      roomId,
+      kind: 'tune',
+      outcome: next.id,
+      payout: emptyPayout(),
+      speaker: this.speaker(roomId),
+    });
+  }
+
+  /** Notice a curiosity that has turned up in the office. */
+  noticeOddity(id: string): RoomPlayResult | null {
+    const index = this.state.office.oddities.findIndex((item) => item.id === id);
+    const def = ODDITIES_BY_ID[id];
+    if (index < 0 || !def) return null;
+    this.state.office.oddities.splice(index, 1);
+    if (oddityFlag(id) in this.state.flags) {
+      this.finishPlay(null);
+      return null;
+    }
+    const result: RoomPlayResult = {
+      roomId: def.roomId,
+      kind: 'oddity',
+      outcome: 'noticed',
+      payout: emptyPayout(),
+      speaker: this.speaker(def.roomId),
+    };
+    this.notice(def, result);
+    return this.finishPlay(result);
+  }
+
+  /** What the office did on its own since the scene last asked. */
+  drainOfficeNews(): OfficeNews[] {
+    return this.officeNews.splice(0, this.officeNews.length);
+  }
+
+  /**
+   * Make the office produce one of its moments now, within the usual limits (one
+   * stuck machine and one blip at a time, a couple of deliveries, one curiosity).
+   * The dice call this; so do the dev panel and tests that cannot wait for them.
+   */
+  spawnOfficeMoment(kind: 'tend' | 'watch' | 'deliver' | 'oddity', roomId?: string): boolean {
+    const now = this.now();
+    const rooms = this.state.office.rooms;
+    const plays = Object.values(rooms);
+    const staffed = (id: string) => employeesInRoom(this.state, id).length > 0;
+    const ofKind = (wanted: RoutineKind) =>
+      Object.entries(ROOM_ROUTINES)
+        .filter(
+          ([id, routine]) =>
+            routine.kind === wanted &&
+            (!roomId || id === roomId) &&
+            isRoomIdUnlocked(this.state, id),
+        )
+        .map(([id]) => id);
+    switch (kind) {
+      case 'tend': {
+        if (plays.some((play) => play.jamAt)) return false;
+        const candidates = ofKind('tend').filter(staffed);
+        if (!candidates.length) return false;
+        const room = this.rng.pick(candidates);
+        Object.assign(this.roomPlay(room), { jamAt: now, taps: 0 });
+        this.pushNews({ kind: 'jam', roomId: room });
+        return true;
+      }
+      case 'watch': {
+        if (plays.some((play) => play.blipUntil && play.blipUntil > now)) return false;
+        const room = this.weightedRoom(ofKind('watch'), (id) => (staffed(id) ? 2 : 1));
+        if (!room) return false;
+        Object.assign(this.roomPlay(room), {
+          blipAt: now,
+          blipUntil: now + watchSeconds(this.state, room) * 1000,
+        });
+        this.pushNews({ kind: 'blip', roomId: room });
+        return true;
+      }
+      case 'deliver': {
+        if (plays.filter((play) => play.parcelAt).length >= ROOM_PLAY.maxParcels) return false;
+        const room = this.weightedRoom(
+          ofKind('deliver').filter((id) => !rooms[id]?.parcelAt),
+          (id) => (roomHelpers(this.state, id).length > 0 ? ROOM_PLAY.deliverHelperWeight : 1),
+        );
+        if (!room) return false;
+        const routine = ROOM_ROUTINES[room];
+        let parcelFor = '';
+        if (routine.kind === 'deliver' && routine.to === 'teammate') {
+          const hired = Object.keys(this.state.employees).filter(
+            (id) => this.state.employees[id]?.hired,
+          );
+          if (!hired.length) return false;
+          parcelFor = this.rng.pick(hired);
+        }
+        Object.assign(this.roomPlay(room), { parcelAt: now, parcelFor });
+        this.pushNews({ kind: 'parcel', roomId: room });
+        return true;
+      }
+      case 'oddity': {
+        if (this.state.office.oddities.length >= ROOM_PLAY.maxOddities) return false;
+        const candidates = spontaneousOddities(this.state, now).filter(
+          (def) => !roomId || def.roomId === roomId,
+        );
+        if (!candidates.length) return false;
+        const def = this.rng.pick(candidates);
+        this.state.office.oddities.push({ id: def.id, roomId: def.roomId, at: now });
+        this.pushNews({ kind: 'oddity', roomId: def.roomId, oddityId: def.id });
+        return true;
+      }
+    }
+  }
+
+  /** The office getting on with things: blips fade, helpers fix, and something may turn up. */
+  private stepOffice(seconds: number): void {
+    const now = this.now();
+    const office = this.state.office;
+    for (const [roomId, play] of Object.entries(office.rooms)) {
+      if (play.blipUntil && play.blipUntil <= now) {
+        delete play.blipAt;
+        delete play.blipUntil;
+      }
+      // A specialist or a close friend in the room frees a stuck machine
+      // themselves, given a minute: the player's hands are welcome, not required.
+      if (
+        play.jamAt &&
+        now - play.jamAt >= ROOM_PLAY.selfFixSeconds * 1000 &&
+        peopleHelpers(this.state, roomId).length > 0
+      ) {
+        const result = this.fixMachine(roomId, true);
+        if (result) this.pushNews({ kind: 'selfFix', roomId, result });
+      }
+    }
+    if (office.oddities.length) {
+      office.oddities = office.oddities.filter(
+        (item) =>
+          now - item.at < ROOM_PLAY.oddityLingerSeconds * 1000 &&
+          !(oddityFlag(item.id) in this.state.flags),
+      );
+    }
+    if (this.state.stats.playTimeSeconds < ROOM_PLAY.firstAfterSeconds) return;
+    this.officeAccum += seconds;
+    while (this.officeAccum >= ROOM_PLAY.rollSeconds) {
+      this.officeAccum -= ROOM_PLAY.rollSeconds;
+      const roll = ROOM_PLAY.rollSeconds;
+      if (this.rng.chance(roll / ROOM_PLAY.tendMeanSeconds)) this.spawnOfficeMoment('tend');
+      if (this.rng.chance(roll / ROOM_PLAY.watchMeanSeconds)) this.spawnOfficeMoment('watch');
+      if (this.rng.chance(roll / ROOM_PLAY.deliverMeanSeconds)) this.spawnOfficeMoment('deliver');
+      if (this.rng.chance(roll / ROOM_PLAY.oddityMeanSeconds)) this.spawnOfficeMoment('oddity');
+    }
+  }
+
+  /** Free a stuck machine: by the player's taps, or by a helper on their own. */
+  private fixMachine(roomId: string, byHelper: boolean): RoomPlayResult | null {
+    const routine = ROOM_ROUTINES[roomId];
+    if (routine?.kind !== 'tend') return null;
+    const play = this.roomPlay(roomId);
+    if (!play.jamAt) return null;
+    delete play.jamAt;
+    delete play.taps;
+    play.done = (play.done ?? 0) + 1;
+    const helpers = peopleHelpers(this.state, roomId);
+    const result: RoomPlayResult = {
+      roomId,
+      kind: 'tend',
+      outcome: byHelper ? 'selfFixed' : 'fixed',
+      // A helper's fix is quicker and quieter: a short rush, nothing else.
+      payout: this.grantRoomReward(
+        roomId,
+        byHelper ? { rush: Math.round(CLICK.rushSeconds / 2) } : routine.reward,
+      ),
+      speaker: byHelper && helpers.length ? this.rng.pick(helpers).id : this.speaker(roomId),
+    };
+    if (!byHelper && this.rng.chance(routine.revealChance)) this.revealInto(result);
+    return result;
+  }
+
+  private speaker(roomId: string): string | null {
+    return speakerFor(this.state, roomId, (n) => this.rng.int(0, n));
+  }
+
+  private pickOutcome(outcomes: readonly BrewOutcome[]): BrewOutcome {
+    const total = outcomes.reduce((sum, outcome) => sum + outcome.weight, 0);
+    let roll = this.rng.next() * total;
+    return outcomes.find((outcome) => (roll -= outcome.weight) < 0) ?? outcomes[0];
+  }
+
+  private weightedRoom(rooms: string[], weight: (id: string) => number): string | null {
+    if (!rooms.length) return null;
+    const weights = rooms.map(weight);
+    let roll = this.rng.next() * weights.reduce((sum, w) => sum + w, 0);
+    return rooms.find((_, i) => (roll -= weights[i]) < 0) ?? rooms[0];
+  }
+
+  private pushNews(news: OfficeNews): void {
+    this.officeNews.push(news);
+    if (this.officeNews.length > 12) this.officeNews.shift();
+  }
+
+  /** Bring out one of the room's routine-only curiosities into `result`, if any is left. */
+  private revealInto(result: RoomPlayResult): void {
+    const left = routineOddities(this.state, result.roomId, this.now());
+    if (left.length) this.notice(this.rng.pick(left), result);
+  }
+
+  /** Remember a curiosity, pay for it, and see whether the room's file is now complete. */
+  private notice(def: OddityDef, result: RoomPlayResult): void {
+    this.state.flags[oddityFlag(def.id)] = this.now();
+    result.oddityId = def.id;
+    if (def.nutId) {
+      result.nutId = def.nutId;
+      if (!this.state.collections.nuts.includes(def.nutId)) {
+        this.state.collections.nuts.push(def.nutId);
+      }
+    }
+    addPayout(result.payout, this.grantRoomReward(def.roomId, def.reward));
+    const file = roomFileFlag(def.roomId);
+    if (
+      !(file in this.state.flags) &&
+      odditiesInRoom(def.roomId).every((other) => oddityFlag(other.id) in this.state.flags)
+    ) {
+      this.state.flags[file] = this.now();
+      this.state.resources.goldenNuts += ROOM_PLAY.roomCompleteGolden;
+      result.payout.golden += ROOM_PLAY.roomCompleteGolden;
+      result.roomComplete = true;
+    }
+  }
+
+  private finishPlay<T extends RoomPlayResult | null>(result: T): T {
+    this.save();
+    this.emit();
+    return result;
+  }
+
+  /**
+   * Pay a room reward. Production-scaled nuts never fall below a small floor;
+   * mood and friendship land on the people working in the room (for a
+   * delivery: on whoever it was for).
+   */
+  private grantRoomReward(roomId: string, reward: RoomReward, recipient?: string): RoomPayout {
+    const out = emptyPayout();
+    if (reward.output) {
+      const nuts = Math.max(ROOM_PLAY.minOutput, this.productionPerSecond() * reward.output);
+      this.addNuts(nuts, false);
+      out.nuts = nuts;
+    }
+    let golden = reward.golden ?? 0;
+    if (reward.goldenChance && this.rng.chance(reward.goldenChance)) golden += 1;
+    if (golden > 0) {
+      this.state.resources.goldenNuts += golden;
+      out.golden = golden;
+    }
+    if (reward.morale) {
+      const before = this.state.resources.morale;
+      this.state.resources.morale = Math.max(
+        0,
+        Math.min(moraleCap(this.state), before + reward.morale),
+      );
+      out.morale = this.state.resources.morale - before;
+    }
+    if (reward.reputation) {
+      this.state.resources.reputation += reward.reputation;
+      out.reputation = reward.reputation;
+    }
+    if (reward.boost) {
+      this.addBoost(reward.boost.value, reward.boost.seconds);
+      out.boost = reward.boost;
+    }
+    if (reward.rush && employeesInRoom(this.state, roomId).length > 0) {
+      this.startRush(roomId, reward.rush);
+      out.rush = reward.rush;
+    }
+    for (const id of recipient ? [recipient] : employeesInRoom(this.state, roomId)) {
+      const rt = this.state.employees[id];
+      if (!rt?.hired) continue;
+      if (reward.friendship) rt.friendship = Math.min(100, rt.friendship + reward.friendship);
+      if (reward.mood) this.setEmployeeEmotion(id, reward.mood.emotion, reward.mood.seconds);
+    }
+    if (reward.everyone) {
+      for (const rt of Object.values(this.state.employees)) {
+        if (rt.hired) rt.friendship = Math.min(100, rt.friendship + reward.everyone);
+      }
+    }
+    return out;
   }
 
   /**
@@ -2245,6 +2740,8 @@ export class GameEngine {
     this.state = next;
     this.state.boosts ??= [];
     this.state.microgames ??= {};
+    ensureOffice(this.state);
+    this.officeNews = [];
     this.activeTalk = null;
     this.combo = null;
     this.lastAutoResolved = null;

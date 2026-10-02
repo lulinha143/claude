@@ -1540,6 +1540,14 @@
     "collectorOutfits": {
       "name": "Vestido para Impressionar",
       "desc": "Possua 6 roupas."
+    },
+    "officeDetective": {
+      "name": "Detetive do Escritório",
+      "desc": "Note 10 curiosidades pelo escritório."
+    },
+    "everyNook": {
+      "name": "Cada Cantinho",
+      "desc": "Note todas as curiosidades de uma sala."
     }
   },
   "nut": {
@@ -2137,7 +2145,13 @@
     },
     "searchArchive": "Buscar no arquivo por história, colega ou referência",
     "archiveMatches_one": "{{count}} documento encontrado",
-    "archiveMatches_other": "{{count}} documentos encontrados"
+    "archiveMatches_other": "{{count}} documentos encontrados",
+    "curiosities": "Curiosidades do escritório",
+    "curiositiesIntro": "Coisas estranhas notadas pelo prédio. Algumas aparecem sozinhas; outras só saem da rotina de cada sala.",
+    "curiositiesCount": "{{count}} de {{total}} notadas",
+    "curiosityLocked": "Ainda não notada",
+    "roomFile": "Arquivo da sala completo",
+    "nutWhere": "Aparece em algum lugar: {{room}}."
   },
   "company": {
     "title": "Visão Geral da Empresa",
@@ -2478,7 +2492,8 @@
     "resetSave": "Reiniciar save",
     "deterministic": "Semente determinística",
     "unlockAll": "Desbloquear todos os funcionários",
-    "note": "Este painel só aparece em builds de desenvolvimento ou quando ?dev=1 está ativo."
+    "note": "Este painel só aparece em builds de desenvolvimento ou quando ?dev=1 está ativo.",
+    "officeMoment": "Momento no escritório"
   },
   "dialogue": {
     "pip": [
@@ -2933,7 +2948,8 @@
       "industrial": "Produção",
       "secure": "Reservas",
       "irregular": "Irregular"
-    }
+    },
+    "inRoom": "Na sala: {{name}}."
   },
   "effect": {
     "production": "Produção",
@@ -5284,6 +5300,570 @@
         "a": "Você está indo bem. De verdade.",
         "b": "Vou anotar isso e emoldurar."
       }
+    }
+  },
+  "play": {
+    "news": {
+      "play": "Tem algo precisando de uma mão aqui",
+      "oddity": "Apareceu algo estranho aqui"
+    },
+    "needsSomeone": "Ninguém aqui",
+    "readyIn": "Fica pronto em {{time}}",
+    "tendLeft_one": "Mais um toque na máquina",
+    "tendLeft_other": "Mais {{count}} toques na máquina",
+    "parcelFor": "Para {{name}}",
+    "tuneFirst": "Escolha um modo: cada um dá um bônus fixo.",
+    "tuneNeedsSomeone": "Só vale com alguém trabalhando aqui.",
+    "modeNow": "Agora: {{mode}}",
+    "doneCount_one": "Feito aqui uma vez.",
+    "doneCount_other": "Feito aqui {{count}} vezes.",
+    "helpers": {
+      "title": "Ajudando: {{names}}",
+      "specialist": "{{name}} (especialista)",
+      "close": "{{name}} (amizade próxima)",
+      "set": "{{name}} (conjunto)",
+      "brew": "Cada ajuda deixa 20% mais rápido (até duas).",
+      "tend": "Quem ajuda resolve por conta própria depois de um minuto.",
+      "watch": "Com ajuda, fica na tela 50% mais tempo.",
+      "deliver": "Com ajuda aqui, as entregas chegam mais vezes.",
+      "none": {
+        "brew": "Especialistas e amizades próximas trabalhando aqui deixam mais rápido.",
+        "tend": "Um especialista ou uma amizade próxima aqui resolveria por conta própria.",
+        "watch": "Especialistas e amizades próximas aqui deixam na tela por mais tempo.",
+        "deliver": "Especialistas e amizades próximas aqui trazem mais entregas."
+      }
+    },
+    "payout": {
+      "boost": "×{{value}} produção · {{time}}",
+      "rush": "Pique {{seconds}}s"
+    },
+    "oddity": {
+      "look": "Tem algo estranho aqui. Dá uma olhada.",
+      "discovery": "Tem algo aqui que não fecha. Investigue.",
+      "new": "Curiosidade notada",
+      "nut": "Novidade na Enciclopédia da Castanha",
+      "complete": "Era a última curiosidade desta sala."
+    },
+    "react": {
+      "funny": {
+        "1": "Tá, isso é engraçado de verdade.",
+        "2": "Vou contar isso pra todo mundo."
+      },
+      "wholesome": {
+        "1": "Ah. Que coisa linda.",
+        "2": "Deixa aí. Faz bem."
+      },
+      "strange": {
+        "1": "Isso não estava aí hoje de manhã.",
+        "2": "Vou fingir que isso é normal."
+      },
+      "absurd": {
+        "1": "Tenho mil perguntas. Não vou fazer nenhuma.",
+        "2": "Essa empresa, sinceramente."
+      },
+      "paranormal": {
+        "1": "Mais alguém sentiu isso?",
+        "2": "Não é medo. É atenção."
+      }
+    },
+    "parcel": {
+      "pip": "Pra mim? De alguém que acredita na gente. Isso vai pro mural.",
+      "marlow": "Uma encomenda. Nada de abrir com pressa. Vamos abrir com calma.",
+      "rizzo": "Não lembro de ter pedido isso. Ou seja, com certeza pedi.",
+      "bea": "Tábuas! Não. Melhor: um catálogo de tábuas.",
+      "corvus": "Carta de fã. Eu sabia que esse dia ia chegar. Chegou numa terça.",
+      "mina": "Amostras de terra de alguém que se corresponde comigo. A gente se entende.",
+      "nixie": "Peças sobressalentes! Sem etiqueta! Meu tipo favorito de mistério.",
+      "otto": "Uma nota fiscal de uma nota fiscal. Alguém me entende.",
+      "hazel": "Um contrato, entregue em mãos. Vou ler duas vezes antes de agradecer.",
+      "junie": "Bem na hora. Eu agendei essa encomenda pra chegar agora.",
+      "moss": "Cartas pro turno da noite. Leio quando o prédio estiver quieto.",
+      "fenn": "Uma amostra, com etiqueta de preço. Já estou negociando com ela.",
+      "pingo": "Entregue por uma rota que eu não planejei. Impressionante. Irritante. Impressionante.",
+      "canela": "Anotação um: uma encomenda. Anotação dois: é pra mim. Anotação três: oba.",
+      "nino": "Uma caixa. Vou sentar nela. O conteúdo que espere.",
+      "bia": "Mel? Não, um cadeado. Também serve. Valeu.",
+      "quincy": "Equipamento de teste! Ou uma torradeira. Vou testar qual dos dois.",
+      "dorm": "Uma encomenda… vou abrir… depois dessa… soneca.",
+      "inky": "Oito selos. Um pra cada braço. Alguém fez as contas.",
+      "echo": "Carta à noite vale por duas. Obrigada.",
+      "rosa": "Fitas! Cor-de-rosa! Querido, não precisava. Precisava, sim.",
+      "perry": "Uma maleta dentro de uma maleta. Finalmente, espaço.",
+      "axel": "Um pacote de sementes! Vou dar nome pra cada uma."
+    },
+    "founder-desk": {
+      "name": "Cartas pra equipe",
+      "tip": "Chegam cartas na mesa do fundador pra alguém da equipe. Entregue: a pessoa fica feliz.",
+      "say": "Chegou carta!",
+      "delivered": "Entregue para {{name}}."
+    },
+    "mailroom": {
+      "name": "Encomendas",
+      "tip": "Chegam encomendas pra equipe. Entregue: um pouco de amizade, um pouco de produção.",
+      "say": "Mais uma pra pilha!",
+      "delivered": "Entregue para {{name}}, assinado com a pata."
+    },
+    "procurement": {
+      "name": "Pedidos",
+      "tip": "Chegam pedidos pra empresa. Assine o recebimento: produção, às vezes uma castanha dourada e às vezes algo que ninguém pediu.",
+      "order": "Pedido chegou",
+      "say": "Assina aqui, aqui e… ali. Ótimo.",
+      "delivered": "Recebido. A caixa era quase o que dizia ser."
+    },
+    "sorting": {
+      "name": "A calha de triagem",
+      "tip": "De vez em quando algo entala na calha. Três toques rápidos liberam e a sala entra no pique.",
+      "problem": "Entupiu!",
+      "jam": "Tem alguma coisa entalada na calha de novo!",
+      "fixed": "Desentupiu. Tudo que estava preso desce de uma vez.",
+      "selfFix": "Resolvido. A calha tá livre.",
+      "say": "De volta ao trabalho!"
+    },
+    "construction": {
+      "name": "A prensa de cascas",
+      "tip": "A prensa às vezes emperra. Três toques firmes e ela esquenta: a sala entra no pique e o próximo lote sai bom.",
+      "problem": "Emperrou!",
+      "jam": "A prensa emperrou. Tá fazendo aquele barulho.",
+      "fixed": "Soltou. O próximo lote sai perfeito.",
+      "selfFix": "Uma boa batida. Era só isso que ela queria.",
+      "say": "Que beleza. Sente o cheiro da serragem."
+    },
+    "repair": {
+      "name": "A bancada de testes",
+      "tip": "Chegam coisas quebradas do prédio todo. Três toques consertam: a sala entra no pique e o prédio se anima.",
+      "problem": "Quebrou!",
+      "jam": "Trouxeram a chaleira da copa. Tá soltando faísca.",
+      "fixed": "Consertada. A chaleira volta pra copa sob aplausos.",
+      "selfFix": "Consertei. Não conta pra chaleira que foi fácil.",
+      "say": "Novinha em folha. Melhor, sinceramente."
+    },
+    "basement": {
+      "name": "A fornalha",
+      "tip": "A pressão sobe na fornalha. Três toques aliviam: a sala entra no pique e às vezes sai uma faísca dourada.",
+      "problem": "Pressão!",
+      "jam": "O ponteiro tá no vermelho. De novo.",
+      "fixed": "Aliviada. O porão inteiro respira.",
+      "selfFix": "Válvula aberta. Tá tudo bem. Provavelmente.",
+      "say": "Quentinho aqui. Quentinho bom."
+    },
+    "morale": {
+      "name": "A cafeteira",
+      "tip": "Passe um café (3 minutos) e sirva a sala: todo mundo aqui se anima, o ânimo sobe e a produção acelera por um tempo.",
+      "start": "Passar café",
+      "ready": "Servir",
+      "say": "Café fresquinho. Todo mundo senta um segundo.",
+      "done": {
+        "pot": "Café fresco pra todo mundo. A sala se anima."
+      }
+    },
+    "cafeteria": {
+      "name": "O almoço",
+      "tip": "Prepare o almoço (6 minutos) e sirva: a empresa inteira come junta, toda amizade cresce um pouco e o ânimo sobe.",
+      "start": "Fazer almoço",
+      "ready": "Servir almoço",
+      "say": "Almoço! Vem pegar antes que o Nino sente em cima.",
+      "done": {
+        "lunch": "Almoço servido. Até o pessoal do cofre subiu."
+      }
+    },
+    "lab": {
+      "name": "A centrífuga",
+      "tip": "Gire uma amostra (4 minutos) e veja o resultado: um bônus firme, um chiado que rende umas castanhas ou algo que ninguém explica.",
+      "start": "Girar amostra",
+      "ready": "Ver resultado",
+      "say": "Anota antes que ela mude de ideia.",
+      "done": {
+        "stable": "Amostra estável. O prédio todo anda um pouco mais rápido.",
+        "unstable": "Chiou, estourou, ficou com cheiro de torrada. Ainda vale alguma coisa.",
+        "anomalous": "Resultado anômalo. Todo mundo deu um passo pra trás da centrífuga."
+      }
+    },
+    "incubator": {
+      "name": "A cápsula de incubação",
+      "tip": "Aqueça uma semente (15 minutos) e abra a cápsula quando estiver pronta: castanhas douradas e, de vez em quando, nasce algo inesperado.",
+      "start": "Aquecer semente",
+      "ready": "Abrir cápsula",
+      "say": "Brotou! Todo mundo bem quietinho e bem orgulhoso.",
+      "done": {
+        "sprout": "Um broto dourado. Já está soltando castanhas.",
+        "bloom": "Floresceu. Veio mais alguma coisa junto."
+      }
+    },
+    "conservatory": {
+      "name": "Os canteiros",
+      "tip": "Regue os canteiros (8 minutos) e colha o que cresceu: ânimo, um pouco de produção e, às vezes, uma surpresa na terra.",
+      "start": "Regar canteiros",
+      "ready": "Colher",
+      "say": "Olha só. Fomos nós que plantamos.",
+      "done": {
+        "harvest": "Uma cesta de ervas e cheiro de terra molhada. Todo mundo respira melhor.",
+        "chestnut": "Nasceu algo a mais entre as ervas."
+      }
+    },
+    "nap": {
+      "name": "O diário dos sonhos",
+      "tip": "Ponha alguém pra dormir (5 minutos) e leia o diário quando acordar: produção, ânimo, e os sonhos valem a coleção.",
+      "start": "Pôr pra dormir",
+      "ready": "Ler o sonho",
+      "say": "Hm. O que eu… ah. Anota isso.",
+      "done": {
+        "dream": "Um sonho tranquilo sobre planilhas. Muito repousante."
+      }
+    },
+    "security": {
+      "name": "Os monitores",
+      "tip": "De vez em quando algo se mexe nas câmeras por meio minuto. Pegue: reputação, umas castanhas e às vezes uma gravação que vale guardar.",
+      "blip": "Movimento!",
+      "spot": "Câmera quatro! Viu isso?",
+      "caught": "Era uma mariposa. Uma mariposa muito confiante. Registrada mesmo assim.",
+      "say": "Registrado. Ninguém passa por esta mesa."
+    },
+    "research": {
+      "name": "O terminal de observação",
+      "tip": "As leituras disparam no terminal de vez em quando. Registre enquanto dura: produção e um pouco de reputação.",
+      "blip": "Pico na leitura!",
+      "spot": "O ponteiro tá pulando. Rápido, alguém registra!",
+      "caught": "Registrado: um pico, uma queda e uma comemoração bem pequena da plotadora.",
+      "say": "Fascinante. Faz de novo."
+    },
+    "rooftop": {
+      "name": "A antena",
+      "tip": "Chegam sinais na antena por meio minuto. Sintonize: produção, chance de uma castanha dourada, e algumas mensagens valem guardar.",
+      "blip": "Sinal!",
+      "spot": "A antena virou sozinha. Tem algo chegando.",
+      "caught": "Sinal limpo: em algum lugar, alguém está tocando um jazz muito bom.",
+      "say": "Peguei! Alô, quem está aí fora."
+    },
+    "archive": {
+      "name": "O scanner de documentos",
+      "tip": "De vez em quando sai do scanner uma página sem número de arquivo. Arquive antes que se perca de novo: reputação, umas castanhas, e algumas páginas valem guardar.",
+      "blip": "Página solta!",
+      "spot": "Tem uma página na bandeja. Ninguém escaneou.",
+      "caught": "Arquivado: um pedido de almoço da primavera passada. Alguém pediu picles extra.",
+      "say": "Arquivado, com referência cruzada, com carinho."
+    },
+    "broadcast": {
+      "name": "No ar",
+      "tip": "Escolha o que a cabine toca. Cada programa dá um bônus fixo enquanto alguém trabalha aqui, e a sala entra no clima.",
+      "off": "Fora do ar",
+      "say": "E estamos ao vivo.",
+      "mode": {
+        "calm": {
+          "name": "Hora calma",
+          "effect": "O ânimo se recupera 15% mais rápido.",
+          "react": "Ahh. Som de chuva e um piano suave."
+        },
+        "upbeat": {
+          "name": "Animado",
+          "effect": "Os combos nas máquinas duram 15% mais.",
+          "react": "Ah, eu amo essa!"
+        },
+        "late": {
+          "name": "Programa da madrugada",
+          "effect": "A reputação cresce um pouco mais rápido.",
+          "react": "Convidada de hoje: uma samambaia."
+        }
+      }
+    },
+    "meeting": {
+      "name": "A pauta",
+      "tip": "Defina a pauta da sala de reuniões. Cada uma dá um bônus fixo enquanto alguém trabalha aqui.",
+      "off": "Sem pauta",
+      "say": "Item um: a pauta.",
+      "mode": {
+        "plan": {
+          "name": "Planejamento",
+          "effect": "As compras custam 3% menos.",
+          "react": "Um plano! Com tópicos!"
+        },
+        "ship": {
+          "name": "Entregar",
+          "effect": "A produção sobe 5%.",
+          "react": "Chega de slides. Vamos entregar."
+        },
+        "retro": {
+          "name": "Retrospectiva",
+          "effect": "O ânimo de equilíbrio sobe 4.",
+          "react": "O que deu certo? O almoço deu certo."
+        }
+      }
+    },
+    "marketing": {
+      "name": "A campanha",
+      "tip": "Escolha a campanha. Cada uma dá um bônus fixo enquanto alguém trabalha aqui.",
+      "off": "Sem campanha",
+      "say": "Campanha no ar. Todo mundo com cara de natural.",
+      "mode": {
+        "brand": {
+          "name": "Marca",
+          "effect": "A reputação cresce um pouco mais rápido.",
+          "react": "Polido. Icônico. A nossa cara."
+        },
+        "buzz": {
+          "name": "Burburinho",
+          "effect": "Cada toque vale 10% a mais.",
+          "react": "Todo mundo tá falando da gente! Principalmente a gente."
+        },
+        "giveaway": {
+          "name": "Sorteio",
+          "effect": "Eventos raros e melhores aparecem um pouco mais.",
+          "react": "Ecobag grátis! O povo ama uma ecobag."
+        }
+      }
+    },
+    "vault": {
+      "name": "Política do cofre",
+      "tip": "Defina como o cofre funciona. Cada política dá um bônus fixo enquanto alguém trabalha aqui.",
+      "off": "Sem política",
+      "say": "Política anotada. O cofre aprova.",
+      "mode": {
+        "hoard": {
+          "name": "Guardar tudo",
+          "effect": "Os toques acham castanhas douradas um pouco mais.",
+          "react": "Ninguém mexe nas brilhantes."
+        },
+        "invest": {
+          "name": "Investir",
+          "effect": "A produção sobe 4%.",
+          "react": "Coloca pra render. Com cuidado."
+        },
+        "audit": {
+          "name": "Auditoria",
+          "effect": "As compras custam 2,5% menos.",
+          "react": "Cada castanha contada. Duas vezes."
+        }
+      }
+    }
+  },
+  "oddity": {
+    "memo": {
+      "title": "O memorando",
+      "hint": "Alguém prendeu um memorando novo no mural.",
+      "found": "MEMORANDO: 'Quem anda colocando as bolotas em ordem alfabética: obrigado. Por favor, pare.' — A Gerência"
+    },
+    "first-acorn": {
+      "hint": "A gaveta do fundador está entreaberta. Tem algo brilhando ali dentro.",
+      "found": "A Bolota Fundadora, num ninho de notas fiscais antigas. A etiqueta ainda diz 'Não reorganizar'."
+    },
+    "bin-seven": {
+      "title": "O cesto sete",
+      "hint": "Um dos cestos está cantarolando.",
+      "found": "O cesto 7 cantarola em si bemol quando enche. Ninguém nunca etiquetou um cesto 7."
+    },
+    "intern-acorn": {
+      "found": "Saiu da calha: uma Bolota Estagiária, entalada de lado. Pediu desculpas pelo transtorno."
+    },
+    "corporate-cashew": {
+      "found": "Saiu da calha: um Caju Corporativo. Encaixou perfeitamente na curva. Esse era o problema."
+    },
+    "onboarding-walnut": {
+      "found": "Saiu da calha: uma Noz de Integração, ainda segurando o manual de 40 páginas."
+    },
+    "agile-almond": {
+      "found": "Saiu da calha: uma Amêndoa Ágil. Estava presa havia exatamente uma sprint."
+    },
+    "compliance-cob-nut": {
+      "found": "Saiu da calha: uma Avelã de Conformidade, com a papelada certinha de quem ficou presa."
+    },
+    "special": {
+      "title": "O prato do dia",
+      "hint": "O quadro do cardápio tem um prato do dia novo.",
+      "found": "PRATO DO DIA: Sopa do Dia. (É a de terça.)"
+    },
+    "fish-arrow": {
+      "title": "Os peixes sabem",
+      "hint": "Os peixes estão todos virados pro mesmo lado.",
+      "found": "Os peixes arrumaram o cascalho numa flecha apontando pra lanchonete. Eles sabem."
+    },
+    "missing-stapler": {
+      "title": "Procura-se: um grampeador",
+      "hint": "Tem um cartaz de 'procura-se' no mural.",
+      "found": "PROCURA-SE: um grampeador. RECOMPENSA: um grampeador. CONTATO: Compras."
+    },
+    "stakeholder-cashew": {
+      "found": "No pedido: um Caju das Partes Interessadas. Pediu pra ser incluído na hora de desembalar."
+    },
+    "crypto-nut": {
+      "found": "No pedido: uma Castanha Cripto. O valor dela mudou duas vezes enquanto você assinava."
+    },
+    "synergy-pecan": {
+      "found": "No pedido: uma Noz-Pecã da Sinergia, alavancando o isopor da embalagem."
+    },
+    "outline": {
+      "title": "O contorno vazio",
+      "hint": "Tem um contorno vazio no painel de ferramentas.",
+      "found": "O contorno de um martelinho. Embaixo, a lápis, com capricho: 'Emprestado pro estagiário. Volte inteiro.'"
+    },
+    "overtime-acorn": {
+      "found": "Saiu da prensa: uma Bolota de Hora Extra, ainda acesa. São duas da tarde."
+    },
+    "glowing-flask": {
+      "title": "O frasco três",
+      "hint": "Um dos frascos está brilhando. Ele não está ligado em nada.",
+      "found": "O frasco 3 brilha quando alguém fala 'prazo'. Alguém começou a falar de propósito. A produção subiu."
+    },
+    "smiley-sample": {
+      "title": "Uma amostra simpática",
+      "found": "A amostra assentou num sorriso perfeito. Depois piscou."
+    },
+    "disruptive-pine-nut": {
+      "found": "No fundo do tubo: um Pinhão Disruptivo. Já apresentou o pitch de uma startup."
+    },
+    "slogan": {
+      "title": "O slogan novo",
+      "hint": "Alguém escreveu um slogan no quadro da campanha.",
+      "found": "SLOGAN NOVO: 'Nutshell Inc. — A gente quebra essa.' Embaixo, com outra caneta: 'Por favor, não.'"
+    },
+    "focus-macadamia": {
+      "hint": "Tem uma castanha sentada na cadeira do grupo focal.",
+      "found": "Uma Macadâmia da Gerência, presidindo o grupo focal. Tem anotações. Todas dizem 'vamos retomar isso'."
+    },
+    "extra-nut": {
+      "title": "Uma a mais",
+      "hint": "O contador do cofre está uma acima do que deveria.",
+      "found": "O cofre tem uma castanha a mais do que os livros dizem. Ela é mais velha que o prédio. Agora é sua."
+    },
+    "kernel": {
+      "hint": "Os olhos da estátua de castanha estão… mais brilhantes hoje.",
+      "found": "Atrás da orelha da estátua: o Grão Dourado. A forma mais pura de riqueza em castanhas, e meio quentinho."
+    },
+    "equation": {
+      "title": "A equação",
+      "hint": "Tem uma equação no quadro que ninguém lembra de ter escrito.",
+      "found": "E = mc² + 1 bolota. Alguém circulou a bolota e escreveu 'sim'."
+    },
+    "hello-tremor": {
+      "title": "O tremor",
+      "found": "O sismógrafo escreveu OLÁ em tremores minúsculos. Duas vezes. Depois se despediu."
+    },
+    "item-four": {
+      "title": "Item quatro",
+      "hint": "O item quatro da pauta só diz 'aquilo'.",
+      "found": "ITEM 4: Aquilo. Todo mundo concorda. Ninguém sabe o que é. É o item quatro há três anos."
+    },
+    "brazil-chair": {
+      "hint": "Tem uma castanha-do-pará na cabeceira da mesa.",
+      "found": "Uma Castanha-do-Pará Trimestral, presidindo a reunião. Ela só aparece quatro vezes por ano. Hoje é uma delas."
+    },
+    "snore-round": {
+      "title": "O cânone do ronco",
+      "hint": "Alguém está roncando no ritmo perfeito.",
+      "found": "Três colegas roncando em cânone. Alguém começou a reger."
+    },
+    "dream-floor-zero": {
+      "title": "Sonho: andar zero",
+      "found": "SONHO: o elevador tinha um andar zero, forrado de musgo. Todo mundo estava lá. Ninguém tinha pressa."
+    },
+    "dream-fish-slides": {
+      "title": "Sonho: os peixes do trimestre",
+      "found": "SONHO: os peixes do aquário apresentaram o crescimento do trimestre. Os slides eram bolhas. Foi um sucesso."
+    },
+    "burnout-brazil": {
+      "found": "SONHO: uma castanha-do-pará perguntou se podia deitar também. Quando acordaram, ela ainda estava lá, dormindo."
+    },
+    "pipe-jingle": {
+      "title": "As batidas",
+      "hint": "Os canos estão batendo. Num ritmo.",
+      "found": "Toc, toc-toc, toc. É o jingle da empresa. Ninguém ensinou o jingle pros canos."
+    },
+    "forbidden-peanut": {
+      "found": "Saiu pela válvula: um Amendoim Proibido. Tecnicamente uma leguminosa. Ninguém aqui embaixo fala disso."
+    },
+    "skyline-blink": {
+      "title": "Alguém acenando",
+      "hint": "Uma luz lá na cidade está piscando de volta pra gente.",
+      "found": "Curto, longo, curto. Alguém do outro lado da cidade está acenando pro escritório. A equipe começou a acenar de volta."
+    },
+    "moon-thanks": {
+      "title": "Uma mensagem lá de cima",
+      "found": "SINAL: 'Obrigada pelas castanhas. — A Lua.' Chegou numa hora em que só a Lua está acordada."
+    },
+    "weather-elsewhere": {
+      "title": "A outra previsão",
+      "found": "SINAL: a previsão do tempo de uma cidade que não está em nenhum mapa. Sol, com bolotas leves."
+    },
+    "soup-week": {
+      "title": "Sopa da semana",
+      "hint": "Alguém… editou o quadro do cardápio.",
+      "found": "SOPA DO DIA foi riscado e trocado por SOPA DA SEMANA (desculpa)."
+    },
+    "tray-almond": {
+      "hint": "Alguém deixou uma amêndoa numa bandeja. Com um bilhete.",
+      "found": "Uma Amêndoa de Apoio Emocional. O bilhete diz: 'Pra quem estiver precisando hoje.'"
+    },
+    "letter-1987": {
+      "title": "A carta de 1987",
+      "hint": "Tem uma carta no mural, carimbada em 1987.",
+      "found": "Endereçada à Nutshell Inc., carimbada em 1987. A empresa foi fundada no ano passado. Só diz: 'Continuem.'"
+    },
+    "pigeon": {
+      "title": "O escaninho",
+      "hint": "Um dos escaninhos tem um pombo dentro.",
+      "found": "É um pombo, morando num escaninho. Trouxe uma encomendinha e não pretende ir embora."
+    },
+    "wanted-fridge": {
+      "title": "Procura-se",
+      "hint": "Tem um cartaz novo de 'procura-se' no mural.",
+      "found": "PROCURA-SE: quem vive deixando a geladeira aberta. Visto pela última vez: na geladeira. Recompensa: uma conversa séria."
+    },
+    "tie-corridor": {
+      "title": "Câmera nove",
+      "found": "CÂMERA 9: um corredor vazio. Algo nele está de gravata. Ajeita a gravata e some."
+    },
+    "stapler-return": {
+      "title": "A devolução",
+      "found": "CÂMERA 2, 3h04: um rabo listrado devolvendo um grampeador à mesa. Depois um segundo. Depois um terceiro."
+    },
+    "severance-acorn": {
+      "found": "CÂMERA 1: alguém deixa uma bolota embrulhada pra presente na recepção. Uma Bolota Rescisória, generosamente porcionada. Ninguém saiu hoje."
+    },
+    "sticky-box": {
+      "title": "A caixa de post-its",
+      "hint": "Uma caixa na prateleira tem o seu nome.",
+      "found": "Dentro: todo post-it que você já deixou na mesa de alguém. Alguém guardou todos. 'Pra história.'"
+    },
+    "future-minutes": {
+      "title": "A reunião perfeita",
+      "found": "ATA: todo mundo concordou, acabou mais cedo e alguém trouxe bolo. Sem data. Possivelmente um sonho."
+    },
+    "legacy-hazelnut": {
+      "found": "Arquivada em LEGADO: uma Avelã Legada. Um post-it nela diz: 'Ninguém sabe como funciona. Não mexa.'"
+    },
+    "seedling-tag": {
+      "title": "O crachá",
+      "hint": "Uma das mudas está usando um crachá.",
+      "found": "O crachá da muda diz 'Axel Jr.' De algum jeito, ela já criou um sorriso."
+    },
+    "visionary-pistachio": {
+      "found": "Dentro da cápsula: um Pistache Visionário. Vê um futuro que ninguém pediu, e está empolgadíssimo."
+    },
+    "applause-reel": {
+      "title": "Os aplausos",
+      "hint": "Um dos rolos está girando sozinho.",
+      "found": "O rolo toca três segundos de aplausos, gravados numa sala que soa exatamente como esta."
+    },
+    "fern-request": {
+      "title": "Um pedido",
+      "hint": "A linha de pedidos está piscando.",
+      "found": "Um pedido de música: 'Algo calmo, pra samambaia da sala do fundador.' A samambaia não comentou."
+    },
+    "borrowed-wrench": {
+      "title": "O quadro de empréstimos",
+      "hint": "Tem um registro novo no quadro de empréstimos.",
+      "found": "EMPRESTADA: uma chave inglesa. POR: a chave inglesa. MOTIVO: crescimento pessoal."
+    },
+    "dont-button": {
+      "title": "O botão NÃO APERTE",
+      "hint": "Tem uma máquina na bancada que ninguém trouxe.",
+      "found": "Uma maquininha com um botão só, escrito NÃO APERTE. Alguém cobriu com uma manta. 'Pro bem dela.'"
+    },
+    "rainbow": {
+      "title": "O arco-íris de dentro",
+      "hint": "Tem um arco-íris pequeno sobre os canteiros.",
+      "found": "Um arco-íris exatamente da largura da sala. Termina num regador. Claro que termina."
+    },
+    "startup-chestnut": {
+      "found": "Entre as ervas: uma Castanha da Startup, assando em pivô aberto."
     }
   }
 }

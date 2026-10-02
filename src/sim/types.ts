@@ -211,6 +211,38 @@ export interface OfficeFind {
   noteKey?: string;
 }
 
+/** One room's routine, as it stands (see content/roomPlay.ts). */
+export interface RoomPlayState {
+  /** brew: when the batch was started, and when it will be ready. */
+  startedAt?: number;
+  readyAt?: number;
+  /** tend: the machine has needed a hand since `jamAt`; taps taken toward freeing it. */
+  jamAt?: number;
+  taps?: number;
+  /** watch: something has been on the screen since `blipAt`, until `blipUntil`. */
+  blipAt?: number;
+  blipUntil?: number;
+  /** deliver: something has been waiting since `parcelAt`, for `parcelFor` ('' = the company). */
+  parcelAt?: number;
+  parcelFor?: string;
+  /** tune: the room's chosen mode. */
+  mode?: string;
+  /** how many times the routine has been done in this room. */
+  done?: number;
+}
+
+/** A curiosity that has turned up in the office and is waiting to be noticed. */
+export interface OfficeOddity {
+  id: string;
+  roomId: string;
+  at: number;
+}
+
+export interface OfficeState {
+  rooms: Record<string, RoomPlayState>;
+  oddities: OfficeOddity[];
+}
+
 export interface GameSettings {
   language: string;
   masterMuted: boolean;
@@ -328,6 +360,8 @@ export interface GameState {
   crate: CrateState;
   /** finds waiting in the office for the player to take (at most a few). */
   finds: OfficeFind[];
+  /** the rooms' routines and the curiosities waiting to be noticed (optional in older saves). */
+  office: OfficeState;
   settings: GameSettings;
   onboardingComplete: boolean;
   /** Cooldown bookkeeping for the event system: eventId -> next-eligible epoch ms. */
