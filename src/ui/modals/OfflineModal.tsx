@@ -48,6 +48,11 @@ export function OfflineModal() {
       {finds > 0 ? (
         <p className="offline-modal__finds">{t('awayExtra.finds', { count: finds })}</p>
       ) : null}
+      {(result.incidents ?? 0) > 0 ? (
+        <p className="offline-modal__incidents">
+          {t('awayExtra.incidents', { count: result.incidents })}
+        </p>
+      ) : null}
     </PopupShell>
   );
 }

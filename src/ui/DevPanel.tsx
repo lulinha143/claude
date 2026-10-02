@@ -209,6 +209,14 @@ export function DevPanel() {
               ))}
             </select>
           </label>
+          <button
+            onClick={() => {
+              engine.maybeRollEvent(true);
+              bump(engine);
+            }}
+          >
+            {t('dev.rollHappening')}
+          </button>
           <label>
             {t('dev.simOffline')}
             <input

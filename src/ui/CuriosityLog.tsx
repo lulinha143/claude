@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import type { GameState } from '../sim/types';
 import { ROOMS } from '../content/rooms';
 import { NUTS_BY_ID } from '../content/nuts';
-import { odditiesInRoom } from '../content/roomPlay';
+import { ODDITIES, odditiesInRoom, oddityFlag } from '../content/roomPlay';
 import { curiosityProgress, curiosityTotals, oddityNoticed } from '../sim/roomPlay';
 import { isRoomIdUnlocked } from '../sim/rooms';
 import { Glyph } from '../art/Glyph';
@@ -44,7 +44,11 @@ export function CuriosityLog({ state }: { state: GameState }) {
               </div>
               <ul className="curiosity-room__items">
                 {odditiesInRoom(room.id).map((def) => {
-                  if (!oddityNoticed(state, def.id)) {
+                  const noticed = oddityNoticed(state, def.id);
+                  // The aftermath of a choice is not part of the room's file: it
+                  // only exists once it has turned up, and then as a bonus.
+                  if (def.extra && !noticed) return null;
+                  if (!noticed) {
                     return (
                       <li
                         key={def.id}
@@ -56,16 +60,30 @@ export function CuriosityLog({ state }: { state: GameState }) {
                     );
                   }
                   const nut = def.nutId ? NUTS_BY_ID[def.nutId] : undefined;
+                  // A lead keeps pointing somewhere until what it points at is found.
+                  const followUps = ODDITIES.filter(
+                    (other) => other.requires?.flag === oddityFlag(def.id),
+                  );
+                  const leadOpen =
+                    def.lead &&
+                    (followUps.length === 0 ||
+                      followUps.some((other) => !oddityNoticed(state, other.id)));
                   return (
                     <li
                       key={def.id}
-                      className={`curiosity curiosity--${def.kind}`}
+                      className={`curiosity curiosity--${def.kind} ${def.extra ? 'is-bonus' : ''}`}
                       data-oddity={def.id}
                     >
                       <span className="curiosity__title">
                         {nut ? t(nut.nameKey) : t(`oddity.${def.id}.title`)}
+                        {def.extra ? (
+                          <em className="curiosity__bonus">{t('collections.curiosityBonus')}</em>
+                        ) : null}
                       </span>
                       <span className="curiosity__found">{t(`oddity.${def.id}.found`)}</span>
+                      {leadOpen ? (
+                        <span className="curiosity__lead">{t(`oddity.${def.id}.lead`)}</span>
+                      ) : null}
                     </li>
                   );
                 })}

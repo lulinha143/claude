@@ -48,9 +48,11 @@ import { FindArt } from './FindArt';
 import { KeepsakeArt } from './KeepsakeArt';
 import {
   DiscoveryMarker,
+  IncidentMarker,
   OddityMarker,
   OfficeSlip,
   RoutineChip,
+  momentSlip,
   slipFor,
   slipSeconds,
   speechFor,
@@ -58,7 +60,11 @@ import {
 } from './RoomPlay';
 import { routineView, routineWantsYou, speakerFor, type RoutineView } from '../sim/roomPlay';
 import { ODDITIES_BY_ID, type OddityDef } from '../content/roomPlay';
-import type { RoomPlayResult } from '../sim/engine';
+import type { RoomPayout, RoomPlayResult } from '../sim/engine';
+import { GAME_EVENTS_BY_ID } from '../content/events';
+import { HOOKS, WORLD_MOMENTS_BY_ID } from '../content/happenings';
+import { incidentsIn, memoriesFor, remarksDue } from '../sim/happenings';
+import type { PendingIncident } from '../sim/types';
 import { Glyph, type GlyphName } from './Glyph';
 import { speakAloud } from './voice';
 import { chooseVoice } from '../sim/employeeVoice';
@@ -458,6 +464,9 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
   const opening = useStore((s) => s.showOpening || s.showOnboarding);
   const reducedMotion = state.settings.reducedMotion;
   const [bubble, setBubble] = useState<Bubble | null>(null);
+  // The ambient timers read the latest bubble, not the one they were made with.
+  const bubbleRef = useRef(bubble);
+  bubbleRef.current = bubble;
   // What just happened in a room, on a little paper slip (one at a time).
   const [slip, setSlip] = useState<SlipData | null>(null);
   const slipKeyRef = useRef(0);
@@ -802,6 +811,9 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
     const st = stateRef.current;
     const hired = Object.entries(st.employees).filter(([, e]) => e.hired);
     if (hired.length === 0) return;
+    // Small talk never talks over someone who is saying something (what they
+    // noticed, what they remember, where a curiosity points).
+    if ((bubbleRef.current?.until ?? 0) > Date.now()) return;
 
     // Teammates who share a room talk to each other now and then: old friends,
     // friendly rivals, the ones who are a little awkward together. One says
@@ -892,6 +904,52 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
     say(employeeId, t(dialogueKey(category, idx)), aloud);
   }
 
+  // -- happenings ---------------------------------------------------------------
+  // Something starts happening in a room (an incident): whoever noticed it says
+  // so and holds up a ticket, and looking at it opens its card. Small moments
+  // play out in a line or two. Teammates bring up the choices they remember.
+
+  /** What the teammate who noticed it says about it. */
+  function hookFor(incident: PendingIncident): string | null {
+    const def = GAME_EVENTS_BY_ID[incident.eventId];
+    return def ? (def.hookKey ?? HOOKS[def.rarity][0]) : null;
+  }
+
+  function openIncident(incident: PendingIncident) {
+    if (engine.openIncident(incident.id)) setBubble(null);
+  }
+
+  /**
+   * A small moment: the cast say their lines in turn, and the slip names it.
+   * Someone on a floor out of view is heard rather than seen: their line is on
+   * the slip, so the exchange still lands.
+   */
+  function playMomentLines(roomId: string, momentId: string, payout: RoomPayout | null) {
+    const def = WORLD_MOMENTS_BY_ID[momentId];
+    if (!def) return;
+    const st = stateRef.current;
+    const inView = (employeeId: string) =>
+      scrollerRef.current?.querySelector<HTMLElement>(
+        `.floor[data-room="${resolveEmployeeRoom(st, employeeId)}"]`,
+      )?.dataset.onscreen !== 'false';
+    const heard: string[] = [];
+    let spoken = 0;
+    for (let line = 1; line <= def.lines; line += 1) {
+      const speaker = def.cast[(line - 1) % def.cast.length];
+      const text = t(`scene.${momentId}.line${line}`);
+      if (!inView(speaker)) {
+        heard.push(t('scene.heard', { line: text, name: nameOf(speaker) }));
+        continue;
+      }
+      const show = () => say(speaker, text, false, 3800);
+      if (spoken === 0) show();
+      else scheduleLife(show, spoken * 2900);
+      spoken += 1;
+    }
+    const slipData = momentSlip(roomId, momentId, payout, t, ++slipKeyRef.current);
+    setSlip(heard.length ? { ...slipData, notes: heard } : slipData);
+  }
+
   /** Open a visit on whatever a teammate was waving you over for. */
   function openMoment(employeeId: string, moment: PendingMoment) {
     const opened =
@@ -925,6 +983,15 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
     // escalation discoverable by doing the obvious thing twice, and keeps the roster's
     // explicit Talk button as the direct route for anyone who wants it.
     const alreadySpeaking = bubble?.employeeId === employeeId && bubble.until > Date.now();
+    // Someone who noticed something happening points it out; asked again, they
+    // show you (the same lean-in as a conversation, aimed at what they found).
+    const presenting = (state.happenings?.incidents ?? []).find(
+      (incident) => incident.employeeId === employeeId,
+    );
+    if (alreadySpeaking && presenting) {
+      openIncident(presenting);
+      return;
+    }
     if (alreadySpeaking && engine.openTalk(employeeId)) {
       setBubble(null);
       audio.play('click');
@@ -936,10 +1003,30 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
     } else {
       audio.play('footstep', { pitch: voicePitch(employeeId) });
     }
+    // Something they have been waiting to tell you comes first.
+    const remark = engine.takeRemark(employeeId);
+    if (remark) {
+      say(employeeId, t(remark), true, 5200);
+      return;
+    }
+    if (presenting) {
+      const hook = hookFor(presenting);
+      if (hook) {
+        say(employeeId, t(hook), true, 4600);
+        return;
+      }
+    }
     // Someone in the middle of their story brings up what you told them about it.
     const callback = storyCallbackKey(state, employeeId);
     if (callback && Math.random() < 0.5) {
       say(employeeId, t(callback), true, 4600);
+      return;
+    }
+    // Now and then, a choice of yours they remember.
+    const memories = memoriesFor(state, employeeId);
+    if (memories.length > 0 && Math.random() < 0.3) {
+      const memory = memories[Math.floor(Math.random() * memories.length)];
+      say(employeeId, t(`memory.${memory.key}`), true, 5200);
       return;
     }
     if (employeeId === 'pip') {
@@ -1069,6 +1156,23 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
         `.floor[data-room="${item.roomId}"]`,
       );
       if (!floor || floor.dataset.onscreen === 'false') continue;
+      // Something started happening: whoever noticed it says so, once. The
+      // ticket they hold up waits for the player.
+      if (item.kind === 'incident') {
+        const waiting = st.happenings.incidents.some(
+          (incident) => incident.eventId === item.eventId,
+        );
+        const who = item.employeeId ?? speakerFor(st, item.roomId, (n) => rngRef.current.int(0, n));
+        if (waiting && who && item.hookKey) {
+          say(who, t(item.hookKey), false, 4600);
+          audio.play('paper');
+        }
+        continue;
+      }
+      if (item.kind === 'moment' && item.momentId) {
+        playMomentLines(item.roomId, item.momentId, item.payout ?? null);
+        continue;
+      }
       const play = st.office.rooms[item.roomId];
       const who =
         item.kind === 'selfFix'
@@ -1086,6 +1190,30 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
       ) {
         say(who, t(`oddity.${item.oddityId}.hint`), false, 4600);
       }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [floorSecond, covered]);
+
+  // Teammates bring up what they have been meaning to say (a choice they
+  // remember, something that came of it) when their floor is in view: one at a
+  // time, never over someone else talking or behind a popup.
+  const lastRemarkRef = useRef(0);
+  useEffect(() => {
+    if (covered || decorMode || opening) return;
+    const nowMs = Date.now();
+    if (nowMs - lastRemarkRef.current < 15_000) return;
+    if (bubble && bubble.until > nowMs) return;
+    if (document.querySelector('.popup-backdrop, .modal-backdrop')) return;
+    const st = stateRef.current;
+    for (const remark of remarksDue(st, nowMs)) {
+      const room = resolveEmployeeRoom(st, remark.employeeId);
+      const floor = scrollerRef.current?.querySelector<HTMLElement>(`.floor[data-room="${room}"]`);
+      if (!floor || floor.dataset.onscreen === 'false') continue;
+      const key = engine.takeRemark(remark.employeeId);
+      if (!key) continue;
+      lastRemarkRef.current = nowMs;
+      say(remark.employeeId, t(key), false, 5200);
+      break;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [floorSecond, covered]);
@@ -1806,6 +1934,14 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
                 const waitingOddity = state.office.oddities
                   .map((item) => ODDITIES_BY_ID[item.id])
                   .find((def) => def?.roomId === room.id);
+                // Something happening here, and whether whoever noticed it is here
+                // to hold up its ticket (else it is pinned up in the room).
+                const incident: PendingIncident | undefined = incidentsIn(state, room.id)[0];
+                const incidentDef = incident ? GAME_EVENTS_BY_ID[incident.eventId] : undefined;
+                const presenterHere =
+                  incident?.employeeId && occupants.some(([id]) => id === incident.employeeId)
+                    ? incident.employeeId
+                    : undefined;
                 const placed = placedDecorationsInRoom(state, room.id);
                 const canDropHere =
                   decorMode && drag?.kind === 'decoration' && drag.overRoom === room.id;
@@ -1838,6 +1974,7 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
                     key={room.id}
                     data-room={room.id}
                     data-play={playView?.status}
+                    data-incident={incidentDef && !decorMode ? incidentDef.rarity : undefined}
                     data-oddity={
                       waitingOddity?.anchor ??
                       (discoveries.some((discovery) => discovery.roomId === room.id)
@@ -2093,7 +2230,12 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
                         const carried = drag?.kind === 'employee' && drag.id === id;
                         // Nobody waves you over while the opening or the first-tap coach
                         // has your attention.
-                        const nudge = carried || opening || newCompany ? undefined : nudges.get(id);
+                        // Someone holding up something that is happening has that to
+                        // show you first.
+                        const nudge =
+                          carried || opening || newCompany || presenterHere === id
+                            ? undefined
+                            : nudges.get(id);
                         return (
                           <Fragment key={id}>
                             <button
@@ -2232,6 +2374,23 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
                                 <Glyph name={NUDGE_GLYPH[nudge.kind]} size={12} />
                               </button>
                             ) : null}
+                            {!decorMode &&
+                            !carried &&
+                            incident &&
+                            incidentDef &&
+                            presenterHere === id ? (
+                              <IncidentMarker
+                                rarity={incidentDef.rarity}
+                                title={t(incidentDef.titleKey)}
+                                employeeId={id}
+                                style={{
+                                  left: `${ex * 100}%`,
+                                  bottom: stickerBottom,
+                                  zIndex: SCENE_DEPTH.sticker + 2,
+                                }}
+                                onOpen={() => openIncident(incident)}
+                              />
+                            ) : null}
                             {keepsakeOnDisplay(state, id) ? (
                               // Their keepsake, out on display by where they work.
                               <span
@@ -2287,6 +2446,13 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
                         : null}
                       {!decorMode && waitingOddity ? (
                         <OddityMarker def={waitingOddity} onNotice={noticeOddity} />
+                      ) : null}
+                      {!decorMode && incident && incidentDef && !presenterHere ? (
+                        <IncidentMarker
+                          rarity={incidentDef.rarity}
+                          title={t(incidentDef.titleKey)}
+                          onOpen={() => openIncident(incident)}
+                        />
                       ) : null}
                       {!decorMode &&
                       discoveries.some((discovery) => discovery.roomId === room.id) ? (
@@ -2368,16 +2534,18 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
 
         <SceneControls
           news={(roomId) =>
-            roomId === FOUNDER_FLOOR && crateView.full
-              ? 'crate'
-              : finds.some((find) => resolveEmployeeRoom(state, find.employeeId) === roomId)
-                ? 'find'
-                : routineWantsYou(routineView(state, roomId, now))
-                  ? 'play'
-                  : state.office.oddities.some((item) => item.roomId === roomId) ||
-                      discoveries.some((discovery) => discovery.roomId === roomId)
-                    ? 'oddity'
-                    : null
+            incidentsIn(state, roomId).length > 0
+              ? 'incident'
+              : roomId === FOUNDER_FLOOR && crateView.full
+                ? 'crate'
+                : finds.some((find) => resolveEmployeeRoom(state, find.employeeId) === roomId)
+                  ? 'find'
+                  : routineWantsYou(routineView(state, roomId, now))
+                    ? 'play'
+                    : state.office.oddities.some((item) => item.roomId === roomId) ||
+                        discoveries.some((discovery) => discovery.roomId === roomId)
+                      ? 'oddity'
+                      : null
           }
           rooms={rooms}
           currentFloor={currentFloor}

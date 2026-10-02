@@ -259,12 +259,15 @@ export interface SlipData {
   x: number;
   /** where it comes from: the station, or a curiosity's spot. */
   anchor: OddityAnchor | 'station';
-  tone: 'play' | 'oddity' | 'nut';
+  tone: 'play' | 'oddity' | 'nut' | 'moment';
   label: string | null;
   title: string;
+  /** what was found or done ('' when the people in the room say it themselves). */
   text: string;
   payout: RoomPayout | null;
   complete: string | null;
+  /** where it points next, and anything else worth knowing about it. */
+  notes?: string[];
 }
 
 /** What a result says on its slip (null: nothing worth a slip). */
@@ -289,6 +292,15 @@ export function slipFor(
   if (result.oddityId) {
     const def = ODDITIES_BY_ID[result.oddityId];
     const nut = def?.nutId ? NUTS_BY_ID[def.nutId] : undefined;
+    // What it points to, that the building has noticed back, or that it is
+    // only here because of something the player decided.
+    // (Where it points is said by whoever is in the room; with nobody there, the
+    // slip says it.)
+    const notes = [
+      def?.lead && !result.speaker ? t(`oddity.${result.oddityId}.lead`) : null,
+      result.thread ? t('play.oddity.thread') : null,
+      def?.extra ? t('play.oddity.bonus') : null,
+    ].filter((note): note is string => Boolean(note));
     return {
       ...base,
       tone: nut ? 'nut' : 'oddity',
@@ -296,6 +308,7 @@ export function slipFor(
       title: nut ? t(nut.nameKey) : t(`oddity.${result.oddityId}.title`),
       text: t(`oddity.${result.oddityId}.found`),
       complete,
+      notes,
     };
   }
   const title = t(`play.${room}.name`);
@@ -353,6 +366,8 @@ export function speechFor(result: RoomPlayResult, pick: () => number): string | 
   if (!result.speaker) return null;
   if (result.oddityId) {
     const def = ODDITIES_BY_ID[result.oddityId];
+    // A curiosity that points somewhere: they say where.
+    if (def?.lead) return `oddity.${def.id}.lead`;
     return def ? `play.react.${def.tone}.${pick() < 0.5 ? 1 : 2}` : null;
   }
   switch (result.kind) {
@@ -378,8 +393,71 @@ export function hasRoutine(roomId: string): boolean {
 }
 
 /** How long a slip stays: long enough to read a curiosity, brief for a routine. */
-export function slipSeconds(slip: Pick<SlipData, 'tone'>): number {
-  return slip.tone === 'play' ? 4.2 : 7;
+export function slipSeconds(slip: Pick<SlipData, 'tone' | 'notes'>): number {
+  const base = slip.tone === 'play' ? 4.2 : slip.tone === 'moment' ? 5.2 : 7;
+  return base + (slip.notes?.length ?? 0) * 1.6;
+}
+
+/** The slip for a small moment: its name, and what it did for the room. */
+export function momentSlip(
+  roomId: string,
+  momentId: string,
+  payout: RoomPayout | null,
+  t: TFunction,
+  key: number,
+): SlipData {
+  return {
+    key,
+    roomId,
+    // The left wall: the elevator stands over the right of a small window.
+    x: ANCHOR_X.wall,
+    anchor: 'wall',
+    tone: 'moment',
+    label: null,
+    title: t(`scene.${momentId}.title`),
+    text: '',
+    payout,
+    complete: null,
+  };
+}
+
+/**
+ * Something is happening here: the teammate who noticed it holds up a ticket
+ * (or, if nobody is in the room, it is pinned up by the ceiling light). Looking
+ * at it opens the card.
+ */
+export function IncidentMarker({
+  rarity,
+  title,
+  employeeId,
+  style,
+  onOpen,
+}: {
+  rarity: string;
+  title: string;
+  employeeId?: string;
+  style?: CSSProperties;
+  onOpen: (element: HTMLElement) => void;
+}) {
+  const { t } = useTranslation();
+  const label = t('incident.look', { title });
+  return (
+    <button
+      type="button"
+      className={`office-incident ${employeeId ? 'is-held' : 'is-pinned'}`}
+      data-rarity={rarity}
+      data-employee={employeeId}
+      style={style}
+      aria-label={label}
+      title={label}
+      onClick={(event) => onOpen(event.currentTarget)}
+    >
+      <span className="office-incident__mark" aria-hidden>
+        !
+      </span>
+      <span className="office-incident__label">{t('incident.lookShort')}</span>
+    </button>
+  );
 }
 
 /** The slip: a little paper note saying what just happened, gone after a few seconds. */
@@ -465,7 +543,12 @@ export function OfficeSlip({
     >
       {slip.label ? <small className="office-slip__label">{slip.label}</small> : null}
       <strong className="office-slip__title">{slip.title}</strong>
-      <span className="office-slip__text">{slip.text}</span>
+      {slip.text ? <span className="office-slip__text">{slip.text}</span> : null}
+      {slip.notes?.map((note) => (
+        <em key={note} className="office-slip__note">
+          {note}
+        </em>
+      ))}
       {tags.length ? <span className="office-slip__tags">{tags}</span> : null}
       {slip.complete ? <em className="office-slip__complete">{slip.complete}</em> : null}
     </div>

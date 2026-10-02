@@ -13,9 +13,10 @@ import { Icon, type IconName } from './UiIcon';
 import { Tip, TipContent } from '../ui/Tooltip';
 import { Glyph } from './Glyph';
 
-type FloorNews = 'crate' | 'find' | 'play' | 'oddity';
+type FloorNews = 'incident' | 'crate' | 'find' | 'play' | 'oddity';
 
 const NEWS_ICON: Record<FloorNews, IconName> = {
+  incident: 'notification',
   crate: 'nut',
   find: 'moment',
   play: 'notification',
@@ -23,6 +24,7 @@ const NEWS_ICON: Record<FloorNews, IconName> = {
 };
 
 const NEWS_LABEL: Record<FloorNews, string> = {
+  incident: 'play.news.incident',
   crate: 'crate.full',
   find: 'find.take',
   play: 'play.news.play',
@@ -44,10 +46,10 @@ interface SceneControlsProps {
   hint: string | null;
   occupancy: (roomId: string) => number;
   /**
-   * something waiting on that floor: a full crate, a teammate's find, the room's
-   * routine wanting a hand, or a curiosity.
+   * something waiting on that floor: something happening there, a full crate, a
+   * teammate's find, the room's routine wanting a hand, or a curiosity.
    */
-  news?: (roomId: string) => 'crate' | 'find' | 'play' | 'oddity' | null;
+  news?: (roomId: string) => FloorNews | null;
 }
 
 export function SceneControls({
@@ -152,7 +154,9 @@ export function SceneControls({
                           className={`elevator__floor-news elevator__floor-news--${news(room.id)}`}
                           aria-label={t(NEWS_LABEL[news(room.id) ?? 'find'])}
                         >
-                          {news(room.id) === 'oddity' ? (
+                          {news(room.id) === 'incident' ? (
+                            <b aria-hidden>!</b>
+                          ) : news(room.id) === 'oddity' ? (
                             <Glyph name="lens" size={11} />
                           ) : (
                             <Icon name={NEWS_ICON[news(room.id) ?? 'find']} size={11} />

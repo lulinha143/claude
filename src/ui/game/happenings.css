@@ -1,0 +1,461 @@
+/* Gameplay chapter 4: things happen in the office. An incident is a ticket a
+   teammate holds up (or one pinned up in an empty room) and a "!" by the room's
+   name; its card is set in that room, with the people it is about, and the
+   outcome is the same card turned over. Small moments get a slip of their own. */
+@layer game {
+  /* ---- the ticket ------------------------------------------------------------- */
+  .office-incident {
+    --ticket: clamp(22px, calc(26px * var(--asset-scale)), 26px);
+    --ticket-ink: var(--c-walnut-800, #4a2f19);
+    --ticket-paper: #fffaf0;
+    position: absolute;
+    z-index: 255;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: var(--ticket);
+    min-width: var(--ticket);
+    padding: 0;
+    color: var(--ticket-ink);
+    background: var(--ticket-paper);
+    border: 2px solid var(--ticket-ink);
+    border-radius: 7px 7px 7px 2px;
+    box-shadow: 0 2px 0 rgb(40 26 12 / 0.3);
+    cursor: pointer;
+    transform-origin: 100% 100%;
+    animation: ticket-wave 3.6s ease-in-out infinite;
+  }
+  /* Held up beside the sticker of whoever noticed it, level with it: above it
+     is where their words go (and, in a small window, the room's name). */
+  .office-incident.is-held {
+    --sticker: clamp(30px, calc(42px * var(--asset-scale)), 42px);
+    justify-content: center;
+    width: var(--ticket);
+    margin: 0 0 calc(var(--sticker) * 0.16) calc(var(--sticker) * -0.5 - var(--ticket) - 1px);
+  }
+  .office-incident.is-held .office-incident__label {
+    display: none;
+  }
+  /* Nobody in the room: pinned up under the ceiling light, with a word. */
+  .office-incident.is-pinned {
+    top: 5%;
+    left: 50%;
+    max-width: 60%;
+    padding: 0 9px 0 0;
+    translate: -50% 0;
+    transform-origin: 50% 0;
+  }
+  .office-incident__mark {
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    width: calc(var(--ticket) - 4px);
+    height: calc(var(--ticket) - 4px);
+    font: 800 calc(var(--ticket) * 0.62) / 1 var(--font-display);
+  }
+  .office-incident.is-pinned .office-incident__mark {
+    color: var(--ticket-paper);
+    background: var(--ticket-ink);
+    border-radius: 4px 0 0 4px;
+  }
+  .office-incident__label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font: 800 11px / 1 var(--font-body);
+  }
+  .office-incident[data-rarity='uncommon'] {
+    --ticket-ink: #2c5f8f;
+    --ticket-paper: #eef6ff;
+  }
+  .office-incident[data-rarity='rare'] {
+    --ticket-ink: #6b2f78;
+    --ticket-paper: #fbefff;
+    box-shadow:
+      0 0 0 3px rgb(170 110 200 / 0.3),
+      0 2px 0 rgb(40 26 12 / 0.3);
+  }
+  .office-incident[data-rarity='legendary'] {
+    --ticket-ink: #7a4f00;
+    --ticket-paper: #fff3c4;
+    box-shadow:
+      0 0 0 3px rgb(255 205 80 / 0.45),
+      0 0 12px rgb(255 205 80 / 0.55),
+      0 2px 0 rgb(40 26 12 / 0.3);
+  }
+  .office-incident:hover,
+  .office-incident:focus-visible {
+    animation: none;
+    scale: 1.1;
+  }
+  @keyframes ticket-wave {
+    0%,
+    72%,
+    100% {
+      rotate: 0deg;
+    }
+    80% {
+      rotate: 8deg;
+    }
+    88% {
+      rotate: -5deg;
+    }
+  }
+  /* ...and the room's name says so too. */
+  .floor[data-incident] .floor__label::after {
+    content: '!';
+    display: inline-grid;
+    place-items: center;
+    width: 14px;
+    height: 14px;
+    margin-left: 5px;
+    color: #fff;
+    background: #c2513f;
+    border-radius: 50%;
+    font: 800 10px / 1 var(--font-display);
+    vertical-align: 1px;
+  }
+  .floor[data-incident='rare'] .floor__label::after {
+    background: #6b2f78;
+  }
+  .floor[data-incident='legendary'] .floor__label::after {
+    color: #4a2f19;
+    background: #ffcf5a;
+  }
+  .office--decorating .office-incident,
+  .photo-mode__stage .office-incident {
+    display: none;
+  }
+  [data-reduced-motion='true'] .office-incident,
+  [data-ambient='paused'] .office-incident,
+  .floor[data-onscreen='false'] .office-incident {
+    animation: none;
+  }
+
+  /* ---- the elevator --------------------------------------------------------- */
+  .elevator__floor-news--incident {
+    color: #fff;
+    background: #c2513f;
+    font: 800 11px / 1 var(--font-display);
+  }
+
+  /* ---- a small moment's slip, and where a curiosity points -------------------- */
+  .office-slip--moment {
+    background: #f3fbef;
+    border-color: #8cbf7a;
+  }
+  .office-slip__note {
+    color: #6b4a1c;
+    font: italic 700 11px / 1.3 var(--font-body);
+  }
+  .office-slip__note + .office-slip__note {
+    margin-top: 1px;
+  }
+  @container office (max-width: 560px) {
+    .office-slip__note {
+      display: -webkit-box;
+      overflow: hidden;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 3;
+    }
+    /* A moment's slip is mostly what someone out of view said: let it be read. */
+    .office-slip--moment .office-slip__note {
+      -webkit-line-clamp: 5;
+    }
+  }
+
+  /* ---- the card's scene ------------------------------------------------------ */
+  .incident-scene {
+    position: relative;
+    height: 108px;
+    margin: -4px -2px 0;
+    overflow: hidden;
+    isolation: isolate;
+    --asset-scale: 1;
+    background: color-mix(in srgb, var(--dept) 20%, var(--c-paper-150));
+    border: 2px solid var(--paper-line);
+    border-radius: 10px;
+  }
+  .popup:has(.incident-scene) .popup__tape {
+    z-index: 3;
+  }
+  .incident-scene > .room-dressing {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+  .incident-scene__cast {
+    position: absolute;
+    inset: auto 0 3px;
+    z-index: 1;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 2px;
+    pointer-events: none;
+  }
+  .incident-scene__actor {
+    display: grid;
+    place-items: end center;
+    line-height: 0;
+    filter: drop-shadow(0 4px 4px rgb(40 26 12 / 0.28));
+  }
+  .incident-scene__actor[data-told='true'] {
+    animation: incident-hop 560ms var(--ease-pop) both;
+  }
+  .incident-scene__actor[data-told='true']:nth-child(2) {
+    animation-delay: 120ms;
+  }
+  .incident-scene__actor[data-told='true']:nth-child(3) {
+    animation-delay: 220ms;
+  }
+  @keyframes incident-hop {
+    0% {
+      translate: 0 0;
+    }
+    40% {
+      translate: 0 -9px;
+    }
+    100% {
+      translate: 0 0;
+    }
+  }
+  .incident-scene__room {
+    position: absolute;
+    top: 8px;
+    left: 7px;
+    z-index: 2;
+    max-width: calc(100% - 120px);
+    padding: 2px 7px;
+    overflow: hidden;
+    color: var(--ink-strong);
+    background: rgb(255 250 240 / 0.88);
+    border-radius: 6px;
+    font: 800 10.5px / 1.2 var(--font-body);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .incident-scene__stamp {
+    --stamp: #6b4a2b;
+    position: absolute;
+    top: 9px;
+    right: 8px;
+    z-index: 2;
+    padding: 2px 7px;
+    color: var(--stamp);
+    background: rgb(255 250 240 / 0.86);
+    border: 2px solid var(--stamp);
+    border-radius: 4px;
+    font: 800 10px / 1.15 var(--font-body);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    rotate: 5deg;
+  }
+  .incident-scene[data-rarity='uncommon'] .incident-scene__stamp {
+    --stamp: #2c5f8f;
+  }
+  .incident-scene[data-rarity='rare'] .incident-scene__stamp {
+    --stamp: #6b2f78;
+  }
+  .incident-scene[data-rarity='legendary'] .incident-scene__stamp {
+    --stamp: #7a4f00;
+    background: #fff3c4;
+    box-shadow: 0 0 10px rgb(255 205 80 / 0.7);
+  }
+  .incident-scene[data-rarity='legendary'] {
+    border-color: #d9a520;
+  }
+  [data-reduced-motion='true'] .incident-scene__actor {
+    animation: none;
+  }
+  /* A corner window: a shorter strip and tighter spacing, so the words and the
+     choices still fit without scrolling. */
+  @media (max-height: 520px) {
+    .incident-scene {
+      height: 80px;
+      --asset-scale: 0.8;
+    }
+    .popup.event-modal,
+    .popup.consequence-modal {
+      padding: 16px 14px 12px;
+    }
+    .popup.event-modal .popup__content,
+    .popup.consequence-modal .popup__content {
+      gap: 7px;
+    }
+    .event-modal .event-modal__prompt {
+      margin: 4px 0 2px;
+      padding-top: 6px;
+    }
+    .event-modal .event-modal__choices {
+      gap: 5px;
+    }
+    .event-modal .event-choice {
+      padding: 7px 11px;
+    }
+  }
+  /* The smallest corner window: the choices speak for themselves. */
+  @media (max-height: 440px) {
+    .incident-scene {
+      height: 68px;
+      --asset-scale: 0.7;
+    }
+    .event-modal .event-modal__prompt {
+      display: none;
+    }
+    .event-modal .event-modal__choices {
+      margin-top: 2px;
+    }
+  }
+  @media (min-height: 700px) and (min-width: 900px) {
+    .incident-scene {
+      height: 120px;
+    }
+  }
+
+  /* ---- the outcome: the same card, turned over ------------------------------- */
+  /* The scene, the title and the OK stay put; only what it changed scrolls, so
+     the team's reaction is the first thing read even in a corner window. */
+  .popup.consequence-modal {
+    overflow: hidden;
+  }
+  .consequence-modal .popup__content {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  .consequence-modal .popup__content > * {
+    flex: none;
+  }
+  .consequence-modal .popup__content > .modal__scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    margin: 0 -4px;
+    padding: 0 4px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .consequence-modal .popup__actions {
+    flex: none;
+    margin-top: 10px;
+  }
+  .consequence-modal__head {
+    margin-bottom: 0;
+  }
+  .consequence-modal .consequence-list {
+    gap: 4px;
+    margin: 0 0 6px;
+  }
+  .consequence-modal .consequence-line {
+    padding: 4px 9px;
+    background: rgb(74 47 25 / 0.06);
+    font: 700 var(--fs-sm) / 1.3 var(--font-body);
+  }
+  .consequence-modal .consequence-team {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px dashed var(--paper-line);
+  }
+  .consequence-modal .consequence-team__label {
+    margin-bottom: 4px;
+    color: var(--ink-soft);
+    font: 800 var(--fs-2xs) / 1.2 var(--font-body);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .consequence-modal .consequence-team__list {
+    gap: 4px;
+  }
+  .consequence-modal .consequence-emp {
+    gap: 2px 8px;
+    padding: 3px 8px;
+    background: rgb(74 47 25 / 0.05);
+  }
+  .consequence-modal .consequence-emp .mood-chip--sm {
+    min-height: 24px;
+    padding: 1px 7px 1px 2px;
+    background: var(--paper-bg-bright);
+    box-shadow: none;
+  }
+  .consequence-modal .consequence-emp .mood-chip--sm .mood-emoji {
+    width: 20px;
+    height: 20px;
+    flex-basis: 20px;
+  }
+  .consequence-modal .consequence-emp__meta {
+    gap: 8px;
+    font-size: var(--fs-xs);
+  }
+  .consequence-modal__eyebrow {
+    display: block;
+    color: var(--ink-soft);
+    font: 800 var(--fs-2xs) / 1.2 var(--font-body);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .consequence-modal__choice {
+    margin: 2px 0 0;
+    font-style: italic;
+  }
+  .consequence-modal .consequence-reactions {
+    display: grid;
+    gap: 6px;
+    margin: 0 0 10px;
+    padding: 0;
+    background: none;
+  }
+  .consequence-modal .consequence-reaction {
+    display: block;
+    margin: 0;
+    padding: 7px 10px 8px;
+    color: var(--ink-strong);
+    background: var(--paper-bg-bright);
+    border: 2px solid var(--paper-line);
+    border-radius: 12px 12px 12px 3px;
+    font: italic 600 var(--fs-sm) / 1.4 var(--font-body);
+  }
+  .consequence-notes {
+    display: grid;
+    gap: 4px;
+    margin-top: 8px;
+  }
+  .consequence-note {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    color: var(--ink-body);
+    font: 700 var(--fs-xs) / 1.35 var(--font-body);
+  }
+  .consequence-note--motion {
+    color: #6b4a1c;
+  }
+  .consequence-note--memory {
+    color: #2c5f8f;
+  }
+
+  /* ---- the curiosity log: bonus finds and open leads ------------------------- */
+  .curiosity.is-bonus {
+    background: #fff8e2;
+    box-shadow: inset 0 0 0 2px #e8c867;
+  }
+  .curiosity__bonus {
+    margin-left: 6px;
+    padding: 1px 6px;
+    color: #7a4f00;
+    background: #ffe9a8;
+    border-radius: 6px;
+    font: 800 var(--fs-2xs) / 1.3 var(--font-body);
+    font-style: normal;
+    white-space: nowrap;
+  }
+  .curiosity__lead {
+    color: #6b4a1c;
+    font: 700 var(--fs-xs) / 1.35 var(--font-body);
+  }
+  .curiosity__lead::before {
+    content: '→ ';
+  }
+}

@@ -5,7 +5,10 @@ import { Icon, type IconName } from '../../art/UiIcon';
 import { EMPLOYEES_BY_ID } from '../../content/employees';
 import { MOOD_POSITIVE, MOOD_TONE } from '../../sim/mood';
 import { MoodEmoji } from '../../art/EmployeeMoodBadge';
+import { GAME_EVENTS_BY_ID } from '../../content/events';
+import { eventCast } from '../../sim/happenings';
 import { PopupShell, usePopupExit } from './PopupShell';
+import { IncidentScene } from './IncidentScene';
 
 type Tone = 'positive' | 'negative' | 'neutral';
 interface Line {
@@ -20,12 +23,17 @@ interface Line {
 // affected each individual employee (emotion + productivity + friendship).
 export function ConsequenceModal() {
   const { t } = useTranslation();
-  const { engine } = useGame();
+  const { engine, state } = useGame();
   const fmt = useFmt();
   const c = engine.lastConsequence;
   const { closing, exitThen } = usePopupExit();
   if (!c) return null;
   const close = () => exitThen(() => engine.clearConsequence());
+  const def = c.eventId ? GAME_EVENTS_BY_ID[c.eventId] : undefined;
+  const nameOf = (id: string) => {
+    const nameKey = EMPLOYEES_BY_ID[id]?.nameKey;
+    return state.employees[id]?.nickname ?? (nameKey ? t(nameKey) : id);
+  };
 
   const r = c.report;
   const lines: Line[] = [];
@@ -74,17 +82,37 @@ export function ConsequenceModal() {
         </button>
       }
     >
+      {/* The same card, turned over: the same room and people, now reacting. */}
+      {c.place && def ? (
+        <IncidentScene
+          roomId={c.place.roomId}
+          people={eventCast(state, def, c.place)}
+          rarity={c.rarity ?? def.rarity}
+          told
+          reducedMotion={state.settings.reducedMotion}
+        />
+      ) : null}
       <div className="consequence-modal__head">
-        <Icon name="notification" size={20} />
+        {c.place && def ? null : <Icon name="notification" size={20} />}
         <div>
-          <h2>{t('event.resultTitle')}</h2>
-          <p className="muted small">
-            {t(c.titleKey)} — {t(c.choiceLabelKey)}
-          </p>
+          <small className="consequence-modal__eyebrow">{t('event.resultTitle')}</small>
+          <h2>{t(c.titleKey)}</h2>
+          <p className="muted small consequence-modal__choice">{t(c.choiceLabelKey)}</p>
         </div>
       </div>
 
       <div className="modal__scroll">
+        {/* What happened first, in the team's own words; then what it changed. */}
+        {c.reactions.length > 0 ? (
+          <div className="consequence-reactions">
+            {c.reactions.map((r2, i) => (
+              <p key={i} className="consequence-reaction">
+                {t(r2)}
+              </p>
+            ))}
+          </div>
+        ) : null}
+
         <ul className="consequence-list">
           {nothing ? (
             <li className="consequence-line consequence-line--neutral">
@@ -104,14 +132,13 @@ export function ConsequenceModal() {
             <div className="consequence-team__label">{t('event.employeeChangesLabel')}</div>
             <ul className="consequence-team__list">
               {r.employees.map((e) => {
-                const name = EMPLOYEES_BY_ID[e.id]?.nameKey;
                 const delta = Math.round(e.productivityDelta * 100);
                 const minutes = e.emotionUntil
                   ? Math.round((e.emotionUntil - Date.now()) / 60000)
                   : 0;
                 return (
                   <li key={e.id} className="consequence-emp">
-                    <span className="consequence-emp__name">{name ? t(name) : e.id}</span>
+                    <span className="consequence-emp__name">{nameOf(e.id)}</span>
                     {e.emotion ? (
                       <span
                         className={`mood-chip mood-chip--sm ${MOOD_POSITIVE[e.emotion] ? 'mood-chip--positive' : 'mood-chip--negative'}`}
@@ -152,14 +179,20 @@ export function ConsequenceModal() {
           </div>
         ) : null}
 
-        {c.reactions.length > 0 ? (
-          <div className="consequence-reactions">
-            <div className="consequence-reactions__label">{t('event.reactionsLabel')}</div>
-            {c.reactions.map((r2, i) => (
-              <div key={i} className="consequence-reaction">
-                <Icon name="employees" size={14} /> {t(r2)}
-              </div>
-            ))}
+        {/* Not everything is spelled out: some of it shows up later, in the office. */}
+        {c.setInMotion || c.remembered ? (
+          <div className="consequence-notes">
+            {c.setInMotion ? (
+              <p className="consequence-note consequence-note--motion">
+                <Icon name="refresh" size={14} /> {t('incident.inMotion')}
+              </p>
+            ) : null}
+            {c.remembered ? (
+              <p className="consequence-note consequence-note--memory">
+                <Icon name="employees" size={14} />{' '}
+                {t('incident.remembered', { name: nameOf(c.remembered) })}
+              </p>
+            ) : null}
           </div>
         ) : null}
       </div>

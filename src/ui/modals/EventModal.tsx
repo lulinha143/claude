@@ -4,14 +4,14 @@ import { useGame } from '../../state/hooks';
 import { useStore } from '../../state/store';
 import { EMPLOYEES_BY_ID } from '../../content/employees';
 import { DiscoveryArt } from '../../art/DiscoveryArt';
-import { Critter } from '../../art/Critter';
-import { shapeFor } from '../../art/critterShapes';
 import {
   eventChoicesForState,
   reportEventChoiceRepairs,
   type EventRequirementFailure,
 } from '../../sim/eventChoices';
+import { eventCast, eventPlace } from '../../sim/happenings';
 import { PopupShell, usePopupExit, type PopupVariant } from './PopupShell';
+import { IncidentScene } from './IncidentScene';
 
 export function EventModal() {
   const { t } = useTranslation();
@@ -66,7 +66,8 @@ export function EventModal() {
   const { def, step } = active;
   const body = step && def.steps?.[step] ? def.steps[step].bodyKey : def.bodyKey;
   const emp = def.employeeId ? EMPLOYEES_BY_ID[def.employeeId] : null;
-  const shape = emp ? shapeFor(emp.id) : null;
+  // Where it is happening, and who brought it to you: the card is set there.
+  const place = active.place ?? eventPlace(state, def);
   const variant: PopupVariant =
     def.rarity === 'legendary'
       ? 'critical'
@@ -99,17 +100,13 @@ export function EventModal() {
       titleId={titleId}
       closing={closing}
     >
+      <IncidentScene
+        roomId={place.roomId}
+        people={eventCast(state, def, place)}
+        rarity={def.rarity}
+        reducedMotion={state.settings.reducedMotion}
+      />
       <div className="event-modal__head">
-        {emp && shape ? (
-          <Critter
-            species={shape.species}
-            color={emp.color}
-            accent={emp.accent}
-            state="talk"
-            hasGlasses={shape.hasGlasses}
-            size={68}
-          />
-        ) : null}
         <DiscoveryArt eventId={def.id} />
         <h2 id={titleId}>{t(def.titleKey)}</h2>
       </div>
