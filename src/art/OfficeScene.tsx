@@ -52,6 +52,7 @@ import { useFmt } from '../ui/useFmt';
 import { Icon } from './UiIcon';
 import { DecorationProp, decorKind, interactSound } from './DecorationProp';
 import { RoomDressing } from './RoomDressing';
+import { DEPT } from './roomStyle';
 import { SceneControls } from './SceneControls';
 import { TreeBranches, TreeCanopy, TreeRoots } from './TreeWorld';
 import {
@@ -191,23 +192,6 @@ interface EmployeeInteraction {
   targetX: number;
   phase: 'walking' | 'interacting';
 }
-
-// department accent per room (references design tokens)
-const DEPT: Record<string, string> = {
-  'founder-desk': 'var(--dept-founder)',
-  sorting: 'var(--dept-sorting)',
-  morale: 'var(--dept-morale)',
-  procurement: 'var(--dept-procurement)',
-  construction: 'var(--dept-construction)',
-  lab: 'var(--dept-lab)',
-  marketing: 'var(--dept-marketing)',
-  vault: 'var(--dept-vault)',
-  research: 'var(--dept-research)',
-  meeting: 'var(--dept-meeting)',
-  nap: 'var(--dept-nap)',
-  basement: 'var(--dept-basement)',
-  rooftop: 'var(--dept-rooftop)',
-};
 
 // which ambient decoration each room shows (styled in styles.css)
 // Each kind of room answers in its own small sound when the elevator arrives

@@ -128,9 +128,17 @@ describe('architecture: the simulation stays framework-independent', () => {
 // matches the browser.
 // Comments are stripped first: a section banner sitting directly above a rule becomes
 // part of the selector text otherwise, and the lookup silently finds nothing.
-const GAME_LAYER = ['base', 'shell', 'popup', 'opening', 'world'].map((name) =>
-  readFileSync(join(ROOT, 'ui', 'game', `${name}.css`), 'utf8'),
-);
+const GAME_LAYER = [
+  'base',
+  'shell',
+  'popup',
+  'opening',
+  'world',
+  'office-life',
+  'rooms',
+  'play',
+  'visit',
+].map((name) => readFileSync(join(ROOT, 'ui', 'game', `${name}.css`), 'utf8'));
 const STYLES = [readFileSync(join(ROOT, 'styles.css'), 'utf8'), ...GAME_LAYER]
   .join('\n')
   .replace(/\/\*[\s\S]*?\*\//g, '');

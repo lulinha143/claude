@@ -5,24 +5,29 @@ import { ROOMS } from '../../src/content/rooms';
 import { GAME_EVENTS } from '../../src/content/events';
 import { openView, arrangeToggle } from './support/shell';
 
-test('a personal gift becomes a keepsake and the employee remains visitable during a break', async ({
+test('a favourite gift is found by giving it, and the employee remains visitable during a break', async ({
   page,
 }) => {
   await boot(page, 1280, true);
   await openView(page, 'employees');
   await page.locator('.employee-card__talk[data-employee="pip"]').click();
-  await page.getByRole('button', { name: 'Bring a present', exact: true }).click();
-  await page.locator('.talk-choice[data-option-id="coffee"]').click();
+  await page.locator('.visit__tab[data-tab="gifts"]').click();
+  // Nothing is known about a favourite before it has been given.
+  await expect(page.locator('.talk__gift-preference')).toContainText('still a mystery');
+  await page.locator('.visit-gift[data-gift="coffee"]').click();
   await expect(page.locator('.talk__said--reply')).toContainText('You remembered the coffee');
-  await expect(page.locator('.talk__gift-preference')).toContainText('freshly brewed coffee');
   await expect(page.locator('.talk__gift-filed')).toBeVisible();
+  await page.locator('.visit__tab[data-tab="gifts"]').click();
+  await expect(page.locator('.talk__gift-preference')).toContainText('freshly brewed coffee');
   await page.mouse.move(1, 1);
   await page.screenshot({ path: 'visual-artifacts/review/final-gift.png', animations: 'disabled' });
   await page.locator('.talk__close').click();
   await page.locator('.employee-card__talk[data-employee="pip"]').click();
-  await expect(page.locator('.talk__end-note')).toContainText('browse our shared memories');
-  await expect(page.getByRole('button', { name: 'Bring a present', exact: true })).toBeDisabled();
-  await expect(page.locator('.talk__memories li')).toHaveCount(1);
+  await expect(page.locator('.talk__end-note')).toContainText('Look through your scrapbook');
+  await page.locator('.visit__tab[data-tab="gifts"]').click();
+  await expect(page.locator('.visit-gift[data-gift="acorn"]')).toBeDisabled();
+  await page.locator('.visit__tab[data-tab="scrapbook"]').click();
+  await expect(page.locator('.talk__memories .scrap--gift')).toHaveCount(1);
   await page.setViewportSize({ width: 320, height: 800 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({

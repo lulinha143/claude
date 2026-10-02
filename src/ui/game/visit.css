@@ -1,0 +1,951 @@
+/* Gameplay chapter 2: the visit. The teammate stands large in their own room;
+   talk, gifts and the scrapbook share the paper panel beside (or below) them.
+   Small windows: the stage on top, the panel below, the whole window. Larger
+   windows: stage and panel side by side in a framed card over the office. */
+@layer game {
+  /* A visit owns the screen: above the toast stack (200), below the opening
+     sequence (260). Toasts keep queuing behind the scrim. */
+  .talk {
+    position: fixed;
+    inset: 0;
+    z-index: 210;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    background: rgb(28 18 10 / 0.58);
+    animation: visit-in var(--dur) var(--ease) both;
+  }
+  @keyframes visit-in {
+    from {
+      opacity: 0;
+    }
+  }
+  .visit__frame {
+    position: relative;
+    display: grid;
+    grid-template-rows: minmax(0, 46fr) minmax(0, 54fr);
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    color: var(--ink-strong);
+    background: var(--paper-grain), var(--paper-bg);
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    animation: visit-rise var(--dur-slow) var(--ease-pop) both;
+  }
+  @keyframes visit-rise {
+    from {
+      transform: translateY(14px) scale(0.985);
+      opacity: 0;
+    }
+  }
+  @container app (min-width: 760px) {
+    .talk.visit {
+      padding: 18px;
+    }
+    /* Sized to the teammate rather than to the window: their art is never
+       enlarged, so a bigger stage would only make them smaller in it. */
+    .visit__frame {
+      grid-template-rows: none;
+      grid-template-columns: minmax(0, 1fr) minmax(320px, 400px);
+      width: min(920px, 100%);
+      height: min(520px, 100%);
+      border: 3px solid var(--frame-edge);
+      border-radius: var(--radius-sheet, 18px);
+      box-shadow: var(--lift-shadow);
+    }
+  }
+
+  /* ---- the stage: their room, them, their mood --------------------------------- */
+  .visit__stage {
+    position: relative;
+    min-height: 0;
+    overflow: hidden;
+    isolation: isolate;
+    --asset-scale: 1;
+    background: color-mix(in srgb, var(--dept) 20%, var(--c-paper-150));
+    border-bottom: 3px solid var(--c-walnut-800);
+  }
+  @container app (min-width: 760px) {
+    .visit__stage {
+      --asset-scale: 1.2;
+      border-bottom: 0;
+      border-right: 3px solid var(--c-walnut-800);
+    }
+  }
+  .visit__stage > .room-dressing {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+  /* A soft pool of light where they stand. */
+  .visit__spot {
+    position: absolute;
+    left: 50%;
+    bottom: 3%;
+    z-index: 1;
+    width: min(84%, 420px);
+    height: 32%;
+    background: radial-gradient(closest-side, rgb(255 236 190 / 0.55), transparent);
+    transform: translateX(-50%);
+    pointer-events: none;
+  }
+  .visit__actor {
+    position: absolute;
+    left: 50%;
+    bottom: 5%;
+    z-index: 2;
+    display: grid;
+    justify-items: center;
+    transform: translateX(-50%);
+    transform-origin: 50% 100%;
+    --asset-scale: 1;
+  }
+  .visit__actor .talk__portrait {
+    display: grid;
+    place-items: end center;
+    line-height: 0;
+    filter: drop-shadow(0 6px 6px rgb(40 26 12 / 0.28));
+  }
+  .visit__actor[data-react='joy'] .talk__portrait {
+    animation: actor-hop 560ms var(--ease-pop) both;
+  }
+  .visit__actor[data-react='hurt'] .talk__portrait {
+    animation: actor-wobble 520ms ease-in-out both;
+  }
+  .visit__actor[data-react='think'] .talk__portrait {
+    animation: actor-tilt 700ms ease-in-out both;
+  }
+  @keyframes actor-hop {
+    30% {
+      translate: 0 -12px;
+      scale: 1.02 0.98;
+    }
+    55% {
+      translate: 0 0;
+      scale: 0.99 1.01;
+    }
+  }
+  @keyframes actor-wobble {
+    25% {
+      rotate: -2.5deg;
+    }
+    50% {
+      rotate: 2deg;
+    }
+    75% {
+      rotate: -1deg;
+    }
+  }
+  @keyframes actor-tilt {
+    40% {
+      rotate: -3deg;
+    }
+  }
+  .visit__keepsake {
+    position: absolute;
+    right: -26%;
+    bottom: 0;
+    width: 40px;
+    height: 34px;
+    pointer-events: auto;
+  }
+  .visit__keepsake .keepsake-art,
+  .visit__keepsake svg {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 2px 2px rgb(40 26 12 / 0.3));
+  }
+  /* Their mood, big, by their head. It swaps (with a little stick-on) as they react. */
+  /* --actor-h is the drawn height of the teammate, so the sticker sits by their
+     head however large the stage lets them be. */
+  .visit__sticker {
+    position: absolute;
+    left: calc(50% + var(--actor-h, 200px) * 0.2);
+    bottom: calc(5% + var(--actor-h, 200px) * 0.7);
+    z-index: 3;
+    width: clamp(34px, calc(var(--actor-h, 200px) * 0.2), 54px);
+    aspect-ratio: 1;
+    rotate: 6deg;
+    animation: sticker-on 360ms var(--ease-pop) both;
+  }
+  .visit__sticker > .sticker {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+  .visit__plate {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    z-index: 3;
+    display: grid;
+    gap: 1px;
+    max-width: calc(100% - 64px);
+    padding: 6px 12px 7px;
+    background: rgb(255 250 240 / 0.92);
+    border: 2px solid var(--paper-line);
+    border-radius: 12px;
+    box-shadow: 0 2px 0 rgb(40 26 12 / 0.2);
+  }
+  .visit__plate .talk__name {
+    margin: 0;
+    font: 500 var(--fs-xl) / 1 var(--font-display);
+    color: var(--ink-strong);
+  }
+  .visit__plate .talk__role {
+    margin: 0;
+    color: var(--ink-soft);
+    font: 700 var(--fs-xs) / 1.2 var(--font-body);
+  }
+  .visit__stage .visit__bond {
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+    z-index: 3;
+  }
+  .visit__stage .talk__close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 4;
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    color: var(--ink-strong);
+    background: var(--paper-bg-bright);
+    border: 2px solid var(--paper-line);
+    border-radius: 50%;
+    box-shadow: 0 2px 0 var(--paper-line);
+    cursor: pointer;
+  }
+  .visit__stage .talk__close:hover {
+    color: #fff;
+    background: var(--c-walnut-600);
+  }
+
+  /* ---- the bond meter (stage and Team cards) ----------------------------------- */
+  .visit__bond {
+    display: inline-grid;
+    grid-template-columns: auto auto;
+    align-items: center;
+    gap: 2px 8px;
+    padding: 5px 10px 6px;
+    color: var(--ink-strong);
+    background: rgb(255 250 240 / 0.94);
+    border: 2px solid var(--paper-line);
+    border-radius: 12px;
+    font: 800 var(--fs-xs) / 1.1 var(--font-body);
+  }
+  .visit__bond-name {
+    white-space: nowrap;
+  }
+  .visit__hearts {
+    display: inline-flex;
+    gap: 2px;
+  }
+  .visit__hearts i {
+    width: 12px;
+    height: 11px;
+    background: var(--paper-line);
+    clip-path: path('M6 11 1.2 6.2A3 3 0 0 1 6 2.4a3 3 0 0 1 4.8 3.8Z');
+  }
+  .visit__hearts i.is-on {
+    background: #e2556a;
+  }
+  .visit__bond .talk__bar {
+    grid-column: 1 / -1;
+    display: block;
+    height: 4px;
+    overflow: hidden;
+    background: var(--paper-bg-sunken);
+    border-radius: 2px;
+  }
+  .visit__bond .talk__bar-fill {
+    display: block;
+    height: 100%;
+    background: #e2556a;
+    border-radius: 2px;
+    transition: width 0.4s var(--ease);
+  }
+  .visit__bond .talk__bar-num {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  .visit__bond--compact {
+    padding: 3px 8px 4px;
+    background: var(--paper-bg-sunken);
+  }
+  /* A new stage, celebrated on the meter itself. */
+  .visit__bond--celebrate {
+    color: #a32c45;
+    background: #fff0f3;
+    border-color: #e2556a;
+    box-shadow: 0 0 0 3px rgb(226 85 106 / 0.22);
+    animation: bond-glow 1.6s ease-in-out 2;
+  }
+  .visit__bond--celebrate .visit__hearts i.is-on {
+    animation: heart-pop 520ms var(--ease-pop) both;
+  }
+  .visit__bond--celebrate .visit__hearts i.is-on:nth-child(2) {
+    animation-delay: 90ms;
+  }
+  .visit__bond--celebrate .visit__hearts i.is-on:nth-child(3) {
+    animation-delay: 180ms;
+  }
+  @keyframes bond-glow {
+    50% {
+      box-shadow: 0 0 0 6px rgb(226 85 106 / 0.12);
+    }
+  }
+  @keyframes heart-pop {
+    0% {
+      scale: 0.4;
+    }
+    60% {
+      scale: 1.35;
+    }
+  }
+  /* On the Team card: the bond, and a quiet line when they want a word. */
+  .employee-card__bond {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+    margin: 4px 0 2px;
+  }
+  .employee-card__share {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--ink-body);
+    font: 700 var(--fs-xs) / 1.25 var(--font-body);
+  }
+  .employee-card__share-mark {
+    display: inline-grid;
+    flex: 0 0 auto;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    color: var(--c-walnut-800, #4a2f19);
+    background: #fffaf0;
+    border: 2px solid var(--c-walnut-800, #4a2f19);
+    border-radius: 50% 50% 3px 50%;
+  }
+  .employee-card__share[data-kind='milestone'] .employee-card__share-mark {
+    color: #c2405a;
+    background: #ffeef1;
+  }
+  .employee-card__share[data-kind='hint'] .employee-card__share-mark {
+    color: #9a6a08;
+    background: #fff4cf;
+  }
+
+  /* ---- the panel -------------------------------------------------------------- */
+  .visit__panel {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    min-height: 0;
+  }
+  .visit__tabs {
+    display: flex;
+    gap: 4px;
+    padding: 6px 8px 0;
+    background: var(--paper-bg-sunken);
+    border-bottom: 2px solid var(--paper-line);
+  }
+  .visit__tab {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    flex: 1 1 0;
+    justify-content: center;
+    min-width: 0;
+    padding: 6px 8px 7px;
+    color: var(--ink-body);
+    background: transparent;
+    border: 2px solid transparent;
+    border-bottom: 0;
+    border-radius: 10px 10px 0 0;
+    font: 800 var(--fs-xs) / 1 var(--font-body);
+    cursor: pointer;
+  }
+  .visit__tab.is-active {
+    color: var(--ink-strong);
+    background: var(--paper-bg);
+    border-color: var(--paper-line);
+    margin-bottom: -2px;
+  }
+  .visit__tab[data-news='true']::after {
+    content: '';
+    position: absolute;
+    top: 4px;
+    right: 8px;
+    width: 7px;
+    height: 7px;
+    background: var(--c-acorn-500, #d98a2c);
+    border-radius: 50%;
+  }
+  .visit__page {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 10px 12px 12px;
+    scrollbar-width: thin;
+  }
+  @container app (max-width: 759px) {
+    .visit__page {
+      gap: 6px;
+      padding: 8px 10px 10px;
+    }
+  }
+  /* Short windows: every pixel to the teammate and what they are saying. */
+  @media (max-height: 520px) {
+    .visit__page {
+      gap: 5px;
+      padding: 6px 10px 6px;
+    }
+    .visit__tabs {
+      padding-top: 4px;
+    }
+    .visit__tab {
+      padding: 5px 6px 6px;
+    }
+    .visit .talk__said {
+      padding: 6px 10px 7px;
+      line-height: 1.3;
+    }
+    .visit .talk-choice {
+      min-height: 32px;
+      padding: 5px 10px 6px;
+    }
+    .visit .talk__choices {
+      gap: 5px;
+    }
+    /* The meter on the stage already says "Now: Trusted"; what it means is
+       kept in the scrapbook, so the conversation keeps the room. */
+    .visit__milestone {
+      display: none;
+    }
+    /* Mid-conversation the topic has been named already. */
+    .visit[data-step='later'] .talk__topic {
+      display: none;
+    }
+  }
+
+  /* ---- talk --------------------------------------------------------------- */
+  .visit .talk__topic {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    min-width: 0;
+  }
+  .visit .talk__topic h3 {
+    margin: 0;
+    overflow: hidden;
+    font: 500 var(--fs-base) / 1.15 var(--font-display);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .visit .talk__topic span {
+    flex: 0 0 auto;
+    color: var(--ink-soft);
+    font: 800 var(--fs-2xs, 10px) / 1 var(--font-body);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .visit__speech {
+    display: grid;
+    gap: 6px;
+  }
+  /* A speech bubble from the teammate on the stage (tail up in a corner window,
+     tail to the left when they stand beside the panel). */
+  .visit .talk__said {
+    position: relative;
+    margin: 0;
+    padding: 8px 12px 9px;
+    color: var(--ink-strong);
+    background: var(--paper-bg-bright);
+    border: 2px solid var(--paper-line);
+    border-radius: 14px;
+    box-shadow: 0 2px 0 rgb(40 26 12 / 0.12);
+    font: 700 var(--fs-sm) / 1.35 var(--font-body);
+    quotes: none;
+  }
+  .visit .talk__said::before {
+    content: '';
+    position: absolute;
+    left: 22px;
+    top: -9px;
+    width: 14px;
+    height: 14px;
+    background: var(--paper-bg-bright);
+    border-left: 2px solid var(--paper-line);
+    border-top: 2px solid var(--paper-line);
+    transform: rotate(45deg);
+  }
+  @container app (min-width: 760px) {
+    .visit .talk__said::before {
+      left: -9px;
+      top: 14px;
+      border-top: 0;
+      border-bottom: 2px solid var(--paper-line);
+    }
+  }
+  .visit .talk__said--reply {
+    background: color-mix(in srgb, var(--calm-bg, #e8f3dc) 70%, var(--paper-bg-bright));
+    animation: said-in 320ms var(--ease-pop) both;
+  }
+  .visit .talk__said--reply::before {
+    background: color-mix(in srgb, var(--calm-bg, #e8f3dc) 70%, var(--paper-bg-bright));
+  }
+  .visit .talk__reply,
+  .visit .talk__next {
+    display: block;
+  }
+  /* What they go on to say, after their answer, in the same bubble. */
+  .visit .talk__next {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 2px dashed rgb(90 70 40 / 0.18);
+  }
+  /* More below: the page fades out at its foot until it is scrolled there. */
+  .visit__page[data-more='true'] {
+    mask-image: linear-gradient(to bottom, #000 calc(100% - 26px), transparent);
+  }
+  @keyframes said-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px) scale(0.98);
+    }
+  }
+  .visit .talk__changed ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .visit .talk__changed li {
+    display: inline-flex;
+    gap: 4px;
+    padding: 2px 8px;
+    background: var(--paper-bg-sunken);
+    border-radius: 8px;
+    font: 800 var(--fs-xs) / 1.3 var(--font-body);
+  }
+  .visit .talk__changed li.is-pos b {
+    color: var(--c-leaf-700, #2f6b3a);
+  }
+  .visit .talk__changed li.is-neg b {
+    color: var(--c-berry-600, #a33a2c);
+  }
+  .visit .talk__choices {
+    display: grid;
+    gap: 6px;
+    align-content: start;
+  }
+  .visit .talk-choice {
+    display: grid;
+    gap: 2px;
+    min-height: 36px;
+    padding: 7px 12px 8px;
+    color: var(--ink-strong);
+    background: var(--paper-bg-bright);
+    border: 2px solid var(--paper-line);
+    border-radius: 12px;
+    box-shadow: 0 2px 0 var(--paper-line);
+    text-align: left;
+    font: 800 var(--fs-sm) / 1.25 var(--font-body);
+    cursor: pointer;
+    transition:
+      background var(--dur-fast) var(--ease),
+      border-color var(--dur-fast) var(--ease);
+  }
+  .visit .talk-choice:hover:not([aria-disabled='true']) {
+    background: color-mix(in srgb, var(--calm-bg, #e8f3dc) 60%, var(--paper-bg-bright));
+    border-color: var(--calm-edge, #7fae6a);
+  }
+  .visit .talk-choice--warm {
+    border-left: 6px solid #e2a35a;
+  }
+  .visit .talk-choice--curious {
+    border-left: 6px solid #7fa7d6;
+  }
+  .visit .talk-choice--costly {
+    border-left: 6px solid var(--c-gold-500, #d9a520);
+  }
+  .visit .talk-choice--firm,
+  .visit .talk-choice--risky {
+    border-left: 6px solid #c96b5a;
+  }
+  .visit .talk-choice[aria-disabled='true'] {
+    opacity: 0.6;
+    cursor: default;
+  }
+  .visit .talk-choice__req {
+    color: var(--ink-soft);
+    font: 700 var(--fs-xs) / 1.2 var(--font-body);
+  }
+  .visit .talk__end {
+    display: grid;
+    gap: 6px;
+    justify-items: start;
+  }
+  .visit .talk__end-note,
+  .visit__note {
+    margin: 0;
+    color: var(--ink-soft);
+    font: 700 var(--fs-sm) / 1.35 var(--font-body);
+  }
+  .visit .talk__gift-filed {
+    margin: 0;
+    color: var(--c-leaf-700, #2f6b3a);
+    font: 800 var(--fs-sm) / 1.3 var(--font-body);
+  }
+  /* "Other things on your mind": a small menu at the end of the topic line. */
+  .visit .talk__agenda {
+    position: relative;
+    flex: 0 0 auto;
+    margin-left: auto;
+    font: 700 var(--fs-xs) / 1.3 var(--font-body);
+  }
+  .visit .talk__agenda summary {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 20px;
+    color: var(--ink-body);
+    background: var(--paper-bg-bright);
+    border: 2px solid var(--paper-line);
+    border-radius: 12px;
+    list-style: none;
+    cursor: pointer;
+  }
+  .visit .talk__agenda summary::-webkit-details-marker {
+    display: none;
+  }
+  .visit .talk__agenda[open] summary {
+    color: #fff;
+    background: var(--c-walnut-600);
+    border-color: var(--c-walnut-600);
+  }
+  .visit .talk__agenda > div {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 4px);
+    z-index: 6;
+    display: grid;
+    gap: 4px;
+    width: max-content;
+    max-width: min(300px, 86vw);
+    padding: 8px;
+    background: var(--paper-bg-bright);
+    border: 2px solid var(--paper-line);
+    border-radius: 12px;
+    box-shadow: var(--lift-shadow);
+  }
+  .visit .talk__agenda strong {
+    color: var(--ink-soft);
+    font: 800 var(--fs-2xs, 10px) / 1.2 var(--font-body);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .visit .talk__agenda button {
+    padding: 5px 10px;
+    color: var(--ink-strong);
+    background: var(--paper-bg);
+    border: 2px solid var(--paper-line);
+    border-radius: 9px;
+    text-align: left;
+    font: 800 var(--fs-xs) / 1.2 var(--font-body);
+    cursor: pointer;
+  }
+  .visit .talk__agenda button:hover {
+    border-color: var(--calm-edge, #7fae6a);
+  }
+  .visit__milestone {
+    margin: 0;
+    padding: 5px 10px 6px;
+    color: #5a1f2b;
+    background: linear-gradient(180deg, #ffe7ec, #ffd6df);
+    border: 2px solid #e2556a;
+    border-radius: 12px;
+    font: 700 var(--fs-xs) / 1.3 var(--font-body);
+    animation: said-in 420ms var(--ease-pop) both;
+  }
+  .visit__milestone strong {
+    font: 500 var(--fs-sm) / 1.1 var(--font-display);
+    color: #a32c45;
+  }
+
+  /* ---- gifts -------------------------------------------------------------- */
+  .visit__gifts {
+    display: grid;
+    gap: 8px;
+  }
+  .visit__gift-favorite {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 8px;
+    margin: 0;
+    font: 700 var(--fs-sm) / 1.3 var(--font-body);
+  }
+  .visit__hint {
+    margin: 0;
+    padding: 6px 10px;
+    color: #4a3410;
+    background: #fff4cf;
+    border: 2px dashed #d9a520;
+    border-radius: 10px;
+    font: 700 var(--fs-sm) / 1.3 var(--font-body);
+  }
+  .visit__gift-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .visit-gift {
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+    width: 100%;
+    padding: 6px 4px 7px;
+    color: var(--ink-strong);
+    background: var(--paper-bg-bright);
+    border: 2px solid var(--paper-line);
+    border-radius: 12px;
+    box-shadow: 0 2px 0 var(--paper-line);
+    cursor: pointer;
+  }
+  .visit-gift:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+  .visit-gift:hover:not(:disabled) {
+    border-color: var(--c-acorn-500, #d98a2c);
+  }
+  .visit-gift__art {
+    position: relative;
+    display: block;
+    width: 34px;
+    height: 34px;
+  }
+  .visit-gift__art > .gift {
+    width: 100%;
+    height: 100%;
+  }
+  .visit-gift__badge {
+    position: absolute;
+    right: -6px;
+    top: -4px;
+    display: grid;
+    place-items: center;
+    width: 17px;
+    height: 17px;
+    color: #fff;
+    background: var(--ink-soft);
+    border: 2px solid var(--paper-bg-bright);
+    border-radius: 50%;
+    font: 800 10px/1 var(--font-body);
+  }
+  .visit-gift.is-loved {
+    border-color: #e2556a;
+    background: #fff0f3;
+  }
+  .visit-gift.is-loved .visit-gift__badge {
+    background: #e2556a;
+  }
+  .visit-gift.is-liked .visit-gift__badge {
+    background: var(--c-leaf-600, #3f8a4c);
+  }
+  .visit-gift.is-odd .visit-gift__badge {
+    background: #7a63b8;
+  }
+  .visit-gift__name {
+    max-width: 100%;
+    overflow: hidden;
+    font: 800 var(--fs-xs) / 1.15 var(--font-body);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .visit-gift__meta {
+    color: var(--ink-soft);
+    font: 700 var(--fs-2xs, 10px) / 1.1 var(--font-body);
+    white-space: nowrap;
+  }
+  .gift__cut,
+  .gift__box {
+    fill: #f6e7c8;
+  }
+  .gift__nut {
+    fill: #c58a4a;
+  }
+  .gift__cap {
+    fill: #7a4a24;
+  }
+  .gift__gold {
+    fill: #ffcf5a;
+  }
+  .gift__gold-cap {
+    fill: #c8911c;
+  }
+  .gift__pot {
+    fill: #c8724a;
+  }
+  .gift__leaf {
+    fill: #6cb36a;
+  }
+  .gift__piece {
+    fill: #8fb8e6;
+  }
+  .gift__scarf {
+    fill: #e2556a;
+  }
+  .gift__stripe {
+    fill: none;
+    stroke: #fff4e0;
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+  .gift__shine {
+    fill: #fff;
+  }
+  .gift__steam {
+    fill: none;
+    stroke: #b9a690;
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+  .gift__ink {
+    fill: none;
+    stroke: #3b2616;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* ---- scrapbook ------------------------------------------------------------ */
+  .visit__scrapbook {
+    display: grid;
+    gap: 8px;
+  }
+  .visit__story-line {
+    display: grid;
+    gap: 1px;
+    margin: 0;
+    padding: 7px 10px;
+    background: var(--paper-bg-sunken);
+    border-radius: 10px;
+    font: 700 var(--fs-sm) / 1.3 var(--font-body);
+  }
+  .visit__story-line strong {
+    font: 500 var(--fs-base) / 1.15 var(--font-display);
+  }
+  .visit__story-line em {
+    color: var(--ink-soft);
+  }
+  .visit .talk__memories {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .scrap {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 8px;
+    padding: 7px 10px 8px;
+    background: var(--paper-bg-bright);
+    border: 2px solid var(--paper-line);
+    border-radius: 6px 12px 12px 6px;
+    box-shadow: 0 2px 0 rgb(40 26 12 / 0.1);
+    /* Pasted in by hand: a little out of line, but never rotated (rotated
+       text rasterises unevenly at small sizes). */
+    margin-inline: 0 5px;
+  }
+  .scrap:nth-child(2n) {
+    margin-inline: 5px 0;
+  }
+  .scrap:nth-child(2n)::before {
+    left: auto;
+    right: 22px;
+    transform: rotate(5deg);
+  }
+  .scrap::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: 18px;
+    width: 30px;
+    height: 11px;
+    background: var(--tape);
+    transform: rotate(-4deg);
+    border-radius: 2px;
+  }
+  .scrap__icon {
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    color: #fff;
+    background: var(--c-acorn-500, #d98a2c);
+    border-radius: 50%;
+    font: 800 12px/1 var(--font-body);
+  }
+  .scrap--tier .scrap__icon,
+  .scrap--gift .scrap__icon {
+    background: #e2556a;
+  }
+  .scrap--story .scrap__icon {
+    background: #7a63b8;
+  }
+  .scrap--pair .scrap__icon {
+    background: var(--c-leaf-600, #3f8a4c);
+  }
+  .scrap__body {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+  }
+  .scrap__title {
+    font: 800 var(--fs-sm) / 1.25 var(--font-body);
+  }
+  .scrap__quote {
+    color: var(--ink-body);
+    font: italic 600 var(--fs-xs) / 1.35 var(--font-body);
+  }
+  .scrap time {
+    color: var(--ink-soft);
+    font: 700 var(--fs-2xs, 10px) / 1.2 var(--font-body);
+    white-space: nowrap;
+  }
+
+  [data-reduced-motion='true'] .visit *,
+  [data-reduced-motion='true'] .visit {
+    animation: none !important;
+  }
+}
