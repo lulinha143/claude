@@ -46,6 +46,14 @@ after you build it yourself with Option B.
   three tabs: **Talk** (their story, in three parts that open as you become
   familiar, trusted and close), **Gifts** (try presents to find their favourite)
   and **Scrapbook** (everything you have shared).
+- **Play the rooms:** every room's machine has something of its own to do, shown
+  as a small tag on it: brew a pot in the Break Room and pour it, tap a jammed
+  chute three times to clear it, catch what moves on the security cameras, hand
+  over a parcel, pick the show in the broadcast booth. Hover the tag to see what
+  it does and who is helping.
+- **Look closer:** when a magnifier appears on a corkboard, a shelf or in a
+  corner, click it — something odd has turned up. Everything you notice is kept
+  in **Archive → Secrets**, and some of it is the Nut Encyclopedia's missing nuts.
 - **Open menus:** use the tabs at the top (Upgrades, Team, Company, etc.).
 - **Move the window:** click-and-drag the **top bar** (the part with the company
   name) to anywhere on your screen — including a corner.

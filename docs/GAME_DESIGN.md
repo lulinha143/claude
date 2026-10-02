@@ -81,6 +81,47 @@ so they survive saves, old saves and prestige.
   (a balloon on their sticker), never a popup.
 - **Scrapbook:** derived entirely from what happened; nothing extra is stored.
 
+## The office is the playground
+
+Every room keeps its tap station (the clicker's core verb), and the station also
+carries the room's own routine, shown on the machine as a small tag
+(`src/content/roomPlay.ts`, `src/sim/roomPlay.ts`). Five verbs, each used by a
+handful of rooms with their own words, timing and payoff:
+
+| Verb    | What the player does                                     | Rooms                                                    |
+| ------- | -------------------------------------------------------- | -------------------------------------------------------- |
+| brew    | start it, come back when it is ready, share it out       | Break Room, Cafeteria, Lab, Incubator, Conservatory, Nap |
+| tend    | the machine acts up; three taps free it, the room rushes | Sorting, Construction, Repair, Basement                  |
+| watch   | something shows on the screen for ~35 s; catch it        | Security, Research, Rooftop, Archive                     |
+| deliver | a letter, parcel or order arrives; hand it over          | Founder's Desk, Mailroom, Procurement                    |
+| tune    | set the room's mode; each mode is one steady bonus       | Broadcast, Meeting, Marketing, Vault                     |
+
+Payouts only use existing systems: production-scaled nuts, golden nuts, morale,
+reputation, short boosts, rushes, moods and friendship. Modes feed the company
+modifiers while someone works in the room (and say so on the Company screen).
+
+**Helpers** make a routine better, and the tooltip says who: the room's
+specialists and the player's close friends working there brew faster (20% each,
+up to two), free a stuck machine on their own after a minute, and keep a blip on
+screen 50% longer; a complete decoration set in the room counts too.
+
+**Curiosities** (55) are the rooms' small surprises: funny, wholesome, strange,
+absurd and now and then paranormal. About half turn up on their own at a wall
+fixture, a corner or the ceiling (one at a time, every ~7 minutes on average,
+fading after 20); a teammate in the room usually notices first. The rest only come
+out of a routine: dreams from the nap room's log, footage from the cameras, pages
+from the archive scanner, nuts from the sorting chute. Some need a decoration
+placed in the room, a story told, or the night. Twenty-one of them are the Nut
+Encyclopedia's previously unobtainable nuts. Each is noticed once, logged in the
+Archive's Secrets tab, and noticing two in a facility room brings its discovery
+forward, in the room itself. Every curiosity in a room completes its file
+(+2 golden).
+
+The office produces its moments while it runs, with restraint: one stuck machine,
+one blip and one curiosity at a time, at most two deliveries waiting, nothing in a
+brand-new founder's first two minutes. The elevator's floor list marks floors with
+something waiting.
+
 ## Progression targets
 
 - Fast first upgrades; first hireable employee ~10 min; first new room ~20–30 min;
