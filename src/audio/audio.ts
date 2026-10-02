@@ -521,6 +521,49 @@ export class AudioManager {
     src.start(time);
   }
 
+  // -- voices ---------------------------------------------------------------
+  /**
+   * A teammate "speaking": a short, soft babble of syllables in their own voice
+   * (pitch, timbre and pace from content/characters.ts), the way little animals
+   * talk in games. Routed through the effects channel, so it obeys every mute and
+   * volume the effects do, and capped at a handful of syllables so it is never
+   * noise.
+   */
+  voice(
+    profile: { base: number; wave: OscillatorType; pace: number },
+    syllables = 4,
+    seed = 0,
+  ): void {
+    const bus = this.sfxGain;
+    if (!this.ctx || !bus || this.flags.muted) return;
+    if (channelGain('sfx', this.volumes, this.flags, this.channelMuted) <= 0) return;
+    const now = this.ctx.currentTime;
+    const step = Math.max(0.04, profile.pace / 1000);
+    const count = Math.max(1, Math.min(7, syllables));
+    // A small deterministic melody per line, so a sentence has a shape.
+    let x = (seed * 9301 + 49297) % 233280;
+    for (let i = 0; i < count; i += 1) {
+      x = (x * 9301 + 49297) % 233280;
+      const lift = 0.86 + (x / 233280) * 0.32 + (i === count - 1 ? 0.06 : 0);
+      const at = now + i * step;
+      const osc = this.ctx.createOscillator();
+      const g = this.ctx.createGain();
+      const lp = this.ctx.createBiquadFilter();
+      lp.type = 'lowpass';
+      lp.frequency.value = 1800;
+      osc.type = profile.wave;
+      osc.frequency.setValueAtTime(profile.base * lift, at);
+      osc.frequency.exponentialRampToValueAtTime(profile.base * lift * 0.92, at + step * 0.8);
+      g.gain.setValueAtTime(0.0001, at);
+      g.gain.exponentialRampToValueAtTime(profile.wave === 'sine' ? 0.12 : 0.06, at + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, at + step * 0.85);
+      osc.connect(g).connect(lp).connect(bus);
+      this.track(osc);
+      osc.start(at);
+      osc.stop(at + step);
+    }
+  }
+
   // -- SFX ------------------------------------------------------------------
   play(name: SfxName, opts: SfxOptions = {}): void {
     const isUi = name === 'click' || name === 'error' || name === 'paper';

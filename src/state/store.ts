@@ -419,13 +419,16 @@ engine.subscribe(() => {
   if (engine.settledConsequences.length > 0) {
     const settled = engine.settledConsequences.splice(0, engine.settledConsequences.length);
     for (const item of settled) {
+      // Not every promise is a bill: a teammate coming back with something for
+      // you (their story's kind answer paying off) is good news, and says so.
+      const costly = item.effects.some((effect) => (effect.value ?? 0) < 0);
       notify(
         'moment',
         i18n.t('notify.consequenceSettled', {
           title: i18n.t(item.titleKey),
           body: i18n.t(item.bodyKey),
         }),
-        'negative',
+        costly ? 'negative' : 'positive',
       );
     }
   }

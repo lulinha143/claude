@@ -62,6 +62,7 @@ const officeFindSchema = z.object({
   roomId: z.string().min(1),
   kind: z.enum(['operational', 'social', 'analytical', 'industrial', 'secure', 'irregular']),
   createdAt: z.number().finite(),
+  noteKey: z.string().optional().catch(undefined),
 });
 
 const decorationInstanceSchema = z

@@ -207,6 +207,8 @@ export interface OfficeFind {
   /** what kind of thing it is: the temperament of the room it was found in. */
   kind: 'operational' | 'social' | 'analytical' | 'industrial' | 'secure' | 'irregular';
   createdAt: number;
+  /** a find from their personal story: what they say when you take it. */
+  noteKey?: string;
 }
 
 export interface GameSettings {

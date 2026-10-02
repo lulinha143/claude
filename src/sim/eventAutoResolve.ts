@@ -49,6 +49,7 @@ const EFFECT_WEIGHT: Record<EventEffect['type'], number> = {
   clearFlag: 0,
   // Scored from its CONTENTS below, not from a flat weight.
   schedule: 0,
+  find: 1,
 };
 
 /**

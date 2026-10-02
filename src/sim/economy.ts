@@ -1,4 +1,5 @@
 import { BALANCE, geometricCost } from './config';
+import { BOND_THRESHOLDS } from '../content/stories';
 import type { GameState, ProductionResult, ProductionBreakdownEntry } from './types';
 import { EMPLOYEES, EMPLOYEES_BY_ID } from '../content/employees';
 import { ROOMS } from '../content/rooms';
@@ -16,8 +17,17 @@ import { nextReputationTier } from '../content/reputationTiers';
 /** An employee's output = their base contribution × room-specialization bonus. */
 export function employeeOutput(state: GameState, def: EmployeeDef, level: number): number {
   const room = resolveEmployeeRoom(state, def.id);
-  return employeeContribution(def, level) * affinityMultiplier(def.id, room);
+  // A close friend works a little better (see sim/bonds.ts: the "close" stage).
+  const close = (state.employees[def.id]?.friendship ?? 0) >= BOND_THRESHOLDS.close;
+  return (
+    employeeContribution(def, level) *
+    affinityMultiplier(def.id, room) *
+    (close ? 1 + CLOSE_FRIEND_BONUS : 1)
+  );
 }
+
+/** How much better a close friend works. Mirrors `CLOSE_OUTPUT_BONUS` in sim/bonds. */
+export const CLOSE_FRIEND_BONUS = 0.1;
 
 /** A single employee's raw nuts/second contribution at a given level. */
 export function employeeContribution(def: EmployeeDef, level: number): number {

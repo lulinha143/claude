@@ -136,7 +136,9 @@ export interface EventEffect {
     | 'clearFlag'
     | 'schedule' // promise effects that land later
     | 'unlockSecret'
-    | 'collectNut';
+    | 'collectNut'
+    // a teammate turns up in the office holding something for the player
+    | 'find';
   value?: number;
   durationSeconds?: number;
   employeeId?: string;
@@ -153,6 +155,8 @@ export interface EventEffect {
   scheduleBodyKey?: string;
   /** for `schedule`: the effects to apply then. */
   scheduled?: EventEffect[];
+  /** for `find`: what they say when the player takes it. */
+  findNoteKey?: string;
 }
 
 export interface GameEventDef {

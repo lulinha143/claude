@@ -32,6 +32,8 @@ import { crateCapacity, crateFill, splitProduction } from './crate';
 import { applyOffline, computeAway, type OfflineResult } from './offline';
 import { ROOM_PROFILES_BY_ID } from '../content/roomProfiles';
 import { MOOD_POSITIVE } from './mood';
+import { acknowledgedTier, bondTier, pairFlag, tierFlag, type BondTier } from './bonds';
+import { LEGACY_GIFT_FAVORITES, giftFlag } from '../content/employeeGifts';
 import { employeeMood, moodProductivityMultiplier } from './mood';
 import { repairEmployees } from './state';
 import { EMPLOYEES_BY_ID } from '../content/employees';
@@ -165,7 +167,14 @@ export interface ActiveTalk {
   exchanges: number;
   /** Measured before/after of the last option, for the "what changed" readout. */
   report: ConsequenceReport | null;
+  /** A new stage of the relationship reached on this visit, to celebrate. */
+  milestone?: BondTier | null;
+  /** Which part of the visit to open on. */
+  tab?: VisitTab;
 }
+
+/** The three things you can do on a visit. */
+export type VisitTab = 'talk' | 'gifts' | 'scrapbook';
 
 /**
  * Effect types that act ON a specific employee.
@@ -179,6 +188,7 @@ export interface ActiveTalk {
 const EFFECTS_NEEDING_EMPLOYEE: ReadonlySet<EventEffect['type']> = new Set([
   'friendship',
   'emotion',
+  'find',
 ]);
 
 /** Bind delayed promises too: they may settle after their conversation is gone. */
@@ -217,6 +227,20 @@ export interface EngineOptions {
 }
 
 export type EngineListener = () => void;
+
+/**
+ * Carry an old save's gift memory over. Before gifts became a discovery game the
+ * only gift remembered was "their favourite", given once; record it as the gift
+ * it actually was, so the notebook shows what really happened.
+ */
+function repairBondMemories(state: GameState): void {
+  for (const [id, legacy] of Object.entries(LEGACY_GIFT_FAVORITES)) {
+    const at = state.flags[`favorite.${id}.giftMemory`];
+    if (at === undefined) continue;
+    if (Object.keys(state.flags).some((flag) => flag.startsWith(`${id}.gift.`))) continue;
+    state.flags[giftFlag(id, legacy)] = at;
+  }
+}
 
 /** The founder's floor, whose own output (the company base rate) a rush there doubles. */
 const FOUNDER_ROOM = 'founder-desk';
@@ -334,6 +358,7 @@ export class GameEngine {
     repairDecorationInstances(this.state);
     repairDecorations(this.state);
     syncDecorationInstancesFromPlacements(this.state);
+    repairBondMemories(this.state);
   }
 
   /** ids whose invalid placement was repaired at load (for dev-only logging). */
@@ -698,18 +723,19 @@ export class GameEngine {
     const index = this.state.finds.findIndex((find) => find.id === id);
     if (index < 0) return null;
     const [find] = this.state.finds.splice(index, 1);
-    const nuts = Math.max(
-      BALANCE.finds.minReward,
-      this.productionPerSecond() * BALANCE.finds.rewardSeconds,
-    );
+    const story = Boolean(find.noteKey);
+    const nuts =
+      Math.max(BALANCE.finds.minReward, this.productionPerSecond() * BALANCE.finds.rewardSeconds) *
+      (story ? 2 : 1);
     this.addNuts(nuts, false);
     const golden = this.rng.chance(BALANCE.finds.goldenChance) ? 1 : 0;
     if (golden) this.state.resources.goldenNuts += golden;
     const rt = this.state.employees[find.employeeId];
     if (rt?.hired) {
-      rt.friendship = Math.min(100, (rt.friendship ?? 0) + 1);
+      rt.friendship = Math.min(100, (rt.friendship ?? 0) + (story ? 3 : 1));
       this.setEmployeeEmotion(find.employeeId, 'happy', BALANCE.finds.happySeconds);
     }
+    if (story) this.state.flags[`${find.employeeId}.storyFindTaken`] = this.now();
     this.state.clicker.findsCollected = (this.state.clicker.findsCollected ?? 0) + 1;
     this.save();
     this.emit();
@@ -1290,7 +1316,12 @@ export class GameEngine {
    * ------------------------------------------------------------------------- */
 
   /** Open a conversation, choosing the most pressing topic. False if nobody is free. */
-  openTalk(employeeId: string, topicId?: string, visit = false): boolean {
+  openTalk(
+    employeeId: string,
+    topicId?: string,
+    visit = false,
+    opts: { tab?: VisitTab } = {},
+  ): boolean {
     const rt = this.state.employees[employeeId];
     if (!rt?.hired) return false;
     const now = this.now();
@@ -1308,6 +1339,9 @@ export class GameEngine {
     if (!topic) return false;
     const node = topic.nodes[topic.root];
     if (!node) return false;
+    // Changing the subject (or bringing a gift) is still the same visit: a stage
+    // reached when it began is still being celebrated.
+    const sameVisit = this.activeTalk?.employeeId === employeeId ? this.activeTalk : null;
     this.activeTalk = {
       profileOnly,
       employeeId,
@@ -1318,9 +1352,43 @@ export class GameEngine {
       lastReplyKey: null,
       exchanges: 0,
       report: null,
+      tab: opts.tab,
+      // Reaching a new stage is celebrated the next time you stop by.
+      milestone: this.acknowledgeBond(employeeId) ?? sameVisit?.milestone ?? null,
     };
     this.emit();
     return true;
+  }
+
+  /**
+   * Record every stage of the relationship reached and not yet celebrated.
+   * Returns the newest one, or null when there is nothing new.
+   */
+  private acknowledgeBond(employeeId: string): BondTier | null {
+    const rt = this.state.employees[employeeId];
+    if (!rt?.hired) return null;
+    const tier = bondTier(rt.friendship);
+    const seen = acknowledgedTier(this.state, employeeId);
+    if (tier <= seen) return null;
+    for (let next = seen + 1; next <= tier; next += 1) {
+      this.state.flags[tierFlag(employeeId, next as BondTier)] = this.now();
+    }
+    return tier;
+  }
+
+  /** The player has read the gift hint this teammate dropped. */
+  noteHintSeen(employeeId: string): void {
+    const key = `${employeeId}.hint`;
+    if (key in this.state.flags) return;
+    this.state.flags[key] = this.now();
+    this.save();
+  }
+
+  /** Two teammates who get on (or do not) were seen together for the first time. */
+  notePairSeen(pairId: string): void {
+    const key = pairFlag(pairId);
+    if (key in this.state.flags) return;
+    this.state.flags[key] = this.now();
   }
 
   /**
@@ -1377,6 +1445,9 @@ export class GameEngine {
     active.exchanges += 1;
     active.lastReplyKey = choice.replyKey;
     active.report = report;
+    // A conversation that carries the relationship into a new stage says so then.
+    const reached = this.acknowledgeBond(active.employeeId);
+    if (reached !== null) active.milestone = reached;
 
     // Record the conversation on the FIRST option taken, not when it ends.
     //
@@ -1623,7 +1694,37 @@ export class GameEngine {
         // A moment card is a souvenir OF an event, so it needs a real source.
         if (def) this.createMomentCard(def);
         break;
+      case 'find': {
+        const who = effect.employeeId ?? def?.employeeId;
+        if (who) this.giveStoryFind(who, effect.findNoteKey);
+        break;
+      }
     }
+  }
+
+  /**
+   * A teammate turns up holding something from their story. It takes the place of
+   * anything ordinary they were holding, and waits like any other find.
+   */
+  private giveStoryFind(employeeId: string, noteKey?: string): void {
+    const rt = this.state.employees[employeeId];
+    if (!rt?.hired) return;
+    const holding = this.state.finds.find((find) => find.employeeId === employeeId);
+    if (holding) {
+      holding.noteKey = noteKey;
+      return;
+    }
+    const roomId = resolveEmployeeRoom(this.state, employeeId);
+    this.state.finds.push({
+      id: `find-story-${employeeId}-${this.now().toString(36)}`,
+      employeeId,
+      roomId,
+      kind: ROOM_PROFILES_BY_ID[roomId]?.temper ?? 'operational',
+      createdAt: this.now(),
+      noteKey,
+    });
+    // A story find may wait beside the ordinary ones, one over the usual limit.
+    if (this.state.finds.length > BALANCE.finds.maxWaiting + 1) this.state.finds.shift();
   }
 
   createMomentCard(def: GameEventDef, caption?: string): MomentCard {
@@ -2154,6 +2255,7 @@ export class GameEngine {
     repairEmployees(this.state);
     enforceRoomCapacity(this.state);
     this.repairedOnLoad = repairPlacements(this.state);
+    repairBondMemories(this.state);
     repairDecorationInstances(this.state);
     repairDecorations(this.state);
     syncDecorationInstancesFromPlacements(this.state);

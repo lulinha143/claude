@@ -255,17 +255,17 @@
       "goal": "Garantir que absolutamente todos tirem uma boa soneca."
     },
     "rizzo": {
-      "name": "Nino",
-      "fullName": "Nino “Nota Fiscal” Anelrabo",
+      "name": "Guaxi",
+      "fullName": "Guaxi “Nota Fiscal” Anelrabo",
       "role": "Especialista em Compras",
-      "story": "Nino acha tudo o que a empresa precisa. E também várias coisas de que não precisava. Por favor, não pergunte pelo grampeador.",
+      "story": "Guaxi acha tudo o que a empresa precisa. E também várias coisas de que não precisava. Por favor, não pergunte pelo grampeador.",
       "goal": "Conseguir tudo por um preço suspeitosamente bom."
     },
     "bea": {
-      "name": "Bia",
-      "fullName": "Beatriz “Bia” Madeirão",
+      "name": "Beta",
+      "fullName": "Beatriz “Beta” Madeirão",
       "role": "Gerente de Construção",
-      "story": "Bia acredita que todo problema se resolve com mais madeira. As cadeiras agora são 40% mais firmes e 60% mais amadeiradas.",
+      "story": "Beta acredita que todo problema se resolve com mais madeira. As cadeiras agora são 40% mais firmes e 60% mais amadeiradas.",
       "goal": "Reforçar cada coisinha do prédio."
     },
     "corvus": {
@@ -543,11 +543,11 @@
     },
     "procurement": {
       "name": "Toca de Compras",
-      "desc": "Domínio da Nino. As contagens de estoque são… aproximadas."
+      "desc": "Domínio do Guaxi. As contagens de estoque são… aproximadas."
     },
     "construction": {
       "name": "Ala de Construção",
-      "desc": "A oficina da Bia. Cheira a serragem fresca e ambição."
+      "desc": "A oficina da Beta. Cheira a serragem fresca e ambição."
     },
     "lab": {
       "name": "Laboratório de Pesquisa de Cascas",
@@ -860,8 +860,8 @@
       "hide": "Esconder as castanhas boas"
     },
     "rizzoFound": {
-      "title": "A Nino Achou Uma Coisa",
-      "body": "Nino está segurando uma caixa atrás das costas e sorrindo de um jeito suspeito.",
+      "title": "O Guaxi Achou Uma Coisa",
+      "body": "Guaxi está segurando uma caixa atrás das costas e sorrindo de um jeito suspeito.",
       "inspect": "Inspecionar a caixa",
       "ignore": "Não fazer perguntas",
       "boxBody": "Dentro da caixa: uma castanha que você nunca viu e um recibo com o seu nome.",
@@ -892,8 +892,8 @@
       "hire": "Contratar o pombo"
     },
     "beaWood": {
-      "title": "A Bia Adicionou Mais Madeira",
-      "body": "Bia melhorou a mobília com madeira adicional. Agora é o escritório mais amadeirado da cidade.",
+      "title": "A Beta Adicionou Mais Madeira",
+      "body": "Beta melhorou a mobília com madeira adicional. Agora é o escritório mais amadeirado da cidade.",
       "approve": "Aprovar a madeira",
       "decline": "Vender a madeira extra"
     },
@@ -901,8 +901,8 @@
       "title": "O Escritório Está Tecnicamente Pegando Fogo",
       "body": "É um foguinho. Bem administrável. A Bento nem levantou a cabeça.",
       "evacuate": "Evacuar com calma",
-      "contain": "Pedir para a Bia conter o fogo",
-      "needBea": "Requer a Bia (Construção)",
+      "contain": "Pedir para a Beta conter o fogo",
+      "needBea": "Requer a Beta (Construção)",
       "livestream": "Transformar numa live de marketing",
       "study": "Deixar a Mina estudar o fenômeno"
     },
@@ -957,7 +957,7 @@
     },
     "stapler": {
       "title": "O Grande Sumiço do Grampeador",
-      "body": "O grampeador sumiu. A Nino está assobiando. Está tudo bem.",
+      "body": "O grampeador sumiu. O Guaxi está assobiando. Está tudo bem.",
       "investigate": "Investigar",
       "shrug": "Comprar um grampeador novo"
     },
@@ -1067,8 +1067,8 @@
       "replace": "Repor café de verdade"
     },
     "staplers17": {
-      "title": "A Nino Adquiriu Dezessete Grampeadores Idênticos",
-      "body": "Agora há dezessete grampeadores idênticos nas compras. Nino insiste que isso é normal e necessário.",
+      "title": "O Guaxi Adquiriu Dezessete Grampeadores Idênticos",
+      "body": "Agora há dezessete grampeadores idênticos nas compras. Guaxi insiste que isso é normal e necessário.",
       "return": "Devolver dezesseis deles",
       "keep": "Ficar com a coleção"
     },
@@ -1435,7 +1435,7 @@
     },
     "raccoonAccounting": {
       "name": "Contabilidade Guaxinim",
-      "desc": "Contrate a Nino."
+      "desc": "Contrate o Guaxi."
     },
     "calmCrisis": {
       "name": "Calma na Crise",
@@ -1515,7 +1515,7 @@
     },
     "woodEnthusiast": {
       "name": "Entusiasta da Madeira",
-      "desc": "Contrate a Bia."
+      "desc": "Contrate a Beta."
     },
     "cryptoSkeptic": {
       "name": "Cético de Cripto",
@@ -1828,7 +1828,7 @@
     },
     "repair-vise": {
       "name": "Morsa de reparos",
-      "desc": "Segura coisas difíceis enquanto Bia pensa."
+      "desc": "Segura coisas difíceis enquanto Beta pensa."
     },
     "borrow-board": {
       "name": "Quadro de ferramentas emprestadas",
@@ -2407,12 +2407,12 @@
   "react": {
     "marlowApproves": "Bento aprovou esta decisão.",
     "marlowCalm": "Bento permaneceu perfeitamente calma.",
-    "beaConcerned": "Bia está preocupada com a fiação.",
-    "beaProud": "Bia reforçou algo, só por garantia.",
+    "beaConcerned": "Beta está preocupada com a fiação.",
+    "beaProud": "Beta reforçou algo, só por garantia.",
     "corvusExcited": "Téo já está filmando.",
     "minaCurious": "Mina quer estudar isso melhor.",
     "pipProud": "Tico finge que esse era o plano o tempo todo.",
-    "rizzoSuspicious": "Nino discretamente guardou algo no bolso.",
+    "rizzoSuspicious": "Guaxi discretamente guardou algo no bolso.",
     "teamHappy": "A equipe está encantada.",
     "teamNervous": "A equipe troca olhares nervosos.",
     "nixieProud": "Nica está radiante por ter funcionado (desta vez).",
@@ -2657,7 +2657,11 @@
       "Derrubei da mesa. De propósito.",
       "Bom gerente delega. Em alto e bom som.",
       "Estive no comando esse tempo todo.",
-      "Ronronado recebido. Pedido negado."
+      "Ronronado recebido. Pedido negado.",
+      "Não estou te ignorando. Estou ignorando tudo por igual.",
+      "Esta cadeira está quentinha. Agora é minha.",
+      "Reunião encerrada. Estou deitado em cima da pauta.",
+      "Ronronar quer dizer sim. Silêncio também. Mais tarde."
     ],
     "bia": [
       "Ninguém passa por mim. Ninguém.",
@@ -2665,7 +2669,11 @@
       "A pausa do lanche é sagrada.",
       "O cofre está seguro. Conferi duas vezes.",
       "Forte e gentil — esse é o truque.",
-      "Abraço agora, ronda depois."
+      "Abraço agora, ronda depois.",
+      "Cofre trancado. Prateleira de lanches cheia. Tudo certo.",
+      "Consertei a porta. No fundo, ela queria um abraço.",
+      "Estoque de mel: perfeitamente normal. Não confira.",
+      "Patas grandes, pegada gentil. Esse é o trabalho."
     ],
     "quincy": [
       "Peguei mais um bug. Delicioso.",
@@ -2673,7 +2681,11 @@
       "'Croac' quer dizer 'pode lançar'.",
       "Testa duas vezes, coaxa uma.",
       "Nada escapa desta língua.",
-      "Achei o caso extremo. Ele me achou."
+      "Achei o caso extremo. Ele me achou.",
+      "Achei um bug. Corrigi um bug. Comi um bug.",
+      "O teste passou. Desconfio.",
+      "Qualidade é um estilo de vida. E um lanche.",
+      "Pulei pra uma conclusão. Ela aguentou."
     ],
     "dorm": [
       "Já já eu faço... com o tempo.",
@@ -2681,7 +2693,11 @@
       "Uma tarefa por dia afasta o estresse.",
       "Aguenta firme. Literalmente.",
       "Espreguiça, depois pensa.",
-      "Pressa? Não conheço."
+      "Pressa? Não conheço.",
+      "Não sou lento… sou… caprichoso.",
+      "Me acorda… pras sonecas… importantes.",
+      "A meta de hoje… era uma soneca. Batida.",
+      "Hora do rush… é… um mito."
     ],
     "inky": [
       "Oito braços, zero desculpas.",
@@ -2689,7 +2705,11 @@
       "Fazer mil coisas é só respirar.",
       "Arquivei em 'concluído'.",
       "Me dá tudo de uma vez.",
-      "Tinta acontece. Eu limpo."
+      "Tinta acontece. Eu limpo.",
+      "Organizei a sua organização. De nada.",
+      "Um braço pro café, sete pro resto.",
+      "Ops, um pouquinho de tinta. É minha assinatura.",
+      "Empilha, etiqueta, ama."
     ],
     "echo": [
       "Ouvi isso. Eu ouço tudo.",
@@ -2697,7 +2717,11 @@
       "De cabeça pra baixo, pensando alto.",
       "O turno da noite é meu.",
       "Eco, eco... ainda aqui.",
-      "Enxergo com som. Legal, né?"
+      "Enxergo com som. Legal, né?",
+      "Shh. O prédio está cantarolando de novo.",
+      "Eu enxergo melhor com os ouvidos.",
+      "O turno da noite é só o turno do dia, de cabeça pra baixo.",
+      "Alguma coisa nos dutos disse bom dia."
     ],
     "rosa": [
       "Fica numa perna só. Fica fabulosa.",
@@ -2705,7 +2729,11 @@
       "A gente não lança, a gente estreia.",
       "Se não é ousado, refaz.",
       "Equilíbrio é a minha marca.",
-      "Querido, isso é ouro no marketing."
+      "Querido, isso é ouro no marketing.",
+      "Postura, querido. Sempre postura.",
+      "Esse lançamento precisa de fitas. Todo lançamento precisa de fitas.",
+      "Rosa combina com tudo. Até com prazo.",
+      "Faça pose. Depois feche negócio."
     ],
     "perry": [
       "Consegui. Não pergunta onde.",
@@ -2713,7 +2741,11 @@
       "Bico difícil? Especialidade minha.",
       "Conheço um cara. O cara sou eu.",
       "Notas fiscais? Arquivadas. Em lugar seguro.",
-      "O incomum é minha zona de conforto."
+      "O incomum é minha zona de conforto.",
+      "Adquirido. Não pergunte. Aproveite.",
+      "Tenho nota fiscal disso. Em algum lugar. Numa maleta.",
+      "Só bicos ímpares. Os pares me entediam.",
+      "Mamífero. Ovo. Planilha. Eu contenho multidões."
     ],
     "axel": [
       "Quebrou? Cresce de novo.",
@@ -2721,7 +2753,11 @@
       "Ciência é basicamente magia com anotações.",
       "Vamos regenerar essa ideia.",
       "Debaixo d'água, superando metas.",
-      "Fica curioso, fica rosa."
+      "Fica curioso, fica rosa.",
+      "Erro é só um rascunho.",
+      "Hoje de manhã regenerei meu otimismo.",
+      "Tudo fica melhor com um pouquinho de água.",
+      "Sorrir não é escolha. Ser feliz é."
     ],
     "idle": [
       "O escritório zumbe baixinho.",
@@ -2922,31 +2958,25 @@
     "cycle": "Ciclo {{n}}"
   },
   "talk": {
-    "open": "Conversar",
-    "fileLabel": "CONVERSA DE PESSOAL",
-    "ref": "REF {{id}}-{{n}}",
-    "confidential": "INTERNO — NÃO PARA O CONSELHO",
-    "mood": "Humor",
+    "open": "Visitar",
     "trust": "Confiança",
-    "posting": "Lotação",
-    "whatChanged": "O que mudou",
-    "ended": "Ele volta ao trabalho.",
-    "backToWork": "Voltar ao trabalho",
+    "ended": "Sorri e volta ao trabalho.",
     "tip": {
       "ready": "Tem algo na cabeça dele.",
       "cooldown": "Ainda pensando na última conversa. ({{seconds}}s)",
       "nothing": "Nada novo para dizer agora."
     },
     "req": {
-      "nuts": "Precisa de {{value}} nozes",
+      "nuts": "Precisa de {{value}} castanhas",
       "goldenNuts": "Precisa de {{value}} douradas",
       "friendship": "Precisa de {{value}}% de confiança",
       "flag": "Algo precisa acontecer primeiro",
       "missingFlag": "Tarde demais para isso",
       "room": "Departamento errado para isso",
       "mood": "Sem clima",
-      "moraleAbove": "A moral precisa estar acima de {{value}}",
-      "moraleBelow": "Só enquanto a moral estiver abaixo de {{value}}"
+      "moraleAbove": "O ânimo precisa estar acima de {{value}}",
+      "moraleBelow": "Só enquanto o ânimo estiver abaixo de {{value}}",
+      "later": "Mais tarde: {{time}}"
     },
     "consequence": {
       "promise": {
@@ -3040,26 +3070,38 @@
     },
     "gift": {
       "title": "Algo para você",
-      "blurb": "Moral, nesta empresa, é uma rubrica. Não precisa ser.",
+      "blurb": "Ânimo, nesta empresa, é uma rubrica. Não precisa ser.",
       "open": {
         "prompt": "Você está escondendo algo atrás das costas e muito mal.",
         "acorn": {
-          "label": "Uma boa avelã. (500)",
-          "reply": "Ah, essa é BOA. Olha a espessura disso."
+          "label": "Um bom lanche de bolota. (500)",
+          "reply": "Ah, essa é BOA. Olha o tamanho disso."
         },
         "golden": {
-          "label": "Uma noz dourada. (1)",
+          "label": "Uma Castanha Dourada. (1 dourada)",
           "reply": "Isso é — não. É demais. Vou ficar com ela. Mas é demais."
         },
         "coffee": {
           "label": "O resto do café bom.",
-          "reply": "O BOM? Do fundo? Vou produzir tanto. Possivelmente demais."
+          "reply": "O BOM? Do fundo? Vou render tanto. Possivelmente demais."
+        },
+        "plant": {
+          "label": "Uma mudinha num vasinho. (300)",
+          "reply": "Uma planta! Algo pra cuidar. Obrigado."
+        },
+        "puzzle": {
+          "label": "Uma caixinha-quebra-cabeça. (900)",
+          "reply": "Uma caixa-quebra-cabeça. Com certeza não vou mexer nela nas reuniões."
+        },
+        "scarf": {
+          "label": "Um cachecol de tricô. (1.500)",
+          "reply": "Feito à mão? É tão macio. Talvez eu nunca mais tire."
         }
       }
     },
     "slump": {
       "title": "Todo mundo sente",
-      "blurb": "A moral está baixa o bastante para que finjir o contrário seja um insulto.",
+      "blurb": "O ânimo está baixo o bastante para que fingir o contrário seja um insulto.",
       "open": {
         "prompt": "Posso ser honesto? Ninguém está bem esta semana. Fomos todos muito educados sobre isso, o que de alguma forma é pior.",
         "own-it": {
@@ -3230,13 +3272,7 @@
       "label": "Deixar essa decisão para outro momento.",
       "reply": "Tudo bem. Não precisamos decidir agora."
     },
-    "otherTopics": "Outros assuntos",
-    "favorite": "Objeto querido",
-    "discovered": "História conhecida",
-    "keepsakeFile": "Arquivo de objetos pessoais",
-    "memoryFile": "O que já vivemos",
-    "memoryEntry": "Uma conversa lembrada",
-    "noMemoriesYet": "Esta pasta começa com a primeira conversa. Suas escolhas ficam conosco."
+    "otherTopics": "Outros assuntos"
   },
   "keepsake": {
     "pip": {
@@ -3821,45 +3857,44 @@
   },
   "gifts": {
     "preference": "Pequenas coisas que importam",
-    "unknown": "Traga um presente para conhecer suas preferências.",
     "preferenceNames": {
       "coffee": "Um café passado na hora",
-      "acorn": "Uma boa noz de lanche",
-      "golden": "Uma noz dourada para guardar"
+      "acorn": "Um bom lanche de bolota",
+      "golden": "Uma Castanha Dourada pra guardar",
+      "plant": "Uma mudinha num vasinho",
+      "puzzle": "Uma caixinha-quebra-cabeça",
+      "scarf": "Um cachecol de tricô"
     },
     "visitActions": "Passar um tempo juntos",
-    "conversation": "Como você está?",
-    "bring": "Trazer um presente",
-    "break": "Uma pausa para respirar. Nova conversa em {{seconds}}s.",
-    "quietVisit": "Fique um pouco. Pode rever nossas memórias enquanto termino este pensamento.",
-    "memoryFiled": "O presente favorito virou uma lembrança no arquivo da empresa.",
+    "quietVisit": "Fica um pouco. Folheia o álbum enquanto termina esse pensamento.",
+    "memoryFiled": "Você descobriu o favorito. Agora está no seu álbum.",
     "reactions": {
       "pip": "Você lembrou do café. Posso parar de fingir que esta caneca é só um peso de papel.",
       "marlow": "Um lanche sem reunião junto. Você me entende.",
       "rizzo": "Ouro de verdade? Vou registrar a localização. Em particular. No meu bolso.",
       "bea": "Boa casca. Sem rachaduras. Vou guardar metade para a volta.",
       "corvus": "Uma edição limitada com público de uma pessoa. Excelente posicionamento.",
-      "mina": "Café. Finalmente, um experimento com resultado confiável.",
+      "mina": "Uma caixa-quebra-cabeça! Uma coisa pra cavar que não é o chão. Vou passar a noite acordada.",
       "nixie": "Quente o bastante para soldar. É brincadeira. Quase.",
-      "otto": "Uma noz perfeitamente comum. Entre amigos, não precisa de recibo.",
-      "hazel": "Aceito, sem obrigação implícita. Exceto gratidão.",
+      "otto": "Uma bolota perfeitamente comum. Entre amigos, não precisa de nota fiscal.",
+      "hazel": "Peças que se encaixam, sem brechas. É o contrato mais lindo que já segurei.",
       "junie": "Ainda quente! Você achou a janela de doze segundos na minha agenda.",
       "moss": "Café para a vigília. Agora a décima terceira porta pode esperar.",
-      "fenn": "Uma noz dourada, sem negociação. Esse acordo vale a lembrança.",
-      "pingo": "Café viaja mal. Você trouxe até aqui sem derramar.",
-      "canela": "Encontrei esta variedade na trilha oeste. Tem gosto de voltar.",
-      "nino": "Uma noz. E tempo para comer devagar. A melhor entrega possível.",
+      "fenn": "Uma Castanha Dourada, sem negociação. Esse acordo vale a lembrança.",
+      "pingo": "Um cachecol. Pra um pinguim. Não pelo frio. Pelo ESTILO. Nunca me senti tão bem roteado.",
+      "canela": "Uma muda só minha! Anotação um: é perfeita. Anotação dois: você também.",
+      "nino": "Macio. Quentinho. Com um leve cheiro de raio de sol. Você pode continuar trabalhando aqui.",
       "bia": "Uma xícara quente encurta a vigília. Vou guardar um lugar para você.",
-      "quincy": "Café para mim, não para as amostras. Precisamos deixar isso claro.",
+      "quincy": "Uma selvinha! Os insetos vão morar nela. Vou deixá-los em paz. Quase sempre.",
       "dorm": "Um lanche que espera com paciência. Temos isso em comum.",
-      "inky": "Uma xícara. Oito mãos se voluntariaram. Vamos nos entender.",
-      "echo": "Escute a casca. Esse estalinho daria uma ótima gravação.",
+      "inky": "Um quebra-cabeça de oito lados! Um pra cada braço. Finalmente, uma luta justa.",
+      "echo": "É tão macio. Estou usando de cabeça pra baixo. Pra mim, esse é o lado certo.",
       "rosa": "O ouro pega a luz tão bem. Sei exatamente qual fita combina.",
-      "perry": "Neste recibo vou escrever: recebido com carinho. Valor: não se aplica.",
-      "axel": "Uma noz é um futuro pequeno. Vamos plantar esta?"
+      "perry": "Uma caixa lacrada com um segredo dentro. Você fala a minha língua. Vou abrir num esconderijo.",
+      "axel": "Uma vidinha nova. Vou dar nome a cada folha. Obrigado, obrigado, obrigado."
     },
     "polite": {
-      "pip": "Vou deixar ao lado da primeira noz. Aquela é a prateleira importante.",
+      "pip": "Vou deixar ao lado da primeira bolota. Aquela é a prateleira importante.",
       "marlow": "Obrigado. Vamos sentar antes de decidir para que serve.",
       "rizzo": "Conheço um lugar seguro para isso. Vários, na verdade.",
       "bea": "Um presente não precisa de conserto. Estou aprendendo.",
@@ -3882,6 +3917,85 @@
       "rosa": "Não vou mudar nada. Às vezes, o gesto é o desenho.",
       "perry": "Posso arquivar em gentilezas inesperadas. Ainda cabe.",
       "axel": "Vou deixar perto das mudas. As coisas crescem melhor com companhia."
+    },
+    "liked": {
+      "pip": "Uma bolota! Uma reserva, pra gaveta. Pra emergências. Toda bolota é uma emergência.",
+      "marlow": "Um cachecol. Vou usar nas partes calmas do dia. Ou seja, em todas. Que gostoso.",
+      "rizzo": "Uma caixa-quebra-cabeça. Abro em quatro segundos. Três, se ninguém estiver olhando.",
+      "bea": "Uma plantinha. Um dia vira madeira. Respeito um plano de longo prazo.",
+      "corvus": "Café! Combustível pra genialidade. E pra ideias questionáveis. Mais pra segunda.",
+      "mina": "Café pra escavação da noite. Você sabe bem o quanto meus dias são fundos.",
+      "nixie": "Um quebra-cabeça! Vou resolver e depois construir uma máquina que resolve mais rápido. Depois abraçar.",
+      "otto": "Dourada… tão brilhante. Não vou correr atrás. Vou só olhar. Com muita calma.",
+      "hazel": "Uma Castanha Dourada. Vou registrar como 'presentes, recebidos, encantada'. Duas vezes.",
+      "junie": "Um cachecol! Vou usar entre as reuniões. Os quatro segundos entre elas.",
+      "moss": "Um cachecol pra vigília. As horas silenciosas são frias. Isto as deixa gentis.",
+      "fenn": "Café. Você leu o ambiente. Respeito uma boa leitura.",
+      "pingo": "Café, no horário. Exatamente quando eu precisava. Você cronometrou lindamente.",
+      "canela": "Uma bolota. Vou desenhar antes de comer. Ciência primeiro.",
+      "nino": "Um lanche. Você pode fazer carinho na minha cabeça. Uma vez.",
+      "bia": "Um lanche de bolota. Não é mel, mas eu aceito. Patas grandes, abraço maior.",
+      "quincy": "Café! Vou testar com rigor. Inteiro. Agora mesmo.",
+      "dorm": "Um cachecol… tão macio… vou usar… nas minhas próximas… três… sonecas.",
+      "inky": "Café pro braço livre. Sempre sobra um braço livre pro café.",
+      "echo": "Uma bolota pro turno da noite. Vou comer de cabeça pra baixo. Fica mais gostosa.",
+      "rosa": "Um cachecol! Sei exatamente como drapear. Num ombro. Numa perna.",
+      "perry": "Uma Castanha Dourada. Irrastreável. Perfeita. Vou arquivar como 'adquirida legalmente'.",
+      "axel": "Uma bolota! Eu podia plantar… ou comer… vou fazer os dois, emocionalmente."
+    },
+    "odd": {
+      "pip": "Um quebra-cabeça? Eu já administro uma empresa. ISSO é o quebra-cabeça. …Vou guardar na prateleira importante.",
+      "marlow": "Café. Pra mim. Vou… bebericar… bem devagar… Ah. Ah, nossa. Agora tudo está muito rápido.",
+      "rizzo": "Um cachecol? Onde eu vou esconder as coisas? …Ah. No cachecol. Que gênio.",
+      "bea": "Dourada? Dá pra construir com isso? Não? Então é só madeira brilhante que esqueceu de ser madeira.",
+      "corvus": "Uma planta. Ela não viraliza. Só… cresce. Devagar. Sem estratégia. Fascinante.",
+      "mina": "Um cachecol? Debaixo da terra a temperatura é sempre a mesma. Vou usar como bandana de escavação.",
+      "nixie": "Uma planta? Não dá pra desmontar. Por que não dá pra desmontar? Vou dar um motorzinho pra ela.",
+      "otto": "Uma caixa-quebra-cabeça? Fico tentando equilibrar. Ela não equilibra. É uma caixa.",
+      "hazel": "Café? Eu leio contrato duas vezes. Com isso vou ler quatro. Em um minuto.",
+      "junie": "Uma planta? Eu ia ter que regar. Com horário. …Tá. Vou agendar. Com carinho.",
+      "moss": "Uma Castanha Dourada. Muito clara. Clara demais pra vigília. Vou guardar no bolso, onde é silencioso.",
+      "fenn": "Uma bolota? Eu vendo bolotas. Eu não ganho bolotas. …Tá. Estou comovido. Não conta pra ninguém.",
+      "pingo": "Dourada? Não dá pra comer, não dá pra nadar com ela. Vou colocar no fim da rota. Uma linha de chegada.",
+      "canela": "Uma Castanha Dourada. Vou anotar. Nota um: é muito brilhante. Nota dois: por quê?",
+      "nino": "Um quebra-cabeça. Vou derrubar da mesa. Essa é a minha solução.",
+      "bia": "Uma planta? Vou guardar no cofre. Lá ela fica segura. E muito confusa.",
+      "quincy": "Um cachecol. Pra um sapo. Eu sou meio úmido. Agora ele também. Estamos criando laços.",
+      "dorm": "Café… pra mim?… vou tomar… amanhã… devagar… por via das dúvidas.",
+      "inky": "Um cachecol. Pra qual braço? Já testei os oito. Agora é um cachecol bem comprido.",
+      "echo": "Café à noite? Eu já fico acordada à noite. Agora fico acordada à noite mais rápido.",
+      "rosa": "Uma bolota. Não é rosa. Não brilha. …Vou fazer dela um chapeuzinho. Me observa.",
+      "perry": "Uma planta. Ela não guarda segredo. Todo mundo vê. Vou guardar numa maleta.",
+      "axel": "Café? Não preciso. Eu sou sempre feliz assim. Agora sou feliz assim, só que rápido."
+    },
+    "reaction": {
+      "loved": "Amou!",
+      "liked": "Gostou",
+      "polite": "Agradeceu, educado",
+      "odd": "Ficou confuso"
+    },
+    "untried": "Ainda não tentou",
+    "notebook": "Caderno de presentes",
+    "favorite": "Favorito: {{gift}}",
+    "favoriteUnknown": "Favorito: ainda um mistério",
+    "cost": {
+      "free": "Grátis"
+    },
+    "hint": {
+      "coffee": "{{name}} vive olhando pra máquina de café.",
+      "acorn": "{{name}} comentou que sente falta de um bom lanche.",
+      "golden": "{{name}} fica rondando tudo que brilha.",
+      "plant": "{{name}} anda regando as plantas do escritório.",
+      "puzzle": "{{name}} anda desenhando labirintos nos memorandos.",
+      "scarf": "{{name}} anda tremendo de frio perto da janela."
+    },
+    "short": {
+      "coffee": "Café",
+      "acorn": "Lanche de bolota",
+      "plant": "Mudinha",
+      "puzzle": "Quebra-cabeça",
+      "scarf": "Cachecol",
+      "golden": "Castanha Dourada"
     }
   },
   "dock": {
@@ -3977,5 +4091,1199 @@
     "crate": "O caixote encheu com {{value}} castanhas: toque nele no escritório para recolher.",
     "finds_one": "Alguém achou algo enquanto você estava fora.",
     "finds_other": "{{count}} colegas acharam algo enquanto você estava fora."
+  },
+  "arc": {
+    "pip": {
+      "title": "A Primeira Bolota",
+      "1": {
+        "prompt": "Posso te mostrar uma coisa? Eu guardei a primeiríssima bolota. Ela mora na gaveta da caneca desde o primeiro dia. Ontem ela… brotou.",
+        "a": {
+          "label": "Que lindo. Vamos cuidar bem dela.",
+          "reply": "Eu sabia que você ia dizer isso. Já etiquetei: 'Não reorganizar'."
+        },
+        "b": {
+          "label": "Ela não devia estar na terra?",
+          "reply": "Terra. Claro. Óbvio. Eu ia pensar nisso. Uma hora."
+        }
+      },
+      "2": {
+        "prompt": "O broto já tem duas folhas. Duas! Eu dou uma olhada entre as reuniões. Isso é uma quantidade normal de olhadas?",
+        "a": {
+          "label": "Vamos achar um vaso de verdade juntos.",
+          "reply": "Um vaso! Com furinho embaixo! Você pensa em tudo. Vou atrás de um com alcinha."
+        },
+        "b": {
+          "label": "Coloca onde a equipe toda possa ver.",
+          "reply": "Planta do escritório. Responsabilidade compartilhada. Faz bem pro ânimo. O Bento já fez um plano de bem-estar pra ela."
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "Lembra quando você disse pra cuidar bem dela? Agora é uma arvorezinha. Acho que a empresa já passou de uma bolota faz tempo.",
+          "b": "Você disse que ela precisava de terra. Você tinha razão, e agora ela precisa de um canto inteiro. Estou estranhamente emocionado com um canto."
+        },
+        "a": {
+          "label": "Planta ao lado do tronco, onde tudo começou.",
+          "reply": "Então ela vai crescer bem do nosso lado. Igual à empresa. Igual… sabe. A gente."
+        },
+        "b": {
+          "label": "Dá uma mesa pra ela. Ela merece um cargo.",
+          "reply": "Diretora de Crescimento. Nunca falta a uma reunião. Já é minha melhor contratação."
+        }
+      },
+      "callback": {
+        "a": "A bolota está segura. Eu confiro. De hora em hora. Profissionalmente.",
+        "b": "Coloquei na terra. Agora converso com ela. Normal pra um CEO."
+      },
+      "find": "Achei um vaso sobrando debaixo da minha mesa. Tinha bolotas dentro. Destino!"
+    },
+    "marlow": {
+      "title": "A Visita da Lagoa",
+      "1": {
+        "prompt": "Um patinho está me seguindo desde terça. Eu não disse nada. O patinho também não.",
+        "a": {
+          "label": "Deixa ele ficar. Ele achou a pessoa dele.",
+          "reply": "Então vou fazer um crachazinho pra ele. Visitante, sem prazo."
+        },
+        "b": {
+          "label": "Pato precisa de água, Bento.",
+          "reply": "Correto. Vou deixar a chaleira da copa de prontidão. Emocionalmente."
+        }
+      },
+      "2": {
+        "prompt": "O patinho agora participa das minhas sessões de bem-estar. A presença triplicou. Acho que o pessoal vem pelo pato.",
+        "a": {
+          "label": "Faz uma lagoinha pra ele na copa.",
+          "reply": "Uma lagoa. Claro. Não vou marcar nada perto dela, pra ninguém se sentir apressado."
+        },
+        "b": {
+          "label": "Pede pro Soneca ajudar a cuidar dele.",
+          "reply": "O Soneca e o pato agora cochilam em turnos. É a creche mais tranquila da história."
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "Ele cresceu. Tem crachá, lagoa e opiniões. Hoje voou até o telhado e voltou. Eu não entrei em pânico.",
+          "b": "Ele está quase adulto e ainda me espera na chaleira toda manhã. Nunca me senti tão necessário pra uma ave."
+        },
+        "a": {
+          "label": "Diz pra ele que pode voltar sempre.",
+          "reply": "Eu disse. Ele grasnou. Escolho traduzir isso como um sim."
+        },
+        "b": {
+          "label": "Deixa ele voar pro sul. Você visita.",
+          "reply": "Então vou planejar a viagem mais tranquila da história. Lanche a cada onze minutos."
+        }
+      },
+      "callback": {
+        "a": "O patinho tem crachá agora. A segurança cumprimenta ele.",
+        "b": "A chaleira está de prontidão. Pro pato. Não pra mim."
+      },
+      "find": "O pato trouxe isso da lagoa. Eu não perguntei."
+    },
+    "rizzo": {
+      "title": "A Montanha de Notinhas",
+      "1": {
+        "prompt": "Confissão: eu guardo toda nota fiscal. Todas. Estão nos dutos de ar. Hipoteticamente.",
+        "a": {
+          "label": "Me mostra a montanha.",
+          "reply": "Você seria o primeiro. Cuidado com os pombos. Eles estão arquivando."
+        },
+        "b": {
+          "label": "Entrega tudo pro Otto, por favor.",
+          "reply": "Pro Otto? Ele vai chorar. De alegria. Lágrimas contábeis. Tá bom."
+        }
+      },
+      "2": {
+        "prompt": "Notícia ruim: as notas chegaram à cantina. Notícia boa: achei um cupom de 1998 que ainda vale.",
+        "a": {
+          "label": "Usa o cupom. Pela ciência.",
+          "reply": "Deixa comigo. A máquina de lanche nunca esteve tão nervosa."
+        },
+        "b": {
+          "label": "O Perry jura que o cupom dele é melhor.",
+          "reply": "Os cupons do Perry são falsificados. Falsificações lindas. Tá bom, vamos comparar. Quem perder paga o almoço."
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "Você subiu a montanha de notinhas comigo. Ninguém nunca fez isso. Fiz um presente pra você… de notinhas.",
+          "b": "O Otto emoldurou uma das minhas notas. Emoldurou. Agora sinto que devo desculpas pra pilha inteira."
+        },
+        "a": {
+          "label": "Está lindo. Guarda num lugar seguro.",
+          "reply": "Uma escultura. Da gente. Plastificada. Não conta pra Avelã."
+        },
+        "b": {
+          "label": "Abre um museu. Cobra ingresso.",
+          "reply": "Coleção Anelrabo. A lojinha vende notas fiscais. Muito meta. Muito lucrativo."
+        }
+      },
+      "callback": {
+        "a": "Status da montanha: estável. Os pombos fundaram um sindicato.",
+        "b": "O Otto tem um fichário inteiro agora. Ele cantarola quando abre."
+      },
+      "find": "Olha o que eu achei debaixo da nota nº 48.211. Achado não é roubado. É seu."
+    },
+    "bea": {
+      "title": "A Casa na Árvore",
+      "1": {
+        "prompt": "A gente trabalha dentro de uma árvore e ninguém construiu uma casa na árvore aqui. Isso me tira o sono. Profissionalmente.",
+        "a": {
+          "label": "Desenha a planta pra mim.",
+          "reply": "Já está pronta. Onze páginas. A página quatro é só a escada."
+        },
+        "b": {
+          "label": "O escritório todo já não é uma casa na árvore?",
+          "reply": "Isso é… justo. Então uma casa na árvore dentro da casa na árvore. Casa-na-árvore-ception."
+        }
+      },
+      "2": {
+        "prompt": "Achei o galho perfeito. Firme. Sol dos dois lados. Só mora um esquilo lá, e ele topa sublocar.",
+        "a": {
+          "label": "Constrói. Eu busco as tábuas.",
+          "reply": "Você carregaria tábuas pra mim? Vou escolher a mais bonita. Você fica com a segunda mais bonita."
+        },
+        "b": {
+          "label": "Deixa a Bia ver se é seguro antes.",
+          "reply": "A Bia abraçou o galho por dez minutos. Veredito: seguro, e muito abraçável."
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "Você desenhou a planta comigo, então deixei espaço pra você assinar a porta. Está pronta. Tem até campainha.",
+          "b": "Uma casa na árvore dentro da casa na árvore. Você falou, eu construí. É ridículo. É perfeito."
+        },
+        "a": {
+          "label": "Faz uma festa de inauguração.",
+          "reply": "Todo mundo convidado. Não precisa trazer nada. Eu fiz cadeiras. Muitas cadeiras."
+        },
+        "b": {
+          "label": "Guarda como seu cantinho de sossego.",
+          "reply": "Um lugar pra pensar com madeira por todo lado. Você entende. Você entende mesmo."
+        }
+      },
+      "callback": {
+        "a": "A página quatro da planta ainda é a minha favorita. Aquela escada.",
+        "b": "Casa-na-árvore-ception. Escrevi na planta."
+      },
+      "find": "Sobrou da casa na árvore. A tábua boa. Você mereceu."
+    },
+    "corvus": {
+      "title": "Viralizou",
+      "1": {
+        "prompt": "Notícia boa: viralizamos. Notícia ruim: é um vídeo do Soneca dormindo no meio de uma frase. Quarenta milhões de views.",
+        "a": {
+          "label": "Pergunta pro Soneca se ele está de boa com isso.",
+          "reply": "Perguntando. …Ele está dormindo. Pergunto de novo quando ele acordar. Direito. Eticamente. Ugh."
+        },
+        "b": {
+          "label": "Aproveita a onda. Faz produto.",
+          "reply": "Produto é minha linguagem do amor. Moletons da preguiça sonolenta saem hoje à noite."
+        }
+      },
+      "2": {
+        "prompt": "Um programa de TV quer a gente. Pediram 'o sonolento e o brilhante'. Imagino que o brilhante seja eu.",
+        "a": {
+          "label": "Vai. Leva o Soneca. Deixa ele cochilar ao vivo.",
+          "reply": "Um cochilo ao vivo. Ousado. Sem roteiro. Os produtores estão apavorados. Amei."
+        },
+        "b": {
+          "label": "Apresenta a empresa, com a bênção do Soneca.",
+          "reply": "Marca séria, corvo sério. O Soneca fez um joinha bem devagar. Demorou um pouco."
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "Você me fez perguntar pro Soneca primeiro. Ele disse sim, roncando. Fazer do jeito certo foi… bom? Estranho. Bom.",
+          "b": "Os moletons esgotaram. Duas vezes. Você me deixou ser sem-vergonha e eu nunca me senti tão visto."
+        },
+        "a": {
+          "label": "Doa o lucro pro fundo da soneca.",
+          "reply": "Fundação Soneca pelo Descanso. Viral E virtuoso. Minhas duas palavras favoritas com V."
+        },
+        "b": {
+          "label": "Emoldura o primeiro moletom na recepção.",
+          "reply": "Pendurei do lado da foto do fundador. O Tico chorou. De alegria, acho."
+        }
+      },
+      "callback": {
+        "a": "O Soneca assinou o termo de uso de imagem. Levou três cochilos.",
+        "b": "Atualização dos moletons: acabou a letra Z."
+      },
+      "find": "Cartas de fãs. Mandaram coisas brilhantes. Só fiquei com uma. Toma."
+    },
+    "mina": {
+      "title": "O Porão do Porão",
+      "1": {
+        "prompt": "Cavei além do porão. Tem outro porão. Com o nosso logo na porta. Datado de 1903.",
+        "a": {
+          "label": "Abre. Com cuidado.",
+          "reply": "Cuidado é meu sobrenome. Meu nome é Mina, que acho que também quer dizer cuidado."
+        },
+        "b": {
+          "label": "Fecha e faz um relatório.",
+          "reply": "Relatório feito. Diz 'uma porta mais velha que a gente'. A Avelã precisou sentar."
+        }
+      },
+      "2": {
+        "prompt": "Atrás da porta: uma mesa, uma luminária e uma placa. 'Nutshell Inc. — Fundador'. Não é a letra do Tico.",
+        "a": {
+          "label": "Traz a placa pra cima.",
+          "reply": "Trazendo. Ela está morna. Como se alguém tivesse acabado de colocar ali."
+        },
+        "b": {
+          "label": "Pergunta pro Mocho. Mocho percebe as coisas.",
+          "reply": "O Mocho olhou pra ela por uma hora e disse 'ah'. Só 'ah'. Estou animada e apavorada."
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "Você mandou abrir, e eu abri. O antigo fundador deixou uma carta: 'Quem encontrar isto: continue cavando. Com gentileza.'",
+          "b": "Você quis o relatório. Ele voltou carimbado por alguém que se aposentou em 1931. Agora estamos num mistério."
+        },
+        "a": {
+          "label": "Então a gente continua cavando. Com gentileza.",
+          "reply": "Cavar com gentileza. Vou escrever nos meus óculos. Obrigada por acreditar nas coisas esquisitas."
+        },
+        "b": {
+          "label": "Fecha, mas deixa uma luz acesa.",
+          "reply": "Uma luminariazinha pra quem vier depois. A coisa mais gentil que já disseram sobre um túnel."
+        }
+      },
+      "callback": {
+        "a": "O porão do porão é muito arrumado. Arrumado demais.",
+        "b": "Meu relatório virou o documento mais lido da empresa."
+      },
+      "find": "Achei isto no meio do túnel. É antigo. Agora é nosso."
+    },
+    "nixie": {
+      "title": "Versão Dois",
+      "1": {
+        "prompt": "Construí um grampeador que se grampeia sozinho. Ele está muito orgulhoso. Me segue por aí e grampeia minhas anotações. Com carinho.",
+        "a": {
+          "label": "Dá um nome pra ele.",
+          "reply": "Grampinho. Não — Sir Grampos. Não — Kevin. É o Kevin."
+        },
+        "b": {
+          "label": "Isso é seguro?",
+          "reply": "Quase! 80% seguro. Como tudo que eu faço. É um bom número. Provavelmente."
+        }
+      },
+      "2": {
+        "prompt": "O Kevin começou a montar um grampeador menor. Eu não ensinei isso. Virei avó? De grampeadores?",
+        "a": {
+          "label": "Dá uma bancada pra eles.",
+          "reply": "Uma bancadinha! Estou tão orgulhosa. E com medo. Mais orgulhosa."
+        },
+        "b": {
+          "label": "Pede pro Quincy testar.",
+          "reply": "O Quincy achou três bugs e um inseto de verdade. O Kevin grampeou um chapeuzinho no inseto."
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "O Kevin quer um cargo. Você deu o nome, então você opina. Ele grampeou seu nome na minha parede. Com respeito.",
+          "b": "Você perguntou se ele era seguro. Agora ele é 94% seguro! Meu melhor número da vida. E ainda faz chá."
+        },
+        "a": {
+          "label": "Chefe de Papelaria.",
+          "reply": "O Kevin clicou duas vezes. É alegria. Vou fazer um crachá pra ele. Grampeado."
+        },
+        "b": {
+          "label": "Deixa ele automatizar o café.",
+          "reply": "Café by Kevin. Toda xícara vem grampeada. É uma funcionalidade."
+        }
+      },
+      "callback": {
+        "a": "O Kevin mandou oi. O Kevin não fala. O Kevin grampeou 'oi'.",
+        "b": "O Kevin é 80% seguro. Ele está trabalhando nisso. Todos nós estamos."
+      },
+      "find": "O Kevin fez isso pra você. Cuidado com os grampos."
+    },
+    "otto": {
+      "title": "A Pedra do Rio",
+      "1": {
+        "prompt": "Eu guardo uma pedrinha do rio onde cresci. Às vezes ela rola da mesa e eu corro atrás. Muito profissionalmente.",
+        "a": {
+          "label": "Me conta do rio.",
+          "reply": "Gelado, rápido e cheio de coisas brilhantes. Eu era um péssimo aluno e um ótimo nadador."
+        },
+        "b": {
+          "label": "Quer uma caixinha pra ela?",
+          "reply": "Uma caixa? Pra pedrinha? Com etiqueta? …Estou corando. Lontra não cora. Estou corando."
+        }
+      },
+      "2": {
+        "prompt": "As contas fecharam hoje. Primeira vez na semana. Comemorei olhando pra pedrinha. Isso é triste?",
+        "a": {
+          "label": "Vamos fazer um passeio até o rio.",
+          "reply": "Um passeio. Vou orçar. Até o centavo. E depois vou espirrar água. Fora do orçamento."
+        },
+        "b": {
+          "label": "Mostra seu sistema de arquivo pro Guaxi.",
+          "reply": "O Guaxi olhou meus livros-caixa e disse 'respeito'. Depois pegou uma caneta. Tem coisa que não muda."
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "Você perguntou do rio. Ninguém pergunta. Voltei lá no fim de semana. É menor do que eu lembrava. Eu que cresci.",
+          "b": "A pedrinha tem caixa agora, com etiqueta na minha melhor letra. Ela não sai mais rolando. Eu também não."
+        },
+        "a": {
+          "label": "Traz o rio pra cá: uma fontezinha.",
+          "reply": "Uma fonte no Financeiro. Água nos números. Absurdo. Eu mesmo aprovo o orçamento."
+        },
+        "b": {
+          "label": "Aqui também é sua casa, sabia?",
+          "reply": "…Me dá um segundo. Número eu resolvo. Isso aqui eu preciso nadar um pouco em volta."
+        }
+      },
+      "callback": {
+        "a": "Fechei as contas e só corri atrás de uma coisa brilhante. Evolução.",
+        "b": "A pedrinha está na caixa. A etiqueta diz 'Casa, portátil'."
+      },
+      "find": "Achei isto no rio, no passeio. É brilhante. Não corri atrás. Muito."
+    },
+    "hazel": {
+      "title": "As Letras Miúdas",
+      "1": {
+        "prompt": "Por favor, não ria. Eu escondo poemas nas notas de rodapé dos contratos. Pequenininhos. A cláusula 14.b é sobre a lua.",
+        "a": {
+          "label": "Lê a 14.b pra mim.",
+          "reply": "'A parte da segunda parte / à noite tem um coração que arde.' …É juridicamente vinculante."
+        },
+        "b": {
+          "label": "Isso não pode estar em conformidade.",
+          "reply": "ESTÁ em conformidade. Eu conferi. Duas vezes. Esse é o problema. Está perfeito."
+        }
+      },
+      "2": {
+        "prompt": "Um cliente assinou um contrato e respondeu: 'Quem escreveu a cláusula 9? Eu chorei.' Estou em pânico. Educadamente.",
+        "a": {
+          "label": "Conta que foi você.",
+          "reply": "Contei. Eles querem uma cláusula de poesia em toda renovação. Nunca fiquei tão espinhosa de alegria."
+        },
+        "b": {
+          "label": "Pede pro Nino ler na reunião.",
+          "reply": "O Nino leu em voz alta e depois dormiu em cima. O cliente chamou de 'performance artística'."
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "Você leu a 14.b em voz alta. Em voz alta! Tenho escrito mais. A diretoria perguntou se poesia é faturável.",
+          "b": "Você se preocupou com a conformidade, então escrevi um poema que É uma política de conformidade. Rima. É à prova de falhas."
+        },
+        "a": {
+          "label": "Publica a coletânea.",
+          "reply": "'Termos e Condições: Poemas'. Capa dura. Com índice. Obviamente."
+        },
+        "b": {
+          "label": "Lê um na próxima reunião geral.",
+          "reply": "Todo mundo ficou acordado o poema inteiro. Até o Nino. Histórico."
+        }
+      },
+      "callback": {
+        "a": "A cláusula 14.b tem fãs agora. No plural.",
+        "b": "Em conformidade E lírica. Minhas duas coisas favoritas."
+      },
+      "find": "Um contrato assinado com um poema dentro. O cliente emoldurou o dele. Esta cópia é sua."
+    },
+    "junie": {
+      "title": "Cinco Minutos Adiantada",
+      "1": {
+        "prompt": "Pergunta estranha. Cheguei cinco minutos antes de a empresa ser fundada. Já tinha crachá. Quem me agendou?",
+        "a": {
+          "label": "Vamos descobrir juntas.",
+          "reply": "Juntas! Separei exatamente quatro minutos pra isso. É generoso, pra mim."
+        },
+        "b": {
+          "label": "Vai ver você mesma se agendou.",
+          "reply": "Isso é… totalmente possível. Eu sempre chego adiantada. Até pra existir."
+        }
+      },
+      "2": {
+        "prompt": "Achei meu agendamento. Está na minha letra, com data de amanhã. Vou chegar adiantada no meu próprio compromisso.",
+        "a": {
+          "label": "Então a gente chega adiantado com você.",
+          "reply": "Pontualidade em grupo! Vou agendar a gente. Vou agendar o agendamento. Ai não. Ai sim."
+        },
+        "b": {
+          "label": "Pergunta pro Pingo. Ele entende de horários.",
+          "reply": "O Pingo leu de cabeça pra baixo e disse 'sua agenda tem um loop'. Um LOOP, Pingo."
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "A gente foi adiantado junto. Adivinha quem já estava lá? Eu. Eu-de-antes. Ela acenou. Eu acenei. Muito eficiente.",
+          "b": "Meu agendamento era de verdade. Eu me agendei pra existir. Semana corrida. Estou muito orgulhosa."
+        },
+        "a": {
+          "label": "Agenda um dia de folga pra você.",
+          "reply": "Um dia inteiro? Sem agenda? Vou agendar. Com carinho. É um começo."
+        },
+        "b": {
+          "label": "Continua adiantada. É seu superpoder.",
+          "reply": "Então vou continuar chegando antes, pra ninguém ter que esperar sozinho. Esse é o trabalho de verdade."
+        }
+      },
+      "callback": {
+        "a": "A eu-de-antes deixou um bilhete: 'Você está indo muito bem. E está atrasada.'",
+        "b": "Eu me agendei pra existir. A terça foi puxada."
+      },
+      "find": "Isto chegou pra você amanhã. Peguei adiantado."
+    },
+    "moss": {
+      "title": "O Que a Noite Vê",
+      "1": {
+        "prompt": "À noite, as plantas do escritório se viram pro elevador. Todas. Toda noite às 3h12. Tenho anotações.",
+        "a": {
+          "label": "Hoje eu fico acordado com você.",
+          "reply": "Então você vai ver. Traga um cobertor. As horas silenciosas são frias, e sinceras."
+        },
+        "b": {
+          "label": "Vai ver é o ar-condicionado.",
+          "reply": "Talvez. O ar-condicionado não está nas minhas anotações. As plantas estão. Hm."
+        }
+      },
+      "2": {
+        "prompt": "Ontem o elevador abriu sozinho. Ninguém dentro. Só folhas no chão, arrumadas como uma seta. Pra cima.",
+        "a": {
+          "label": "Segue a seta.",
+          "reply": "Pra cima, então. Até o telhado. Talvez você queira sapatos. Eu não, mas você talvez."
+        },
+        "b": {
+          "label": "Pergunta pra Eco. Ela ouve o que eu vejo.",
+          "reply": "A Eco ouviu um zumbido no poço do elevador. Uma canção de ninar, num tom que não existe. Lindo."
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "Você ficou acordado comigo. Ninguém fica acordado comigo. No telhado achamos o galho mais antigo da árvore, brilhando.",
+          "b": "Você achou que era o ar-condicionado. Não era o ar-condicionado. Acho que a árvore está sonhando. Com a gente."
+        },
+        "a": {
+          "label": "Vamos guardar o segredo dela.",
+          "reply": "Guardado. A vigília noturna agora tem dois membros. Isso faz dela um clube. Eu nunca estive num clube."
+        },
+        "b": {
+          "label": "Então vamos deixar uma luz noturna pra ela.",
+          "reply": "Uma luzinha pra uma árvore que sonha. A instrução mais gentil que já recebi."
+        }
+      },
+      "callback": {
+        "a": "3h12 de novo ontem. A samambaia acenou. Acenei de volta.",
+        "b": "Anotei 'não é o ar-condicionado'. Duas vezes."
+      },
+      "find": "A árvore deixou isto no telhado. Estava cantarolando. Acredito que seja pra você."
+    },
+    "fenn": {
+      "title": "O Grande Negócio",
+      "1": {
+        "prompt": "O maior negócio da minha carreira está em jogo. Problema: a cliente é minha mãe. Ela negocia pesado.",
+        "a": {
+          "label": "Seja sincero com ela.",
+          "reply": "Sincero. Com a minha mãe. Corajoso. Ela vai me ler de qualquer jeito. Sempre lê."
+        },
+        "b": {
+          "label": "Fecha como qualquer outro negócio.",
+          "reply": "Profissional. Charmoso. Inabalável. Ela me chamou de 'docinho' duas vezes no primeiro e-mail."
+        }
+      },
+      "2": {
+        "prompt": "A mãe quer um tour antes de assinar. Quer conhecer 'quem alimenta meu filho'. Eu como muito bem, obrigado.",
+        "a": {
+          "label": "Faz o tour completo.",
+          "reply": "O tour completo. Ela já gosta mais do Bento do que de mim. Tá tudo bem. Tá tudo bem."
+        },
+        "b": {
+          "label": "Deixa o Téo fazer a apresentação.",
+          "reply": "O Téo fez uma apresentação com fogos de artifício. A mãe perguntou se ele é solteiro. Ele adorou."
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "Você disse pra eu ser sincero. Contei pra mãe que estava nervoso. Ela assinou e disse 'tenho orgulho de você'. Estou esquisito o dia todo.",
+          "b": "Maior negócio da história da empresa: assinado. Ela me arrancou um desconto e a promessa de ligar mais."
+        },
+        "a": {
+          "label": "Liga mais pra ela.",
+          "reply": "Já liguei. Duas vezes. Ela diz que estou grudento. Está encantada."
+        },
+        "b": {
+          "label": "Emoldura o contrato.",
+          "reply": "Emoldurado. Do lado, uma foto da mãe com a equipe toda. Meu melhor fechamento."
+        }
+      },
+      "callback": {
+        "a": "A mãe mandou lembranças. E um cachecol. Pra você, não pra mim.",
+        "b": "Invicto em vendas. A mãe não conta. A mãe é lenda."
+      },
+      "find": "A mãe mandou uma cesta. Escreveu 'pro gentil'. É você."
+    },
+    "pingo": {
+      "title": "O Caminho de Casa",
+      "1": {
+        "prompt": "Planejei uma rota de volta pro gelo nas férias. Tem nove conexões e um nado bem comprido.",
+        "a": {
+          "label": "Me conta da sua casa.",
+          "reply": "Luz azul, silêncio branco, um monte de primos. Sinto falta dos primos. Do nado, não."
+        },
+        "b": {
+          "label": "Dá pra ter menos conexões?",
+          "reply": "Menos conexões. Sim. Você fala a minha língua. Rotas."
+        }
+      },
+      "2": {
+        "prompt": "Meus primos responderam. Querem vir visitar. Os quarenta. Nunca viram uma árvore. Nem um escritório.",
+        "a": {
+          "label": "Convida. A gente abre espaço.",
+          "reply": "Quarenta pinguins num escritório. Vou cronometrar tudo. Chegada por ordem de altura."
+        },
+        "b": {
+          "label": "A Juju pode ajudar com o horário.",
+          "reply": "A Juju agendou eles antes de eles pedirem. Ela é assustadora. Ela é maravilhosa."
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "Você perguntou da minha casa, então contei pros meus primos daqui. Disseram que parece casa, só que com mais castanhas.",
+          "b": "Você cortou duas conexões da rota. É a melhor rota que já tive. Talvez eu nunca use. Vou emoldurar."
+        },
+        "a": {
+          "label": "Então aqui também é casa.",
+          "reply": "…Frio sob pressão, quente no coração. É o que diz minha ficha. Hoje está correta."
+        },
+        "b": {
+          "label": "Transforma a rota num feriado da empresa.",
+          "reply": "Feriado da empresa: Dia da Rota. Todo mundo ganha um lanche em cada conexão."
+        }
+      },
+      "callback": {
+        "a": "Meus primos mandaram oi. Quarenta vezes. Por ordem de altura.",
+        "b": "Atualização da rota: sete conexões. Recorde pessoal."
+      },
+      "find": "Meus primos mandaram isto pelo correio. Está congelado. Dá um minutinho."
+    },
+    "canela": {
+      "title": "Página Noventa e Nove",
+      "1": {
+        "prompt": "Meu caderno tem uma página que eu não escrevi. A página noventa e nove. Descreve o tempo de amanhã na copa.",
+        "a": {
+          "label": "Vamos conferir amanhã.",
+          "reply": "Um experimento de verdade! Hipótese: o caderno sabe das coisas. Controle: eu, nervosa."
+        },
+        "b": {
+          "label": "Vai ver você escreveu meio dormindo.",
+          "reply": "Pode ser. Mas minha letra não costuma vir com desenhinhos seus na margem."
+        }
+      },
+      "2": {
+        "prompt": "A página noventa e nove acertou: garoa perto da chaleira às 10h40. Agora a página cem diz 'alguém vai trazer um presente'.",
+        "a": {
+          "label": "Então eu trago um. Vamos testar.",
+          "reply": "Você está fazendo a profecia se cumprir de propósito. Isso é trapaça ou amizade. As duas coisas."
+        },
+        "b": {
+          "label": "Mostra pra Mina. Ela ama um mistério.",
+          "reply": "A Mina leu e sussurrou 'a letra de 1903'. Agora somos melhores amigas. Mistério une."
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "A gente testou o caderno juntos. Ele nunca erra quando você está por perto. Vai ver ele só anota coisas gentis.",
+          "b": "Você achou que eu escrevi dormindo. Eu ando observando dormindo! A eu dormindo anota melhor do que eu."
+        },
+        "a": {
+          "label": "Guarda uma página pra gente.",
+          "reply": "Página cento e um: 'Continuaram curiosos.' Essa eu mesma escrevi. Acordada."
+        },
+        "b": {
+          "label": "Escreve você a última página.",
+          "reply": "A última página, na minha letra: 'Tudo aqui merece ser notado.' Pronto."
+        }
+      },
+      "callback": {
+        "a": "A página noventa e nove prevê sol. Traga óculos escuros.",
+        "b": "A eu dormindo escreveu 'comprar leite'. Ela é muito prática."
+      },
+      "find": "A página cem disse que você ia ganhar isto. Caderno não mente."
+    },
+    "nino": {
+      "title": "O Tratado do Raio de Sol",
+      "1": {
+        "prompt": "Tem alguém sentando no meu raio de sol. Das 15h15 às 15h40. Não estou bravo. Estou redigindo um tratado.",
+        "a": {
+          "label": "Me ajuda a redigir.",
+          "reply": "Cláusula um: o raio de sol é meu. Cláusula dois: ver cláusula um. Você leva jeito."
+        },
+        "b": {
+          "label": "Divide. Tem sol pra todo mundo.",
+          "reply": "Dividir. O sol. Proposta interessante. Vou pensar nela deitado nele."
+        }
+      },
+      "2": {
+        "prompt": "O invasor é o Soneca. Ele é muito lento, então as negociações levam horas. Nós dois estamos adorando as negociações.",
+        "a": {
+          "label": "Faz as negociações no raio de sol.",
+          "reply": "Diplomacia ao sol. Nós dois dormimos. Avanço histórico."
+        },
+        "b": {
+          "label": "Pede pra Avelã mediar.",
+          "reply": "A Avelã leu um poema sobre dividir. Não estou chorando. É o sol no meu olho."
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "Você redigiu comigo. O tratado foi assinado: o Soneca fica das 15h15 às 15h40. Eu fico com o resto. E com ele.",
+          "b": "Você disse pra dividir. Dividimos. Dois dorminhocos, um raio de sol. Fica mais quentinho com companhia. Não conta pra ninguém."
+        },
+        "a": {
+          "label": "Emoldura o tratado perto da janela.",
+          "reply": "Assinado com a pata, e com uma garra bem lenta. O documento mais importante do prédio."
+        },
+        "b": {
+          "label": "Faz uma festa do raio de sol.",
+          "reply": "Uma festa onde todo mundo deita no sol. Meu tipo de evento. Sem conversa."
+        }
+      },
+      "callback": {
+        "a": "O tratado está de pé. O Soneca chegou na hora. Chegou ontem.",
+        "b": "Dividindo o raio de sol. Tudo bem. Tudo ótimo. Está quentinho."
+      },
+      "find": "Derrubei isto de uma prateleira. Pra você. É assim que eu digo que gosto de você."
+    },
+    "bia": {
+      "title": "A Ladra de Mel",
+      "1": {
+        "prompt": "Alguém mexeu no estoque de mel. Pegadas. Grandes. Conferi todas as câmeras. Estou com medo de ser eu.",
+        "a": {
+          "label": "Vamos fazer uma vigília à noite.",
+          "reply": "Uma tocaia. Com lanche. Lanche sem mel. Óbvio. Arriscado demais."
+        },
+        "b": {
+          "label": "E se for só um estoque maior?",
+          "reply": "Um estoque maior só seria mais coisa pra roubar. A não ser que… ah. Ah, você é esperto."
+        }
+      },
+      "2": {
+        "prompt": "A câmera pegou. Sou eu. Sonâmbula. Segurando o mel como um bebê. Eu parecia muito em paz.",
+        "a": {
+          "label": "Vamos rir disso juntos.",
+          "reply": "…É engraçado. É muito engraçado. Estou rindo. Não conta pra segurança. Eu sou a segurança."
+        },
+        "b": {
+          "label": "Pede pra Beta fazer uma tranca à prova de sono.",
+          "reply": "A Beta fez uma tranca de madeira. Abri dormindo. Lá dentro ela tinha entalhado 'boa tentativa'."
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "Você fez tocaia com uma ursa que era a própria ladra. Você é um bom amigo. Eu sou uma ladra bagunceira.",
+          "b": "A ideia do estoque maior funcionou. Deixo um potinho de fora pra eu sonâmbula. Todo mundo ganha. Principalmente eu."
+        },
+        "a": {
+          "label": "Chama o pote de 'Bia da Meia-Noite'.",
+          "reply": "A Bia da Meia-Noite ganha um pote por noite. A Bia de dia tem muito orgulho dela."
+        },
+        "b": {
+          "label": "Divide o mel com a equipe.",
+          "reply": "Mel pra todo mundo. Até o Soneca acordou pra isso. Isso nunca tinha acontecido."
+        }
+      },
+      "callback": {
+        "a": "Relatório da tocaia: a suspeita continua fofa.",
+        "b": "Segundo pote de mel instalado. Por motivos de segurança."
+      },
+      "find": "A eu da meia-noite deixou isto na sua mesa. Ela tem bom gosto."
+    },
+    "quincy": {
+      "title": "O Bug Que Não Era",
+      "1": {
+        "prompt": "Tem um bicho que eu não consigo pegar. Ele desvia da minha língua. É uma joaninha, e acho que ela quer um emprego.",
+        "a": {
+          "label": "Entrevista ela.",
+          "reply": "Entrevista formal. Ela respondeu tudo pousando no meu nariz. Candidata forte."
+        },
+        "b": {
+          "label": "Pega com um pote.",
+          "reply": "Pote pronto. Ela entrou sozinha e fechou a tampa. Está querendo provar um ponto."
+        }
+      },
+      "2": {
+        "prompt": "A joaninha achou três bugs no código da Nica. Bugs de verdade. De código. Ela é melhor no meu trabalho do que eu.",
+        "a": {
+          "label": "Faz dupla com ela. Dois caçadores de bugs.",
+          "reply": "Uma dupla! Eu pego, ela aponta. Dobramos a contagem. Minha língua está cansada."
+        },
+        "b": {
+          "label": "Deixa a Nica contratar ela pro laboratório.",
+          "reply": "A Nica contratou. Estou feliz por elas. Com um pouquinho de ciúme. Pouquinho. Do tamanho de um inseto."
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "Você mandou entrevistar. Agora ela é minha parceira. Temos crachás combinando. O dela é bem pequeno.",
+          "b": "Você queria um pote. Agora ela mora nele, por escolha. É o escritório dela. Ela tem uma mesinha."
+        },
+        "a": {
+          "label": "Dá um nome pra dupla.",
+          "reply": "Quincy & Pinta: Remoção de Bugs. Temos logo. É uma língua e uma pinta."
+        },
+        "b": {
+          "label": "Dá uma mesa pra ela no laboratório.",
+          "reply": "A mesa dela é uma folha. Ela trabalha mais que todo mundo. Uma joaninha me inspira."
+        }
+      },
+      "callback": {
+        "a": "A Pinta achou um bug na chaleira. Um de verdade. Respeito.",
+        "b": "Status do pote: ocupado, feliz, pintado."
+      },
+      "find": "A Pinta achou isto. Quis que fosse seu. Apontou. Bem firme."
+    },
+    "dorm": {
+      "title": "O Diário dos Sonhos",
+      "1": {
+        "prompt": "Eu tenho… um diário dos sonhos. Ontem sonhei que a impressora… ia espirrar. Hoje de manhã… ela espirrou.",
+        "a": {
+          "label": "Com o que mais você sonha?",
+          "reply": "Mais com… sonecas. Sonhar com sonecas… durante sonecas. Muito relaxante. Muito meta."
+        },
+        "b": {
+          "label": "Anota o próximo. Vamos conferir.",
+          "reply": "Vou anotar… devagar. Dormindo. Letra bonita… surpreendentemente."
+        }
+      },
+      "2": {
+        "prompt": "Sonho novo… o escritório inteiro dormiu ao mesmo tempo… e a produção subiu. Isso é… um plano?",
+        "a": {
+          "label": "Vamos tentar uma soneca coletiva.",
+          "reply": "Uma soneca coletiva… a frase mais bonita… estou… muito emocionado… zzz."
+        },
+        "b": {
+          "label": "Pergunta pro Bento, ele ama um estudo de bem-estar.",
+          "reply": "O Bento fez um gráfico. O gráfico diz… que soneca funciona. O gráfico… também dormiu."
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "Você perguntou dos meus sonhos. Você… ouviu. Até o fim. Isso é… raro. A maioria vai embora.",
+          "b": "Você queria prova. O diário… acerta sempre. O sonho de ontem… foi com você. Você estava… feliz."
+        },
+        "a": {
+          "label": "Então vamos continuar sonhando.",
+          "reply": "Continuar sonhando… juntos… vou guardar pra você… a rede boa."
+        },
+        "b": {
+          "label": "Publica 'A Previsão da Preguiça'.",
+          "reply": "Previsão semanal… segunda: soneca. Terça: soneca. Quarta… uma soneca… surpresa."
+        }
+      },
+      "callback": {
+        "a": "Sonhei com… você… trazendo um lanche. Sem pressão.",
+        "b": "O diário diz… um bom dia. Devagar."
+      },
+      "find": "Sonhei que você… ia gostar disto. Aí eu… achei. Debaixo de mim."
+    },
+    "inky": {
+      "title": "Medo de Palco",
+      "1": {
+        "prompt": "Tenho que apresentar na reunião geral. Quando fico nervoso, solto tinta. No último ensaio pintei a triagem inteira.",
+        "a": {
+          "label": "Ensaia comigo.",
+          "reply": "Tá. Respira fundo. Oito respirações fundas. …Só um pouquinho de tinta. Progresso!"
+        },
+        "b": {
+          "label": "Distribui capas de chuva. Resolvido.",
+          "reply": "Capas de chuva pra PLATEIA. Genial. Vou pedir trinta."
+        }
+      },
+      "2": {
+        "prompt": "Notícia boa: fiz os slides. Notícia ruim: fiz com os oito braços ao mesmo tempo. São 400 slides.",
+        "a": {
+          "label": "Corta pra oito. Um por braço.",
+          "reply": "Um slide por braço! Consigo segurar todos! Nunca me senti tão organizado."
+        },
+        "b": {
+          "label": "A Juju pode cronometrar.",
+          "reply": "A Juju me deu um timer que grita 'PRÓXIMO' bem simpático. Preciso disso na minha vida."
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "Você me deixou ensaiar com você. Apresentei. Só um respingo de tinta. Todo mundo aplaudiu. Oito vezes, pra mim.",
+          "b": "As capas de chuva fizeram sucesso. Ninguém se sujou. Todo mundo quis ficar com a sua. Lancei moda?"
+        },
+        "a": {
+          "label": "Agora apresenta todo mês.",
+          "reply": "Todo mês? Tá. Sim. Apavorante. Vou levar capas. Por via das dúvidas."
+        },
+        "b": {
+          "label": "Faz da tinta sua assinatura.",
+          "reply": "Tinta de assinatura! Todo relatório carimbado em oito cores. Meu. Com orgulho."
+        }
+      },
+      "callback": {
+        "a": "Ainda ensaiando. Quase sem tinta. Graças a você.",
+        "b": "Capas pedidas: trinta. Gente de capa: todo mundo."
+      },
+      "find": "Organizei uma coisa pra você. Oito vezes. Agora está perfeita."
+    },
+    "echo": {
+      "title": "A Frequência",
+      "1": {
+        "prompt": "Depois da meia-noite, ouço uma melodia nas paredes. Ninguém mais ouve. É linda. Vem do tronco.",
+        "a": {
+          "label": "Cantarola pra mim.",
+          "reply": "…Hmmmm-mm. No fim ela sobe, como uma pergunta. Está ouvindo agora?"
+        },
+        "b": {
+          "label": "Será que não é o encanamento?",
+          "reply": "Encanamento não faz harmonia consigo mesmo. Normalmente. Vou continuar ouvindo."
+        }
+      },
+      "2": {
+        "prompt": "Gravei. Tocada de trás pra frente, é o dia da fundação da empresa. De frente pra trás, é uma canção de ninar.",
+        "a": {
+          "label": "Toca pro turno da noite.",
+          "reply": "O turno da noite inteiro ficou parado ouvindo. O Mocho chorou um pouquinho. Corujas fazem isso."
+        },
+        "b": {
+          "label": "Pergunta pro Mocho o que significa.",
+          "reply": "O Mocho disse 'a árvore lembra da gente enquanto dormimos'. Depois foi olhar uma samambaia."
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "Você ouviu. Você disse que ouviu. Eu não sabia se alguém um dia ia ouvir o que eu ouço. Parei de me sentir estranha.",
+          "b": "Não era o encanamento, então. A árvore cantarola quando o escritório está feliz. Ultimamente está bem alto."
+        },
+        "a": {
+          "label": "Me ensina a ouvir como você.",
+          "reply": "Lição um: faça silêncio. Lição dois: mais silêncio. Você leva jeito."
+        },
+        "b": {
+          "label": "Escreve uma resposta pra árvore.",
+          "reply": "Cantarolei uma musiquinha de volta. Ela respondeu. Um dueto, com um prédio."
+        }
+      },
+      "callback": {
+        "a": "As paredes cantarolaram seu nome ontem. Com carinho.",
+        "b": "Relatório do encanamento: continua não sendo o encanamento."
+      },
+      "find": "A árvore cantarolou e isto caiu de um galho. Está morno. Como uma música."
+    },
+    "rosa": {
+      "title": "A Passarela",
+      "1": {
+        "prompt": "Estou planejando um desfile no escritório. A passarela é o corredor. Meu medo: ninguém desfilar e eu ser uma flamingo sozinha.",
+        "a": {
+          "label": "Eu desfilo primeiro.",
+          "reply": "Você iria primeiro? Num pé só? Dois está ótimo. Dois é maravilhoso. Posso desmaiar."
+        },
+        "b": {
+          "label": "Faz um concurso. Prêmio ajuda.",
+          "reply": "Prêmios. Rosetas. Glitter. Uma competiçãozinha traz à tona o fabuloso."
+        }
+      },
+      "2": {
+        "prompt": "Inscritos até agora: Otto (gravata brilhante), Beta (sapatos de madeira), Nino (se recusa; vai assistir deitado). Vai acontecer.",
+        "a": {
+          "label": "Dá a todo mundo um momento pra brilhar.",
+          "reply": "Todo mundo ganha um holofote. Até os tímidos. Principalmente os tímidos."
+        },
+        "b": {
+          "label": "O Téo pode filmar. Viral, querido.",
+          "reply": "O Téo está filmando em câmera lenta. Cada passo é um momento. Estou tão nervosa."
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "Você desfilou primeiro e todo mundo foi atrás. Até o Mocho, à meia-noite, sozinho, mas desfilou. Foi uma estreia.",
+          "b": "O concurso foi um sucesso. A Beta ganhou 'Look Mais Estrutural'. Ninguém discutiu. Era um sapato muito bom."
+        },
+        "a": {
+          "label": "Transforma numa tradição anual.",
+          "reply": "O Desfile Plume, todo ano. Você sempre abre. Esse é seu título agora."
+        },
+        "b": {
+          "label": "Agradece você também.",
+          "reply": "Num pé só. Holofote. Aplausos. Eu não sabia que precisava disso. Obrigada, querido."
+        }
+      },
+      "callback": {
+        "a": "Você desfilou primeiro. Nunca vou esquecer. Nem o corredor.",
+        "b": "Contagem de glitter: em todo lugar. Valeu a pena."
+      },
+      "find": "Da passarela: a fita vencedora. Você merece mais do que eu."
+    },
+    "perry": {
+      "title": "O Inconseguível",
+      "1": {
+        "prompt": "Em todos esses anos conseguindo coisas, um item me escapou. Uma meia esquerda. A minha. Sumida desde 2011.",
+        "a": {
+          "label": "Então a gente acha juntos.",
+          "reply": "Uma operação conjunta. Codinome: Calçado. Vou pegar o sobretudo."
+        },
+        "b": {
+          "label": "Compra meias novas, Perry.",
+          "reply": "Meias novas? Isso é… rendição. Também é sensato. Odeio. Vou pensar."
+        }
+      },
+      "2": {
+        "prompt": "Pista: o Guaxi foi visto perto da lavanderia em 2011. O Guaxi diz que 'não se lembra'. Altamente suspeito.",
+        "a": {
+          "label": "Segue a pista em silêncio.",
+          "reply": "Em silêncio. Minha especialidade. Silencioso como um pato. Um pato com rabo de castor. Muito silencioso."
+        },
+        "b": {
+          "label": "Pergunta direto pro Guaxi.",
+          "reply": "Perguntei. O Guaxi piscou e tirou a meia de uma gaveta. Doze anos. 'Pra guardar com segurança.'"
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "Você me acompanhou em cada pista. A meia estava no bolso do meu próprio casaco. Treze anos. Sou um ótimo espião.",
+          "b": "Você disse pra comprar meias. Comprei. Aí o Guaxi devolveu a antiga, passada. Agora somos… amigos? Inimigos que passam roupa."
+        },
+        "a": {
+          "label": "Emoldura a meia.",
+          "reply": "Emoldurada. Caso encerrado. A meia mais bonita do prédio. A ÚNICA meia do prédio."
+        },
+        "b": {
+          "label": "Usa as duas, finalmente.",
+          "reply": "As duas meias. Combinando. Pela primeira vez desde 2011. Me sinto… completo. E quentinho."
+        }
+      },
+      "callback": {
+        "a": "Operação Calçado: em andamento. Sigilo total.",
+        "b": "Comprei meias novas. Parecem traição. Uma traição confortável."
+      },
+      "find": "Consegui isto pra você. Não pergunta de onde. É legal. Quase."
+    },
+    "axel": {
+      "title": "A Muda",
+      "1": {
+        "prompt": "Peguei uma mudinha da árvore do escritório. Com permissão! Perguntei pra árvore. Ela não disse não.",
+        "a": {
+          "label": "Vamos cultivar juntos.",
+          "reply": "Juntos! Eu rego, você incentiva. Incentivar é muito importante pra planta."
+        },
+        "b": {
+          "label": "A árvore está de boa com isso?",
+          "reply": "Deixei um bilhete de agradecimento na casca. Ela cresceu uma folha nova por cima. Acho que é um sim."
+        }
+      },
+      "2": {
+        "prompt": "A muda fez uma folha em forma de bolota. Depois uma de castanha. Depois uma de… um escritoriozinho?",
+        "a": {
+          "label": "Planta num lugar especial.",
+          "reply": "Um lugar com luz e companhia. Sei exatamente qual janela."
+        },
+        "b": {
+          "label": "Mostra pra Canela anotar no caderno.",
+          "reply": "A Canela desenhou e disse 'isso é um prédio'. Um prédio! Crescendo! Estou tão feliz que fiquei mais rosa."
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "Você cultivou comigo. Ela já é mais alta que eu. Tem um galhinho com uma mesinha. E um eu pequenininho.",
+          "b": "Você se preocupou com a árvore. A árvore está ótima. ORGULHOSA. Cresceu uma irmã. A empresa ganhou uma irmãzinha."
+        },
+        "a": {
+          "label": "Deixa a empresa crescer um galho novo.",
+          "reply": "Um galho novo pra amigos novos. Tudo pode crescer de novo. Tudo pode crescer, ponto."
+        },
+        "b": {
+          "label": "Deixa ela crescer selvagem.",
+          "reply": "Selvagem e feliz. Como a gente. Como tudo que é bom. Vou sorrir disso a semana toda."
+        }
+      },
+      "callback": {
+        "a": "A muda mandou oi. Ela acenou. Foi o vento. Provavelmente.",
+        "b": "Agradeci a árvore de novo hoje. Ela farfalhou. Com educação."
+      },
+      "find": "A muda soltou isto. É uma semente. Pra você cultivar alguma coisa."
+    },
+    "findArrived": "Deixou algo pra você no escritório."
+  },
+  "bond": {
+    "tier": {
+      "new": "Rosto novo",
+      "familiar": "Conhecido",
+      "trusted": "De confiança",
+      "close": "Amizade próxima"
+    },
+    "next": "próximo: {{tier}}",
+    "closeBonus": "Amizades próximas rendem 10% a mais.",
+    "milestone": {
+      "title": "Agora: {{tier}}",
+      "familiar": "{{name}} já te cumprimenta pelo nome.",
+      "trusted": "{{name}} confia em você pras coisas que importam.",
+      "close": "{{name}} te seguiria por qualquer galho.",
+      "unlock": "A história continua agora.",
+      "unlockClose": "Como amizade próxima, {{name}} rende 10% a mais."
+    },
+    "pending": {
+      "story": "{{name}} quer te contar uma coisa",
+      "milestone": "{{name}} tem novidades",
+      "hint": "{{name}} deu uma dica"
+    },
+    "share": "Quer compartilhar algo"
+  },
+  "visit": {
+    "tab": {
+      "talk": "Conversar",
+      "gifts": "Presentes",
+      "scrapbook": "Álbum"
+    },
+    "part": "Parte {{n}} de 3",
+    "storyTold": "{{n}} de 3 partes contadas",
+    "storyWaiting": {
+      "friendship": "A próxima parte, quando vocês forem {{tier}}.",
+      "time": "A próxima parte, um pouco mais tarde. Dá um tempo.",
+      "ready": "Já quer te contar a próxima parte.",
+      "done": "Você conhece a história inteira."
+    },
+    "breakNote": "{{name}} está dando uma respirada. Volta em {{time}}.",
+    "finishFirst": "Termine a conversa primeiro.",
+    "close": "Voltar ao escritório"
+  },
+  "scrapbook": {
+    "empty": "Nada aqui ainda. Passem um tempo juntos.",
+    "tier": "Virou {{tier}}",
+    "story": "{{title}} · Parte {{n}}",
+    "gift": "Deu {{gift}}",
+    "find": "Trouxe algo pra você",
+    "moment": "Um momento juntos",
+    "pair": {
+      "friends": "Se dá bem com {{name}}",
+      "rivals": "Rivalidade amigável com {{name}}",
+      "awkward": "Meio sem jeito perto de {{name}}",
+      "mentor": "Cuida de {{name}}",
+      "mentee": "Se inspira em {{name}}"
+    }
+  },
+  "pair": {
+    "night-shift": {
+      "1": {
+        "a": "Eco, você ouviu a samambaia às três?",
+        "b": "Cantarolando em dó. Anotei pra você."
+      },
+      "2": {
+        "a": "A noite fica mais quieta com você nela.",
+        "b": "Mais quieta E mais barulhenta. Explico à meia-noite."
+      }
+    },
+    "sourcing": {
+      "1": {
+        "a": "Eu achei primeiro.",
+        "b": "Eu achei antes de você achar primeiro."
+      },
+      "2": {
+        "a": "Onde você arrumou esse grampeador?",
+        "b": "No mesmo lugar que você arrumou o seu. Não me olha assim."
+      }
+    },
+    "receipts": {
+      "1": {
+        "a": "Guaxi. Nota fiscal do trampolim?",
+        "b": "É um trampolim do ânimo. Totalmente dedutível."
+      },
+      "2": {
+        "a": "Seu livro-caixa é um guardanapo.",
+        "b": "Um guardanapo muito organizado, Otto."
+      }
+    },
+    "build-fix": {
+      "1": {
+        "a": "Coloquei mais madeira na porta do cofre.",
+        "b": "Então eu coloquei mais abraços na porta do cofre."
+      },
+      "2": {
+        "a": "Bora reforçar alguma coisa juntas?",
+        "b": "Sempre. Você traz as tábuas, eu trago o mel."
+      }
+    },
+    "bugs": {
+      "1": {
+        "a": "Aparelho novo. Sem bugs!",
+        "b": "Achei seis bugs. Um é uma abelha."
+      },
+      "2": {
+        "a": "Para de comer meus resultados de teste.",
+        "b": "Para de fazer eles tão crocantes."
+      }
+    },
+    "brand": {
+      "1": {
+        "a": "Precisa de mais brilho.",
+        "b": "Precisa de mais bom gosto, querido."
+      },
+      "2": {
+        "a": "Viral ganha de fabuloso.",
+        "b": "Fabuloso dura mais que uma moda, docinho."
+      }
+    },
+    "pitch": {
+      "1": {
+        "a": "Eu vendo.",
+        "b": "Eu faço eles quererem antes de você dizer oi."
+      },
+      "2": {
+        "a": "Almoço? Te faço um pitch.",
+        "b": "Já comprei. Você me ganhou no almoço."
+      }
+    },
+    "timetable": {
+      "1": {
+        "a": "Cheguei cinco minutos adiantada!",
+        "b": "Eu te agendei cinco minutos adiantada."
+      },
+      "2": {
+        "a": "Conferência de rota?",
+        "b": "Rota conferida. Duas vezes. Com lanche."
+      }
+    },
+    "nap-club": {
+      "1": {
+        "a": "Vamos descansar um pouquinho?",
+        "b": "Eu… já… comecei."
+      },
+      "2": {
+        "a": "Sua respiração é muito calmante.",
+        "b": "Obri… gado… é… minha única… velocidade."
+      }
+    },
+    "minutes": {
+      "1": {
+        "a": "Nino, você leu a ata?",
+        "b": "Dormi em cima dela. Com muita atenção."
+      },
+      "2": {
+        "a": "A cláusula 3 exige que você esteja acordado.",
+        "b": "Achei uma brecha. Chama soneca."
+      }
+    },
+    "mysteries": {
+      "1": {
+        "a": "Achei um túnel. Quer anotações?",
+        "b": "Já estou anotando. Sobre você achando o túnel."
+      },
+      "2": {
+        "a": "Algo bateu debaixo do chão.",
+        "b": "A página quarenta e dois previu isso. Que emoção."
+      }
+    },
+    "calm": {
+      "1": {
+        "a": "Respira, Tico. A reunião pode esperar.",
+        "b": "Pode? Pode mesmo? …Tá. Respirando."
+      },
+      "2": {
+        "a": "Você está indo bem. De verdade.",
+        "b": "Vou anotar isso e emoldurar."
+      }
+    }
   }
 }

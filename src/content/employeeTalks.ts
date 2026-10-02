@@ -29,8 +29,16 @@
 import type { EmployeeMood } from '../sim/types';
 import type { EventEffect } from './types';
 import { ANNEX_TALKS } from './annexTalks';
-import { GIFT_PREFERENCES } from './employeeGifts';
+import {
+  GIFTS,
+  REACTION_EFFECTS,
+  giftFlag,
+  giftReaction,
+  giftReplyKey,
+  type GiftId,
+} from './employeeGifts';
 import { KEEPSAKE_TALKS } from './employeeKeepsakes';
+import { STORY_TALKS } from './stories';
 
 /** What a conversation option needs before it can be offered. */
 export interface TalkRequirement {
@@ -49,6 +57,8 @@ export interface TalkRequirement {
   /** company morale floor / ceiling. */
   moraleAbove?: number;
   moraleBelow?: number;
+  /** only once this flag has been set for at least this long (a story's "later"). */
+  after?: { flag: string; seconds: number };
 }
 
 export interface TalkChoice {
@@ -70,6 +80,11 @@ export interface TalkNode {
   id: string;
   /** what the employee says on arriving at this node. */
   promptKey: string;
+  /**
+   * Alternative openings that remember an earlier choice: the first whose flag
+   * the company remembers is said instead of `promptKey`.
+   */
+  variants?: Array<{ flag: string; promptKey: string }>;
   choices: TalkChoice[];
 }
 
@@ -87,6 +102,9 @@ export interface TalkTopic {
   once?: boolean;
   /** higher is likelier when several topics are eligible. */
   weight: number;
+  /** for a personal story: whose story it is, and which part (1-3). */
+  story?: string;
+  part?: number;
 }
 
 const k = (topic: string, rest: string) => `talk.${topic}.${rest}`;
@@ -286,6 +304,24 @@ const SUSPICIOUS_MEMO: TalkTopic = {
   },
 };
 
+// The gift topic is a TEMPLATE: six presents, each with its own cost. Who
+// receives it decides the reply and how much it means (see employeeGifts.ts and
+// `topicsForEmployee` below), so a gift only ever teaches you how that one
+// teammate felt about that one present.
+const giftCost = (gift: (typeof GIFTS)[number]) => {
+  const requires: TalkRequirement = {};
+  const effects: EventEffect[] = [];
+  if (gift.cost.nuts) {
+    requires.nuts = gift.cost.nuts;
+    effects.push({ type: 'nuts', value: -gift.cost.nuts });
+  }
+  if (gift.cost.goldenNuts) {
+    requires.goldenNuts = gift.cost.goldenNuts;
+    effects.push({ type: 'goldenNuts', value: -gift.cost.goldenNuts });
+  }
+  return { requires: Object.keys(requires).length ? requires : undefined, effects };
+};
+
 const GIFT: TalkTopic = {
   id: 'gift',
   titleKey: k('gift', 'title'),
@@ -296,47 +332,17 @@ const GIFT: TalkTopic = {
     open: {
       id: 'open',
       promptKey: k('gift', 'open.prompt'),
-      choices: [
-        {
-          id: 'acorn',
-          tone: 'costly',
-          labelKey: k('gift', 'open.acorn.label'),
-          replyKey: k('gift', 'open.acorn.reply'),
-          requires: { nuts: 500 },
-          effects: [
-            { type: 'nuts', value: -500 },
-            { type: 'friendship', value: 5 },
-            { type: 'emotion', emotion: 'happy', durationSeconds: 300 },
-          ],
-        },
-        {
-          id: 'golden',
-          tone: 'costly',
-          labelKey: k('gift', 'open.golden.label'),
-          replyKey: k('gift', 'open.golden.reply'),
-          requires: { goldenNuts: 1 },
-          // A genuinely expensive gift, and it reads that way: a lasting emotion
-          // plus a durable mark that this employee was singled out.
-          effects: [
-            { type: 'goldenNuts', value: -1 },
-            { type: 'friendship', value: 16 },
-            { type: 'morale', value: 4 },
-            { type: 'emotion', emotion: 'inspired', durationSeconds: 1200 },
-            { type: 'setFlag', flagId: 'gift.golden' },
-          ],
-        },
-        {
-          id: 'coffee',
-          tone: 'warm',
-          labelKey: k('gift', 'open.coffee.label'),
-          replyKey: k('gift', 'open.coffee.reply'),
-          effects: [
-            { type: 'friendship', value: 3 },
-            { type: 'emotion', emotion: 'overcaffeinated', durationSeconds: 240 },
-            { type: 'productionBoost', value: 1.08, durationSeconds: 240 },
-          ],
-        },
-      ],
+      choices: GIFTS.map((gift) => {
+        const cost = giftCost(gift);
+        return {
+          id: gift.id,
+          tone: gift.cost.nuts || gift.cost.goldenNuts ? ('costly' as const) : ('warm' as const),
+          labelKey: k('gift', `open.${gift.id}.label`),
+          replyKey: k('gift', `open.${gift.id}.reply`),
+          requires: cost.requires,
+          effects: [...cost.effects, ...gift.base],
+        };
+      }),
     },
   },
 };
@@ -918,6 +924,7 @@ export const EMPLOYEE_TALKS: readonly TalkTopic[] = [
   SUSPICIOUS_MEMO,
   CHECK_IN,
   GIFT,
+  ...STORY_TALKS,
   ...KEEPSAKE_TALKS,
   ...ANNEX_TALKS,
 ];
@@ -926,31 +933,41 @@ export const TALKS_BY_ID: Record<string, TalkTopic> = Object.fromEntries(
   EMPLOYEE_TALKS.map((topic) => [topic.id, topic]),
 );
 
-/** Every topic that could ever be offered to this employee, ignoring live state. */
-export function topicsForEmployee(employeeId: string): readonly TalkTopic[] {
-  return EMPLOYEE_TALKS.filter((t) => !t.employeeId || t.employeeId === employeeId).map((topic) => {
-    if (topic.id !== 'gift') return topic;
-    return {
-      ...topic,
-      nodes: {
-        open: {
-          ...topic.nodes.open,
-          choices: topic.nodes.open.choices.map((choice) => ({
+/** The gift topic as one particular teammate receives it. */
+function giftTopicFor(employeeId: string): TalkTopic {
+  return {
+    ...GIFT,
+    nodes: {
+      open: {
+        ...GIFT.nodes.open,
+        choices: GIFT.nodes.open.choices.map((choice) => {
+          const gift = choice.id as GiftId;
+          const reaction = giftReaction(employeeId, gift);
+          return {
             ...choice,
-            replyKey:
-              choice.id === GIFT_PREFERENCES[employeeId]
-                ? `gifts.reactions.${employeeId}`
-                : `gifts.polite.${employeeId}`,
+            replyKey: giftReplyKey(employeeId, reaction),
             effects: [
               ...choice.effects,
-              { type: 'setFlag' as const, flagId: `favorite.${employeeId}.giftKnown` },
-              ...(choice.id === GIFT_PREFERENCES[employeeId]
-                ? [{ type: 'friendship' as const, value: 3 }]
-                : []),
+              ...REACTION_EFFECTS[reaction],
+              // What you learned: how THIS teammate feels about THIS gift.
+              { type: 'setFlag' as const, flagId: giftFlag(employeeId, gift) },
             ],
-          })),
-        },
+          };
+        }),
       },
-    };
-  });
+    },
+  };
+}
+
+const topicCache = new Map<string, readonly TalkTopic[]>();
+
+/** Every topic that could ever be offered to this employee, ignoring live state. */
+export function topicsForEmployee(employeeId: string): readonly TalkTopic[] {
+  const cached = topicCache.get(employeeId);
+  if (cached) return cached;
+  const topics = EMPLOYEE_TALKS.filter((t) => !t.employeeId || t.employeeId === employeeId).map(
+    (topic) => (topic.id === 'gift' ? giftTopicFor(employeeId) : topic),
+  );
+  topicCache.set(employeeId, topics);
+  return topics;
 }

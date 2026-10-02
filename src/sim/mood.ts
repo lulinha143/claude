@@ -2,6 +2,7 @@ import type { EmployeeMood, GameState } from './types';
 import { ROOM_PROFILES_BY_ID, type RoomTemper } from '../content/roomProfiles';
 import { resolveEmployeeRoom } from './rooms';
 import { hashStringToSeed } from './rng';
+import { PAIRS, type PairKind } from '../content/pairs';
 
 /** Every emotion the game can display, in a stable order (profiles, tests). */
 export const EMOTIONS: EmployeeMood[] = [
@@ -21,6 +22,26 @@ export const EMOTIONS: EmployeeMood[] = [
   'excited',
   'sad',
 ];
+
+const PAIR_MOOD: Record<PairKind, EmployeeMood> = {
+  friends: 'happy',
+  rivals: 'focused',
+  awkward: 'embarrassed',
+  mentor: 'inspired',
+};
+
+/** The mood a teammate takes from someone they share a room with, if any. */
+function pairMood(state: GameState, id: string, room: string): EmployeeMood | null {
+  for (const pair of PAIRS) {
+    if (pair.a !== id && pair.b !== id) continue;
+    const other = pair.a === id ? pair.b : pair.a;
+    if (!state.employees[other]?.hired) continue;
+    if (resolveEmployeeRoom(state, other) !== room) continue;
+    if (pair.kind === 'mentor') return pair.a === id ? 'proud' : 'inspired';
+    return PAIR_MOOD[pair.kind];
+  }
+  return null;
+}
 
 /** How long a conversation keeps someone visibly happy afterwards. */
 export const RECENT_TALK_MOOD_MS = 10 * 60_000;
@@ -87,6 +108,11 @@ export function employeeMood(state: GameState, id: string, now = Date.now()): Em
   // Someone you just sat down with is still smiling about it.
   const talkedAt = rt?.talks?.lastAt ?? 0;
   if (talkedAt > 0 && now >= talkedAt && now - talkedAt < RECENT_TALK_MOOD_MS) return 'happy';
+  // Who they are sitting with: a friend cheers them up, a rival sharpens them, an
+  // awkward pairing makes them fidget, and someone who looks out for another
+  // teammate is quietly proud of them.
+  const social = pairMood(state, id, room);
+  if (social) return social;
   // A newcomer (and a founder on day one) is still working the place out.
   if (friendship < 25) return 'curious';
   if (morale >= 85) return roomPick(state, THRIVING_MOODS, id, room, 'thriving');

@@ -80,9 +80,10 @@ titles and buttons; curly quotes (“ ”) in prose.
 | Prestige                                          | Prestígio                                           |                                                    |
 
 Characters keep one localized name each (`employee.<id>.name`): Pip is **Tico** in
-pt-BR, Marlow is Bento, Rizzo is Nino, Bea is Bia, and so on. Never mix the English
-and Portuguese name inside the pt-BR file. Known clash to resolve in the pt-BR
-editorial pass: `rizzo`/`nino` are both “Nino” and `bea`/`bia` are both “Bia”.
+pt-BR, Marlow is Bento, Rizzo is **Guaxi** (masculine, from guaxinim), Bea is
+**Beta** (Beatriz), and so on. Never mix the English and Portuguese name inside the
+pt-BR file. Every name must be unique within a locale: `nino` (Nino) and `bia` (Bia)
+already own those names, which is why Rizzo and Bea were renamed.
 
 ## Notes for translators
 

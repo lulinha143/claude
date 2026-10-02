@@ -8,6 +8,7 @@ import { EMPLOYEES_BY_ID } from '../content/employees';
 import {
   topicsForEmployee,
   type TalkChoice,
+  type TalkNode,
   type TalkRequirement,
   type TalkTopic,
 } from '../content/employeeTalks';
@@ -17,7 +18,16 @@ import type { GameState } from './types';
 
 /** Why an option cannot be taken, in a form the UI can localise. */
 export interface TalkRequirementFailure {
-  kind: 'nuts' | 'goldenNuts' | 'friendship' | 'flag' | 'missingFlag' | 'room' | 'mood' | 'morale';
+  kind:
+    | 'nuts'
+    | 'goldenNuts'
+    | 'friendship'
+    | 'flag'
+    | 'missingFlag'
+    | 'room'
+    | 'mood'
+    | 'morale'
+    | 'later';
   messageKey: string;
   required?: number;
 }
@@ -95,7 +105,24 @@ export function checkTalkRequirement(
   if (req.moraleBelow !== undefined && state.resources.morale >= req.moraleBelow) {
     out.push({ kind: 'morale', messageKey: 'talk.req.moraleBelow', required: req.moraleBelow });
   }
+  if (req.after) {
+    const since = state.flags[req.after.flag];
+    const ready = since === undefined ? Infinity : since + req.after.seconds * 1000;
+    if (now < ready) {
+      out.push({
+        kind: 'later',
+        messageKey: 'talk.req.later',
+        required: Number.isFinite(ready) ? Math.ceil((ready - now) / 1000) : undefined,
+      });
+    }
+  }
   return out;
+}
+
+/** What the employee says arriving at `node`, remembering earlier choices. */
+export function nodePrompt(state: GameState, node: TalkNode): string {
+  const variant = node.variants?.find((candidate) => candidate.flag in state.flags);
+  return variant?.promptKey ?? node.promptKey;
 }
 
 /** Topics this employee is willing to open right now, best first. */

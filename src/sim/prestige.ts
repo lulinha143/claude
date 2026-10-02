@@ -100,6 +100,7 @@ export function performPrestige(
       id.startsWith('discovery.') ||
       id.startsWith('annex.') ||
       id.startsWith('microgame.') ||
+      id.startsWith('pair.') ||
       Object.keys(state.employees).some((employeeId) => id.startsWith(`${employeeId}.`))
     ) {
       fresh.flags[id] = at;

@@ -2657,7 +2657,11 @@
       "Knocked it off the desk. On purpose.",
       "A good manager delegates. Loudly.",
       "I've been in charge this whole time.",
-      "Purr received. Request denied."
+      "Purr received. Request denied.",
+      "I'm not ignoring you. I'm ignoring everything equally.",
+      "This chair is warm. It's mine now.",
+      "Meeting adjourned. I'm lying on the agenda.",
+      "A purr means yes. Silence also means yes. Later."
     ],
     "bia": [
       "Nobody gets past me. Nobody.",
@@ -2665,7 +2669,11 @@
       "Snack break is sacred.",
       "The vault is safe. I checked twice.",
       "Strong and gentle — that's the trick.",
-      "Hug now, patrol later."
+      "Hug now, patrol later.",
+      "Vault's locked. Snack shelf's stocked. All's well.",
+      "I fixed the door. Mostly it wanted a hug.",
+      "Honey inventory: perfectly fine. Don't check.",
+      "Big paws, gentle grip. That's the job."
     ],
     "quincy": [
       "Caught another bug. Delicious.",
@@ -2673,7 +2681,11 @@
       "Ribbit means 'ship it'.",
       "Test twice, croak once.",
       "Nothing gets past this tongue.",
-      "Found the edge case. It found me."
+      "Found the edge case. It found me.",
+      "Found a bug. Fixed a bug. Ate a bug.",
+      "Test passed. I'm suspicious.",
+      "Quality is a lifestyle. Also a snack.",
+      "I jumped to a conclusion. It held."
     ],
     "dorm": [
       "I'll get to it... eventually.",
@@ -2681,7 +2693,11 @@
       "One task a day keeps the stress away.",
       "Hang in there. Literally.",
       "Big stretch, then big think.",
-      "Rushing? Never met her."
+      "Rushing? Never met her.",
+      "I'm not slow… I'm… thorough.",
+      "Wake me… for the important… naps.",
+      "Today's goal… was a nap. Achieved.",
+      "Rush hour… is… a myth."
     ],
     "inky": [
       "Eight arms, zero excuses.",
@@ -2689,7 +2705,11 @@
       "Multitasking is just breathing.",
       "I filed it under 'done'.",
       "Give me all of it at once.",
-      "Ink happens. I clean it up."
+      "Ink happens. I clean it up.",
+      "I sorted your sorting. You're welcome.",
+      "One arm for coffee, seven for everything else.",
+      "Oops, a little ink. That's my signature.",
+      "Stack it, label it, love it."
     ],
     "echo": [
       "I heard that. I hear everything.",
@@ -2697,7 +2717,11 @@
       "Hanging around, thinking big.",
       "The night shift is mine.",
       "Echo, echo... still here.",
-      "I see with sound. Neat, right?"
+      "I see with sound. Neat, right?",
+      "Shh. The building's humming again.",
+      "I see better with my ears.",
+      "Night shift is just day shift, upside down.",
+      "Something in the vents said good morning."
     ],
     "rosa": [
       "Stand on one leg. Look fabulous.",
@@ -2705,7 +2729,11 @@
       "We don't launch, we debut.",
       "If it's not bold, redo it.",
       "Balance is my whole brand.",
-      "Darling, that's marketing gold."
+      "Darling, that's marketing gold.",
+      "Posture, darling. Always posture.",
+      "This launch needs ribbons. Every launch needs ribbons.",
+      "Pink goes with everything. Even deadlines.",
+      "Strike a pose. Then strike a deal."
     ],
     "perry": [
       "I sourced it. Don't ask where.",
@@ -2713,7 +2741,11 @@
       "Odd job? My specialty.",
       "I have a guy. I'm the guy.",
       "Receipts? Filed. Somewhere safe.",
-      "Unusual is my comfort zone."
+      "Unusual is my comfort zone.",
+      "Acquired. Don't ask. Do enjoy.",
+      "I have a receipt for that. Somewhere. In a briefcase.",
+      "Odd jobs only. Even ones bore me.",
+      "Mammal. Egg. Spreadsheet. I contain multitudes."
     ],
     "axel": [
       "Broke it? It'll grow back.",
@@ -2721,7 +2753,11 @@
       "Science is basically magic with notes.",
       "Let's regenerate this idea.",
       "Underwater, overachieving.",
-      "Stay curious, stay pink."
+      "Stay curious, stay pink.",
+      "Mistakes are just early drafts.",
+      "I regrew my optimism this morning.",
+      "Everything's better with a little water.",
+      "My smile isn't a choice. Being happy is."
     ],
     "idle": [
       "The office hums quietly.",
@@ -2922,16 +2958,9 @@
     "cycle": "Cycle {{n}}"
   },
   "talk": {
-    "open": "Talk",
-    "fileLabel": "PERSONNEL CONVERSATION",
-    "ref": "REF {{id}}-{{n}}",
-    "confidential": "INTERNAL — NOT FOR THE BOARD",
-    "mood": "Mood",
+    "open": "Visit",
     "trust": "Trust",
-    "posting": "Posting",
-    "whatChanged": "What changed",
-    "ended": "They get back to it.",
-    "backToWork": "Back to work",
+    "ended": "They smile and get back to it.",
     "tip": {
       "ready": "They have something on their mind.",
       "cooldown": "Still thinking about the last chat. ({{seconds}}s)",
@@ -2946,7 +2975,8 @@
       "room": "Wrong department for this",
       "mood": "Not in the mood",
       "moraleAbove": "Morale must be above {{value}}",
-      "moraleBelow": "Only while morale is under {{value}}"
+      "moraleBelow": "Only while morale is under {{value}}",
+      "later": "Later: {{time}}"
     },
     "consequence": {
       "promise": {
@@ -3044,16 +3074,28 @@
       "open": {
         "prompt": "You are holding something behind your back and doing a very poor job of it.",
         "acorn": {
-          "label": "A good acorn. (500)",
+          "label": "A good acorn snack. (500)",
           "reply": "Oh, this is a GOOD one. Look at the shoulders on it."
         },
         "golden": {
-          "label": "A golden nut. (1)",
+          "label": "A golden nut. (1 golden)",
           "reply": "That is — no. That is too much. I am keeping it. But it is too much."
         },
         "coffee": {
           "label": "The last of the good coffee.",
           "reply": "The GOOD one? From the back? I am going to get so much done. Possibly too much."
+        },
+        "plant": {
+          "label": "A little potted cutting. (300)",
+          "reply": "A plant! Something to look after. Thank you."
+        },
+        "puzzle": {
+          "label": "A tiny puzzle box. (900)",
+          "reply": "A puzzle box. I will absolutely not do this during meetings."
+        },
+        "scarf": {
+          "label": "A cosy knitted scarf. (1,500)",
+          "reply": "Hand-knitted? It is so soft. I may never take it off."
         }
       }
     },
@@ -3230,13 +3272,7 @@
       "label": "Leave this decision for another time.",
       "reply": "That is all right. We do not have to decide now."
     },
-    "otherTopics": "Other things on your mind",
-    "favorite": "Personal keepsake",
-    "discovered": "Story remembered",
-    "keepsakeFile": "Personal effects register",
-    "memoryFile": "Our shared record",
-    "memoryEntry": "A remembered conversation",
-    "noMemoriesYet": "This file starts with our first conversation. Your choices stay with us."
+    "otherTopics": "Other things on your mind"
   },
   "keepsake": {
     "pip": {
@@ -3821,42 +3857,41 @@
   },
   "gifts": {
     "preference": "Small things that matter",
-    "unknown": "Bring a present to learn what they enjoy.",
     "preferenceNames": {
       "coffee": "A freshly brewed coffee",
       "acorn": "A good acorn snack",
-      "golden": "A golden nut to keep"
+      "golden": "A golden nut to keep",
+      "plant": "A little potted cutting",
+      "puzzle": "A tiny puzzle box",
+      "scarf": "A cosy knitted scarf"
     },
     "visitActions": "Spend time together",
-    "conversation": "Check in",
-    "bring": "Bring a present",
-    "break": "A little breathing room. New conversation in {{seconds}}s.",
-    "quietVisit": "Stay a while. You can browse our shared memories while I finish this thought.",
-    "memoryFiled": "Their favourite gift is now a keepsake in the company archive.",
+    "quietVisit": "Stay a while. Look through your scrapbook while they finish this thought.",
+    "memoryFiled": "You found their favourite. It is in your scrapbook now.",
     "reactions": {
       "pip": "You remembered the coffee. I can stop pretending this mug is just a paperweight.",
       "marlow": "A snack with no meeting attached. You understand me.",
       "rizzo": "Real gold? I will record its location. Privately. In my pocket.",
       "bea": "Good grain. No cracks. I am saving half for the walk home.",
       "corvus": "A limited edition with an audience of one. Excellent positioning.",
-      "mina": "Coffee. Finally, an experiment with a reliable outcome.",
+      "mina": "A puzzle box! Something to dig into that isn't the floor. I'm going to be up all night.",
       "nixie": "Warm enough to solder by. I am kidding. Mostly.",
       "otto": "A perfectly ordinary acorn. No receipt needed between friends.",
-      "hazel": "I accept, with no obligation implied. Except gratitude.",
+      "hazel": "Interlocking pieces, no loopholes. It's the most beautiful contract I've ever held.",
       "junie": "Still hot! You caught the twelve-second gap in my schedule.",
       "moss": "Coffee for the night watch. Now the thirteenth door can wait.",
       "fenn": "A golden nut, no negotiation. That is a deal worth remembering.",
-      "pingo": "Coffee travels badly. You brought it all this way without spilling.",
-      "canela": "I found this variety on the west trail. It tastes like coming back.",
-      "nino": "An acorn. And enough time to eat it slowly. Best possible delivery.",
+      "pingo": "A scarf. For a penguin. Not for warmth. For STYLE. I've never felt so well routed.",
+      "canela": "A cutting of my own! Entry one: it is perfect. Entry two: so are you.",
+      "nino": "Soft. Warm. Smells faintly of sunbeam. You may continue to work here.",
       "bia": "A warm cup makes a long watch shorter. I will save you a seat.",
-      "quincy": "Coffee for me, not the specimens. We should label that clearly.",
+      "quincy": "A little jungle! Bugs will live in it. I'll leave them alone. Mostly.",
       "dorm": "A snack that waits patiently. We have that in common.",
-      "inky": "One cup. Eight hands volunteered. We will work it out.",
-      "echo": "Listen to the shell. That tiny crack is a very good recording.",
+      "inky": "A puzzle with eight sides! One for each arm. Finally, a fair fight.",
+      "echo": "It's so soft. I'm wearing it upside down. That's the right way up for me.",
       "rosa": "Gold catches the light beautifully. I know exactly which ribbon belongs with it.",
-      "perry": "This receipt will say: received with affection. Amount: not applicable.",
-      "axel": "An acorn is a small future. Shall we plant this one?"
+      "perry": "A sealed box with a secret inside. You speak my language. I'll open it in a safehouse.",
+      "axel": "A new little life. I'll name every leaf. Thank you, thank you, thank you."
     },
     "polite": {
       "pip": "I am putting this beside the first acorn. That is the important shelf.",
@@ -3882,6 +3917,85 @@
       "rosa": "I will not change a thing. Sometimes the gesture is the design.",
       "perry": "I can file it under unexpected kindness. There is room.",
       "axel": "I will keep it by the cuttings. Things grow better with company."
+    },
+    "liked": {
+      "pip": "An acorn! A spare one, for the drawer. For emergencies. Every acorn is an emergency.",
+      "marlow": "A scarf. I'll wear it during the slow parts of the day. Which is all of them. Lovely.",
+      "rizzo": "A puzzle box. I'll have it open in four seconds. Three if nobody's watching.",
+      "bea": "A little plant. It'll grow into wood one day. I respect a long-term plan.",
+      "corvus": "Coffee! Fuel for genius. And for questionable ideas. Mostly the second.",
+      "mina": "Coffee for the night dig. You know exactly how deep my days go.",
+      "nixie": "A puzzle! I'll solve it, then build a machine that solves it faster. Then hug it.",
+      "otto": "Gold… so shiny. I'm not going to chase it. I'm going to look at it. Very calmly.",
+      "hazel": "A golden nut. I'll log it under 'gifts, received, delighted'. Twice.",
+      "junie": "A scarf! I'll wear it between meetings. All four seconds of between.",
+      "moss": "A scarf for the night watch. The quiet hours are cold. This makes them kind.",
+      "fenn": "Coffee. You've read the room. I respect a good read.",
+      "pingo": "Coffee, on schedule. Exactly when I needed it. You've timed this beautifully.",
+      "canela": "An acorn. I'll sketch it before I eat it. Science first.",
+      "nino": "A snack. You may stroke the top of my head. Once.",
+      "bia": "An acorn snack. Not honey, but I'll allow it. Big paws, big thanks.",
+      "quincy": "Coffee! I'll test it thoroughly. All of it. Right now.",
+      "dorm": "A scarf… so soft… I'll wear it… for my next… three… naps.",
+      "inky": "Coffee for the free arm. There's always one free arm for coffee.",
+      "echo": "An acorn for the night shift. I'll eat it upside down. It tastes better.",
+      "rosa": "A scarf! I know exactly how to drape it. Over one shoulder. Over one leg.",
+      "perry": "A golden nut. Untraceable. Perfect. I'll file it under 'acquired legitimately'.",
+      "axel": "An acorn! I could plant it… or eat it… I'll do both, emotionally."
+    },
+    "odd": {
+      "pip": "A puzzle? I'm already running a company. THAT's the puzzle. …I'll keep it on the important shelf.",
+      "marlow": "Coffee. For me. I will… sip it… extremely slowly… Oh. Oh my. Everything is very fast now.",
+      "rizzo": "A scarf? Where would I hide things? …Oh. In the scarf. You genius.",
+      "bea": "Gold? Can I build with it? No? Then it's just shiny wood that forgot how to be wood.",
+      "corvus": "A plant. It doesn't trend. It just… grows. Slowly. Without a strategy. Fascinating.",
+      "mina": "A scarf? Underground it's always the same temperature. I'll wear it as a digging bandana.",
+      "nixie": "A plant? I can't take it apart. Why can't I take it apart? I'll give it a little motor.",
+      "otto": "A puzzle box? I keep trying to balance it. It won't balance. It's a box.",
+      "hazel": "Coffee? I read contracts twice. With this I'll read them four times. In a minute.",
+      "junie": "A plant? I'd have to water it. On a schedule. …Fine. I'll schedule it. With love.",
+      "moss": "A golden nut. Very bright. Too bright for the night watch. I'll keep it in my pocket, where it is quiet.",
+      "fenn": "An acorn? I sell acorns. I don't receive acorns. …Fine. I'm touched. Don't tell anyone.",
+      "pingo": "Gold? You can't eat it, you can't swim with it. I'll put it at the end of the route. A finish line.",
+      "canela": "A golden nut. I'll take notes on it. Note one: it's very shiny. Note two: why?",
+      "nino": "A puzzle. I will knock it off the desk. That is my solution.",
+      "bia": "A plant? I'll keep it in the vault. It's safe there. It's very confused there.",
+      "quincy": "A scarf. For a frog. I'm a little damp. It's a little damp now too. We're bonding.",
+      "dorm": "Coffee… for me?… I'll drink it… tomorrow… slowly… just in case.",
+      "inky": "A scarf. For which arm? I've tried all eight. It's a very long scarf now.",
+      "echo": "Coffee at night? I'm already awake at night. Now I'm awake at night faster.",
+      "rosa": "An acorn. Not pink. Not shiny. …I'm going to make it a tiny hat. Watch me.",
+      "perry": "A plant. It can't keep a secret. Everyone can see it. I'll keep it in a briefcase.",
+      "axel": "Coffee? I don't need it. I'm always this happy. Now I'm this happy, but fast."
+    },
+    "reaction": {
+      "loved": "Loved it!",
+      "liked": "Liked it",
+      "polite": "Polite thanks",
+      "odd": "Baffled"
+    },
+    "untried": "Not tried yet",
+    "notebook": "Gift notebook",
+    "favorite": "Favourite: {{gift}}",
+    "favoriteUnknown": "Favourite: still a mystery",
+    "cost": {
+      "free": "Free"
+    },
+    "hint": {
+      "coffee": "{{name}} keeps glancing at the coffee machine.",
+      "acorn": "{{name}} mentioned missing a good snack.",
+      "golden": "{{name}} lingers by anything that glitters.",
+      "plant": "{{name}} has been watering the office plants.",
+      "puzzle": "{{name}} has been doodling mazes on memos.",
+      "scarf": "{{name}} has been shivering by the window."
+    },
+    "short": {
+      "coffee": "Coffee",
+      "acorn": "Acorn snack",
+      "plant": "Potted cutting",
+      "puzzle": "Puzzle box",
+      "scarf": "Knitted scarf",
+      "golden": "Golden nut"
     }
   },
   "dock": {
@@ -3977,5 +4091,1199 @@
     "crate": "The crate filled up with {{value}} nuts: tap it in the office to collect.",
     "finds_one": "Someone found something while you were out.",
     "finds_other": "{{count}} teammates found something while you were out."
+  },
+  "arc": {
+    "pip": {
+      "title": "The First Acorn",
+      "1": {
+        "prompt": "Can I show you something? I kept the very first acorn. It's lived in my mug drawer since day one. Yesterday it… sprouted.",
+        "a": {
+          "label": "That's wonderful. Let's keep it safe.",
+          "reply": "I knew you'd say that. I've already labelled it 'Do not reorganise'."
+        },
+        "b": {
+          "label": "Shouldn't it be in soil?",
+          "reply": "Soil. Right. Obviously. I was going to think of that. Eventually."
+        }
+      },
+      "2": {
+        "prompt": "The sprout has two leaves now. Two! I check on it between meetings. Is that a normal amount of checking?",
+        "a": {
+          "label": "Let's find it a proper pot together.",
+          "reply": "A pot! With drainage! You think of everything. I'm off to find one with a tiny handle."
+        },
+        "b": {
+          "label": "Put it where the whole team can see it.",
+          "reply": "An office plant. Shared responsibility. Morale-adjacent. Marlow already gave it a wellbeing plan."
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "Remember when you said to keep it safe? It's a sapling now. I think the company outgrew one acorn a while ago.",
+          "b": "You told me it needed soil. You were right, and now it needs a whole corner. I'm oddly emotional about a corner."
+        },
+        "a": {
+          "label": "Plant it by the trunk, where we started.",
+          "reply": "Then it'll grow up right next to us. Like the company. Like… you know. Us."
+        },
+        "b": {
+          "label": "Give it a desk. It's earned a job title.",
+          "reply": "Chief Growth Officer. It never misses a meeting. It's already my best hire."
+        }
+      },
+      "callback": {
+        "a": "The acorn is safe. I check on it. Hourly. Professionally.",
+        "b": "I put it in soil. I talk to it now. That's normal for CEOs."
+      },
+      "find": "I found a spare pot under my desk. It had acorns in it. Fate!"
+    },
+    "marlow": {
+      "title": "The Pond Visitor",
+      "1": {
+        "prompt": "A duckling has been following me since Tuesday. I haven't said anything. Neither has the duckling.",
+        "a": {
+          "label": "Let it stay. It's found its person.",
+          "reply": "Then I'll make it a small badge. Visitor, unlimited."
+        },
+        "b": {
+          "label": "Ducks need water, Marlow.",
+          "reply": "Correct. I'll put the break-room kettle on standby. Emotionally."
+        }
+      },
+      "2": {
+        "prompt": "The duckling now attends my wellbeing sessions. Attendance has tripled. I think people come for the duck.",
+        "a": {
+          "label": "Build it a little pond in the break room.",
+          "reply": "A pond. Of course. I'll schedule nothing near it, so nobody feels rushed."
+        },
+        "b": {
+          "label": "Ask Sonny to help look after it.",
+          "reply": "Sonny and the duck nap in shifts now. It's the calmest childcare in history."
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "It's grown. It has a badge, a pond and opinions. Today it flew up to the roof and came back. I didn't panic.",
+          "b": "It's nearly grown, and it still waits by the kettle every morning. I have never felt so needed by a bird."
+        },
+        "a": {
+          "label": "Tell it it can always come back.",
+          "reply": "I did. It quacked. I'm choosing to translate that as yes."
+        },
+        "b": {
+          "label": "Let it fly south. You can visit.",
+          "reply": "Then I'll plan the calmest road trip ever taken. Snacks every eleven minutes."
+        }
+      },
+      "callback": {
+        "a": "The duckling has a badge now. Security nods at it.",
+        "b": "The kettle is on standby. For the duck. Not for me."
+      },
+      "find": "The duck brought this back from the pond. I didn't ask."
+    },
+    "rizzo": {
+      "title": "The Receipt Mountain",
+      "1": {
+        "prompt": "Confession: I keep every receipt. Every single one. They're in the vents. Hypothetically.",
+        "a": {
+          "label": "Show me the mountain.",
+          "reply": "You'd be the first. Mind the pigeons. They're filing."
+        },
+        "b": {
+          "label": "Hand them to Otto, please.",
+          "reply": "Otto? He'll cry. Happy tears. Accounting tears. Fine."
+        }
+      },
+      "2": {
+        "prompt": "Bad news: the receipts reached the cafeteria. Good news: I found a coupon from 1998 that's still valid.",
+        "a": {
+          "label": "Redeem it. For science.",
+          "reply": "On it. The snack machine has never been this nervous."
+        },
+        "b": {
+          "label": "Perry swears his coupon is better.",
+          "reply": "Perry's coupons are forgeries. Gorgeous forgeries. Fine. We'll compare. Loser buys lunch."
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "You walked the receipt mountain with me. Nobody's done that. I made you something… out of receipts.",
+          "b": "Otto framed one of my receipts. Framed it. Now I feel like I owe the whole pile an apology."
+        },
+        "a": {
+          "label": "It's beautiful. Keep it somewhere safe.",
+          "reply": "A sculpture. Of us. Laminated. Don't tell Hazel."
+        },
+        "b": {
+          "label": "Open a museum. Charge admission.",
+          "reply": "The Ringtail Collection. The gift shop sells receipts. Very meta. Very profitable."
+        }
+      },
+      "callback": {
+        "a": "Mountain status: stable. The pigeons have unionised.",
+        "b": "Otto has a whole binder now. He hums when he opens it."
+      },
+      "find": "Look what I found under receipt #48,211. Finders keepers. For you."
+    },
+    "bea": {
+      "title": "The Treehouse",
+      "1": {
+        "prompt": "We work inside a tree, and nobody has built a treehouse in it. That keeps me up at night. Professionally.",
+        "a": {
+          "label": "Draw me the plans.",
+          "reply": "Already done. Eleven pages. Page four is just the ladder."
+        },
+        "b": {
+          "label": "Isn't the whole office a treehouse?",
+          "reply": "That's… fair. A treehouse inside a treehouse, then. Treehouse-ception."
+        }
+      },
+      "2": {
+        "prompt": "I've found the perfect branch. Sturdy. Sun on two sides. Only one squirrel lives there, and he's open to sublets.",
+        "a": {
+          "label": "Build it. I'll fetch the planks.",
+          "reply": "You'd carry planks for me? I'll pick the nicest one. You get the second nicest."
+        },
+        "b": {
+          "label": "Let Bia check it's safe first.",
+          "reply": "Bia hugged the branch for ten minutes. Verdict: safe, and very huggable."
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "You drew the plans with me, so I left room for you to sign the door. It's finished. It has a doorbell.",
+          "b": "A treehouse inside a treehouse. You said it, I built it. It's ridiculous. It's perfect."
+        },
+        "a": {
+          "label": "Throw a housewarming.",
+          "reply": "Everyone's invited. Bring nothing. I've built chairs. So many chairs."
+        },
+        "b": {
+          "label": "Keep it as your quiet corner.",
+          "reply": "A place to think with wood all around me. You get it. You really get it."
+        }
+      },
+      "callback": {
+        "a": "Page four of the plans is still my favourite. That ladder.",
+        "b": "Treehouse-ception. I've written it on the blueprint."
+      },
+      "find": "Left over from the treehouse. The good plank. You earned it."
+    },
+    "corvus": {
+      "title": "Going Viral",
+      "1": {
+        "prompt": "Big news: we went viral. Bad news: it's a video of Sonny falling asleep mid-sentence. Forty million views.",
+        "a": {
+          "label": "Ask Sonny if he's okay with it.",
+          "reply": "Asking. …He's asleep. I'll ask again when he's awake. Properly. Ethically. Ugh."
+        },
+        "b": {
+          "label": "Ride the wave. Print the merch.",
+          "reply": "Merch is my love language. Sleepy-sloth hoodies drop tonight."
+        }
+      },
+      "2": {
+        "prompt": "A talk show wants us. They asked for 'the sleepy one and the shiny one'. I assume I'm the shiny one.",
+        "a": {
+          "label": "Go. Bring Sonny. Let him nap on air.",
+          "reply": "A live nap. Bold. Unscripted. The producers are terrified. I love it."
+        },
+        "b": {
+          "label": "Pitch the company, with Sonny's blessing.",
+          "reply": "Serious brand, serious crow. Sonny gave a slow thumbs up. It took a while."
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "You made me ask Sonny first. He said yes, with a snore. Doing it properly felt… nice? Weird. Nice.",
+          "b": "The merch sold out. Twice. You let me be shameless, and I have never felt so seen."
+        },
+        "a": {
+          "label": "Donate the profits to the nap fund.",
+          "reply": "The Sonny Foundation for Rest. Viral AND virtuous. My two favourite v-words."
+        },
+        "b": {
+          "label": "Frame the first hoodie in the lobby.",
+          "reply": "Hung it next to the founder's photo. Pip cried. Good tears, I think."
+        }
+      },
+      "callback": {
+        "a": "Sonny signed the release form. Took him three naps.",
+        "b": "Hoodie update: we've run out of the letter Z."
+      },
+      "find": "Fan mail. Someone sent us shiny things. I kept only one. Here."
+    },
+    "mina": {
+      "title": "The Basement's Basement",
+      "1": {
+        "prompt": "I dug past the basement. There's another basement. It has our logo on the door. Dated 1903.",
+        "a": {
+          "label": "Open it. Carefully.",
+          "reply": "Carefully is my middle name. My first name is Mina. I think that also means carefully."
+        },
+        "b": {
+          "label": "Close it and file a report.",
+          "reply": "Report filed. It says 'a door that is older than us'. Hazel had to sit down."
+        }
+      },
+      "2": {
+        "prompt": "Behind the door: a desk, a lamp and a nameplate. 'Nutshell Inc. — Founder'. It isn't Pip's handwriting.",
+        "a": {
+          "label": "Bring back the nameplate.",
+          "reply": "Bringing it up. It's warm. Like someone just put it down."
+        },
+        "b": {
+          "label": "Ask Moss. She notices things.",
+          "reply": "Moss looked at it for an hour, then said 'oh'. Just 'oh'. I'm thrilled and terrified."
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "You told me to open it, and I did. The old founder left a letter: 'Whoever finds this: keep digging. Kindly.'",
+          "b": "You wanted it filed. The report came back stamped by someone who retired in 1931. We're in a mystery now."
+        },
+        "a": {
+          "label": "Then we keep digging. Kindly.",
+          "reply": "Kindly digging. I'll write it on my goggles. Thank you for believing the weird stuff."
+        },
+        "b": {
+          "label": "Seal it, but leave a light on.",
+          "reply": "A little lamp for whoever comes next. Kindest thing anyone's ever said about a tunnel."
+        }
+      },
+      "callback": {
+        "a": "The basement's basement is very tidy. Too tidy.",
+        "b": "My report is now the most-read document in the company."
+      },
+      "find": "Found this halfway down the tunnel. It's old. It's ours now."
+    },
+    "nixie": {
+      "title": "Version Two",
+      "1": {
+        "prompt": "I built a stapler that staples itself. It's very proud. It follows me around and staples my notes. Lovingly.",
+        "a": {
+          "label": "Name it.",
+          "reply": "Staply. No — Sir Staples. No — Kevin. It's Kevin."
+        },
+        "b": {
+          "label": "Is it safe?",
+          "reply": "Mostly! 80% safe. Like everything I make. That's a good number. Probably."
+        }
+      },
+      "2": {
+        "prompt": "Kevin has started building a smaller stapler. I didn't teach it that. Am I a grandmother? Of staplers?",
+        "a": {
+          "label": "Give them a workbench.",
+          "reply": "A tiny workbench! I'm so proud. Also scared. Mostly proud."
+        },
+        "b": {
+          "label": "Get Quincy to test them.",
+          "reply": "Quincy found three bugs and one actual bug. Kevin stapled the actual bug a tiny hat."
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "Kevin wants a job title. You named him, so you get a say. He stapled your name on my wall. Respectfully.",
+          "b": "You asked if he was safe. He's 94% safe now! My best number ever. He also makes tea."
+        },
+        "a": {
+          "label": "Head of Stationery.",
+          "reply": "Kevin clicked twice. That's joy. I'm making him a badge. A stapled badge."
+        },
+        "b": {
+          "label": "Let him automate the coffee.",
+          "reply": "Coffee by Kevin. Every cup comes stapled shut. It's a feature."
+        }
+      },
+      "callback": {
+        "a": "Kevin says hi. Kevin can't talk. Kevin stapled 'hi'.",
+        "b": "Kevin is 80% safe. He's working on it. We all are."
+      },
+      "find": "Kevin made this for you. Mind the staples."
+    },
+    "otto": {
+      "title": "The River Stone",
+      "1": {
+        "prompt": "I keep a pebble from the river I grew up on. Sometimes it rolls off the desk and I chase it. Very professionally.",
+        "a": {
+          "label": "Tell me about the river.",
+          "reply": "Cold, quick and full of shiny things. I was a terrible student and a great swimmer."
+        },
+        "b": {
+          "label": "Want a little box for it?",
+          "reply": "A box? For the pebble? With a label? …I'm blushing. Otters don't blush. I'm blushing."
+        }
+      },
+      "2": {
+        "prompt": "The books balanced today. First time this week. I celebrated by staring at the pebble. Is that sad?",
+        "a": {
+          "label": "Let's take a day trip to the river.",
+          "reply": "A day trip. I'll budget it. To the cent. And then I'll splash. Unbudgeted."
+        },
+        "b": {
+          "label": "Show Rizzo your filing system.",
+          "reply": "Rizzo looked at my ledgers and said 'respect'. Then he took a pen. Some things never change."
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "You asked about the river. Nobody asks. I went back last weekend. It's smaller than I remember. I'm bigger.",
+          "b": "The pebble has a box now, with a label in my best handwriting. It doesn't roll away any more. Neither do I."
+        },
+        "a": {
+          "label": "Bring the river here: a little fountain.",
+          "reply": "A fountain in Finance. Water on numbers. Absurd. I'll approve the budget myself."
+        },
+        "b": {
+          "label": "You're home here too, you know.",
+          "reply": "…Give me a second. Numbers I can do. This I need to swim around for a bit."
+        }
+      },
+      "callback": {
+        "a": "I balanced the books and only chased one shiny thing. Growth.",
+        "b": "The pebble's in its box. The label says 'Home, portable'."
+      },
+      "find": "Found this in the river on my trip. It's shiny. I didn't chase it. Much."
+    },
+    "hazel": {
+      "title": "The Fine Print",
+      "1": {
+        "prompt": "Please don't laugh. I hide poems in the footnotes of contracts. Tiny ones. Clause 14.b is about the moon.",
+        "a": {
+          "label": "Read me 14.b.",
+          "reply": "'The party of the second part / is, at night, a little heart.' …It's legally binding."
+        },
+        "b": {
+          "label": "That can't be compliant.",
+          "reply": "It IS compliant. I checked. Twice. That's the whole problem. It's perfect."
+        }
+      },
+      "2": {
+        "prompt": "A client signed a contract and wrote back: 'Who wrote clause 9? I cried.' I'm panicking. Politely.",
+        "a": {
+          "label": "Tell them it was you.",
+          "reply": "I told them. They want a poetry clause in every renewal. I've never been so prickly with joy."
+        },
+        "b": {
+          "label": "Ask Nino to read it at the meeting.",
+          "reply": "Nino read it aloud, then fell asleep on it. The client called it 'performance art'."
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "You read 14.b out loud. Out loud! I've been writing more. The board asked if poetry is billable.",
+          "b": "You worried about compliance, so I wrote a poem that IS a compliance policy. It rhymes. It's airtight."
+        },
+        "a": {
+          "label": "Publish the collection.",
+          "reply": "'Terms and Conditions: Poems'. Hardcover. With an index. Obviously."
+        },
+        "b": {
+          "label": "Read one at the next all-hands.",
+          "reply": "Everyone stayed awake for the whole poem. Even Nino. Historic."
+        }
+      },
+      "callback": {
+        "a": "Clause 14.b has fans now. Plural.",
+        "b": "Compliant AND lyrical. My two favourite things."
+      },
+      "find": "A signed contract with a poem in it. The client framed theirs. This copy is yours."
+    },
+    "junie": {
+      "title": "Five Minutes Early",
+      "1": {
+        "prompt": "Odd question. I arrived five minutes before the company was founded. I already had a badge. Who booked me?",
+        "a": {
+          "label": "Let's find out together.",
+          "reply": "Together! I've cleared exactly four minutes for this. That's generous for me."
+        },
+        "b": {
+          "label": "Maybe you booked yourself.",
+          "reply": "That's… completely possible. I'm always early. Even to existing."
+        }
+      },
+      "2": {
+        "prompt": "Found my booking. It's in my own handwriting, dated tomorrow. I'll be early to my own appointment.",
+        "a": {
+          "label": "Then we'll be early with you.",
+          "reply": "Group earliness! I'll book us. I'll book the booking. Oh no. Oh yes."
+        },
+        "b": {
+          "label": "Ask Pingo. He knows timetables.",
+          "reply": "Pingo read it upside down and said 'your schedule has a loop in it'. A LOOP, Pingo."
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "We went early together. Guess who was already there? Me. Earlier me. She waved. I waved. Very efficient.",
+          "b": "My booking turned out to be real. I booked myself into existence. Busy week. Very proud of it."
+        },
+        "a": {
+          "label": "Book yourself a day off.",
+          "reply": "A whole day? Unscheduled? I'll schedule it. Lovingly. It's a start."
+        },
+        "b": {
+          "label": "Stay early. It's your superpower.",
+          "reply": "Then I'll keep being early, so nobody ever has to wait alone. That's the real job."
+        }
+      },
+      "callback": {
+        "a": "Earlier-me left a note: 'You're doing great. Also, you're late.'",
+        "b": "I booked myself into existence. Tuesday was busy."
+      },
+      "find": "This arrived for you tomorrow. I picked it up early."
+    },
+    "moss": {
+      "title": "What the Night Sees",
+      "1": {
+        "prompt": "At night the office plants turn towards the lift. All of them. Every night at 3:12. I have notes.",
+        "a": {
+          "label": "I'll stay up with you tonight.",
+          "reply": "Then you'll see. Bring a blanket. The quiet hours are cold, and honest."
+        },
+        "b": {
+          "label": "Maybe it's the air vents.",
+          "reply": "Perhaps. The vents are not in my notes. The plants are. Mm."
+        }
+      },
+      "2": {
+        "prompt": "The lift opened by itself last night. Nobody inside. Only leaves on the floor, arranged like an arrow. Up.",
+        "a": {
+          "label": "Follow the arrow.",
+          "reply": "Up, then. To the roof. You may want shoes. I do not, but you may."
+        },
+        "b": {
+          "label": "Ask Echo. She hears what I see.",
+          "reply": "Echo heard humming in the lift shaft. A lullaby, in a key that does not exist. Lovely."
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "You stayed up with me. Nobody stays up with me. On the roof we found the oldest branch of the tree, glowing.",
+          "b": "You thought it was the vents. It was not the vents. The tree is dreaming, I think. Of us."
+        },
+        "a": {
+          "label": "Let's keep its secret.",
+          "reply": "Kept. The night watch has two members now. That makes it a club. I have never been in a club."
+        },
+        "b": {
+          "label": "Then let's leave it a night light.",
+          "reply": "A small light for a dreaming tree. The gentlest instruction I have ever been given."
+        }
+      },
+      "callback": {
+        "a": "3:12 again last night. The fern waved. I waved back.",
+        "b": "I have added 'not the vents' to my notes. Twice."
+      },
+      "find": "The tree left this on the roof. It was humming. I believe it is for you."
+    },
+    "fenn": {
+      "title": "The Big Deal",
+      "1": {
+        "prompt": "The biggest deal of my career is on the line. Problem: the client is my mum. She drives a very hard bargain.",
+        "a": {
+          "label": "Be honest with her.",
+          "reply": "Honest. With my mum. Brave. She'll see right through me anyway. She always does."
+        },
+        "b": {
+          "label": "Close it like any other deal.",
+          "reply": "Professional. Charming. Unshakeable. She called me 'pumpkin' twice in the first email."
+        }
+      },
+      "2": {
+        "prompt": "Mum wants a tour before she signs. She wants to meet 'the people who feed my son'. I eat very well, thank you.",
+        "a": {
+          "label": "Give her the full tour.",
+          "reply": "The full tour. She already likes Marlow more than me. I'm fine. I'm fine."
+        },
+        "b": {
+          "label": "Let Corvus do the presentation.",
+          "reply": "Corvus made a slideshow with fireworks. Mum asked if he's single. He's thrilled."
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "You told me to be honest. I told Mum I was nervous. She signed and said 'I'm proud of you'. I've been weird all day.",
+          "b": "Biggest deal in company history: signed. She bargained me down to a discount and a promise to call more."
+        },
+        "a": {
+          "label": "Call her more.",
+          "reply": "Already called. Twice. She says I'm being clingy. She's delighted."
+        },
+        "b": {
+          "label": "Frame the contract.",
+          "reply": "Framed. Next to it, a photo of Mum with the whole team. My best close ever."
+        }
+      },
+      "callback": {
+        "a": "Mum sends her regards. And a scarf. For you, not me.",
+        "b": "Still undefeated in sales. Mum doesn't count. Mum is a legend."
+      },
+      "find": "Mum sent a care package. She said 'for the nice one'. That's you."
+    },
+    "pingo": {
+      "title": "The Route Home",
+      "1": {
+        "prompt": "I've planned a route back to the ice for the holidays. It has nine connections and one very long swim.",
+        "a": {
+          "label": "Tell me about home.",
+          "reply": "Blue light, white quiet, a lot of cousins. I miss the cousins. Not the swim."
+        },
+        "b": {
+          "label": "Could it have fewer connections?",
+          "reply": "Fewer connections. Yes. You speak my language. Routes."
+        }
+      },
+      "2": {
+        "prompt": "My cousins wrote back. They want to visit instead. All forty of them. They've never seen a tree. Or an office.",
+        "a": {
+          "label": "Invite them. We'll make room.",
+          "reply": "Forty penguins in an office. I'll schedule it to the minute. Arrivals by height."
+        },
+        "b": {
+          "label": "Junie can help with the timetable.",
+          "reply": "Junie booked them before they even asked. She's terrifying. She's wonderful."
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "You asked about home, so I told my cousins about here. They said it sounds like home with more nuts.",
+          "b": "You shaved two connections off the route. It's the best route I've ever had. I may never use it. I'll frame it."
+        },
+        "a": {
+          "label": "Then this is home too.",
+          "reply": "…Cool under pressure, warm at heart. That's what my file says. It's accurate today."
+        },
+        "b": {
+          "label": "Make the route a company holiday.",
+          "reply": "Company holiday: Route Day. Everyone gets a snack at every connection."
+        }
+      },
+      "callback": {
+        "a": "My cousins say hello. Forty times. In order of height.",
+        "b": "Route update: seven connections. Personal best."
+      },
+      "find": "My cousins posted this. It's frozen. Give it a minute."
+    },
+    "canela": {
+      "title": "Page Ninety-Nine",
+      "1": {
+        "prompt": "My notebook has a page I didn't write. Page ninety-nine. It describes tomorrow's weather in the break room.",
+        "a": {
+          "label": "Let's check it tomorrow.",
+          "reply": "A proper experiment! Hypothesis: the notebook knows things. Control: me, nervous."
+        },
+        "b": {
+          "label": "Maybe you wrote it half asleep.",
+          "reply": "Possible. But my handwriting doesn't usually include little doodles of you in the margin."
+        }
+      },
+      "2": {
+        "prompt": "Page ninety-nine was right: drizzle by the kettle at 10:40. Now page one hundred says 'someone will bring a gift'.",
+        "a": {
+          "label": "Then I'll bring one. Let's test it.",
+          "reply": "You're making the prophecy come true on purpose. That's either cheating or friendship. Both."
+        },
+        "b": {
+          "label": "Show Mina. She loves a mystery.",
+          "reply": "Mina read it and whispered 'the 1903 handwriting'. We're best friends now. Mysteries help."
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "We tested the notebook together. It's never wrong when you're around. Maybe it only writes down kind things.",
+          "b": "You thought I wrote it asleep. I've been sleep-observing! My sleeping self takes better notes than I do."
+        },
+        "a": {
+          "label": "Keep a page for us.",
+          "reply": "Page one hundred and one: 'They stayed curious.' I wrote that one myself. Awake."
+        },
+        "b": {
+          "label": "Write the last page yourself.",
+          "reply": "The last page, in my handwriting: 'Everything here is worth noticing.' Done."
+        }
+      },
+      "callback": {
+        "a": "Page ninety-nine predicts sunshine. Bring sunglasses.",
+        "b": "My sleeping self wrote 'buy milk'. She's very practical."
+      },
+      "find": "Page one hundred said you'd get this. Notebooks don't lie."
+    },
+    "nino": {
+      "title": "The Sunbeam Treaty",
+      "1": {
+        "prompt": "Someone has been sitting in my sunbeam. Three-fifteen to three-forty. I'm not angry. I'm drafting a treaty.",
+        "a": {
+          "label": "Help me draft it.",
+          "reply": "Clause one: the sunbeam is mine. Clause two: see clause one. You're good at this."
+        },
+        "b": {
+          "label": "Share it. There's plenty of sun.",
+          "reply": "Share. The sun. Interesting proposal. I'll consider it while lying in it."
+        }
+      },
+      "2": {
+        "prompt": "The intruder is Sonny. He's very slow, so negotiations take hours. We're both enjoying the negotiations.",
+        "a": {
+          "label": "Hold the talks in the sunbeam.",
+          "reply": "Diplomacy in the sun. We both fell asleep. Historic progress."
+        },
+        "b": {
+          "label": "Ask Hazel to mediate.",
+          "reply": "Hazel read us a poem about sharing. I'm not crying. The sun is in my eyes."
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "You drafted it with me. The treaty is signed: Sonny gets three-fifteen to three-forty. I get the rest. And him.",
+          "b": "You said share it. We did. Two nappers, one sunbeam. It's warmer with company. Don't tell anyone."
+        },
+        "a": {
+          "label": "Frame the treaty by the window.",
+          "reply": "Signed in paw, and in very slow claw. The most important document in the building."
+        },
+        "b": {
+          "label": "Throw a sunbeam party.",
+          "reply": "A party where everyone lies in the sun. My kind of event. No talking."
+        }
+      },
+      "callback": {
+        "a": "The treaty holds. Sonny was on time. He arrived yesterday.",
+        "b": "Sharing the sunbeam. It's fine. It's great. It's warm."
+      },
+      "find": "I knocked this off a shelf. For you. That's how I say I like you."
+    },
+    "bia": {
+      "title": "The Honey Thief",
+      "1": {
+        "prompt": "Someone's been in the honey stash. Paw prints. Big ones. I've checked every camera. I'm worried it's me.",
+        "a": {
+          "label": "Let's set up a night watch.",
+          "reply": "A stakeout. With snacks. Not honey snacks. Obviously. Too risky."
+        },
+        "b": {
+          "label": "Maybe just get a bigger stash?",
+          "reply": "A bigger stash would just be more to steal. Unless… oh. Oh, you're clever."
+        }
+      },
+      "2": {
+        "prompt": "The camera caught it. It's me. Sleepwalking. Holding the honey like a baby. I looked very peaceful.",
+        "a": {
+          "label": "Let's laugh about it together.",
+          "reply": "…It is funny. It's very funny. I'm laughing. Don't tell security. I am security."
+        },
+        "b": {
+          "label": "Get Bea to build a sleep-proof lock.",
+          "reply": "Bea built a wooden lock. I opened it in my sleep. Inside, she'd carved 'nice try'."
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "You did a stakeout with a bear who turned out to be the thief. You're a good friend. I'm a messy thief.",
+          "b": "The bigger-stash idea worked. I leave a little jar out for sleepy me. Everyone wins. Mostly me."
+        },
+        "a": {
+          "label": "Name the jar 'Midnight Bia'.",
+          "reply": "Midnight Bia gets one jar a night. Daytime Bia is very proud of her."
+        },
+        "b": {
+          "label": "Share the honey with the team.",
+          "reply": "Honey for everyone. Even Sonny woke up for it. That has never happened."
+        }
+      },
+      "callback": {
+        "a": "Stakeout report: suspect remains adorable.",
+        "b": "Second honey jar installed. For security reasons."
+      },
+      "find": "Midnight me left this by your desk. She has good taste."
+    },
+    "quincy": {
+      "title": "The Bug That Wasn't",
+      "1": {
+        "prompt": "There's a bug I can't catch. It dodges my tongue. It's a ladybird, and I think it wants a job.",
+        "a": {
+          "label": "Interview it.",
+          "reply": "Formal interview. It answered every question by landing on my nose. Strong candidate."
+        },
+        "b": {
+          "label": "Catch it with a jar.",
+          "reply": "Jar ready. It walked in by itself and closed the lid. It's making a point."
+        }
+      },
+      "2": {
+        "prompt": "The ladybird found three bugs in Nixie's code. Real bugs. Code bugs. It's better at my job than I am.",
+        "a": {
+          "label": "Team up. Two bug hunters.",
+          "reply": "A tag team! I catch, she points. Our bug count doubled. My tongue is tired."
+        },
+        "b": {
+          "label": "Let Nixie hire her for the lab.",
+          "reply": "Nixie hired her. I'm happy for them. I'm a tiny bit jealous. Tiny. Bug-sized."
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "You told me to interview her. Now she's my partner. We have matching badges. Hers is very small.",
+          "b": "You wanted a jar. She lives in it now, by choice. It's her office. She has a little desk."
+        },
+        "a": {
+          "label": "Name the team.",
+          "reply": "Quincy & Dot: Bug Removal. We have a logo. It's a tongue and a dot."
+        },
+        "b": {
+          "label": "Give her a desk in the lab.",
+          "reply": "Her desk is a leaf. She works harder than anyone. I'm inspired by a ladybird."
+        }
+      },
+      "callback": {
+        "a": "Dot found a bug in the kettle. A real one. Respect.",
+        "b": "Jar status: occupied, happy, spotted."
+      },
+      "find": "Dot found this. She wanted you to have it. She pointed. Very firmly."
+    },
+    "dorm": {
+      "title": "The Dream Journal",
+      "1": {
+        "prompt": "I keep… a dream journal. Last night I dreamt the printer… would sneeze. This morning… it sneezed.",
+        "a": {
+          "label": "What else do you dream about?",
+          "reply": "Mostly… naps. Dreaming of naps… during naps. Very restful. Very meta."
+        },
+        "b": {
+          "label": "Write the next one down. Let's check.",
+          "reply": "I'll write it… slowly. In my sleep. Neat handwriting… surprisingly."
+        }
+      },
+      "2": {
+        "prompt": "New dream… the whole office fell asleep at once… and production went up. Is that… a plan?",
+        "a": {
+          "label": "Let's try a company nap.",
+          "reply": "A company nap… the most beautiful phrase… I'm… very moved… zzz."
+        },
+        "b": {
+          "label": "Ask Marlow, she loves a wellbeing study.",
+          "reply": "Marlow made a chart. The chart says… naps work. The chart… is also asleep."
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "You asked about my dreams. You… listened. All the way to the end. That's… rare. Most people leave.",
+          "b": "You wanted proof. The journal's… right every time. Last night's dream… was about you. You were… happy."
+        },
+        "a": {
+          "label": "Then let's keep dreaming.",
+          "reply": "Keep dreaming… together… I'll save you… the good hammock."
+        },
+        "b": {
+          "label": "Publish 'The Sloth Forecast'.",
+          "reply": "Weekly forecast… Monday: naps. Tuesday: naps. Wednesday… a surprise… nap."
+        }
+      },
+      "callback": {
+        "a": "Dreamt of… you… bringing a snack. No pressure.",
+        "b": "Journal says… a good day. Slowly."
+      },
+      "find": "Dreamt you'd… like this. Then I… found it. Under me."
+    },
+    "inky": {
+      "title": "Stage Fright",
+      "1": {
+        "prompt": "I have to present at the all-hands. When I'm nervous I make ink. At the last practice I inked the whole sorting room.",
+        "a": {
+          "label": "Practise on me.",
+          "reply": "Okay. Deep breath. Eight deep breaths. …Only a little ink. Progress!"
+        },
+        "b": {
+          "label": "Hand out raincoats. Problem solved.",
+          "reply": "Raincoats for the AUDIENCE. That's genius. I'll order thirty."
+        }
+      },
+      "2": {
+        "prompt": "Good news: I made slides. Bad news: I made them with all eight arms at once. There are 400 slides.",
+        "a": {
+          "label": "Cut it to eight. One per arm.",
+          "reply": "One slide per arm! I can hold them all! I've never felt so organised."
+        },
+        "b": {
+          "label": "Junie can time the talk.",
+          "reply": "Junie gave me a timer that shouts 'NEXT' in a friendly voice. I need it in my life."
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "You let me practise on you. I presented. Only one tiny ink splash. Everyone clapped. Eight times, for me.",
+          "b": "The raincoats were a hit. Nobody got inky. Everyone kept them. I started a fashion trend?"
+        },
+        "a": {
+          "label": "Now present every month.",
+          "reply": "Every month? Okay. Yes. Terrifying. I'll bring raincoats. Just in case."
+        },
+        "b": {
+          "label": "Make ink your signature.",
+          "reply": "Signature ink! Every report stamped in eight colours. Mine. Proudly mine."
+        }
+      },
+      "callback": {
+        "a": "Still practising. Still mostly ink-free. Thanks to you.",
+        "b": "Raincoat orders: thirty. Raincoat wearers: everyone."
+      },
+      "find": "Sorted something for you. Eight times. It's perfect now."
+    },
+    "echo": {
+      "title": "The Frequency",
+      "1": {
+        "prompt": "After midnight I hear a melody in the walls. Nobody else does. It's beautiful. It comes from the trunk.",
+        "a": {
+          "label": "Hum it for me.",
+          "reply": "…Hmmmm-mm. It goes up at the end, like a question. Do you hear it now?"
+        },
+        "b": {
+          "label": "Could it be the plumbing?",
+          "reply": "Plumbing doesn't harmonise with itself. Usually. I'll keep listening."
+        }
+      },
+      "2": {
+        "prompt": "I recorded it. Played backwards, it's the day the company was founded. Played forwards, it's a lullaby.",
+        "a": {
+          "label": "Play it for the night shift.",
+          "reply": "The whole night shift sat still and listened. Moss cried a little. Owls do that."
+        },
+        "b": {
+          "label": "Ask Moss what it means.",
+          "reply": "Moss said 'the tree remembers us while we sleep'. Then she went to look at a fern."
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "You heard it. You said so. I wasn't sure anyone would ever hear what I hear. I've stopped feeling odd.",
+          "b": "Not the plumbing, then. The tree hums when the office is happy. Lately it's been very loud."
+        },
+        "a": {
+          "label": "Teach me to listen like you.",
+          "reply": "Lesson one: be quiet. Lesson two: be quieter. You're a natural."
+        },
+        "b": {
+          "label": "Write the tree a reply.",
+          "reply": "I hummed it a little tune back. It answered. A duet, with a building."
+        }
+      },
+      "callback": {
+        "a": "The walls hummed your name last night. Kindly.",
+        "b": "Plumbing report: still not the plumbing."
+      },
+      "find": "The tree hummed and this fell from a branch. It's warm. Like a song."
+    },
+    "rosa": {
+      "title": "The Runway",
+      "1": {
+        "prompt": "I'm planning an office fashion show. The runway is the corridor. My fear: nobody walks it, and I'm a flamingo alone.",
+        "a": {
+          "label": "I'll walk first.",
+          "reply": "You'd go first? On one leg? Two is fine. Two is wonderful. I may faint."
+        },
+        "b": {
+          "label": "Make it a contest. Prizes help.",
+          "reply": "Prizes. Rosettes. Glitter. A little competition brings out the fabulous."
+        }
+      },
+      "2": {
+        "prompt": "Sign-ups so far: Otto (shiny tie), Bea (wooden shoes), Nino (refuses; will attend lying down). It's happening.",
+        "a": {
+          "label": "Give everyone a moment to shine.",
+          "reply": "Everyone gets a spotlight. Even the shy ones. Especially the shy ones."
+        },
+        "b": {
+          "label": "Corvus can film it. Viral, darling.",
+          "reply": "Corvus is filming in slow motion. Every step is a moment. I'm so nervous."
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "You walked first, and everyone followed. Even Moss, at midnight, alone, but she walked. It was a debut.",
+          "b": "The contest was a sensation. Bea won 'Most Structural Look'. Nobody argued. It was a very good shoe."
+        },
+        "a": {
+          "label": "Make it a yearly tradition.",
+          "reply": "The Plume Show, every year. You'll always walk first. That's your title now."
+        },
+        "b": {
+          "label": "Take a bow yourself.",
+          "reply": "On one leg. Spotlight. Applause. I didn't know I needed that. Thank you, darling."
+        }
+      },
+      "callback": {
+        "a": "You walked first. I'll never forget it. Neither will the corridor.",
+        "b": "Glitter count: everywhere. Worth it."
+      },
+      "find": "From the runway: the winning ribbon. You deserve it more."
+    },
+    "perry": {
+      "title": "The Unsourceable",
+      "1": {
+        "prompt": "In all my years of sourcing, one item has eluded me. A left sock. Specifically, mine. Missing since 2011.",
+        "a": {
+          "label": "Then we'll find it together.",
+          "reply": "A joint operation. Codename: Footwear. I'll get the trench coat."
+        },
+        "b": {
+          "label": "Just buy new socks, Perry.",
+          "reply": "New socks? That's… surrender. It's also sensible. I hate it. I'll think about it."
+        }
+      },
+      "2": {
+        "prompt": "Lead: Rizzo was seen near the laundry in 2011. Rizzo says he 'doesn't recall'. Highly suspicious.",
+        "a": {
+          "label": "Follow the lead quietly.",
+          "reply": "Quietly. My specialty. Silent as a duck. A duck with a beaver's tail. Very silent."
+        },
+        "b": {
+          "label": "Ask Rizzo directly.",
+          "reply": "Asked. Rizzo blinked, then took the sock out of a drawer. Twelve years. 'For safekeeping.'"
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "You followed me through every lead. The sock was in my own coat pocket. Thirteen years. I'm a great spy.",
+          "b": "You told me to just buy socks. I bought socks. Then Rizzo returned the old one, ironed. We're… friends now? Enemies who iron."
+        },
+        "a": {
+          "label": "Frame the sock.",
+          "reply": "Framed. Case closed. The most beautiful sock in the building. The ONLY sock in the building."
+        },
+        "b": {
+          "label": "Wear them both, finally.",
+          "reply": "Both socks. Matching. For the first time since 2011. I feel… complete. And warm."
+        }
+      },
+      "callback": {
+        "a": "Operation Footwear: ongoing. Very hush.",
+        "b": "Bought new socks. They feel like betrayal. Comfortable betrayal."
+      },
+      "find": "Sourced this for you. Don't ask from where. It's legal. Mostly."
+    },
+    "axel": {
+      "title": "The Cutting",
+      "1": {
+        "prompt": "I took a tiny cutting from the office tree. With permission! I asked the tree. It didn't say no.",
+        "a": {
+          "label": "Let's grow it together.",
+          "reply": "Together! I'll water, you encourage. Encouraging is very important for plants."
+        },
+        "b": {
+          "label": "Is the tree okay with that?",
+          "reply": "I left it a thank-you note on the bark. It grew a new leaf over it. I think that's a yes."
+        }
+      },
+      "2": {
+        "prompt": "The cutting grew a leaf shaped like an acorn. Then one like a nut. Then one like… a tiny office?",
+        "a": {
+          "label": "Plant it somewhere special.",
+          "reply": "Somewhere with light and company. I know exactly the window."
+        },
+        "b": {
+          "label": "Show it to Canela for her notebook.",
+          "reply": "Canela drew it and said 'that's a building'. A building! Growing! I'm so happy I'm pinker."
+        }
+      },
+      "3": {
+        "prompt": {
+          "a": "You grew it with me. It's taller than me now. There's a tiny branch with a tiny desk on it. And a tiny me.",
+          "b": "You worried about the tree. The tree's fine. It's PROUD. It grew a sibling. The company has a little sister."
+        },
+        "a": {
+          "label": "Let the company grow a new branch.",
+          "reply": "A new branch for new friends. Anything can grow back. Anything can grow, full stop."
+        },
+        "b": {
+          "label": "Let it grow wild.",
+          "reply": "Wild and happy. Like us. Like everything good. I'll be smiling about this for a week."
+        }
+      },
+      "callback": {
+        "a": "The cutting says hello. It waved. It was the wind. Probably.",
+        "b": "Thanked the tree again today. It rustled. Politely."
+      },
+      "find": "The cutting dropped this. It's a seed. For you to grow something."
+    },
+    "findArrived": "They have left something for you in the office."
+  },
+  "bond": {
+    "tier": {
+      "new": "New face",
+      "familiar": "Familiar",
+      "trusted": "Trusted",
+      "close": "Close friend"
+    },
+    "next": "next: {{tier}}",
+    "closeBonus": "Close friends work 10% better.",
+    "milestone": {
+      "title": "Now: {{tier}}",
+      "familiar": "{{name}} has started greeting you by name.",
+      "trusted": "{{name}} trusts you with the things that matter.",
+      "close": "{{name}} would follow you up any branch.",
+      "unlock": "Their story continues now.",
+      "unlockClose": "As a close friend, {{name}} works 10% better."
+    },
+    "pending": {
+      "story": "{{name}} wants to tell you something",
+      "milestone": "{{name}} has news for you",
+      "hint": "{{name}} dropped a hint"
+    },
+    "share": "Wants to share something"
+  },
+  "visit": {
+    "tab": {
+      "talk": "Talk",
+      "gifts": "Gifts",
+      "scrapbook": "Scrapbook"
+    },
+    "part": "Part {{n}} of 3",
+    "storyTold": "{{n}} of 3 parts told",
+    "storyWaiting": {
+      "friendship": "The next part, once you are {{tier}}.",
+      "time": "The next part, a little later. Give it time.",
+      "ready": "They are ready to tell you the next part.",
+      "done": "You know their whole story."
+    },
+    "breakNote": "{{name}} is taking a breather. Back in {{time}}.",
+    "finishFirst": "Finish the conversation first.",
+    "close": "Back to the office"
+  },
+  "scrapbook": {
+    "empty": "Nothing here yet. Spend some time together.",
+    "tier": "Became {{tier}}",
+    "story": "{{title}} · Part {{n}}",
+    "gift": "Gave {{gift}}",
+    "find": "They brought you something",
+    "moment": "A moment together",
+    "pair": {
+      "friends": "Gets along with {{name}}",
+      "rivals": "Friendly rivals with {{name}}",
+      "awkward": "A bit awkward around {{name}}",
+      "mentor": "Looks out for {{name}}",
+      "mentee": "Looks up to {{name}}"
+    }
+  },
+  "pair": {
+    "night-shift": {
+      "1": {
+        "a": "Echo, did you hear the fern at three?",
+        "b": "Humming in C. I wrote it down for you."
+      },
+      "2": {
+        "a": "The night is quieter with you in it.",
+        "b": "Quieter AND louder. I'll explain at midnight."
+      }
+    },
+    "sourcing": {
+      "1": {
+        "a": "I found it first.",
+        "b": "I found it before you found it first."
+      },
+      "2": {
+        "a": "Where did you get that stapler?",
+        "b": "Same place you got yours. Don't look at me like that."
+      }
+    },
+    "receipts": {
+      "1": {
+        "a": "Rizzo. Receipt for the trampoline?",
+        "b": "It's a morale trampoline. Fully deductible."
+      },
+      "2": {
+        "a": "Your ledger is a napkin.",
+        "b": "A very organised napkin, Otto."
+      }
+    },
+    "build-fix": {
+      "1": {
+        "a": "I added more wood to the vault door.",
+        "b": "Then I added more hugs to the vault door."
+      },
+      "2": {
+        "a": "Want to reinforce something together?",
+        "b": "Always. You bring planks, I'll bring honey."
+      }
+    },
+    "bugs": {
+      "1": {
+        "a": "New gadget. Bug-free!",
+        "b": "Found six bugs. One is a bee."
+      },
+      "2": {
+        "a": "Stop eating my test results.",
+        "b": "Stop making them so crunchy."
+      }
+    },
+    "brand": {
+      "1": {
+        "a": "It needs more shine.",
+        "b": "It needs more taste, darling."
+      },
+      "2": {
+        "a": "Viral beats fabulous.",
+        "b": "Fabulous outlives a trend, sweetie."
+      }
+    },
+    "pitch": {
+      "1": {
+        "a": "I'll sell it.",
+        "b": "I'll make them want it before you say hello."
+      },
+      "2": {
+        "a": "Lunch? I'll pitch it to you.",
+        "b": "Already sold. You had me at lunch."
+      }
+    },
+    "timetable": {
+      "1": {
+        "a": "I'm here five minutes early!",
+        "b": "I scheduled you five minutes early."
+      },
+      "2": {
+        "a": "Route check?",
+        "b": "Route checked. Twice. With snacks."
+      }
+    },
+    "nap-club": {
+      "1": {
+        "a": "Shall we have a little rest?",
+        "b": "I… already… started."
+      },
+      "2": {
+        "a": "Your breathing is very calming.",
+        "b": "Thank… you… it's… my only… speed."
+      }
+    },
+    "minutes": {
+      "1": {
+        "a": "Nino, did you read the minutes?",
+        "b": "I slept on them. Very thoroughly."
+      },
+      "2": {
+        "a": "Clause 3 requires you to be awake.",
+        "b": "I've found a loophole. It's called napping."
+      }
+    },
+    "mysteries": {
+      "1": {
+        "a": "I found a tunnel. Want notes?",
+        "b": "Already taking notes. On you finding it."
+      },
+      "2": {
+        "a": "Something knocked from under the floor.",
+        "b": "Page forty-two predicted that. Exciting."
+      }
+    },
+    "calm": {
+      "1": {
+        "a": "Breathe, Pip. The meeting can wait.",
+        "b": "Can it? Can it really? …Okay. Breathing."
+      },
+      "2": {
+        "a": "You're doing well. Truly.",
+        "b": "I'm writing that down and framing it."
+      }
+    }
   }
 }
