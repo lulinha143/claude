@@ -45,7 +45,17 @@ import { previewClickValue, rushStreak, synergyEmployees, CLICK } from '../sim/c
 import { crateCapacity as crateCapacityFor, secondsToFull } from '../sim/crate';
 import { nextFloor } from '../sim/goals';
 import { FindArt } from './FindArt';
+import { KeepsakeArt } from './KeepsakeArt';
+import { Glyph, type GlyphName } from './Glyph';
+import { speakAloud } from './voice';
 import { chooseVoice } from '../sim/employeeVoice';
+import {
+  keepsakeOnDisplay,
+  pairsTogether,
+  storyCallbackKey,
+  wavingTeammates,
+  type PendingMoment,
+} from '../sim/bonds';
 import { clearTapFeedback, flyToCounter, tapPop } from '../ui/tapFeedback';
 import { focusFloor } from '../ui/officeEvents';
 import { useFmt } from '../ui/useFmt';
@@ -93,6 +103,13 @@ import type { SfxName } from '../audio/audio';
 const FOUNDER_FLOOR = 'founder-desk';
 
 const DRAG_THRESHOLD = 7; // px before a press becomes a drag (vs a tap)
+
+/** How each kind of "come and see me" reads at a glance. */
+const NUDGE_GLYPH: Record<PendingMoment['kind'], GlyphName> = {
+  story: 'dots',
+  milestone: 'heart',
+  hint: 'sparkle',
+};
 
 interface DecorationDragPreview {
   roomId: string;
@@ -532,6 +549,15 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const floorGoal = useMemo(() => nextFloor(stateRef.current), [floorSecond, rooms.length]);
   const nextLocked = floorGoal?.room;
+  // Teammates with something to share: a new stage of your friendship, the next
+  // part of their story, a hint about their favourite gift. Re-read once a second
+  // (and whenever a visit closes), and never more than a few at once, so the
+  // office hints rather than nags.
+  const nudges = useMemo(
+    () => wavingTeammates(stateRef.current, Date.now()),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [floorSecond, covered],
+  );
   // Floors scrolled out of sight stop their ambient motion (the stylesheet keys
   // off data-onscreen), so a tall company costs no more than the floors in view.
   const floorKey = rooms.map((room) => room.id).join(',');
@@ -761,6 +787,33 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
     const hired = Object.entries(st.employees).filter(([, e]) => e.hired);
     if (hired.length === 0) return;
 
+    // Teammates who share a room talk to each other now and then: old friends,
+    // friendly rivals, the ones who are a little awkward together. One says
+    // something, the other answers. Overhearing them is how you meet the pair.
+    const pairs = pairsTogether(st);
+    if (pairs.length > 0 && Math.random() < 0.35) {
+      const pair = pairs[Math.floor(Math.random() * pairs.length)];
+      const line = 1 + Math.floor(Math.random() * 2);
+      engine.notePairSeen(pair.id);
+      setBubble({
+        employeeId: pair.a,
+        text: t(`pair.${pair.id}.${line}.a`),
+        until: Date.now() + 2700,
+      });
+      scheduleLife(() => {
+        setBubble((current) =>
+          current && current.employeeId !== pair.a && current.until > Date.now()
+            ? current
+            : {
+                employeeId: pair.b,
+                text: t(`pair.${pair.id}.${line}.b`),
+                until: Date.now() + 3600,
+              },
+        );
+      }, 2600);
+      return;
+    }
+
     if (Math.random() < 0.6) {
       const it = pickOfficeInteraction(st, reservedRef.current, rngRef.current);
       if (it) {
@@ -792,7 +845,13 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
     speak(id, chooseVoice(state, id).category);
   }
 
-  function speak(employeeId: string, category: string) {
+  /** Put words in a teammate's mouth; `aloud` when the player asked them something. */
+  function say(employeeId: string, text: string, aloud: boolean, ms = 4000) {
+    setBubble({ employeeId, text, until: Date.now() + ms });
+    if (aloud) speakAloud(audio, employeeId, text);
+  }
+
+  function speak(employeeId: string, category: string, aloud = false) {
     const room = resolveEmployeeRoom(state, employeeId);
     if (
       ['broadcast', 'repair', 'conservatory'].includes(room) &&
@@ -805,16 +864,26 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
           : state.flags[`discovery.${room}`] !== undefined
             ? 'afterQuip'
             : 'roomQuip';
-      setBubble({
-        employeeId,
-        text: t(`annex.${room}.${reaction}`),
-        until: Date.now() + 4000,
-      });
+      say(employeeId, t(`annex.${room}.${reaction}`), aloud);
       return;
     }
     const idx = pickDialogueIndex(category, rngRef.current);
     if (idx < 0) return;
-    setBubble({ employeeId, text: t(dialogueKey(category, idx)), until: Date.now() + 4000 });
+    say(employeeId, t(dialogueKey(category, idx)), aloud);
+  }
+
+  /** Open a visit on whatever a teammate was waving you over for. */
+  function openMoment(employeeId: string, moment: PendingMoment) {
+    const opened =
+      moment.kind === 'story'
+        ? engine.openTalk(employeeId, moment.topicId, true)
+        : engine.openTalk(employeeId, undefined, true, {
+            tab: moment.kind === 'hint' ? 'gifts' : 'talk',
+          });
+    if (opened) {
+      setBubble(null);
+      audio.play('paper');
+    }
   }
 
   function onCritterClick(employeeId: string) {
@@ -844,15 +913,24 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
     if (employeeId === 'pip') {
       engine.petPip();
       audio.play('click', { pitch: voicePitch('pip') });
+    } else {
+      audio.play('footstep', { pitch: voicePitch(employeeId) });
+    }
+    // Someone in the middle of their story brings up what you told them about it.
+    const callback = storyCallbackKey(state, employeeId);
+    if (callback && Math.random() < 0.5) {
+      say(employeeId, t(callback), true, 4600);
+      return;
+    }
+    if (employeeId === 'pip') {
       // Petting the founder is its own interaction, but she still notices a
       // company-wide mood or a bad assignment before falling back to it.
       const voice = chooseVoice(state, 'pip');
-      speak('pip', voice.reason === 'personal' ? 'interaction' : voice.category);
+      speak('pip', voice.reason === 'personal' ? 'interaction' : voice.category, true);
     } else {
       // Everyone else comments on what is actually happening to them: the company
       // mood, or the department they have been put in.
-      speak(employeeId, chooseVoice(state, employeeId).category);
-      audio.play('footstep', { pitch: voicePitch(employeeId) });
+      speak(employeeId, chooseVoice(state, employeeId).category, true);
     }
   }
 
@@ -907,11 +985,11 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
     });
     flyToCounter(box.left + box.width / 2, box.top + box.height / 2, 5);
     audio.play(reward.golden ? 'stationGolden' : 'collect');
-    setBubble({
-      employeeId: reward.find.employeeId,
-      text: `${t(`find.line.${reward.find.kind}`)}${reward.golden ? ` (${t('find.golden')})` : ''}`,
-      until: Date.now() + 4200,
-    });
+    // A find from their story comes with their own words about it.
+    const line = reward.find.noteKey
+      ? t(reward.find.noteKey)
+      : `${t(`find.line.${reward.find.kind}`)}${reward.golden ? ` (${t('find.golden')})` : ''}`;
+    say(reward.find.employeeId, line, true, reward.find.noteKey ? 5200 : 4200);
     setCelebratingEmployee(reward.find.employeeId);
     const generation = ++celebrationGenerationRef.current;
     scheduleLife(() => {
@@ -1850,6 +1928,9 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
                               VECTOR_CRITTER_OFFICE_SIZE * perspective * sceneScale * 0.92,
                             )}px)`;
                         const carried = drag?.kind === 'employee' && drag.id === id;
+                        // Nobody waves you over while the opening or the first-tap coach
+                        // has your attention.
+                        const nudge = carried || opening || newCompany ? undefined : nudges.get(id);
                         return (
                           <Fragment key={id}>
                             <button
@@ -1970,6 +2051,39 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
                                     </button>
                                   ))
                               : null}
+                            {!decorMode && nudge ? (
+                              <button
+                                type="button"
+                                className="office-nudge"
+                                data-kind={nudge.kind}
+                                data-employee={id}
+                                style={{
+                                  left: `${ex * 100}%`,
+                                  bottom: stickerBottom,
+                                  zIndex: SCENE_DEPTH.sticker + 1,
+                                }}
+                                title={t(`bond.pending.${nudge.kind}`, { name: label })}
+                                aria-label={t(`bond.pending.${nudge.kind}`, { name: label })}
+                                onClick={() => openMoment(id, nudge)}
+                              >
+                                <Glyph name={NUDGE_GLYPH[nudge.kind]} size={12} />
+                              </button>
+                            ) : null}
+                            {keepsakeOnDisplay(state, id) ? (
+                              // Their keepsake, out on display by where they work.
+                              <span
+                                className="office-keepsake"
+                                data-employee={id}
+                                style={{
+                                  left: `${slot.x * 100}%`,
+                                  bottom: `calc(${slot.bottom}px * var(--asset-scale))`,
+                                  zIndex: characterDepth(slot.bottom) - 1,
+                                }}
+                                aria-hidden
+                              >
+                                <KeepsakeArt employeeId={id} />
+                              </span>
+                            ) : null}
                           </Fragment>
                         );
                       })}

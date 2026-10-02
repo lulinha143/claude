@@ -314,6 +314,78 @@
     animation: none;
   }
 
+  /* ---- a teammate waving you over --------------------------------------------- */
+  /* A little speech balloon on the corner of their mood sticker: dots, they want
+     to tell you something; a heart, your friendship grew; a sparkle, a hint. It
+     stays inside the sticker's own footprint, so a crowded room never tangles. */
+  .office-nudge {
+    --sticker: clamp(30px, calc(42px * var(--asset-scale)), 42px);
+    --nudge: clamp(20px, calc(24px * var(--asset-scale)), 24px);
+    position: absolute;
+    display: grid;
+    place-items: center;
+    width: var(--nudge);
+    height: var(--nudge);
+    margin: 0 0 calc(var(--sticker) * 0.8) calc(var(--sticker) * 0.14);
+    padding: 0;
+    color: var(--c-walnut-800, #4a2f19);
+    background: #fffaf0;
+    border: 2px solid var(--c-walnut-800, #4a2f19);
+    border-radius: 50% 50% 50% 4px;
+    box-shadow: 0 2px 0 rgb(40 26 12 / 0.3);
+    cursor: pointer;
+    transform-origin: 0 100%;
+    animation: nudge-bob 3.4s ease-in-out infinite;
+  }
+  .office-nudge[data-kind='milestone'] {
+    color: #c2405a;
+    background: #ffeef1;
+  }
+  .office-nudge[data-kind='hint'] {
+    color: #9a6a08;
+    background: #fff4cf;
+  }
+  .office-nudge:hover,
+  .office-nudge:focus-visible {
+    animation: none;
+    scale: 1.12;
+  }
+  @keyframes nudge-bob {
+    0%,
+    76%,
+    100% {
+      rotate: 0deg;
+    }
+    84% {
+      rotate: -9deg;
+    }
+    92% {
+      rotate: 5deg;
+    }
+  }
+  .office--decorating .office-nudge {
+    display: none;
+  }
+  [data-reduced-motion='true'] .office-nudge,
+  [data-ambient='paused'] .office-nudge,
+  .floor[data-onscreen='false'] .office-nudge {
+    animation: none;
+  }
+
+  /* Their keepsake, out on display beside where they stand. */
+  .office-keepsake {
+    position: absolute;
+    width: clamp(26px, calc(36px * var(--asset-scale)), 40px);
+    margin-left: clamp(14px, calc(24px * var(--asset-scale)), 30px);
+    pointer-events: none;
+  }
+  .office-keepsake > .keepsake-art {
+    display: block;
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 2px 1px rgb(40 26 12 / 0.25));
+  }
+
   /* ---- the office's notes: the suggestion and the goal ---------------------- */
   .stage-notes {
     position: absolute;

@@ -18,6 +18,16 @@ import { MoodEmoji } from '../../art/EmployeeMoodBadge';
 import { roomAffinity, affinityPercent } from '../../sim/affinity';
 import { ROOMS_BY_ID } from '../../content/rooms';
 import { canTalk, talkCooldownRemaining } from '../../sim/talks';
+import { pendingMoment, wavingTeammates, type PendingMoment } from '../../sim/bonds';
+import { BondMeter } from '../BondMeter';
+import { Glyph, type GlyphName } from '../../art/Glyph';
+
+/** The mark beside "wants to tell you something" (same as the office's). */
+const SHARE_GLYPH: Record<PendingMoment['kind'], GlyphName> = {
+  story: 'dots',
+  milestone: 'heart',
+  hint: 'sparkle',
+};
 
 export function EmployeesView() {
   const { t } = useTranslation();
@@ -39,6 +49,7 @@ export function EmployeesView() {
   // cooldown ticking down rather than a stale snapshot.
   const now = Date.now();
   const talkReady = (id: string) => canTalk(state, id, now);
+  const waving = wavingTeammates(state, now);
   const cooldown = (id: string) => talkCooldownRemaining(state, id, now);
   const [showReady, setShowReady] = useState(false);
   const readyCount = EMPLOYEES.filter(
@@ -138,21 +149,39 @@ export function EmployeesView() {
                   <span className="goal-label">{t('employee.goal')}</span> {t(def.goalKey)}
                 </div>
                 {rt.hired ? (
-                  <Tip
-                    content={
-                      <TipContent
-                        title={t('employee.friendship')}
-                        lines={[t('tip.friendship'), `${Math.round(rt.friendship)}%`]}
-                      />
-                    }
-                  >
-                    <div className="friendship">
-                      <span>{t('employee.friendship')}</span>
-                      <div className="bar">
-                        <div className="bar__fill" style={{ width: `${rt.friendship}%` }} />
-                      </div>
-                    </div>
-                  </Tip>
+                  <div className="employee-card__bond">
+                    <Tip
+                      content={
+                        <TipContent
+                          title={t('employee.friendship')}
+                          lines={[
+                            t('tip.friendship'),
+                            `${Math.round(rt.friendship)}%`,
+                            t('bond.closeBonus'),
+                          ]}
+                        />
+                      }
+                    >
+                      <span>
+                        <BondMeter friendship={rt.friendship} compact />
+                      </span>
+                    </Tip>
+                    {(() => {
+                      // Something they would like to share, said quietly here too
+                      // (for the same few the office shows waving).
+                      const moment = waving.get(def.id);
+                      return moment ? (
+                        <span className="employee-card__share" data-kind={moment.kind}>
+                          <span className="employee-card__share-mark" aria-hidden>
+                            <Glyph name={SHARE_GLYPH[moment.kind]} size={11} />
+                          </span>
+                          {t(`bond.pending.${moment.kind}`, {
+                            name: rt.nickname ?? t(def.nameKey),
+                          })}
+                        </span>
+                      ) : null;
+                    })()}
+                  </div>
                 ) : null}
                 {rt.hired ? (
                   <div className="employee-card__controls">
@@ -332,8 +361,15 @@ export function EmployeesView() {
                           className="ghost-btn employee-card__talk"
                           data-employee={def.id}
                           onClick={() => {
-                              if (engine.openTalk(def.id, undefined, true)) audio.play('paper');
-                            else audio.play('error');
+                            // A teammate with something to share opens straight onto it.
+                            const moment = pendingMoment(state, def.id, Date.now());
+                            const opened =
+                              moment?.kind === 'story'
+                                ? engine.openTalk(def.id, moment.topicId, true)
+                                : engine.openTalk(def.id, undefined, true, {
+                                    tab: moment?.kind === 'hint' ? 'gifts' : 'talk',
+                                  });
+                            audio.play(opened ? 'paper' : 'error');
                           }}
                         >
                           {t('talk.open')}
