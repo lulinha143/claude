@@ -25,7 +25,9 @@ collectible decoration game. Understandable in seconds; hours of depth.
 4. Nuts buy machines, rooms, employees and improvements. The office always shows
    the **next goal** (the cheapest purchase, with what it will change) and buys
    it with one tap; the top of the tower shows the **next floor** being built.
-5. **Random events** create short, funny decisions.
+5. **Things happen in the office**: an incident waits in its room until the
+   player looks into it and decides, and what they decide comes back later (see
+   below).
 6. Milestones unlock new systems (rooms, employees, prestige).
 7. **Go Completely Nuts** (prestige) grants Permanent Kernels for a skill tree
    and alternate company branches.
@@ -121,6 +123,49 @@ The office produces its moments while it runs, with restraint: one stuck machine
 one blip and one curiosity at a time, at most two deliveries waiting, nothing in a
 brand-new founder's first two minutes. The elevator's floor list marks floors with
 something waiting.
+
+## Things happen in the office
+
+Events never open themselves (`src/content/happenings.ts`, `src/sim/happenings.ts`).
+The loop is notice → investigate → choose → experience → consequence → remember.
+
+- **Incidents.** A roll (every 45 s, 30% chance, nothing in the first three
+  minutes) either plays a small moment or starts an incident in a room: the
+  teammate it is about (or whoever knows the room) says a line and holds up a
+  **!** ticket, the room's name gets a **!**, and the elevator marks the floor. At
+  most two wait at once, one per room; nothing rolls while a card or a visit is
+  open. Ignored, an ordinary one is handled by the team after 25–35 minutes (and
+  reported); a rare one passes after 90 minutes, a legendary after six hours.
+  "Disable choice popups" still handles everything on the spot.
+- **Rarity is picked first** (common 52 : uncommon 32 : rare 12 : legendary 2),
+  then the events' own weights within it. Event luck (rooms, passives, the
+  prestige branch) raises rare odds up to double; after six incidents without a
+  rare one they grow 25% per incident. Measured over 3,000 incidents: one rare in
+  five or six, one legendary in thirty to forty-five, no dry spell past about
+  twenty (the old pure-weight pick made a quarter of all events rare).
+- **The card** is set in the room it is happening in, with the people it is
+  about and a rarity stamp; the outcome is the same card turned over: their
+  reaction first, then what changed. It says when something was set in motion
+  and who will remember, never what.
+- **Consequences** come in three kinds. Immediate: resources, moods, a room's
+  mode or rush, everyone's friendship. Later, and quiet (no notice): a teammate
+  says something, a curiosity appears (eight exist only after a particular
+  choice and count as a bonus, never toward a room's file), a small moment plays
+  out, or a follow-up incident starts (it waits its turn if its room is busy).
+  Remembered: 69 marks a choice can leave, each brought up by the teammate it
+  concerns a few minutes later, then now and then when poked.
+- **Small moments** (11): one or two lines, a small reward, no card. A line said
+  on a floor out of view is on the room's slip instead.
+- **Discoveries lead on.** Some curiosities point somewhere (the teammate says
+  where) and unlock the next; noticing three paranormal ones starts the
+  building's thread, which unlocks the legendary _Thirteenth Button_. Chapter 4
+  adds 13 incidents (one legendary, three rare), three secret files and a
+  follow-up chain.
+- **For the return.** The diary keeps the last 40 things that happened (started,
+  opened, handled, passed, moments, promises landed, remarks); time away starts
+  at most one incident per quarter hour, up to two, waiting in their rooms, and
+  the welcome-back note counts them. `happenedSince` is what a "while you were
+  away" view reads from.
 
 ## Progression targets
 
