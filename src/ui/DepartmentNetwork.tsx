@@ -3,6 +3,7 @@
 // The synergy system is only fun if the player can SEE it. This panel is the
 // explain-layer for `sim/companyModifiers.ts`: for every department it shows what
 // it is currently contributing, what it is costing, and — most importantly — what
+import { ROOM_ROUTINES } from '../content/roomPlay';
 // it *would* contribute but cannot yet, with the reason.
 //
 // That last part is the whole design intent. A dormant effect labelled
@@ -144,6 +145,21 @@ export function DepartmentNetwork() {
             </header>
 
             <p className="dept-card__summary">{t(profile.summaryKey)}</p>
+
+            {/* What the player does in the room itself, and the mode it is in. */}
+            {ROOM_ROUTINES[c.roomId] ? (
+              <p className="dept-card__play">
+                <strong>{t('synergy.inRoom', { name: t(`play.${c.roomId}.name`) })}</strong>{' '}
+                {(() => {
+                  const mode = state.office?.rooms?.[c.roomId]?.mode;
+                  return ROOM_ROUTINES[c.roomId].kind === 'tune' && mode
+                    ? `${t(`play.${c.roomId}.mode.${mode}.name`)}: ${t(
+                        `play.${c.roomId}.mode.${mode}.effect`,
+                      )}`
+                    : t(`play.${c.roomId}.tip`);
+                })()}
+              </p>
+            ) : null}
 
             <div className="dept-card__staff">
               {idle ? (

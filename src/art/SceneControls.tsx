@@ -9,8 +9,25 @@
 
 import { useTranslation } from 'react-i18next';
 import type { RoomDef } from '../content/types';
-import { Icon } from './UiIcon';
+import { Icon, type IconName } from './UiIcon';
 import { Tip, TipContent } from '../ui/Tooltip';
+import { Glyph } from './Glyph';
+
+type FloorNews = 'crate' | 'find' | 'play' | 'oddity';
+
+const NEWS_ICON: Record<FloorNews, IconName> = {
+  crate: 'nut',
+  find: 'moment',
+  play: 'notification',
+  oddity: 'moment',
+};
+
+const NEWS_LABEL: Record<FloorNews, string> = {
+  crate: 'crate.full',
+  find: 'find.take',
+  play: 'play.news.play',
+  oddity: 'play.news.oddity',
+};
 
 interface SceneControlsProps {
   rooms: readonly RoomDef[];
@@ -26,8 +43,11 @@ interface SceneControlsProps {
   onRedo: () => void;
   hint: string | null;
   occupancy: (roomId: string) => number;
-  /** something waiting on that floor: a full crate, a teammate's find. */
-  news?: (roomId: string) => 'crate' | 'find' | null;
+  /**
+   * something waiting on that floor: a full crate, a teammate's find, the room's
+   * routine wanting a hand, or a curiosity.
+   */
+  news?: (roomId: string) => 'crate' | 'find' | 'play' | 'oddity' | null;
 }
 
 export function SceneControls({
@@ -130,9 +150,13 @@ export function SceneControls({
                       {news(room.id) ? (
                         <span
                           className={`elevator__floor-news elevator__floor-news--${news(room.id)}`}
-                          aria-label={news(room.id) === 'crate' ? t('crate.full') : t('find.take')}
+                          aria-label={t(NEWS_LABEL[news(room.id) ?? 'find'])}
                         >
-                          <Icon name={news(room.id) === 'crate' ? 'nut' : 'moment'} size={11} />
+                          {news(room.id) === 'oddity' ? (
+                            <Glyph name="lens" size={11} />
+                          ) : (
+                            <Icon name={NEWS_ICON[news(room.id) ?? 'find']} size={11} />
+                          )}
                         </span>
                       ) : null}
                       {people > 0 ? (

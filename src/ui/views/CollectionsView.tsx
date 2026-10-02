@@ -1,4 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { CuriosityLog } from '../CuriosityLog';
+import { NUT_SOURCES } from '../../content/roomPlay';
+import { ROOMS_BY_ID } from '../../content/rooms';
+import { isRoomIdUnlocked } from '../../sim/rooms';
 import { useTranslation } from 'react-i18next';
 import { DiscoveryArt } from '../../art/DiscoveryArt';
 import { useGame } from '../../state/hooks';
@@ -106,7 +110,14 @@ export function CollectionsView() {
                   <NutDot color={found ? n.color : '#4a4038'} size={30} />
                   <span className="nut-cell__name">{found ? t(n.nameKey) : '???'}</span>
                   <span className="nut-cell__desc">
-                    {found ? t(n.descriptionKey) : t('collections.undiscovered')}
+                    {found
+                      ? t(n.descriptionKey)
+                      : // Where an office nut turns up, once that room is open.
+                        NUT_SOURCES[n.id] && isRoomIdUnlocked(state, NUT_SOURCES[n.id])
+                        ? t('collections.nutWhere', {
+                            room: t(ROOMS_BY_ID[NUT_SOURCES[n.id]]?.nameKey ?? ''),
+                          })
+                        : t('collections.undiscovered')}
                   </span>
                 </li>
               );
@@ -254,6 +265,7 @@ export function CollectionsView() {
         </ul>
       ) : null}
 
+      {tab === 'secrets' ? <CuriosityLog state={state} /> : null}
       {tab === 'secrets' ? (
         state.collections.secrets.some((secret) => !secret.startsWith('deco:')) ? (
           <ul className="secret-files">

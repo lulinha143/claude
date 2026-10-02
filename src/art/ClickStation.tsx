@@ -24,6 +24,7 @@ import { CLICK, comboWindowMs } from '../sim/clickStations';
 import type { StationTapResult } from '../sim/engine';
 import type { ClickStationDef } from '../content/clickStations';
 import type { SfxName } from '../audio/audio';
+import type { RoutineStatus } from '../sim/roomPlay';
 
 /** The founder's crate, as the crate station shows it. */
 export interface CrateView {
@@ -56,6 +57,8 @@ export interface ClickStationProps {
   synergyNames: string[];
   play: (name: SfxName, opts?: { pitch?: number }) => void;
   formatAmount: (value: number) => string;
+  /** the room's routine, so the machine itself shows it: brewing, ready, stuck, a blip. */
+  playStatus?: RoutineStatus;
 }
 
 export function ClickStation({
@@ -70,6 +73,7 @@ export function ClickStation({
   synergyNames,
   play,
   formatAmount,
+  playStatus,
 }: ClickStationProps) {
   const { t } = useTranslation();
   const [streak, setStreak] = useState(0);
@@ -227,7 +231,9 @@ export function ClickStation({
         type="button"
         className={`station-btn station-btn--${def.kind} station-btn--${def.cadence} ${
           rushing ? 'is-rushing' : ''
-        } ${crate?.full ? 'is-full' : ''} ${coached ? 'is-coached' : ''}`}
+        } ${crate?.full ? 'is-full' : ''} ${coached ? 'is-coached' : ''} ${
+          playStatus ? `is-play-${playStatus}` : ''
+        }`}
         data-fill={crate ? Math.round(crate.fill * 4) : undefined}
         style={{
           ['--rush-meter' as string]: meter.toFixed(3),

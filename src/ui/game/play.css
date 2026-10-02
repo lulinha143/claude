@@ -767,4 +767,613 @@
     border-radius: 10px;
     font-weight: 700;
   }
+
+  /* ---- room play: each station's routine ---------------------------------------- */
+  /* A small tag on top of the machine, only when there is something to see: a
+     brew to start or share, a stuck machine, a blip, a delivery, the room's mode. */
+  .play-chip {
+    position: absolute;
+    z-index: 250;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    max-width: min(48%, 156px);
+    height: 22px;
+    padding: 0 8px 0 3px;
+    color: var(--c-walnut-900, #2e1d10);
+    background: #fffaf0;
+    border: 2px solid var(--c-walnut-800, #4a2f19);
+    border-radius: 11px;
+    box-shadow: 0 2px 0 rgb(40 26 12 / 0.3);
+    font: 800 11px/1 var(--font-body);
+    white-space: nowrap;
+    transform: translateX(-50%);
+    cursor: pointer;
+    transition: translate var(--dur-fast) var(--ease);
+  }
+  .play-chip[data-side='left'] {
+    transform: translateX(-26%);
+  }
+  .play-chip[data-side='right'] {
+    transform: translateX(-74%);
+  }
+  button.play-chip:hover,
+  button.play-chip:focus-visible {
+    translate: 0 -2px;
+  }
+  .play-chip:focus-visible {
+    outline: 2px solid var(--gold, #d9a520);
+    outline-offset: 2px;
+  }
+  .play-chip__label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .play-chip__icon {
+    position: relative;
+    display: grid;
+    flex: 0 0 auto;
+    place-items: center;
+    width: 16px;
+    height: 16px;
+    background: rgb(74 47 25 / 0.1);
+    border-radius: 50%;
+  }
+  .play-chip.is-ready {
+    color: #3a2a06;
+    background: #ffe08a;
+    border-color: #8a5a10;
+    animation: chip-ready 2.6s ease-in-out infinite;
+  }
+  .play-chip.is-alert {
+    color: #fff;
+    background: #c2513f;
+    border-color: #6e2418;
+    animation: chip-alert 1.8s ease-in-out infinite;
+  }
+  .play-chip.is-alert .play-chip__icon {
+    background: rgb(255 255 255 / 0.22);
+  }
+  .play-chip.is-running {
+    color: var(--ink-body);
+    background: rgb(255 250 240 / 0.9);
+    border-color: var(--paper-line);
+    box-shadow: none;
+    font-variant-numeric: tabular-nums;
+    cursor: default;
+  }
+  .play-chip.is-mode {
+    color: #1d2f4f;
+    background: #e6efff;
+    border-color: #3d5a8a;
+  }
+  .play-chip.is-muted {
+    color: var(--ink-soft);
+    background: rgb(255 250 240 / 0.78);
+    border-color: var(--paper-line);
+    box-shadow: none;
+  }
+  span.play-chip.is-muted {
+    cursor: default;
+  }
+  /* A brew's progress, as a ring around its icon. */
+  .play-chip__ring {
+    position: absolute;
+    inset: -2px;
+    border-radius: 50%;
+    background: conic-gradient(
+      var(--c-leaf-600, #3f8a4c) calc(var(--p, 0) * 360deg),
+      transparent 0
+    );
+    -webkit-mask: radial-gradient(circle, transparent 6px, #000 6.5px);
+    mask: radial-gradient(circle, transparent 6px, #000 6.5px);
+  }
+  .play-chip__pips {
+    display: inline-flex;
+    gap: 2px;
+    margin-left: 1px;
+  }
+  .play-chip__pips i {
+    width: 6px;
+    height: 6px;
+    background: rgb(255 255 255 / 0.35);
+    border-radius: 50%;
+  }
+  .play-chip__pips i.is-on {
+    background: #fff;
+  }
+  /* How long a blip has left. */
+  .play-chip__drain {
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    bottom: 2px;
+    height: 2px;
+    background: rgb(255 255 255 / 0.85);
+    border-radius: 1px;
+    transform-origin: left center;
+    animation: chip-drain linear forwards;
+  }
+  @keyframes chip-drain {
+    from {
+      transform: scaleX(var(--drain-from, 1));
+    }
+    to {
+      transform: scaleX(0);
+    }
+  }
+  @keyframes chip-ready {
+    0%,
+    100% {
+      box-shadow: 0 2px 0 rgb(40 26 12 / 0.3);
+    }
+    50% {
+      box-shadow:
+        0 2px 0 rgb(40 26 12 / 0.3),
+        0 0 0 4px rgb(255 214 110 / 0.45);
+    }
+  }
+  @keyframes chip-alert {
+    0%,
+    70%,
+    100% {
+      rotate: 0deg;
+    }
+    78% {
+      rotate: -4deg;
+    }
+    86% {
+      rotate: 3deg;
+    }
+  }
+
+  /* The machine itself shows its routine: brewing, ready, stuck, a blip. */
+  .station-btn.is-play-running .station__accent {
+    animation-duration: 1.3s;
+  }
+  .station-btn.is-play-ready > svg {
+    filter: drop-shadow(0 0 5px rgb(255 214 110 / 0.95));
+  }
+  .station-btn.is-play-ready::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 2%;
+    width: 18px;
+    height: 22px;
+    background:
+      radial-gradient(circle at 50% 72%, rgb(255 255 255 / 0.9) 0 4px, transparent 5px),
+      radial-gradient(circle at 38% 28%, rgb(255 255 255 / 0.65) 0 3px, transparent 4px);
+    translate: -50% 0;
+    pointer-events: none;
+    animation: station-steam 2.4s ease-out infinite;
+  }
+  @keyframes station-steam {
+    from {
+      opacity: 0;
+      translate: -50% 6px;
+    }
+    30% {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+      translate: -50% -14px;
+    }
+  }
+  .station-btn.is-play-jammed > svg {
+    animation: station-jam 2.4s ease-in-out infinite;
+  }
+  @keyframes station-jam {
+    0%,
+    70%,
+    100% {
+      rotate: 0deg;
+    }
+    76% {
+      rotate: -3deg;
+    }
+    82% {
+      rotate: 3deg;
+    }
+    88% {
+      rotate: -2deg;
+    }
+    94% {
+      rotate: 1deg;
+    }
+  }
+  .station-btn.is-play-blip::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 16%;
+    width: 64%;
+    aspect-ratio: 1;
+    border: 2px solid rgb(255 214 110 / 0.95);
+    border-radius: 50%;
+    translate: -50% 0;
+    pointer-events: none;
+    animation: station-blip 1.3s ease-out infinite;
+  }
+  @keyframes station-blip {
+    from {
+      scale: 0.4;
+      opacity: 1;
+    }
+    to {
+      scale: 1.25;
+      opacity: 0;
+    }
+  }
+
+  /* ---- curiosities ------------------------------------------------------------ */
+  /* Something odd at the room's wall fixture, in a corner, up by the ceiling. The
+     fixture itself hums a little, so the eye goes there before the marker. */
+  .office-oddity {
+    position: absolute;
+    z-index: 255;
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    color: #4a2f19;
+    background: #fff4cf;
+    border: 2px solid #8a5a10;
+    border-radius: 50%;
+    box-shadow:
+      0 0 0 3px rgb(255 214 110 / 0.35),
+      0 2px 0 rgb(40 26 12 / 0.3);
+    cursor: pointer;
+    animation: oddity-glint 3.4s ease-in-out infinite;
+  }
+  .office-oddity:hover,
+  .office-oddity:focus-visible {
+    scale: 1.12;
+    animation: none;
+  }
+  .office-oddity[data-anchor='wall'] {
+    top: calc(9% + 12px);
+    left: calc(5% + 16px);
+  }
+  .office-oddity[data-anchor='wallRight'] {
+    top: calc(9% + 12px);
+    right: calc(6% + 16px);
+  }
+  .office-oddity[data-anchor='corner'] {
+    bottom: calc(var(--floor-h, 32px) * 0.45);
+    left: 4%;
+  }
+  .office-oddity[data-anchor='ceiling'] {
+    top: 5%;
+    left: 50%;
+    translate: -50% 0;
+  }
+  @keyframes oddity-glint {
+    0%,
+    68%,
+    100% {
+      scale: 1;
+    }
+    78% {
+      scale: 1.14;
+      box-shadow:
+        0 0 0 6px rgb(255 214 110 / 0.25),
+        0 2px 0 rgb(40 26 12 / 0.3);
+    }
+  }
+  .floor[data-oddity='wall'] .room-dressing__prop--wallLeft,
+  .floor[data-oddity='wallRight'] .room-dressing__prop--wallRight {
+    opacity: 1;
+    filter: saturate(1) drop-shadow(0 0 4px rgb(255 214 110 / 0.85));
+    transform-origin: 50% 0;
+    animation: fixture-hum 3.4s ease-in-out infinite;
+  }
+  @keyframes fixture-hum {
+    0%,
+    70%,
+    100% {
+      rotate: 0deg;
+    }
+    78% {
+      rotate: -1.6deg;
+    }
+    86% {
+      rotate: 1.2deg;
+    }
+  }
+  /* A facility room's secret, once enough has been noticed there. */
+  .office-oddity--discovery.floor__discovery {
+    display: inline-flex;
+    gap: 4px;
+    width: auto;
+    max-width: 52%;
+    height: 24px;
+    margin: 0;
+    padding: 0 9px 0 6px;
+    overflow: hidden;
+    color: var(--c-paper-50);
+    background: var(--c-sky-700);
+    border-color: var(--c-walnut-900);
+    border-radius: 12px;
+    font: 800 11px/1 var(--font-body);
+    animation: discovery-glow 2.4s ease-in-out infinite;
+  }
+  .office-oddity__label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* ---- the slip: what just happened -------------------------------------------- */
+  /* A paper note pinned along the top of the room, on the side where it
+     happened (the machine's side, or the curiosity's), so the people below stay
+     in view. Someone reacting to a curiosity speaks up once it has been read. */
+  .office-slip {
+    position: absolute;
+    top: 4px;
+    z-index: 5;
+    display: grid;
+    gap: 2px;
+    width: max-content;
+    max-width: min(72%, 260px);
+    padding: 6px 10px 7px;
+    color: #3a2a18;
+    background: #fffaf0;
+    border: 2px solid var(--paper-line, #d9c7a5);
+    border-radius: 12px;
+    box-shadow:
+      0 3px 0 rgb(40 26 12 / 0.16),
+      0 6px 14px rgb(40 26 12 / 0.18);
+    text-align: left;
+    font: 700 11.5px/1.3 var(--font-body);
+    transform: translateX(-50%);
+    cursor: pointer;
+  }
+  .office-slip[data-side='left'] {
+    left: 8px;
+    transform: none;
+    border-top-left-radius: 3px;
+  }
+  .office-slip[data-side='right'] {
+    right: 8px;
+    transform: none;
+    border-top-right-radius: 3px;
+  }
+  .office-slip.is-animated {
+    animation: slip-in 280ms var(--ease-pop) both;
+  }
+  @keyframes slip-in {
+    from {
+      opacity: 0;
+      translate: 0 8px;
+      scale: 0.96;
+    }
+  }
+  .office-slip--oddity,
+  .office-slip--nut {
+    background: #fff8e2;
+    border-color: #d9a520;
+  }
+  .office-slip__label {
+    color: #8a5a10;
+    font: 800 11px/1.1 var(--font-body);
+    letter-spacing: 0.03em;
+  }
+  .office-slip--nut .office-slip__label {
+    color: #2f6b3a;
+  }
+  .office-slip__title {
+    font: 500 12.5px/1.15 var(--font-display);
+  }
+  .office-slip__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    margin-top: 2px;
+  }
+  .office-slip__tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 1px 6px;
+    background: rgb(74 47 25 / 0.08);
+    border-radius: 6px;
+    font: 800 11px/1.3 var(--font-body);
+  }
+  .office-slip__tag.is-golden {
+    background: #ffe9a8;
+  }
+  .office-slip__tag.is-rush {
+    color: #8a2a16;
+    background: #ffdcd2;
+  }
+  .office-slip__complete {
+    color: #2f6b3a;
+    font: 800 11px/1.25 var(--font-body);
+    font-style: normal;
+  }
+  /* A corner window: one compact note. A routine's slip drops its heading (the
+     chip and the machine already say what it was) and keeps to two lines. */
+  @container office (max-width: 560px) {
+    .office-slip {
+      gap: 1px;
+      max-width: min(76%, 240px);
+      padding: 4px 8px 5px;
+      font-size: 11px;
+      line-height: 1.25;
+    }
+    .office-slip--play .office-slip__title {
+      display: none;
+    }
+    .office-slip__text {
+      display: -webkit-box;
+      overflow: hidden;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 3;
+    }
+    .office-slip--play .office-slip__text {
+      -webkit-line-clamp: 2;
+    }
+    .office-slip__tags {
+      margin-top: 1px;
+    }
+  }
+
+  .office--decorating .play-chip,
+  .office--decorating .office-oddity,
+  .office--decorating .office-slip,
+  .photo-mode__stage .play-chip,
+  .photo-mode__stage .office-oddity,
+  .photo-mode__stage .office-slip,
+  .photo-mode__stage .office-nudge {
+    display: none;
+  }
+  [data-reduced-motion='true'] .play-chip,
+  [data-reduced-motion='true'] .office-oddity,
+  [data-reduced-motion='true'] .station-btn[class*='is-play-'] > svg,
+  [data-reduced-motion='true'] .station-btn[class*='is-play-']::after,
+  [data-reduced-motion='true'] .floor[data-oddity] .room-dressing__prop,
+  [data-ambient='paused'] .play-chip,
+  [data-ambient='paused'] .office-oddity,
+  [data-ambient='paused'] .station-btn[class*='is-play-'] > svg,
+  [data-ambient='paused'] .station-btn[class*='is-play-']::after,
+  [data-ambient='paused'] .floor[data-oddity] .room-dressing__prop,
+  .floor[data-onscreen='false'] .play-chip,
+  .floor[data-onscreen='false'] .office-oddity,
+  .floor[data-onscreen='false'] .station-btn[class*='is-play-'] > svg,
+  .floor[data-onscreen='false'] .station-btn[class*='is-play-']::after,
+  .floor[data-onscreen='false'] .room-dressing__prop {
+    animation: none;
+  }
+  .elevator__floor-news--play {
+    color: #fff;
+    background: #c2513f;
+  }
+  .elevator__floor-news--oddity {
+    background: #fff4cf;
+    box-shadow: inset 0 0 0 2px #8a5a10;
+  }
+
+  /* ---- the Archive's curiosity log ------------------------------------------- */
+  .curiosity-log {
+    display: grid;
+    gap: 8px;
+    margin: 0 0 14px;
+  }
+  .curiosity-log__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 10px;
+  }
+  .curiosity-log__head h3 {
+    margin: 0;
+    font: 500 var(--fs-lg) / 1.1 var(--font-display);
+  }
+  .curiosity-log__count {
+    color: var(--ink-soft);
+    font: 800 var(--fs-xs) / 1.2 var(--font-body);
+  }
+  .curiosity-log__intro {
+    margin: 0;
+    color: var(--ink-soft);
+    font: 700 var(--fs-sm) / 1.35 var(--font-body);
+  }
+  .curiosity-log__rooms {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .curiosity-room {
+    display: grid;
+    align-content: start;
+    gap: 6px;
+    padding: 8px 10px 10px;
+    background: var(--paper-bg-bright);
+    border: 2px solid var(--paper-line);
+    border-radius: 6px 12px 12px 6px;
+    box-shadow: 0 2px 0 rgb(40 26 12 / 0.1);
+  }
+  .curiosity-room.is-complete {
+    border-color: #d9a520;
+    background: #fff8e2;
+  }
+  .curiosity-room__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 2px 8px;
+  }
+  .curiosity-room__head strong {
+    font: 500 var(--fs-base) / 1.15 var(--font-display);
+  }
+  .curiosity-room__head span {
+    color: var(--ink-soft);
+    font: 800 var(--fs-xs) / 1 var(--font-body);
+    font-variant-numeric: tabular-nums;
+  }
+  .curiosity-room__head em {
+    margin-left: auto;
+    color: #2f6b3a;
+    font: 800 var(--fs-xs) / 1.2 var(--font-body);
+    font-style: normal;
+  }
+  .curiosity-room__items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .curiosity {
+    display: grid;
+    flex: 1 1 100%;
+    gap: 1px;
+    padding: 5px 8px 6px;
+    background: var(--paper-bg);
+    border-radius: 8px;
+  }
+  .curiosity__title {
+    font: 800 var(--fs-sm) / 1.25 var(--font-body);
+  }
+  .curiosity__found {
+    color: var(--ink-body);
+    font: italic 600 var(--fs-xs) / 1.35 var(--font-body);
+  }
+  .curiosity--nut .curiosity__title {
+    color: #2f6b3a;
+  }
+  .curiosity.is-locked {
+    display: grid;
+    flex: 0 0 auto;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    color: var(--ink-soft);
+    background: var(--paper-bg-sunken);
+    border: 2px dashed var(--paper-line);
+    border-radius: 50%;
+  }
+
+  /* The Company screen's department cards say what the player does in each room. */
+  .dept-card__play {
+    margin: 2px 0 4px;
+    padding: 4px 7px;
+    color: var(--ink-body);
+    background: rgb(74 47 25 / 0.06);
+    border-radius: 7px;
+    font: 700 max(var(--fs-min), 0.68em) / 1.35 var(--font-body);
+  }
+  .dept-card__play strong {
+    color: var(--ink-strong);
+  }
 }

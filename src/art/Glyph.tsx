@@ -2,7 +2,23 @@
 // ♥ ★ ✦ are missing from the game's fonts and would fall back to whatever the
 // player's system happens to have (or to an empty box).
 export type GlyphName =
-  'heart' | 'star' | 'sparkle' | 'note' | 'smile' | 'dots' | 'plus' | 'tilde' | 'question';
+  | 'heart'
+  | 'star'
+  | 'sparkle'
+  | 'note'
+  | 'smile'
+  | 'dots'
+  | 'plus'
+  | 'tilde'
+  | 'question'
+  // the five room routines
+  | 'cup'
+  | 'wrench'
+  | 'eye'
+  | 'parcel'
+  | 'dial'
+  // something to look at more closely
+  | 'lens';
 
 const STROKE = {
   fill: 'none',
@@ -57,6 +73,48 @@ const SHAPES: Record<GlyphName, JSX.Element> = {
     <>
       <path d="M5.5 5.9a2.6 2.6 0 1 1 3.6 2.4c-.8.3-1.1.9-1.1 1.6v.3" {...STROKE} strokeWidth={2} />
       <circle cx="8" cy="13" r="1.2" fill="currentColor" />
+    </>
+  ),
+  cup: (
+    <>
+      <path d="M3 6.5h8v3.6a3.6 3.6 0 0 1-3.6 3.6h-.8A3.6 3.6 0 0 1 3 10.1Z" fill="currentColor" />
+      <path d="M11 7.6h1.1a1.8 1.8 0 0 1 0 3.6H11" {...STROKE} strokeWidth={1.6} />
+      <path d="M5.4 4.6q-.8-1.2 0-2.4M8.4 4.6q-.8-1.2 0-2.4" {...STROKE} strokeWidth={1.4} />
+    </>
+  ),
+  wrench: (
+    <path
+      fill="currentColor"
+      d="M10.9 1.6a3.6 3.6 0 0 0-3.4 4.8L2.2 11.7a1.5 1.5 0 0 0 2.1 2.1l5.3-5.3a3.6 3.6 0 0 0 4.8-3.4l-2.1 2.1-2-.6-.6-2Z"
+    />
+  ),
+  eye: (
+    <>
+      <path
+        d="M1.4 8s2.6-4.6 6.6-4.6S14.6 8 14.6 8s-2.6 4.6-6.6 4.6S1.4 8 1.4 8Z"
+        {...STROKE}
+        strokeWidth={1.7}
+      />
+      <circle cx="8" cy="8" r="2.1" fill="currentColor" />
+    </>
+  ),
+  parcel: (
+    <>
+      <path d="M2.2 5.2 8 2.4l5.8 2.8v6.2L8 14.2l-5.8-2.8Z" fill="currentColor" />
+      <path d="m2.4 5.3 5.6 2.8 5.6-2.8M8 8.1v6" stroke="#fffaf0" strokeWidth={1.2} fill="none" />
+    </>
+  ),
+  dial: (
+    <>
+      <circle cx="8" cy="8.6" r="5.6" {...STROKE} strokeWidth={1.8} />
+      <path d="m8 8.6 2.6-2.8" {...STROKE} strokeWidth={2} />
+      <circle cx="8" cy="8.6" r="1.2" fill="currentColor" />
+    </>
+  ),
+  lens: (
+    <>
+      <circle cx="6.8" cy="6.8" r="4.3" {...STROKE} strokeWidth={2} />
+      <path d="m10 10 3.8 3.8" {...STROKE} strokeWidth={2.6} />
     </>
   ),
 };

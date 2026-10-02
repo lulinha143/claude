@@ -182,6 +182,17 @@ export function DevPanel() {
           >
             {t('dev.unlockAll')}
           </button>
+          <button
+            onClick={() => {
+              // One of each kind the building allows right now.
+              for (const kind of ['tend', 'watch', 'deliver', 'oddity'] as const) {
+                engine.spawnOfficeMoment(kind);
+              }
+              bump(engine);
+            }}
+          >
+            {t('dev.officeMoment')}
+          </button>
           <label>
             {t('dev.triggerEvent')}
             <select

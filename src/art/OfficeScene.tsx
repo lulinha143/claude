@@ -46,6 +46,19 @@ import { crateCapacity as crateCapacityFor, secondsToFull } from '../sim/crate';
 import { nextFloor } from '../sim/goals';
 import { FindArt } from './FindArt';
 import { KeepsakeArt } from './KeepsakeArt';
+import {
+  DiscoveryMarker,
+  OddityMarker,
+  OfficeSlip,
+  RoutineChip,
+  slipFor,
+  slipSeconds,
+  speechFor,
+  type SlipData,
+} from './RoomPlay';
+import { routineView, routineWantsYou, speakerFor, type RoutineView } from '../sim/roomPlay';
+import { ODDITIES_BY_ID, type OddityDef } from '../content/roomPlay';
+import type { RoomPlayResult } from '../sim/engine';
 import { Glyph, type GlyphName } from './Glyph';
 import { speakAloud } from './voice';
 import { chooseVoice } from '../sim/employeeVoice';
@@ -445,6 +458,9 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
   const opening = useStore((s) => s.showOpening || s.showOnboarding);
   const reducedMotion = state.settings.reducedMotion;
   const [bubble, setBubble] = useState<Bubble | null>(null);
+  // What just happened in a room, on a little paper slip (one at a time).
+  const [slip, setSlip] = useState<SlipData | null>(null);
+  const slipKeyRef = useRef(0);
   const fmt = useFmt();
   const discoveries = availableFacilityDiscoveries(state);
   // Re-render if a character's artwork turns out to be missing, so they switch to
@@ -792,25 +808,7 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
     // something, the other answers. Overhearing them is how you meet the pair.
     const pairs = pairsTogether(st);
     if (pairs.length > 0 && Math.random() < 0.35) {
-      const pair = pairs[Math.floor(Math.random() * pairs.length)];
-      const line = 1 + Math.floor(Math.random() * 2);
-      engine.notePairSeen(pair.id);
-      setBubble({
-        employeeId: pair.a,
-        text: t(`pair.${pair.id}.${line}.a`),
-        until: Date.now() + 2700,
-      });
-      scheduleLife(() => {
-        setBubble((current) =>
-          current && current.employeeId !== pair.a && current.until > Date.now()
-            ? current
-            : {
-                employeeId: pair.b,
-                text: t(`pair.${pair.id}.${line}.b`),
-                until: Date.now() + 3600,
-              },
-        );
-      }, 2600);
+      pairExchange(pairs[Math.floor(Math.random() * pairs.length)]);
       return;
     }
 
@@ -843,6 +841,28 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
     // Ambient chatter reads the room too, so overhearing the office tells the
     // player something about it.
     speak(id, chooseVoice(state, id).category);
+  }
+
+  /** Two coworkers who share a room trade a line: one says something, the other answers. */
+  function pairExchange(pair: ReturnType<typeof pairsTogether>[number]) {
+    const line = 1 + Math.floor(Math.random() * 2);
+    engine.notePairSeen(pair.id);
+    setBubble({
+      employeeId: pair.a,
+      text: t(`pair.${pair.id}.${line}.a`),
+      until: Date.now() + 2700,
+    });
+    scheduleLife(() => {
+      setBubble((current) =>
+        current && current.employeeId !== pair.a && current.until > Date.now()
+          ? current
+          : {
+              employeeId: pair.b,
+              text: t(`pair.${pair.id}.${line}.b`),
+              until: Date.now() + 3600,
+            },
+      );
+    }, 2600);
   }
 
   /** Put words in a teammate's mouth; `aloud` when the player asked them something. */
@@ -934,6 +954,142 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
     }
   }
 
+  // -- room play --------------------------------------------------------------
+  // Each station's routine (brew, tend, watch, deliver, tune) and the curiosities
+  // that turn up around the building. Feedback stays in the room: numbers where
+  // the player clicked, a short slip saying what happened, and somebody in the
+  // room reacting in their own voice.
+  const nameOf = (employeeId: string) =>
+    state.employees[employeeId]?.nickname ?? t(EMPLOYEES_BY_ID[employeeId]?.nameKey ?? employeeId);
+
+  function showPlay(result: RoomPlayResult, element: HTMLElement | null) {
+    const box = element?.getBoundingClientRect();
+    if (box) {
+      const x = box.left + box.width / 2;
+      if (result.payout.nuts > 0) {
+        tapPop({ x, y: box.top, text: `+${fmt.int(result.payout.nuts)}`, tone: 'collect' });
+        flyToCounter(x, box.top + box.height / 2, 4);
+      }
+      if (result.payout.golden > 0) {
+        tapPop({ x, y: box.top - 18, text: `+${result.payout.golden}`, tone: 'golden' });
+      }
+      if (result.payout.rush) {
+        tapPop({ x, y: box.top - 34, text: t('rush.started'), tone: 'rush' });
+      }
+    }
+    audio.play(
+      result.roomComplete || result.payout.rush
+        ? 'celebrate'
+        : result.nutId
+          ? 'reward'
+          : result.oddityId
+            ? 'chime'
+            : result.kind === 'brew'
+              ? 'collect'
+              : result.kind === 'tune'
+                ? 'toggle'
+                : result.kind === 'watch'
+                  ? 'chime'
+                  : 'paper',
+    );
+    const next = slipFor(result, t, nameOf, stationsInRoom(result.roomId)[0], ++slipKeyRef.current);
+    if (next) setSlip(next);
+    const line = speechFor(result, () => rngRef.current.next());
+    const speaker = result.speaker;
+    if (speaker && line) {
+      // Someone in the room reacts. To a curiosity, once there has been a moment
+      // to read it; to everything else, at once.
+      const react = () => {
+        say(speaker, t(line), true, 4600);
+        setCelebratingEmployee(speaker);
+        const generation = ++celebrationGenerationRef.current;
+        scheduleLife(() => {
+          if (celebrationGenerationRef.current !== generation) return;
+          setCelebratingEmployee((current) => (current === speaker ? null : current));
+        }, 950);
+      };
+      // Now and then, when two coworkers share the room, they talk it over instead.
+      const pairs = result.kind !== 'oddity' ? pairsTogether(stateRef.current, speaker) : [];
+      if (next && next.tone !== 'play') scheduleLife(react, Math.round(slipSeconds(next) * 1000));
+      else if (pairs.length > 0 && Math.random() < 0.4) pairExchange(pairs[0]);
+      else react();
+    }
+  }
+  const showPlayRef = useRef(showPlay);
+  showPlayRef.current = showPlay;
+
+  /** The chip on a station: start, share, free, catch, hand over or switch. */
+  function actOnRoutine(view: RoutineView, element: HTMLElement) {
+    const room = view.roomId;
+    if (view.status === 'idle') {
+      if (engine.startRoutine(room)) audio.play(room === 'morale' ? 'coffee' : 'place');
+      return;
+    }
+    if (view.status === 'jammed') {
+      // The chip is a second handle on the machine: the same tap, from here.
+      const station = stationsInRoom(room)[0];
+      const result = station ? onTapStation(station.id) : null;
+      if (result) {
+        const box = element.getBoundingClientRect();
+        tapPop({
+          x: box.left + box.width / 2,
+          y: box.top,
+          text: `+${fmt.int(result.amount)}`,
+          tone: 'normal',
+        });
+        audio.play('stationTap');
+      }
+      return;
+    }
+    const result =
+      view.status === 'ready'
+        ? engine.collectRoutine(room)
+        : view.status === 'blip'
+          ? engine.catchBlip(room)
+          : view.status === 'parcel'
+            ? engine.deliverParcel(room)
+            : view.kind === 'tune'
+              ? engine.cycleRoomMode(room)
+              : null;
+    if (result) showPlay(result, element);
+  }
+
+  function noticeOddity(def: OddityDef, element: HTMLElement) {
+    const result = engine.noticeOddity(def.id);
+    if (result) showPlay(result, element);
+  }
+
+  // What the office did on its own: a teammate points it out, if their floor is
+  // in view (otherwise the elevator's floor list carries the news).
+  useEffect(() => {
+    if (covered) return;
+    const st = stateRef.current;
+    for (const item of engine.drainOfficeNews()) {
+      const floor = scrollerRef.current?.querySelector<HTMLElement>(
+        `.floor[data-room="${item.roomId}"]`,
+      );
+      if (!floor || floor.dataset.onscreen === 'false') continue;
+      const play = st.office.rooms[item.roomId];
+      const who =
+        item.kind === 'selfFix'
+          ? (item.result?.speaker ?? null)
+          : speakerFor(st, item.roomId, (n) => rngRef.current.int(0, n));
+      if (!who) continue;
+      if (item.kind === 'selfFix') say(who, t(`play.${item.roomId}.selfFix`), false, 4200);
+      else if (item.kind === 'jam' && play?.jamAt) say(who, t(`play.${item.roomId}.jam`), false);
+      else if (item.kind === 'blip' && play?.blipUntil && play.blipUntil > Date.now()) {
+        say(who, t(`play.${item.roomId}.spot`), false);
+      } else if (
+        item.kind === 'oddity' &&
+        item.oddityId &&
+        st.office.oddities.some((waiting) => waiting.id === item.oddityId)
+      ) {
+        say(who, t(`oddity.${item.oddityId}.hint`), false, 4600);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [floorSecond, covered]);
+
   // -- click stations ---------------------------------------------------------
   // The tap itself is deliberately cheap: the engine pays out and the imperative
   // feedback layer draws the number, so nothing here throttles or debounces the
@@ -945,6 +1101,14 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
     (stationId: string) => {
       const result = engine.tapStation(stationId);
       if (!result) return null;
+      // The tap that frees a stuck machine: the room rushes and someone says so.
+      const fixed = result.tend?.fixed;
+      if (fixed) {
+        const element = document.querySelector<HTMLElement>(
+          `.station-btn[data-station="${stationId}"]`,
+        );
+        showPlayRef.current(fixed, element);
+      }
 
       // Let a teammate react to the tap, but at most once per celebration so a
       // fast streak does not turn the room into a strobe. The rate limit is the
@@ -1637,6 +1801,11 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
                 );
                 const slots = characterSlots(occupants.length, room.id);
                 const comfort = roomComfort(state, room.id);
+                // The room's routine, and any curiosity waiting in it.
+                const playView = routineView(state, room.id, now);
+                const waitingOddity = state.office.oddities
+                  .map((item) => ODDITIES_BY_ID[item.id])
+                  .find((def) => def?.roomId === room.id);
                 const placed = placedDecorationsInRoom(state, room.id);
                 const canDropHere =
                   decorMode && drag?.kind === 'decoration' && drag.overRoom === room.id;
@@ -1668,6 +1837,13 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
                     className={`floor ${dropClass} ${engine.rushEndsAt(room.id) ? 'is-rushing' : ''}`}
                     key={room.id}
                     data-room={room.id}
+                    data-play={playView?.status}
+                    data-oddity={
+                      waitingOddity?.anchor ??
+                      (discoveries.some((discovery) => discovery.roomId === room.id)
+                        ? 'wall'
+                        : undefined)
+                    }
                     // Every room is the same width, so the first one is measured and its
                     // width drives the scale for the whole diorama.
                     ref={roomIndex === 0 ? sceneMeasureRef : undefined}
@@ -1716,19 +1892,6 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
                             </button>
                           ))}
                         </div>
-                      ) : null}
-                      {!decorMode &&
-                      discoveries.some((discovery) => discovery.roomId === room.id) ? (
-                        <button
-                          className="floor__discovery"
-                          onClick={() => {
-                            const discovery = discoveries.find((entry) => entry.roomId === room.id);
-                            if (discovery && engine.inspectFacility(discovery.id))
-                              audio.play('paper');
-                          }}
-                        >
-                          {t('discovery.inspect')}
-                        </button>
                       ) : null}
                       <span className="floor__status">
                         {occupants.length > 0 ? (
@@ -2104,10 +2267,50 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
                               synergyNames={stationSynergyNames(stationDef)}
                               play={playSfx}
                               formatAmount={fmt.int}
+                              playStatus={playView?.status}
                             />
                           ))
                         : null}
+                      {!decorMode && playView
+                        ? stationsInRoom(room.id)
+                            .slice(0, 1)
+                            .map((stationDef) => (
+                              <RoutineChip
+                                key={`play-${stationDef.id}`}
+                                view={playView}
+                                station={stationDef}
+                                nameOf={nameOf}
+                                onAct={actOnRoutine}
+                                now={now}
+                              />
+                            ))
+                        : null}
+                      {!decorMode && waitingOddity ? (
+                        <OddityMarker def={waitingOddity} onNotice={noticeOddity} />
+                      ) : null}
+                      {!decorMode &&
+                      discoveries.some((discovery) => discovery.roomId === room.id) ? (
+                        <DiscoveryMarker
+                          onInspect={() => {
+                            const discovery = discoveries.find((entry) => entry.roomId === room.id);
+                            if (discovery && engine.inspectFacility(discovery.id)) {
+                              audio.play('paper');
+                            }
+                          }}
+                        />
+                      ) : null}
                     </div>
+                    {/* What just happened here, on a slip along the top of the room. */}
+                    {slip && slip.roomId === room.id && !decorMode ? (
+                      <OfficeSlip
+                        slip={slip}
+                        onClose={() =>
+                          setSlip((current) => (current?.key === slip.key ? null : current))
+                        }
+                        formatAmount={fmt.int}
+                        reducedMotion={reducedMotion}
+                      />
+                    ) : null}
 
                     {/* arrange-mode per-room actions (inventory lives in the bottom tray) */}
                     {decorMode ? (
@@ -2169,7 +2372,12 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
               ? 'crate'
               : finds.some((find) => resolveEmployeeRoom(state, find.employeeId) === roomId)
                 ? 'find'
-                : null
+                : routineWantsYou(routineView(state, roomId, now))
+                  ? 'play'
+                  : state.office.oddities.some((item) => item.roomId === roomId) ||
+                      discoveries.some((discovery) => discovery.roomId === roomId)
+                    ? 'oddity'
+                    : null
           }
           rooms={rooms}
           currentFloor={currentFloor}
