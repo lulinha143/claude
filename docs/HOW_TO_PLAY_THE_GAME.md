@@ -38,7 +38,14 @@ after you build it yourself with Option B.
   mood sticker, click it.
 - **Buy the next thing:** the paper tag in the corner of the office is your next
   goal; when it turns green, one click buys it.
-- **Pet Pip / talk to staff:** click any animal.
+- **Pet Pip / talk to staff:** click any animal (click again while they are
+  talking to sit down with them).
+- **Visit a teammate:** when a little speech balloon appears on someone's mood
+  sticker (dots: they want to tell you something; a heart: your friendship grew;
+  a sparkle: a hint), click it — or use **Visit** on their Team card. A visit has
+  three tabs: **Talk** (their story, in three parts that open as you become
+  familiar, trusted and close), **Gifts** (try presents to find their favourite)
+  and **Scrapbook** (everything you have shared).
 - **Open menus:** use the tabs at the top (Upgrades, Team, Company, etc.).
 - **Move the window:** click-and-drag the **top bar** (the part with the company
   name) to anywhere on your screen — including a corner.

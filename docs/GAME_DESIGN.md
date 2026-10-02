@@ -58,6 +58,29 @@ a personal story, a favorite item, a rare event, outfits, and a profile.
 Animation is driven by a reusable state machine (`src/art/animation.ts`), not
 hardcoded switches.
 
+### People worth coming back for
+
+Every one of the 23 teammates has a profile in `src/content/characters.ts` (voice,
+gift tastes, story flavour and moods, a partner in their story) and words of their
+own in the locales. Relationships are read from durable flags (`src/sim/bonds.ts`),
+so they survive saves, old saves and prestige.
+
+- **Stages:** new face → familiar (15) → trusted (40) → close (70). Each new stage
+  is celebrated once, on the next visit; a close friend works 10% better.
+- **Stories** (`src/content/stories.ts`): three parts per teammate, opening at
+  familiar, trusted and close, at least 8 minutes apart. Part 1's answer comes
+  back in office chatter and opens Part 3; Part 2's kind answer returns later as a
+  find with their own note; the other pulls in their story partner. Part 3 ends in
+  a moment card and a keepsake on display by their desk.
+- **Gifts:** six presents; each teammate loves one, likes one, is baffled by one
+  and politely thanks the rest. Only what was actually given is learned; once
+  trusted and two misses in, they drop a hint.
+- **Coworkers** (`src/content/pairs.ts`): twelve pairs (friends, rivals, awkward,
+  mentor). Sharing a room changes their mood, and they talk to each other.
+- **Moments they start:** at most three teammates at a time wave the player over
+  (a balloon on their sticker), never a popup.
+- **Scrapbook:** derived entirely from what happened; nothing extra is stored.
+
 ## Progression targets
 
 - Fast first upgrades; first hireable employee ~10 min; first new room ~20–30 min;
