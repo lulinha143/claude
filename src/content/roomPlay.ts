@@ -329,6 +329,16 @@ export interface OddityDef {
   anchor: OddityAnchor | null;
   kind: 'note' | 'glimpse' | 'object' | 'nut';
   tone: 'funny' | 'wholesome' | 'strange' | 'absurd' | 'paranormal';
+  /**
+   * It points somewhere: noticing it says so (`oddity.<id>.lead`), and something
+   * elsewhere in the building only turns up once it has been noticed.
+   */
+  lead?: boolean;
+  /**
+   * The aftermath of a choice: it only exists if the player decided a certain
+   * way, so it is a bonus in its room's file rather than part of it.
+   */
+  extra?: boolean;
   /** an Nut Encyclopedia entry this curiosity is. */
   nutId?: string;
   reward: RoomReward;
@@ -445,6 +455,7 @@ export const ODDITIES: readonly OddityDef[] = [
   // Procurement
   oddity({
     id: 'missing-stapler',
+    lead: true,
     roomId: 'procurement',
     anchor: 'wall',
     kind: 'note',
@@ -562,6 +573,7 @@ export const ODDITIES: readonly OddityDef[] = [
   // Research
   oddity({
     id: 'equation',
+    lead: true,
     roomId: 'research',
     anchor: 'wall',
     kind: 'note',
@@ -570,6 +582,7 @@ export const ODDITIES: readonly OddityDef[] = [
   }),
   oddity({
     id: 'hello-tremor',
+    requires: { flag: 'oddity.equation' },
     roomId: 'research',
     anchor: null,
     kind: 'glimpse',
@@ -579,6 +592,7 @@ export const ODDITIES: readonly OddityDef[] = [
   // Meeting
   oddity({
     id: 'item-four',
+    lead: true,
     roomId: 'meeting',
     anchor: 'wall',
     kind: 'note',
@@ -631,6 +645,7 @@ export const ODDITIES: readonly OddityDef[] = [
   // Basement
   oddity({
     id: 'pipe-jingle',
+    lead: true,
     roomId: 'basement',
     anchor: 'wall',
     kind: 'object',
@@ -675,6 +690,7 @@ export const ODDITIES: readonly OddityDef[] = [
   // Cafeteria
   oddity({
     id: 'soup-week',
+    lead: true,
     roomId: 'cafeteria',
     anchor: 'wall',
     kind: 'note',
@@ -726,6 +742,8 @@ export const ODDITIES: readonly OddityDef[] = [
   }),
   oddity({
     id: 'stapler-return',
+    // The poster in procurement first; then the cameras catch who did it.
+    requires: { flag: 'oddity.missing-stapler' },
     roomId: 'security',
     anchor: null,
     kind: 'glimpse',
@@ -752,6 +770,7 @@ export const ODDITIES: readonly OddityDef[] = [
   }),
   oddity({
     id: 'future-minutes',
+    requires: { flag: 'oddity.item-four' },
     roomId: 'archive',
     anchor: null,
     kind: 'note',
@@ -837,6 +856,88 @@ export const ODDITIES: readonly OddityDef[] = [
     nutId: 'startup-chestnut',
     reward: { output: 10 },
   }),
+
+  // --- aftermath: these only turn up after a particular choice (content/incidents.ts)
+  oddity({
+    id: 'neon-pink-sign',
+    roomId: 'marketing',
+    anchor: 'wall',
+    kind: 'object',
+    tone: 'wholesome',
+    extra: true,
+    reward: { reputation: 2 },
+    requires: { flag: 'rebrand.neonpink' },
+  }),
+  oddity({
+    id: 'laminated-minutes',
+    roomId: 'meeting',
+    anchor: 'wall',
+    kind: 'object',
+    tone: 'funny',
+    extra: true,
+    reward: { morale: 2 },
+    requires: { flag: 'minutes.laminated' },
+  }),
+  oddity({
+    id: 'vault-pillow',
+    roomId: 'vault',
+    anchor: 'corner',
+    kind: 'object',
+    tone: 'wholesome',
+    extra: true,
+    reward: { morale: 2 },
+    requires: { flag: 'sonny.vaultSleep' },
+  }),
+  oddity({
+    id: 'still-spinning',
+    roomId: 'lab',
+    anchor: 'corner',
+    kind: 'object',
+    tone: 'strange',
+    extra: true,
+    reward: { boost: { value: 1.05, seconds: 120 } },
+    requires: { flag: 'centrifuge.unplugged' },
+  }),
+  oddity({
+    id: 'soup-name-tag',
+    roomId: 'cafeteria',
+    anchor: 'corner',
+    kind: 'note',
+    tone: 'funny',
+    extra: true,
+    reward: { morale: 2 },
+    requires: { flag: 'soup.named' },
+  }),
+  oddity({
+    id: 'tree-parcel',
+    roomId: 'founder-desk',
+    anchor: 'corner',
+    kind: 'object',
+    tone: 'strange',
+    extra: true,
+    reward: { golden: 1 },
+    requires: { flag: 'treeParcel.desk' },
+  }),
+  oddity({
+    id: 'night-hum-tape',
+    roomId: 'broadcast',
+    anchor: 'wall',
+    kind: 'object',
+    tone: 'paranormal',
+    extra: true,
+    reward: { morale: 3 },
+    requires: { flag: 'nightshift.played' },
+  }),
+  oddity({
+    id: 'moss-by-the-lift',
+    roomId: 'founder-desk',
+    anchor: 'corner',
+    kind: 'object',
+    tone: 'paranormal',
+    extra: true,
+    reward: { morale: 3 },
+    requires: { flag: 'thirteenth.pressed' },
+  }),
 ];
 
 export const ODDITIES_BY_ID: Record<string, OddityDef> = Object.fromEntries(
@@ -846,6 +947,11 @@ export const ODDITIES_BY_ID: Record<string, OddityDef> = Object.fromEntries(
 /** A room's curiosities, in authored order. */
 export function odditiesInRoom(roomId: string): readonly OddityDef[] {
   return ODDITIES.filter((def) => def.roomId === roomId);
+}
+
+/** The curiosities that make up a room's file (aftermath of a choice is a bonus). */
+export function fileOddities(roomId: string): readonly OddityDef[] {
+  return ODDITIES.filter((def) => def.roomId === roomId && !def.extra);
 }
 
 /** Where each Nut Encyclopedia entry turns up in the office. */

@@ -5,10 +5,12 @@ import { createRng, hashStringToSeed, type Rng } from './rng';
 import type {
   DecorationInstance,
   DecorationLayer,
+  DiaryEntry as DiaryEntryInput,
   EmployeeMood,
   OfficeFind,
   GameState,
   MomentCard,
+  PendingIncident,
   RoomPlayState,
   ScheduledConsequence,
 } from './types';
@@ -102,10 +104,11 @@ import type { RegionPlacementCheck } from './placement';
 import { REGION_KIND_SURFACE, type PlacementRegionKind } from './placementRegions';
 import { compatibleRegionsForProfile } from '../content/roomSurfaces';
 import {
+  ODDITIES,
   ODDITIES_BY_ID,
   ROOM_PLAY,
   ROOM_ROUTINES,
-  odditiesInRoom,
+  fileOddities,
   oddityFlag,
   roomFileFlag,
   type BrewOutcome,
@@ -113,6 +116,23 @@ import {
   type RoomReward,
   type RoutineKind,
 } from '../content/roomPlay';
+import {
+  ANOMALY_THREAD_AFTER,
+  ANOMALY_THREAD_FLAG,
+  HAPPENINGS,
+  HOOKS,
+  WORLD_MOMENTS_BY_ID,
+  memoriesOf,
+  type WorldMomentDef,
+} from '../content/happenings';
+import {
+  eligibleMoments,
+  emptyHappenings,
+  eventPlace,
+  meetsHappeningRequirements,
+  pickIncident,
+  rarityOdds,
+} from './happenings';
 import {
   brewSeconds,
   peopleHelpers,
@@ -151,10 +171,19 @@ export interface ConsequenceReport {
 }
 
 export interface Consequence {
+  /** the event it settles (absent on consequences recorded by older builds). */
+  eventId?: string;
   titleKey: string;
   choiceLabelKey: string;
   effects: EventEffect[];
   reactions: string[];
+  /** where it happened, so the result is told in the same room. */
+  place?: EventPlace;
+  rarity?: GameEventDef['rarity'];
+  /** the choice set something in motion that will show up later (not said what). */
+  setInMotion?: boolean;
+  /** a teammate will remember this choice. */
+  remembered?: string;
   /** measured, itemised consequences reflecting the actual simulation change. */
   report: ConsequenceReport;
 }
@@ -169,6 +198,14 @@ export interface ActiveEvent {
   step: string | null; // null = base body, otherwise a chain step id
   /** Monotonic identity used to reject delayed input from an older popup. */
   instanceId: number;
+  /** where it is happening and who is presenting it, for the card's scene. */
+  place?: EventPlace;
+}
+
+/** Where an event happens, and who brings it to the player. */
+export interface EventPlace {
+  roomId: string;
+  employeeId?: string;
 }
 
 export interface EventChoiceContext {
@@ -318,14 +355,23 @@ export interface RoomPlayResult {
   speaker: string | null;
   /** every curiosity in the room has now been noticed. */
   roomComplete?: boolean;
+  /** enough of the strange side has been noticed that the building notices back. */
+  thread?: boolean;
 }
 
 /** Something the office did on its own, for the scene to show once (drained by the UI). */
 export interface OfficeNews {
-  kind: 'jam' | 'blip' | 'parcel' | 'oddity' | 'selfFix';
+  kind: 'jam' | 'blip' | 'parcel' | 'oddity' | 'selfFix' | 'incident' | 'moment';
   roomId: string;
   oddityId?: string;
   result?: RoomPlayResult;
+  /** incident: what started happening, who points it out, and what they say. */
+  eventId?: string;
+  employeeId?: string;
+  hookKey?: string;
+  /** moment: which one, and what it paid. */
+  momentId?: string;
+  payout?: RoomPayout;
 }
 
 function emptyPayout(): RoomPayout {
@@ -346,6 +392,20 @@ function ensureOffice(state: GameState): void {
   state.office ??= { rooms: {}, oddities: [] };
   state.office.rooms ??= {};
   state.office.oddities ??= [];
+  state.happenings ??= emptyHappenings();
+  state.happenings.incidents ??= [];
+  state.happenings.remarks ??= [];
+  state.happenings.diary ??= [];
+  state.happenings.sinceRare ??= 0;
+  // A save from before the building noticed back, that had already noticed
+  // enough of its strange side: the thread started when the last of them was.
+  if (!(ANOMALY_THREAD_FLAG in state.flags)) {
+    const strange = ODDITIES.filter(
+      (def) => def.tone === 'paranormal' && oddityFlag(def.id) in state.flags,
+    ).map((def) => state.flags[oddityFlag(def.id)]);
+    if (strange.length >= ANOMALY_THREAD_AFTER)
+      state.flags[ANOMALY_THREAD_FLAG] = Math.max(...strange);
+  }
 }
 
 type DecorationArrangement = Array<
@@ -603,6 +663,7 @@ export class GameEngine {
 
     // random events
     this.settleScheduled();
+    this.expireIncidents();
     if (this.activeEvent && this.state.settings.autoResolveEvents) this.autoResolveActiveEvent();
 
     this.eventAccum += deltaSeconds;
@@ -852,6 +913,7 @@ export class GameEngine {
     const result = computeAway(this.state, seconds);
     applyOffline(this.state, result);
     this.catchUpFinds(result.cappedSeconds);
+    result.incidents = this.catchUpHappenings(result.cappedSeconds);
     this.state.lastSaved = this.now();
     this.save();
     this.emit();
@@ -1184,6 +1246,16 @@ export class GameEngine {
   /** Remember a curiosity, pay for it, and see whether the room's file is now complete. */
   private notice(def: OddityDef, result: RoomPlayResult): void {
     this.state.flags[oddityFlag(def.id)] = this.now();
+    // Notice enough of the building's strange side and it starts to notice back.
+    if (def.tone === 'paranormal' && !(ANOMALY_THREAD_FLAG in this.state.flags)) {
+      const strange = ODDITIES.filter(
+        (other) => other.tone === 'paranormal' && oddityFlag(other.id) in this.state.flags,
+      ).length;
+      if (strange >= ANOMALY_THREAD_AFTER) {
+        this.state.flags[ANOMALY_THREAD_FLAG] = this.now();
+        result.thread = true;
+      }
+    }
     result.oddityId = def.id;
     if (def.nutId) {
       result.nutId = def.nutId;
@@ -1194,8 +1266,9 @@ export class GameEngine {
     addPayout(result.payout, this.grantRoomReward(def.roomId, def.reward));
     const file = roomFileFlag(def.roomId);
     if (
+      !def.extra &&
       !(file in this.state.flags) &&
-      odditiesInRoom(def.roomId).every((other) => oddityFlag(other.id) in this.state.flags)
+      fileOddities(def.roomId).every((other) => oddityFlag(other.id) in this.state.flags)
     ) {
       this.state.flags[file] = this.now();
       this.state.resources.goldenNuts += ROOM_PLAY.roomCompleteGolden;
@@ -1283,9 +1356,14 @@ export class GameEngine {
         // recorded exactly like an immediate one.
         this.applyEffect(effect, def ?? this.syntheticEventFor(item));
       }
-      // Surfaced so the callback never feels like an unexplained swing.
-      this.settledConsequences.push(item);
-      if (this.settledConsequences.length > 8) this.settledConsequences.shift();
+      // Surfaced so the callback never feels like an unexplained swing; a quiet
+      // one shows up in the world instead (someone says something, something
+      // turns up), so it is discovered rather than announced.
+      if (!item.quiet) {
+        this.settledConsequences.push(item);
+        if (this.settledConsequences.length > 8) this.settledConsequences.shift();
+      }
+      this.writeDiary({ kind: 'landed', eventId: item.sourceEventId });
     }
     this.save();
   }
@@ -1583,40 +1661,245 @@ export class GameEngine {
         this.state.resources.morale < ev.requires.moraleAbove
       )
         return false;
+      if (!meetsHappeningRequirements(this.state, ev, t)) return false;
+      // Already happening somewhere in the office.
+      if (this.state.happenings.incidents.some((item) => item.eventId === ev.id)) return false;
       return true;
     });
   }
 
+  /**
+   * Something may start happening in the office.
+   *
+   * Events never open themselves. A roll either plays a small moment (two
+   * teammates, a line each, no popup) or starts an incident: it waits where it
+   * is happening, the teammate it is about points it out, and the player looks
+   * into it when they choose. A couple at most wait at once, and a new founder
+   * gets a few quiet minutes first. Rarity decides which incident: a tier first,
+   * then the events' own weights, with rare events growing likelier the longer
+   * it has been since one.
+   */
   maybeRollEvent(force = false): void {
     if (this.activeEvent || this.activeTalk) return;
-    const passives = aggregatePassives(this.state);
-    // Rooms that deal in the strange — the Lab, Research, the basement — make
-    // something interesting happen more often, which is their real reward.
-    const luck = aggregateCompanyModifiers(this.state).eventLuck;
-    // Questionable Science and Aggressive Marketing both sell "more rare events" on
-    // their branch card; this is the term that makes that true.
-    const chance =
-      BALANCE.eventBaseChance + passives.rareChance + luck + prestigeRareEventChance(this.state);
-    if (!force && !this.rng.chance(chance)) return;
-    const pool = this.eligibleEvents();
-    if (pool.length === 0) return;
-    const total = pool.reduce((s, e) => s + e.weight, 0);
-    let roll = this.rng.next() * total;
-    let chosen = pool[0];
-    for (const ev of pool) {
-      roll -= ev.weight;
-      if (roll <= 0) {
-        chosen = ev;
-        break;
-      }
+    if (!force && this.state.stats.playTimeSeconds < HAPPENINGS.firstAfterSeconds) return;
+    if (!force && !this.rng.chance(HAPPENINGS.chance)) return;
+    const now = this.now();
+    const moments = eligibleMoments(this.state, now);
+    if (moments.length && this.rng.chance(HAPPENINGS.momentShare)) {
+      const total = moments.reduce((sum, def) => sum + def.weight, 0);
+      let roll = this.rng.next() * total;
+      this.playMoment(moments.find((def) => (roll -= def.weight) < 0) ?? moments[0]);
+      return;
     }
-    this.triggerEvent(chosen.id);
+    if (this.state.happenings.incidents.length >= HAPPENINGS.maxIncidents) return;
+    const busy = new Set(this.state.happenings.incidents.map((item) => item.roomId));
+    const pool = this.eligibleEvents().filter(
+      (def) => !busy.has(eventPlace(this.state, def).roomId),
+    );
+    const chosen = pickIncident(pool, this.rarityOdds(), () => this.rng.next());
+    if (chosen) this.queueIncident(chosen.id);
   }
 
-  triggerEvent(id: string): boolean {
+  /** How likely each rarity is for the next incident (see sim/happenings.ts). */
+  rarityOdds() {
+    const passives = aggregatePassives(this.state);
+    const luck =
+      aggregateCompanyModifiers(this.state).eventLuck +
+      passives.rareChance +
+      prestigeRareEventChance(this.state);
+    return rarityOdds(luck, this.state.happenings.sinceRare);
+  }
+
+  /** Incidents waiting in the office. */
+  pendingIncidents(): PendingIncident[] {
+    return this.state.happenings.incidents;
+  }
+
+  /**
+   * An event starts happening in the office. With choice popups turned off the
+   * team handles it there and then (and says so), exactly as before.
+   */
+  queueIncident(eventId: string): boolean {
+    const def = GAME_EVENTS_BY_ID[eventId];
+    if (!def) return false;
+    if (this.state.happenings.incidents.some((item) => item.eventId === eventId)) return false;
+    if (this.state.settings.autoResolveEvents) {
+      if (this.activeEvent) return false;
+      return this.triggerEvent(eventId);
+    }
+    const now = this.now();
+    const place = eventPlace(this.state, def);
+    const incident: PendingIncident = {
+      id: `incident-${def.id}-${now.toString(36)}`,
+      eventId: def.id,
+      roomId: place.roomId,
+      employeeId: place.employeeId,
+      at: now,
+      until: now + HAPPENINGS.lingerSeconds[def.rarity] * 1000,
+    };
+    this.state.happenings.incidents.push(incident);
+    // Rare events grow likelier with every incident since the last one.
+    this.state.happenings.sinceRare =
+      def.rarity === 'rare' || def.rarity === 'legendary' ? 0 : this.state.happenings.sinceRare + 1;
+    this.writeDiary({ kind: 'incident', eventId: def.id, roomId: place.roomId });
+    const hooks = HOOKS[def.rarity];
+    this.pushNews({
+      kind: 'incident',
+      roomId: place.roomId,
+      eventId: def.id,
+      employeeId: place.employeeId,
+      hookKey: def.hookKey ?? hooks[this.rng.int(0, hooks.length)],
+    });
+    this.save();
+    this.emit();
+    return true;
+  }
+
+  /** The player looks into something that is happening: its card opens. */
+  openIncident(id: string): boolean {
+    if (this.activeEvent || this.activeTalk) return false;
+    const index = this.state.happenings.incidents.findIndex((item) => item.id === id);
+    if (index < 0) return false;
+    const incident = this.state.happenings.incidents[index];
+    if (!GAME_EVENTS_BY_ID[incident.eventId]) {
+      this.state.happenings.incidents.splice(index, 1);
+      return false;
+    }
+    this.state.happenings.incidents.splice(index, 1);
+    this.writeDiary({ kind: 'opened', eventId: incident.eventId, roomId: incident.roomId });
+    return this.triggerEvent(incident.eventId, {
+      roomId: incident.roomId,
+      employeeId: incident.employeeId,
+    });
+  }
+
+  /**
+   * Incidents nobody looked into: an ordinary one is handled by the team (the
+   * department's own call, reported like any auto-resolved event); a rare one
+   * simply passes, and may come round again another day.
+   */
+  private expireIncidents(): void {
+    const now = this.now();
+    const incidents = this.state.happenings.incidents;
+    if (!incidents.some((item) => item.until <= now)) return;
+    for (const incident of [...incidents]) {
+      if (incident.until > now) continue;
+      const def = GAME_EVENTS_BY_ID[incident.eventId];
+      if (def && (def.rarity === 'common' || def.rarity === 'uncommon') && !this.activeEvent) {
+        this.state.happenings.incidents = this.state.happenings.incidents.filter(
+          (item) => item.id !== incident.id,
+        );
+        this.activeEvent = {
+          def,
+          step: null,
+          instanceId: this.nextEventInstanceId++,
+          place: { roomId: incident.roomId, employeeId: incident.employeeId },
+        };
+        this.state.eventInProgress = { eventId: def.id, step: null };
+        this.autoResolveActiveEvent();
+        this.writeDiary({ kind: 'handled', eventId: def.id, roomId: incident.roomId });
+      } else if (!def || def.rarity === 'rare' || def.rarity === 'legendary') {
+        this.state.happenings.incidents = this.state.happenings.incidents.filter(
+          (item) => item.id !== incident.id,
+        );
+        if (def) this.state.eventCooldowns[def.id] = now + def.cooldownSeconds * 1000;
+        this.writeDiary({ kind: 'faded', eventId: incident.eventId, roomId: incident.roomId });
+      }
+    }
+  }
+
+  /** A small moment plays out: a line or two, a little good, no popup. */
+  playMoment(def: WorldMomentDef): void {
+    const roomId = resolveEmployeeRoom(this.state, def.cast[0]);
+    this.state.eventCooldowns[`moment:${def.id}`] = this.now() + def.cooldownSeconds * 1000;
+    this.state.flags[`moment.${def.id}`] ??= this.now();
+    const payout = this.grantRoomReward(roomId, def.reward);
+    this.writeDiary({ kind: 'moment', momentId: def.id, roomId });
+    this.pushNews({ kind: 'moment', roomId, momentId: def.id, payout });
+    this.save();
+    this.emit();
+  }
+
+  /** Someone will say something about it, when the player is next around. */
+  queueRemark(employeeId: string, key: string, delaySeconds = 0): void {
+    if (!this.state.employees[employeeId]?.hired) return;
+    const remarks = this.state.happenings.remarks;
+    if (remarks.some((item) => item.key === key)) return;
+    remarks.push({ employeeId, key, at: this.now() + Math.max(0, delaySeconds) * 1000 });
+    if (remarks.length > HAPPENINGS.maxRemarks) remarks.shift();
+    this.writeDiary({ kind: 'remark', employeeId });
+  }
+
+  /** Take what a teammate has been waiting to say (null if nothing, or not yet). */
+  takeRemark(employeeId: string): string | null {
+    const remarks = this.state.happenings.remarks;
+    const index = remarks.findIndex(
+      (item) => item.employeeId === employeeId && item.at <= this.now(),
+    );
+    if (index < 0) return null;
+    const [remark] = remarks.splice(index, 1);
+    this.save();
+    return remark.key;
+  }
+
+  /**
+   * Marks this choice left that a teammate remembers (content/happenings.ts):
+   * one of them will bring it up a few minutes later. Returns who.
+   */
+  private rememberChoice(flagsBefore: Set<string>): string | null {
+    const fresh = Object.keys(this.state.flags).filter((flag) => !flagsBefore.has(flag));
+    const memories = fresh
+      .flatMap((flag) => memoriesOf(flag))
+      .filter((memory) => this.state.employees[memory.employeeId]?.hired);
+    if (!memories.length) return null;
+    const memory = memories[this.rng.int(0, memories.length)];
+    const [min, max] = HAPPENINGS.memoryDelay;
+    this.queueRemark(memory.employeeId, `memory.${memory.key}`, min + this.rng.int(0, max - min));
+    return memory.employeeId;
+  }
+
+  private writeDiary(entry: Omit<DiaryEntryInput, 'at'>): void {
+    const diary = this.state.happenings.diary;
+    diary.push({ at: this.now(), ...entry });
+    if (diary.length > HAPPENINGS.diarySize) diary.splice(0, diary.length - HAPPENINGS.diarySize);
+  }
+
+  /**
+   * Time away from the office (closed, or the computer asleep): a few things may
+   * have started happening, at most one per quarter of an hour, never more than
+   * can wait at once. They are there, in their rooms, when the player is back.
+   */
+  catchUpHappenings(seconds: number): number {
+    if (!(seconds > 0) || this.state.settings.autoResolveEvents) return 0;
+    const times = Math.min(
+      HAPPENINGS.maxIncidents,
+      Math.floor(seconds / HAPPENINGS.awaySecondsPerIncident),
+    );
+    let started = 0;
+    for (let i = 0; i < times; i += 1) {
+      if (this.state.happenings.incidents.length >= HAPPENINGS.maxIncidents) break;
+      const busy = new Set(this.state.happenings.incidents.map((item) => item.roomId));
+      const pool = this.eligibleEvents().filter(
+        (def) => !busy.has(eventPlace(this.state, def).roomId),
+      );
+      const chosen = pickIncident(pool, this.rarityOdds(), () => this.rng.next());
+      if (!chosen) break;
+      if (this.queueIncident(chosen.id)) started += 1;
+    }
+    // Nobody announces these on the way in: they are simply there, in their rooms.
+    this.officeNews = this.officeNews.filter((item) => item.kind !== 'incident');
+    return started;
+  }
+
+  triggerEvent(id: string, place?: EventPlace): boolean {
     const def = GAME_EVENTS_BY_ID[id];
     if (!def || this.activeEvent) return false;
-    this.activeEvent = { def, step: null, instanceId: this.nextEventInstanceId++ };
+    this.activeEvent = {
+      def,
+      step: null,
+      instanceId: this.nextEventInstanceId++,
+      place: place ?? eventPlace(this.state, def),
+    };
     this.state.eventInProgress = { eventId: id, step: null };
     this.state.stats.eventsSeen += 1;
     this.progressDaily('employeeConversations', def.employeeId ? 1 : 0);
@@ -1649,7 +1932,12 @@ export class GameEngine {
       this.state.eventInProgress = null;
       return;
     }
-    this.activeEvent = { def, step: pending.step, instanceId: this.nextEventInstanceId++ };
+    this.activeEvent = {
+      def,
+      step: pending.step,
+      instanceId: this.nextEventInstanceId++,
+      place: eventPlace(this.state, def),
+    };
   }
 
   /**
@@ -1728,10 +2016,13 @@ export class GameEngine {
       // real, measured change rather than the raw effect list.
       const now = this.now();
       const before = this.snapshotForReport(now);
+      const flagsBefore = new Set(Object.keys(this.state.flags));
 
       for (const effect of choice.effects) this.applyEffect(effect, def);
 
       const report = this.diffReport(before, choice.effects, now);
+      // A choice someone will bring up later, unprompted, when the player is around.
+      const remembered = this.rememberChoice(flagsBefore);
 
       // record the decision in the company timeline (capped)
       this.state.eventHistory.push({ eventId: def.id, choiceId: choice.id, at: this.now() });
@@ -1739,16 +2030,26 @@ export class GameEngine {
 
       // build the consequence result panel (announces every change clearly)
       this.lastConsequence = {
+        eventId: def.id,
         titleKey: def.titleKey,
         choiceLabelKey: choice.labelKey,
         effects: choice.effects,
         reactions: choice.reactions ?? [],
         report,
+        place: active.place,
+        rarity: def.rarity,
+        setInMotion: choice.effects.some((effect) => effect.type === 'schedule'),
+        remembered: remembered ?? undefined,
       };
 
       // advance chain or close
       if (choice.next && def.steps?.[choice.next]) {
-        this.activeEvent = { def, step: choice.next, instanceId: active.instanceId };
+        this.activeEvent = {
+          def,
+          step: choice.next,
+          instanceId: active.instanceId,
+          place: active.place,
+        };
         this.state.eventInProgress = { eventId: def.id, step: choice.next };
         // mid-chain steps don't show a standalone result panel
         this.lastConsequence = null;
@@ -2180,6 +2481,7 @@ export class GameEngine {
           titleKey: effect.scheduleTitleKey ?? def?.titleKey ?? 'notify.consequenceSettled',
           bodyKey: effect.scheduleBodyKey ?? def?.bodyKey ?? 'notify.consequenceSettled',
           effects: effect.scheduled.map((child) => bindEmployeeEffect(child, def?.employeeId)),
+          ...(effect.quiet ? { quiet: true } : {}),
         });
         // Keep the queue bounded; a save should never accumulate promises forever.
         if (this.state.scheduled.length > 24) this.state.scheduled.shift();
@@ -2194,6 +2496,87 @@ export class GameEngine {
         if (who) this.giveStoryFind(who, effect.findNoteKey);
         break;
       }
+      case 'remark': {
+        const who = effect.employeeId ?? def?.employeeId;
+        if (who && effect.lineKey) this.queueRemark(who, effect.lineKey, effect.delaySeconds ?? 0);
+        break;
+      }
+      // A follow-up starts happening in the office: when there is room for it.
+      // It waits its turn rather than piling onto what is already happening there.
+      case 'incident': {
+        const followUp = effect.eventId ? GAME_EVENTS_BY_ID[effect.eventId] : undefined;
+        if (!followUp) break;
+        const waiting = this.state.happenings.incidents;
+        if (waiting.some((item) => item.eventId === followUp.id)) break;
+        const roomId = eventPlace(this.state, followUp).roomId;
+        const crowded =
+          waiting.length >= HAPPENINGS.maxIncidents ||
+          waiting.some((item) => item.roomId === roomId);
+        const started =
+          (!crowded || this.state.settings.autoResolveEvents) && this.queueIncident(followUp.id);
+        if (!started) {
+          this.state.scheduled.push({
+            id: `${followUp.id}:waits:${this.now()}`,
+            at: this.now() + HAPPENINGS.followUpRetrySeconds * 1000,
+            sourceEventId: def?.id ?? followUp.id,
+            titleKey: followUp.titleKey,
+            bodyKey: followUp.bodyKey,
+            effects: [effect],
+            quiet: true,
+          });
+        }
+        break;
+      }
+      case 'moment': {
+        const moment = effect.momentId ? WORLD_MOMENTS_BY_ID[effect.momentId] : undefined;
+        if (moment && moment.cast.every((id) => this.state.employees[id]?.hired)) {
+          this.playMoment(moment);
+        }
+        break;
+      }
+      // Something turns up in a room because of what was decided.
+      case 'oddity': {
+        const oddity = effect.oddityId ? ODDITIES_BY_ID[effect.oddityId] : undefined;
+        if (
+          oddity &&
+          !(oddityFlag(oddity.id) in this.state.flags) &&
+          isRoomIdUnlocked(this.state, oddity.roomId) &&
+          !this.state.office.oddities.some((item) => item.id === oddity.id)
+        ) {
+          this.state.office.oddities.push({ id: oddity.id, roomId: oddity.roomId, at: this.now() });
+          // An aftermath may wait beside an ordinary curiosity.
+          if (this.state.office.oddities.length > ROOM_PLAY.maxOddities + 1) {
+            this.state.office.oddities.shift();
+          }
+          this.pushNews({ kind: 'oddity', roomId: oddity.roomId, oddityId: oddity.id });
+        }
+        break;
+      }
+      case 'roomMode': {
+        const routine = effect.roomId ? ROOM_ROUTINES[effect.roomId] : undefined;
+        if (routine?.kind === 'tune' && routine.modes.some((mode) => mode.id === effect.mode)) {
+          this.roomPlay(effect.roomId!).mode = effect.mode;
+        }
+        break;
+      }
+      case 'rush':
+        if (effect.roomId && employeesInRoom(this.state, effect.roomId).length > 0) {
+          this.startRush(effect.roomId, effect.durationSeconds ?? CLICK.rushSeconds);
+        }
+        break;
+      case 'roomMood':
+        if (effect.roomId && effect.emotion) {
+          for (const id of employeesInRoom(this.state, effect.roomId)) {
+            this.setEmployeeEmotion(id, effect.emotion, effect.durationSeconds);
+          }
+        }
+        break;
+      case 'everyone':
+        for (const rt of Object.values(this.state.employees)) {
+          if (rt.hired)
+            rt.friendship = Math.max(0, Math.min(100, rt.friendship + (effect.value ?? 1)));
+        }
+        break;
     }
   }
 

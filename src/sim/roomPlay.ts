@@ -3,6 +3,7 @@ import {
   ODDITIES,
   ROOM_PLAY,
   ROOM_ROUTINES,
+  fileOddities,
   odditiesInRoom,
   oddityFlag,
   type OddityDef,
@@ -248,12 +249,15 @@ export function routineOddities(state: GameState, roomId: string, now: number): 
   );
 }
 
-/** How much of a room's curiosities the player has noticed. */
+/**
+ * How much of a room's file the player has noticed. (The aftermath of a choice
+ * is a bonus on top, so no choice can make a file impossible to complete.)
+ */
 export function curiosityProgress(
   state: GameState,
   roomId: string,
 ): { noticed: number; total: number } {
-  const all = odditiesInRoom(roomId);
+  const all = fileOddities(roomId);
   return {
     noticed: all.filter((def) => oddityNoticed(state, def.id)).length,
     total: all.length,
@@ -262,9 +266,10 @@ export function curiosityProgress(
 
 /** The same, for the whole building. */
 export function curiosityTotals(state: GameState): { noticed: number; total: number } {
+  const all = ODDITIES.filter((def) => !def.extra);
   return {
-    noticed: ODDITIES.filter((def) => oddityNoticed(state, def.id)).length,
-    total: ODDITIES.length,
+    noticed: all.filter((def) => oddityNoticed(state, def.id)).length,
+    total: all.length,
   };
 }
 

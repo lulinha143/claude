@@ -87,8 +87,8 @@ test('the toggle exists, explains itself, and persists across a reload', async (
 
   const toggle = page.getByRole('checkbox', { name: CHOICE_TOGGLE });
   await expect(toggle).not.toBeChecked();
-  // The OFF state says events will ask.
-  await expect(page.getByText('pause the office and ask you to decide')).toBeVisible();
+  // The OFF state says events will wait for the player, then ask.
+  await expect(page.getByText('wait in their room until you look into them')).toBeVisible();
 
   await toggle.check();
   await expect(toggle).toBeChecked();

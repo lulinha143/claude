@@ -109,6 +109,8 @@ export interface ScheduledConsequence {
   bodyKey: string;
   /** authored effects, applied through the ordinary effect pipeline. */
   effects: EventEffect[];
+  /** settle without a notice: the consequence shows up in the world instead. */
+  quiet?: boolean;
 }
 
 export interface EventHistoryEntry {
@@ -243,6 +245,55 @@ export interface OfficeState {
   oddities: OfficeOddity[];
 }
 
+/** Something happening in the office, waiting for the player to look into it. */
+export interface PendingIncident {
+  id: string;
+  eventId: string;
+  /** where it is happening. */
+  roomId: string;
+  /** who is presenting it (the teammate it is about, or someone there). */
+  employeeId?: string;
+  at: number;
+  /** after this it resolves on its own (or fades, if it was rare). */
+  until: number;
+}
+
+/** Something a teammate will say when the player is next around. */
+export interface PendingRemark {
+  employeeId: string;
+  key: string;
+  /** not before this. */
+  at: number;
+}
+
+/**
+ * The office's diary: what happened, newest last. Bounded. It is what lets a
+ * returning player be told what went on while they were away.
+ */
+export interface DiaryEntry {
+  at: number;
+  kind:
+    | 'incident' // something started happening
+    | 'opened' // the player looked into it
+    | 'handled' // the team dealt with it themselves
+    | 'faded' // nobody looked, and it passed
+    | 'moment' // a small moment played out
+    | 'landed' // a promised consequence arrived
+    | 'remark'; // someone has something to say
+  eventId?: string;
+  momentId?: string;
+  roomId?: string;
+  employeeId?: string;
+}
+
+export interface HappeningsState {
+  incidents: PendingIncident[];
+  remarks: PendingRemark[];
+  diary: DiaryEntry[];
+  /** incidents since the last rare one (rare events grow likelier until one comes). */
+  sinceRare: number;
+}
+
 export interface GameSettings {
   language: string;
   masterMuted: boolean;
@@ -362,6 +413,8 @@ export interface GameState {
   finds: OfficeFind[];
   /** the rooms' routines and the curiosities waiting to be noticed (optional in older saves). */
   office: OfficeState;
+  /** incidents waiting, things to be said, and the office diary (optional in older saves). */
+  happenings: HappeningsState;
   settings: GameSettings;
   onboardingComplete: boolean;
   /** Cooldown bookkeeping for the event system: eventId -> next-eligible epoch ms. */

@@ -12,6 +12,8 @@ export interface OfflineResult {
   ignored: boolean; // true when the elapsed time was invalid and skipped
   /** nuts the team packed into the crate meanwhile (collected by the player). */
   crateFilled?: number;
+  /** things that started happening in the office meanwhile (waiting in their rooms). */
+  incidents?: number;
 }
 
 /**

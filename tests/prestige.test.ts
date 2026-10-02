@@ -12,6 +12,9 @@ import { GameEngine } from '../src/sim/engine';
 import { moraleCap, prestigeMoraleBonus, prestigeRareEventChance } from '../src/sim/economy';
 import { PRESTIGE_BRANCHES_BY_ID } from '../src/content/prestige';
 import type { PrestigeBranchId } from '../src/sim/types';
+import { createRng } from '../src/sim/rng';
+import { pickIncident } from '../src/sim/happenings';
+import { GAME_EVENTS } from '../src/content/events';
 
 describe('prestige', () => {
   it('cannot pay twice from lifetime production, including after save reload', () => {
@@ -179,22 +182,34 @@ describe('a prestige branch delivers every effect its card advertises', () => {
     }
   });
 
-  it('actually fires events more often on the branch that promises them', () => {
-    // Same seed, same company, only the branch differs: the rare-event term has to be
-    // the thing that changes the outcome.
-    const runs = (branch: PrestigeBranchId | null) => {
-      let fired = 0;
-      for (let seed = 0; seed < 300; seed += 1) {
-        const state = createInitialState(seed);
-        state.prestige.branch = branch;
-        const engine = new GameEngine(state, { deterministic: true, seed });
-        engine.maybeRollEvent();
-        if (engine.activeEvent) fired += 1;
-      }
-      return fired;
+  it('actually makes rare events likelier on the branch that promises them', () => {
+    // Same company, only the branch differs: the rare-event term has to be the
+    // thing that changes which incidents turn up. It promises rarer events, not
+    // more of them, so the ordinary tiers stay where they were.
+    const odds = (branch: PrestigeBranchId | null) => {
+      const state = createInitialState(0);
+      state.prestige.branch = branch;
+      return new GameEngine(state, { deterministic: true, seed: 0 }).rarityOdds();
     };
-    // Marketing carries the largest bonus (+10%), which is well above the base rate.
-    expect(runs('marketing')).toBeGreaterThan(runs(null));
+    const base = odds(null);
+    const marketing = odds('marketing');
+    expect(marketing.rare).toBeGreaterThan(base.rare);
+    expect(marketing.legendary).toBeGreaterThan(base.legendary);
+    expect(marketing.common).toBe(base.common);
+    // Marketing carries the largest bonus (+10%), so it moves the odds the most.
+    expect(marketing.rare).toBeGreaterThan(odds('underground').rare);
+
+    // And the odds really decide the pick: with the same dice, more rare events.
+    const rarePicks = (branchOdds: typeof base) => {
+      const rng = createRng(7);
+      let rare = 0;
+      for (let i = 0; i < 2000; i += 1) {
+        const def = pickIncident(GAME_EVENTS, branchOdds, () => rng.next());
+        if (def?.rarity === 'rare' || def?.rarity === 'legendary') rare += 1;
+      }
+      return rare;
+    };
+    expect(rarePicks(marketing)).toBeGreaterThan(rarePicks(base));
   });
 
   it('survives a save that predates branch effects, and a branch id it does not know', () => {

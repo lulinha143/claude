@@ -70,7 +70,11 @@ if (!loaded.isNew) {
   bootOffline = computeOffline(engine.state, Date.now());
   applyOffline(engine.state, bootOffline);
   // ...and the finds the team set aside for the player meanwhile.
-  if (!bootOffline.ignored) engine.catchUpFinds(bootOffline.cappedSeconds);
+  if (!bootOffline.ignored) {
+    engine.catchUpFinds(bootOffline.cappedSeconds);
+    // A few things may have started happening in the office meanwhile.
+    bootOffline.incidents = engine.catchUpHappenings(bootOffline.cappedSeconds);
+  }
 }
 
 interface StoreState {

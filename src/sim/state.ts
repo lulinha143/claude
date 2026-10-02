@@ -140,6 +140,7 @@ export function createInitialState(now = Date.now(), settings?: Partial<GameSett
     crate: { nuts: 0 },
     finds: [],
     office: { rooms: {}, oddities: [] },
+    happenings: { incidents: [], remarks: [], diary: [], sinceRare: 0 },
     settings: { ...defaultSettings(), ...settings },
     onboardingComplete: false,
     eventCooldowns: {},

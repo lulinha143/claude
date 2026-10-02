@@ -7,8 +7,11 @@ import { SAVE_VERSION } from '../src/sim/config';
 import { GAME_EVENTS, GAME_EVENTS_BY_ID } from '../src/content/events';
 import { ROOMS_BY_ID } from '../src/content/rooms';
 import { scoreChoice } from '../src/sim/eventAutoResolve';
-import { EMPLOYEE_TALKS } from '../src/content/employeeTalks';
+import { EMPLOYEE_TALKS, topicsForEmployee } from '../src/content/employeeTalks';
 import { MICRO_TEAM, type MicroMode } from '../src/sim/minigames';
+import { EMPLOYEES } from '../src/content/employees';
+import { ODDITIES, oddityFlag } from '../src/content/roomPlay';
+import { ANOMALY_THREAD_FLAG } from '../src/content/happenings';
 import type { GameState } from '../src/sim/types';
 
 function engineAt(now: number, mutate?: (s: GameState) => void) {
@@ -290,10 +293,26 @@ describe('the authored memory content is coherent', () => {
         }
       }
     }
+    // Each teammate receives gifts through a topic of their own, which leaves a
+    // mark of what was given.
+    for (const employee of EMPLOYEES) {
+      for (const topic of topicsForEmployee(employee.id)) {
+        for (const node of Object.values(topic.nodes)) {
+          for (const choice of node.choices) {
+            for (const effect of choice.effects) {
+              if (effect.type === 'setFlag' && effect.flagId) settable.add(effect.flagId);
+            }
+          }
+        }
+      }
+    }
     // Runtime awards must really create the keys that authored events consume.
     const { engine } = engineAt(1_000_000);
     for (const mode of Object.keys(MICRO_TEAM) as MicroMode[]) engine.rewardMicrogame(mode, 35);
     for (const flag of Object.keys(engine.state.flags)) settable.add(flag);
+    // Noticing a curiosity marks it; enough paranormal ones start the building's thread.
+    for (const def of ODDITIES) settable.add(oddityFlag(def.id));
+    settable.add(ANOMALY_THREAD_FLAG);
     for (const ev of GAME_EVENTS) {
       const all = [...ev.choices, ...Object.values(ev.steps ?? {}).flatMap((s) => s.choices)];
       for (const c of all) {
@@ -342,6 +361,9 @@ describe('the authored memory content is coherent', () => {
         for (const e of c.effects) {
           if (e.type !== 'schedule') continue;
           expect(e.scheduled?.length, `${ev.id}/${c.id} schedules nothing`).toBeGreaterThan(0);
+          // A quiet promise lands in the world (a remark, a curiosity, a moment),
+          // never as a notice, so it has no copy of its own to need.
+          if (e.quiet) continue;
           // Without its own copy the callback would reuse the original event's
           // text, which reads as the same event happening twice.
           expect(e.scheduleTitleKey, `${ev.id}/${c.id} has no callback title`).toBeTruthy();

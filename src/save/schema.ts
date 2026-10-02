@@ -185,7 +185,46 @@ const scheduledConsequenceSchema = z.object({
   titleKey: z.string(),
   bodyKey: z.string(),
   effects: z.array(effectSchema),
+  quiet: z.boolean().optional().catch(undefined),
 });
+
+const pendingIncidentSchema = z.object({
+  id: z.string(),
+  eventId: z.string(),
+  roomId: z.string(),
+  employeeId: z.string().optional().catch(undefined),
+  at: z.number().finite(),
+  until: z.number().finite(),
+});
+
+const pendingRemarkSchema = z.object({
+  employeeId: z.string(),
+  key: z.string(),
+  at: z.number().finite(),
+});
+
+const diaryEntrySchema = z.object({
+  at: z.number().finite(),
+  kind: z.enum(['incident', 'opened', 'handled', 'faded', 'moment', 'landed', 'remark']),
+  eventId: z.string().optional().catch(undefined),
+  momentId: z.string().optional().catch(undefined),
+  roomId: z.string().optional().catch(undefined),
+  employeeId: z.string().optional().catch(undefined),
+});
+
+/** Validate a list item by item, dropping what does not parse and keeping the newest `max`. */
+function listOf<T extends z.ZodTypeAny>(item: T, max: number) {
+  return z
+    .array(z.unknown())
+    .catch([])
+    .transform((items) =>
+      items
+        .map((value) => item.safeParse(value))
+        .filter((r): r is z.SafeParseSuccess<z.infer<T>> => r.success)
+        .map((r) => r.data as z.infer<T>)
+        .slice(-max),
+    );
+}
 
 type ScheduledParsed = z.infer<typeof scheduledConsequenceSchema>;
 
@@ -335,6 +374,16 @@ export const gameStateSchema = z.object({
         ),
     })
     .catch({ rooms: {}, oddities: [] }),
+  // What is happening in the office, what someone has to say, and the diary.
+  // Older saves have none; a bad entry costs only that entry.
+  happenings: z
+    .object({
+      incidents: listOf(pendingIncidentSchema, 4),
+      remarks: listOf(pendingRemarkSchema, 12),
+      diary: listOf(diaryEntrySchema, 60),
+      sinceRare: z.number().finite().nonnegative().catch(0),
+    })
+    .catch({ incidents: [], remarks: [], diary: [], sinceRare: 0 }),
   settings: settingsSchema,
   onboardingComplete: z.boolean().catch(false),
   eventCooldowns: z.record(z.number()).catch({}),

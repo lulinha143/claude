@@ -1,6 +1,7 @@
 import type { EventChoice, GameEventDef } from './types';
 import { OFFICE_CALLBACKS } from './officeCallbacks';
 import { FACILITY_EVENTS } from './facilityDiscoveries';
+import { INCIDENT_EVENTS } from './incidents';
 
 export type EventFallbackKind = 'decline' | 'postpone';
 
@@ -39,6 +40,7 @@ export interface EventContentRepair {
 export const AUTHORED_GAME_EVENTS: GameEventDef[] = [
   ...OFFICE_CALLBACKS,
   ...FACILITY_EVENTS,
+  ...INCIDENT_EVENTS,
   {
     id: 'printer-demands',
     titleKey: 'event.printer.title',

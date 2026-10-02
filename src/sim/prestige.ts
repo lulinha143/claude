@@ -2,6 +2,7 @@ import { BALANCE } from './config';
 import type { GameState, PrestigeBranchId } from './types';
 import { createInitialState } from './state';
 import { PRESTIGE_SKILLS_BY_ID } from '../content/prestige';
+import { ANOMALY_THREAD_FLAG } from '../content/happenings';
 
 /** Lifetime totals stay in the archive; only new production funds a restructure. */
 export function nutsThisRun(state: GameState): number {
@@ -101,8 +102,10 @@ export function performPrestige(
       id.startsWith('annex.') ||
       id.startsWith('microgame.') ||
       id.startsWith('pair.') ||
-      // What the player has noticed around the office stays noticed.
+      // What the player has noticed around the office stays noticed, and so does
+      // the building having noticed them back.
       id.startsWith('oddity.') ||
+      id === ANOMALY_THREAD_FLAG ||
       Object.keys(state.employees).some((employeeId) => id.startsWith(`${employeeId}.`))
     ) {
       fresh.flags[id] = at;

@@ -321,7 +321,11 @@ describe('watch: catch it while it lasts', () => {
   });
 
   it('pays when caught, and the cameras sometimes catch something worth keeping', () => {
-    const w = office((s) => staff(s, 'security', ['perry']));
+    // The stapler footage only turns up once the poster in procurement has been read.
+    const w = office((s) => {
+      staff(s, 'security', ['perry']);
+      s.flags['oddity.missing-stapler'] = T0;
+    });
     const caught = new Set<string>();
     let reputation = w.state.resources.reputation;
     for (let i = 0; i < 30; i += 1) {
@@ -522,7 +526,10 @@ describe('the office keeps itself interesting', () => {
       }
       for (const item of [...w.state.office.oddities]) w.engine.noticeOddity(item.id);
     }
-    expect([...kinds].sort()).toEqual(['blip', 'jam', 'oddity', 'parcel']);
+    for (const kind of ['blip', 'jam', 'oddity', 'parcel']) expect(kinds).toContain(kind);
+    // Things also start happening in the office now (incidents, small moments).
+    const known = ['blip', 'jam', 'oddity', 'parcel', 'selfFix', 'incident', 'moment'];
+    for (const kind of kinds) expect(known).toContain(kind);
   });
 
   it('stays quiet for a brand-new founder', () => {

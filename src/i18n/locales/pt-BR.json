@@ -908,7 +908,7 @@
     },
     "casualFriday": {
       "title": "A Sexta Casual Ficou Casual Demais",
-      "body": "Todos vieram de pijama. A produtividade é incerta, mas a moral está nas alturas.",
+      "body": "Todos vieram de pijama. A produtividade é incerta, mas o ânimo está nas alturas.",
       "ok": "Abraçar a ideia"
     },
     "nutcoin": {
@@ -1276,10 +1276,10 @@
       "laterBody": "Os relatórios pararam. Vários departamentos notaram, porque tinham passado a depender deles, e perguntaram quem os escrevia."
     },
     "calmCapybara": {
-      "title": "Marlow Não Se Mexeu",
-      "body": "O alarme toca há quatro minutos. O prédio está vazio. Marlow segue na mesa, preenchendo um formulário, absolutamente tranquilo. O alarme para sozinho.",
+      "title": "O Bento Não Se Mexeu",
+      "body": "O alarme toca há quatro minutos. O prédio está vazio. O Bento segue na mesa, preenchendo um formulário, absolutamente tranquilo. O alarme para sozinho.",
       "drill": "Fazer o simulado completo mesmo assim",
-      "ask": "Perguntar a Marlow que formulário era aquele",
+      "ask": "Perguntar ao Bento que formulário era aquele",
       "panel": "Ir ler o painel do alarme você mesmo"
     },
     "pingoManifest": {
@@ -1325,11 +1325,11 @@
     },
     "sonnySlow": {
       "title": "Seis Semanas Numa Só Tarefa",
-      "body": "Sonny trabalha na mesma melhoria de arquivamento desde o começo do trimestre. Diz que está quase pronta. Disse isso há quatro semanas. Parece inteiramente certo do que diz.",
+      "body": "O Soneca trabalha na mesma melhoria de arquivamento desde o começo do trimestre. Diz que está quase pronta. Disse isso há quatro semanas. Parece inteiramente certo do que diz.",
       "time": "Dar o tempo que ele precisa",
       "ship": "Pedir que entregue o que já tem",
       "pair": "Colocá-lo em dupla com Inky",
-      "laterTitle": "Sonny Terminou",
+      "laterTitle": "O Soneca Terminou",
       "laterBody": "Está pronto. E está correto, completo e discretamente melhor que qualquer coisa que o setor entregou este ano. Ele vai tirar uma soneca."
     },
     "inkyMultitask": {
@@ -1341,7 +1341,7 @@
     },
     "echoNight": {
       "title": "O Prédio Está Cantarolando",
-      "body": "A gravação noturna de Echo tem quarenta minutos do prédio cantarolando uma melodia. Não está em nenhum cancioneiro. Três microfones em três andares a registram em uníssono perfeito.",
+      "body": "A gravação noturna da Eco tem quarenta minutos do prédio cantarolando uma melodia. Não está em nenhum cancioneiro. Três microfones em três andares a registram em uníssono perfeito.",
       "archive": "Arquivar a gravação como se deve",
       "play": "Tocar na reunião geral",
       "delete": "Apagar"
@@ -2151,7 +2151,8 @@
     "curiositiesCount": "{{count}} de {{total}} notadas",
     "curiosityLocked": "Ainda não notada",
     "roomFile": "Arquivo da sala completo",
-    "nutWhere": "Aparece em algum lugar: {{room}}."
+    "nutWhere": "Aparece em algum lugar: {{room}}.",
+    "curiosityBonus": "Por causa de uma escolha"
   },
   "company": {
     "title": "Visão Geral da Empresa",
@@ -2309,7 +2310,7 @@
     "gameplay": "Jogabilidade",
     "autoResolveEvents": "Desativar janelas de escolha",
     "autoResolveEventsOn": "Os eventos de escolha não vão te interromper. O departamento escolhe a melhor opção disponível, aplica as consequências reais e informa cada decisão nas suas notificações.",
-    "autoResolveEventsOff": "Os eventos de escolha pausam o escritório e pedem sua decisão.",
+    "autoResolveEventsOff": "O que acontece no escritório espera na sala até você ir ver, e aí pede a sua decisão.",
     "saveStatus": "Último salvamento",
     "saveNever": "Ainda não salvo",
     "saveAuto": "A Nutshell Inc. arquiva seu progresso automaticamente a cada poucos minutos e sempre que você fecha o jogo.",
@@ -2389,8 +2390,8 @@
     "nutsGain": "+{{value}} castanhas",
     "nutsLoss": "-{{value}} castanhas",
     "goldenGain": "+{{value}} Castanhas Douradas",
-    "moraleUp": "Moral +{{value}}",
-    "moraleDown": "Moral {{value}}",
+    "moraleUp": "Ânimo +{{value}}",
+    "moraleDown": "Ânimo {{value}}",
     "repUp": "Reputação +{{value}}",
     "repDown": "Reputação {{value}}",
     "boost": "Produção x{{value}} por {{seconds}}s",
@@ -2436,7 +2437,7 @@
     "mossKnowing": "Mocho não diz nada, mas parece já saber.",
     "fennGrin": "Fael sorri como se o negócio já estivesse fechado.",
     "ottoImpressed": "Otto conta algo duas vezes e não diz nada.",
-    "beaSuspicious": "Bea mede outra vez, duas vezes, e anota os dois números.",
+    "beaSuspicious": "A Beta mede outra vez, duas vezes, e anota os dois números.",
     "minaFascinated": "Mina já começou um novo caderno de registros para isso.",
     "teamCheers": "Um grito de comemoração sai perto da linha de triagem e se espalha sem explicação.",
     "teamRelieved": "O andar solta um suspiro que aparentemente prendia desde a manhã.",
@@ -2446,9 +2447,9 @@
     "ninoUnbothered": "Nino dormiu antes de a votação terminar.",
     "biaSteady": "Bia se empertiga um pouco.",
     "quincyBlinks": "Quincy pisca uma vez, devagar, e não diz nada.",
-    "sonnyEventually": "Sonny faz um sinal de positivo. Ele chega pouco depois.",
+    "sonnyEventually": "O Soneca faz um sinal de positivo. Chega pouco depois.",
     "inkyBusy": "Inky acena com quatro braços sem erguer os olhos.",
-    "echoUpsideDown": "Echo assente, de cabeça para baixo, e anota.",
+    "echoUpsideDown": "A Eco concorda, de cabeça para baixo, e anota.",
     "rosaFabulous": "Rosa já está escolhendo a iluminação.",
     "perryDeadpan": "Perry não diz absolutamente nada, gentilmente.",
     "axelSunny": "Axel se ilumina. Algo levemente rebrota."
@@ -2493,7 +2494,8 @@
     "deterministic": "Semente determinística",
     "unlockAll": "Desbloquear todos os funcionários",
     "note": "Este painel só aparece em builds de desenvolvimento ou quando ?dev=1 está ativo.",
-    "officeMoment": "Momento no escritório"
+    "officeMoment": "Momento no escritório",
+    "rollHappening": "Acontece alguma coisa"
   },
   "dialogue": {
     "pip": [
@@ -3013,7 +3015,7 @@
       },
       "mossNight": {
         "title": "A auditoria noturna",
-        "body": "Moss protocola a contagem conjunta às 04:12. É minuciosa, assinada duas vezes, e a diretoria lê."
+        "body": "O Mocho protocola a contagem conjunta às 04:12. É minuciosa, assinada duas vezes, e a diretoria lê."
       },
       "biaDoor": {
         "title": "Solicitação da manutenção",
@@ -3211,7 +3213,7 @@
     },
     "moss-count": {
       "title": "O que o turno da noite conta",
-      "blurb": "Moss tem uma folha de contagem. A contagem está subindo.",
+      "blurb": "O Mocho tem uma folha de contagem. A contagem está subindo.",
       "open": {
         "prompt": "Há onze portas no andar de pesquisa. Eu as contei todas as noites por duzentas noites. Ontem havia doze. Gostaria que soubesse que não estou incomodada. Apenas mantenho registros.",
         "log": {
@@ -3328,7 +3330,7 @@
       }
     },
     "bea": {
-      "scene": "Bea mediu a mesma tábua três vezes.",
+      "scene": "A Beta mediu a mesma tábua três vezes.",
       "prompt": "Fibra reta. Sem nós. Uma prateleira seria desperdício. Uma ponte seria exibicionismo.",
       "care": {
         "label": "Fazer um degrau para os menores.",
@@ -3578,7 +3580,7 @@
       "request": "Por favor, parem de chamar os canos de obsoletos. Eles estão dando o melhor de si.",
       "quiet": "Pagar por conexões de cano mais silenciosas.",
       "quietReply": "Na manhã seguinte, os radiadores fazem um som parecido demais com um suspiro.",
-      "listen": "Pedir a Echo que traduza a gravação.",
+      "listen": "Pedir à Eco que traduza a gravação.",
       "listenReply": "Não era uma reclamação. Queria saber se estávamos confortáveis.",
       "file": "Arquivar em manutenção predial.",
       "fileReply": "Inky deixa a gaveta entreaberta. Por precaução."
@@ -3612,7 +3614,7 @@
     },
     "cable": {
       "title": "O cabo sem etiqueta",
-      "body": "A mesa finalmente está desembaraçada. Sobrou um cabo. As duas pontas entram na parede, e Nixie garante que ele não estava lá.",
+      "body": "A mesa finalmente está desembaraçada. Sobrou um cabo. As duas pontas entram na parede, e a Nica garante que ele não estava lá.",
       "trace": "Seguir o cabo juntos.",
       "label": "Etiquetar: não desconectar.",
       "labelReply": "Pela primeira vez, a parede recebe uma instrução clara.",
@@ -3620,12 +3622,12 @@
       "release": "Usar a liberação manual da engenhoca.",
       "releaseReply": "Um clique. O cabo afrouxa. Em algum lugar, um clipe está livre.",
       "leave": "Deixar um bilhete para o próximo turno.",
-      "leaveReply": "Nixie escreve: NÓS TAMBÉM VIMOS. Ninguém deveria investigar sozinho."
+      "leaveReply": "A Nica escreve: NÓS TAMBÉM VIMOS. Ninguém deveria investigar sozinho."
     },
-    "needsRecording": "Peça a Echo para gravar uma resposta primeiro.",
+    "needsRecording": "Peça à Eco para gravar uma resposta primeiro.",
     "needsMug": "Conserte a caneca favorita do Tico primeiro.",
     "needsHabitat": "Ajude Quincy com o pote de insetos primeiro.",
-    "needsManual": "Ajude Nixie a documentar o aparelho primeiro."
+    "needsManual": "Ajude a Nica a documentar o aparelho primeiro."
   },
   "ensemble": {
     "title": "Receitas de ambiente",
@@ -3806,15 +3808,27 @@
     },
     "anomaly_silence": {
       "title": "Fita de transmissão em branco",
-      "body": "Registro do estúdio, gravado por Echo. Três minutos de quase silêncio; uma chaleira estala em 01:42. A gravação fez o prédio parecer habitado, em vez de ocupado."
+      "body": "Registro do estúdio, gravado pela Eco. Três minutos de quase silêncio; uma chaleira estala em 01:42. A gravação fez o prédio parecer habitado, em vez de ocupado."
     },
     "anomaly_deskNames": {
       "title": "Decalque da mesa",
-      "body": "Ordem de reparo R-23. Decalque a lápis feito antes da devolução da mesa. O último nome é legível; a data, não. Bea se recusa a classificar como dano."
+      "body": "Ordem de reparo R-23. Decalque a lápis feito antes da devolução da mesa. O último nome é legível; a data, não. A Beta se recusa a classificar como dano."
     },
     "anomaly_thursday": {
       "title": "Uma folha de calendário úmida",
       "body": "Jardim de inverno, testemunhado por Axel. Duas marcas de xícara, uma de cada lado do banco. Nenhuma anomalia química sobreviveu. O convite, sim."
+    },
+    "anomaly_hum": {
+      "title": "O prédio cantarola",
+      "body": "Fita do turno da noite, 3:00, arquivada pelo Mocho e pela Eco. O prédio inteiro cantarolando o jingle da empresa, mais devagar e com mais carinho. Sobe do porão. Parece feliz."
+    },
+    "anomaly_floorZero": {
+      "title": "O andar sem número",
+      "body": "Musgo no lugar do carpete, uma janela cheia de estrelas, a equipe inteira dormindo e sorrindo. O elevador não tem registro de ter parado lá. Parou."
+    },
+    "anomaly_thirteenth": {
+      "title": "O décimo terceiro botão",
+      "body": "Sem número, em forma de bolota, morno ao toque. Segundo o Mocho, sempre esteve lá. A manutenção preferiu não comentar. A lápis."
     }
   },
   "annex": {
@@ -3822,35 +3836,35 @@
     "work": "Levar essa ideia ao trabalho",
     "broadcast": {
       "title": "O pedido de silêncio",
-      "body": "O rádio recebe um pedido assinado por todas as salas do prédio. Elas gostariam de três minutos sem precisar ser úteis. Echo já colocou uma fita em branco.",
+      "body": "O rádio recebe um pedido assinado por todas as salas do prédio. Elas gostariam de três minutos sem precisar ser úteis. A Eco já colocou uma fita em branco.",
       "a": "Transmitir o silêncio",
       "b": "Vender o espaço publicitário",
       "reply": "O escritório para de fazer barulho. Quando a fita termina, alguém continua cantarolando o silêncio.",
       "other": "O patrocinador pede os números de audiência. Todas as salas informam zero.",
-      "evidence": "Registro do estúdio, gravado por Echo. Três minutos de quase silêncio; uma chaleira estala em 01:42. A gravação fez o prédio parecer habitado, em vez de ocupado.",
-      "workReply": "Echo vira o microfone para quem costuma fazer a ata.",
+      "evidence": "Registro do estúdio, gravado pela Eco. Três minutos de quase silêncio; uma chaleira estala em 01:42. A gravação fez o prédio parecer habitado, em vez de ocupado.",
+      "workReply": "A Eco vira o microfone para quem costuma fazer a ata.",
       "activity": "Consertar a conexão",
       "roomQuip": "Este microfone também pega suspiros?",
       "afterQuip": "Desde aquela transmissão, o silêncio aqui parece companhia.",
       "remember": "Reservar três minutos de silêncio em cada transmissão.",
       "work": "Dar o microfone a quem costuma escrever a ata.",
-      "keptQuip": "Três minutos. Sem metas. Echo colocou na programação."
+      "keptQuip": "Três minutos. Sem metas. A Eco colocou na programação."
     },
     "repair": {
       "title": "Não conserte este arranhão",
-      "body": "Bea encontra vinte e três nomes sob uma mesa devolvida. Quase todos são conhecidos. Um é o seu, numa letra que você ainda não aprendeu. A ordem de reparo diz: remover toda evidência de uso.",
+      "body": "A Beta encontra vinte e três nomes sob uma mesa devolvida. Quase todos são conhecidos. Um é o seu, numa letra que você ainda não aprendeu. A ordem de reparo diz: remover toda evidência de uso.",
       "a": "Preservar a parte de baixo",
       "b": "Seguir a ordem de reparo",
-      "reply": "Bea conserta os pés e preserva os nomes. Na nota: estrutura firme, importância pessoal.",
-      "other": "A mesa passa na inspeção. Bea guarda uma cópia dos nomes no avental.",
-      "evidence": "Ordem de reparo R-23. Decalque a lápis feito antes da devolução da mesa. O último nome é legível; a data, não. Bea se recusa a classificar como dano.",
-      "workReply": "Bea guarda os parafusos antigos numa lata etiquetada. Ainda servem, ela diz.",
+      "reply": "A Beta conserta os pés e preserva os nomes. Na nota: estrutura firme, importância pessoal.",
+      "other": "A mesa passa na inspeção. A Beta guarda uma cópia dos nomes no avental.",
+      "evidence": "Ordem de reparo R-23. Decalque a lápis feito antes da devolução da mesa. O último nome é legível; a data, não. A Beta se recusa a classificar como dano.",
+      "workReply": "A Beta guarda os parafusos antigos numa lata etiquetada. Ainda servem, ela diz.",
       "activity": "Limpar a bancada",
       "roomQuip": "Nada quebrado entra aqui sem contar como aconteceu.",
       "afterQuip": "Essa mesa tem mais história que o manual de instruções.",
       "remember": "Manter os nomes. Deixar uma linha para a próxima pessoa.",
       "work": "Guardar os parafusos para o próximo conserto.",
-      "keptReply": "Bea desenha uma linha vazia abaixo das assinaturas. “Um conserto precisa deixar espaço para quem vem depois.”",
+      "keptReply": "A Beta desenha uma linha vazia abaixo das assinaturas. “Um conserto precisa deixar espaço para quem vem depois.”",
       "keptQuip": "Tem uma linha vazia debaixo daquela mesa. Estamos guardando."
     },
     "conservatory": {
@@ -4106,7 +4120,9 @@
   "awayExtra": {
     "crate": "O caixote encheu com {{value}} castanhas: toque nele no escritório para recolher.",
     "finds_one": "Alguém achou algo enquanto você estava fora.",
-    "finds_other": "{{count}} colegas acharam algo enquanto você estava fora."
+    "finds_other": "{{count}} colegas acharam algo enquanto você estava fora.",
+    "incidents_one": "Começou a acontecer algo no escritório enquanto você estava fora.",
+    "incidents_other": "Começaram a acontecer {{count}} coisas no escritório enquanto você estava fora."
   },
   "arc": {
     "pip": {
@@ -5305,7 +5321,8 @@
   "play": {
     "news": {
       "play": "Tem algo precisando de uma mão aqui",
-      "oddity": "Apareceu algo estranho aqui"
+      "oddity": "Apareceu algo estranho aqui",
+      "incident": "Tem algo acontecendo aqui"
     },
     "needsSomeone": "Ninguém aqui",
     "readyIn": "Fica pronto em {{time}}",
@@ -5342,7 +5359,9 @@
       "discovery": "Tem algo aqui que não fecha. Investigue.",
       "new": "Curiosidade notada",
       "nut": "Novidade na Enciclopédia da Castanha",
-      "complete": "Era a última curiosidade desta sala."
+      "complete": "Era a última curiosidade desta sala.",
+      "thread": "O prédio parece estar esperando alguma coisa.",
+      "bonus": "Bônus: só está aqui por causa de uma escolha sua."
     },
     "react": {
       "funny": {
@@ -5678,7 +5697,8 @@
     "missing-stapler": {
       "title": "Procura-se: um grampeador",
       "hint": "Tem um cartaz de 'procura-se' no mural.",
-      "found": "PROCURA-SE: um grampeador. RECOMPENSA: um grampeador. CONTATO: Compras."
+      "found": "PROCURA-SE: um grampeador. RECOMPENSA: um grampeador. CONTATO: Compras.",
+      "lead": "Quem pegou age de madrugada. As câmeras de segurança devem saber mais."
     },
     "stakeholder-cashew": {
       "found": "No pedido: um Caju das Partes Interessadas. Pediu pra ser incluído na hora de desembalar."
@@ -5730,7 +5750,8 @@
     "equation": {
       "title": "A equação",
       "hint": "Tem uma equação no quadro que ninguém lembra de ter escrito.",
-      "found": "E = mc² + 1 bolota. Alguém circulou a bolota e escreveu 'sim'."
+      "found": "E = mc² + 1 bolota. Alguém circulou a bolota e escreveu 'sim'.",
+      "lead": "Desde que alguém escreveu isso, o sismógrafo da Pesquisa anda tremendo."
     },
     "hello-tremor": {
       "title": "O tremor",
@@ -5739,7 +5760,8 @@
     "item-four": {
       "title": "Item quatro",
       "hint": "O item quatro da pauta só diz 'aquilo'.",
-      "found": "ITEM 4: Aquilo. Todo mundo concorda. Ninguém sabe o que é. É o item quatro há três anos."
+      "found": "ITEM 4: Aquilo. Todo mundo concorda. Ninguém sabe o que é. É o item quatro há três anos.",
+      "lead": "Em algum lugar deve ter uma ata explicando o item quatro. No arquivo, talvez."
     },
     "brazil-chair": {
       "hint": "Tem uma castanha-do-pará na cabeceira da mesa.",
@@ -5764,7 +5786,8 @@
     "pipe-jingle": {
       "title": "As batidas",
       "hint": "Os canos estão batendo. Num ritmo.",
-      "found": "Toc, toc-toc, toc. É o jingle da empresa. Ninguém ensinou o jingle pros canos."
+      "found": "Toc, toc-toc, toc. É o jingle da empresa. Ninguém ensinou o jingle pros canos.",
+      "lead": "A Eco diz que já ouviu essa música em outro lugar do prédio. De madrugada."
     },
     "forbidden-peanut": {
       "found": "Saiu pela válvula: um Amendoim Proibido. Tecnicamente uma leguminosa. Ninguém aqui embaixo fala disso."
@@ -5785,7 +5808,8 @@
     "soup-week": {
       "title": "Sopa da semana",
       "hint": "Alguém… editou o quadro do cardápio.",
-      "found": "SOPA DO DIA foi riscado e trocado por SOPA DA SEMANA (desculpa)."
+      "found": "SOPA DO DIA foi riscado e trocado por SOPA DA SEMANA (desculpa).",
+      "lead": "O Bento diz que a sopa ainda não terminou com a gente."
     },
     "tray-almond": {
       "hint": "Alguém deixou uma amêndoa numa bandeja. Com um bilhete.",
@@ -5864,6 +5888,361 @@
     },
     "startup-chestnut": {
       "found": "Entre as ervas: uma Castanha da Startup, assando em pivô aberto."
+    },
+    "neon-pink-sign": {
+      "title": "A placa rosa neon",
+      "hint": "Tem algo brilhando rosa na parede do marketing.",
+      "found": "A placa nova brilha rosa neon quando escurece. O Téo e a Rosa se revezam fingindo que não param pra olhar."
+    },
+    "laminated-minutes": {
+      "title": "A ata plastificada",
+      "hint": "Tem um quadro novo na parede da sala de reuniões.",
+      "found": "Emoldurada na parede: a ata da última reunião, plastificada, com o Nino dormindo em cima. Alguém colou uma estrelinha dourada."
+    },
+    "vault-pillow": {
+      "title": "O travesseiro do cofre",
+      "hint": "Tem um travesseiro no cofre. Em cima do ouro.",
+      "found": "Um travesseirinho em cima das castanhas douradas, bordado DORMINHOCO DO COFRE. A Bia diz que não é dela. A Bia borda."
+    },
+    "still-spinning": {
+      "title": "Ainda girando",
+      "hint": "Tem alguma coisa no laboratório que continua girando.",
+      "found": "A centrífuga está desligada e continua girando, bem devagar, por puro despeito."
+    },
+    "soup-name-tag": {
+      "title": "Geraldo",
+      "hint": "A panela de sopa ganhou um crachá.",
+      "found": "Um crachazinho na panela de sopa: GERALDO. Por favor, não mexa no Geraldo sem pedir."
+    },
+    "tree-parcel": {
+      "title": "A encomenda na mesa",
+      "hint": "A encomenda na mesa do fundador mudou de lugar.",
+      "found": "Toda manhã a encomenda fechada está um pouco mais virada pra janela. Hoje tem uma castanha dourada do lado dela."
+    },
+    "night-hum-tape": {
+      "title": "A fita da noite",
+      "hint": "Uma fita na cabine está tocando sozinha.",
+      "found": "Uma fita cassete escrito NOITE, 3:00 está na prateleira dos rolos. Toca sozinha, bem baixinho, sempre que a cabine fica vazia."
+    },
+    "moss-by-the-lift": {
+      "title": "Um pouco de musgo",
+      "hint": "Tem musgo do lado do elevador. Musgo de verdade.",
+      "found": "Um tufinho de musgo macio do lado da porta do elevador. Está morno, e tem cheiro de uma soneca muito boa."
     }
+  },
+  "incident": {
+    "bugBounty": {
+      "title": "A Caça aos Bugs",
+      "hook": "Doze bugs. Um aparelho. Fiz um ranking.",
+      "body": "O Quincy achou doze bugs no aparelho novo da Nica e pregou um ranking na porta do laboratório. A Nica pregou uma plaquinha embaixo que só diz PROTÓTIPO. Os dois estão olhando pra você.",
+      "quincy": "Bug é bug. O Quincy tem razão.",
+      "quincyReply": "\"Treze, na verdade. Achei mais um comemorando.\"",
+      "nixie": "É um protótipo. A Nica tem razão.",
+      "nixieReply": "\"Viu? Proto. Tipo. Está literalmente na palavra.\"",
+      "contest": "Vira aposta: quem achar o próximo bug paga o almoço.",
+      "contestReply": "De repente os dois estão trabalhando muito, muito mesmo."
+    },
+    "rebrand": {
+      "title": "O Rebranding",
+      "hook": "Duas palavras: neon. E também neon.",
+      "body": "O Téo quer o logo novo em neon. A Rosa quer em rosa. Cada um fez uma prova do tamanho de uma porta, e os dois estão segurando as placas no meio da toca do marketing, se recusando a piscar primeiro.",
+      "neon": "Neon. Que todo mundo olhe.",
+      "neonReply": "\"Icônico. Ofuscante. Principalmente icônico.\" A Rosa pôs óculos escuros, em protesto.",
+      "pink": "Rosa. Que todo mundo sinta alguma coisa.",
+      "pinkReply": "\"Querido, rosa não é uma cor. É uma promessa.\" O Téo está fingindo que lê o celular.",
+      "both": "Os dois. Rosa neon.",
+      "bothReply": "Silêncio. Depois, juntos: \"…A gente odeia o quanto amou isso.\""
+    },
+    "biddingWar": {
+      "title": "A Guerra de Lances",
+      "hook": "Probleminha. Duas notas. Uma caixa.",
+      "body": "O Guaxi e o Perry \"adquiriram\" a mesma caixa de bolotas premium do mesmo fornecedor misterioso. Cada um tem uma nota fiscal. As notas são idênticas, até na manchinha de café. Nenhum dos dois diz pra onde o fornecedor foi.",
+      "rizzo": "O Guaxi pegou primeiro.",
+      "rizzoReply": "\"Eu sempre pego primeiro. É a minha marca registrada.\" O Perry está anotando alguma coisa, em silêncio.",
+      "perry": "A nota do Perry parece mais legítima.",
+      "perryReply": "\"Legítima. Isso. É uma das palavras que eu usaria.\" O Guaxi pediu pra ver a nota contra a luz.",
+      "audit": "Pedir pro Otto auditar as duas notas.",
+      "auditReply": "O Otto olha as duas contra a luz por um bom tempo. \"Fascinante. As duas são verdadeiras. Esse é o problema.\"",
+      "auditNeeds": "O Otto saberia. Se ao menos ele trabalhasse aqui."
+    },
+    "nightShift": {
+      "title": "O Relatório do Turno da Noite",
+      "hook": "A gente gravou uma coisa. Às três. Você precisa ouvir.",
+      "body": "O Mocho e a Eco deixaram uma fita na sua mesa escrito NOITE, 3:00. Nela, bem baixinho, o prédio inteiro está cantarolando. Não os canos, não a geladeira: o prédio. A Eco diz que está afinado.",
+      "play": "Tocar na reunião geral.",
+      "playReply": "Todo mundo fica em silêncio pra ouvir. Aí, bem de leve, o prédio também fica.",
+      "secret": "Deixar isso entre vocês três.",
+      "secretReply": "O Mocho concorda devagar. \"Bom. Tem coisa que é só do turno da noite.\"",
+      "ask": "Pedir pra descobrirem o que está cantarolando.",
+      "sourceBody": "Duas noites depois eles voltam. O som sobe do porão, pelos canos, e não é aleatório. É o jingle da empresa. Mais devagar. Com mais carinho.",
+      "leave": "Deixa quieto. Parece feliz.",
+      "leaveReply": "A Eco jura que cantarolou um pouco mais alto depois que você disse isso.",
+      "record": "Pedir pra Nica gravar direito.",
+      "recordReply": "A Nica monta quatro microfones e um cobertorzinho pra eles.",
+      "recordNeeds": "A Nica saberia como. A Nica não está aqui.",
+      "recordLater": "Gravei o prédio. Canta melhor que a impressora. Não conta pra impressora."
+    },
+    "minutes": {
+      "title": "A Ata",
+      "hook": "A ata precisa ser assinada. A ata está embaixo do Nino.",
+      "body": "A Avelã precisa da ata da última reunião assinada até o fim do dia. O Nino está dormindo em cima dela. Ele está quentinho, ronronando, e a linha da assinatura fica bem embaixo do queixo dele.",
+      "wake": "Acordar o Nino. Com carinho.",
+      "wakeReply": "O Nino abre um olho. \"Eu estava revisando. Com a cara.\"",
+      "sign": "A Avelã pode assinar por ele.",
+      "signReply": "A Avelã assina. Sob protesto. A lápis. Bem pequenininho.",
+      "laminate": "Plastificar a ata. Com ele em cima.",
+      "laminateReply": "\"Agora isso tem valor legal\", diz a Avelã, sem forças. \"Tudo. Inclusive o gato.\""
+    },
+    "minutesDisputed": {
+      "title": "A Ata Está Sendo Contestada",
+      "hook": "Cláusula três. Precisamos falar da cláusula três.",
+      "body": "O Nino finalmente leu a ata que a Avelã assinou por ele, e contesta a Cláusula 3, que o obriga a \"permanecer acordado durante as reuniões\". Ele registrou a contestação deitando em cima da Cláusula 3.",
+      "strike": "Riscar a Cláusula 3.",
+      "strikeReply": "O Nino ronrona. \"A democracia funciona.\" A Avelã já está redigindo a Cláusula 3b.",
+      "stand": "A Cláusula 3 fica.",
+      "standReply": "\"Obrigada\", diz a Avelã. \"Vou estar na minha sala. Tremendo um pouquinho.\""
+    },
+    "vaultSleeper": {
+      "title": "O Cofre Tem um Dorminhoco",
+      "hook": "Achei o Soneca no cofre. Dormindo. Em cima do ouro.",
+      "body": "Em algum momento da noite, o Soneca entrou no cofre sonâmbulo, passou por duas fechaduras e pela Bia, e dormiu em cima das castanhas douradas. A Bia não impediu. Diz que ele parecia saber exatamente pra onde estava indo.",
+      "let": "Deixa ele dormir aí.",
+      "letReply": "\"…hm… tão… brilhante…\" A Bia puxou uma cadeira pra ficar de olho nele.",
+      "carry": "Bia, leva ele de volta pra sala da soneca.",
+      "carryReply": "\"Leve feito um saco de bolotas\", diz a Bia. \"Um saco grande.\"",
+      "carryLater": "Alguém… me carregou… ontem à noite. Devo… um abraço… bem… devagar.",
+      "official": "Torna oficial: Dorminhoco do Cofre.",
+      "officialReply": "A Bia está fazendo um crachá pra ele. Ele vai dormir em cima. O cofre nunca esteve tão seguro."
+    },
+    "centrifuge": {
+      "title": "Ela Não Para de Girar",
+      "hook": "Hã. A centrífuga está girando há uma hora. E está acelerando.",
+      "body": "A centrífuga foi desligada há uma hora. Continua girando. Aliás, está girando mais rápido, e cantarolando algo que parece muito uma frase motivacional.",
+      "spin": "Deixa girar. Olha esses números.",
+      "spinReply": "A produção subiu. O coração de todo mundo também.",
+      "unplug": "Puxar da tomada.",
+      "unplugReply": "Ela para. Sem pressa nenhuma. Faz questão de não ter pressa.",
+      "talk": "Pedir pro Axel conversar com ela.",
+      "talkReply": "\"Eu disse pra ela que está tudo bem\", diz o Axel. \"Ela acreditou. As coisas costumam acreditar.\"",
+      "talkNeeds": "O Axel conseguiria acalmar ela. O Axel não está na equipe."
+    },
+    "soup": {
+      "title": "Sopa da Semana, Semana Dois",
+      "hook": "A sopa ainda está aqui. A sopa… se instalou.",
+      "body": "A sopa da semana está entrando na segunda semana. Engrossou a ponto de dar pra fincar uma colher. Alguém fincou, e a colher continua lá, de pé, feito uma bandeirinha de rendição.",
+      "serve": "Serve assim mesmo. Nada se perde.",
+      "serveReply": "Todo mundo come. Ninguém fala nada. É o almoço mais calmo já registrado.",
+      "name": "Dar um nome e uma tigela bonita.",
+      "nameReply": "\"Vamos chamar de Geraldo\", diz o Bento. \"O Geraldo fica.\"",
+      "compost": "Jogar nos canteiros da estufa.",
+      "compostReply": "O Axel leva a sopa lá pra cima com toda a cerimônia. As ervas se inclinam na direção dela.",
+      "compostNeeds": "O Axel saberia se planta gosta de sopa. O Axel não está aqui.",
+      "compostLater": "As ervas estão com cheiro de sopa. Parecem mais felizes. Eu não faço perguntas."
+    },
+    "treeParcel": {
+      "title": "Uma Encomenda para a Árvore",
+      "hook": "Essa aqui está endereçada… ao prédio?",
+      "body": "Chegou uma encomendinha endereçada à \"Nutshell Inc. (a árvore)\". Sem remetente. Sem selo. Está meio morna, cheira a chuva, e quando você encosta no ouvido, alguma coisa lá dentro farfalha, educadamente.",
+      "open": "Abrir.",
+      "insideBody": "Dentro: uma única bolota embrulhada numa folha, com uma etiqueta numa letra muito antiga. \"Para a empresa que cresceu em mim. Continue crescendo.\"",
+      "plant": "Plantar ao lado da mesa do fundador.",
+      "plantReply": "O Tico começou a regar duas vezes por dia. Em voz alta.",
+      "vault": "Guardar no cofre.",
+      "vaultReply": "É a única coisa no cofre que cantarola de volta.",
+      "return": "Devolver ao remetente.",
+      "returnReply": "Você escreve DEVOLVER AO REMETENTE e deixa lá fora. De manhã, sumiu.",
+      "returnLater": "Aquela encomenda voltou. Com uma folha dentro. E um bilhete que só diz \"não\".",
+      "desk": "Deixar fechada na mesa do fundador.",
+      "deskReply": "Fica lá, farfalhando de vez em quando, como se esperasse a hora certa."
+    },
+    "firstLeaf": {
+      "title": "A Primeira Folha",
+      "hook": "Vem rápido. Devagarinho. Ela fez uma coisa.",
+      "body": "A primeira bolota de todas, a que o Tico guardou, soltou a primeira folha de verdade. O Tico cancelou a manhã inteira. Está sentado com ela desde as sete, sem dizer nada, de vez em quando sussurrando \"muito bem\".",
+      "party": "Fazer uma festinha pra ela.",
+      "partyReply": "Vinte e três chapeuzinhos de festa. Um bem pequenininho, pra folha.",
+      "measure": "Medir todo dia.",
+      "measureReply": "O Tico tira do bolso uma reguinha que claramente guarda há anos, só por precaução.",
+      "measureLater": "Dois centímetros. Fiz um gráfico. O gráfico tem um gráfico.",
+      "axel": "Pedir pro Axel cuidar dela.",
+      "axelReply": "\"Já dei nome\", diz o Axel. \"Chama Tico Também.\" O Tico precisa sentar.",
+      "axelNeeds": "O Axel seria perfeito pra isso. Se trabalhasse aqui."
+    },
+    "scarf": {
+      "title": "O Cachecol Está Fora do Horário",
+      "hook": "O Pingo atrasou. O Pingo nunca atrasa. É o cachecol.",
+      "body": "Desde que você deu aquele cachecol pro Pingo, ele anda fazendo o caminho mais longo nas entregas, por toda sala com janela, pra todo mundo ver. Está quatro minutos atrasado. A Juju abriu uma planilha chamada A SITUAÇÃO DO CACHECOL.",
+      "catwalk": "Deixa ele desfilar.",
+      "catwalkReply": "\"Não é desvio\", diz o Pingo. \"É um passeio.\" A Juju atualiza a planilha.",
+      "schedule": "Botar o desfile na agenda. Oficialmente.",
+      "scheduleReply": "Desfile do cachecol: 10h40 às 10h44, todo dia, presença incentivada. A Juju nunca esteve tão feliz."
+    },
+    "thirteenth": {
+      "title": "O Décimo Terceiro Botão",
+      "hook": "O elevador sempre teve esse botão?",
+      "body": "O elevador tem um botão novo. Não tem número, só o desenhinho de uma bolota, e está morno. Ninguém instalou. O registro de manutenção de hoje tem uma linha só, a lápis: \"Pode subir.\"",
+      "press": "Apertar.",
+      "floorBody": "As portas se abrem num andar que você nunca viu. Musgo macio no lugar do carpete, uma janela cheia de estrelas, e todo colega que você já contratou dormindo enroladinho e sorrindo. Ninguém acorda. As portas se fecham sozinhas. O botão sumiu.",
+      "keep": "Nunca contar pra ninguém.",
+      "keepReply": "Mais tarde você acha um pouco de musgo no sapato. Você guarda.",
+      "tell": "Contar pra todo mundo no almoço.",
+      "tellReply": "Ninguém acredita. Aí, um por um, todo mundo confessa que teve o mesmo sonho.",
+      "tape": "Colar uma fita por cima.",
+      "tapeReply": "Você cola a fita, bem firme, e vai de escada pelo resto do dia.",
+      "tapeLater": "Alguém tirou a fita do botão do elevador. Por dentro.",
+      "moss": "Perguntar pro Mocho.",
+      "mossReply": "O Mocho nem levanta os olhos. \"Sempre esteve aí. Você é que não olhava pro elevador do jeito certo.\"",
+      "mossNeeds": "O Mocho saberia. O Mocho sempre sabe. O Mocho não está aqui."
+    },
+    "hook": {
+      "common": {
+        "1": "Hã, chefe? Tem um minuto?",
+        "2": "Coisa pequena. Talvez uma coisa grande."
+      },
+      "uncommon": {
+        "1": "Acho melhor você ver isso.",
+        "2": "Tem alguma coisa acontecendo aqui."
+      },
+      "rare": {
+        "1": "Tá. Ninguém mexe em nada. Vem ver.",
+        "2": "Não sei o que é isso. Vem ver."
+      },
+      "legendary": {
+        "1": "…acho que o prédio está tentando dizer alguma coisa."
+      }
+    },
+    "look": "Tem algo acontecendo aqui: {{title}}",
+    "lookShort": "Tem algo acontecendo",
+    "stamp": {
+      "common": "Ocorrência",
+      "uncommon": "Incomum",
+      "rare": "Raro",
+      "legendary": "Lendário"
+    },
+    "inMotion": "Alguma coisa foi posta em movimento.",
+    "remembered": "{{name}} vai lembrar disso."
+  },
+  "scene": {
+    "synchronised-watches": {
+      "title": "Relógios sincronizados",
+      "line1": "Três, dois, um…",
+      "line2": "…já. Sincronizados. Ninguém mais se atrasa."
+    },
+    "nap-on-the-agenda": {
+      "title": "O Nino conduz a reunião",
+      "line1": "Item um: soneca. Apoiado. Aprovado. Boa noite."
+    },
+    "breathing-exercise": {
+      "title": "Um exercício de respiração",
+      "line1": "Inspira em quatro… segura em quatro… e solta em quatro.",
+      "line2": "…solta… um aumento?"
+    },
+    "load-bearing-stapler": {
+      "title": "Um grampeador estrutural",
+      "line1": "Reforcei o grampeador. Agora ele é estrutural. Não se apoia nele. Pode se apoiar nele."
+    },
+    "fridge-at-night": {
+      "title": "A geladeira de madrugada",
+      "line1": "Shh. A geladeira está cantarolando o jingle de novo. Em tom menor."
+    },
+    "five-minute-runway": {
+      "title": "Um desfile de cinco minutos",
+      "line1": "Desfile de cinco minutos, pessoal. Andem com propósito.",
+      "line2": "…e pose. Obrigada. Obrigada. Eu sei."
+    },
+    "leaf-count": {
+      "title": "O Axel conta as folhas",
+      "line1": "Contagem de folhas: quatrocentas e doze. Ontem: quatrocentas e onze. Que orgulho de você, quatrocentos e doze."
+    },
+    "the-shortcut": {
+      "title": "O atalho do Pingo",
+      "line1": "Atalho novo. Pela tubulação. Economiza quatro segundos. Custa um pouco de dignidade."
+    },
+    "receipt-tower": {
+      "title": "A torre de notas fiscais",
+      "line1": "Guaxi. Por que tem uma torre de notas fiscais na minha mesa?",
+      "line2": "É uma escultura, Otto. Chama \"Despesas\"."
+    },
+    "field-notes": {
+      "title": "Notas de campo",
+      "line1": "Nota de campo: a cafeteira suspira quando ninguém está olhando. Segunda nota: eu também."
+    },
+    "lunch-bet": {
+      "title": "O almoço é por conta de alguém",
+      "line1": "O próximo bug estava na máquina de lanches. Então: você paga.",
+      "line2": "Ela comeu minhas moedas e me devolveu três das suas. Estamos quites."
+    },
+    "heard": "{{name}}, de outro andar: “{{line}}”"
+  },
+  "memory": {
+    "trustedBia": "Você acreditou na minha palavra sobre o cofre. Não esqueço uma coisa dessas.",
+    "reviewedVault": "Você viu a gravação da noite inteira. Justo. Eu também teria visto. Duas vezes.",
+    "trustedQuincy": "Você corrigiu aquele bug na hora que eu avisei. Seu nome está na minha lista boa.",
+    "ignoredQuincy": "Lembra daquele bug que eu te falei? Ele lembra de você.",
+    "letSonnyFinish": "Você… me deixou… terminar. Ninguém… me deixa… terminar.",
+    "didntAskInky": "Você nunca perguntou como eu faço oito coisas ao mesmo tempo. Agradeço. São nove.",
+    "archivedHum": "Às vezes ainda toco o zumbido. De noite. Ele toca de volta.",
+    "deletedHum": "Você apagou o zumbido. Tudo bem. Ele continua. Só que mais baixinho.",
+    "fundedRunway": "O desfile que você bancou? Ainda falam dele. Principalmente eu. O tempo todo.",
+    "perryNoQuestions": "Você nunca perguntou sobre aquele bico. Profissional. Gosto de profissional.",
+    "studiedRegrowth": "O estudo da regeneração está indo muito bem. Já regenerei a parte de não entrar em pânico.",
+    "askedMarlow": "Você me perguntou primeiro, quando tudo desandou. Obrigado por isso.",
+    "filedManifest": "Aquele palete da semana que vem? Chegou de novo. Arquivei de novo.",
+    "resealedPallet": "O palete que a gente lacrou continua na fila da semana que vem. Pra ele é sempre semana que vem.",
+    "canelaSurveyed": "A pesquisa que você bancou achou quatro espécies novas de poeira. Dei seu nome pra uma.",
+    "keptParcel": "Aquela encomenda que a gente ficou? Alguém vive perguntando dela. Eu vivo respondendo \"que encomenda?\".",
+    "filedParcel": "A encomenda extraviada que você arquivou voltou carimbada OBRIGADO. Ninguém sabe quem carimbou.",
+    "watchedTape": "Revi a gravação que você analisou. Em câmera lenta. Continuo sem explicar o chapéu.",
+    "deletedTape": "Você apagou aquela gravação. Que ousadia. Eu teria feito uma campanha.",
+    "adoptedHatchling": "Nosso filhotinho aprendeu a acenar. Pra você ele acena mais.",
+    "gaveDayOff": "O pessoal ainda fala da folga que você deu pra todo mundo. Com carinho. Toda segunda.",
+    "ignoredWalkout": "A gente nunca conversou direito sobre a paralisação. Dá pra conversar. Quando você quiser.",
+    "listenedToStaff": "Você ouviu quando o abaixo-assinado chegou. O pessoal reparou. Eu reparei.",
+    "ignoredStaff": "O abaixo-assinado que você recusou está emoldurado na copa. E não é de um jeito bonito.",
+    "ledgerBuried": "Aquele livro-caixa que a gente enterrou? Continua enterrado. Eu confiro. Continua.",
+    "ledgerReported": "Denunciar o livro-caixa foi a coisa certa. Estou dormindo melhor. Oito horas. Discriminadas.",
+    "accountantFavour": "A gente ainda deve aquele favor pro contador. Ele mandou um convite na agenda. Recorrente.",
+    "vendingAudited": "A auditoria da máquina de lanches achou seis moedas, um botão e um bilhetinho pedindo desculpas.",
+    "soldGolden": "Aquela castanha dourada que você vendeu? Eu teria conseguido o dobro. Só comentando.",
+    "refusedBuyer": "Você recusou aquele comprador. Respeito. Ele veio falar comigo depois. Eu também disse não. Quase.",
+    "grantEmbellished": "Sobre aquele relatório da bolsa. O \"túnel até o núcleo\"? Pediram fotos.",
+    "grantHonest": "O relatório honesto rendeu uma segunda bolsa. Honestidade é um túnel muito bom.",
+    "boxReshelved": "Guardei de novo a caixa do futuro. Ela voltou sozinha duas vezes. A gente tem um acordo.",
+    "actedOnBox": "A gente fez o que a caixa do futuro mandou. Até agora acertou tudo. Até a sopa.",
+    "remeasuredCorridor": "Medi aquele corredor de novo. Continua mais comprido na volta. Parei de discutir com ele.",
+    "amendedPlan": "A planta corrigida tem um corredor que não fica em andar nenhum. Construí um banco nele.",
+    "basementSupplied": "O porão usou tudo que a gente mandou. A requisição diz \"obrigado\", numa letra que nenhum de nós tem.",
+    "basementDenied": "Aquela requisição do porão que você negou voltou. Assinada. Pelo porão.",
+    "deskRemoved": "Alguém pôs a mesa de volta. A que a gente tirou. Ninguém senta nela. Ainda.",
+    "internTruth": "O estagiário com quem você foi sincero manda um cartão-postal todo mês. Está indo muito bem.",
+    "correctedRecord": "Corrigir o registro foi difícil. Tenho orgulho da gente. Principalmente de você.",
+    "goodWeek": "Ainda tenho aquela semana boa documentada. Leio nos dias ruins.",
+    "bountyQuincy": "Ainda não superei aquele ranking. Fiz um ranking pro ranking dele.",
+    "bountyNixie": "\"Protótipo.\" Essa palavra ainda me assombra.",
+    "bountyContest": "O próximo bug paga o almoço. Estou sempre procurando. Estou sempre com fome.",
+    "rebrandNeon": "O neon está… bem. Escandaloso. Está bem. Comprei óculos escuros melhores.",
+    "rebrandPink": "O rosa está me conquistando. Não conta pra Rosa. A Rosa sabe.",
+    "rebrandNeonPink": "Rosa neon foi ideia sua. A história vai lembrar. Eu vou garantir.",
+    "biddingRizzo": "Ainda tenho minha nota daquela caixa. Vou guardar. Por motivos.",
+    "biddingPerry": "A nota do Perry. \"Mais legítima.\" Mandei analisar.",
+    "biddingAudited": "As duas notas eram verdadeiras. Ainda penso nisso de noite.",
+    "nightshiftPlayed": "Desde a reunião geral, o pessoal cantarola no turno da noite. O prédio cantarola de volta.",
+    "nightshiftSecret": "Nosso segredo está seguro. O prédio sabe que a gente sabe. Tudo bem.",
+    "minutesLaminated": "Plastifiquei outras coisas desde então. Virou um mecanismo de defesa.",
+    "minutesClause3": "A Cláusula 3 caiu. Redigi a Cláusula 3b. É bem curta. É bem firme.",
+    "minutesClause3Stands": "Cláusula três. Estou acordado. Tecnicamente acordado.",
+    "sonnyCarried": "Carreguei o Soneca de novo ontem à noite. Agora ele diz \"obrigado\" dormindo.",
+    "sonnyVaultSleeper": "Dorminhoco… do Cofre… está no… meu crachá.",
+    "centrifugeSpun": "A centrífuga ainda acelera quando ouve a palavra \"prazo\". Parei de falar.",
+    "centrifugeUnplugged": "Desligada, e ainda girando. Bem devagar. É um protesto.",
+    "soupNamed": "O Geraldo está ótimo. O Geraldo ganhou um chapeuzinho.",
+    "soupServed": "Aquela sopa. Ainda penso naquela sopa. Não queria.",
+    "treeParcelPlanted": "A bolota da encomenda já tem duas folhas. Converso com ela de manhã. Ela escuta.",
+    "treeParcelVault": "A bolota do cofre cantarola quando eu passo. Eu cantarolo de volta. A gente se dá bem.",
+    "acornAxel": "O \"Tico Também\" está ótimo. É uma mudinha muito confiante.",
+    "scarfCatwalk": "O passeio do cachecol já tem fãs. Dois. Os dois são pombos.",
+    "scarfScheduled": "O desfile do cachecol é a parte mais pontual do meu dia.",
+    "thirteenthPressed": "Você foi ao décimo terceiro andar. Dá pra ver. Tem musgo no seu sapato.",
+    "thirteenthTold": "Desde que você contou pra todo mundo no almoço, todos tivemos o mesmo sonho. É um sonho bom."
   }
 }

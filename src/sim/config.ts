@@ -101,10 +101,11 @@ export const BALANCE = {
     presetMinutes: [15, 25, 45, 60] as const,
   },
 
-  /** how often (seconds) the engine attempts to roll a random event. */
+  /**
+   * how often (seconds) the engine rolls for something happening in the office
+   * (the chance, the mix and the rarity odds live in HAPPENINGS, content/happenings.ts).
+   */
   eventRollIntervalSeconds: 45,
-  /** base probability per roll (modified by reputation and passives). */
-  eventBaseChance: 0.35,
 
   /** autosave cadence in seconds (never every frame). */
   autosaveIntervalSeconds: 20,

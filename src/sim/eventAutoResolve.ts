@@ -50,6 +50,15 @@ const EFFECT_WEIGHT: Record<EventEffect['type'], number> = {
   // Scored from its CONTENTS below, not from a flat weight.
   schedule: 0,
   find: 1,
+  // Consequences that land in the world: worth a little, never worth choosing for.
+  remark: 0,
+  incident: 0,
+  moment: 1,
+  oddity: 1,
+  roomMode: 0,
+  rush: 2,
+  roomMood: 0.5,
+  everyone: 4,
 };
 
 /**
