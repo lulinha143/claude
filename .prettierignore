@@ -7,3 +7,6 @@ package-lock.json
 playwright-report
 test-results
 visual-artifacts
+# Kiro configuration and the ZooWorkers kit copies keep their exact form
+.kiro
+templates
