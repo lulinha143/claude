@@ -315,9 +315,12 @@
   }
 
   /* ---- a teammate waving you over --------------------------------------------- */
-  /* A little speech balloon on the corner of their mood sticker: dots, they want
-     to tell you something; a heart, your friendship grew; a sparkle, a hint. It
-     stays inside the sticker's own footprint, so a crowded room never tangles. */
+  /* A little speech balloon beside their mood sticker, its point toward it: dots,
+     they want to tell you something; a heart, your friendship grew; a sparkle, a
+     hint. It sits level with the sticker's upper half, never above it — above,
+     it reached into the room's name plaque in a compact window — and inside the
+     teammate's own share of a full room (56px at 320px), clear of both
+     neighbours. A teammate with a find waiting shows the find first. */
   .office-nudge {
     --sticker: clamp(30px, calc(42px * var(--asset-scale)), 42px);
     --nudge: clamp(20px, calc(24px * var(--asset-scale)), 24px);
@@ -326,7 +329,7 @@
     place-items: center;
     width: var(--nudge);
     height: var(--nudge);
-    margin: 0 0 calc(var(--sticker) * 0.8) calc(var(--sticker) * 0.14);
+    margin: 0 0 calc(var(--sticker) * 0.34) calc(var(--sticker) * 0.5 + 1px);
     padding: 0;
     color: var(--c-walnut-800, #4a2f19);
     background: #fffaf0;
@@ -337,6 +340,7 @@
     transform-origin: 0 100%;
     animation: nudge-bob 3.4s ease-in-out infinite;
   }
+
   .office-nudge[data-kind='milestone'] {
     color: #c2405a;
     background: #ffeef1;
@@ -387,16 +391,18 @@
   }
 
   /* ---- the office's notes: the suggestion and the goal ---------------------- */
+  /* The notes are pinned in the meadow strip in front of the tree (world.css
+     reserves it as --note-room), so they never sit on the home floor's desks. */
   .stage-notes {
     position: absolute;
     left: 8px;
-    bottom: 8px;
+    bottom: 4px;
     z-index: 30;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: 6px;
-    max-width: min(calc(100% - 64px), 300px);
+    max-width: min(calc(100% - 16px), 340px);
     pointer-events: none;
   }
   .stage-notes > * {
@@ -410,6 +416,24 @@
     max-width: 100%;
     transform: rotate(-1deg);
     animation-name: note-pop;
+  }
+  /* Wide windows: both notes side by side at the foot of the tree's left side. */
+  @container app (min-width: 1100px) {
+    .stage-notes {
+      left: max(8px, calc((100% - 732px) / 2 - 24px));
+      flex-direction: row;
+      align-items: flex-end;
+      max-width: min(calc(100% - 16px), 760px);
+    }
+    .stage-notes .next-hint {
+      flex: 0 1 auto;
+      max-width: 360px;
+    }
+    .stage-notes .goal-tag {
+      flex: 0 0 auto;
+      min-width: 300px;
+      max-width: 400px;
+    }
   }
   @keyframes note-pop {
     from {
@@ -478,11 +502,15 @@
     gap: 2px;
     min-width: 0;
   }
+  /* The name wraps (two lines at most) rather than losing its tier number to an
+     ellipsis: "Linha de Produção 7" must say which line it is. */
   .goal-tag__name {
+    display: -webkit-box;
     overflow: hidden;
     font: 800 var(--fs-sm) / 1.15 var(--font-body);
-    white-space: nowrap;
-    text-overflow: ellipsis;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow-wrap: anywhere;
   }
   .goal-tag__gain {
     color: var(--c-leaf-700, #2f6b3a);
@@ -502,7 +530,7 @@
     display: block;
     height: 100%;
     width: calc(var(--goal-progress, 0) * 100%);
-    background: linear-gradient(90deg, var(--c-acorn-400, #e0a050), var(--c-acorn-600, #b0702a));
+    background: linear-gradient(90deg, var(--c-reward-400), var(--c-reward-600));
     border-radius: 3px;
     transition: width 0.3s linear;
   }
@@ -519,21 +547,22 @@
   }
   /* Affordable: the tag turns into the purchase. */
   .goal-tag.is-ready {
-    border-color: var(--c-leaf-600, #3f8a4c);
-    background: linear-gradient(180deg, #f3fbe8, #e2f2d2);
+    border-color: var(--action-bg);
+    background: linear-gradient(180deg, var(--paper-bg-bright), var(--c-sage-200));
   }
   .goal-tag__buy {
     display: inline-flex;
     align-items: center;
     gap: 3px;
-    padding: 4px 8px;
-    color: #fff;
-    background: var(--c-leaf-600, #3f8a4c);
+    min-height: 28px;
+    padding: 4px 9px;
+    color: var(--action-ink);
+    background: var(--action-bg);
     border-radius: 8px;
-    box-shadow: 0 2px 0 var(--c-leaf-800, #245a2e);
+    box-shadow: 0 2px 0 var(--action-edge);
   }
   .goal-tag.is-ready:hover .goal-tag__buy {
-    background: var(--c-leaf-700, #2f6b3a);
+    background: var(--action-bg-hover);
   }
   .goal-tag.is-ready .goal-tag__icon {
     animation: goal-ready 1.6s ease-in-out infinite;
@@ -598,6 +627,49 @@
   .station-btn.is-coached .station-btn__meter {
     display: none;
   }
+  /* A generous hit area around every machine while the art, the button's box and
+     its floor contact stay exactly where they were: a compact room draws a station
+     at ~36px, which is small to aim at. The span is part of the button, so a press
+     on it is a press on the machine. */
+  .station-btn__hit {
+    position: absolute;
+    inset: -8px -10px -4px;
+    border-radius: 10px;
+  }
+  /* The coach in words: a small gold tag over the crate (collecting is a reward),
+     anchored to the machine's right so it never leaves the room. */
+  .station-btn__coach {
+    position: absolute;
+    right: -4px;
+    bottom: calc(100% + 12px);
+    z-index: 4;
+    padding: 3px 8px 4px;
+    color: var(--reward-ink);
+    background: var(--reward-bg);
+    border: 2px solid var(--reward-edge);
+    border-radius: 8px;
+    box-shadow: 0 2px 0 rgb(46 29 16 / 0.3);
+    font: 800 max(var(--fs-min), 12px) / 1.1 var(--font-body);
+    white-space: nowrap;
+    pointer-events: none;
+    animation: coach-tag 1.6s ease-in-out infinite;
+  }
+  .station-btn__coach::after {
+    content: '';
+    position: absolute;
+    right: 14px;
+    top: 100%;
+    border: 6px solid transparent;
+    border-top-color: var(--reward-edge);
+  }
+  @keyframes coach-tag {
+    50% {
+      translate: 0 -3px;
+    }
+  }
+  [data-reduced-motion='true'] .station-btn__coach {
+    animation: none;
+  }
   .station-btn.is-coached::before {
     content: '';
     position: absolute;
@@ -642,7 +714,7 @@
   }
   .floor__construction-bar {
     display: block;
-    width: 110px;
+    width: clamp(64px, 18vw, 110px);
     height: 5px;
     overflow: hidden;
     background: rgb(0 0 0 / 0.35);

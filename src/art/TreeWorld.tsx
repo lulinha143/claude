@@ -52,23 +52,53 @@ function Branch({ side, top, flip }: { side: 'left' | 'right'; top: string; flip
   );
 }
 
-const BRANCHES: readonly { side: 'left' | 'right'; top: string; flip?: boolean }[] = [
-  { side: 'left', top: '6%' },
-  { side: 'right', top: '17%', flip: true },
-  { side: 'left', top: '31%', flip: true },
-  { side: 'right', top: '44%' },
-  { side: 'left', top: '58%' },
-  { side: 'right', top: '71%', flip: true },
-  { side: 'left', top: '84%', flip: true },
-];
-
-export function TreeBranches() {
+/**
+ * Branches grow out of the TRUNK (they are rendered inside it), one per floor up
+ * to seven, spread evenly along its height and alternating sides. A young
+ * one-room company is a short tree with two branches, not a stump with branches
+ * floating in the sky above it.
+ */
+export function TreeBranches({ floors }: { floors: number }) {
+  const count = Math.max(1, Math.min(7, floors));
   return (
     <>
-      {BRANCHES.map((branch) => (
-        <Branch key={`${branch.side}-${branch.top}`} {...branch} />
-      ))}
+      {Array.from({ length: count }, (_, index) => {
+        const side = index % 2 === 0 ? 'left' : 'right';
+        // Centre each branch on its share of the trunk (the svg is 120px tall and
+        // its bough sits ~60px down), leaving the ends of the trunk bare.
+        const share = (index + 0.5) / count;
+        const top = `calc(${(share * 100).toFixed(1)}% - 60px)`;
+        return <Branch key={`${side}-${index}`} side={side} top={top} flip={index % 3 === 1} />;
+      })}
     </>
+  );
+}
+
+/**
+ * The company's sign on the crown of the tree: the player's own company name on
+ * a Nutshell Inc. board, with the department typed on a paper label under it.
+ * It is part of the world (it scrolls with the tree) and opens the Company file.
+ */
+export function CompanySign({
+  name,
+  department,
+  label,
+  onOpen,
+}: {
+  name: string;
+  department: string;
+  label: string;
+  onOpen: () => void;
+}) {
+  return (
+    <div className="company-sign">
+      <span className="company-sign__post company-sign__post--left" aria-hidden="true" />
+      <span className="company-sign__post company-sign__post--right" aria-hidden="true" />
+      <button type="button" className="company-sign__board" onClick={onOpen} aria-label={label}>
+        <span className="company-sign__name">{name}</span>
+        <span className="company-sign__dept">{department}</span>
+      </button>
+    </div>
   );
 }
 

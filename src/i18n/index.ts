@@ -73,6 +73,12 @@ export async function initI18n(initialLanguage?: string): Promise<typeof i18n> {
         caches: [],
       },
     });
+  // The document speaks the game's language, so assistive tech pronounces it right.
+  const syncDocumentLanguage = (lng: string) => {
+    if (typeof document !== 'undefined' && lng) document.documentElement.lang = lng;
+  };
+  syncDocumentLanguage(i18n.resolvedLanguage ?? i18n.language);
+  i18n.on('languageChanged', syncDocumentLanguage);
   return i18n;
 }
 

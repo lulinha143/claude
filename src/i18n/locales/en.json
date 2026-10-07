@@ -40,7 +40,9 @@
     "impact": "Acorn secured · Coffee compromised",
     "titleNote": "Cozy progress, chaotic coworkers, and one very important spreadsheet.",
     "continue": "Start the company",
-    "spill": "…and immediately spills coffee on the spreadsheet."
+    "spill": "…and immediately spills coffee on the spreadsheet.",
+    "file": "Observation file no. 001",
+    "confidential": "Confidential"
   },
   "resource": {
     "nuts": "Nuts",
@@ -2162,6 +2164,7 @@
     "prestigeCount": "Timelines: {{count}}",
     "timeline": "Recent decisions",
     "timelineEmpty": "No big decisions yet — events will appear here.",
+    "timelineEmptyHint": "When something happens in a room, its sticker waits there: open it to decide.",
     "icon": {
       "title": "Company logo",
       "desc": "Pick the emblem that represents your company.",
@@ -2200,7 +2203,8 @@
     },
     "recordedChoice": "Decision filed",
     "recent": "Recently in the office",
-    "recentEmpty": "Nothing new yet. Notes from the office will collect here."
+    "recentEmpty": "Nothing new yet. Notes from the office will collect here.",
+    "recentEmptyHint": "Tap the crate or a teammate in the office: what happens next is filed here."
   },
   "prod": {
     "title": "Production breakdown",
@@ -2256,7 +2260,7 @@
     "fpsLimit": "Frame rate limit",
     "bg": {
       "title": "Office Background",
-      "note": "The animated office that fills the main tab. Turn it off, dim it, or use a static image to save battery.",
+      "note": "The animated office behind the opening and the blur behind pop-ups. Turn it off, dim it, or use a static image to save battery.",
       "enabled": "Animated background",
       "blurPanels": "Blur behind panels",
       "pauseWhenHidden": "Pause when window is hidden",
@@ -2325,7 +2329,28 @@
     "importInvalid": "That file is not a ZooWorkers save, or it is damaged. Your current company has been left untouched.",
     "importUnreadable": "That file could not be read. Your current company has been left untouched.",
     "localOnly": "Saves are stored on this computer. Export a copy if you want a backup.",
-    "directory": "Preferences index"
+    "directory": "Preferences index",
+    "languageLabel": "Game language",
+    "sizes": "Sizes and speed",
+    "tab": {
+      "general": "General",
+      "audio": "Sound",
+      "access": "Accessibility",
+      "display": "Window",
+      "file": "Save file"
+    },
+    "cb": {
+      "off": "Off",
+      "deuteranopia": "Deuteranopia (green)",
+      "protanopia": "Protanopia (red)",
+      "tritanopia": "Tritanopia (blue)"
+    },
+    "cornerOpt": {
+      "top-left": "Top left",
+      "top-right": "Top right",
+      "bottom-left": "Bottom left",
+      "bottom-right": "Bottom right"
+    }
   },
   "onboarding": {
     "skip": "Skip guide",
@@ -2974,6 +2999,10 @@
     "department": "Behavioural Research",
     "departmentFull": "Behavioural Research Department",
     "cycle": "Cycle {{n}}"
+  },
+  "hud": {
+    "masthead": "{{name}}: open the company file",
+    "mastheadTip": "Click to open the company file."
   },
   "talk": {
     "open": "Visit",
@@ -4043,7 +4072,8 @@
     }
   },
   "sheet": {
-    "backToOffice": "Back to the office"
+    "backToOffice": "Back to the office",
+    "office": "Office"
   },
   "elevator": {
     "label": "Elevator",
@@ -4060,7 +4090,8 @@
     "fullIn": "Full in {{time}}",
     "fullShort": "Full",
     "why": "Half of what the team makes is packed here. Collect it to get every nut.",
-    "waiting": "Your crate holds {{value}} nuts. Tap it to collect."
+    "waiting": "Your crate holds {{value}} nuts. Tap it to collect.",
+    "coach": "Tap here!"
   },
   "rush": {
     "label": "Rush ×{{mult}}",
@@ -4095,6 +4126,7 @@
     "buy": "Buy",
     "hire": "Hire {{name}}",
     "level": "{{name}} Lv. {{level}}",
+    "nextLevel": "{{name}} · Lv. {{level}}",
     "perSecond": "+{{value}}/s",
     "perTap": "+{{value}} per tap",
     "opens": "Opens a new floor",

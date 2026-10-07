@@ -33,6 +33,7 @@ import './ui/game/rooms.css';
 import './ui/game/play.css';
 import './ui/game/visit.css';
 import './ui/game/happenings.css';
+import './ui/game/settings.css';
 
 async function bootstrap() {
   // Keep the browser/Electron window title in sync with the central brand.

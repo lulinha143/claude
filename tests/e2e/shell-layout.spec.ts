@@ -247,6 +247,26 @@ test('3 — popups are centred and as tall as what they say', async ({ browser }
   }
 });
 
+test('3b — a note taller than the smallest window scrolls inside, its action stays on screen', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 420 });
+  // Two hours away: the welcome-back note has the most to say.
+  await boot(page, { ...MID_GAME, lastSaved: Date.now() - 2 * 3_600_000 });
+  const popup = page.locator('.popup');
+  await expect(popup).toBeVisible();
+  await page.waitForTimeout(400);
+  const action = popup.locator('.popup__actions button').first();
+  await expect(action).toBeVisible();
+  const box = (await action.boundingBox())!;
+  expect(box.y, 'action above the window').toBeGreaterThanOrEqual(0);
+  expect(box.y + box.height, 'action below the window').toBeLessThanOrEqual(420);
+  // The paper frame never scrolls away from its buttons; only its content may.
+  expect(await popup.evaluate((el) => el.scrollHeight <= el.clientHeight + 1)).toBe(true);
+  await action.click();
+  await expect(popup).toHaveCount(0);
+});
+
 test('4 — every sheet returns to the same floor and scroll position', async ({ page }) => {
   for (const { width, height } of [
     { width: 380, height: 460 },

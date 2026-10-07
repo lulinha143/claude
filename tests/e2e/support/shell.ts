@@ -50,6 +50,15 @@ export async function openView(page: Page, view: ShellView): Promise<void> {
   await page.locator(`.sheet[data-sheet="${view}"]`).waitFor({ timeout: 10_000 });
 }
 
+export type SettingsTab = 'general' | 'audio' | 'access' | 'display' | 'file';
+
+/** Settings is a tabbed control panel: open it on one of its pages, as a player would. */
+export async function openSettingsTab(page: Page, tab: SettingsTab): Promise<void> {
+  await openView(page, 'settings');
+  await page.locator(`.settings-tab[data-tab="${tab}"]`).click();
+  await page.locator(`.settings-panel[data-tab="${tab}"]`).waitFor({ timeout: 10_000 });
+}
+
 /** Back to the office (the sheet's close button). No-op if nothing is open. */
 export async function closeSheet(page: Page): Promise<void> {
   const close = page.locator('.sheet__close');

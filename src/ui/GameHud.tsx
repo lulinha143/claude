@@ -8,10 +8,12 @@
 //   [logo]  🌰 5.38M +12/s   ◆73  ☺81  ★1.6K        🔊 ♫ ⚙  − □ ×
 //
 // - Nuts are the hero number (animated), with the rate beside it.
-// - Golden, Morale and Reputation are small stickers; their names, effects and
+// - Golden, Morale and Reputation are small stickers with one role colour each
+//   (gold reward, green wellbeing, gray-ink standing); their names, effects and
 //   next goals live in the tooltips, so the strip stays calm.
-// - The company's identity (name, department, standing stamp, cycle) moved to the
-//   Company page of the Archive, where there is room to read it.
+// - The masthead (the player's company name on Nutshell letterhead) appears where
+//   the shelf has room and opens the Company file; the tree's rooftop sign carries
+//   the name in the office itself at every size.
 // - In the frameless desktop build the shelf is the window's drag handle, and the
 //   window controls sit at its right end.
 // Narrow windows drop stickers progressively via container queries (hud.css), so
@@ -39,9 +41,22 @@ interface HudStatProps {
   label: string;
   tone?: 'pos' | 'neg';
   tip: ReturnType<typeof useTooltip>;
+  /** increments on each gain worth celebrating (the icon pops once). */
+  rise?: number;
 }
 
-function HudStat({ kind, icon, value, label, tone, tip }: HudStatProps) {
+/** Bumps each time `value` goes up, so a sticker can pop once per real gain. */
+function useRise(value: number): number {
+  const previous = useRef(value);
+  const [rises, setRises] = useState(0);
+  useEffect(() => {
+    if (value > previous.current) setRises((count) => count + 1);
+    previous.current = value;
+  }, [value]);
+  return rises;
+}
+
+function HudStat({ kind, icon, value, label, tone, tip, rise = 0 }: HudStatProps) {
   return (
     <div
       className={`hud-stat hud-stat--${kind}`}
@@ -50,7 +65,7 @@ function HudStat({ kind, icon, value, label, tone, tip }: HudStatProps) {
       aria-label={`${label}: ${value}`}
       {...tip}
     >
-      <span className="hud-stat__icon" aria-hidden>
+      <span key={rise} className={`hud-stat__icon ${rise > 0 ? 'is-rising' : ''}`} aria-hidden>
         {icon}
       </span>
       <span className="hud-stat__value tabular" aria-hidden>
@@ -90,6 +105,7 @@ export function GameHud() {
     const timer = window.setTimeout(() => setGain(null), 2400);
     return () => window.clearTimeout(timer);
   }, [gain]);
+  const goldenRises = useRise(state.resources.goldenNuts);
   const tier = reputationTier(state.resources.reputation);
   const moraleBonus = moraleProductionBonusPct(state.resources.morale);
   const nextRep = nextReputationUnlock(state);
@@ -158,8 +174,15 @@ export function GameHud() {
   const tipLogo = useTooltip(
     <TipContent title={t('company.icon.title')} lines={[t('company.icon.tip')]} />,
   );
+  const tipMasthead = useTooltip(
+    <TipContent
+      title={state.company.name}
+      lines={[t('header.departmentFull'), t(tier.nameKey), t('hud.mastheadTip')]}
+    />,
+  );
 
   const settingsOpen = view === 'settings' && !engine.activeTalk;
+  const companyOpen = view === 'company' && !engine.activeTalk;
 
   return (
     <header className="hud" data-testid="hud">
@@ -173,6 +196,23 @@ export function GameHud() {
           {...tipLogo}
         >
           <CompanyIcon id={state.company.icon} size={18} />
+        </button>
+        {/* The masthead: the player's own company, on Nutshell letterhead. It shows
+            where the shelf has room (container query) and opens the Company file. */}
+        <button
+          type="button"
+          className={`hud__masthead ${companyOpen ? 'is-active' : ''}`}
+          onClick={() => {
+            engine.closeTalk();
+            setView(companyOpen ? 'office' : 'company');
+          }}
+          aria-pressed={companyOpen}
+          aria-label={t('hud.masthead', { name: state.company.name })}
+          data-testid="hud-masthead"
+          {...tipMasthead}
+        >
+          <span className="hud__company">{state.company.name}</span>
+          <span className="hud__dept">{t('header.departmentFull')}</span>
         </button>
         <div
           className="hud__nuts"
@@ -205,6 +245,7 @@ export function GameHud() {
           value={fmt.num(state.resources.goldenNuts)}
           label={t('resource.goldenNuts')}
           tip={tipGolden}
+          rise={goldenRises}
         />
         <HudStat
           kind="morale"

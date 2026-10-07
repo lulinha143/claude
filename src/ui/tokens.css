@@ -47,6 +47,27 @@
   --c-berry-700: #8e2634;
   --c-berry-500: #c94452;
   --c-berry-200: #f7c6c6;
+  /* Soft office grays: filing cabinets, steel trays, carbon copies. They cool the
+     cream/wood base down so it never turns into one orange wash. */
+  --c-gray-100: #f1eee8;
+  --c-gray-200: #e2ddd4;
+  --c-gray-300: #cbc4b8;
+  --c-gray-500: #8f877b;
+  --c-gray-700: #5d564d;
+  /* Restrained action green (cream text 4.9:1) — calmer than the leaf greens. */
+  --c-sage-700: #2f5428;
+  --c-sage-600: #45763d;
+  --c-sage-500: #4a7a42;
+  --c-sage-200: #dcebd2;
+  /* Reward gold (ink text 10:1): resources, payouts, claims. */
+  --c-reward-600: #a8801d;
+  --c-reward-500: #f2c94c;
+  --c-reward-400: #f6d469;
+  --c-reward-200: #fbecbc;
+  /* Rare purple (cream text 5:1): ONLY genuinely rare/special content. */
+  --c-rare-600: #5e4291;
+  --c-rare-500: #7d5bb8;
+  --c-rare-200: #ece4f7;
 
   /* --- raw palette (pre-Phase-1 names, still referenced by legacy rules) --- */
   --c-bark-900: #1c150d;
@@ -106,10 +127,10 @@
   --positive: #4f9d69;
   --warning: var(--c-amber-500);
   --negative: #b0473a;
-  --rare: #4f7dd6;
+  --rare: var(--c-rare-500);
   --gold: var(--c-gold-500);
   --focus-mode: #6fa8dc;
-  --quiet-mode: #9a8cff;
+  --quiet-mode: var(--c-gray-500);
 
   --interactive-hover: rgba(255, 255, 255, 0.06);
   --interactive-press: rgba(255, 255, 255, 0.12);
@@ -346,13 +367,26 @@
   --ink-strong: var(--c-ink-900);
   --ink-body: var(--c-ink-700);
   --ink-soft: var(--c-ink-500);
-  --action-bg: var(--c-acorn-400);
-  --action-bg-hover: #f4a55c;
-  --action-edge: var(--c-acorn-600);
-  --action-ink: var(--c-ink-900);
-  --calm-bg: var(--c-leaf-500);
-  --calm-edge: var(--c-leaf-700);
+  /* Palette roles (DESIGN.md "Identity"): restrained green is the positive ACTION
+     (buy, open, confirm); gold is a REWARD being claimed; purple is RARE only;
+     selection is ink on paper, so green keeps meaning "do it". */
+  --action-bg: var(--c-sage-500);
+  --action-bg-hover: var(--c-sage-600);
+  --action-edge: var(--c-sage-700);
+  --action-ink: var(--c-paper-50);
+  --reward-bg: var(--c-reward-500);
+  --reward-bg-hover: var(--c-reward-400);
+  --reward-edge: var(--c-reward-600);
+  --reward-ink: var(--c-ink-900);
+  --rare-bg: var(--c-rare-500);
+  --rare-edge: var(--c-rare-600);
+  --rare-ink: var(--c-paper-50);
+  --calm-bg: var(--c-walnut-700);
+  --calm-edge: var(--c-walnut-900);
   --calm-ink: var(--c-paper-50);
+  --gray-bg: var(--c-gray-100);
+  --gray-line: var(--c-gray-300);
+  --gray-ink: var(--c-gray-700);
   --alert: var(--c-berry-500);
   --alert-deep: var(--c-berry-700);
   --cool: var(--c-sky-500);
@@ -447,6 +481,16 @@
   --action-bg-hover: #ffe27a;
   --action-edge: #000000;
   --action-ink: #000000;
+  --reward-bg: #ffd54a;
+  --reward-bg-hover: #ffe27a;
+  --reward-edge: #000000;
+  --reward-ink: #000000;
+  --rare-bg: #ffffff;
+  --rare-edge: #000000;
+  --rare-ink: #000000;
+  --gray-bg: #ffffff;
+  --gray-line: #000000;
+  --gray-ink: #000000;
   --calm-bg: #000000;
   --calm-edge: #ffffff;
   --calm-ink: #ffffff;

@@ -2,7 +2,7 @@ import { test, expect, type Page } from '@playwright/test';
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { openView } from './support/shell';
+import { openSettingsTab, openView } from './support/shell';
 
 // IMPORTING A SAVE REPLACES THE ENTIRE COMPANY.
 //
@@ -34,7 +34,8 @@ async function openSettings(page: Page) {
   }, SAVE);
   await page.goto('/');
   await page.locator('.office').first().waitFor({ timeout: 15_000 });
-  await openView(page, 'settings');
+  // The save file has its own page in the Settings panel.
+  await openSettingsTab(page, 'file');
   await expect(page.locator('.savebar')).toBeVisible();
 }
 

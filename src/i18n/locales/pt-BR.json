@@ -40,7 +40,9 @@
     "impact": "Bolota garantida · Café comprometido",
     "titleNote": "Progresso aconchegante, colegas caóticos e uma planilha muito importante.",
     "continue": "Abrir a empresa",
-    "spill": "…e imediatamente derruba café na planilha."
+    "spill": "…e imediatamente derruba café na planilha.",
+    "file": "Ficha de observação nº 001",
+    "confidential": "Confidencial"
   },
   "resource": {
     "nuts": "Castanhas",
@@ -2162,6 +2164,7 @@
     "prestigeCount": "Linhas do tempo: {{count}}",
     "timeline": "Decisões recentes",
     "timelineEmpty": "Nenhuma grande decisão ainda — os eventos aparecerão aqui.",
+    "timelineEmptyHint": "Quando algo acontecer numa sala, o aviso espera lá: abra para decidir.",
     "icon": {
       "title": "Logo da empresa",
       "desc": "Escolha o emblema que representa sua empresa.",
@@ -2200,7 +2203,8 @@
     },
     "recordedChoice": "Decisão arquivada",
     "recent": "Últimas do escritório",
-    "recentEmpty": "Nada de novo ainda. Os recados do escritório aparecem aqui."
+    "recentEmpty": "Nada de novo ainda. Os recados do escritório aparecem aqui.",
+    "recentEmptyHint": "Toque no caixote ou num colega lá no escritório: o que acontecer fica arquivado aqui."
   },
   "prod": {
     "title": "Detalhes da produção",
@@ -2256,7 +2260,7 @@
     "fpsLimit": "Limite de quadros",
     "bg": {
       "title": "Fundo do Escritório",
-      "note": "O escritório animado que preenche a aba principal. Desligue, escureça ou use uma imagem estática para economizar bateria.",
+      "note": "O escritório animado atrás da abertura e o desfoque atrás das janelas. Desligue, escureça ou use uma imagem estática para economizar bateria.",
       "enabled": "Fundo animado",
       "blurPanels": "Desfocar atrás dos painéis",
       "pauseWhenHidden": "Pausar quando a janela está oculta",
@@ -2325,7 +2329,28 @@
     "importInvalid": "Esse arquivo não é um save do ZooWorkers, ou está danificado. Sua empresa atual não foi alterada.",
     "importUnreadable": "Não foi possível ler esse arquivo. Sua empresa atual não foi alterada.",
     "localOnly": "Os saves ficam guardados neste computador. Exporte uma cópia se quiser um backup.",
-    "directory": "Índice de preferências"
+    "directory": "Índice de preferências",
+    "languageLabel": "Idioma do jogo",
+    "sizes": "Tamanhos e ritmo",
+    "tab": {
+      "general": "Geral",
+      "audio": "Som",
+      "access": "Acessibilidade",
+      "display": "Janela",
+      "file": "Arquivo"
+    },
+    "cb": {
+      "off": "Desligado",
+      "deuteranopia": "Deuteranopia (verde)",
+      "protanopia": "Protanopia (vermelho)",
+      "tritanopia": "Tritanopia (azul)"
+    },
+    "cornerOpt": {
+      "top-left": "Canto superior esquerdo",
+      "top-right": "Canto superior direito",
+      "bottom-left": "Canto inferior esquerdo",
+      "bottom-right": "Canto inferior direito"
+    }
   },
   "onboarding": {
     "skip": "Pular guia",
@@ -2974,6 +2999,10 @@
     "department": "Pesquisa Comportamental",
     "departmentFull": "Departamento de Pesquisa Comportamental",
     "cycle": "Ciclo {{n}}"
+  },
+  "hud": {
+    "masthead": "{{name}}: abrir a ficha da empresa",
+    "mastheadTip": "Clique para abrir a ficha da empresa."
   },
   "talk": {
     "open": "Visitar",
@@ -4043,7 +4072,8 @@
     }
   },
   "sheet": {
-    "backToOffice": "Voltar ao escritório"
+    "backToOffice": "Voltar ao escritório",
+    "office": "Escritório"
   },
   "elevator": {
     "label": "Elevador",
@@ -4060,7 +4090,8 @@
     "fullIn": "Cheio em {{time}}",
     "fullShort": "Cheio",
     "why": "Metade do que a equipe produz é guardada aqui. Recolha para ganhar cada castanha.",
-    "waiting": "Seu caixote tem {{value}} castanhas. Toque nele para recolher."
+    "waiting": "Seu caixote tem {{value}} castanhas. Toque nele para recolher.",
+    "coach": "Toque aqui!"
   },
   "rush": {
     "label": "Pique ×{{mult}}",
@@ -4095,6 +4126,7 @@
     "buy": "Comprar",
     "hire": "Contratar {{name}}",
     "level": "{{name}} Nv. {{level}}",
+    "nextLevel": "{{name}} · Nv. {{level}}",
     "perSecond": "+{{value}}/s",
     "perTap": "+{{value}} por toque",
     "opens": "Abre um andar novo",

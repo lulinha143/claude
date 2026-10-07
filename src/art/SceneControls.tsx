@@ -89,7 +89,7 @@ export function SceneControls({
           >
             <button
               type="button"
-              className="scene-btn"
+              className="scene-btn elevator__step"
               onClick={() => up && onGo(up.id)}
               disabled={!up}
               aria-label={t('elevator.up')}
@@ -124,7 +124,7 @@ export function SceneControls({
           >
             <button
               type="button"
-              className="scene-btn"
+              className="scene-btn elevator__step"
               onClick={() => down && onGo(down.id)}
               disabled={!down}
               aria-label={t('elevator.down')}

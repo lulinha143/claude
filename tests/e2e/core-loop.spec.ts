@@ -89,9 +89,15 @@ for (const size of [
     // The first goal is bought from the office, and says what it changed.
     await expect(goal).toHaveClass(/is-ready/);
     const bought = await goal.getAttribute('data-goal-id');
+    const boughtName = (await goal.locator('.goal-tag__name').innerText()).trim();
     await goal.click();
     await expect(page.locator('.goal-tag.is-bought')).toBeVisible();
     await expect(page.locator('.goal-tag.is-bought .goal-tag__gain')).toContainText('+');
+    // The purchase lands in the office too: the home floor's slip says what changed.
+    const slip = page.locator('.floor[data-room="founder-desk"] .office-slip');
+    await expect(slip).toBeVisible();
+    await expect(slip).toContainText(boughtName);
+    await inside(page, '.floor[data-room="founder-desk"] .office-slip');
     await expect.poll(async () => (await nuts(page)).upgrades?.[bought!] ?? 0).toBe(1);
     // ...and then there is a next goal.
     await expect(page.locator('.goal-tag:not(.is-bought)')).toBeVisible({ timeout: 5_000 });

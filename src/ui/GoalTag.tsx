@@ -5,7 +5,7 @@ import { useStore } from '../state/store';
 import { EMPLOYEES_BY_ID } from '../content/employees';
 import { UPGRADES_BY_ID } from '../content/upgrades';
 import { goalProgress, nextGoal, type Goal } from '../sim/goals';
-import { focusFloor } from './officeEvents';
+import { announcePurchase, focusFloor } from './officeEvents';
 import { useFmt } from './useFmt';
 import { Icon } from '../art/UiIcon';
 
@@ -17,14 +17,17 @@ import { Icon } from '../art/UiIcon';
 
 const BOUGHT_MS = 1400;
 
-function goalName(t: ReturnType<typeof useTranslation>['t'], goal: Goal): string {
+function goalName(t: ReturnType<typeof useTranslation>['t'], goal: Goal, owned = 0): string {
   if (goal.kind === 'hire' || goal.kind === 'level') {
     const name = t(EMPLOYEES_BY_ID[goal.id]?.nameKey ?? goal.id);
     return goal.kind === 'hire'
       ? t('goal.hire', { name })
       : t('goal.level', { name, level: goal.level });
   }
-  return t(goal.nameKey, goal.nameParams);
+  // A machine bought again says which level comes next, so the tag visibly moves
+  // on after a purchase instead of repeating the same name.
+  const name = t(goal.nameKey, goal.nameParams);
+  return owned > 0 ? t('goal.nextLevel', { name, level: owned + 1 }) : name;
 }
 
 function goalGain(
@@ -94,7 +97,7 @@ export function GoalTag() {
   const g = goal as Goal;
   const progress = goalProgress(state, g);
   const ready = progress >= 1;
-  const name = goalName(t, g);
+  const name = goalName(t, g, g.kind === 'upgrade' ? (state.upgrades[g.id] ?? 0) : 0);
   const gain = goalGain(t, fmt, g);
   // The very first purchase of a new company: the coach points here.
   const first =
@@ -113,6 +116,14 @@ export function GoalTag() {
     if (g.kind === 'room' && g.roomId) {
       const roomId = g.roomId;
       window.setTimeout(() => focusFloor(roomId), 160);
+    } else {
+      // The purchase lands in the office, not only on the tag: the team there
+      // cheers and a slip on the room says what just changed.
+      announcePurchase({
+        title: name,
+        gain,
+        employeeId: g.kind === 'hire' || g.kind === 'level' ? g.id : undefined,
+      });
     }
     if (timer.current !== null) window.clearTimeout(timer.current);
     timer.current = window.setTimeout(() => {

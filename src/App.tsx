@@ -1,6 +1,12 @@
 import { useEffect, useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useStore, startGameLoop, getGameState, type ViewId } from './state/store';
+import {
+  useStore,
+  startGameLoop,
+  getGameState,
+  BOOT_SAVE_IS_NEW,
+  type ViewId,
+} from './state/store';
 import { ambientState } from './art/ambient';
 import { CHARACTER_PRESENCE_SCALE } from './art/employeeSprites';
 import { toggleHaloTest } from './art/haloTest'; // TEMP halo-isolation A/B (Ctrl+Alt+H)
@@ -127,10 +133,17 @@ export function App() {
     return () => document.removeEventListener('visibilitychange', apply);
   }, [batterySaver, state.settings.reducedMotion, state.settings.quietMode]);
 
-  // Keep i18n in sync with the saved language on boot.
+  // Keep i18n and the save in agreement on boot. A brand-new company has not
+  // chosen a language (the schema default is 'en'), so the detected one wins
+  // there — the player's last pick (wmno.lang), then the system language — and is
+  // recorded; otherwise the saved choice is applied.
   useEffect(() => {
-    if (state.settings.language && i18n.language !== state.settings.language) {
-      void i18n.changeLanguage(state.settings.language);
+    const saved = state.settings.language;
+    const detected = i18n.resolvedLanguage;
+    if (BOOT_SAVE_IS_NEW && detected && detected !== saved) {
+      engine.updateSettings({ language: detected });
+    } else if (saved && i18n.language !== saved) {
+      void i18n.changeLanguage(saved);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

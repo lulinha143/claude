@@ -117,6 +117,38 @@ test('compact localized first run stays contained and respects reduced motion', 
   await shot(page, 'first-run-guide-return-390x700-ptBR');
 });
 
+test('a brand-new company opens in the player’s own language and keeps it', async ({ browser }) => {
+  // A Brazilian player's system, no save and no language picked yet: the schema's
+  // default ('en') must not override what the system says.
+  const context = await browser.newContext({
+    locale: 'pt-BR',
+    viewport: { width: 380, height: 460 },
+  });
+  const page = await context.newPage();
+  await page.addInitScript(() => {
+    if (sessionStorage.getItem('lang-seeded')) return;
+    sessionStorage.setItem('lang-seeded', '1');
+    localStorage.clear();
+  });
+  await page.goto('/');
+  await expect(page.getByRole('button', { name: 'Pegar a primeira bolota' })).toBeVisible();
+  await expect(page.locator('html')).toHaveAttribute('lang', 'pt-BR');
+  // The observation file opens on the company's own letterhead.
+  await expect(page.locator('.opening-card__org')).toHaveText('Nutshell Inc.');
+  await expectContained(page, '.opening-card');
+  await page.getByRole('button', { name: 'Pegar a primeira bolota' }).click();
+  await page.getByRole('button', { name: 'Abrir a empresa' }).click();
+  await expect(page.getByRole('button', { name: 'Equipe', exact: true })).toBeVisible();
+  // Recorded in the save: a reload (or the next session) stays in Portuguese.
+  await page.reload();
+  await expect(page.getByRole('button', { name: 'Equipe', exact: true })).toBeVisible();
+  const saved = await page.evaluate(
+    () => JSON.parse(localStorage.getItem('wmno.save.v1') ?? '{}').settings?.language,
+  );
+  expect(saved).toBe('pt-BR');
+  await context.close();
+});
+
 test('Escape offers a complete keyboard bypass without trapping focus', async ({ page }) => {
   await seedFreshSettings(page);
   await page.goto('/');

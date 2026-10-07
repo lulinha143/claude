@@ -136,3 +136,41 @@ test('navigating away leaves no stale tooltip behind', async ({ page }) => {
   await page.locator('.dock__item[data-dock="archive"]').click();
   await expect(page.locator('.tooltip[role="tooltip"]')).toHaveCount(0);
 });
+
+test('Settings is a tabbed control panel that the keyboard can page through', async ({ page }) => {
+  await boot(page, 380);
+  await openView(page, 'settings');
+  const tabs = page.locator('.settings-tab');
+  await expect(tabs).toHaveCount(5);
+  await expect(page.locator('.settings-tab[aria-selected="true"]')).toHaveAttribute(
+    'data-tab',
+    'general',
+  );
+  // Every tab fits the companion window; the page below is short, not a long form.
+  for (const tab of await tabs.all()) {
+    const box = (await tab.boundingBox())!;
+    expect(box.x + box.width).toBeLessThanOrEqual(381);
+  }
+  await page.locator('.settings-tab[data-tab="general"]').focus();
+  await page.keyboard.press('ArrowRight');
+  await expect(page.locator('.settings-panel')).toHaveAttribute('data-tab', 'audio');
+  await expect(page.locator('.settings-tab[data-tab="audio"]')).toBeFocused();
+  await page.keyboard.press('End');
+  await expect(page.locator('.settings-panel')).toHaveAttribute('data-tab', 'file');
+  await expect(page.locator('.savebar')).toBeVisible();
+
+  // A switch row is one target: clicking its label flips it, and it persists.
+  await page.locator('.settings-tab[data-tab="access"]').click();
+  const reduced = page.getByRole('checkbox', { name: 'Reduced motion' });
+  await expect(reduced).toBeChecked();
+  await page.locator('.toggle-row', { hasText: 'Reduced motion' }).click();
+  await expect(reduced).not.toBeChecked();
+  // Option names are words, not internal values.
+  await expect(page.locator('.setting-row select').first()).toContainText('Deuteranopia (green)');
+
+  // Reopening Settings returns to the page last read.
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.sheet')).toHaveCount(0);
+  await openView(page, 'settings');
+  await expect(page.locator('.settings-panel')).toHaveAttribute('data-tab', 'access');
+});

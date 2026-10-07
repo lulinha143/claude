@@ -262,6 +262,7 @@ export function ClickStation({
         aria-label={t(def.nameKey)}
         data-station={def.id}
       >
+        <span className="station-btn__hit" aria-hidden />
         {/* Combo meter: fills toward the room's rush, glows while it rushes. */}
         {streak >= 2 || rushing ? (
           <span className="station-btn__meter" aria-hidden>
@@ -275,6 +276,12 @@ export function ClickStation({
           </span>
         ) : null}
         <StationArt kind={def.kind} />
+        {/* The first-run coach says it in words too, on a tag over the machine. */}
+        {coached ? (
+          <span className="station-btn__coach" aria-hidden>
+            {t('crate.coach')}
+          </span>
+        ) : null}
         {crate ? (
           <span className="station-btn__heap" aria-hidden>
             <span className="station-btn__heap-nuts" />

@@ -24,7 +24,13 @@ function RecentNotes() {
     <div className="panel company-recent">
       <h3>{t('company.recent')}</h3>
       {history.length === 0 ? (
-        <p className="muted small">{t('company.recentEmpty')}</p>
+        <p className="empty-state empty-state--row">
+          <span className="empty-state__mark" aria-hidden>
+            <Icon name="notification" size={14} />
+          </span>
+          <strong className="empty-state__title">{t('company.recentEmpty')}</strong>
+          <span className="empty-state__hint">{t('company.recentEmptyHint')}</span>
+        </p>
       ) : (
         <ul className="company-recent__list">
           {history.map((note) => (
@@ -167,7 +173,13 @@ export function CompanyView() {
       <div className="panel company-timeline">
         <h3>{t('company.timeline')}</h3>
         {state.eventHistory.length === 0 ? (
-          <p className="muted small">{t('company.timelineEmpty')}</p>
+          <p className="empty-state empty-state--row">
+            <span className="empty-state__mark" aria-hidden>
+              <Icon name="company" size={14} />
+            </span>
+            <strong className="empty-state__title">{t('company.timelineEmpty')}</strong>
+            <span className="empty-state__hint">{t('company.timelineEmptyHint')}</span>
+          </p>
         ) : (
           <ul className="timeline">
             {state.eventHistory

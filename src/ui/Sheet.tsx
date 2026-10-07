@@ -14,7 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { useGame } from '../state/hooks';
 import { useStore, type ViewId } from '../state/store';
 import { canPrestige } from '../sim/prestige';
-import { Icon } from '../art/UiIcon';
+import { Icon, type IconName } from '../art/UiIcon';
 import { ShopView } from './views/ShopView';
 import { EmployeesView } from './views/EmployeesView';
 import { CompanyView } from './views/CompanyView';
@@ -38,6 +38,20 @@ const VIEWS: Partial<Record<ViewId, () => JSX.Element>> = {
   stats: StatsView,
   prestige: PrestigeView,
   settings: SettingsView,
+};
+
+/** The destination's own mark on its folder tab (the same icons as the dock). */
+const SHEET_ICON: Partial<Record<ViewId, IconName>> = {
+  employees: 'employees',
+  shop: 'shop',
+  decorate: 'decorate',
+  focus: 'focus',
+  company: 'company',
+  collections: 'company',
+  achievements: 'company',
+  stats: 'company',
+  prestige: 'company',
+  settings: 'settings',
 };
 
 export function Sheet({ view }: { view: ViewId }) {
@@ -81,7 +95,13 @@ export function Sheet({ view }: { view: ViewId }) {
       tabIndex={-1}
     >
       <header className="sheet__head">
-        <h2 className="sheet__title">{title}</h2>
+        <h2 className="sheet__title">
+          <span className="sheet__title-icon" aria-hidden>
+            <Icon name={SHEET_ICON[view] ?? 'company'} size={15} />
+          </span>
+          <span className="sheet__title-text">{title}</span>
+        </h2>
+        {/* The way back is named, not just a cross: the office is where you return. */}
         <button
           type="button"
           className="sheet__close"
@@ -89,7 +109,10 @@ export function Sheet({ view }: { view: ViewId }) {
           aria-label={t('sheet.backToOffice')}
           title={t('sheet.backToOffice')}
         >
-          <Icon name="close" size={16} />
+          <Icon name="home" size={15} />
+          <span className="sheet__close-label" aria-hidden>
+            {t('sheet.office')}
+          </span>
         </button>
         {archive ? (
           <div className="sheet__tabs" role="tablist" aria-label={t('dock.archive')}>

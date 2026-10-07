@@ -83,7 +83,7 @@ import { DecorationProp, decorKind, interactSound } from './DecorationProp';
 import { RoomDressing } from './RoomDressing';
 import { DEPT } from './roomStyle';
 import { SceneControls } from './SceneControls';
-import { TreeBranches, TreeCanopy, TreeRoots } from './TreeWorld';
+import { CompanySign, TreeBranches, TreeCanopy, TreeRoots } from './TreeWorld';
 import {
   placedDecorationsInRoom,
   isDecorationPlaced,
@@ -114,7 +114,7 @@ import { createRng } from '../sim/rng';
 import { notify } from '../ui/notificationsStore';
 import { dustPuff } from '../ui/sparkle';
 import { INTERACTION_CANCEL_EVENT, INTERACTION_FOCUS_EVENT } from '../ui/interactionLifecycle';
-import { FOCUS_FLOOR_EVENT } from '../ui/officeEvents';
+import { FOCUS_FLOOR_EVENT, PURCHASE_EVENT, type PurchaseDetail } from '../ui/officeEvents';
 import { ROOM_PROFILES_BY_ID, type RoomTemper } from '../content/roomProfiles';
 import type { SfxName } from '../audio/audio';
 
@@ -461,6 +461,7 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
   const { engine, state } = useGameUnlessCovered(covered);
   const audio = useStore((s) => s.audio);
   const requestActivity = useStore((s) => s.requestActivity);
+  const setView = useStore((s) => s.setView);
   const opening = useStore((s) => s.showOpening || s.showOnboarding);
   const reducedMotion = state.settings.reducedMotion;
   const [bubble, setBubble] = useState<Bubble | null>(null);
@@ -739,6 +740,39 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
     },
     [],
   );
+
+  // A purchase made from the office lands IN it: the team of the room it serves
+  // cheers for a beat and a slip on that room says what just changed.
+  const [celebratingRoom, setCelebratingRoom] = useState<string | null>(null);
+  useEffect(() => {
+    const onPurchase = (event: Event) => {
+      const detail = (event as CustomEvent<PurchaseDetail>).detail;
+      if (!detail) return;
+      const st = stateRef.current;
+      const roomId =
+        (detail.employeeId ? resolveEmployeeRoom(st, detail.employeeId) : null) ?? FOUNDER_FLOOR;
+      setSlip({
+        key: ++slipKeyRef.current,
+        roomId,
+        // Pinned to the right of the room's top edge, clear of its name plaque.
+        x: 0.86,
+        anchor: 'station',
+        tone: 'nut',
+        label: t('goal.bought'),
+        title: detail.title,
+        text: detail.gain ?? '',
+        payout: null,
+        complete: null,
+      });
+      setCelebratingRoom(roomId);
+      scheduleLife(
+        () => setCelebratingRoom((current) => (current === roomId ? null : current)),
+        1100,
+      );
+    };
+    window.addEventListener(PURCHASE_EVENT, onPurchase);
+    return () => window.removeEventListener(PURCHASE_EVENT, onPurchase);
+  }, [scheduleLife, t]);
 
   useEffect(() => {
     if (!bubble) return;
@@ -1869,17 +1903,33 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
           a big window it becomes the landscape around the company. */}
       <div className="office__view">
         <div className="office__sky" aria-hidden>
+          <span className="office__sun" />
           <span className="office__cloud office__cloud--1" />
           <span className="office__cloud office__cloud--2" />
           <span className="office__cloud office__cloud--3" />
+          {/* Nutshell's observation balloon: only where there is sky to spare. */}
+          <span className="office__balloon">
+            <span className="office__balloon-basket" />
+          </span>
           <span className="office__hills" />
         </div>
 
         <div className="office__world" ref={scrollerRef} data-testid="office-world">
           <div className="office__tower">
-            <TreeBranches />
+            {!decorMode ? (
+              <CompanySign
+                name={state.company.name}
+                department={t('header.department')}
+                label={t('hud.masthead', { name: state.company.name })}
+                onOpen={() => {
+                  engine.closeTalk();
+                  setView('company');
+                }}
+              />
+            ) : null}
             <TreeCanopy />
             <div className="office__trunk">
+              <TreeBranches floors={rooms.length + (nextLocked ? 1 : 0)} />
               {nextLocked ? (
                 <div className="floor floor--locked" aria-label={t('common.locked')}>
                   <div className="floor__label">
@@ -1908,14 +1958,29 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
                         />
                       </>
                     ) : buildUpgrade ? (
-                      <button
-                        type="button"
-                        className="mini-btn mini-btn--primary floor__build"
-                        disabled={state.resources.nuts < buildCost}
-                        onClick={buildNextFloor}
-                      >
-                        {t('construction.build', { cost: fmt.int(buildCost) })}
-                      </button>
+                      <>
+                        <button
+                          type="button"
+                          className="mini-btn mini-btn--primary floor__build"
+                          disabled={state.resources.nuts < buildCost}
+                          onClick={buildNextFloor}
+                        >
+                          {t('construction.build', { cost: fmt.int(buildCost) })}
+                        </button>
+                        {/* How close the next floor is: the few-minutes goal at a glance. */}
+                        {state.resources.nuts < buildCost ? (
+                          <span
+                            className="floor__construction-bar"
+                            style={{
+                              ['--built' as string]: Math.min(
+                                1,
+                                state.resources.nuts / buildCost,
+                              ).toFixed(3),
+                            }}
+                            aria-hidden
+                          />
+                        ) : null}
+                      </>
                     ) : (
                       t('common.locked')
                     )}
@@ -2016,20 +2081,10 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
                           {t(`annex.${room.id}.activity`)}
                         </button>
                       ) : null}
-                      {!decorMode && occupants.length > 0 ? (
-                        <div className="floor__people">
-                          {occupants.map(([id, rt]) => (
-                            <button
-                              key={id}
-                              onClick={() => {
-                                if (engine.openTalk(id, undefined, true)) audio.play('paper');
-                              }}
-                            >
-                              {rt.nickname ?? t(EMPLOYEES_BY_ID[id].nameKey)}
-                            </button>
-                          ))}
-                        </div>
-                      ) : null}
+                      {/* Who works here is said by the room itself (the people and
+                          their mood stickers, each a button); the header keeps to the
+                          room's name and its counts, so the stickers of teammates at
+                          the back of a full room never land on a row of name chips. */}
                       <span className="floor__status">
                         {occupants.length > 0 ? (
                           <Tip
@@ -2039,6 +2094,11 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
                                 lines={[
                                   t('overview.capacityTip'),
                                   `${occupants.length} / ${ROOM_CAP}`,
+                                  occupants
+                                    .map(
+                                      ([id, rt]) => rt.nickname ?? t(EMPLOYEES_BY_ID[id].nameKey),
+                                    )
+                                    .join(', '),
                                 ]}
                               />
                             }
@@ -2189,7 +2249,7 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
                             (drag?.kind === 'employee' && drag.id === id) ||
                             (visiting && interaction?.phase === 'walking'),
                           lowMorale,
-                          celebrating: celebratingEmployee === id,
+                          celebrating: celebratingEmployee === id || celebratingRoom === room.id,
                           focusMode,
                           interactedRecently,
                           // A click/keyboard activation or ambient interaction should be
@@ -2232,8 +2292,14 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
                         // has your attention.
                         // Someone holding up something that is happening has that to
                         // show you first.
+                        // Someone with a find waiting holds that out first (one thing to
+                        // take, one place to press); their news waits until it is taken.
                         const nudge =
-                          carried || opening || newCompany || presenterHere === id
+                          carried ||
+                          opening ||
+                          newCompany ||
+                          presenterHere === id ||
+                          finds.some((find) => find.employeeId === id)
                             ? undefined
                             : nudges.get(id);
                         return (

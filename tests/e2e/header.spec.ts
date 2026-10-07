@@ -130,3 +130,32 @@ test('the HUD survives a 150% UI scale', async ({ page }) => {
   for (const right of rects) expect(right).toBeLessThanOrEqual(721);
   await page.locator('.hud').screenshot({ path: 'visual-artifacts/qa-hud-scaled.png' });
 });
+
+test('the company is named on its masthead where the shelf has room, and on the tree everywhere', async ({
+  page,
+}) => {
+  await boot(page, 1280, 720);
+  const masthead = page.getByTestId('hud-masthead');
+  await expect(masthead).toBeVisible();
+  await expect(masthead.locator('.hud__company')).toHaveText('Nutshell Inc.');
+  await expect(masthead.locator('.hud__dept')).toHaveText('Behavioural Research Department');
+  // The masthead opens the company file, and pressing it again returns to the office.
+  await masthead.click();
+  await expect(page.locator('.sheet[data-sheet="company"]')).toBeVisible();
+  await masthead.click();
+  await expect(page.locator('.sheet')).toHaveCount(0);
+
+  // A companion window has no room on the shelf: the tree's own sign carries it.
+  await page.setViewportSize({ width: 380, height: 460 });
+  await page.waitForTimeout(300);
+  await expect(masthead).toBeHidden();
+  const sign = page.locator('.company-sign__board');
+  await expect(sign).toBeVisible();
+  await expect(sign).toContainText('Nutshell Inc.');
+  await sign.click();
+  await expect(page.locator('.sheet[data-sheet="company"]')).toBeVisible();
+  // The way back is named, not just a cross.
+  await expect(page.locator('.sheet__close')).toContainText('Office');
+  await page.locator('.sheet__close').click();
+  await expect(page.locator('.sheet')).toHaveCount(0);
+});

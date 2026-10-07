@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-import { openView } from './support/shell';
+import { openSettingsTab, openView } from './support/shell';
 
 // Turn on the in-game "reduced motion" setting so the app stops its looping
 // decorative animations (the bobbing acorn, the pulsing crate). Those never
@@ -122,7 +122,8 @@ test('collect, purchase an upgrade, settings, language, persistence', async ({ p
 test('desktop-only settings are disabled in the browser demo', async ({ page }) => {
   await seedSave(page);
   await page.goto('/');
-  await openView(page, 'settings');
+  // The window options live on the Settings panel's Window page.
+  await openSettingsTab(page, 'display');
   // Without the Electron bridge the whole desktop-controls fieldset is disabled.
   // `toBeDisabled()` on a <fieldset> is unreliable (Playwright only treats
   // button/input/select/textarea/option/optgroup as disable-able), so assert

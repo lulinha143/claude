@@ -61,6 +61,8 @@ const platform = getPlatform();
 const achievements = createAchievementAdapter();
 
 const loaded = save.load();
+/** No save existed at boot: a brand-new company that has not chosen anything yet. */
+export const BOOT_SAVE_IS_NEW = loaded.isNew;
 const engine = new GameEngine(loaded.state, { deterministic: false });
 engine.onSave((s) => save.save(s));
 

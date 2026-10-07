@@ -34,6 +34,9 @@
       opacity: 0;
     }
   }
+  /* The frame never scrolls: when a note is taller than a small window, its
+     CONTENT scrolls and the actions stay pinned at the bottom, so the way out
+     (OK, a choice, Cancel) is always on screen — even at 320×420. */
   .popup {
     position: relative;
     display: flex;
@@ -44,7 +47,7 @@
     max-height: calc(100dvh - 24px);
     margin: auto;
     padding: 20px 18px 16px;
-    overflow: auto;
+    overflow: hidden;
     color: var(--ink-strong);
     background: var(--paper-grain), var(--paper-bg-bright);
     border: 3px solid var(--frame-edge);
@@ -104,7 +107,27 @@
   .popup__content {
     display: grid;
     gap: 10px;
+    flex: 0 1 auto;
     min-width: 0;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
+  .popup__actions {
+    flex: 0 0 auto;
+  }
+  /* Short windows: tighter paper, so more of the note fits before it scrolls. */
+  @media (max-height: 520px) {
+    .popup {
+      padding: 16px 14px 12px;
+    }
+    .popup__content {
+      gap: 8px;
+    }
+    .popup__actions {
+      margin-top: 10px;
+    }
   }
   .popup__content > :first-child {
     margin-top: 0;

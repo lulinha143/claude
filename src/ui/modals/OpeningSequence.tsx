@@ -8,6 +8,7 @@ import { Acorn } from '../../art/Icons';
 import { EmployeeSprite } from '../../art/EmployeeSprite';
 import { employeeSprite } from '../../art/employeeSprites';
 import { OfficeBackground } from '../../art/OfficeBackground';
+import { CompanyIcon } from '../../art/companyIcons';
 
 type OpeningPhase = 'intro' | 'impact' | 'title';
 
@@ -136,8 +137,21 @@ export function OpeningSequence() {
           {t('opening.skip')}
         </button>
 
+        {/* Nutshell Inc. opens a file on its founder: one observation sheet with
+            the company's letterhead, the real Pip at his desk and one thing to do. */}
         {!titleVisible ? (
-          <section className="opening-card" aria-live="polite">
+          <section className="opening-card opening-card--memo" aria-live="polite">
+            <header className="opening-card__letterhead">
+              <span className="opening-card__emblem" aria-hidden="true">
+                <CompanyIcon id={state.company.icon} size={20} />
+              </span>
+              <span className="opening-card__org">{state.company.name}</span>
+              <span className="opening-card__dept">{t('header.departmentFull')}</span>
+            </header>
+            <p className="opening-card__eyebrow">
+              <span>{t('opening.file')}</span>
+              <span className="opening-card__confidential">{t('opening.confidential')}</span>
+            </p>
             <div className="opening-card__cast" aria-hidden="true">
               {pip ? (
                 <EmployeeSprite config={pip} reducedMotion={reducedMotion} height={150} />
@@ -148,7 +162,6 @@ export function OpeningSequence() {
                 </span>
               ) : null}
             </div>
-            <p className="opening-card__eyebrow">{t('opening.eyebrow')}</p>
             <h1 id="opening-prompt" className="opening-card__prompt">
               {t('opening.prompt')}
             </h1>
@@ -157,7 +170,7 @@ export function OpeningSequence() {
             </p>
             <button className="acorn-cta" onClick={claimAcorn} disabled={phase !== 'intro'}>
               <span className="acorn-cta__nut" aria-hidden="true">
-                <Acorn size={40} />
+                <Acorn size={34} />
               </span>
               <span className="acorn-cta__label">{t('opening.clickAcorn')}</span>
             </button>
@@ -165,7 +178,7 @@ export function OpeningSequence() {
         ) : (
           <section className="opening-card opening-card--title">
             <p className="opening-card__stamp">{t('opening.impact')}</p>
-            <BrandEmblem size={64} title={GAME_TITLE} />
+            <BrandEmblem size={56} title={GAME_TITLE} />
             <h1 id="opening-title" className="title-card">
               {GAME_TITLE}
             </h1>
@@ -179,6 +192,7 @@ export function OpeningSequence() {
             >
               {t('opening.continue')}
             </button>
+            <p className="opening-card__filed">{t('opening.founded')}</p>
           </section>
         )}
       </div>

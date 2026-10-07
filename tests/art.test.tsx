@@ -5,6 +5,7 @@ import type { CritterSpecies } from '../src/art/critterShapes';
 import { CRITTER_SHAPES } from '../src/art/critterShapes';
 import { Icon, type IconName } from '../src/art/UiIcon';
 import type { CritterState } from '../src/art/animation';
+import { CompanySign, TreeBranches } from '../src/art/TreeWorld';
 
 const SPECIES: CritterSpecies[] = [
   'squirrel',
@@ -143,5 +144,38 @@ describe('UI icons', () => {
     const html = renderToStaticMarkup(<Icon name="settings" title="Settings" />);
     expect(html).toContain('role="img"');
     expect(html).toContain('<title>Settings</title>');
+  });
+});
+
+describe('Tree around the company', () => {
+  const branchCount = (html: string) => (html.match(/class="tree-branch /g) ?? []).length;
+
+  it('grows one branch per floor along the trunk, up to seven', () => {
+    expect(branchCount(renderToStaticMarkup(<TreeBranches floors={1} />))).toBe(1);
+    expect(branchCount(renderToStaticMarkup(<TreeBranches floors={2} />))).toBe(2);
+    expect(branchCount(renderToStaticMarkup(<TreeBranches floors={12} />))).toBe(7);
+  });
+
+  it('keeps a young tree’s branches on its trunk instead of up in the sky', () => {
+    const html = renderToStaticMarkup(<TreeBranches floors={2} />);
+    // Spread over the trunk's own height: centred on halves of it, not 6%…84% of the window.
+    expect(html).toContain('top:calc(25.0% - 60px)');
+    expect(html).toContain('top:calc(75.0% - 60px)');
+    expect(html).toContain('tree-branch--left');
+    expect(html).toContain('tree-branch--right');
+  });
+
+  it('puts the player’s own company name on the rooftop sign', () => {
+    const html = renderToStaticMarkup(
+      <CompanySign
+        name="Acorn Holdings"
+        department="Behavioural Research"
+        label="Acorn Holdings: open the company file"
+        onOpen={() => undefined}
+      />,
+    );
+    expect(html).toContain('Acorn Holdings');
+    expect(html).toContain('Behavioural Research');
+    expect(html).toContain('aria-label="Acorn Holdings: open the company file"');
   });
 });

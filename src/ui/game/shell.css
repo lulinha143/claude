@@ -55,6 +55,43 @@
   .hud__logo:hover {
     transform: rotate(3deg) scale(1.06);
   }
+  /* The masthead: the company's name on Nutshell letterhead. Hidden on a narrow
+     shelf (the rooftop sign carries the name there), shown once there is room. */
+  .hud__masthead {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+    max-width: 210px;
+    height: 34px;
+    padding: 0 10px 0 8px;
+    color: var(--frame-text);
+    text-align: left;
+    background: none;
+    border: 0;
+    border-left: 1px solid rgb(255 250 240 / 0.16);
+    border-radius: 0;
+    cursor: pointer;
+  }
+  .hud__masthead:hover .hud__company,
+  .hud__masthead.is-active .hud__company {
+    color: var(--c-reward-400);
+  }
+  .hud__company {
+    overflow: hidden;
+    font: 600 15px / 1.1 var(--font-display);
+    color: var(--c-paper-50);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .hud__dept {
+    display: none;
+    overflow: hidden;
+    font: 700 11px / 1.2 var(--font-body);
+    color: var(--frame-text-muted);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
   .hud__nuts {
     display: flex;
     align-items: baseline;
@@ -96,46 +133,66 @@
     overflow: hidden;
     padding: 4px 2px;
   }
+  /* Resource stickers: one cream label each, with a role-coloured well for the
+     icon — gold reward, green wellbeing, gray-ink standing, rare purple kernels. */
   .hud-stat {
     display: inline-flex;
     align-items: center;
-    gap: 3px;
+    gap: 4px;
     flex: 0 0 auto;
     height: 26px;
-    padding: 0 8px 0 6px;
+    padding: 0 8px 0 2px;
     color: var(--ink-strong);
     background: var(--paper-bg);
-    border: 2px solid var(--sticker-edge);
-    border-radius: 9px;
-    box-shadow: var(--sticker-shadow);
+    border: 1px solid rgb(46 29 16 / 0.6);
+    border-radius: 8px;
+    box-shadow:
+      0 2px 0 rgb(46 29 16 / 0.45),
+      inset 0 1px 0 rgb(255 255 255 / 0.6);
     font: 800 12.5px/1 var(--font-body);
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
     cursor: default;
   }
-  .hud-stat:nth-child(odd) {
-    transform: rotate(-1.5deg);
-  }
-  .hud-stat:nth-child(even) {
-    transform: rotate(1.2deg);
-  }
   .hud-stat__icon {
     display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+    background: var(--gray-bg);
+  }
+  .hud-stat__icon.is-rising {
+    animation: stat-rise 0.6s var(--ease-pop);
+  }
+  @keyframes stat-rise {
+    40% {
+      scale: 1.35;
+      rotate: -8deg;
+    }
   }
   .hud-stat--golden .hud-stat__icon {
-    color: var(--c-gold-600);
+    color: var(--c-reward-600);
+    background: var(--c-reward-200);
   }
   .hud-stat--morale .hud-stat__icon {
-    color: var(--c-leaf-600);
+    color: var(--c-sage-600);
+    background: var(--c-sage-200);
   }
   .hud-stat--morale[data-tone='neg'] .hud-stat__icon {
-    color: var(--c-berry-500);
+    color: var(--c-berry-700);
+    background: var(--c-berry-200);
   }
   .hud-stat--rep .hud-stat__icon {
-    color: var(--c-sky-700);
+    color: var(--c-gray-700);
+    background: var(--c-gray-200);
   }
   .hud-stat--kernels .hud-stat__icon {
-    color: var(--c-acorn-600);
+    color: var(--c-rare-600);
+    background: var(--c-rare-200);
+  }
+  [data-reduced-motion='true'] .hud-stat__icon.is-rising {
+    animation: none;
   }
   .hud__tools {
     display: flex;
@@ -165,9 +222,9 @@
     background: rgb(201 68 82 / 0.22);
   }
   .hud__tool.is-active {
-    color: var(--action-ink);
-    background: var(--action-bg);
-    border-color: var(--action-edge);
+    color: var(--ink-strong);
+    background: var(--paper-bg);
+    border-color: var(--sticker-edge);
   }
   .window-controls {
     display: inline-flex;
@@ -235,6 +292,27 @@
       display: none;
     }
   }
+  @container hud (min-width: 640px) {
+    .hud__masthead {
+      display: flex;
+    }
+    [data-desktop='true'] .hud__masthead {
+      display: none;
+    }
+  }
+  @container hud (min-width: 760px) {
+    [data-desktop='true'] .hud__masthead {
+      display: flex;
+    }
+  }
+  @container hud (min-width: 1000px) {
+    .hud__masthead {
+      max-width: 320px;
+    }
+    .hud__dept {
+      display: block;
+    }
+  }
   @container app (min-width: 900px) {
     .hud {
       gap: 10px;
@@ -243,6 +321,14 @@
     .hud__nuts-value {
       font-size: 21px;
     }
+  }
+  /* A payout landing: the counter itself warms to reward gold for a beat. */
+  .hud__nuts-value {
+    transition: color var(--dur-slow) var(--ease);
+  }
+  .hud__nuts.is-gaining .hud__nuts-value {
+    color: var(--c-reward-400);
+    transition-duration: var(--dur-fast);
   }
 
   /* ---- Dock: five destinations on a walnut shelf -------------------------------- */
@@ -284,19 +370,33 @@
       background-color var(--dur-fast) var(--ease);
   }
   .dock__item:hover {
-    background: rgb(255 250 240 / 0.09);
+    background: rgb(255 250 240 / 0.07);
   }
+  .dock__item:hover .dock__icon {
+    background: rgb(255 250 240 / 0.18);
+  }
+  /* The open destination lifts off the shelf as a paper label; pressing it again
+     (or the sheet's named "Office" button, or Escape) goes back to the room. */
   .dock__item.is-active {
     color: var(--ink-strong);
     background: var(--paper-bg);
     box-shadow: var(--sticker-shadow);
-    transform: translateY(-4px) rotate(-1deg);
+    transform: translateY(-4px);
   }
   .dock__icon {
     display: grid;
+    place-items: center;
+    width: 32px;
+    height: 24px;
+    border-radius: 8px;
+    background: rgb(255 250 240 / 0.08);
+    box-shadow: inset 0 0 0 1px rgb(255 250 240 / 0.1);
+    transition: background-color var(--dur-fast) var(--ease);
   }
   .dock__item.is-active .dock__icon {
-    color: var(--c-acorn-600);
+    color: var(--c-paper-50);
+    background: var(--c-walnut-700);
+    box-shadow: none;
   }
   .dock__label {
     max-width: 100%;
@@ -306,14 +406,17 @@
   }
   .dock__dot {
     position: absolute;
-    top: 4px;
-    right: calc(50% - 17px);
+    top: 2px;
+    right: calc(50% - 21px);
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background: var(--c-acorn-400);
+    background: var(--c-reward-500);
     border: 2px solid var(--frame-bg);
     animation: dock-dot 1.8s ease-in-out infinite;
+  }
+  [data-reduced-motion='true'] .dock__dot {
+    animation: none;
   }
   @keyframes dock-dot {
     50% {
@@ -352,6 +455,9 @@
       opacity: 0;
     }
   }
+  /* The head is a folder's top edge: the destination on a walnut label (its own
+     dock icon), the named way back to the office, and — for the Archive and
+     Settings — folder tabs that join the page below. */
   .sheet__head {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
@@ -359,58 +465,110 @@
       'title close'
       'tabs tabs';
     align-items: center;
-    gap: 6px 8px;
-    padding: 9px 10px 8px 14px;
-    background: var(--paper-bg-bright);
-    border-bottom: 2px dashed var(--paper-line);
+    gap: 7px 8px;
+    padding: 8px 8px 7px 10px;
+    background: var(--paper-bg-sunken);
+    border-bottom: 2px solid var(--paper-line);
+  }
+  .sheet--archive .sheet__head {
+    padding-bottom: 0;
   }
   .sheet__title {
     grid-area: title;
+    justify-self: start;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+    max-width: 100%;
     margin: 0;
-    font: 700 var(--fs-xl) / 1.1 var(--font-display);
-    color: var(--ink-strong);
+    padding: 3px 12px 4px 4px;
+    color: var(--c-paper-50);
+    background: var(--c-walnut-700);
+    border: 2px solid var(--c-walnut-900);
+    border-radius: 9px 9px 9px 3px;
+    box-shadow: 0 2px 0 rgb(46 29 16 / 0.35);
+    font: 600 var(--fs-lg) / 1.1 var(--font-display);
+  }
+  .sheet__title-icon {
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    width: 24px;
+    height: 24px;
+    color: var(--c-walnut-700);
+    background: var(--paper-bg);
+    border-radius: 6px;
+  }
+  .sheet__title-text {
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
   .sheet__close {
     grid-area: close;
-    display: grid;
-    place-items: center;
-    width: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    min-width: 34px;
     height: 34px;
-    padding: 0;
+    padding: 0 11px 0 9px;
     color: var(--ink-strong);
-    background: var(--paper-bg);
+    background: var(--paper-bg-bright);
     border: 2px solid var(--paper-line);
-    border-radius: 50%;
+    border-radius: 9px;
     box-shadow: 0 2px 0 var(--paper-line);
+    font: 800 var(--fs-sm) / 1 var(--font-body);
+    white-space: nowrap;
     cursor: pointer;
   }
   .sheet__close:hover {
-    color: #fff;
+    color: var(--c-paper-50);
     background: var(--c-walnut-600);
     border-color: var(--c-walnut-700);
+    box-shadow: 0 2px 0 var(--c-walnut-800);
+  }
+  @container sheet (max-width: 300px) {
+    .sheet__close {
+      padding: 0;
+    }
+    .sheet__close-label {
+      display: none;
+    }
   }
   .sheet__tabs {
     grid-area: tabs;
     display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
+    gap: 3px;
+    min-width: 0;
+    margin-bottom: -2px;
+    overflow-x: auto;
+    scrollbar-width: none;
   }
   .sheet__tab {
-    padding: 4px 10px 5px;
+    flex: 0 0 auto;
+    padding: 5px 11px 6px;
     color: var(--ink-body);
-    background: var(--paper-bg);
+    background: color-mix(in srgb, var(--paper-bg-sunken) 70%, var(--c-gray-200));
     border: 2px solid var(--paper-line);
-    border-radius: 10px;
+    border-bottom-color: transparent;
+    border-radius: 8px 8px 0 0;
     font: 800 var(--fs-xs) / 1.2 var(--font-body);
+    white-space: nowrap;
     cursor: pointer;
   }
+  .sheet__tab:hover {
+    color: var(--ink-strong);
+    background: var(--paper-bg-bright);
+  }
   .sheet__tab.is-active {
-    color: var(--calm-ink);
-    background: var(--calm-bg);
-    border-color: var(--calm-edge);
+    color: var(--c-walnut-700);
+    background: var(--paper-bg);
+    border-color: var(--paper-line);
+    border-bottom-color: var(--paper-bg);
+    box-shadow: inset 0 3px 0 var(--c-walnut-600);
   }
   .sheet__body {
     flex: 1 1 auto;
@@ -617,16 +775,21 @@
   .toasts.is-empty {
     display: none;
   }
-  /* A sheet's title bar and close button stay readable: notes drop below it. */
+  /* A full-window sheet keeps its title, way back and folder tabs clear: notes
+     rise from just above the dock instead, over the page's lower part. */
   .app--sheet-open .toasts {
-    top: calc(var(--hud-h) + 62px);
+    top: auto;
+    bottom: calc(var(--dock-h) + 8px);
+    flex-direction: column-reverse;
   }
   @container app (min-width: 760px) {
     /* Over the office part of the window, not over the side panel. */
     .app--sheet-open:not([data-sheet='talk']) .toasts {
       top: calc(var(--hud-h) + 8px);
+      bottom: auto;
       left: calc((100% - min(460px, 46%) - 10px) / 2);
       width: min(360px, calc(100% - min(460px, 46%) - 36px));
+      flex-direction: column;
     }
   }
   .toast {
@@ -639,9 +802,9 @@
     overflow: hidden;
     color: var(--ink-strong);
     background: var(--paper-bg-bright);
-    border: 2px solid var(--paper-line);
-    border-left: 6px solid var(--toast-tone, var(--c-sky-500));
-    border-radius: 10px;
+    border: 1px solid var(--paper-line);
+    border-left: 5px solid var(--toast-tone, var(--c-gray-500));
+    border-radius: 8px;
     box-shadow: var(--lift-shadow);
     font: 700 var(--fs-sm) / 1.3 var(--font-body);
     text-align: left;
@@ -655,19 +818,33 @@
       transform: translateY(-10px) scale(0.97);
     }
   }
+  /* Tones follow the palette roles: green good news, gold rewards, berry trouble,
+     soft gray for ordinary office notes. */
+  .toast--neutral {
+    --toast-tone: var(--c-gray-500);
+    --toast-ink: var(--c-gray-700);
+  }
   .toast--positive {
-    --toast-tone: var(--c-leaf-500);
+    --toast-tone: var(--c-sage-500);
+    --toast-ink: var(--c-sage-600);
   }
   .toast--negative {
     --toast-tone: var(--c-berry-500);
+    --toast-ink: var(--c-berry-700);
   }
   .toast--gold {
-    --toast-tone: var(--c-gold-500);
+    --toast-tone: var(--c-reward-500);
+    --toast-ink: var(--c-reward-600);
   }
   .toast__icon {
     display: grid;
+    place-items: center;
     flex: 0 0 auto;
-    color: var(--toast-tone, var(--c-sky-700));
+    width: 22px;
+    height: 22px;
+    color: var(--toast-ink, var(--c-gray-700));
+    background: color-mix(in srgb, var(--toast-tone, var(--c-gray-500)) 22%, transparent);
+    border-radius: 6px;
   }
   .toast__text {
     display: -webkit-box;
@@ -693,7 +870,7 @@
     bottom: 0;
     height: 3px;
     width: 100%;
-    background: var(--toast-tone, var(--c-sky-500));
+    background: var(--toast-tone, var(--c-gray-500));
     transform-origin: left;
     animation: toast-bar var(--toast-duration, 4s) linear both;
   }
@@ -716,6 +893,50 @@
   /* A minigame in progress keeps the stage clear. */
   .app:has(.microgame[data-phase='play']) .toasts {
     display: none;
+  }
+
+  /* ---- Empty states: what belongs here and how to get it, never a blank box ----- */
+  .sheet .view .empty-state {
+    color: var(--ink-body);
+    background: var(--paper-bg-sunken);
+    border: 1px solid var(--paper-line);
+    box-shadow: inset 0 2px 4px rgb(111 82 56 / 0.14);
+  }
+  .sheet .view .empty-state__title {
+    color: var(--ink-strong);
+  }
+  /* A row inside a panel: a small mark, what is missing, and the next action. */
+  .sheet .view .empty-state--row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    column-gap: 10px;
+    row-gap: 1px;
+    margin: 4px 0 0;
+    padding: 9px 11px;
+    text-align: left;
+    border-radius: 8px;
+  }
+  .empty-state--row .empty-state__mark {
+    grid-row: span 2;
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    color: var(--c-walnut-600);
+    background: var(--paper-bg-bright);
+    border: 1px solid var(--paper-line);
+    border-radius: 50%;
+  }
+  .sheet .view .empty-state--row .empty-state__title {
+    margin: 0;
+    font: 700 var(--fs-sm) / 1.3 var(--font-body);
+  }
+  .sheet .view .empty-state--row .empty-state__hint {
+    max-width: none;
+    margin: 0;
+    font: 600 var(--fs-xs) / 1.4 var(--font-body);
+    color: var(--ink-soft);
   }
 
   /* ---- Tooltips: opaque ink labels, always on top, never see-through ------------ */
@@ -744,8 +965,8 @@
     gap: 2px;
   }
   .tooltip__title {
-    font: 700 var(--fs-sm) / 1.2 var(--font-display);
-    color: var(--c-acorn-200);
+    font: 600 var(--fs-sm) / 1.2 var(--font-display);
+    color: var(--c-reward-200);
   }
   .tooltip__line {
     display: block;

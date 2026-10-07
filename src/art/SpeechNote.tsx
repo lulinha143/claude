@@ -16,6 +16,10 @@
 
 import { useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
+import { useStore } from '../state/store';
+
+/** A side sheet slides in over ~0.34s; measure again once it has landed. */
+const SHEET_SETTLE_MS = 380;
 
 /** Keep the note this far from the window edges. */
 const SAFE_MARGIN = 10;
@@ -61,6 +65,10 @@ function officeBounds(anchor: Element, vw: number, vh: number): Bounds {
   };
   clip(anchor.closest('.office__view, .office')?.getBoundingClientRect());
   clip(document.querySelector('.app__stage')?.getBoundingClientRect());
+  // The tower's own scroller: it stops above the meadow strip that holds the
+  // office's notes and controls, so a teammate scrolled down behind that strip
+  // is off stage rather than talking over the goal tag.
+  clip(anchor.closest('.office')?.querySelector('.office__world')?.getBoundingClientRect());
   // A side sheet covers the right of the stage; keep the note on the office side.
   const sheet = document.querySelector('.sheet')?.getBoundingClientRect();
   if (sheet && sheet.left > bounds.left + 120)
@@ -85,6 +93,9 @@ export function SpeechNote({ name, text, color }: SpeechNoteProps) {
   const anchorRef = useRef<HTMLSpanElement | null>(null);
   const noteRef = useRef<HTMLDivElement | null>(null);
   const [pos, setPos] = useState<Position | null>(null);
+  // Opening or closing a side sheet changes the room's visible width without a
+  // scroll or resize, so the note is placed again (it must never sit on a sheet).
+  const view = useStore((s) => s.view);
 
   // Measure after layout so the note's real (wrapped) size is known before it is
   // placed. Re-measured on scroll/resize/zoom and whenever the text changes.
@@ -133,6 +144,7 @@ export function SpeechNote({ name, text, color }: SpeechNoteProps) {
     };
 
     schedule();
+    const settle = window.setTimeout(schedule, SHEET_SETTLE_MS);
     window.addEventListener('scroll', schedule, true);
     window.addEventListener('resize', schedule);
     window.visualViewport?.addEventListener('resize', schedule);
@@ -146,13 +158,14 @@ export function SpeechNote({ name, text, color }: SpeechNoteProps) {
 
     return () => {
       if (frame) cancelAnimationFrame(frame);
+      window.clearTimeout(settle);
       window.removeEventListener('scroll', schedule, true);
       window.removeEventListener('resize', schedule);
       window.visualViewport?.removeEventListener('resize', schedule);
       window.visualViewport?.removeEventListener('scroll', schedule);
       observer.disconnect();
     };
-  }, [text, name]);
+  }, [text, name, view]);
 
   const style: CSSProperties = {
     ['--mood-color' as string]: color,
