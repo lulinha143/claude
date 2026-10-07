@@ -13,6 +13,8 @@ export function useFmt() {
   const locale = i18n.language || 'en';
   return {
     num: (v: number) => formatNumber(v, locale),
+    /** a balance the player holds: never rounded up past what can be spent. */
+    amount: (v: number) => formatNumber(v, locale, 'floor'),
     int: (v: number) => formatInteger(v, locale),
     dur: (v: number) => formatDuration(v),
     date: (v: number) => formatDate(v, locale),

@@ -114,7 +114,11 @@ const automationUpgrades: UpgradeDef[] = [
     baseCost: 40000,
     costMult: 2.2,
     maxLevel: 15,
-    effect: { kind: 'reputationRate', perLevel: 0.4 },
+    // Each level adds the base reputation pace again (BALANCE.reputation is
+    // 0.02/s). It used to add 0.4/s — twenty times the base — so one 40K purchase
+    // opened every reputation-gated room and teammate within minutes and the
+    // standing ladder stopped being something to work toward.
+    effect: { kind: 'reputationRate', perLevel: 0.02 },
   },
   {
     id: 'morale-cap',

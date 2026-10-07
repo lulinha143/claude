@@ -223,6 +223,33 @@
       "room": "Salas",
       "coffee": "Café e Moral",
       "quality": "Qualidade de Vida"
+    },
+    "buy": "Comprar",
+    "short": "Faltam {{amount}}",
+    "shortNote": "Ainda faltam {{amount}}.",
+    "bought": "Feito! {{gain}}",
+    "boughtPlain": "Feito!",
+    "maxed": "Máx.",
+    "complete": "Completo",
+    "completeNote": "Nada mais espera por você: outro nível não mudaria nada.",
+    "goal": "Próximo objetivo",
+    "ready": "Tem coisa aqui pronta para comprar",
+    "next": "Em breve: {{name}}, {{condition}}.",
+    "after": "depois de {{name}}",
+    "atReputation": "com {{value}} de reputação",
+    "afterPrestige": "depois de uma reestruturação",
+    "effect": {
+      "critChance": "+{{value}}% de toques críticos",
+      "comboWindow": "+{{value}}% de janela de combo",
+      "goldenChance": "+{{value}}% de chance dourada",
+      "eventReward": "+{{value}}% nas recompensas de eventos",
+      "roomEfficiency": "+{{value}}% de eficiência das salas",
+      "autoCollect": "+{{value}}% guardado sozinho",
+      "offlineCapHours": "+{{value}}h contadas fora",
+      "reputationRate": "+{{value}} de reputação/s",
+      "moraleCap": "+{{value}} no teto de ânimo",
+      "unlockRoom": "Abre um andar novo",
+      "negligible": "Quase nada agora"
     }
   },
   "employee": {
@@ -626,12 +653,15 @@
       "perTap": "Por toque",
       "cadence": "Ritmo",
       "synergy": "Impulsionada por {{names}} trabalhando nesta sala.",
-      "nutAmount": "{{amount}} nozes",
-      "goldenAmount": "{{amount}} douradas"
+      "nutAmount": "{{amount}} castanhas",
+      "goldenAmount": "{{amount}} douradas",
+      "goldenRefine": "+{{share}} de uma castanha dourada",
+      "refines": "Refina com o tempo: o ouro vem do tempo que você passa aqui, não da pressa.",
+      "scales": "Cada toque também leva uma fatia da produção da empresa."
     },
     "nutCrate": {
-      "name": "Caixote de Nozes",
-      "hint": "A receita original. Abra à força e pegue as nozes."
+      "name": "Caixote de Castanhas",
+      "hint": "A receita original. Abra à força e pegue as castanhas."
     },
     "sortingChute": {
       "name": "Calha de Triagem",
@@ -734,7 +764,7 @@
       },
       "click": {
         "name": "Luvas de Triagem {{tier}}",
-        "desc": "Colete caixas mais rápido. Aumenta o poder do clique."
+        "desc": "Patas mais firmes em toda máquina: mais castanhas por toque, sobretudo no começo."
       }
     },
     "autoCollector": {
@@ -751,11 +781,11 @@
     },
     "reputationEngine": {
       "name": "Motor de Reputação",
-      "desc": "Faça o bom nome da empresa crescer mais rápido."
+      "desc": "O bom nome da empresa cresce mais rápido: cada nível soma de novo o ritmo básico de reputação (+0,02/s)."
     },
     "moraleCap": {
-      "name": "Teto de Moral",
-      "desc": "Aumente a moral máxima do escritório."
+      "name": "Teto de Ânimo",
+      "desc": "+10 no teto de ânimo por nível. Ânimo acima de 100 continua aumentando a produção."
     },
     "room": {
       "sorting": {
@@ -793,7 +823,7 @@
     },
     "techniqueManual": {
       "name": "Manual de Técnica",
-      "desc": "Alguém escreveu como são os dias bons e mandou encadernar. Mais precisão em cada toque, em troca de nozes douradas."
+      "desc": "Alguém escreveu como são os dias bons e mandou encadernar. Mais precisão em cada toque, em troca de castanhas douradas."
     },
     "muscleMemory": {
       "name": "Memória Muscular",
@@ -805,11 +835,11 @@
     },
     "assayDesk": {
       "name": "Mesa de Ensaio",
-      "desc": "Uma mesa cuja única função é notar valor. Um pouco mais de toques revelam uma noz dourada."
+      "desc": "Uma mesa cuja única função é notar valor. Um pouco mais de toques revelam uma castanha dourada."
     },
     "gildingProgramme": {
       "name": "Programa de Douramento",
-      "desc": "Oficialmente, uma iniciativa de qualidade. Na prática, nozes douradas aparecem onde não apareciam."
+      "desc": "Oficialmente, uma iniciativa de qualidade. Na prática, castanhas douradas aparecem onde não apareciam."
     },
     "legalReview": {
       "name": "Revisão Jurídica",
@@ -2051,10 +2081,10 @@
       "perfect": "Sensacional!"
     },
     "practiceComplete": "Turno de prática registrado",
-    "actualReward": "{{nuts}} nozes · +{{percent}}% de produção por 90 segundos",
+    "actualReward": "{{nuts}} castanhas · +{{percent}}% de produção por 90 segundos",
     "newBest": "Novo recorde pessoal: {{score}}",
     "personalBest": "Recorde pessoal: {{score}}",
-    "masteryReward": "Primeiro domínio: 1 noz dourada e uma lembrança da empresa",
+    "masteryReward": "Primeiro domínio: 1 castanha dourada e uma lembrança da empresa",
     "teamReward": "{{names}} agradeceram a ajuda (+3 de confiança)",
     "souvenir": "Lembrança para o escritório: {{name}}. Disponível em Decorar.",
     "colleagues": "18 pontos: incentivo para {{names}}.",
@@ -2217,6 +2247,7 @@
     "focus": "Modo Foco",
     "mood": "Humor da equipe",
     "boost": "Bônus ativo",
+    "rush": "Pique",
     "total": "Total",
     "fromRooms": "Dos seus departamentos"
   },
@@ -4125,11 +4156,12 @@
     "next": "Próximo",
     "buy": "Comprar",
     "hire": "Contratar {{name}}",
-    "level": "{{name}} Nv. {{level}}",
-    "nextLevel": "{{name}} · Nv. {{level}}",
+    "level": "{{name}} Nv.\u00a0{{level}}",
+    "nextLevel": "{{name}} · Nv.\u00a0{{level}}",
     "perSecond": "+{{value}}/s",
     "perTap": "+{{value}} por toque",
     "opens": "Abre um andar novo",
+    "unlocksMore": "Libera novas melhorias",
     "bought": "Feito!",
     "open": "Ver tudo para comprar",
     "progress": "{{have}} / {{need}}",

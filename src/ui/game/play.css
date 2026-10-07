@@ -432,7 +432,14 @@
     .stage-notes .goal-tag {
       flex: 0 0 auto;
       min-width: 300px;
-      max-width: 400px;
+      /* Room for "name · Nv. 17" on one line at the larger type of big windows. */
+      max-width: 460px;
+    }
+    /* A side panel open: the notes keep to the office part of the window, under
+       the re-centred tree, instead of sliding under the panel's edge. */
+    .app--sheet-open .stage-notes {
+      left: max(8px, calc((100% - min(550px, 41%) - 732px) / 2 - 24px));
+      max-width: calc(100% - min(550px, 41%) - 16px);
     }
   }
   @keyframes note-pop {

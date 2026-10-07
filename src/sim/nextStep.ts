@@ -8,6 +8,7 @@ import {
   isEmployeeUnlocked,
   isUpgradeUnlocked,
   upgradeCost,
+  upgradeSaturated,
 } from './economy';
 import { canPrestige } from './prestige';
 import { isRoomIdUnlocked } from './rooms';
@@ -69,11 +70,11 @@ export function computeNextStep(state: GameState): NextStep | null {
     }
   }
 
-  // 3. an affordable upgrade you don't own to the max
+  // 3. an affordable upgrade you don't own to the max (and that would still do something)
   for (const def of UPGRADES) {
     if (!isUpgradeUnlocked(state, def)) continue;
     const owned = state.upgrades[def.id] ?? 0;
-    if (owned >= def.maxLevel) continue;
+    if (owned >= def.maxLevel || upgradeSaturated(state, def)) continue;
     const reduction = def.resource === 'nuts' ? passives.costReduction : 0;
     if (state.resources[def.resource] >= upgradeCost(def, owned, reduction)) {
       return { key: 'upgrade', view: 'shop' };

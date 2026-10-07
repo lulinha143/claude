@@ -36,6 +36,7 @@ function goalGain(
   goal: Goal,
 ): string | null {
   if (goal.kind === 'room') return t('goal.opens');
+  if (goal.opens) return t('goal.unlocksMore');
   if (goal.gain.perSecond > 0.0001)
     return t('goal.perSecond', { value: fmt.num(goal.gain.perSecond) });
   if (goal.gain.perTap > 0.0001) return t('goal.perTap', { value: fmt.num(goal.gain.perTap) });

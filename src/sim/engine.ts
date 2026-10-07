@@ -29,6 +29,7 @@ import {
   prestigeRareEventChance,
   reputationRate,
   upgradeCost,
+  upgradeSaturated,
 } from './economy';
 import { upgradeBonus } from './upgradeEffects';
 import { crateCapacity, crateFill, splitProduction } from './crate';
@@ -52,6 +53,7 @@ import { CLICK_STATIONS_BY_ID } from '../content/clickStations';
 import {
   CLICK,
   critChance,
+  goldenBeat,
   goldenTapChance,
   resolveClick,
   rushStreak,
@@ -322,6 +324,10 @@ export interface FindReward {
 export type StationTapResult = ClickResolution & {
   /** nuts collected from the crate by this tap (crate station only). */
   crate?: number;
+  /** premium stations: whole golden nuts this tap completed (the rest is dust). */
+  goldenPaid?: number;
+  /** premium stations: golden dust refined toward the next nut after this tap, 0..1. */
+  dust?: number;
   /** this tap started the room's rush, or kept it going. */
   rush?: 'started' | 'extended';
   /** the machine was acting up: this tap went toward freeing it. */
@@ -546,6 +552,21 @@ export class GameEngine {
     return prod.nutsPerSecond * this.currentBoostMultiplier() * this.rushMultiplier(prod);
   }
 
+  /** The factor rushing rooms add to production right now (1 when none rush). */
+  currentRushMultiplier(): number {
+    return this.rushMultiplier(computeProduction(this.state, this.isFocusActive()));
+  }
+
+  /**
+   * Production without the temporary multipliers (boosts, rushes): what rewards
+   * worth "N seconds of production" are priced on. Paying a find or a routine on
+   * the boosted rate let a rush and a stack of boosts multiply every claim taken
+   * during them (up to six times), which the microgame reward already refuses.
+   */
+  private rewardBasePerSecond(): number {
+    return computeProduction(this.state, this.isFocusActive()).nutsPerSecond;
+  }
+
   // -- rushes -----------------------------------------------------------------
   // Keep a station's combo going long enough and its room rushes: the people who
   // work there produce double for a while, and every tap that keeps the rhythm
@@ -723,12 +744,18 @@ export class GameEngine {
     const drift = (target - m) * Math.min(1, regen * dt);
     this.state.resources.morale = Math.max(floor, Math.min(cap, m + drift));
 
-    // Reputation grows slowly with company size.
-    this.state.resources.reputation += reputationRate(this.state, passives) * dt;
+    // Reputation grows slowly with company size. A building of only the unpleasant
+    // rooms slides back down the ladder, but never below zero (the save would
+    // silently reset a negative value to 0 anyway, after showing it on the HUD).
+    this.state.resources.reputation = Math.max(
+      0,
+      this.state.resources.reputation + reputationRate(this.state, passives) * dt,
+    );
   }
 
   private addNuts(amount: number, isClick: boolean): void {
-    if (amount <= 0) return;
+    // A NaN or infinite reward (a broken input upstream) must never reach the balance.
+    if (!(amount > 0) || !Number.isFinite(amount)) return;
     this.state.resources.nuts += amount;
     this.state.stats.totalNutsEarned += amount;
     if (isClick) this.state.stats.totalClicks += 1;
@@ -778,7 +805,8 @@ export class GameEngine {
     const now = this.now();
     const rolls = {
       critical: this.rng.chance(critChance(this.state, def)),
-      golden: this.rng.chance(goldenTapChance(this.state)),
+      // Rolled per beat of tapping, not per tap: mashing does not mint gold.
+      golden: this.rng.chance(goldenTapChance(this.state) * goldenBeat(this.combo, now)),
     };
     const result: StationTapResult = resolveClick(this.state, def, this.combo, now, rolls);
 
@@ -786,7 +814,16 @@ export class GameEngine {
     this.combo = { stationId: def.id, streak: result.streak, lastTapAt: now };
 
     if (result.resource === 'goldenNuts') {
-      this.state.resources.goldenNuts += result.amount;
+      // A premium station refines gold: the tap adds dust, and whole nuts are paid
+      // as the dust completes them. Its clock is saved, so reloading is no shortcut.
+      const clicker = this.state.clicker;
+      clicker.premiumAt = { ...(clicker.premiumAt ?? {}), [def.id]: now };
+      const total = Math.max(0, clicker.goldenDust ?? 0) + Math.max(0, result.amount);
+      const whole = Math.floor(total + 1e-9);
+      clicker.goldenDust = Math.min(0.999999, total - whole);
+      if (whole > 0) this.state.resources.goldenNuts += whole;
+      result.goldenPaid = whole;
+      result.dust = clicker.goldenDust;
       // Taps still count as clicks for stats/dailies even when paid in gold.
       this.state.stats.totalClicks += 1;
     } else {
@@ -886,7 +923,7 @@ export class GameEngine {
     const [find] = this.state.finds.splice(index, 1);
     const story = Boolean(find.noteKey);
     const nuts =
-      Math.max(BALANCE.finds.minReward, this.productionPerSecond() * BALANCE.finds.rewardSeconds) *
+      Math.max(BALANCE.finds.minReward, this.rewardBasePerSecond() * BALANCE.finds.rewardSeconds) *
       (story ? 2 : 1);
     this.addNuts(nuts, false);
     const golden = this.rng.chance(BALANCE.finds.goldenChance) ? 1 : 0;
@@ -1291,7 +1328,7 @@ export class GameEngine {
   private grantRoomReward(roomId: string, reward: RoomReward, recipient?: string): RoomPayout {
     const out = emptyPayout();
     if (reward.output) {
-      const nuts = Math.max(ROOM_PLAY.minOutput, this.productionPerSecond() * reward.output);
+      const nuts = Math.max(ROOM_PLAY.minOutput, this.rewardBasePerSecond() * reward.output);
       this.addNuts(nuts, false);
       out.nuts = nuts;
     }
@@ -1409,6 +1446,8 @@ export class GameEngine {
     if (!isUpgradeUnlocked(this.state, def)) return false;
     const owned = this.state.upgrades[id] ?? 0;
     if (owned >= def.maxLevel) return false;
+    // Never sell a level that would change nothing (automation already complete).
+    if (upgradeSaturated(this.state, def)) return false;
     const passives = aggregatePassives(this.state);
     const reduction = def.resource === 'nuts' ? passives.costReduction : 0;
     const cost = upgradeCost(def, owned, reduction);
@@ -2414,6 +2453,8 @@ export class GameEngine {
     };
     switch (effect.type) {
       case 'nuts':
+        // Math.max(0, NaN) is NaN: a malformed value must not reach the balance.
+        if (!Number.isFinite(effect.value ?? 0)) break;
         if ((effect.value ?? 0) >= 0) this.addNuts(gain(effect.value), false);
         else
           this.state.resources.nuts = Math.max(0, this.state.resources.nuts + (effect.value ?? 0));
@@ -2644,6 +2685,8 @@ export class GameEngine {
     if (!ch || ch.claimed || ch.progress < ch.goal) return false;
     ch.claimed = true;
     this.state.resources.goldenNuts += goldenForChallenge(id);
+    // A claim is a deliberate step: keep it (exactly once) even if the game closes now.
+    this.save();
     this.emit();
     return true;
   }

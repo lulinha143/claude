@@ -4,9 +4,9 @@ Handoff only: design is in `DESIGN.md`, commands and matrix in `.kiro/steering/q
 
 ## Branch
 
-`feat/zooworkers-3.0-facility-pass`: Chapter 1 is the commit that records this entry, on top
-of the setup commit `c55d356`; clean. `7a7ee3d` (architect's snapshot) is an ancestor; never
-roll back to it.
+`feat/zooworkers-3.0-facility-pass`: Chapter 4 is the commit that records this entry, on top
+of Chapter 1 (`80264a8`) and the setup commit `c55d356`; clean. `7a7ee3d` (architect's
+snapshot) is an ancestor; never roll back to it.
 
 ## Active configuration
 
@@ -40,23 +40,23 @@ roll back to it.
 
 Order: 1 → 4 → 9 → 2 → 3 → 5 → 6 → 7 → 8 → 10 → final integration.
 
-Accepted kit chapters: 1. Accepted pre-kit units: shell (`b138638`–`6189169`), living office
+Accepted kit chapters: 1, 4. Accepted pre-kit units: shell (`b138638`–`6189169`), living office
 (`bfaca01`–`d81ddc2`) and GC1–GC4 (`67cd776`–`7a7ee3d`), pinned by E2E specs but with no
 six-check record. Kit chapters reuse them as evidence and change only what fails the gate.
 GC numbers are not kit numbers.
 
-| Kit | Entry points                                                                                                              | Baseline / known gaps                           |
-| --- | ------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
-| 1   | `App`, `ui/GameHud`, `GameDock`, `Sheet`, `modals/OpeningSequence`, `Onboarding`, `art/OfficeScene`, `views/SettingsView` | Accepted (record below)                         |
-| 4   | `sim/goals`, `crate`, `economy`, `ui/GoalTag`, `views/ShopView`                                                           | GC1; Upgrades sheet still the pre-3.0 card list |
-| 9   | `ui/Notifications`, `modals/OfflineModal`, `sim/offline`, `happenings`                                                    | No view reads the diary yet                     |
-| 2   | `views/EmployeesView`, `modals/EmployeeTalk`, `sim/bonds`                                                                 | GC2                                             |
-| 3   | `art/RoomDressing`, `RoomPlay`, `content/rooms`, `roomPlay`                                                               | Living-office rooms + GC3                       |
-| 5   | `ui/minigames/*`, `sim/minigames`                                                                                         | Pre-shell fixes only                            |
-| 6   | `modals/IncidentScene`, `EventModal`, `content/incidents`, `ui/CuriosityLog`                                              | GC4 + GC3 curiosities                           |
-| 7   | `modals/EmployeeTalk`, `content/stories`, `employeeKeepsakes`                                                             | GC2 stories and scrapbook                       |
-| 8   | `views/DecorateView`, `ui/DecorationTray`, `sim/placement`, `depth`                                                       | Arranging rebuilt; catalog from `a4e03ad`       |
-| 10  | `views/PrestigeView`, `CollectionsView`, `sim/prestige`, `nextStep`                                                       | Prestige fix `65c4f09` only                     |
+| Kit | Entry points                                                                                                              | Baseline / known gaps                     |
+| --- | ------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| 1   | `App`, `ui/GameHud`, `GameDock`, `Sheet`, `modals/OpeningSequence`, `Onboarding`, `art/OfficeScene`, `views/SettingsView` | Accepted (record below)                   |
+| 4   | `sim/goals`, `crate`, `economy`, `ui/GoalTag`, `views/ShopView`                                                           | Accepted (record below)                   |
+| 9   | `ui/Notifications`, `modals/OfflineModal`, `sim/offline`, `happenings`                                                    | No view reads the diary yet               |
+| 2   | `views/EmployeesView`, `modals/EmployeeTalk`, `sim/bonds`                                                                 | GC2                                       |
+| 3   | `art/RoomDressing`, `RoomPlay`, `content/rooms`, `roomPlay`                                                               | Living-office rooms + GC3                 |
+| 5   | `ui/minigames/*`, `sim/minigames`                                                                                         | Pre-shell fixes only                      |
+| 6   | `modals/IncidentScene`, `EventModal`, `content/incidents`, `ui/CuriosityLog`                                              | GC4 + GC3 curiosities                     |
+| 7   | `modals/EmployeeTalk`, `content/stories`, `employeeKeepsakes`                                                             | GC2 stories and scrapbook                 |
+| 8   | `views/DecorateView`, `ui/DecorationTray`, `sim/placement`, `depth`                                                       | Arranging rebuilt; catalog from `a4e03ad` |
+| 10  | `views/PrestigeView`, `CollectionsView`, `sim/prestige`, `nextStep`                                                       | Prestige fix `65c4f09` only               |
 
 ### Chapter 1 record — core loop and desktop presentation
 
@@ -105,11 +105,59 @@ covered by a "has news" balloon) was fixed and its 11 affected specs re-run 98/9
 `npm run build:desktop` passed. Added coverage: language adoption, purchase slip, popup
 pinned actions, masthead/sign, Settings tabs, trunk branches and sign.
 
+### Chapter 4 record — clicker economy and useful active play
+
+Broken or weak before, fixed (save v13; no new currency; formulas stay in `src/sim`):
+
+- Late taps were worth ~2 nuts against tens of thousands a second. A tap is now the hand
+  combined (`Math.hypot`) with a slice of unboosted production (0.035 s, ~0.04 s with the
+  founder desk), paced so taps beyond ~8/s add none. The opening is unchanged; room tap
+  bonuses (founder desk, Marketing on Buzz) now scale the whole tap.
+- Mashing the incubation pod minted ~40 golden nuts a minute. Premium stations now refine
+  gold over time (full share 10 s after that station's last tap; the clock is saved, so a
+  reload is no shortcut), paid as whole nuts plus saved dust. Golden drops on nut taps roll
+  per second of tapping. v12→v13 floors fractional balances into dust.
+- Dead or misleading purchases: Muscle Memory/Shift Rhythm/room combo bonus widened only the
+  readout (now the real streak); morale above 100 counted for nothing (Morale Ceiling pays);
+  Reputation Engine added 20× the base pace (0.4 → 0.02/s per level); auto-collection at
+  100% and the 24 h offline cap kept selling levels (now "Completo", never a goal).
+- Goals: cheapest-first kept; saturated levels and hand levels worth <1% of a tap are
+  skipped, but a first hand level that opens the next tier says "Libera novas melhorias".
+- Resource strip: balances round down in the locale's decimal mark ("49,9", not "50");
+  the breakdown total includes a rush, so it equals the HUD rate. Finds and routine rewards
+  use unboosted production; NaN/negative rewards are ignored; a daily claim saves at once.
+- Upgrades sheet rebuilt as purchase slips: measured gain, price, a "Faltam …" button that
+  stays pressable and says what is missing live, "Feito! +X/s" on the row plus the office
+  slip, gold dots on tabs with something affordable, an "Em breve" line. The Team sheet
+  shares it. Gold for golden prices, green for gains; pt-BR economy text says "castanhas".
+
+Player gate (pt-BR, browser):
+
+- Fresh save, a real 12-minute session at 380×460: second floor 1:38, first hire after 4 min,
+  1,22K/s at 10 min and 2,79K/s at 12 min; 149 goal-tag and 8 shop purchases, 6 finds, idle
+  minutes 3 and 7–8, no stuck goal.
+- Active vs passive, 20 s each with the crate emptied in both: a 35-minute save 12,2K/s →
+  37,6K/s tapping 5/s (×3.1 with its rush); the 23-employee QA save 186K/s → 380K/s (×2.05).
+  The pod pays "+0,1%" mashed, "+3%" after a pause, its tooltip explains refining.
+- Upgrades sheet at all six sizes, no clipped text, buy targets ≥86×40; short presses,
+  keyboard Enter/Space with reduced motion (focus stays, no motion), high contrast, the Team
+  short note, the gateway goal flow and purchases persisting after reload.
+- Six checks — see, understand, interact, feedback, why it matters, feel: PASS (audio not
+  heard).
+- Seen outside this chapter: at ≤380px long pt-BR room plaques are cut ("Incubadora
+  Comportamenta…"); event texts still say "nozes" (Chapter 6 content).
+
+Checks: `npm run validate` exit 0 (840 unit tests). Full web E2E 324/324, then the added pod
+reload test: `economy.spec.ts` 5/5, three repeats. No desktop code changed. New coverage:
+`tests/clickerEconomy.test.ts`, `tests/e2e/economy.spec.ts`.
+
 ## Blockers
 
 - Kiro Web listed no skills this session; `zooworkers-playtest/SKILL.md` was followed by hand.
 - `templates/AGENTS.md` may load as a nested second AGENTS.md (Kiro docs); kept as instructed.
-- AUDIO LISTENING REQUIRED: no playback here (purchase/claim/tap cues are unchanged code).
+- AUDIO LISTENING REQUIRED: no playback here. Unheard: the purchase, claim and tap cues; the
+  error cue on every short press (the button used to be disabled); the celebrate cue on a
+  room bought in the shop; the golden cue when the pod mints a whole nut.
 - LOCAL WINDOWS VERIFICATION REQUIRED: the last recorded native run is `a4e03ad`. This sandbox
   has no Electron binary or display, so no smoke ran. On Windows: `npm run build:windows:folder`,
   `npm run verify:windows:packaged`, then `smoke:window`, `smoke:focus` and `smoke:mute`.
@@ -119,4 +167,4 @@ pinned actions, masthead/sign, Settings tabs, trunk branches and sign.
 
 ## Next prompt
 
-Chapter 4. Start its session on this branch; `main` has none of this configuration.
+Chapter 9. Start its session on this branch; `main` has none of this configuration.

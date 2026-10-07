@@ -117,14 +117,17 @@ export function GameHud() {
       lines={[
         t('tip.nuts.d'),
         t('tip.rate.d'),
-        t('tip.current', { value: fmt.num(state.resources.nuts) }),
+        t('tip.current', { value: fmt.amount(state.resources.nuts) }),
       ]}
     />,
   );
   const tipGolden = useTooltip(
     <TipContent
       title={t('tip.golden.t')}
-      lines={[t('tip.golden.d'), t('tip.current', { value: fmt.num(state.resources.goldenNuts) })]}
+      lines={[
+        t('tip.golden.d'),
+        t('tip.current', { value: fmt.amount(state.resources.goldenNuts) }),
+      ]}
     />,
   );
   const tipMorale = useTooltip(
@@ -217,7 +220,7 @@ export function GameHud() {
         <div
           className="hud__nuts"
           tabIndex={0}
-          aria-label={`${t('resource.nuts')}: ${fmt.num(state.resources.nuts)}`}
+          aria-label={`${t('resource.nuts')}: ${fmt.amount(state.resources.nuts)}`}
           data-testid="hud-nuts"
           {...tipNuts}
         >
@@ -225,7 +228,11 @@ export function GameHud() {
             <Acorn size={20} />
           </span>
           <span className="hud__nuts-value" aria-hidden>
-            <AnimatedNumber value={state.resources.nuts} format={fmt.num} reducedMotion={reduced} />
+            <AnimatedNumber
+              value={state.resources.nuts}
+              format={fmt.amount}
+              reducedMotion={reduced}
+            />
           </span>
           <span className="hud__rate" aria-hidden>
             +{fmt.num(nps)}/s
@@ -242,7 +249,7 @@ export function GameHud() {
         <HudStat
           kind="golden"
           icon={<GoldenNut size={15} />}
-          value={fmt.num(state.resources.goldenNuts)}
+          value={fmt.amount(state.resources.goldenNuts)}
           label={t('resource.goldenNuts')}
           tip={tipGolden}
           rise={goldenRises}

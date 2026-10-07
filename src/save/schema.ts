@@ -322,6 +322,8 @@ export const gameStateSchema = z.object({
       bestStreak: z.number().finite().nonnegative().catch(0),
       rushes: z.number().finite().nonnegative().catch(0),
       findsCollected: z.number().finite().nonnegative().catch(0),
+      goldenDust: z.number().finite().min(0).max(1).catch(0),
+      premiumAt: z.record(z.number().finite()).catch({}),
     })
     .catch({
       stationTaps: {},
@@ -330,6 +332,8 @@ export const gameStateSchema = z.object({
       bestStreak: 0,
       rushes: 0,
       findsCollected: 0,
+      goldenDust: 0,
+      premiumAt: {},
     }),
   crate: z.object({ nuts: z.number().finite().nonnegative().catch(0) }).catch({ nuts: 0 }),
   finds: z

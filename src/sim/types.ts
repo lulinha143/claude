@@ -190,6 +190,10 @@ export interface ClickerState {
   rushes?: number;
   /** lifetime finds handed over by teammates. */
   findsCollected?: number;
+  /** gold refined toward the next whole golden nut (0..1) by premium stations. */
+  goldenDust?: number;
+  /** stationId -> epoch ms a premium station was last tapped (refining resumes from it). */
+  premiumAt?: Record<string, number>;
 }
 
 /**

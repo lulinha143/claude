@@ -223,6 +223,33 @@
       "room": "Rooms",
       "coffee": "Coffee & Morale",
       "quality": "Quality of Life"
+    },
+    "buy": "Buy",
+    "short": "Need {{amount}}",
+    "shortNote": "Still {{amount}} short.",
+    "bought": "Done! {{gain}}",
+    "boughtPlain": "Done!",
+    "maxed": "Max",
+    "complete": "Complete",
+    "completeNote": "Nothing waits on you any more: another level would change nothing.",
+    "goal": "Next goal",
+    "ready": "Something here is ready to buy",
+    "next": "Coming up: {{name}}, {{condition}}.",
+    "after": "after {{name}}",
+    "atReputation": "at {{value}} reputation",
+    "afterPrestige": "after a restructure",
+    "effect": {
+      "critChance": "+{{value}}% critical taps",
+      "comboWindow": "+{{value}}% combo window",
+      "goldenChance": "+{{value}}% golden drops",
+      "eventReward": "+{{value}}% event rewards",
+      "roomEfficiency": "+{{value}}% room efficiency",
+      "autoCollect": "+{{value}}% banked on its own",
+      "offlineCapHours": "+{{value}}h counted while away",
+      "reputationRate": "+{{value}} reputation/s",
+      "moraleCap": "+{{value}} morale ceiling",
+      "unlockRoom": "Opens a new floor",
+      "negligible": "Next to nothing now"
     }
   },
   "employee": {
@@ -627,7 +654,10 @@
       "cadence": "Rhythm",
       "synergy": "Boosted by {{names}} working in this room.",
       "nutAmount": "{{amount}} nuts",
-      "goldenAmount": "{{amount}} golden"
+      "goldenAmount": "{{amount}} golden",
+      "goldenRefine": "+{{share}} of a golden nut",
+      "refines": "Refines over time: the gold comes from time spent here, not from tapping faster.",
+      "scales": "Every tap also carries a slice of the company's production."
     },
     "nutCrate": {
       "name": "Nut Crate",
@@ -734,7 +764,7 @@
       },
       "click": {
         "name": "Sorting Gloves {{tier}}",
-        "desc": "Collect crates faster. Increases click power."
+        "desc": "Steadier paws at every machine: more nuts per tap, most of all early on."
       }
     },
     "autoCollector": {
@@ -751,11 +781,11 @@
     },
     "reputationEngine": {
       "name": "Reputation Engine",
-      "desc": "Grow the company's good name faster."
+      "desc": "Grow the company's good name faster: each level adds the base reputation pace again (+0.02/s)."
     },
     "moraleCap": {
       "name": "Morale Ceiling",
-      "desc": "Raise the maximum morale of the office."
+      "desc": "+10 to the morale ceiling per level. Morale above 100 keeps raising production."
     },
     "room": {
       "sorting": {
@@ -2217,6 +2247,7 @@
     "focus": "Focus Mode",
     "mood": "Team mood",
     "boost": "Active boost",
+    "rush": "Rush",
     "total": "Total",
     "fromRooms": "From your departments"
   },
@@ -4125,11 +4156,12 @@
     "next": "Next",
     "buy": "Buy",
     "hire": "Hire {{name}}",
-    "level": "{{name}} Lv. {{level}}",
-    "nextLevel": "{{name}} · Lv. {{level}}",
+    "level": "{{name}} Lv.\u00a0{{level}}",
+    "nextLevel": "{{name}} · Lv.\u00a0{{level}}",
     "perSecond": "+{{value}}/s",
     "perTap": "+{{value}} per tap",
     "opens": "Opens a new floor",
+    "unlocksMore": "Unlocks new upgrades",
     "bought": "Done!",
     "open": "See everything to buy",
     "progress": "{{have}} / {{need}}",

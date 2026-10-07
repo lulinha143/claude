@@ -57,6 +57,10 @@ export interface ClickStationProps {
   synergyNames: string[];
   play: (name: SfxName, opts?: { pitch?: number }) => void;
   formatAmount: (value: number) => string;
+  /** a 0..1 share as a short localized percentage (golden dust refined by a tap). */
+  formatShare?: (fraction: number) => string;
+  /** the combo window in force for this station (upgrades and rooms widen it). */
+  comboWindow?: number;
   /** the room's routine, so the machine itself shows it: brewing, ready, stuck, a blip. */
   playStatus?: RoutineStatus;
 }
@@ -73,6 +77,8 @@ export function ClickStation({
   synergyNames,
   play,
   formatAmount,
+  formatShare = (fraction) => `${Math.round(fraction * 100)}%`,
+  comboWindow,
   playStatus,
 }: ClickStationProps) {
   const { t } = useTranslation();
@@ -109,15 +115,17 @@ export function ClickStation({
       const result = onTap(def.id);
       if (!result) return;
 
-      const tone: TapTone = result.golden ? 'golden' : result.critical ? 'critical' : 'normal';
+      // A premium station refines gold: it shows the dust a tap added, and the
+      // golden nut itself only when one is completed.
+      const premium = result.resource === 'goldenNuts';
+      const minted = premium && (result.goldenPaid ?? 0) > 0;
+      const tone: TapTone =
+        result.golden || premium ? 'golden' : result.critical ? 'critical' : 'normal';
       const box = element.getBoundingClientRect();
 
       // Sound: pitch climbs with the streak so a combo audibly builds.
-      const sfx: SfxName = result.golden
-        ? 'stationGolden'
-        : result.critical
-          ? 'stationCrit'
-          : 'stationTap';
+      const sfx: SfxName =
+        result.golden || minted ? 'stationGolden' : result.critical ? 'stationCrit' : 'stationTap';
       play(sfx, { pitch: 1 + Math.min(0.6, (result.streak - 1) * 0.03) });
 
       // Number + punch, both imperative.
@@ -127,9 +135,13 @@ export function ClickStation({
       tapPop({
         x: event.clientX,
         y: event.clientY,
-        text: `${prefix}${formatAmount(result.amount)}`,
+        text: premium
+          ? minted
+            ? `${prefix}${result.goldenPaid}`
+            : `${prefix}${formatShare(result.amount)}`
+          : `${prefix}${formatAmount(result.amount)}`,
         tone,
-        streak: result.streak,
+        streak: premium ? 0 : result.streak,
       });
       tapPunch(element, tone);
       // Get the station's own tooltip out from over the machine for the burst.
@@ -171,13 +183,16 @@ export function ClickStation({
 
       // Let the readout fade once the combo window has actually lapsed.
       if (lapseRef.current !== null) window.clearTimeout(lapseRef.current);
-      lapseRef.current = window.setTimeout(() => {
-        lapseRef.current = null;
-        pendingStreakRef.current = null;
-        setStreak(0);
-      }, comboWindowMs(def.cadence));
+      lapseRef.current = window.setTimeout(
+        () => {
+          lapseRef.current = null;
+          pendingStreakRef.current = null;
+          setStreak(0);
+        },
+        comboWindow ?? comboWindowMs(def.cadence),
+      );
     },
-    [def.cadence, def.id, flushStreak, formatAmount, onTap, play, t],
+    [comboWindow, def.cadence, def.id, flushStreak, formatAmount, formatShare, onTap, play, t],
   );
 
   const cadenceLabel = t(`station.cadence.${def.cadence}`);
@@ -192,6 +207,9 @@ export function ClickStation({
       <span className="station-tip__row">
         <span className="station-tip__label">{t('station.tip.cadence')}</span>
         <span className="station-tip__value">{cadenceLabel}</span>
+      </span>
+      <span className="station-tip__hint">
+        {def.resource === 'goldenNuts' ? t('station.tip.refines') : t('station.tip.scales')}
       </span>
       {crate ? (
         <>

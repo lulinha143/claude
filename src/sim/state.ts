@@ -136,6 +136,8 @@ export function createInitialState(now = Date.now(), settings?: Partial<GameSett
       bestStreak: 0,
       rushes: 0,
       findsCollected: 0,
+      goldenDust: 0,
+      premiumAt: {},
     },
     crate: { nuts: 0 },
     finds: [],

@@ -2,13 +2,24 @@
 // the whole economy from this one file. Formulas live in economy.ts and read
 // from here.
 
-export const SAVE_VERSION = 12;
+export const SAVE_VERSION = 13;
 
 export const BALANCE = {
   /** starting nuts for a brand new company. */
   startingNuts: 0,
   /** base nuts granted per manual click before click upgrades. */
   baseClickPower: 1,
+  /**
+   * A tap also carries a slice of what the company makes, so clicking keeps pace
+   * with production instead of fading into a rounding error once the team is big:
+   * this many seconds of the company's UNBOOSTED production per tap on a payout-1
+   * station, before the rooms' tap bonus (the founder desk alone makes it ~0.04 s),
+   * cadence, combo, synergy and crit. At a steady 5-6 taps a second an active
+   * burst roughly doubles a visit's income while it lasts; it never replaces the
+   * team. Taps faster than `CLICK.minTapIntervalMs` add no more of it, so an
+   * autoclicker is not an economy.
+   */
+  tapProductionSeconds: 0.035,
   /** nuts produced per second by the founder before any employees/upgrades. */
   baseProductionPerSecond: 0.5,
 

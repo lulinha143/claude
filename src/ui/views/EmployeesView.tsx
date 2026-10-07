@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useGame } from '../../state/hooks';
 import { useStore } from '../../state/store';
 import { useFmt } from '../useFmt';
@@ -20,6 +20,8 @@ import { ROOMS_BY_ID } from '../../content/rooms';
 import { canTalk, talkCooldownRemaining } from '../../sim/talks';
 import { pendingMoment, wavingTeammates, type PendingMoment } from '../../sim/bonds';
 import { BondMeter } from '../BondMeter';
+import { employeeGain } from '../../sim/goals';
+import { announcePurchase } from '../officeEvents';
 import { Glyph, type GlyphName } from '../../art/Glyph';
 
 /** The mark beside "wants to tell you something" (same as the office's). */
@@ -55,6 +57,38 @@ export function EmployeesView() {
   const readyCount = EMPLOYEES.filter(
     (def) => state.employees[def.id].hired && talkReady(def.id),
   ).length;
+
+  // What each hire or promotion would add per second, measured when the team,
+  // purchases, standing or morale move (not on every tick of the sim).
+  const [short, setShort] = useState<{ id: string; key: number } | null>(null);
+  useEffect(() => {
+    if (!short) return undefined;
+    const timer = window.setTimeout(() => setShort(null), 2600);
+    return () => window.clearTimeout(timer);
+  }, [short]);
+  const signature = [
+    Object.entries(state.upgrades)
+      .map(([id, level]) => `${id}${level}`)
+      .join(','),
+    Object.values(state.employees)
+      .map((rt) => `${rt.hired ? 1 : 0}${rt.level}${rt.room ?? ''}`)
+      .join(''),
+    Math.floor(state.resources.reputation),
+    Math.round(state.resources.morale),
+  ].join('|');
+  const gains = useMemo(
+    () => {
+      const map = new Map<string, number>();
+      for (const def of EMPLOYEES) {
+        if (!isEmployeeUnlocked(state, def)) continue;
+        const perSecond = employeeGain(state, def.id).perSecond;
+        if (perSecond > 0.0001) map.set(def.id, perSecond);
+      }
+      return map;
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [signature],
+  );
 
   return (
     <section className="view view--employees">
@@ -310,14 +344,37 @@ export function EmployeesView() {
                   </span>
                 ) : (
                   <>
+                    {/* What the hire or promotion buys, measured like the goal tag. */}
+                    {gains.get(def.id) ? (
+                      <span className="employee-card__gain">
+                        {t('goal.perSecond', { value: fmt.num(gains.get(def.id) ?? 0) })}
+                      </span>
+                    ) : null}
                     <button
                       className="buy-btn"
-                      disabled={!afford}
-                      onClick={() =>
-                        engine.hireOrLevelEmployee(def.id)
-                          ? audio.play('upgrade')
-                          : audio.play('error')
-                      }
+                      // Short of the price: still pressable, so it can say what is missing.
+                      aria-disabled={afford ? undefined : true}
+                      onClick={() => {
+                        if (afford && engine.hireOrLevelEmployee(def.id)) {
+                          audio.play('upgrade');
+                          setShort(null);
+                          announcePurchase({
+                            title: rt.hired
+                              ? t('goal.level', {
+                                  name: rt.nickname ?? t(def.nameKey),
+                                  level: rt.level + 1,
+                                })
+                              : t('goal.hire', { name: t(def.nameKey) }),
+                            gain: gains.get(def.id)
+                              ? t('goal.perSecond', { value: fmt.num(gains.get(def.id) ?? 0) })
+                              : null,
+                            employeeId: def.id,
+                          });
+                        } else {
+                          audio.play('error');
+                          setShort({ id: def.id, key: Date.now() });
+                        }
+                      }}
                     >
                       {def.hireCost.resource === 'goldenNuts' ? (
                         <GoldenNut size={16} />
@@ -327,6 +384,24 @@ export function EmployeesView() {
                       <span>{fmt.num(cost)}</span>
                       <em>{rt.hired ? t('employee.promote') : t('employee.hire')}</em>
                     </button>
+                    {short?.id === def.id && !afford ? (
+                      <span key={short.key} className="employee-card__short" role="status">
+                        {t('shop.shortNote', {
+                          amount:
+                            def.hireCost.resource === 'goldenNuts'
+                              ? t('station.tip.goldenAmount', {
+                                  amount: fmt.int(
+                                    Math.ceil(cost - state.resources[def.hireCost.resource]),
+                                  ),
+                                })
+                              : t('station.tip.nutAmount', {
+                                  amount: fmt.int(
+                                    Math.ceil(cost - state.resources[def.hireCost.resource]),
+                                  ),
+                                }),
+                        })}
+                      </span>
+                    ) : null}
                     {rt.hired ? (
                       <button
                         className="ghost-btn"

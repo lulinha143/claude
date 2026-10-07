@@ -1345,15 +1345,27 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
     [audio],
   );
 
+  // A refined share of a golden nut, as the player reads it: "12%", "0,4%".
+  const formatShare = useMemo(() => {
+    const percent = new Intl.NumberFormat(fmt.locale, {
+      style: 'percent',
+      maximumFractionDigits: 1,
+    });
+    const whole = new Intl.NumberFormat(fmt.locale, {
+      style: 'percent',
+      maximumFractionDigits: 0,
+    });
+    return (fraction: number) => (fraction >= 0.01 ? whole : percent).format(fraction);
+  }, [fmt.locale]);
+
   const stationPreview = useCallback(
     (def: ClickStationDef) => {
       const value = previewClickValue(state, def.id, engine.combo, Date.now());
-      const amount = def.resource === 'goldenNuts' ? fmt.num(value) : fmt.int(value);
       return def.resource === 'goldenNuts'
-        ? t('station.tip.goldenAmount', { amount })
-        : t('station.tip.nutAmount', { amount });
+        ? t('station.tip.goldenRefine', { share: formatShare(value) })
+        : t('station.tip.nutAmount', { amount: fmt.int(value) });
     },
-    [engine, fmt, state, t],
+    [engine, fmt, formatShare, state, t],
   );
 
   const stationSynergyNames = useCallback(
@@ -2492,6 +2504,8 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
                               synergyNames={stationSynergyNames(stationDef)}
                               play={playSfx}
                               formatAmount={fmt.int}
+                              formatShare={formatShare}
+                              comboWindow={engine.comboWindowFor(stationDef.id)}
                               playStatus={playView?.status}
                             />
                           ))

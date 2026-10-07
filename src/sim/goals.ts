@@ -11,6 +11,7 @@ import {
   isUpgradeUnlocked,
   reputationRate,
   upgradeCost,
+  upgradeSaturated,
 } from './economy';
 import { ROOMS } from '../content/rooms';
 import type { RoomDef } from '../content/types';
@@ -42,6 +43,11 @@ export interface Goal {
   nameParams?: Record<string, unknown>;
   /** for 'level': the level the teammate reaches. */
   level?: number;
+  /**
+   * The goal for what it opens (the next tier and the lines behind it), not for
+   * its own gain, which is negligible: the tag says so instead of "+0 por toque".
+   */
+  opens?: boolean;
 }
 
 function withUpgrade(state: GameState, id: string): GameState {
@@ -63,33 +69,85 @@ function measure(before: GameState, after: GameState): Goal['gain'] {
       computeProduction(after, false).nutsPerSecond -
         computeProduction(before, false).nutsPerSecond,
     ),
+    // What a tap is really worth after the purchase (hand and production slice),
+    // so a click upgrade late in the game promises the small gain it truly gives.
     perTap: Math.max(0, clickPower(after) - clickPower(before)),
   };
+}
+
+/** What one more level of an upgrade changes, measured on a copy of the state. */
+export function upgradeGain(state: GameState, id: string): Goal['gain'] {
+  return measure(state, withUpgrade(state, id));
+}
+
+/** What hiring (or promoting) a teammate changes, measured on a copy of the state. */
+export function employeeGain(state: GameState, id: string): Goal['gain'] {
+  return measure(state, withEmployeeLevel(state, id));
+}
+
+/**
+ * A click level that would add less than this share to a tap is never made the
+ * goal. Late in the game the production slice carries a tap and the hand's own
+ * strength is a rounding error: the shop still sells the level, honestly
+ * measured, but the company is not pointed at it.
+ */
+export const NEGLIGIBLE_TAP_GAIN = 0.01;
+
+/** Upgrades whose first level opens another (the next tier, the crit and combo lines). */
+const OPENS_ANOTHER = new Set(
+  (UPGRADES as UpgradeDef[]).map((u) => u.unlock?.upgradeId).filter(Boolean),
+);
+
+/** True while buying the upgrade's first level would open further upgrades. */
+export function unlocksMoreUpgrades(state: GameState, id: string): boolean {
+  return (state.upgrades[id] ?? 0) === 0 && OPENS_ANOTHER.has(id);
+}
+
+interface Offer {
+  cost: number;
+  make: () => Goal;
+  /** measured lazily, only for an offer that would otherwise be the goal. */
+  worthIt?: () => boolean;
 }
 
 /** The player's immediate goal, or null when nothing is left to buy with nuts. */
 export function nextGoal(state: GameState): Goal | null {
   const reduction = aggregatePassives(state).costReduction;
-  let best: { cost: number; make: () => Goal } | null = null;
-  const consider = (cost: number, make: () => Goal) => {
+  const offers: Offer[] = [];
+  const consider = (cost: number, make: () => Goal, worthIt?: () => boolean) => {
     if (!Number.isFinite(cost) || cost <= 0) return;
-    if (!best || cost < best.cost) best = { cost, make };
+    offers.push({ cost, make, worthIt });
   };
+  let tapNow: number | null = null;
+  const tapToday = () => (tapNow ??= clickPower(state));
 
   for (const def of UPGRADES as UpgradeDef[]) {
     if (def.resource !== 'nuts' || !isUpgradeUnlocked(state, def)) continue;
     const owned = state.upgrades[def.id] ?? 0;
-    if (owned >= def.maxLevel) continue;
+    // A level that would change nothing is never the next thing to buy.
+    if (owned >= def.maxLevel || upgradeSaturated(state, def)) continue;
     const cost = upgradeCost(def, owned, reduction);
-    consider(cost, () => ({
-      kind: def.effect.kind === 'unlockRoom' ? 'room' : 'upgrade',
-      id: def.id,
+    const hand = def.effect.kind === 'clickPower';
+    const gateway = unlocksMoreUpgrades(state, def.id);
+    const significant = () =>
+      clickPower(withUpgrade(state, def.id)) - tapToday() >= tapToday() * NEGLIGIBLE_TAP_GAIN;
+    consider(
       cost,
-      gain: measure(state, withUpgrade(state, def.id)),
-      roomId: def.effect.kind === 'unlockRoom' ? def.effect.roomId : undefined,
-      nameKey: def.nameKey,
-      nameParams: def.nameParams,
-    }));
+      () => ({
+        kind: def.effect.kind === 'unlockRoom' ? 'room' : 'upgrade',
+        id: def.id,
+        cost,
+        gain: measure(state, withUpgrade(state, def.id)),
+        roomId: def.effect.kind === 'unlockRoom' ? def.effect.roomId : undefined,
+        nameKey: def.nameKey,
+        nameParams: def.nameParams,
+        opens: hand && gateway && !significant() ? true : undefined,
+      }),
+      // ...nor is one that would change next to nothing — unless its first level
+      // opens the next tier and the crit and combo lines behind it, which would
+      // otherwise stay out of sight for a company that never bought the hand.
+      hand && !gateway ? significant : undefined,
+    );
   }
 
   for (const def of EMPLOYEES) {
@@ -106,7 +164,9 @@ export function nextGoal(state: GameState): Goal | null {
     }));
   }
 
-  const pick = best as { cost: number; make: () => Goal } | null;
+  // Cheapest first (ties keep the order above); a negligible level steps aside.
+  offers.sort((a, b) => a.cost - b.cost);
+  const pick = offers.find((offer) => !offer.worthIt || offer.worthIt()) ?? offers[0];
   return pick ? pick.make() : null;
 }
 
