@@ -2401,13 +2401,37 @@
     "returnTitle": "Come back any time",
     "return": "Leave the office open in a corner of the screen or close it: the team keeps working. Always on top and Quiet mode live in Settings (the gear)."
   },
-  "offline": {
-    "title": "While You Were Away",
-    "duration": "You were gone {{duration}}",
-    "earned": "Pip's team earned {{value}} nuts",
-    "capped": "(offline cap reached — upgrade Cold Storage for more)",
-    "rate": "at {{value}}/s",
-    "welcomeBack": "Welcome back!"
+  "returnNote": {
+    "label": "Note from when you got back",
+    "title": "Welcome back!",
+    "away": "{{duration}} away",
+    "span": {
+      "minutes": "{{m}} min",
+      "hours": "{{h}}h",
+      "hoursMinutes": "{{h}}h {{m}}m",
+      "days_one": "{{count}} day",
+      "days_other": "{{count}} days"
+    },
+    "banked": "+{{value}} nuts",
+    "rule": {
+      "closed": "With the game closed the team makes {{pct}}% (up to {{hours}}h). Left open in a corner, it makes it all.",
+      "capped": "You were away {{away}}; we counted {{hours}}h, the cap. Cold Storage keeps more.",
+      "asleep": "The computer slept {{slept}}: that time makes {{pct}}%, as with the game closed.",
+      "open": "Left open in a corner, the office made it all."
+    },
+    "go": {
+      "crateFull": "Crate full",
+      "crate": "In the crate",
+      "crateDetail": "{{value}} to collect",
+      "incident": "{{name}} saw something happening",
+      "incidentAnon": "Something is happening",
+      "story": "{{name}} has something to tell you",
+      "find_one": "{{name}} found something",
+      "find_other": "{{count}} finds waiting",
+      "discovery": "Something to look into",
+      "oddity": "Something odd turned up"
+    },
+    "goLabel": "Go there: {{what}} — {{room}}"
   },
   "moment": {
     "company": "Company",
@@ -4180,13 +4204,6 @@
   "construction": {
     "reputation": "Reputation {{have}} / {{need}}",
     "build": "Build for {{cost}}"
-  },
-  "awayExtra": {
-    "crate": "The crate filled up with {{value}} nuts: tap it in the office to collect.",
-    "finds_one": "Someone found something while you were out.",
-    "finds_other": "{{count}} teammates found something while you were out.",
-    "incidents_one": "Something started happening in the office while you were away.",
-    "incidents_other": "{{count}} things started happening in the office while you were away."
   },
   "arc": {
     "pip": {

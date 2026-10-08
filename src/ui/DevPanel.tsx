@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useGame } from '../state/hooks';
 import { useStore } from '../state/store';
-import { computeOffline, applyOffline } from '../sim/offline';
 import { GAME_EVENTS } from '../content/events';
 import { EMPLOYEES } from '../content/employees';
 import { SAVE_VERSION } from '../sim/config';
@@ -228,10 +227,8 @@ export function DevPanel() {
             />
             <button
               onClick={() => {
-                state.lastSaved = Date.now() - offlineHours * 3600 * 1000;
-                const r = computeOffline(state, Date.now());
-                applyOffline(state, r);
-                engine.save();
+                // The same settlement and welcome back as a closed game, `offlineHours` long.
+                useStore.getState().simulateAway(offlineHours * 3600);
                 bump(engine);
               }}
             >

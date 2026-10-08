@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNotifications, type Toast, type ToastTone } from './notificationsStore';
 import { Icon, type IconName } from '../art/UiIcon';
+import { useStore } from '../state/store';
+import { ReturnNote } from './ReturnNote';
 
 export const NOTIFICATION_PUSH_EVENT = 'wmno:notification';
 export const NOTIFICATION_CLEAR_EVENT = 'wmno:notifications-clear';
@@ -49,8 +51,12 @@ export function Notifications() {
   const items = useNotifications((state) => state.items);
   const push = useNotifications((state) => state.push);
   const clear = useNotifications((state) => state.clear);
-  const limit = useVisibleLimit();
+  const viewportLimit = useVisibleLimit();
   const blocked = useBlockingOverlay();
+  // The welcome-back note heads the column; it takes one toast's place (on the
+  // smallest windows, the only one: the rest wait their turn behind it).
+  const returning = useStore((s) => s.returnSummary !== null) && !blocked;
+  const limit = Math.max(0, viewportLimit - (returning ? 1 : 0));
 
   // A small event bridge lets renderer subsystems (and deterministic E2E
   // coverage) enqueue notifications without importing React or the store.
@@ -89,16 +95,19 @@ export function Notifications() {
 
   return (
     <div
-      className={`toasts ${visible.length === 0 ? 'is-empty' : ''}`}
+      className={`toasts ${visible.length === 0 && !returning ? 'is-empty' : ''}`}
       role="status"
       aria-live="polite"
       aria-atomic="false"
       data-queue-size={items.length}
     >
+      {returning ? <ReturnNote /> : null}
       {visible.map((toast) => (
         <ToastItem key={toast.id} toast={toast} />
       ))}
-      {queuedCount > 0 ? (
+      {/* While the welcome back is up, the notes queued behind it wait quietly
+          (a count pill under it sat right on the room's desks). */}
+      {queuedCount > 0 && !(returning && visible.length === 0) ? (
         <div
           className="toast-summary"
           aria-label={t('notify.additionalUpdates', { count: queuedCount })}

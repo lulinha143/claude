@@ -34,6 +34,7 @@ import {
 import { upgradeBonus } from './upgradeEffects';
 import { crateCapacity, crateFill, splitProduction } from './crate';
 import { applyOffline, computeAway, type OfflineResult } from './offline';
+import { holdWaiting, shiftTimeline } from './timeline';
 import { ROOM_PROFILES_BY_ID } from '../content/roomProfiles';
 import { MOOD_POSITIVE } from './mood';
 import { acknowledgedTier, bondTier, pairFlag, tierFlag, type BondTier } from './bonds';
@@ -486,10 +487,25 @@ export class GameEngine {
   private findAccum = 0;
   private officeAccum = 0;
   private resolvingEventInstanceId: number | null = null;
+  /**
+   * The wall-clock moment the company has been settled up to: every interval
+   * before it has been paid exactly once, by one rule (see `catchUp`). It is what
+   * a save records as `lastSaved`, so the next boot settles exactly the rest.
+   */
+  private settledAt: number;
+  /** While a slice of a long tick is simulated: that slice's own moment (else null). */
+  private stepClock: number | null = null;
+  /**
+   * Whether anybody can see the office (the window is showing). While nobody can,
+   * what waits to be noticed holds its place instead of being decided offscreen.
+   */
+  private attended = true;
 
   constructor(state: GameState, opts: EngineOptions = {}) {
     this.state = state;
     this.now = opts.now ?? (() => Date.now());
+    // A loaded company is settled up to its save; the boot settles the rest.
+    this.settledAt = Number.isFinite(state.lastSaved) ? state.lastSaved : this.now();
     this.state.boosts ??= [];
     this.state.microgames ??= {};
     ensureOffice(this.state);
@@ -543,8 +559,18 @@ export class GameEngine {
   }
 
   // -- derived reads --------------------------------------------------------
+  /**
+   * The moment the temporary multipliers (boosts, rushes, Focus Harvest) are read
+   * at: the present, or — while a long tick is simulated slice by slice — that
+   * slice's own moment, so a boost that ran out inside a throttled minute counts
+   * for exactly its share of it rather than all or nothing.
+   */
+  private clock(): number {
+    return this.stepClock ?? this.now();
+  }
+
   isFocusActive(): boolean {
-    return this.state.focus.active && this.now() < this.state.focus.endsAt;
+    return this.state.focus.active && this.clock() < this.state.focus.endsAt;
   }
 
   productionPerSecond(): number {
@@ -576,12 +602,12 @@ export class GameEngine {
   /** Epoch ms the room's rush ends (0 when it is not rushing). */
   rushEndsAt(roomId: string): number {
     const ends = this.rushes.get(roomId) ?? 0;
-    return ends > this.now() ? ends : 0;
+    return ends > this.clock() ? ends : 0;
   }
 
   /** Rooms rushing right now. */
   activeRushes(): string[] {
-    const t = this.now();
+    const t = this.clock();
     return [...this.rushes].filter(([, ends]) => ends > t).map(([room]) => room);
   }
 
@@ -617,9 +643,14 @@ export class GameEngine {
   }
 
   // -- the crate --------------------------------------------------------------
-  /** What a full crate holds at the current pace. */
+  /**
+   * What a full crate holds: ten minutes of packing at the company's own pace.
+   * Temporary multipliers (a boost, a rush, Focus Harvest) pack it faster, they do
+   * not make it bigger: it used to grow during a rush and shrink back after, so a
+   * crate filled while away read "full" in the art and "not quite" on the HUD.
+   */
   crateCapacity(): number {
-    return crateCapacity(this.productionPerSecond());
+    return crateCapacity(computeProduction(this.state, false).nutsPerSecond);
   }
 
   /** How full the crate is, 0..1. */
@@ -628,7 +659,7 @@ export class GameEngine {
   }
 
   currentBoostMultiplier(): number {
-    const t = this.now();
+    const t = this.clock();
     let m = 1;
     for (const b of this.tempBoosts) if (b.endsAt > t) m += b.multiplier - 1;
     return Math.min(3, Math.max(1, m));
@@ -643,15 +674,35 @@ export class GameEngine {
   }
 
   // -- main tick ------------------------------------------------------------
-  /** Advance the simulation by `deltaSeconds`, chunked for stability. */
+  /**
+   * Advance the simulation by the `deltaSeconds` of open play that end now,
+   * chunked for stability. Each slice is valued at its own moment (see `clock`),
+   * so one throttled minute-long tick earns what six hundred quick ones would.
+   */
   tick(deltaSeconds: number): void {
     if (deltaSeconds <= 0 || !Number.isFinite(deltaSeconds)) return;
+    const end = this.now();
+    this.settledAt = end;
     let remaining = Math.min(deltaSeconds, 60 * 60); // never process >1h in one call
+    let sliceStart = end - remaining * 1000;
+    // Bounded work per call: at most ~120 slices, so a window woken after a few
+    // throttled minutes catches up in a blink instead of replaying every half second.
+    const slice = Math.max(BALANCE.maxTickSeconds, remaining / 120);
     while (remaining > 0) {
-      const step = Math.min(remaining, BALANCE.maxTickSeconds);
-      this.stepSimulation(step);
+      const step = Math.min(remaining, slice);
+      this.stepClock = sliceStart + (step * 1000) / 2;
+      try {
+        this.tickFocus(this.stepClock);
+        this.stepSimulation(step);
+      } finally {
+        this.stepClock = null;
+      }
+      sliceStart += step * 1000;
       remaining -= step;
     }
+    // Nobody can see the office (minimized, hidden): what waits to be noticed
+    // keeps its place rather than being decided or fading offscreen.
+    if (!this.attended) holdWaiting(this.state, Math.min(deltaSeconds, 3600) * 1000);
     this.state.stats.playTimeSeconds += Math.min(deltaSeconds, 3600);
     this.tickFocus();
     this.rolloverDaily();
@@ -687,11 +738,17 @@ export class GameEngine {
     this.expireIncidents();
     if (this.activeEvent && this.state.settings.autoResolveEvents) this.autoResolveActiveEvent();
 
+    // One roll per interval of company time, however the ticks fall: a throttled
+    // window ticking once a minute used to roll once a minute instead of every
+    // 45 seconds (and drop the rest). Bounded, so no tick replays a backlog.
     this.eventAccum += deltaSeconds;
-    if (this.eventAccum >= BALANCE.eventRollIntervalSeconds) {
-      this.eventAccum = 0;
+    let rolls = 0;
+    while (this.eventAccum >= BALANCE.eventRollIntervalSeconds && rolls < 8) {
+      this.eventAccum -= BALANCE.eventRollIntervalSeconds;
+      rolls += 1;
       this.maybeRollEvent();
     }
+    if (this.eventAccum >= BALANCE.eventRollIntervalSeconds) this.eventAccum = 0;
 
     this.checkAchievements();
     this.emit();
@@ -706,9 +763,12 @@ export class GameEngine {
     // Half goes straight to the vault; the team packs the other half into the
     // crate for the player to collect. A full crate's share still banks at the
     // overflow rate (offline efficiency, more with automation). See sim/crate.ts.
+    const ownPace = this.isFocusActive()
+      ? computeProduction(this.state, false).nutsPerSecond
+      : prod.nutsPerSecond;
     const split = splitProduction(
       this.state.crate.nuts,
-      crateCapacity(nps),
+      crateCapacity(ownPace),
       nps * dt,
       autoCollectRate(this.state),
     );
@@ -941,20 +1001,91 @@ export class GameEngine {
   }
 
   /**
-   * Settle time the game was not running even though it was open (the computer
-   * slept, the process was frozen) exactly as if it had been closed: production at
-   * the offline rules, the crate filled, and the finds that time would have
-   * brought. Returns what happened, for the welcome-back note.
+   * Settle `seconds` the game was not running — closed, or open while the computer
+   * slept or the process was frozen — at the away rules: production at the offline
+   * efficiency up to the cap, the crate filled first, the finds that time would
+   * have brought, a few things started in the office. Nobody could look meanwhile,
+   * so what was already waiting keeps its place. Returns what happened, for the
+   * welcome-back note.
    */
   settleAway(seconds: number): OfflineResult {
+    this.settledAt = this.now();
     const result = computeAway(this.state, seconds);
-    applyOffline(this.state, result);
-    this.catchUpFinds(result.cappedSeconds);
-    result.incidents = this.catchUpHappenings(result.cappedSeconds);
-    this.state.lastSaved = this.now();
+    if (!result.ignored) {
+      applyOffline(this.state, result);
+      holdWaiting(this.state, result.seconds * 1000);
+      this.catchUpFinds(result.cappedSeconds);
+      result.incidents = this.catchUpHappenings(result.cappedSeconds);
+    }
     this.save();
     this.emit();
     return result;
+  }
+
+  /**
+   * Bring the company up to the present. This is the one place elapsed wall-clock
+   * time is accounted for while the game runs, each interval exactly once:
+   *
+   *  - forward, up to `awayGapSeconds` since the last settlement: open play. A
+   *    minimized or hidden window that the browser only wakes once a minute is
+   *    still open, and every second of it is ticked at the open rules.
+   *  - forward, longer: the game was not running (the computer slept, the process
+   *    was frozen). Settled at the away rules, like time with the game closed.
+   *  - backwards: the clock was turned back. Nothing is paid and nothing ages; the
+   *    whole timeline moves back with the clock (see `sim/timeline.ts`).
+   *
+   * Returns the away settlement when there was one, for the welcome-back note.
+   */
+  catchUp(): OfflineResult | null {
+    const now = this.now();
+    const elapsedMs = now - this.settledAt;
+    if (!Number.isFinite(elapsedMs)) {
+      this.settledAt = now;
+      return null;
+    }
+    if (elapsedMs < 0) {
+      this.rewindTo(now);
+      return null;
+    }
+    if (elapsedMs === 0) return null;
+    if (elapsedMs > BALANCE.awayGapSeconds * 1000) return this.settleAway(elapsedMs / 1000);
+    this.tick(elapsedMs / 1000);
+    return null;
+  }
+
+  /**
+   * The game was closed (boot): settle everything since the save at the away
+   * rules, however short — closed time is never open time. A save stamped later
+   * than now means the clock went back while it was closed: nothing is paid and
+   * the timeline moves back with the clock.
+   */
+  settleClosedTime(): OfflineResult | null {
+    const now = this.now();
+    const elapsedMs = now - this.state.lastSaved;
+    if (Number.isFinite(elapsedMs) && elapsedMs < 0) {
+      this.settledAt = this.state.lastSaved;
+      this.rewindTo(now);
+      return null;
+    }
+    return this.settleAway(elapsedMs / 1000);
+  }
+
+  /** The clock went back to `now`: move the timeline back with it (nothing paid, nothing aged). */
+  private rewindTo(now: number): void {
+    const delta = now - this.settledAt;
+    if (Number.isFinite(delta) && delta < 0) {
+      shiftTimeline(this.state, delta);
+      for (const [room, ends] of this.rushes) this.rushes.set(room, ends + delta);
+      if (this.combo) this.combo = { ...this.combo, lastTapAt: this.combo.lastTapAt + delta };
+    }
+    this.settledAt = now;
+    this.save();
+    this.emit();
+  }
+
+  /** Whether anybody can see the office (the shell reports the window's visibility). */
+  setAttended(attended: boolean): void {
+    this.attended = attended;
   }
 
   /** The finds `seconds` away from the office would have produced (bounded). */
@@ -1649,10 +1780,12 @@ export class GameEngine {
     this.emit();
   }
 
-  addBoost(multiplier: number, seconds: number): void {
+  /** `from`: when the encouragement began (default now; a completed session: when it ended). */
+  addBoost(multiplier: number, seconds: number, from: number = this.now()): void {
     if (
       !Number.isFinite(multiplier) ||
       !Number.isFinite(seconds) ||
+      !Number.isFinite(from) ||
       multiplier <= 1 ||
       seconds <= 0
     )
@@ -1661,10 +1794,10 @@ export class GameEngine {
     // production exponentially with every click.
     const existing = this.tempBoosts.find((boost) => boost.multiplier === multiplier);
     if (existing) {
-      existing.endsAt = Math.max(existing.endsAt, this.now() + seconds * 1000);
+      existing.endsAt = Math.max(existing.endsAt, from + seconds * 1000);
       return;
     }
-    this.tempBoosts.push({ multiplier, endsAt: this.now() + seconds * 1000 });
+    this.tempBoosts.push({ multiplier, endsAt: from + seconds * 1000 });
   }
 
   // -- events ---------------------------------------------------------------
@@ -2710,14 +2843,19 @@ export class GameEngine {
     this.emit();
   }
 
-  private tickFocus(): void {
-    if (this.state.focus.active && this.now() >= this.state.focus.endsAt) {
+  /**
+   * A session that has run its course completes at `at` (the slice of a long tick
+   * it ended in), and its encouragement starts when it ended, not at whichever
+   * throttled tick noticed: the two minutes of x1.2 are the ones right after it.
+   */
+  private tickFocus(at: number = this.now()): void {
+    if (this.state.focus.active && at >= this.state.focus.endsAt) {
       this.state.focus.active = false;
       this.state.focus.completedSessions += 1;
       // reward proportional to duration
       const reward = Math.max(1, Math.round(this.state.focus.durationSeconds / (25 * 60)) * 1);
       this.state.resources.goldenNuts += reward;
-      this.addBoost(1.2, 120);
+      this.addBoost(1.2, 120, Math.min(this.now(), this.state.focus.endsAt));
       this.progressDaily('completeFocus', 1);
     }
   }
@@ -3162,7 +3300,17 @@ export class GameEngine {
     );
   }
 
+  /**
+   * Swap in another company (an import, a restructure, a fresh start). A filed
+   * company resumes exactly as it was filed: its timeline is moved to the present
+   * (no pay for the days since, nothing expired or decided by them), and it is
+   * settled from now on.
+   */
   replaceState(next: GameState): void {
+    const now = this.now();
+    shiftTimeline(next, now - next.lastSaved);
+    this.settledAt = now;
+    this.rushes.clear();
     this.state = next;
     this.state.boosts ??= [];
     this.state.microgames ??= {};
@@ -3194,8 +3342,13 @@ export class GameEngine {
   }
 
   // -- persistence ----------------------------------------------------------
+  /**
+   * File the company. `lastSaved` records the moment it is settled up to (not the
+   * moment of writing): a save between two ticks of a throttled window would
+   * otherwise skip the time since the last tick, which the next boot never paid.
+   */
   save(): void {
-    this.state.lastSaved = this.now();
+    this.state.lastSaved = this.settledAt;
     this.saveCallback?.(this.state);
   }
 

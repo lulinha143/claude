@@ -19,7 +19,6 @@ import { EmployeeTalk } from './ui/modals/EmployeeTalk';
 import { OfficeScene } from './art/OfficeScene';
 import { EventModal } from './ui/modals/EventModal';
 import { ConsequenceModal } from './ui/modals/ConsequenceModal';
-import { OfflineModal } from './ui/modals/OfflineModal';
 import { Onboarding } from './ui/modals/Onboarding';
 import { OpeningSequence } from './ui/modals/OpeningSequence';
 import { Notifications } from './ui/Notifications';
@@ -239,7 +238,6 @@ export function App() {
       <GameDock />
       <EventModal />
       <ConsequenceModal />
-      <OfflineModal />
       <OpeningSequence />
       <Onboarding />
       <Notifications />

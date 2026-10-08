@@ -18,9 +18,11 @@ export interface OfflineResult {
 
 /**
  * Compute offline earnings between `lastSaved` and `now`. Robust against:
- *  - negative deltas (clock moved backwards / timezone change) -> ignored
- *  - absurdly large deltas (corrupted timestamp) -> ignored
- *  - the per-save offline cap (default 8h, upgradeable to 24h)
+ *  - negative deltas (the clock was turned back) -> ignored (the engine moves the
+ *    timeline back with the clock, see `sim/timeline.ts`)
+ *  - absurd deltas (a corrupted timestamp, decades) -> ignored
+ *  - the per-save offline cap (default 8h, upgradeable to 24h): a long absence is
+ *    paid up to the cap and says so, never refused
  * This function is pure and does NOT mutate state; the caller applies the nuts.
  */
 export function computeOffline(state: GameState, now: number): OfflineResult {
@@ -36,7 +38,10 @@ export function computeOffline(state: GameState, now: number): OfflineResult {
 export function computeAway(state: GameState, elapsed: number): OfflineResult {
   const rate = computeProduction(state, false).nutsPerSecond;
 
-  const MAX_PLAUSIBLE = 60 * 60 * 24 * 60; // 60 days; anything more is corruption
+  // Only a corrupted timestamp is refused. A real absence of months is paid up to
+  // the cap (it used to be refused after 60 days: a player back after a summer away
+  // got nothing at all, not even the 8 hours anyone else gets).
+  const MAX_PLAUSIBLE = 60 * 60 * 24 * 365 * 5;
   if (!Number.isFinite(elapsed) || elapsed < 0 || elapsed > MAX_PLAUSIBLE) {
     return {
       seconds: Math.max(0, Number.isFinite(elapsed) ? elapsed : 0),

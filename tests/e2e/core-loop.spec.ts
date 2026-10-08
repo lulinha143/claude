@@ -151,11 +151,15 @@ test('keeping the game open is never worse than closing it', async ({ page }) =>
   const earned = afterMinute.stats.totalNutsEarned + afterMinute.crate.nuts - start;
   expect(earned).toBeGreaterThan(rate * 60 * 0.95);
 
-  // The computer slept with the game open: settled like time away, with a note.
+  // The computer slept with the game open: settled like time away, with a note
+  // that says so and points at the crate the sleep filled.
   await page.clock.fastForward(30 * 60_000);
   await page.clock.runFor(200);
-  await expect(page.locator('.offline-modal')).toBeVisible();
-  await expect(page.locator('.offline-modal__crate')).toContainText('crate');
+  const note = page.locator('.return-note');
+  await expect(note).toBeVisible();
+  await expect(note).toHaveAttribute('data-mode', 'asleep');
+  await expect(note.locator('.return-note__rule')).toContainText('slept');
+  await expect(note.locator('.return-note__go[data-go="crate"]')).toContainText(/crate/i);
 });
 
 test('keeping a rhythm rushes the room, and the office shows it', async ({ page }) => {

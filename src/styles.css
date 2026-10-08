@@ -5142,9 +5142,6 @@
   .consequence-line {
     background: rgba(70, 48, 25, 0.08);
   }
-  .offline-modal .big-number {
-    color: #7b5813;
-  }
   @media (max-width: 520px) {
     .popup__actions > * {
       flex: 1 1 auto;

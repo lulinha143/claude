@@ -251,8 +251,10 @@ test('3b — a note taller than the smallest window scrolls inside, its action s
   page,
 }) => {
   await page.setViewportSize({ width: 320, height: 420 });
-  // Two hours away: the welcome-back note has the most to say.
-  await boot(page, { ...MID_GAME, lastSaved: Date.now() - 2 * 3_600_000 });
+  // The field guide has the most to say of any popup.
+  await boot(page, MID_GAME);
+  await openView(page, 'settings');
+  await page.getByRole('button', { name: 'Replay tutorial' }).click();
   const popup = page.locator('.popup');
   await expect(popup).toBeVisible();
   await page.waitForTimeout(400);
@@ -263,8 +265,33 @@ test('3b — a note taller than the smallest window scrolls inside, its action s
   expect(box.y + box.height, 'action below the window').toBeLessThanOrEqual(420);
   // The paper frame never scrolls away from its buttons; only its content may.
   expect(await popup.evaluate((el) => el.scrollHeight <= el.clientHeight + 1)).toBe(true);
-  await action.click();
-  await expect(popup).toHaveCount(0);
+});
+
+test('3c — the welcome back fits the smallest window and leaves the office usable', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 420 });
+  // Two hours away: the note has the most to say.
+  await boot(page, { ...MID_GAME, lastSaved: Date.now() - 2 * 3_600_000 });
+  const note = page.locator('.return-note');
+  await expect(note).toBeVisible();
+  // A note, not a popup: nothing dims or blocks the office behind it.
+  await expect(page.locator('.popup-backdrop')).toHaveCount(0);
+  await page.waitForTimeout(400);
+  const box = (await note.boundingBox())!;
+  const hud = (await page.locator('.hud').boundingBox())!;
+  const dock = (await page.locator('.dock').boundingBox())!;
+  expect(box.y, 'note under the HUD').toBeGreaterThanOrEqual(hud.y + hud.height - 1);
+  expect(box.y + box.height, 'note above the dock').toBeLessThanOrEqual(dock.y + 1);
+  expect(box.x).toBeGreaterThanOrEqual(0);
+  expect(box.x + box.width).toBeLessThanOrEqual(320);
+  for (const line of await note.locator('.return-note__go').all()) {
+    const lineBox = (await line.boundingBox())!;
+    expect(lineBox.height, 'a line is a usable target').toBeGreaterThanOrEqual(30);
+    expect(lineBox.y + lineBox.height).toBeLessThanOrEqual(dock.y + 1);
+  }
+  await note.getByRole('button', { name: 'Dismiss' }).click();
+  await expect(note).toHaveCount(0);
 });
 
 test('4 — every sheet returns to the same floor and scroll position', async ({ page }) => {

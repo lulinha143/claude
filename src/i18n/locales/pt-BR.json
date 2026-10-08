@@ -2401,13 +2401,37 @@
     "returnTitle": "Volte quando quiser",
     "return": "Deixe o escritório aberto num cantinho da tela ou feche: a equipe continua trabalhando. “Sempre no topo” e o Modo silencioso ficam nos Ajustes (a engrenagem)."
   },
-  "offline": {
-    "title": "Enquanto Você Estava Fora",
-    "duration": "Você ficou fora por {{duration}}",
-    "earned": "A equipe do Tico ganhou {{value}} castanhas",
-    "capped": "(limite offline atingido — melhore o Armazenamento Frio para mais)",
-    "rate": "a {{value}}/s",
-    "welcomeBack": "Bem-vindo de volta!"
+  "returnNote": {
+    "label": "Recado de quando você voltou",
+    "title": "Bem-vindo de volta!",
+    "away": "{{duration}} fora",
+    "span": {
+      "minutes": "{{m}} min",
+      "hours": "{{h}}h",
+      "hoursMinutes": "{{h}}h {{m}}min",
+      "days_one": "{{count}} dia",
+      "days_other": "{{count}} dias"
+    },
+    "banked": "+{{value}} castanhas",
+    "rule": {
+      "closed": "Com o jogo fechado, a equipe rende {{pct}}% (até {{hours}}h). Aberto no canto, rende tudo.",
+      "capped": "Você ficou {{away}} fora; contamos só {{hours}}h, o limite. O Armazenamento Frio guarda mais.",
+      "asleep": "O computador dormiu {{slept}}: esse tempo rende {{pct}}%, como com o jogo fechado.",
+      "open": "Aberto no canto, o escritório rendeu tudo."
+    },
+    "go": {
+      "crateFull": "Caixote cheio",
+      "crate": "No caixote",
+      "crateDetail": "{{value}} para recolher",
+      "incident": "{{name}} viu algo acontecendo",
+      "incidentAnon": "Algo está acontecendo",
+      "story": "{{name}} quer te contar algo",
+      "find_one": "{{name}} achou algo",
+      "find_other": "{{count}} achados esperando",
+      "discovery": "Algo para investigar",
+      "oddity": "Apareceu algo estranho"
+    },
+    "goLabel": "Ir até lá: {{what}} — {{room}}"
   },
   "moment": {
     "company": "Empresa",
@@ -4180,13 +4204,6 @@
   "construction": {
     "reputation": "Reputação {{have}} / {{need}}",
     "build": "Construir por {{cost}}"
-  },
-  "awayExtra": {
-    "crate": "O caixote encheu com {{value}} castanhas: toque nele no escritório para recolher.",
-    "finds_one": "Alguém achou algo enquanto você estava fora.",
-    "finds_other": "{{count}} colegas acharam algo enquanto você estava fora.",
-    "incidents_one": "Começou a acontecer algo no escritório enquanto você estava fora.",
-    "incidents_other": "Começaram a acontecer {{count}} coisas no escritório enquanto você estava fora."
   },
   "arc": {
     "pip": {

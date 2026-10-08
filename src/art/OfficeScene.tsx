@@ -42,7 +42,7 @@ import {
   type ClickStationDef,
 } from '../content/clickStations';
 import { previewClickValue, rushStreak, synergyEmployees, CLICK } from '../sim/clickStations';
-import { crateCapacity as crateCapacityFor, secondsToFull } from '../sim/crate';
+import { secondsToFull } from '../sim/crate';
 import { nextFloor } from '../sim/goals';
 import { FindArt } from './FindArt';
 import { KeepsakeArt } from './KeepsakeArt';
@@ -493,23 +493,70 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
   const scrollerRef = useRef<HTMLDivElement>(null);
   const currentFloorRef = useRef<string | null>(null);
   const [currentFloor, setCurrentFloor] = useState<string | null>(null);
+  // A trip to a floor still under way: corrected once the scroll settles (below).
+  const tripRef = useRef<{ roomId: string; timer: number; tries: number } | null>(null);
   const scrollToFloor = useCallback(
     (roomId: string, behavior: ScrollBehavior = 'auto') => {
       const scroller = scrollerRef.current;
-      const floor = scroller?.querySelector<HTMLElement>(`.floor[data-room="${roomId}"]`);
-      if (!scroller || !floor) return;
-      const top =
-        floor.getBoundingClientRect().top -
-        scroller.getBoundingClientRect().top +
-        scroller.scrollTop;
-      const centred = top - Math.max(8, (scroller.clientHeight - floor.offsetHeight) / 2);
+      if (!scroller?.querySelector(`.floor[data-room="${roomId}"]`)) return;
+      /** Where the view must be for the floor to sit centred (null if it is gone). */
+      const centredTop = (): number | null => {
+        const floor = scroller.querySelector<HTMLElement>(`.floor[data-room="${roomId}"]`);
+        if (!floor) return null;
+        const top =
+          floor.getBoundingClientRect().top -
+          scroller.getBoundingClientRect().top +
+          scroller.scrollTop;
+        const centred = top - Math.max(8, (scroller.clientHeight - floor.offsetHeight) / 2);
+        return Math.min(Math.max(0, centred), scroller.scrollHeight - scroller.clientHeight);
+      };
       currentFloorRef.current = roomId;
       setCurrentFloor(roomId);
       engine.rememberOfficeFloor(roomId);
-      scroller.scrollTo({ top: Math.max(0, centred), behavior });
+      scroller.scrollTo({ top: centredTop() ?? 0, behavior });
+      // Floors far from the view are laid out at an estimated height until they are
+      // first drawn (content-visibility), so a long trip — the elevator, a note's
+      // "go there" — could end a floor or two short as they were drawn on the way.
+      // Once the scroll has settled the floor is measured again and the view put
+      // right, a few times at most, unless the player has taken over the scroll.
+      if (tripRef.current) window.clearTimeout(tripRef.current.timer);
+      const settle = () => {
+        const trip = tripRef.current;
+        if (!trip || trip.roomId !== roomId) return;
+        const target = centredTop();
+        if (target !== null && Math.abs(scroller.scrollTop - target) > 3) {
+          scroller.scrollTo({ top: target, behavior: 'auto' });
+        }
+        trip.tries += 1;
+        if (trip.tries < 4) trip.timer = window.setTimeout(settle, 220);
+        else tripRef.current = null;
+      };
+      tripRef.current = {
+        roomId,
+        tries: 0,
+        timer: window.setTimeout(settle, behavior === 'smooth' ? 650 : 120),
+      };
     },
     [engine],
   );
+  // The player scrolling or pressing anything during a trip takes over from it.
+  useEffect(() => {
+    const scroller = scrollerRef.current;
+    if (!scroller) return undefined;
+    const takeOver = () => {
+      if (tripRef.current) window.clearTimeout(tripRef.current.timer);
+      tripRef.current = null;
+    };
+    scroller.addEventListener('wheel', takeOver, { passive: true });
+    scroller.addEventListener('touchstart', takeOver, { passive: true });
+    scroller.addEventListener('pointerdown', takeOver);
+    return () => {
+      scroller.removeEventListener('wheel', takeOver);
+      scroller.removeEventListener('touchstart', takeOver);
+      scroller.removeEventListener('pointerdown', takeOver);
+      if (tripRef.current) window.clearTimeout(tripRef.current.timer);
+    };
+  }, []);
   const decorationRequest = useStore((s) => s.decorationRequest);
   const arrangeDecoration = useStore((s) => s.arrangeDecoration);
   const [decorMode, setDecorMode] = useState(Boolean(decorationRequest));
@@ -1882,7 +1929,8 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
     setSelected(null);
   }
 
-  const capacity = crateCapacityFor(nps);
+  // The crate's size is the company's own pace; a rush or a boost fills it sooner.
+  const capacity = engine.crateCapacity();
   const crateEta = secondsToFull(state.crate.nuts, capacity, nps);
   const crateView = {
     fill: Math.min(1, capacity > 0 ? state.crate.nuts / capacity : 0),

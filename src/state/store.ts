@@ -2,13 +2,14 @@ import { create } from 'zustand';
 import { GameEngine } from '../sim/engine';
 import { SaveManager } from '../save/saveManager';
 import {
-  computeOffline,
-  applyOffline,
-  shouldShowOfflineModal,
-  type OfflineResult,
-} from '../sim/offline';
+  addAway,
+  leaveTally,
+  summarizeReturn,
+  tallyFromAway,
+  type ReturnSummary,
+  type ReturnTally,
+} from './returns';
 import { performPrestige, buyPrestigeSkill } from '../sim/prestige';
-import { BALANCE } from '../sim/config';
 import type { GameState, PrestigeBranchId } from '../sim/types';
 import { getPlatform } from '../platform/adapter';
 import { audio } from '../audio/audio';
@@ -66,17 +67,32 @@ export const BOOT_SAVE_IS_NEW = loaded.isNew;
 const engine = new GameEngine(loaded.state, { deterministic: false });
 engine.onSave((s) => save.save(s));
 
-// Offline progression on boot (not for a brand-new game).
-let bootOffline: OfflineResult | null = null;
+// The time the game was closed, settled once at the away rules on boot (not for a
+// brand-new game): the vault and the crate, the finds and incidents that time
+// brought. The engine files it at once, so a reload cannot pay it twice.
+//
+// `returnTally` is kept from the moment the player leaves (the save, here; the
+// window going out of sight, later) until they are back, when it becomes the
+// welcome-back note.
+let returnTally: ReturnTally | null = null;
+let returnId = 0;
 if (!loaded.isNew) {
-  bootOffline = computeOffline(engine.state, Date.now());
-  applyOffline(engine.state, bootOffline);
-  // ...and the finds the team set aside for the player meanwhile.
-  if (!bootOffline.ignored) {
-    engine.catchUpFinds(bootOffline.cappedSeconds);
-    // A few things may have started happening in the office meanwhile.
-    bootOffline.incidents = engine.catchUpHappenings(bootOffline.cappedSeconds);
-  }
+  const left = leaveTally(engine.state, engine.state.lastSaved);
+  const settled = engine.settleClosedTime();
+  if (settled && !settled.ignored) returnTally = addAway(left, settled, 'closed');
+}
+
+/** The office is on screen (a window can boot minimized, or out of sight). */
+function officeInSight(): boolean {
+  return typeof document === 'undefined' || document.visibilityState !== 'hidden';
+}
+
+/** The player is back: the stretch they were gone, as a note (or nothing, if trivial). */
+function takeReturn(): ReturnSummary | null {
+  if (!returnTally) return null;
+  const summary = summarizeReturn(returnTally, engine.state, Date.now(), ++returnId);
+  returnTally = null;
+  return summary;
 }
 
 interface StoreState {
@@ -87,7 +103,8 @@ interface StoreState {
   platform: typeof platform;
   audio: typeof audio;
   devEnabled: boolean;
-  offlineResult: OfflineResult | null;
+  /** The welcome-back note, while it is up. */
+  returnSummary: ReturnSummary | null;
   showOnboarding: boolean;
   showOpening: boolean;
   finishOpening: () => void;
@@ -106,7 +123,9 @@ interface StoreState {
   minigameOpen: boolean;
   setMinigameOpen: (open: boolean) => void;
   arrangeDecoration: (id: string | null) => void;
-  dismissOffline: () => void;
+  dismissReturn: () => void;
+  /** Developer tools: settle `seconds` away now and show its note. */
+  simulateAway: (seconds: number) => void;
   setPhotoMode: (v: boolean) => void;
   setBatterySaver: (v: boolean) => void;
   setQuietMode: (v: boolean) => void;
@@ -134,7 +153,8 @@ export const useStore = create<StoreState>((set) => {
     platform,
     audio,
     devEnabled: isDevEnabled(),
-    offlineResult: shouldShowOfflineModal(bootOffline) ? bootOffline : null,
+    // Booted out of sight (minimized, a background tab): the note waits for the player.
+    returnSummary: officeInSight() ? takeReturn() : null,
     // The first run teaches by doing (the coach points at the crate, then at the
     // first goal); the field guide is no longer forced open. It is still there to
     // read from Settings (replayOnboarding).
@@ -164,7 +184,13 @@ export const useStore = create<StoreState>((set) => {
       if (id) engine.closeTalk();
       set(id ? { decorationRequest: id, view: 'office' } : { decorationRequest: null });
     },
-    dismissOffline: () => set({ offlineResult: null }),
+    dismissReturn: () => set({ returnSummary: null }),
+    simulateAway: (seconds) => {
+      // Measured from before the settlement, as if the game had been closed `seconds` ago.
+      const left = leaveTally(engine.state, Date.now() - seconds * 1000);
+      returnTally = addAway(left, engine.settleAway(seconds), 'closed');
+      set({ returnSummary: takeReturn() });
+    },
     setPhotoMode: (v) => set({ photoMode: v }),
     setBatterySaver: (v) => set({ batterySaver: v }),
     setQuietMode: (v) => {
@@ -245,6 +271,8 @@ export const useStore = create<StoreState>((set) => {
       set({ showOnboarding: true, view: 'office' });
     },
 
+    // An imported company resumes as it was filed (see engine.replaceState): the
+    // time since it was exported is not paid, so importing it again pays nothing.
     importSave: (json) => {
       const result = save.importSave(json);
       if (!result.ok || !result.state) return false;
@@ -342,6 +370,9 @@ function catchUpAchievementsQuietly(): number {
 /** Replace state (prestige/import/reset) without flooding toasts for the whole company. */
 export function replaceStateQuietly(next: GameState): void {
   suppressNotify = true;
+  // Another company: whatever the note said about the old one no longer applies.
+  returnTally = null;
+  useStore.setState({ returnSummary: null });
   engine.replaceState(next);
   // An imported save is a load like any other, so it gets the same treatment:
   // whatever it already satisfies is history, not an achievement ceremony.
@@ -462,43 +493,45 @@ engine.subscribe(() => {
 // re-renders bounded while the office animates smoothly.
 // ---------------------------------------------------------------------------
 let loopHandle: ReturnType<typeof setInterval> | null = null;
-let lastTick = Date.now();
+
+/** The player is back from somewhere: show the note, with one soft paper sound. */
+function welcomeBack(): void {
+  const summary = takeReturn();
+  if (!summary) return;
+  useStore.setState({ returnSummary: summary });
+  audio.play('paper');
+}
 
 /**
- * Advance the company by the real time since the last tick.
+ * Advance the company to the present (see `engine.catchUp` for the one rule).
  *
- * ZooWorkers is meant to be left open in a corner of the desktop, so open time
- * must never be lost: a minimized window, a hidden tab or a battery-saving
- * browser can stretch the 100ms interval to a second or a whole minute, and all
- * of that time is credited as play. (This used to be clamped to five seconds,
- * which quietly threw most of a hidden hour away.) A gap longer than
- * `awayGapSeconds` means the computer slept or the process was frozen; that is
- * settled exactly like time with the game closed (offline rules, the crate
- * filled, finds waiting) rather than as open play.
+ * ZooWorkers is meant to be left open in a corner of the desktop, so open time is
+ * never lost: a minimized window, a hidden tab or a battery-saving browser can
+ * stretch the 100ms interval to a second or a whole minute, and all of it is open
+ * play. A gap longer than `awayGapSeconds` means the computer slept or the process
+ * was frozen, which is settled like time with the game closed — and is a return
+ * of its own when it happened in front of the player.
  */
-export function advanceGame(now = Date.now()): void {
-  const elapsed = (now - lastTick) / 1000;
-  lastTick = now;
-  if (!(elapsed > 0)) return; // clock moved backwards: skip, never subtract
-  if (elapsed > BALANCE.awayGapSeconds) {
-    const result = engine.settleAway(elapsed);
-    if (shouldShowOfflineModal(result)) useStore.setState({ offlineResult: result });
-    return;
+export function advanceGame(): void {
+  const result = engine.catchUp();
+  if (result && !result.ignored) {
+    // Out of sight already, the sleep joins the stretch the player is away; in
+    // front of them, it is a return of its own.
+    returnTally = returnTally
+      ? addAway(returnTally, result, 'asleep')
+      : tallyFromAway(engine.state, result, Date.now());
   }
-  engine.tick(elapsed);
+  // In sight with a stretch away still open: the player is back (this also covers
+  // a window the browser never said had come back).
+  if (returnTally && officeInSight()) {
+    engine.setAttended(true);
+    welcomeBack();
+  }
 }
 
 export function startGameLoop(): void {
   if (loopHandle) return;
-  lastTick = Date.now();
   loopHandle = setInterval(() => advanceGame(), 100);
-  // Coming back to the window catches up at once instead of waiting for the next
-  // (possibly throttled) interval.
-  if (typeof document !== 'undefined') {
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible' && loopHandle) advanceGame();
-    });
-  }
 }
 
 export function stopGameLoop(): void {
@@ -506,15 +539,40 @@ export function stopGameLoop(): void {
     clearInterval(loopHandle);
     loopHandle = null;
   }
+  engine.catchUp();
   engine.save();
 }
 
-// Persist on page hide/unload so nothing is lost.
+/**
+ * The window going out of sight and coming back. Leaving: the open time up to this
+ * moment is counted first (the browser may not wake the loop again for a minute),
+ * then the company is filed and the stretch away begins. Back: the time since is
+ * settled at once (not at the next, possibly throttled, interval) and the player
+ * is told what it brought, if it was more than a glance away.
+ */
+function onVisibilityChange(): void {
+  if (document.visibilityState === 'hidden') {
+    engine.catchUp();
+    engine.setAttended(false);
+    // The next stretch away starts here. A note still up stays up: a glance at
+    // another window must not take it away unread; a real absence replaces it.
+    returnTally = leaveTally(engine.state, Date.now());
+    engine.save();
+    return;
+  }
+  advanceGame();
+  engine.setAttended(true);
+}
+
+// File the company on page hide/unload, with the time up to that moment counted.
 if (typeof window !== 'undefined') {
-  window.addEventListener('beforeunload', () => engine.save());
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden') engine.save();
+  window.addEventListener('beforeunload', () => {
+    engine.catchUp();
+    engine.save();
   });
+  document.addEventListener('visibilitychange', onVisibilityChange);
+  // Booted out of sight: nobody can see what is waiting yet.
+  if (!officeInSight()) engine.setAttended(false);
 }
 
 export function getGameState(): GameState {

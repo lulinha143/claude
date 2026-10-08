@@ -838,15 +838,6 @@
     border-radius: 50%;
   }
 
-  .offline-modal__crate,
-  .offline-modal__finds {
-    margin: 0;
-    padding: 6px 10px;
-    background: var(--paper-bg-sunken);
-    border-radius: 10px;
-    font-weight: 700;
-  }
-
   /* ---- room play: each station's routine ---------------------------------------- */
   /* A small tag on top of the machine, only when there is something to see: a
      brew to start or share, a stuck machine, a blip, a delivery, the room's mode. */
