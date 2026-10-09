@@ -48,7 +48,13 @@ import type { EventChoice, EventEffect, GameEventDef } from '../content/types';
 import { GAME_EVENTS, GAME_EVENTS_BY_ID } from '../content/events';
 import { eventChoicesForState } from './eventChoices';
 import { chooseAutoResolution } from './eventAutoResolve';
-import { eligibleTopics, evaluateTalkNode, pickTopic, talkCooldownRemaining } from './talks';
+import {
+  eligibleTopics,
+  evaluateTalkNode,
+  nodePrompt,
+  pickTopic,
+  talkCooldownRemaining,
+} from './talks';
 import type { TalkChoice, TalkTopic } from '../content/employeeTalks';
 import { CLICK_STATIONS_BY_ID } from '../content/clickStations';
 import {
@@ -227,6 +233,12 @@ export interface ActiveTalk {
   instanceId: string;
   /** The employee's reply to the option just taken, shown before the next prompt. */
   lastReplyKey: string | null;
+  /**
+   * What they say at the current node, decided when the conversation arrived
+   * there (the room, their mood, what happened since you last spoke), so the line
+   * never changes under the player while they read it. Null once it has ended.
+   */
+  promptKey?: string | null;
   /** How many options have been taken, so the UI can show progress. */
   exchanges: number;
   /** Measured before/after of the last option, for the "what changed" readout. */
@@ -2316,6 +2328,9 @@ export class GameEngine {
       topic,
       nodeId: profileOnly ? '' : topic.root,
       instanceId: `${employeeId}:${topic.id}:${now}`,
+      promptKey: profileOnly
+        ? null
+        : nodePrompt(this.state, node, { employeeId, topicId: topic.id, now }),
       // The reply to the option just taken, shown before the next node's prompt.
       lastReplyKey: null,
       exchanges: 0,
@@ -2429,8 +2444,14 @@ export class GameEngine {
     const next = choice.next ? active.topic.nodes[choice.next] : undefined;
     if (next) {
       active.nodeId = next.id;
+      active.promptKey = nodePrompt(this.state, next, {
+        employeeId: active.employeeId,
+        topicId: active.topic.id,
+        now,
+      });
     } else {
       active.nodeId = '';
+      active.promptKey = null;
     }
     // Persist after EVERY option, not only when the conversation ends.
     //

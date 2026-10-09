@@ -4,8 +4,9 @@ Handoff only: design is in `DESIGN.md`, commands and matrix in `.kiro/steering/q
 
 ## Branch
 
-`feat/zooworkers-3.0-facility-pass`: Chapter 9 is the commit that records this entry, on top
-of Chapter 4 (`e7bac62`), Chapter 1 (`80264a8`) and the setup commit `c55d356`; clean.
+`feat/zooworkers-3.0-facility-pass`: Chapter 2 is the commit that records this entry, on top
+of Chapter 9 (`d9fab09`), Chapter 4 (`e7bac62`), Chapter 1 (`80264a8`) and the setup commit
+`c55d356`; clean.
 `7a7ee3d` (architect's snapshot) is an ancestor; never roll back to it.
 
 ## Active configuration
@@ -40,7 +41,7 @@ of Chapter 4 (`e7bac62`), Chapter 1 (`80264a8`) and the setup commit `c55d356`; 
 
 Order: 1 → 4 → 9 → 2 → 3 → 5 → 6 → 7 → 8 → 10 → final integration.
 
-Accepted kit chapters: 1, 4, 9. Accepted pre-kit units: shell (`b138638`–`6189169`), living office
+Accepted kit chapters: 1, 4, 9, 2. Accepted pre-kit units: shell (`b138638`–`6189169`), living office
 (`bfaca01`–`d81ddc2`) and GC1–GC4 (`67cd776`–`7a7ee3d`), pinned by E2E specs but with no
 six-check record. Kit chapters reuse them as evidence and change only what fails the gate.
 GC numbers are not kit numbers.
@@ -50,7 +51,7 @@ GC numbers are not kit numbers.
 | 1   | `App`, `ui/GameHud`, `GameDock`, `Sheet`, `modals/OpeningSequence`, `Onboarding`, `art/OfficeScene`, `views/SettingsView` | Accepted (record below)                   |
 | 4   | `sim/goals`, `crate`, `economy`, `ui/GoalTag`, `views/ShopView`                                                           | Accepted (record below)                   |
 | 9   | `engine.catchUp`, `sim/offline`, `sim/timeline`, `state/returns`, `ui/ReturnNote`, `ui/Notifications`                     | Accepted (record below); diary unread     |
-| 2   | `views/EmployeesView`, `modals/EmployeeTalk`, `sim/bonds`                                                                 | GC2                                       |
+| 2   | `views/EmployeesView`, `modals/EmployeeTalk`, `sim/bonds`                                                                 | Accepted (record below)                   |
 | 3   | `art/RoomDressing`, `RoomPlay`, `content/rooms`, `roomPlay`                                                               | Living-office rooms + GC3                 |
 | 5   | `ui/minigames/*`, `sim/minigames`                                                                                         | Pre-shell fixes only                      |
 | 6   | `modals/IncidentScene`, `EventModal`, `content/incidents`, `ui/CuriosityLog`                                              | GC4 + GC3 curiosities                     |
@@ -216,15 +217,73 @@ bound, 8 affected specs 50/50. `npm run build:desktop` exit 0. New coverage:
 diary is still not shown anywhere: moments that played while minimized are recorded, not
 told.
 
+### Chapter 2 record — the cast and the one-on-one visit
+
+Broken or weak before, fixed (no save field, no new meter; balance unchanged):
+
+- "Uma palavrinha" (the check-in every teammate has) was word for word the same from all 23.
+  Each now has 16 authored lines in EN and pt-BR (`checkin.<id>.*`): their hello, their own
+  small problem and its fix, how they take praise and being pushed. Same nodes, costs and
+  effects as before (a test compares them).
+- How they open reads the moment, picked once on arrival (`activeTalk.promptKey`, so a mood
+  change cannot swap the words mid-read): what happened since the last check-in (praised,
+  pushed, the fix, a lapsed promise, stamped per teammate as re-set flags), then a low mood,
+  then the room (their own department, or one that clashes), then their hello. The variants
+  are data (`TalkVariant`), read by `nodePrompt`; stories keep their flag variants unchanged.
+- pt-BR agreement: `CharacterProfile.gender` is passed to i18next as the context, so Beta is
+  "Empolgada" and Bento "Empolgado" on the visit, the office sticker and the Team card.
+- The visit's art size depended on each teammate's own build. One cast scale
+  (`castScaleFor`) now fits the tallest canvas and never enlarges anyone's densest build;
+  visible figures across all 23 differ by 5.8% (126–134 px at 320×420), the registry's own.
+- The visit was a card with a speech box on a side panel. Now, at ≥760 px wide, the teammate
+  stands left in their room with their words in a bubble by their head (tail toward them);
+  answers wait on the notepad under "Você responde", and what changed lands by the bond
+  meter. In a corner window the notepad holds their line, its tail pointing up at them. The
+  plate names the room and whether it suits them; the mood sticker (with its word) sits on
+  the head anchor from the registry geometry. A teammate in another room can be taken home
+  from the visit (`assignEmployee`; a full room says so).
+- Focus: the first open answer takes focus and keeps it after each answer; Tab and Shift+Tab
+  cycle inside; arrows, Home and End move between the tabs; Escape closes an open menu first,
+  then the visit only (the Team sheet stays), and focus returns to that teammate's Visit
+  button or critter. Escape used to close the Team sheet too and leave focus on `<body>`.
+- Office: a line the player asked for carries "Bater um papo →" on its name row (stays 6 s,
+  held while pointed at), opening on whatever they want to share or the check-in.
+
+Player gate (pt-BR, browser, dev server and local Chromium 1232):
+
+- All 23 through the Team sheet at 380×460 and 320×420: each opened its own check-in (23 of
+  23 distinct lines), art loaded and never enlarged, no notepad scroll, no sideways scroll,
+  Escape back to their own card. Bea, Mina and Corvus seated in clashing rooms said their
+  "away" line; Otto, Hazel and Nino (awkward pairs) their "down" line.
+- Otto at 1280×720, 380×460 and 320×420: opening, listen, the fix (+6 trust shown in the
+  scene). At 320×420 the three answers fit; only the long listen step scrolls, with the fade.
+  Bea in the lab: "Não curte esta sala", praise (+3 trust, +3 ânimo), "Levar à sala favorita"
+  → "Beta voltou à sala favorita: Ala de Construção", scene and plate change, saved on
+  reload. 800×600, 1440×900 and 1920×1080 measured: no overflow.
+- Office at 320×420 and 380×460: poking Bento showed his line with "Bater um papo", which
+  opened the check-in; Escape returned focus to his critter. Reduced motion with high
+  contrast: poster art, no animation, legible.
+- Six checks — see, understand, interact, feedback, why it matters, feel: PASS (audio not
+  heard).
+
+Checks: `npm run validate` exit 0 (873 unit tests); `build:electron` exit 0 (no desktop code
+changed). E2E: 14 affected specs 119/120, then 53/53 after the last change. The failure,
+`incidents.spec` "a promise lands in the world", is pre-existing: on `d9fab09` it failed 2
+of 6 repeats, here 1 of 3. New coverage: `tests/checkIns.test.ts` (13), three `visit.spec` tests.
+
 ## Blockers
 
 - Kiro Web listed no skills this session; `zooworkers-playtest/SKILL.md` was followed by hand.
 - `templates/AGENTS.md` may load as a nested second AGENTS.md (Kiro docs); kept as instructed.
+- Flaky, pre-existing (not Chapter 2): `incidents.spec` "a promise lands in the world" misses
+  the lab's moment slip in about a third of runs on `d9fab09` too. Owner: Chapter 6.
 - AUDIO LISTENING REQUIRED: no playback here. Unheard: the purchase, claim and tap cues; the
   error cue on every short press (the button used to be disabled); the celebrate cue on a
   room bought in the shop; the golden cue when the pod mints a whole nut; the paper cue of a
   live welcome back. Also unheard: whether the ambient one-shots (every 2.6–7.8 s) and the
-  music grow repetitive over an unattended hour, in active, quiet and mute play.
+  music grow repetitive over an unattended hour, in active, quiet and mute play. Chapter 2:
+  each teammate's babble on every check-in line, the error cue on a locked answer, the
+  upgrade cue on taking someone home.
 - LOCAL WINDOWS VERIFICATION REQUIRED: the last recorded native run is `a4e03ad`. This sandbox
   has no Electron binary or display, so no smoke ran. On Windows: `npm run build:windows:folder`,
   `npm run verify:windows:packaged`, then `smoke:window`, `smoke:focus` and `smoke:mute`.
@@ -247,4 +306,4 @@ told.
 
 ## Next prompt
 
-Chapter 2. Start its session on this branch; `main` has none of this configuration.
+Chapter 3. Start its session on this branch; `main` has none of this configuration.

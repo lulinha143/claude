@@ -20,6 +20,12 @@ export interface VoiceProfile {
 export type StoryFlavor = 'morale' | 'reputation' | 'production' | 'golden';
 
 export interface CharacterProfile {
+  /**
+   * Grammatical gender of how they are spoken of and speak of themselves, for
+   * the languages that agree words with it (pt-BR: "cansado"/"cansada"). Passed
+   * to i18next as the `context`, so a language without it simply ignores it.
+   */
+  gender: 'female' | 'male';
   voice: VoiceProfile;
   /** what they love (found by giving it), like, and find baffling. The rest get polite thanks. */
   gifts: { loves: GiftId; likes: GiftId; odd: GiftId };
@@ -34,6 +40,7 @@ export interface CharacterProfile {
 
 export const CHARACTERS: Record<string, CharacterProfile> = {
   pip: {
+    gender: 'male',
     voice: { base: 520, wave: 'triangle', pace: 70 },
     gifts: { loves: 'coffee', likes: 'acorn', odd: 'puzzle' },
     story: {
@@ -43,6 +50,7 @@ export const CHARACTERS: Record<string, CharacterProfile> = {
     },
   },
   marlow: {
+    gender: 'male',
     voice: { base: 180, wave: 'sine', pace: 140 },
     gifts: { loves: 'acorn', likes: 'scarf', odd: 'coffee' },
     story: {
@@ -52,6 +60,7 @@ export const CHARACTERS: Record<string, CharacterProfile> = {
     },
   },
   rizzo: {
+    gender: 'male',
     voice: { base: 380, wave: 'square', pace: 80 },
     gifts: { loves: 'golden', likes: 'puzzle', odd: 'scarf' },
     story: {
@@ -61,6 +70,7 @@ export const CHARACTERS: Record<string, CharacterProfile> = {
     },
   },
   bea: {
+    gender: 'female',
     voice: { base: 300, wave: 'triangle', pace: 90 },
     gifts: { loves: 'acorn', likes: 'plant', odd: 'golden' },
     story: {
@@ -70,6 +80,7 @@ export const CHARACTERS: Record<string, CharacterProfile> = {
     },
   },
   corvus: {
+    gender: 'male',
     voice: { base: 330, wave: 'sawtooth', pace: 85 },
     gifts: { loves: 'golden', likes: 'coffee', odd: 'plant' },
     story: {
@@ -79,6 +90,7 @@ export const CHARACTERS: Record<string, CharacterProfile> = {
     },
   },
   mina: {
+    gender: 'female',
     voice: { base: 280, wave: 'sine', pace: 95 },
     gifts: { loves: 'puzzle', likes: 'coffee', odd: 'scarf' },
     story: {
@@ -88,6 +100,7 @@ export const CHARACTERS: Record<string, CharacterProfile> = {
     },
   },
   nixie: {
+    gender: 'female',
     voice: { base: 760, wave: 'triangle', pace: 55 },
     gifts: { loves: 'coffee', likes: 'puzzle', odd: 'plant' },
     story: {
@@ -97,6 +110,7 @@ export const CHARACTERS: Record<string, CharacterProfile> = {
     },
   },
   otto: {
+    gender: 'male',
     voice: { base: 420, wave: 'sine', pace: 80 },
     gifts: { loves: 'acorn', likes: 'golden', odd: 'puzzle' },
     story: {
@@ -106,6 +120,7 @@ export const CHARACTERS: Record<string, CharacterProfile> = {
     },
   },
   hazel: {
+    gender: 'female',
     voice: { base: 600, wave: 'triangle', pace: 75 },
     gifts: { loves: 'puzzle', likes: 'golden', odd: 'coffee' },
     story: {
@@ -115,6 +130,7 @@ export const CHARACTERS: Record<string, CharacterProfile> = {
     },
   },
   junie: {
+    gender: 'female',
     voice: { base: 680, wave: 'triangle', pace: 50 },
     gifts: { loves: 'coffee', likes: 'scarf', odd: 'plant' },
     story: {
@@ -124,6 +140,7 @@ export const CHARACTERS: Record<string, CharacterProfile> = {
     },
   },
   moss: {
+    gender: 'male',
     voice: { base: 240, wave: 'sine', pace: 130 },
     gifts: { loves: 'coffee', likes: 'scarf', odd: 'golden' },
     story: {
@@ -133,6 +150,7 @@ export const CHARACTERS: Record<string, CharacterProfile> = {
     },
   },
   fenn: {
+    gender: 'male',
     voice: { base: 400, wave: 'triangle', pace: 70 },
     gifts: { loves: 'golden', likes: 'coffee', odd: 'acorn' },
     story: {
@@ -142,6 +160,7 @@ export const CHARACTERS: Record<string, CharacterProfile> = {
     },
   },
   pingo: {
+    gender: 'male',
     voice: { base: 450, wave: 'square', pace: 85 },
     gifts: { loves: 'scarf', likes: 'coffee', odd: 'golden' },
     story: {
@@ -151,6 +170,7 @@ export const CHARACTERS: Record<string, CharacterProfile> = {
     },
   },
   canela: {
+    gender: 'female',
     voice: { base: 560, wave: 'sine', pace: 85 },
     gifts: { loves: 'plant', likes: 'acorn', odd: 'golden' },
     story: {
@@ -160,6 +180,7 @@ export const CHARACTERS: Record<string, CharacterProfile> = {
     },
   },
   nino: {
+    gender: 'male',
     voice: { base: 500, wave: 'sine', pace: 120 },
     gifts: { loves: 'scarf', likes: 'acorn', odd: 'puzzle' },
     story: {
@@ -169,6 +190,7 @@ export const CHARACTERS: Record<string, CharacterProfile> = {
     },
   },
   bia: {
+    gender: 'female',
     voice: { base: 150, wave: 'triangle', pace: 120 },
     gifts: { loves: 'coffee', likes: 'acorn', odd: 'plant' },
     story: {
@@ -178,6 +200,7 @@ export const CHARACTERS: Record<string, CharacterProfile> = {
     },
   },
   quincy: {
+    gender: 'male',
     voice: { base: 260, wave: 'square', pace: 75 },
     gifts: { loves: 'plant', likes: 'coffee', odd: 'scarf' },
     story: {
@@ -187,6 +210,7 @@ export const CHARACTERS: Record<string, CharacterProfile> = {
     },
   },
   dorm: {
+    gender: 'male',
     voice: { base: 200, wave: 'sine', pace: 180 },
     gifts: { loves: 'acorn', likes: 'scarf', odd: 'coffee' },
     story: {
@@ -196,6 +220,7 @@ export const CHARACTERS: Record<string, CharacterProfile> = {
     },
   },
   inky: {
+    gender: 'male',
     voice: { base: 350, wave: 'sine', pace: 60 },
     gifts: { loves: 'puzzle', likes: 'coffee', odd: 'scarf' },
     story: {
@@ -205,6 +230,7 @@ export const CHARACTERS: Record<string, CharacterProfile> = {
     },
   },
   echo: {
+    gender: 'female',
     voice: { base: 900, wave: 'sine', pace: 65 },
     gifts: { loves: 'scarf', likes: 'acorn', odd: 'coffee' },
     story: {
@@ -214,6 +240,7 @@ export const CHARACTERS: Record<string, CharacterProfile> = {
     },
   },
   rosa: {
+    gender: 'female',
     voice: { base: 620, wave: 'triangle', pace: 80 },
     gifts: { loves: 'golden', likes: 'scarf', odd: 'acorn' },
     story: {
@@ -223,6 +250,7 @@ export const CHARACTERS: Record<string, CharacterProfile> = {
     },
   },
   perry: {
+    gender: 'male',
     voice: { base: 310, wave: 'square', pace: 90 },
     gifts: { loves: 'puzzle', likes: 'golden', odd: 'plant' },
     story: {
@@ -232,6 +260,7 @@ export const CHARACTERS: Record<string, CharacterProfile> = {
     },
   },
   axel: {
+    gender: 'male',
     voice: { base: 540, wave: 'sine', pace: 90 },
     gifts: { loves: 'plant', likes: 'acorn', odd: 'coffee' },
     story: {

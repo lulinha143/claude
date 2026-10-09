@@ -2,6 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { createInitialState } from '../../src/sim/state';
 import { CHARACTERS } from '../../src/content/characters';
+import { EMPLOYEE_SPRITES } from '../../src/art/employeeSprites';
 import type { GameState } from '../../src/sim/types';
 import { openView } from './support/shell';
 
@@ -291,4 +292,147 @@ test('in Portuguese, everyone answers to their own name', async ({ page }) => {
   await page.keyboard.press('Escape');
   await visit(page, 'nino');
   await expect(page.locator('.talk__name')).toHaveText('Nino');
+});
+
+/** The whole cast on the payroll, each in their own room and between story parts. */
+function everyone(lang: string): GameState {
+  return company((s) => {
+    const hour = Date.now() - 3_600_000;
+    for (const id of Object.keys(CHARACTERS)) {
+      hire(s, id, 10);
+      // Their own topics were had an hour ago, so a quick word is what comes up.
+      s.employees[id].talks = {
+        count: 1,
+        lastAt: hour,
+        seen: { 'rizzo-inventory': hour, 'dorm-sleep': hour },
+      };
+    }
+    s.resources.reputation = 1_600;
+    for (const room of [
+      'sorting',
+      'lab',
+      'meeting',
+      'research',
+      'marketing',
+      'construction',
+      'procurement',
+      'vault',
+      'nap',
+      'morale',
+    ])
+      s.upgrades[`room-${room}`] = 1;
+  }, lang);
+}
+
+test('all 23 open a check-in in their own words, at one scale, and Escape goes back to them', async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  await boot(page, everyone('pt-BR'), 380, 460);
+  await openView(page, 'employees');
+  const figures: number[] = [];
+  const said = new Set<string>();
+  for (const id of Object.keys(CHARACTERS)) {
+    const button = page.locator(`.employee-card__talk[data-employee="${id}"]`);
+    await button.scrollIntoViewIfNeeded();
+    await button.click();
+    const visit = page.locator('.visit');
+    await expect(visit).toHaveAttribute('data-topic', 'check-in');
+    const line = (await page.locator('.talk__said').textContent())!.trim();
+    const own = Object.values(
+      (LOCALES['pt-BR'] as { checkin: Record<string, Record<string, string>> }).checkin[id],
+    );
+    expect(own, `${id} speaks their own lines`).toContain(line);
+    said.add(line);
+    const m = await page.evaluate(() => {
+      const img = document.querySelector('.talk__portrait img') as HTMLImageElement;
+      const page = document.querySelector('.visit__page') as HTMLElement;
+      return {
+        height: img.getBoundingClientRect().height,
+        natural: img.naturalHeight,
+        overflow: page.scrollHeight - page.clientHeight,
+      };
+    });
+    expect(m.height / m.natural, `${id} is never enlarged`).toBeLessThanOrEqual(1.02);
+    expect(m.overflow, `${id}: the opening fits`).toBeLessThanOrEqual(2);
+    figures.push(m.height * (1 - EMPLOYEE_SPRITES[id].figureTop));
+    // Escape leaves the visit, not the Team sheet, and focus is back on their card.
+    await page.keyboard.press('Escape');
+    await expect(visit).toHaveCount(0);
+    await expect(page.locator('.sheet[data-sheet="employees"]')).toBeVisible();
+    await expect(button).toBeFocused();
+  }
+  expect(said.size, 'nobody shares an opening').toBe(23);
+  // One presentation scale: the visible figures match (the registry's ~5%).
+  expect(Math.max(...figures) / Math.min(...figures)).toBeLessThan(1.07);
+});
+
+test('a visit reads the room, offers the way home, and keeps the keyboard inside', async ({
+  page,
+}) => {
+  await boot(
+    page,
+    company((s) => {
+      hire(s, 'bea', 10);
+      s.employees.bea.room = 'lab';
+      s.upgrades['room-lab'] = 1;
+      // Her own wing opens with standing.
+      s.resources.reputation = 40;
+    }, 'pt-BR'),
+    1280,
+    720,
+  );
+  await visit(page, 'bea');
+  await expect(page.locator('.talk__said')).toHaveText(text('pt-BR', 'checkin.bea.away'));
+  await expect(page.locator('.visit__fit')).toHaveText(text('pt-BR', 'visit.fit.disliked'));
+  // The first answer has the keyboard; Tab goes round inside the visit.
+  await expect(page.locator('.talk-choice').first()).toBeFocused();
+  for (let i = 0; i < 14; i += 1) {
+    await page.keyboard.press('Tab');
+    expect(await page.evaluate(() => Boolean(document.activeElement?.closest('.visit')))).toBe(
+      true,
+    );
+  }
+  // Arrow keys move between the visit's tabs.
+  await page.locator('.visit__tab[data-tab="talk"]').focus();
+  await page.keyboard.press('ArrowRight');
+  await expect(page.locator('.visit')).toHaveAttribute('data-tab', 'gifts');
+  await expect(page.locator('.visit__tab[data-tab="gifts"]')).toBeFocused();
+  await page.keyboard.press('ArrowLeft');
+  await expect(page.locator('.visit')).toHaveAttribute('data-tab', 'talk');
+
+  // Back to her own room: the scene and the plate change with her.
+  await page.locator('.visit__act[data-act="home"]').click();
+  await expect(page.locator('.visit__slip')).toContainText(text('pt-BR', 'room.construction.name'));
+  await expect(page.locator('.visit')).toHaveAttribute('data-fit', 'favorite');
+  await expect(page.locator('.visit__act')).toHaveCount(0);
+  await page.screenshot({ path: 'visual-artifacts/review/visit-home-1280x720.png' });
+  await page.reload();
+  await page.locator('.office').first().waitFor({ timeout: 15_000 });
+  const saved = await page.evaluate(
+    () => JSON.parse(localStorage.getItem('wmno.save.v1')!).employees.bea.room as string,
+  );
+  expect(saved).toBe('construction');
+});
+
+test('a teammate you poke offers a chat on their note', async ({ page }) => {
+  await boot(
+    page,
+    company((s) => {
+      hire(s, 'marlow', 10);
+      s.employees.marlow.room = 'founder-desk';
+    }, 'pt-BR'),
+    380,
+    460,
+  );
+  const critter = page.locator('.critter-btn[data-employee="marlow"]');
+  await critter.scrollIntoViewIfNeeded();
+  await critter.click();
+  const offer = page.locator('.speech-note .speech-note__action');
+  await expect(offer).toHaveText(text('pt-BR', 'visit.invite.talk'));
+  await offer.click();
+  await expect(page.locator('.visit')).toHaveAttribute('data-topic', 'check-in');
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.visit')).toHaveCount(0);
+  await expect(critter).toBeFocused();
 });

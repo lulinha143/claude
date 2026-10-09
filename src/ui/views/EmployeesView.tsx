@@ -23,6 +23,7 @@ import { BondMeter } from '../BondMeter';
 import { employeeGain } from '../../sim/goals';
 import { announcePurchase } from '../officeEvents';
 import { Glyph, type GlyphName } from '../../art/Glyph';
+import { affinityWord, moodWord } from '../moodWord';
 
 /** The mark beside "wants to tell you something" (same as the office's). */
 const SHARE_GLYPH: Record<PendingMoment['kind'], GlyphName> = {
@@ -230,7 +231,10 @@ export function EmployeesView() {
                       return (
                         <Tip
                           content={
-                            <TipContent title={t(`mood.${mood}`)} lines={[t('tip.mood'), effect]} />
+                            <TipContent
+                              title={moodWord(t, mood, def.id)}
+                              lines={[t('tip.mood'), effect]}
+                            />
                           }
                         >
                           <span
@@ -239,7 +243,7 @@ export function EmployeesView() {
                             style={{ ['--mood-color' as string]: MOOD_TONE[mood] }}
                           >
                             <MoodEmoji mood={mood} color={MOOD_TONE[mood]} />
-                            <span className="mood-chip__label">{t(`mood.${mood}`)}</span>
+                            <span className="mood-chip__label">{moodWord(t, mood, def.id)}</span>
                             <em className={delta >= 0 ? 'prod-pos' : 'prod-neg'}>
                               {delta > 0 ? '+' : ''}
                               {delta}%
@@ -256,13 +260,13 @@ export function EmployeesView() {
                         <Tip
                           content={
                             <TipContent
-                              title={t(`affinity.${tier}`)}
+                              title={affinityWord(t, tier, def.id)}
                               lines={[t('tip.affinity'), t(ROOMS_BY_ID[room]?.nameKey ?? room)]}
                             />
                           }
                         >
                           <span className={`affinity-chip affinity-chip--${tier}`}>
-                            {t(`affinity.${tier}`)}
+                            {affinityWord(t, tier, def.id)}
                             {pct !== 0 ? (
                               <em className={pct > 0 ? 'prod-pos' : 'prod-neg'}>
                                 {pct > 0 ? '+' : ''}

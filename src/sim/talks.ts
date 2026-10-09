@@ -11,8 +11,10 @@ import {
   type TalkNode,
   type TalkRequirement,
   type TalkTopic,
+  type TalkVariant,
 } from '../content/employeeTalks';
-import { employeeMood } from './mood';
+import { roomAffinity } from './affinity';
+import { employeeMood, MOOD_POSITIVE } from './mood';
 import { resolveEmployeeRoom } from './rooms';
 import type { GameState } from './types';
 
@@ -119,9 +121,50 @@ export function checkTalkRequirement(
   return out;
 }
 
-/** What the employee says arriving at `node`, remembering earlier choices. */
-export function nodePrompt(state: GameState, node: TalkNode): string {
-  const variant = node.variants?.find((candidate) => candidate.flag in state.flags);
+/** Who is speaking, on which topic, and when: what a personal variant reads. */
+export interface PromptContext {
+  employeeId: string;
+  topicId: string;
+  now: number;
+}
+
+function variantHolds(
+  state: GameState,
+  variant: TalkVariant,
+  context: PromptContext | undefined,
+): boolean {
+  if (variant.flag !== undefined && !(variant.flag in state.flags)) return false;
+  const personal =
+    variant.since !== undefined || variant.affinity !== undefined || variant.lowMood !== undefined;
+  if (!personal) return true;
+  if (!context) return false;
+  const { employeeId, topicId, now } = context;
+  if (variant.since !== undefined) {
+    const at = state.flags[variant.since];
+    const lastTime = talkMemory(state, employeeId).seen[topicId] ?? 0;
+    if (at === undefined || at < lastTime) return false;
+  }
+  if (
+    variant.affinity !== undefined &&
+    roomAffinity(employeeId, resolveEmployeeRoom(state, employeeId)) !== variant.affinity
+  ) {
+    return false;
+  }
+  if (variant.lowMood !== undefined) {
+    const low = !MOOD_POSITIVE[employeeMood(state, employeeId, now)];
+    if (low !== variant.lowMood) return false;
+  }
+  return true;
+}
+
+/**
+ * What the employee says arriving at `node`: the first variant whose conditions
+ * hold (an earlier choice remembered, the room they are in, how they feel, what
+ * happened since you last spoke), otherwise the node's own prompt. Personal
+ * conditions need `context`; without it only the flag variants are considered.
+ */
+export function nodePrompt(state: GameState, node: TalkNode, context?: PromptContext): string {
+  const variant = node.variants?.find((candidate) => variantHolds(state, candidate, context));
   return variant?.promptKey ?? node.promptKey;
 }
 

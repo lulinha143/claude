@@ -23,7 +23,7 @@
   .visit__frame {
     position: relative;
     display: grid;
-    grid-template-rows: minmax(0, 46fr) minmax(0, 54fr);
+    grid-template-rows: minmax(0, 40fr) minmax(0, 60fr);
     width: 100%;
     height: 100%;
     max-width: none;
@@ -52,9 +52,9 @@
        enlarged, so a bigger stage would only make them smaller in it. */
     .visit__frame {
       grid-template-rows: none;
-      grid-template-columns: minmax(0, 1fr) minmax(320px, 400px);
+      grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
       width: min(920px, 100%);
-      height: min(520px, 100%);
+      height: min(500px, 100%);
       border: 3px solid var(--frame-edge);
       border-radius: var(--radius-sheet, 18px);
       box-shadow: var(--lift-shadow);
@@ -83,22 +83,31 @@
     inset: 0;
     z-index: 0;
   }
+  /* Where they stand: the middle of a corner window; left of centre when their
+     words share the scene with them. */
+  .visit {
+    --actor-x: 56%;
+  }
+  .visit[data-speech='scene'] {
+    --actor-x: 31%;
+  }
   /* A soft pool of light where they stand. */
   .visit__spot {
     position: absolute;
-    left: 50%;
-    bottom: 3%;
+    left: var(--actor-x);
+    bottom: 1%;
     z-index: 1;
-    width: min(84%, 420px);
-    height: 32%;
-    background: radial-gradient(closest-side, rgb(255 236 190 / 0.55), transparent);
+    width: calc(var(--actor-w, 200px) * 1.7);
+    max-width: 92%;
+    height: calc(var(--actor-h, 200px) * 0.5);
+    background: radial-gradient(closest-side, rgb(255 236 190 / 0.6), transparent);
     transform: translateX(-50%);
     pointer-events: none;
   }
   .visit__actor {
     position: absolute;
-    left: 50%;
-    bottom: 5%;
+    left: var(--actor-x);
+    bottom: 4%;
     z-index: 2;
     display: grid;
     justify-items: center;
@@ -149,7 +158,7 @@
   }
   .visit__keepsake {
     position: absolute;
-    right: -26%;
+    right: -18%;
     bottom: 0;
     width: 40px;
     height: 34px;
@@ -161,15 +170,28 @@
     height: 100%;
     filter: drop-shadow(0 2px 2px rgb(40 26 12 / 0.3));
   }
-  /* Their mood, big, by their head. It swaps (with a little stick-on) as they react. */
-  /* --actor-h is the drawn height of the teammate, so the sticker sits by their
-     head however large the stage lets them be. */
-  .visit__sticker {
+
+  /* Their mood, stuck by their head and named: anchored to where the figure's
+     head starts in their own art (--head), so it sits by the face of every
+     animal, tall or small, and moves (and hops) with them. */
+  .visit__mood {
     position: absolute;
-    left: calc(50% + var(--actor-h, 200px) * 0.2);
-    bottom: calc(5% + var(--actor-h, 200px) * 0.7);
+    left: calc(50% + var(--actor-w, 200px) * 0.2);
+    bottom: calc(var(--actor-h, 200px) * var(--head, 0.9) - var(--sticker-size) * 1.2);
     z-index: 3;
-    width: clamp(34px, calc(var(--actor-h, 200px) * 0.2), 54px);
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+    --sticker-size: clamp(32px, calc(var(--actor-h, 200px) * 0.21), 50px);
+    pointer-events: auto;
+  }
+  .visit[data-speech='scene'] .visit__mood {
+    left: auto;
+    right: calc(50% + var(--actor-w, 200px) * 0.2);
+  }
+  .visit__sticker {
+    display: block;
+    width: var(--sticker-size);
     aspect-ratio: 1;
     rotate: 6deg;
     animation: sticker-on 360ms var(--ease-pop) both;
@@ -180,6 +202,22 @@
     height: 100%;
     overflow: visible;
   }
+  .visit__mood-word {
+    padding: 1px 7px 2px;
+    color: var(--ink-strong);
+    background: rgb(255 250 240 / 0.94);
+    border: 1.5px solid color-mix(in srgb, var(--paper-line) 70%, var(--ink-soft));
+    border-radius: 7px;
+    box-shadow: 0 1px 0 rgb(40 26 12 / 0.18);
+    font: 800 var(--fs-2xs, 11px) / 1.15 var(--font-body);
+    white-space: nowrap;
+    rotate: -2deg;
+  }
+  .visit__mood[data-tone='down'] .visit__mood-word {
+    color: #3b3350;
+    background: #eef0f8;
+    border-color: #a8aec8;
+  }
   .visit__plate {
     position: absolute;
     left: 10px;
@@ -187,12 +225,15 @@
     z-index: 3;
     display: grid;
     gap: 1px;
-    max-width: calc(100% - 64px);
+    max-width: min(44%, 260px);
     padding: 6px 12px 7px;
-    background: rgb(255 250 240 / 0.92);
+    background: rgb(255 250 240 / 0.93);
     border: 2px solid var(--paper-line);
     border-radius: 12px;
     box-shadow: 0 2px 0 rgb(40 26 12 / 0.2);
+  }
+  .visit[data-speech='scene'] .visit__plate {
+    max-width: min(62%, 320px);
   }
   .visit__plate .talk__name {
     margin: 0;
@@ -204,6 +245,49 @@
     color: var(--ink-soft);
     font: 700 var(--fs-xs) / 1.2 var(--font-body);
   }
+  /* Where they are, and whether the room suits them. */
+  .visit__where {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1px 6px;
+    min-width: 0;
+    margin: 2px 0 0;
+    padding-top: 3px;
+    color: var(--ink-body);
+    border-top: 1px dashed rgb(90 70 40 / 0.25);
+    font: 700 var(--fs-2xs, 11px) / 1.2 var(--font-body);
+  }
+  .visit__where-room {
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .visit__fit {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    white-space: nowrap;
+  }
+  .visit__fit[data-fit='favorite'] {
+    color: #a32c45;
+  }
+  .visit__fit[data-fit='disliked'] {
+    color: #6a4a2a;
+  }
+  /* In a corner window the plate stays small: only a notable fit is named (the
+     room itself is the scene around them). */
+  .visit[data-speech='pad'] .visit__where-room {
+    display: none;
+  }
+  .visit[data-speech='pad'] .visit__where[data-fit='acceptable'] {
+    display: none;
+  }
+  .visit[data-speech='pad'] .visit__where {
+    border-top: 0;
+    padding-top: 0;
+  }
   .visit__stage .visit__bond {
     position: absolute;
     left: 10px;
@@ -214,7 +298,7 @@
     position: absolute;
     top: 10px;
     right: 10px;
-    z-index: 4;
+    z-index: 5;
     display: grid;
     place-items: center;
     width: 36px;
@@ -230,6 +314,104 @@
   .visit__stage .talk__close:hover {
     color: #fff;
     background: var(--c-walnut-600);
+  }
+
+  /* A visit action on the floor of the scene: take them back to their own room. */
+  .visit__act {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    z-index: 4;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 0 6px;
+    max-width: min(46%, 230px);
+    padding: 5px 10px 6px;
+    color: var(--ink-strong);
+    background: var(--paper-bg-bright);
+    border: 2px solid var(--c-leaf-600, #3f7a3a);
+    border-radius: 12px;
+    box-shadow: 0 2px 0 var(--c-leaf-700, #2f5e2c);
+    text-align: left;
+    cursor: pointer;
+    transition: translate var(--dur-fast) var(--ease);
+  }
+  .visit__act > .glyph,
+  .visit__act > svg {
+    grid-row: span 2;
+    color: #c2405a;
+  }
+  .visit__act:hover:not([aria-disabled='true']) {
+    translate: 0 -1px;
+    background: color-mix(in srgb, var(--c-leaf-200, #d4ebb5) 45%, var(--paper-bg-bright));
+  }
+  .visit__act[aria-disabled='true'] {
+    border-color: var(--paper-line);
+    box-shadow: 0 2px 0 var(--paper-line);
+    opacity: 0.75;
+    cursor: default;
+  }
+  .visit__act-label {
+    font: 800 var(--fs-xs) / 1.15 var(--font-body);
+  }
+  .visit__act-room {
+    overflow: hidden;
+    color: var(--ink-soft);
+    font: 700 var(--fs-2xs, 11px) / 1.15 var(--font-body);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  /* What just happened in the scene, said once and then gone. */
+  .visit__slip {
+    position: absolute;
+    right: 10px;
+    bottom: 54px;
+    z-index: 6;
+    max-width: min(60%, 300px);
+    margin: 0;
+    padding: 6px 12px;
+    color: var(--ink-strong);
+    background: var(--paper-bg-bright);
+    border: 2px solid var(--c-leaf-600, #3f7a3a);
+    border-radius: 10px;
+    box-shadow: var(--lift-shadow);
+    font: 800 var(--fs-xs) / 1.3 var(--font-body);
+    text-align: center;
+    animation: said-in 320ms var(--ease-pop) both;
+  }
+  /* On the notepad (a corner window): in line with the way out. */
+  .visit__act--pad {
+    position: static;
+    max-width: 100%;
+    min-width: 0;
+  }
+  .visit__slip--pad {
+    position: static;
+    max-width: none;
+    text-align: left;
+  }
+  .visit__end-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 6px 8px;
+  }
+  .visit__slip[data-tone='bad'] {
+    border-color: var(--c-berry-500, #c94452);
+  }
+  .visit
+    :is(
+      .talk-choice,
+      .visit__tab,
+      .visit__act,
+      .talk__close,
+      .visit-gift,
+      .talk__done,
+      summary
+    ):focus-visible {
+    outline: 3px solid var(--c-sky-500, #4aa3b1);
+    outline-offset: 2px;
   }
 
   /* ---- the bond meter (stage and Team cards) ----------------------------------- */
@@ -414,39 +596,6 @@
       padding: 8px 10px 10px;
     }
   }
-  /* Short windows: every pixel to the teammate and what they are saying. */
-  @media (max-height: 520px) {
-    .visit__page {
-      gap: 5px;
-      padding: 6px 10px 6px;
-    }
-    .visit__tabs {
-      padding-top: 4px;
-    }
-    .visit__tab {
-      padding: 5px 6px 6px;
-    }
-    .visit .talk__said {
-      padding: 6px 10px 7px;
-      line-height: 1.3;
-    }
-    .visit .talk-choice {
-      min-height: 32px;
-      padding: 5px 10px 6px;
-    }
-    .visit .talk__choices {
-      gap: 5px;
-    }
-    /* The meter on the stage already says "Now: Trusted"; what it means is
-       kept in the scrapbook, so the conversation keeps the room. */
-    .visit__milestone {
-      display: none;
-    }
-    /* Mid-conversation the topic has been named already. */
-    .visit[data-step='later'] .talk__topic {
-      display: none;
-    }
-  }
 
   /* ---- talk --------------------------------------------------------------- */
   .visit .talk__topic {
@@ -473,8 +622,9 @@
     display: grid;
     gap: 6px;
   }
-  /* A speech bubble from the teammate on the stage (tail up in a corner window,
-     tail to the left when they stand beside the panel). */
+  /* Their words come from them. In a corner window the line heads the notepad
+     and its tail points up at them; in a roomy one it floats beside their head
+     in the scene, its tail pointing back at them. */
   .visit .talk__said {
     position: relative;
     margin: 0;
@@ -486,11 +636,12 @@
     box-shadow: 0 2px 0 rgb(40 26 12 / 0.12);
     font: 700 var(--fs-sm) / 1.35 var(--font-body);
     quotes: none;
+    text-wrap: pretty;
   }
   .visit .talk__said::before {
     content: '';
     position: absolute;
-    left: 22px;
+    left: calc(var(--actor-x, 50%) - 7px);
     top: -9px;
     width: 14px;
     height: 14px;
@@ -499,20 +650,78 @@
     border-top: 2px solid var(--paper-line);
     transform: rotate(45deg);
   }
+  /* The scroller is the space beside them (a long line scrolls inside it), so
+     the bubble itself never clips its own tail: the 10px of padding on the left
+     is where the tail sits. */
+  .visit__speech--scene {
+    position: absolute;
+    left: calc(var(--actor-x) + var(--actor-w, 200px) * 0.2 - 10px);
+    right: 16px;
+    bottom: calc(4% + var(--actor-h, 200px) * var(--head, 0.9) - 10px);
+    top: 112px;
+    z-index: 4;
+    display: flex;
+    flex-direction: column;
+    padding-left: 10px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
+  .visit__speech--scene .talk__said {
+    /* Sits at the foot of the space by their head; a longer line grows upward and
+       then scrolls (an auto margin, unlike flex-end, never hides the top). */
+    flex: 0 0 auto;
+    margin-top: auto;
+    padding: 11px 15px 12px;
+    border-color: color-mix(in srgb, var(--paper-line) 60%, var(--ink-soft));
+    border-radius: 18px 18px 18px 6px;
+    box-shadow:
+      0 3px 0 rgb(40 26 12 / 0.16),
+      0 10px 22px rgb(40 26 12 / 0.18);
+    font-size: var(--fs-base);
+    line-height: 1.42;
+  }
+  /* Beside them (a roomy window, or the notepad next to the stage), the tail
+     points back at them. */
   @container app (min-width: 760px) {
-    .visit .talk__said::before {
+    .visit__speech--pad .talk__said::before {
       left: -9px;
-      top: 14px;
+      top: 16px;
       border-top: 0;
       border-bottom: 2px solid var(--paper-line);
     }
   }
+  .visit__speech--scene .talk__said::before {
+    left: -9px;
+    top: auto;
+    bottom: 14px;
+    border: 0;
+    border-left: 2px solid color-mix(in srgb, var(--paper-line) 60%, var(--ink-soft));
+    border-bottom: 2px solid color-mix(in srgb, var(--paper-line) 60%, var(--ink-soft));
+    transform: rotate(45deg);
+  }
+  /* The notepad's answers: "you say", then the replies. Beside a scene that
+     carries their words, they wait at the foot of the notepad. */
+  .visit__answers {
+    display: grid;
+    gap: 6px;
+    align-content: start;
+  }
+  .visit[data-speech='scene'] .visit__page[data-page='talk'] .visit__answers {
+    margin-top: auto;
+  }
+  .visit__you {
+    color: var(--ink-soft);
+    font: 800 var(--fs-2xs, 11px) / 1.2 var(--font-body);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
   .visit .talk__said--reply {
-    background: color-mix(in srgb, var(--calm-bg, #e8f3dc) 70%, var(--paper-bg-bright));
+    background: color-mix(in srgb, var(--c-sage-200, #dcebd2) 62%, var(--paper-bg-bright));
     animation: said-in 320ms var(--ease-pop) both;
   }
   .visit .talk__said--reply::before {
-    background: color-mix(in srgb, var(--calm-bg, #e8f3dc) 70%, var(--paper-bg-bright));
+    background: color-mix(in srgb, var(--c-sage-200, #dcebd2) 62%, var(--paper-bg-bright));
   }
   .visit .talk__reply,
   .visit .talk__next {
@@ -533,6 +742,30 @@
       opacity: 0;
       transform: translateY(6px) scale(0.98);
     }
+  }
+  /* What the answer changed, in the scene by the meter it moved. */
+  .visit__stage > .talk__changed {
+    position: absolute;
+    left: 10px;
+    bottom: 54px;
+    z-index: 4;
+    max-width: calc(100% - 20px);
+    animation: said-in 360ms var(--ease-pop) both;
+  }
+  /* Beside them, it sits right under their words. */
+  .visit[data-speech='scene'] .visit__stage > .talk__changed {
+    left: calc(var(--actor-x) + var(--actor-w, 200px) * 0.2);
+    bottom: calc(4% + var(--actor-h, 200px) * var(--head, 0.9) - 46px);
+  }
+  .visit__stage > .talk__changed li {
+    background: var(--paper-bg-bright);
+    border: 1.5px solid var(--paper-line);
+    box-shadow: 0 1px 0 rgb(40 26 12 / 0.16);
+  }
+  .visit__blurb {
+    margin: -2px 0 0;
+    color: var(--ink-soft);
+    font: italic 700 var(--fs-xs) / 1.35 var(--font-body);
   }
   .visit .talk__changed ul {
     display: flex;
@@ -579,8 +812,8 @@
       border-color var(--dur-fast) var(--ease);
   }
   .visit .talk-choice:hover:not([aria-disabled='true']) {
-    background: color-mix(in srgb, var(--calm-bg, #e8f3dc) 60%, var(--paper-bg-bright));
-    border-color: var(--calm-edge, #7fae6a);
+    background: color-mix(in srgb, var(--c-sage-200, #dcebd2) 70%, var(--paper-bg-bright));
+    border-color: var(--c-sage-500, #4a7a42);
   }
   .visit .talk-choice--warm {
     border-left: 6px solid #e2a35a;
@@ -678,7 +911,7 @@
     cursor: pointer;
   }
   .visit .talk__agenda button:hover {
-    border-color: var(--calm-edge, #7fae6a);
+    border-color: var(--c-sage-500, #4a7a42);
   }
   .visit__milestone {
     margin: 0;
@@ -942,6 +1175,46 @@
     color: var(--ink-soft);
     font: 700 var(--fs-2xs, 10px) / 1.2 var(--font-body);
     white-space: nowrap;
+  }
+
+  /* Short windows (after the base rules, so these win): every pixel to the teammate and what they are saying. */
+  @media (max-height: 520px) {
+    .visit__page {
+      gap: 4px;
+      padding: 5px 9px 6px;
+    }
+    .visit__answers,
+    .visit .talk__choices {
+      gap: 4px;
+    }
+    .visit__tabs {
+      padding-top: 4px;
+    }
+    .visit__tab {
+      padding: 5px 6px 6px;
+    }
+    .visit .talk__said {
+      padding: 5px 10px 6px;
+      line-height: 1.28;
+    }
+    .visit .talk__next {
+      margin-top: 4px;
+      padding-top: 4px;
+    }
+    .visit .talk-choice {
+      min-height: 30px;
+      padding: 4px 10px 5px;
+      box-shadow: 0 1px 0 var(--paper-line);
+    }
+    /* The meter on the stage already says "Now: Trusted"; what it means is
+       kept in the scrapbook, so the conversation keeps the room. */
+    .visit__milestone {
+      display: none;
+    }
+    /* Mid-conversation the topic has been named already. */
+    .visit[data-step='later'] .talk__topic {
+      display: none;
+    }
   }
 
   [data-reduced-motion='true'] .visit *,

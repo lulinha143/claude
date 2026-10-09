@@ -39,6 +39,7 @@ import {
 } from './employeeGifts';
 import { KEEPSAKE_TALKS } from './employeeKeepsakes';
 import { STORY_TALKS } from './stories';
+import { CHARACTERS } from './characters';
 
 /** What a conversation option needs before it can be offered. */
 export interface TalkRequirement {
@@ -76,15 +77,36 @@ export interface TalkChoice {
   tone?: 'warm' | 'firm' | 'curious' | 'costly' | 'risky';
 }
 
+/**
+ * Something said instead of a node's usual prompt when every condition it names
+ * holds. Conditions about the teammate themselves (where they sit, how they feel,
+ * what happened since you last spoke) need to know who is speaking; without that
+ * context such a variant is simply skipped.
+ */
+export interface TalkVariant {
+  promptKey: string;
+  /** the company remembers this. */
+  flag?: string;
+  /**
+   * this was (re)stamped at or after the teammate's last time on this topic:
+   * "since we last spoke".
+   */
+  since?: string;
+  /** how the room they are sitting in suits them. */
+  affinity?: 'favorite' | 'acceptable' | 'disliked';
+  /** they are visibly in a low mood (a negative emotion sticker). */
+  lowMood?: boolean;
+}
+
 export interface TalkNode {
   id: string;
   /** what the employee says on arriving at this node. */
   promptKey: string;
   /**
-   * Alternative openings that remember an earlier choice: the first whose flag
-   * the company remembers is said instead of `promptKey`.
+   * Alternative openings that remember an earlier choice or read the moment: the
+   * first whose conditions hold is said instead of `promptKey`.
    */
-  variants?: Array<{ flag: string; promptKey: string }>;
+  variants?: TalkVariant[];
   choices: TalkChoice[];
 }
 
@@ -933,6 +955,104 @@ export const TALKS_BY_ID: Record<string, TalkTopic> = Object.fromEntries(
   EMPLOYEE_TALKS.map((topic) => [topic.id, topic]),
 );
 
+/* -------------------------------------------------------------------------- */
+/* The check-in, in each teammate's own words.                                 */
+/*                                                                            */
+/* "A quick word" is the conversation the whole cast shares, and it used to be  */
+/* word for word the same from the bear, the owl and the octopus. It keeps its  */
+/* shape (the same three openings, the same costs and consequences, so balance */
+/* and old saves are untouched) but every line is now theirs, under            */
+/* `checkin.<id>.*`: the small thing that bothers them, how they take praise,  */
+/* how they take being pushed.                                                 */
+/*                                                                            */
+/* How they open reads the moment, best match first:                           */
+/*   1. what happened since you last had this word: the promise that lapsed,   */
+/*      the thing you fixed, the push, the praise (stamped per teammate)       */
+/*   2. a low mood, the one their sticker is showing                           */
+/*   3. the room: a room that clashes with their work, or their own department */
+/*   4. otherwise, their ordinary hello                                        */
+/* -------------------------------------------------------------------------- */
+
+/** What the last check-in with someone left behind, for them to bring up. */
+export type CheckInMemory = 'praised' | 'pushed' | 'fixed' | 'broken';
+
+export function checkInMemoryFlag(employeeId: string, memory: CheckInMemory): string {
+  return `${employeeId}.checkin.${memory}`;
+}
+
+/** Re-stamp a memory each time it happens, so "since we last spoke" stays true. */
+function remember(employeeId: string, memory: CheckInMemory): EventEffect[] {
+  const flagId = checkInMemoryFlag(employeeId, memory);
+  return [
+    { type: 'clearFlag', flagId },
+    { type: 'setFlag', flagId },
+  ];
+}
+
+/** The check-in as one particular teammate has it. */
+function checkInTopicFor(employeeId: string): TalkTopic {
+  const key = (rest: string) => `checkin.${employeeId}.${rest}`;
+  const open = CHECK_IN.nodes.open;
+  const listened = CHECK_IN.nodes.listened;
+  const personal = (
+    choice: TalkChoice,
+    replyKey: string,
+    extra: EventEffect[] = [],
+    labelKey = choice.labelKey,
+  ): TalkChoice => ({ ...choice, labelKey, replyKey, effects: [...choice.effects, ...extra] });
+  const pick = (node: TalkNode, id: string) => node.choices.find((choice) => choice.id === id)!;
+  const promise = pick(listened, 'promise');
+  return {
+    ...CHECK_IN,
+    nodes: {
+      open: {
+        ...open,
+        promptKey: key('open'),
+        variants: [
+          { since: checkInMemoryFlag(employeeId, 'broken'), promptKey: key('broken') },
+          { since: checkInMemoryFlag(employeeId, 'fixed'), promptKey: key('fixed') },
+          { since: checkInMemoryFlag(employeeId, 'pushed'), promptKey: key('pushed') },
+          { since: checkInMemoryFlag(employeeId, 'praised'), promptKey: key('praised') },
+          { lowMood: true, promptKey: key('down') },
+          { affinity: 'disliked', promptKey: key('away') },
+          { affinity: 'favorite', promptKey: key('home') },
+        ],
+        choices: [
+          personal(pick(open, 'listen'), key('listen')),
+          personal(pick(open, 'praise'), key('praise'), remember(employeeId, 'praised')),
+          personal(pick(open, 'quota'), key('quota'), remember(employeeId, 'pushed')),
+        ],
+      },
+      listened: {
+        ...listened,
+        promptKey: key('problem'),
+        choices: [
+          personal(
+            pick(listened, 'fix'),
+            key('fix'),
+            remember(employeeId, 'fixed'),
+            key('fixLabel'),
+          ),
+          {
+            ...promise,
+            replyKey: key('promise'),
+            // The lapse is theirs to bring up: it lands with the consequence.
+            effects: promise.effects.map((effect) =>
+              effect.type === 'schedule'
+                ? {
+                    ...effect,
+                    scheduled: [...(effect.scheduled ?? []), ...remember(employeeId, 'broken')],
+                  }
+                : effect,
+            ),
+          },
+          personal(pick(listened, 'thanks'), key('thanks')),
+        ],
+      },
+    },
+  };
+}
+
 /** The gift topic as one particular teammate receives it. */
 function giftTopicFor(employeeId: string): TalkTopic {
   return {
@@ -965,8 +1085,14 @@ const topicCache = new Map<string, readonly TalkTopic[]>();
 export function topicsForEmployee(employeeId: string): readonly TalkTopic[] {
   const cached = topicCache.get(employeeId);
   if (cached) return cached;
+  const personal = employeeId in CHARACTERS;
   const topics = EMPLOYEE_TALKS.filter((t) => !t.employeeId || t.employeeId === employeeId).map(
-    (topic) => (topic.id === 'gift' ? giftTopicFor(employeeId) : topic),
+    (topic) =>
+      topic.id === 'gift'
+        ? giftTopicFor(employeeId)
+        : topic.id === 'check-in' && personal
+          ? checkInTopicFor(employeeId)
+          : topic,
   );
   topicCache.set(employeeId, topics);
   return topics;

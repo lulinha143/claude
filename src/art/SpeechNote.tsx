@@ -17,6 +17,7 @@
 import { useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { useStore } from '../state/store';
+import { Glyph } from './Glyph';
 
 /** A side sheet slides in over ~0.34s; measure again once it has landed. */
 const SHEET_SETTLE_MS = 380;
@@ -76,6 +77,14 @@ function officeBounds(anchor: Element, vw: number, vh: number): Bounds {
   return bounds;
 }
 
+/** A way into a visit, offered on the note itself. */
+export interface SpeechNoteAction {
+  label: string;
+  onActivate: () => void;
+  /** the pointer is on its way to it: keep the note up a moment longer. */
+  onHold?: () => void;
+}
+
 export interface SpeechNoteProps {
   /** the speaking teammate's display name. */
   name: string;
@@ -83,19 +92,23 @@ export interface SpeechNoteProps {
   text: string;
   /** tint taken from the character's mood, so the note still feels like theirs. */
   color: string;
+  /** an offer the player can take from the note (the note itself stays click-through). */
+  action?: SpeechNoteAction;
 }
 
 /**
  * Renders an invisible anchor in the scene (so it inherits the character's
  * position) and portals the readable note to the body.
  */
-export function SpeechNote({ name, text, color }: SpeechNoteProps) {
+export function SpeechNote({ name, text, color, action }: SpeechNoteProps) {
   const anchorRef = useRef<HTMLSpanElement | null>(null);
   const noteRef = useRef<HTMLDivElement | null>(null);
   const [pos, setPos] = useState<Position | null>(null);
   // Opening or closing a side sheet changes the room's visible width without a
   // scroll or resize, so the note is placed again (it must never sit on a sheet).
   const view = useStore((s) => s.view);
+  // An offer makes the note taller: place it again when one appears or goes.
+  const hasAction = Boolean(action);
 
   // Measure after layout so the note's real (wrapped) size is known before it is
   // placed. Re-measured on scroll/resize/zoom and whenever the text changes.
@@ -165,7 +178,7 @@ export function SpeechNote({ name, text, color }: SpeechNoteProps) {
       window.visualViewport?.removeEventListener('scroll', schedule);
       observer.disconnect();
     };
-  }, [text, name, view]);
+  }, [text, name, view, hasAction]);
 
   const style: CSSProperties = {
     ['--mood-color' as string]: color,
@@ -188,7 +201,23 @@ export function SpeechNote({ name, text, color }: SpeechNoteProps) {
               ref={noteRef}
               role="status"
             >
-              <span className="speech-note__who">{name}</span>
+              {/* The offer rides on the name row, so it adds no more than a line's
+                  height: a taller note would flip below and cover the speaker. */}
+              <span className="speech-note__head">
+                <span className="speech-note__who">{name}</span>
+                {action ? (
+                  <button
+                    type="button"
+                    className="speech-note__action"
+                    onPointerEnter={action.onHold}
+                    onFocus={action.onHold}
+                    onClick={action.onActivate}
+                  >
+                    {action.label}
+                    <Glyph name="arrow" size={11} />
+                  </button>
+                ) : null}
+              </span>
               <p className="speech-note__body">{text}</p>
             </div>,
             document.body,

@@ -18,7 +18,9 @@ export type GlyphName =
   | 'parcel'
   | 'dial'
   // something to look at more closely
-  | 'lens';
+  | 'lens'
+  // go on: "have a chat"
+  | 'arrow';
 
 const STROKE = {
   fill: 'none',
@@ -69,6 +71,7 @@ const SHAPES: Record<GlyphName, JSX.Element> = {
   ),
   plus: <path d="M8 3.2v9.6M3.2 8h9.6" {...STROKE} strokeWidth={2.4} />,
   tilde: <path d="M2.4 9.4c1.7-2.6 3.4-2.6 4.8-.9s3.2 1.7 4.6-.9" {...STROKE} strokeWidth={2.2} />,
+  arrow: <path d="M3 8h9.2M8.6 4.2 12.4 8l-3.8 3.8" {...STROKE} strokeWidth={2.2} />,
   question: (
     <>
       <path d="M5.5 5.9a2.6 2.6 0 1 1 3.6 2.4c-.8.3-1.1.9-1.1 1.6v.3" {...STROKE} strokeWidth={2} />

@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react';
 import type { EmployeeMood } from '../sim/types';
-import { SpeechNote } from './SpeechNote';
+import { SpeechNote, type SpeechNoteAction } from './SpeechNote';
 import { STICKER_FOR_MOOD, StickerArt } from './EmotionSticker';
 
 /**
@@ -45,6 +45,7 @@ export function EmployeeBubble({
   color,
   label,
   speech,
+  action,
   name,
   tilt = 0,
   style,
@@ -55,6 +56,8 @@ export function EmployeeBubble({
   color: string;
   label: string;
   speech?: string | null;
+  /** what the player can do from their note (sit down with them), if anything. */
+  action?: SpeechNoteAction;
   /** the speaking teammate's display name, shown on the speech note. */
   name?: string;
   /** a small per-teammate tilt, in degrees. */
@@ -88,7 +91,9 @@ export function EmployeeBubble({
       <span className="mood-emoji employee-bubble__sticker" key={kind} data-mood={mood}>
         <StickerArt kind={kind} />
       </span>
-      {speech ? <SpeechNote name={name ?? label} text={speech} color={color} /> : null}
+      {speech ? (
+        <SpeechNote name={name ?? label} text={speech} color={color} action={action} />
+      ) : null}
     </span>
   );
 }

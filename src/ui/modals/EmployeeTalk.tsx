@@ -1,11 +1,15 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { KeepsakeArt } from '../../art/KeepsakeArt';
 import { GiftArt } from '../../art/GiftArt';
 import { Critter } from '../../art/Critter';
 import { shapeFor } from '../../art/critterShapes';
 import { EmployeeSprite } from '../../art/EmployeeSprite';
-import { employeeSprite, VECTOR_CRITTER_CARD_SIZE } from '../../art/employeeSprites';
+import {
+  castScaleFor,
+  employeeSprite,
+  VECTOR_CRITTER_OFFICE_SIZE,
+} from '../../art/employeeSprites';
 import { RoomDressing } from '../../art/RoomDressing';
 import { DEPT } from '../../art/roomStyle';
 import { STICKER_FOR_MOOD, StickerArt } from '../../art/EmotionSticker';
@@ -13,9 +17,11 @@ import { speakAloud } from '../../art/voice';
 import { Icon } from '../../art/UiIcon';
 import { Glyph, type GlyphName } from '../../art/Glyph';
 import { EMPLOYEES_BY_ID } from '../../content/employees';
+import { ROOMS_BY_ID } from '../../content/rooms';
 import { GIFTS, type GiftId } from '../../content/employeeGifts';
-import { employeeMood } from '../../sim/mood';
-import { resolveEmployeeRoom } from '../../sim/rooms';
+import { employeeMood, MOOD_POSITIVE } from '../../sim/mood';
+import { isRoomIdUnlocked, resolveEmployeeRoom, roomHasSpace } from '../../sim/rooms';
+import { affinityPercent, roomAffinity } from '../../sim/affinity';
 import {
   BOND_TIERS,
   giftHint,
@@ -40,14 +46,18 @@ import { useGame } from '../../state/hooks';
 import { useStore } from '../../state/store';
 import { useFmt } from '../useFmt';
 import { BondMeter } from '../BondMeter';
+import { moodWord } from '../moodWord';
 import type { GiftReaction } from '../../content/employeeGifts';
 
 // A visit: going over to someone's desk to spend a moment with them.
 //
 // This is a game mode, not a dialog. The teammate stands large in their OWN room
-// (the same room dressing the office draws), with their mood sticker above them,
-// and reacts to what you say: a hop when something lands, a wobble when it
-// stings, their sticker changing as they change. Three things to do:
+// (the same room dressing the office draws, in their department's light), at the
+// same scale as the rest of the cast, with their mood stuck by their head. They
+// speak from where they stand: in a roomy window their words float beside them in
+// the scene and your answers wait on the notepad; in a corner window the notepad
+// takes the lower half and their line heads it, its tail pointing up at them.
+// They hop, wobble or tilt with how each answer lands. Three things to do:
 //
 //   Talk       their story, their keepsake, how they are doing
 //   Gifts      a little guessing game: learn what they like, find their favourite
@@ -63,20 +73,41 @@ const REACTION_GLYPH: Record<GiftReaction, GlyphName> = {
   odd: 'question',
 };
 
-/** The visit stage's size, so the teammate can be as large as it allows (never enlarged). */
-function useStageHeight(ref: React.RefObject<HTMLElement | null>): number {
-  const [height, setHeight] = useState(0);
+const FOCUSABLE =
+  'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), summary, [tabindex]:not([tabindex="-1"])';
+
+/** Layers that own Escape while they are up (a popup over the visit). */
+const OVER_LAYERS = '.popup-backdrop, .modal-backdrop, .opening-seq, .photo-mode';
+
+/** The first thing to do in the visit: an open answer, else the way out. */
+function focusInside(root: HTMLElement | null): void {
+  (
+    root?.querySelector<HTMLElement>('.visit__page .talk-choice[data-eligible="true"]') ??
+    root?.querySelector<HTMLElement>('.visit__page .talk__done') ??
+    root?.querySelector<HTMLElement>('.visit__tab.is-active') ??
+    root?.querySelector<HTMLElement>('.talk__close')
+  )?.focus({ preventScroll: true });
+}
+
+/** The stage's size, so the teammate can be as large as it allows (never enlarged). */
+function useBoxSize(ref: React.RefObject<HTMLElement | null>): { width: number; height: number } {
+  const [size, setSize] = useState({ width: 0, height: 0 });
   useLayoutEffect(() => {
     const element = ref.current;
     if (!element) return undefined;
-    const measure = () => setHeight(element.clientHeight);
+    const measure = () =>
+      setSize((current) =>
+        current.width === element.clientWidth && current.height === element.clientHeight
+          ? current
+          : { width: element.clientWidth, height: element.clientHeight },
+      );
     measure();
     if (typeof ResizeObserver === 'undefined') return undefined;
     const observer = new ResizeObserver(measure);
     observer.observe(element);
     return () => observer.disconnect();
   }, [ref]);
-  return height;
+  return size;
 }
 
 export function EmployeeTalk() {
@@ -84,14 +115,26 @@ export function EmployeeTalk() {
   const fmt = useFmt();
   const { engine, state } = useGame();
   const audio = useStore((s) => s.audio);
+  const view = useStore((s) => s.view);
   const reducedMotion = state.settings.reducedMotion;
   const active = engine.activeTalk;
-  const closeRef = useRef<HTMLButtonElement | null>(null);
+  const rootRef = useRef<HTMLDivElement | null>(null);
   const stageRef = useRef<HTMLElement | null>(null);
-  const stageHeight = useStageHeight(stageRef);
+  const stage = useBoxSize(stageRef);
   const employeeId = active?.employeeId;
   const talkInstanceId = active?.instanceId ?? null;
   const [tab, setTab] = useState<VisitTab>('talk');
+  // Where the visit was opened from, read while that button is still on screen
+  // (the Team sheet gives way to the visit in the same update).
+  const [opener] = useState(() =>
+    typeof document !== 'undefined' && document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null,
+  );
+  const [cheer, setCheer] = useState(0);
+  const [slip, setSlip] = useState<{ key: number; text: string; tone: 'good' | 'bad' } | null>(
+    null,
+  );
   const pageRef = useRef<HTMLDivElement | null>(null);
   const moreBelow = useMoreBelow(
     pageRef,
@@ -104,32 +147,81 @@ export function EmployeeTalk() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [talkInstanceId]);
 
-  // Escape always leaves. Whatever has been agreed is already applied and saved.
+  useEffect(() => {
+    if (!slip) return undefined;
+    const timer = window.setTimeout(() => setSlip(null), 3200);
+    return () => window.clearTimeout(timer);
+  }, [slip]);
+
+  // Keyboard: Escape leaves (a menu that is open closes first; a popup over the
+  // visit keeps its own Escape), and on the way out focus goes back to where the
+  // visit was opened from. It listens in the capture phase so the sheet behind it
+  // never takes the same key and closes as well.
   useEffect(() => {
     if (!employeeId) return undefined;
-    const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const previous = opener;
+    const openedFromTeam = Boolean(previous?.closest('.employee-card'));
     cancelTransientInteractions('popup-open');
-    closeRef.current?.focus();
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        engine.closeTalk();
+    const onKey = (e: globalThis.KeyboardEvent) => {
+      if (e.key !== 'Escape' || e.defaultPrevented) return;
+      if (document.querySelector(OVER_LAYERS)) return;
+      const menu = rootRef.current?.querySelector<HTMLDetailsElement>('details[open]');
+      e.preventDefault();
+      if (menu) {
+        menu.open = false;
+        menu.querySelector<HTMLElement>('summary')?.focus();
+        return;
       }
+      engine.closeTalk();
     };
-    window.addEventListener('keydown', onKey);
+    // The visit is the whole screen: focus that wanders behind it (the office
+    // handing focus back to a teammate, a sheet settling) is brought back in.
+    const onFocusIn = (e: FocusEvent) => {
+      const root = rootRef.current;
+      const target = e.target;
+      if (!root || !(target instanceof Element) || root.contains(target)) return;
+      if (target.closest(`${OVER_LAYERS}, .toasts, .tooltip`)) return;
+      focusInside(root);
+    };
+    window.addEventListener('keydown', onKey, true);
+    document.addEventListener('focusin', onFocusIn);
     return () => {
-      window.removeEventListener('keydown', onKey);
-      if (previous?.isConnected) previous.focus({ preventScroll: true });
+      window.removeEventListener('keydown', onKey, true);
+      document.removeEventListener('focusin', onFocusIn);
+      window.requestAnimationFrame(() => {
+        // The Team sheet is rebuilt when a visit closes, so its Visit button is a
+        // new element: find this teammate's again. From the office, their own
+        // critter (a waving balloon or a speech note may be gone by now).
+        const target =
+          (previous?.isConnected ? previous : null) ??
+          (openedFromTeam
+            ? document.querySelector<HTMLElement>(
+                `.employee-card__talk[data-employee="${employeeId}"]`,
+              )
+            : null) ??
+          document.querySelector<HTMLElement>(`.critter-btn[data-employee="${employeeId}"]`) ??
+          document.querySelector<HTMLElement>('.dock__item[data-dock="team"]');
+        if (!target) return;
+        target.focus({ preventScroll: true });
+        if (openedFromTeam) target.scrollIntoView({ block: 'nearest' });
+      });
     };
-  }, [employeeId, engine]);
+  }, [employeeId, engine, opener]);
 
+  // Focus follows the conversation: when it opens and after every answer (the
+  // answered button is gone), the first answer still open — or the way out.
+  const exchanges = active?.exchanges ?? 0;
   useEffect(() => {
-    if (talkInstanceId) closeRef.current?.focus();
-  }, [talkInstanceId]);
+    const root = rootRef.current;
+    if (!root) return;
+    const current = document.activeElement;
+    if (current instanceof HTMLElement && root.contains(current) && current !== root) return;
+    focusInside(root);
+  }, [talkInstanceId, exchanges, tab]);
 
   // They speak: a short babble in their own voice whenever a new line appears.
   const node = active?.nodeId ? active.topic.nodes[active.nodeId] : null;
-  const promptKey = node ? nodePrompt(state, node) : null;
+  const promptKey = node ? (active?.promptKey ?? nodePrompt(state, node)) : null;
   const line = active?.lastReplyKey ?? promptKey;
   useEffect(() => {
     if (!employeeId || !line) return;
@@ -153,7 +245,10 @@ export function EmployeeTalk() {
   const sprite = employeeSprite(def.id);
   const shape = shapeFor(def.id);
   const mood = employeeMood(state, def.id, now);
+  const moodLabel = moodWord(t, mood, def.id);
   const roomId = resolveEmployeeRoom(state, def.id);
+  const roomName = t(ROOMS_BY_ID[roomId]?.nameKey ?? roomId);
+  const fit = roomAffinity(def.id, roomId);
   const finished = !node;
   const cooldown = talkCooldownRemaining(state, def.id, now);
   const evaluated = node ? evaluateTalkNode(state, def.id, node.choices, now) : [];
@@ -164,23 +259,34 @@ export function EmployeeTalk() {
   const story = storyState(state, def.id, now);
   const keepsake = keepsakeOnDisplay(state, def.id);
 
+  // Where they speak from: beside them in the scene when it has the room for both,
+  // otherwise at the head of the notepad below them.
+  const sceneSpeech = stage.width >= 420 && stage.height >= 400;
+
+  // One scale for the whole cast (the same for every teammate in this window), as
+  // large as the stage allows and never enlarging anyone's art.
+  const scale = castScaleFor((stage.height || 360) * (sceneSpeech ? 0.4 : 0.88));
+  const spriteHeight = sprite ? Math.round(sprite.officeHeight * scale) : 0;
+  const vectorSize = Math.round(VECTOR_CRITTER_OFFICE_SIZE * scale);
+  const actorHeight = sprite ? spriteHeight : vectorSize;
+  const actorWidth = sprite
+    ? Math.round((spriteHeight * sprite.frameWidth) / sprite.frameHeight)
+    : vectorSize;
+  // Where their head starts, from the bottom of their art (the sticker's anchor).
+  const head = sprite ? 1 - sprite.figureTop : 0.9;
+
   // How the last thing said landed: a hop, a wobble, or a thoughtful tilt.
   const mine = active.report?.employees.find((e) => e.id === def.id);
-  const react = !active.report
-    ? 'idle'
-    : (mine?.friendshipDelta ?? 0) > 0
+  const react =
+    cheer > 0 && !active.report
       ? 'joy'
-      : (mine?.friendshipDelta ?? 0) < 0
-        ? 'hurt'
-        : 'think';
-
-  // The art is shown as large as the stage allows, and never larger than the
-  // densest build that exists (enlarging it is what makes a sprite soft).
-  const spriteHeight = sprite
-    ? Math.max(80, Math.min(sprite.srcHeight, Math.round((stageHeight || 360) * 0.74)))
-    : 0;
-  const vectorSize = Math.round(VECTOR_CRITTER_CARD_SIZE * 1.75);
-  const actorHeight = sprite ? spriteHeight : vectorSize;
+      : !active.report
+        ? 'idle'
+        : (mine?.friendshipDelta ?? 0) > 0
+          ? 'joy'
+          : (mine?.friendshipDelta ?? 0) < 0
+            ? 'hurt'
+            : 'think';
 
   const requirementText = (f: TalkRequirementFailure): string =>
     f.kind === 'later'
@@ -219,14 +325,91 @@ export function EmployeeTalk() {
     }
   }
 
+  // ---- a visit action: back to the room they love --------------------------------
+  const home = def.room;
+  const homeName = t(ROOMS_BY_ID[home]?.nameKey ?? home);
+  const canGoHome = roomId !== home && Boolean(ROOMS_BY_ID[home]) && isRoomIdUnlocked(state, home);
+  const homeFull = canGoHome && !roomHasSpace(state, home);
+  function goHome() {
+    if (!canGoHome) return;
+    if (homeFull || !engine.assignEmployee(def.id, home)) {
+      audio.play('error');
+      setSlip({ key: Date.now(), text: t('visit.moveHomeFull', { room: homeName }), tone: 'bad' });
+      return;
+    }
+    audio.play('upgrade');
+    setCheer((n) => n + 1);
+    setSlip({ key: Date.now(), text: t('visit.moved', { name, room: homeName }), tone: 'good' });
+    // The button has done its job and goes; keep the keyboard in the visit.
+    window.requestAnimationFrame(() => focusInside(rootRef.current));
+  }
+
+  const closeLabel = view === 'employees' ? t('visit.backToTeam') : t('visit.close');
+
+  // Beside a roomy scene the action stands on its floor; in a corner window it
+  // waits on the notepad with the way out, so it never covers anyone's desk.
+  const homeAction = canGoHome ? (
+    <button
+      type="button"
+      className={`visit__act ${sceneSpeech ? '' : 'visit__act--pad'}`}
+      data-act="home"
+      aria-disabled={homeFull ? true : undefined}
+      title={
+        homeFull
+          ? t('visit.moveHomeFull', { room: homeName })
+          : t('visit.moveHomeGain', { room: homeName, value: affinityPercent(def.id, home) })
+      }
+      onClick={goHome}
+    >
+      <Glyph name="heart" size={11} />
+      <span className="visit__act-label">{t('visit.moveHome')}</span>
+      <span className="visit__act-room">{homeName}</span>
+    </button>
+  ) : null;
+  const slipEl = slip ? (
+    <p
+      className={`visit__slip ${sceneSpeech ? '' : 'visit__slip--pad'}`}
+      role="status"
+      data-tone={slip.tone}
+      key={slip.key}
+    >
+      {slip.text}
+    </p>
+  ) : null;
+
+  // ---- what they say ----------------------------------------------------------
+  const speech =
+    active.lastReplyKey || (node && promptKey) ? (
+      <div
+        className={`visit__speech ${sceneSpeech ? 'visit__speech--scene' : 'visit__speech--pad'}`}
+      >
+        {active.lastReplyKey ? (
+          <blockquote
+            className="talk__said talk__said--reply"
+            aria-live="polite"
+            key={`${active.instanceId}:${active.exchanges}`}
+          >
+            <span className="talk__reply">{t(active.lastReplyKey)}</span>
+            {node && promptKey ? <span className="talk__next">{t(promptKey)}</span> : null}
+          </blockquote>
+        ) : node && promptKey ? (
+          <blockquote className="talk__said" aria-live="polite" key={active.instanceId}>
+            {t(promptKey)}
+          </blockquote>
+        ) : null}
+      </div>
+    ) : null;
+
   // ---- the stage --------------------------------------------------------------
-  const stage = (
+  const stageEl = (
     <section
       className="visit__stage"
       ref={stageRef}
       style={{
         ['--dept' as string]: DEPT[roomId] ?? 'var(--dept-founder)',
         ['--actor-h' as string]: `${actorHeight}px`,
+        ['--actor-w' as string]: `${actorWidth}px`,
+        ['--head' as string]: head.toFixed(3),
       }}
     >
       <RoomDressing roomId={roomId} />
@@ -234,7 +417,7 @@ export function EmployeeTalk() {
       <div
         className="visit__actor"
         data-react={react}
-        key={`${active.instanceId}:${active.exchanges}`}
+        key={`${active.instanceId}:${active.exchanges}:${cheer}`}
       >
         <div className="talk__portrait" data-kind={sprite ? 'sprite' : 'vector'}>
           {sprite ? (
@@ -255,33 +438,70 @@ export function EmployeeTalk() {
             />
           )}
         </div>
+        {/* Their mood, stuck by their head (it moves with them), and named. */}
+        <span
+          className="visit__mood"
+          data-mood={mood}
+          data-tone={MOOD_POSITIVE[mood] ? 'up' : 'down'}
+          title={t('visit.moodOf', { name, mood: moodLabel })}
+        >
+          <span
+            className="visit__sticker"
+            key={STICKER_FOR_MOOD[mood]}
+            data-sticker={STICKER_FOR_MOOD[mood]}
+            aria-hidden
+          >
+            <StickerArt kind={STICKER_FOR_MOOD[mood]} />
+          </span>
+          <span className="visit__mood-word">{moodLabel}</span>
+        </span>
         {keepsake ? (
           <span className="visit__keepsake" title={t(def.favoriteItemKey)} aria-hidden>
             <KeepsakeArt employeeId={def.id} />
           </span>
         ) : null}
       </div>
-      <span
-        className="visit__sticker"
-        key={STICKER_FOR_MOOD[mood]}
-        data-sticker={STICKER_FOR_MOOD[mood]}
-        title={t(`mood.${mood}`)}
-      >
-        <StickerArt kind={STICKER_FOR_MOOD[mood]} />
-      </span>
       <header className="visit__plate">
         <h2 id="talk-name" className="talk__name">
           {name}
         </h2>
         <p className="talk__role">{t(def.roleKey)}</p>
+        <p className="visit__where" data-fit={fit}>
+          <span className="visit__where-room">{roomName}</span>
+          {fit !== 'acceptable' ? (
+            <span className="visit__fit" data-fit={fit}>
+              <Glyph name={fit === 'favorite' ? 'heart' : 'tilde'} size={10} />
+              {t(`visit.fit.${fit}`)}
+            </span>
+          ) : null}
+        </p>
       </header>
+      {sceneSpeech ? speech : null}
       <BondMeter friendship={rt.friendship} celebrate={Boolean(milestone)} />
+      {deltas.length > 0 ? (
+        <div
+          className="talk__changed"
+          data-count={deltas.length}
+          role="status"
+          key={`${active.instanceId}:${active.exchanges}`}
+        >
+          <ul>
+            {deltas.map((d) => (
+              <li key={d.key} className={`is-${d.tone}`}>
+                <span>{d.label}</span>
+                <b>{d.value}</b>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+      {sceneSpeech ? homeAction : null}
+      {sceneSpeech ? slipEl : null}
       <button
-        ref={closeRef}
         className="talk__close"
         onClick={() => engine.closeTalk()}
-        aria-label={t('visit.close')}
-        title={t('visit.close')}
+        aria-label={closeLabel}
+        title={closeLabel}
       >
         <Icon name="close" size={16} />
       </button>
@@ -307,6 +527,8 @@ export function EmployeeTalk() {
         <div className="talk__end">
           <p className="talk__end-note">{t('gifts.quietVisit')}</p>
           <p className="visit__note">{t('visit.breakNote', { name, time: fmt.dur(cooldown) })}</p>
+          {sceneSpeech ? null : homeAction}
+          {sceneSpeech ? null : slipEl}
         </div>
       ) : (
         <>
@@ -332,66 +554,65 @@ export function EmployeeTalk() {
               </details>
             ) : null}
           </div>
-          {/* What they say: their answer to you and, when the conversation goes
-              on, what they say next, in one breath (one bubble). */}
-          <div className="visit__speech">
-            {active.lastReplyKey ? (
-              <blockquote className="talk__said talk__said--reply" aria-live="polite">
-                <span className="talk__reply">{t(active.lastReplyKey)}</span>
-                {node && promptKey ? <span className="talk__next">{t(promptKey)}</span> : null}
-              </blockquote>
-            ) : node && promptKey ? (
-              <blockquote className="talk__said">{t(promptKey)}</blockquote>
-            ) : null}
-          </div>
-          {deltas.length > 0 ? (
-            <div className="talk__changed" data-count={deltas.length}>
-              <ul>
-                {deltas.map((d) => (
-                  <li key={d.key} className={`is-${d.tone}`}>
-                    <span>{d.label}</span>
-                    <b>{d.value}</b>
-                  </li>
-                ))}
-              </ul>
-            </div>
+          {/* What this word is about, said like a memo heading (a story's title
+              already says it all). */}
+          {sceneSpeech && active.topic.blurbKey !== active.topic.titleKey ? (
+            <p className="visit__blurb">{t(active.topic.blurbKey)}</p>
           ) : null}
-          {node ? (
-            <div className="talk__choices">
-              {evaluated.map(({ choice, enabled, failures }) => (
-                <button
-                  key={choice.id}
-                  className={`talk-choice talk-choice--${choice.tone ?? 'warm'}`}
-                  data-option-id={choice.id}
-                  data-eligible={enabled}
-                  aria-disabled={!enabled}
-                  onClick={() => {
-                    if (!enabled) return;
-                    if (engine.chooseTalkOption(choice.id, active.instanceId)) audio.play('paper');
-                  }}
-                >
-                  <span className="talk-choice__label">{t(choice.labelKey)}</span>
-                  {failures.length > 0 ? (
-                    <span className="talk-choice__req">
-                      {failures.map(requirementText).join(' · ')}
-                    </span>
-                  ) : null}
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div className="talk__end">
-              {active.topic.id === 'gift' &&
-              state.flags[`favorite.${def.id}.giftMemory`] !== undefined &&
-              knownFavorite(state, def.id) ? (
-                <p className="talk__gift-filed">{t('gifts.memoryFiled')}</p>
-              ) : null}
-              <p className="talk__end-note">{t('talk.ended')}</p>
-              <button className="buy-btn talk__done" onClick={() => engine.closeTalk()}>
-                {t('visit.close')}
-              </button>
-            </div>
-          )}
+          {/* In a corner window their words head the notepad (the tail points up
+              at them); in a roomy one they float beside them in the scene. */}
+          {sceneSpeech ? null : speech}
+          <div className="visit__answers">
+            {node ? (
+              <div className="talk__choices" role="group" aria-label={t('visit.youSay')}>
+                {sceneSpeech ? (
+                  <span className="visit__you" aria-hidden>
+                    {t('visit.youSay')}
+                  </span>
+                ) : null}
+                {evaluated.map(({ choice, enabled, failures }) => (
+                  <button
+                    key={choice.id}
+                    className={`talk-choice talk-choice--${choice.tone ?? 'warm'}`}
+                    data-option-id={choice.id}
+                    data-eligible={enabled}
+                    aria-disabled={!enabled}
+                    onClick={() => {
+                      if (!enabled) {
+                        audio.play('error');
+                        return;
+                      }
+                      if (engine.chooseTalkOption(choice.id, active.instanceId))
+                        audio.play('paper');
+                    }}
+                  >
+                    <span className="talk-choice__label">{t(choice.labelKey)}</span>
+                    {failures.length > 0 ? (
+                      <span className="talk-choice__req">
+                        {failures.map(requirementText).join(' · ')}
+                      </span>
+                    ) : null}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="talk__end">
+                {active.topic.id === 'gift' &&
+                state.flags[`favorite.${def.id}.giftMemory`] !== undefined &&
+                knownFavorite(state, def.id) ? (
+                  <p className="talk__gift-filed">{t('gifts.memoryFiled')}</p>
+                ) : null}
+                <p className="talk__end-note">{t('talk.ended')}</p>
+                <div className="visit__end-row">
+                  <button className="buy-btn talk__done" onClick={() => engine.closeTalk()}>
+                    {closeLabel}
+                  </button>
+                  {sceneSpeech ? null : homeAction}
+                </div>
+                {sceneSpeech ? null : slipEl}
+              </div>
+            )}
+          </div>
         </>
       )}
     </>
@@ -565,9 +786,58 @@ export function EmployeeTalk() {
   const tabNews: Partial<Record<VisitTab, boolean>> = {
     gifts: Boolean(hint) && !(`${def.id}.hint` in state.flags),
   };
+  function pickTab(next: VisitTab, focus = false) {
+    audio.play('click');
+    setTab(next);
+    if (focus) {
+      window.requestAnimationFrame(() =>
+        rootRef.current?.querySelector<HTMLElement>(`.visit__tab[data-tab="${next}"]`)?.focus(),
+      );
+    }
+  }
+  // Arrow keys move between the three tabs; Home and End jump to the ends.
+  function onTabKey(event: KeyboardEvent<HTMLDivElement>) {
+    const order = tabs.map((item) => item.id);
+    const index = order.indexOf(tab);
+    const next =
+      event.key === 'ArrowRight'
+        ? order[(index + 1) % order.length]
+        : event.key === 'ArrowLeft'
+          ? order[(index - 1 + order.length) % order.length]
+          : event.key === 'Home'
+            ? order[0]
+            : event.key === 'End'
+              ? order[order.length - 1]
+              : null;
+    if (!next) return;
+    event.preventDefault();
+    pickTab(next, true);
+  }
+  // The visit is the whole screen: Tab and Shift+Tab go round inside it.
+  function onTrapKey(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key !== 'Tab' || !rootRef.current) return;
+    const focusable = [...rootRef.current.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(
+      (element) => element.offsetParent !== null || element === document.activeElement,
+    );
+    if (focusable.length === 0) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (
+      event.shiftKey &&
+      (document.activeElement === first ||
+        !focusable.includes(document.activeElement as HTMLElement))
+    ) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
 
   return (
     <div
+      ref={rootRef}
       className="talk talk--destination visit"
       role="region"
       aria-labelledby="talk-name"
@@ -576,23 +846,31 @@ export function EmployeeTalk() {
       data-node={active.nodeId || 'end'}
       data-step={active.exchanges > 0 ? 'later' : 'first'}
       data-tab={tab}
+      data-speech={sceneSpeech ? 'scene' : 'pad'}
+      data-fit={fit}
+      onKeyDown={onTrapKey}
     >
       <div className="talk__sheet visit__frame">
-        {stage}
+        {stageEl}
         <section className="visit__panel">
-          <div className="visit__tabs" role="tablist" aria-label={t('gifts.visitActions')}>
+          <div
+            className="visit__tabs"
+            role="tablist"
+            aria-label={t('gifts.visitActions')}
+            onKeyDown={onTabKey}
+          >
             {tabs.map((item) => (
               <button
                 key={item.id}
+                id={`visit-tab-${item.id}`}
                 role="tab"
                 className={`visit__tab ${tab === item.id ? 'is-active' : ''}`}
                 aria-selected={tab === item.id}
+                aria-controls="visit-page"
+                tabIndex={tab === item.id ? 0 : -1}
                 data-tab={item.id}
                 data-news={tabNews[item.id] ? 'true' : undefined}
-                onClick={() => {
-                  audio.play('click');
-                  setTab(item.id);
-                }}
+                onClick={() => pickTab(item.id)}
               >
                 <Icon name={item.icon} size={14} />
                 <span>{t(`visit.tab.${item.id}`)}</span>
@@ -600,8 +878,10 @@ export function EmployeeTalk() {
             ))}
           </div>
           <div
+            id="visit-page"
             className="visit__page"
             role="tabpanel"
+            aria-labelledby={`visit-tab-${tab}`}
             data-page={tab}
             data-more={moreBelow ? 'true' : undefined}
             ref={pageRef}

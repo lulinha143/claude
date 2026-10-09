@@ -71,10 +71,13 @@ import { chooseVoice } from '../sim/employeeVoice';
 import {
   keepsakeOnDisplay,
   pairsTogether,
+  pendingMoment,
   storyCallbackKey,
   wavingTeammates,
   type PendingMoment,
 } from '../sim/bonds';
+import { canTalk } from '../sim/talks';
+import { moodWord } from '../ui/moodWord';
 import { clearTapFeedback, flyToCounter, tapPop } from '../ui/tapFeedback';
 import { focusFloor } from '../ui/officeEvents';
 import { useFmt } from '../ui/useFmt';
@@ -221,6 +224,8 @@ interface Bubble {
   employeeId: string;
   text: string;
   until: number;
+  /** said because the player asked: the note offers to sit down with them. */
+  invite?: boolean;
 }
 
 interface EmployeeInteraction {
@@ -958,10 +963,41 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
     }, 2600);
   }
 
-  /** Put words in a teammate's mouth; `aloud` when the player asked them something. */
-  function say(employeeId: string, text: string, aloud: boolean, ms = 4000) {
-    setBubble({ employeeId, text, until: Date.now() + ms });
+  /**
+   * Put words in a teammate's mouth; `aloud` when the player asked them something.
+   * What they say to the player comes with a way to sit down with them (the
+   * note's "Have a chat"), and stays up a little longer so there is time to take it.
+   */
+  function say(employeeId: string, text: string, aloud: boolean, ms = 4000, invite = aloud) {
+    setBubble({
+      employeeId,
+      text,
+      until: Date.now() + (invite ? Math.max(ms, 6000) : ms),
+      invite,
+    });
     if (aloud) speakAloud(audio, employeeId, text);
+  }
+
+  /** The speech note's own way into a visit: on whatever they want to share, if anything. */
+  function visitFromNote(employeeId: string) {
+    const moment = pendingMoment(stateRef.current, employeeId, Date.now());
+    if (moment) {
+      openMoment(employeeId, moment);
+      return;
+    }
+    if (engine.openTalk(employeeId, undefined, true)) {
+      setBubble(null);
+      audio.play('paper');
+    }
+  }
+
+  /** Someone reaching for the note keeps it from going away under the pointer. */
+  function holdBubble(employeeId: string) {
+    setBubble((current) =>
+      current && current.employeeId === employeeId
+        ? { ...current, until: Math.max(current.until, Date.now() + 2500) }
+        : current,
+    );
   }
 
   function speak(employeeId: string, category: string, aloud = false) {
@@ -1093,7 +1129,7 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
     if (presenting) {
       const hook = hookFor(presenting);
       if (hook) {
-        say(employeeId, t(hook), true, 4600);
+        say(employeeId, t(hook), true, 4600, false);
         return;
       }
     }
@@ -2335,7 +2371,7 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
                           now,
                           eventEmotion,
                         );
-                        const moodLabel = t(`mood.${mood}`);
+                        const moodLabel = moodWord(t, mood, id);
                         // The sticker sits just above the top of the head: the sprite's
                         // own measured headroom and baseline, in scene pixels.
                         const stickerBottom = sprite
@@ -2452,6 +2488,17 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
                               name={label}
                               tilt={stickerTilt(id)}
                               speech={bubble?.employeeId === id ? bubble.text : null}
+                              action={
+                                bubble?.employeeId === id && bubble.invite && !decorMode
+                                  ? {
+                                      label: canTalk(state, id, now)
+                                        ? t('visit.invite.talk')
+                                        : t('visit.invite.visit'),
+                                      onActivate: () => visitFromNote(id),
+                                      onHold: () => holdBubble(id),
+                                    }
+                                  : undefined
+                              }
                               className={`${carried ? 'is-carried' : ''} ${visiting ? 'is-visiting' : ''}`}
                               style={{
                                 left: `${ex * 100}%`,

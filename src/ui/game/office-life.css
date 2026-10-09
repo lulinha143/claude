@@ -451,6 +451,46 @@
     border-style: dashed;
   }
 
+  /* ---- A note the player asked for offers to sit down with them ---------------- */
+  /* The note stays click-through; only its offer takes the pointer. It sits on
+     the name row (a 24px target, never a second row of its own). */
+  .speech-note__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px 10px;
+    margin-bottom: 3px;
+  }
+  .speech-note__head > .speech-note__who {
+    margin-bottom: 0;
+  }
+  .speech-note__action {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 3px;
+    min-height: 24px;
+    margin: -2px -4px -2px 0;
+    padding: 2px 9px 3px;
+    color: var(--action-ink, #fffaf0);
+    background: var(--action-bg, #4a7a42);
+    border: 1.5px solid var(--action-edge, #2f5428);
+    border-radius: 9px;
+    box-shadow: 0 2px 0 var(--action-edge, #2f5428);
+    font: 800 max(var(--fs-min), 0.66em) / 1.2 var(--font-body);
+    pointer-events: auto;
+    cursor: pointer;
+    transition: translate var(--dur-fast) var(--ease);
+  }
+  .speech-note__action:hover {
+    background: var(--action-bg-hover, #45763d);
+    translate: 0 -1px;
+  }
+  .speech-note__action:focus-visible {
+    outline: 3px solid var(--c-sky-500, #4aa3b1);
+    outline-offset: 2px;
+  }
+
   /* ---- Floors out of sight rest ---------------------------------------------- */
   .floor[data-onscreen='false'] :is(*, *::before, *::after) {
     animation-play-state: paused !important;
