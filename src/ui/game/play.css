@@ -861,11 +861,121 @@
     cursor: pointer;
     transition: translate var(--dur-fast) var(--ease);
   }
+  /* The tag sits on the machine's top corner as a round badge: glyph, progress
+     ring, pips and drain. A worded tag floated at a seated teammate's head height
+     (the station stands beside the front-row desk): measured, a label covered up
+     to 79% of a face and 61% of the room's wall art. The words are still there:
+     they slide out from the badge when the player points at it, the machine or
+     the room, or reaches it with the keyboard, and stay out while the routine
+     asks for a hand (ready, stuck, a blip, a delivery) wherever the room is wide
+     enough to hold them. */
+  .play-chip {
+    bottom: calc((var(--station-bottom, 0px) + 66px) * var(--asset-scale));
+    gap: 0;
+    min-width: 24px;
+    max-width: 24px;
+    padding: 0 3px;
+    justify-content: flex-start;
+    border-radius: 12px;
+    overflow: hidden;
+    transition:
+      max-width var(--dur) var(--ease),
+      padding var(--dur) var(--ease),
+      translate var(--dur-fast) var(--ease);
+  }
+  /* In the middle of a room it is centred on the machine (the base transform);
+     by a wall it opens toward the room's middle from the machine's corner. */
   .play-chip[data-side='left'] {
-    transform: translateX(-26%);
+    transform: translateX(-12px);
   }
   .play-chip[data-side='right'] {
-    transform: translateX(-74%);
+    transform: translateX(calc(-100% + 12px));
+  }
+  /* A corner window: where the wall's fixture hangs right over a machine by that
+     wall, the badge takes the machine's room-side half, between the fixture and
+     the first teammate. With no fixture on that wall it stays centred. */
+  @container office (max-width: 559px) {
+    .floor:has(.room-dressing__prop--wallLeft) .play-chip[data-side='left'] {
+      transform: none;
+    }
+    .floor:has(.room-dressing__prop--wallRight) .play-chip[data-side='right'] {
+      transform: translateX(-100%);
+    }
+  }
+  .play-chip .play-chip__label {
+    max-width: 0;
+    opacity: 0;
+    transition:
+      max-width var(--dur) var(--ease),
+      opacity var(--dur-fast) var(--ease);
+  }
+  .floor:hover .play-chip,
+  .play-chip:focus-visible,
+  .floor:has(.station-btn:focus-visible) .play-chip {
+    max-width: min(48%, 156px);
+    padding: 0 8px 0 3px;
+    gap: 4px;
+  }
+  .floor:hover .play-chip .play-chip__label,
+  .play-chip:focus-visible .play-chip__label,
+  .floor:has(.station-btn:focus-visible) .play-chip .play-chip__label {
+    max-width: 140px;
+    opacity: 1;
+  }
+  /* A roomy window: the words stay out, beside the badge, opening away from the
+     teammate at the machine's shoulder (a machine by a wall has its neighbour on
+     the room side, so the label grows toward the wall). */
+  @container office (min-width: 560px) {
+    .play-chip[data-side='left'] {
+      flex-direction: row-reverse;
+      transform: translateX(calc(-100% + 24px));
+    }
+    /* By the right wall: from the machine's right corner, toward that wall. */
+    .play-chip[data-side='right'] {
+      transform: translateX(-24px);
+    }
+    .play-chip[data-side='left'] .play-chip__pips {
+      left: auto;
+      right: 12px;
+      translate: 50% 0;
+    }
+    .play-chip {
+      max-width: min(48%, 156px);
+      padding: 0 8px 0 3px;
+      gap: 4px;
+    }
+    .play-chip[data-side='left'] {
+      padding: 0 3px 0 8px;
+    }
+    .play-chip .play-chip__label {
+      max-width: 140px;
+      opacity: 1;
+    }
+    /* Toward a wall with a fixture, the words run just under its foot. */
+    .floor:has(.room-dressing__prop--wallLeft) .play-chip[data-side='left'],
+    .floor:has(.room-dressing__prop--wallRight) .play-chip[data-side='right'] {
+      bottom: calc((var(--station-bottom, 0px) + 58px) * var(--asset-scale));
+    }
+  }
+  /* Stuck: the three taps it needs sit just under the badge. */
+  .play-chip:has(.play-chip__pips) {
+    overflow: visible;
+  }
+  .play-chip__pips {
+    position: absolute;
+    left: 12px;
+    bottom: -9px;
+    margin: 0;
+    translate: -50% 0;
+  }
+  .play-chip__pips i {
+    width: 5px;
+    height: 5px;
+    background: rgb(194 81 63 / 0.35);
+    box-shadow: 0 0 0 1px #fffaf0;
+  }
+  .play-chip__pips i.is-on {
+    background: #c2513f;
   }
   button.play-chip:hover,
   button.play-chip:focus-visible {
@@ -942,16 +1052,9 @@
   .play-chip__pips {
     display: inline-flex;
     gap: 2px;
-    margin-left: 1px;
   }
   .play-chip__pips i {
-    width: 6px;
-    height: 6px;
-    background: rgb(255 255 255 / 0.35);
     border-radius: 50%;
-  }
-  .play-chip__pips i.is-on {
-    background: #fff;
   }
   /* How long a blip has left. */
   .play-chip__drain {
@@ -996,6 +1099,16 @@
     86% {
       rotate: 3deg;
     }
+  }
+
+  /* The station's tooltip ends with the room's routine: what else the machine
+     does and who helps, said once under a ruled line. */
+  .station-tip__routine {
+    display: grid;
+    gap: 2px;
+    margin-top: 4px;
+    padding-top: 5px;
+    border-top: 1px dashed rgb(255 250 240 / 0.28);
   }
 
   /* The machine itself shows its routine: brewing, ready, stuck, a blip. */
@@ -1104,13 +1217,28 @@
     scale: 1.12;
     animation: none;
   }
+  /* Pinned to the fixture's outer top corner, like a note tacked to it. Its inner
+     foot is where a full room's nearest teammate sits (a desk by the wall, when
+     the machine stands at the other one): measured there, it covered 28-40% of
+     that face in a corner window. */
   .office-oddity[data-anchor='wall'] {
-    top: calc(9% + 12px);
-    left: calc(5% + 16px);
+    top: calc(9% - 10px);
+    left: calc(5% - 8px);
   }
   .office-oddity[data-anchor='wallRight'] {
-    top: calc(9% + 12px);
-    right: calc(6% + 16px);
+    top: calc(9% - 10px);
+    right: calc(6% - 8px);
+  }
+  /* A corner window hangs the fixtures nearer the corners (rooms.css). */
+  @container office (max-width: 559px) {
+    .office-oddity[data-anchor='wall'] {
+      top: calc(5% - 10px);
+      left: calc(2.5% - 8px);
+    }
+    .office-oddity[data-anchor='wallRight'] {
+      top: calc(5% - 10px);
+      right: calc(3% - 8px);
+    }
   }
   .office-oddity[data-anchor='corner'] {
     bottom: calc(var(--floor-h, 32px) * 0.45);
@@ -1154,15 +1282,23 @@
       rotate: 1.2deg;
     }
   }
-  /* A facility room's secret, once enough has been noticed there. */
+  /* A facility room's secret, once enough has been noticed there: a sparkle
+     pinned to the room's fixture, which glows and hums. Its words slide out when
+     the player points at it or reaches it with the keyboard. A worded pill there
+     was measured over the nearest teammate in a full room (47-74% of a face in a
+     corner window, 57% of a mood sticker on a desktop): with the machine at the
+     far wall, that teammate's desk stands right under the fixture. */
   .office-oddity--discovery.floor__discovery {
     display: inline-flex;
-    gap: 4px;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0;
     width: auto;
-    max-width: 52%;
+    min-width: 24px;
+    max-width: 24px;
     height: 24px;
     margin: 0;
-    padding: 0 9px 0 6px;
+    padding: 0 0 0 3.5px;
     overflow: hidden;
     color: var(--c-paper-50);
     background: var(--c-sky-700);
@@ -1170,6 +1306,35 @@
     border-radius: 12px;
     font: 800 11px/1 var(--font-body);
     animation: discovery-glow 2.4s ease-in-out infinite;
+    transition:
+      max-width var(--dur) var(--ease),
+      padding var(--dur) var(--ease);
+  }
+  .office-oddity--discovery .office-oddity__label {
+    max-width: 0;
+    opacity: 0;
+    transition:
+      max-width var(--dur) var(--ease),
+      opacity var(--dur-fast) var(--ease);
+  }
+  .office-oddity--discovery.floor__discovery:hover,
+  .office-oddity--discovery.floor__discovery:focus-visible {
+    /* Open, it reads over the stickers it passes. */
+    z-index: 262;
+    gap: 4px;
+    max-width: min(60%, 200px);
+    padding: 0 9px 0 3.5px;
+    scale: 1;
+  }
+  .office-oddity--discovery:hover .office-oddity__label,
+  .office-oddity--discovery:focus-visible .office-oddity__label {
+    max-width: 180px;
+    opacity: 1;
+  }
+  /* A curiosity waiting at the same fixture hangs just under the secret. */
+  .floor__stage:has(.office-oddity--discovery)
+    .office-oddity[data-anchor='wall']:not(.office-oddity--discovery) {
+    translate: 0 28px;
   }
   .office-oddity__label {
     min-width: 0;

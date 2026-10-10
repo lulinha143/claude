@@ -45,7 +45,8 @@ type PropId =
   | 'planterBed'
   | 'skyline'
   | 'cameraWall'
-  | 'recordWall';
+  | 'recordWall'
+  | 'seedShelf';
 
 // Architectural props are restricted to the back wall. Any prop that rests on
 // the floor must be a movable DecorationDef instead.
@@ -69,7 +70,8 @@ type WallPropId =
   | 'pipes'
   | 'skyline'
   | 'cameraWall'
-  | 'recordWall';
+  | 'recordWall'
+  | 'seedShelf';
 
 interface ScenePiece {
   prop: WallPropId;
@@ -82,7 +84,8 @@ interface ScenePiece {
 const ROOM_SCENE: Record<string, ScenePiece[]> = {
   broadcast: [{ prop: 'recordWall', slot: 'wallLeft' }],
   repair: [{ prop: 'pegboard', slot: 'wallLeft' }],
-  conservatory: [{ prop: 'skyline', slot: 'wallLeft' }],
+  // The glass roof is its sky; its wall carries the potting shelf of seedlings.
+  conservatory: [{ prop: 'seedShelf', slot: 'wallLeft' }],
   'founder-desk': [{ prop: 'corkboard', slot: 'wallLeft' }],
   sorting: [{ prop: 'binShelf', slot: 'wallLeft' }],
   morale: [{ prop: 'menuBoard', slot: 'wallLeft' }],
@@ -756,6 +759,57 @@ function SceneProp({ prop }: { prop: PropId }) {
           />
         </svg>
       );
+    case 'seedShelf':
+      // A slatted potting shelf: seedlings in clay pots, one with a plant label.
+      return (
+        <svg {...box(44, 34, '0 0 44 34')}>
+          <rect
+            x="2"
+            y="25"
+            width="40"
+            height="3"
+            rx="1"
+            fill={WOOD}
+            stroke={LINE}
+            strokeWidth="1.3"
+          />
+          <rect
+            x="2"
+            y="12"
+            width="40"
+            height="3"
+            rx="1"
+            fill={WOOD}
+            stroke={LINE}
+            strokeWidth="1.3"
+          />
+          <path d="M4 28v5M40 28v5" stroke={WOOD_DARK} strokeWidth="2" />
+          {[6, 18, 30].map((x) => (
+            <g key={x}>
+              <path d={`M${x} 25l1-6h8l1 6Z`} fill="#c47a4e" stroke={LINE} strokeWidth="1" />
+              <path
+                d={`M${x + 5} 19q-3-4 0-7q3 3 0 7Z`}
+                fill="#6cb36a"
+                stroke={LINE}
+                strokeWidth="0.8"
+              />
+            </g>
+          ))}
+          <path d="M9 12l1-5h6l1 5Z" fill="#c47a4e" stroke={LINE} strokeWidth="1" />
+          <path d="M13 7q-4-5 2-6q1 4-2 6Z" fill="#86bd5c" stroke={LINE} strokeWidth="0.8" />
+          <rect
+            x="27"
+            y="4"
+            width="9"
+            height="7"
+            rx="1"
+            fill={PALE}
+            stroke={LINE}
+            strokeWidth="0.8"
+          />
+          <path d="M29 7h5M29 9h3" stroke={LINE} strokeWidth="0.7" />
+        </svg>
+      );
     case 'flaskShelf':
       return (
         <svg {...box(42, 34, '0 0 42 34')}>
@@ -1196,6 +1250,10 @@ export const RoomDressing = memo(function RoomDressing({ roomId }: { roomId: str
         <span className="room-dressing__fixture-pool" />
       </span>
       <span className="room-dressing__depth" />
+      {/* The annex rooms' own architecture (cork and the ON AIR lamp, the bay
+          door and crane rail, the glass roof): on the walls and ceiling, behind
+          the window, the fixtures and the light. */}
+      <AnnexArchitecture roomId={roomId} />
 
       {/* Back-wall opening. Its shape, glazing and sky are set per department in
           CSS (arched daylight, corporate city view, night window, sealed lab
@@ -1217,7 +1275,6 @@ export const RoomDressing = memo(function RoomDressing({ roomId }: { roomId: str
       {/* Per-department mood lighting wash (warm cafe, cool lab, gold vault
           spotlight, dim night, bright rooftop day). */}
       <span className="room-dressing__light" />
-      <AnnexArchitecture roomId={roomId} />
     </div>
   );
 });

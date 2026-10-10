@@ -4,6 +4,13 @@ import { useEffect, useRef, useState } from 'react';
 // instead of snapping. It only re-renders while animating (and respects
 // reduced-motion by jumping straight to the value). Digits use tabular figures
 // in CSS so the layout never shifts horizontally.
+//
+// Targets can arrive every few milliseconds (production ticks), far faster than a
+// tween lasts, so each tween starts from the number actually on screen and a
+// superseded tween can never write again. Without both, the HUD counter drifted
+// away from the truth and even below zero during ordinary play (measured: it read
+// -5,59M castanhas while the company had 5,76M). The shown value is also kept
+// between the two ends of its tween, so it can never leave that range.
 export function AnimatedNumber({
   value,
   format,
@@ -14,32 +21,38 @@ export function AnimatedNumber({
   reducedMotion?: boolean;
 }) {
   const [display, setDisplay] = useState(value);
-  const raf = useRef<number | null>(null);
-  const fromRef = useRef(value);
-  const startRef = useRef(0);
+  /** the number on screen right now (each new tween starts here). */
+  const shownRef = useRef(value);
 
   useEffect(() => {
-    if (reducedMotion) {
+    if (reducedMotion || !Number.isFinite(value)) {
+      shownRef.current = value;
       setDisplay(value);
-      return;
+      return undefined;
     }
-    fromRef.current = display;
-    startRef.current = performance.now();
-    const from = fromRef.current;
+    const from = Number.isFinite(shownRef.current) ? shownRef.current : value;
+    if (from === value) return undefined;
+    const lo = Math.min(from, value);
+    const hi = Math.max(from, value);
+    const start = performance.now();
     const duration = 400;
+    let live = true;
+    let frame = 0;
 
     const tick = (now: number) => {
-      const p = Math.min(1, (now - startRef.current) / duration);
+      if (!live) return;
+      const p = Math.min(1, (now - start) / duration);
       const eased = 1 - Math.pow(1 - p, 3);
-      const next = from + (value - from) * eased;
+      const next = p >= 1 ? value : Math.max(lo, Math.min(hi, from + (value - from) * eased));
+      shownRef.current = next;
       setDisplay(next);
-      if (p < 1) raf.current = requestAnimationFrame(tick);
+      if (p < 1) frame = requestAnimationFrame(tick);
     };
-    raf.current = requestAnimationFrame(tick);
+    frame = requestAnimationFrame(tick);
     return () => {
-      if (raf.current) cancelAnimationFrame(raf.current);
+      live = false;
+      cancelAnimationFrame(frame);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, reducedMotion]);
 
   return <span className="tabular">{format(display)}</span>;

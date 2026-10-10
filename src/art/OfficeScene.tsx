@@ -52,6 +52,7 @@ import {
   OddityMarker,
   OfficeSlip,
   RoutineChip,
+  routineSummary,
   momentSlip,
   slipFor,
   slipSeconds,
@@ -498,6 +499,12 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
   const scrollerRef = useRef<HTMLDivElement>(null);
   const currentFloorRef = useRef<string | null>(null);
   const [currentFloor, setCurrentFloor] = useState<string | null>(null);
+  // The office's small sounds come from the room in view (a covered office has
+  // no room in view: a visit or a full-window sheet keeps the general office).
+  useEffect(() => {
+    audio.setRoomInView(covered ? null : currentFloor);
+  }, [audio, covered, currentFloor]);
+  useEffect(() => () => audio.setRoomInView(null), [audio]);
   // A trip to a floor still under way: corrected once the scroll settles (below).
   const tripRef = useRef<{ roomId: string; timer: number; tries: number } | null>(null);
   const scrollToFloor = useCallback(
@@ -1214,9 +1221,13 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
       };
       // Now and then, when two coworkers share the room, they talk it over instead.
       const pairs = result.kind !== 'oddity' ? pairsTogether(stateRef.current, speaker) : [];
-      if (next && next.tone !== 'play') scheduleLife(react, Math.round(slipSeconds(next) * 1000));
-      else if (pairs.length > 0 && Math.random() < 0.4) pairExchange(pairs[0]);
-      else react();
+      // One note at a time in a room: the slip first, then whoever reacts. (They
+      // used to arrive together and the speech note landed on the slip, hiding
+      // what it said: measured, at every window size.)
+      const respond =
+        pairs.length > 0 && Math.random() < 0.4 ? () => pairExchange(pairs[0]) : react;
+      if (next) scheduleLife(respond, Math.round(slipSeconds(next) * 1000));
+      else respond();
     }
   }
   const showPlayRef = useRef(showPlay);
@@ -2088,7 +2099,12 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
                 const occupants = Object.entries(state.employees).filter(
                   ([id, rt]) => rt.hired && resolveEmployeeRoom(state, id) === room.id,
                 );
-                const slots = characterSlots(occupants.length, room.id);
+                // Nobody stands on the room's machine (its routine tag sits there).
+                const slots = characterSlots(
+                  occupants.length,
+                  room.id,
+                  stationsInRoom(room.id)[0]?.x,
+                );
                 const comfort = roomComfort(state, room.id);
                 // The room's routine, and any curiosity waiting in it.
                 const playView = routineView(state, room.id, now);
@@ -2602,6 +2618,7 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
                               formatShare={formatShare}
                               comboWindow={engine.comboWindowFor(stationDef.id)}
                               playStatus={playView?.status}
+                              routineTip={playView ? routineSummary(playView, t, nameOf) : null}
                             />
                           ))
                         : null}

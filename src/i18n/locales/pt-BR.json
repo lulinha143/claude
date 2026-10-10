@@ -2500,6 +2500,9 @@
     "forMinutes": "por {{value}} min"
   },
   "notify": {
+    "rehomedTo": "{{name}} para {{room}}",
+    "rehomedFew": "Cabem quatro por sala: {{moves}}.",
+    "rehomedMany": "{{count}} colegas mudaram de sala (cabem quatro por sala): {{names}}.",
     "hired": "{{name}} entrou para a empresa!",
     "roomUnlocked": "Nova sala: {{name}}",
     "assigned": "{{name}} foi para {{room}}",

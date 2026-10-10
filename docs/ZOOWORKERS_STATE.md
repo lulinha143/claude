@@ -4,9 +4,9 @@ Handoff only: design is in `DESIGN.md`, commands and matrix in `.kiro/steering/q
 
 ## Branch
 
-`feat/zooworkers-3.0-facility-pass`: Chapter 2 is the commit that records this entry, on top
-of Chapter 9 (`d9fab09`), Chapter 4 (`e7bac62`), Chapter 1 (`80264a8`) and the setup commit
-`c55d356`; clean.
+`feat/zooworkers-3.0-facility-pass`: Chapter 3 is the commit that records this entry, on top
+of Chapter 2 (`d6c4d28`), Chapter 9 (`d9fab09`), Chapter 4 (`e7bac62`), Chapter 1 (`80264a8`)
+and the setup commit `c55d356`; clean.
 `7a7ee3d` (architect's snapshot) is an ancestor; never roll back to it.
 
 ## Active configuration
@@ -41,7 +41,7 @@ of Chapter 9 (`d9fab09`), Chapter 4 (`e7bac62`), Chapter 1 (`80264a8`) and the s
 
 Order: 1 → 4 → 9 → 2 → 3 → 5 → 6 → 7 → 8 → 10 → final integration.
 
-Accepted kit chapters: 1, 4, 9, 2. Accepted pre-kit units: shell (`b138638`–`6189169`), living office
+Accepted kit chapters: 1, 4, 9, 2, 3. Accepted pre-kit units: shell (`b138638`–`6189169`), living office
 (`bfaca01`–`d81ddc2`) and GC1–GC4 (`67cd776`–`7a7ee3d`), pinned by E2E specs but with no
 six-check record. Kit chapters reuse them as evidence and change only what fails the gate.
 GC numbers are not kit numbers.
@@ -52,7 +52,7 @@ GC numbers are not kit numbers.
 | 4   | `sim/goals`, `crate`, `economy`, `ui/GoalTag`, `views/ShopView`                                                           | Accepted (record below)                   |
 | 9   | `engine.catchUp`, `sim/offline`, `sim/timeline`, `state/returns`, `ui/ReturnNote`, `ui/Notifications`                     | Accepted (record below); diary unread     |
 | 2   | `views/EmployeesView`, `modals/EmployeeTalk`, `sim/bonds`                                                                 | Accepted (record below)                   |
-| 3   | `art/RoomDressing`, `RoomPlay`, `content/rooms`, `roomPlay`                                                               | Living-office rooms + GC3                 |
+| 3   | `art/RoomDressing`, `RoomPlay`, `content/rooms`, `roomPlay`                                                               | Accepted (record below)                   |
 | 5   | `ui/minigames/*`, `sim/minigames`                                                                                         | Pre-shell fixes only                      |
 | 6   | `modals/IncidentScene`, `EventModal`, `content/incidents`, `ui/CuriosityLog`                                              | GC4 + GC3 curiosities                     |
 | 7   | `modals/EmployeeTalk`, `content/stories`, `employeeKeepsakes`                                                             | GC2 stories and scrapbook                 |
@@ -271,19 +271,101 @@ changed). E2E: 14 affected specs 119/120, then 53/53 after the last change. The 
 `incidents.spec` "a promise lands in the world", is pre-existing: on `d9fab09` it failed 2
 of 6 repeats, here 1 of 3. New coverage: `tests/checkIns.test.ts` (13), three `visit.spec` tests.
 
+### Chapter 3 record — office rooms as a playable world
+
+Broken or weak before, fixed (no save field, meter or economy change; balance unchanged):
+
+- The radio studio, repair workshop and conservatory drew as the default beige room: their
+  styles, and the discovery card's evidence tile, left with the release stylesheet in
+  `b138638`. Rebuilt on the room layers (`rd--broadcast/repair/conservatory`) plus
+  `AnnexArchitecture`, drawn behind window, props and light. The studio has cork bays, a door
+  and a lit ON AIR lamp (HTML, so it never squashes; at least 7 px). The workshop has a crane
+  rail and trolley, a half-raised bay door with a hazard-striped foot, and a breaker panel. The
+  conservatory has an iron-and-glass roof, ribs, hanging planters and a seedling shelf. Each
+  room has its own light and one living detail, paused by reduced motion, quiet mode and when
+  off screen. Each also plays quiet one-shot sounds on the ambience bus while in view
+  (`audio.setRoomInView`).
+- The routine tag covered up to 79% of a seated teammate's face and 61% of the wall fixture.
+  It is now a 24 px badge on the machine (glyph, ring, pips). Its words slide out when the
+  player points at the room or the machine, or focuses it by keyboard. In rooms at least
+  560 px wide the words stay out, opening toward the wall. Quiet rooms show no badge; the
+  station tooltip ends with what the routine does and who helps.
+- A full room's outer desk stood on the machine. `characterSlots` now takes the machine's x:
+  a group slides away from it and keeps its gaps. A full room closes its gaps to no less than
+  0.19 against the far wall. Order and depth stay as authored. The studio and conservatory
+  machines moved to x 0.18; the workshop bench (middle of its bay) and the furnace valve moved
+  to 0.82. At every count in every room, desks now stay 0.14 from the machine and inside the
+  room.
+- The slip and the reaction arrived together, and the speech note covered the slip at every
+  size. The reaction, or the pair exchange, now waits for the slip to go.
+- Legacy overflow (more than four in a room) was rehomed silently. Each move is now announced:
+  "Cabem quatro por sala: Téo para Toca de Marketing · Mina para Cantina de Nozes."; three or
+  more moves list names only. Auto-arrange, which the player asks for, stays silent.
+- A facility room's secret was a worded pill across the nearest teammate: 47–74% of a face at
+  380×460, 57% of a mood sticker at 1280×720. It is now a sparkle pinned to the fixture's
+  corner; its words open on pointer or keyboard focus. Curiosities pin to the same corner;
+  their compact rule never applied, because `play.css` outranked it.
+- The annex rooms' header action was cut to "Consertar a con…" at 320 px, because the header
+  kept a 44 px elevator reserve that only arranging needs. In English, "Bring coffee to the
+  garden" became "Coffee to the garden".
+- HUD counter (pre-existing): when production retargeted every frame, the counter drifted as
+  low as −2,53T. `AnimatedNumber` now drops stale tweens, clamps between start and target,
+  and lands exactly on the target.
+
+Player gate (pt-BR, browser, dev server and local Chromium 1232; a late-company save with every
+room open, then each annex room filled to four):
+
+- Real clicks:
+  - Tend, workshop: 3 taps gave +3 ânimo and a 30 s Pique; Beta spoke after the slip.
+  - Brew, conservatory: "Colher" gave +4,2M and +6 ânimo; Axel spoke; the next brew was
+    still offered after a reload.
+  - Tune, studio: Hora calma → Animado (combos last 15% longer); Eco spoke; the mode survived
+    a reload.
+  - Watch, security: +2,1M and +2 reputation.
+  - Deliver: "Para Bento" gave +2,6M, then his line.
+  - Curiosity: "O quadro de empréstimos" gave +2,1M and was gone after a reload.
+  - Workshop secret, by Tab and Enter: "Não conserte este arranhão" → "Preservar a parte de
+    baixo" gave +7 reputation; the marker went and the flag was saved.
+- 23 teammates, four to a room, with every routine live, across all 21 rooms at all six sizes.
+  From 380×460 up, no badge covers more than 12% of a face or fixture, no desk leaves its
+  room, and desks overlap by at most 6 px. At 320×420 only, these remain:
+  - the rooftop's watch badge covers a fifth of the skyline prop's box;
+  - with the widest desks, the studio badge touches up to 14% of the nearest face box;
+  - a curiosity can touch 14–15% of the nearest mood sticker.
+- Keyboard: focusing a machine shows its badge's words; Tab reaches the badge and Enter acts.
+  Tab reaches the secret, which then reads in full.
+- Reduced motion and quiet mode stop every room animation. Quiet mode takes master volume to a
+  quarter (0.85 → 0.21); mute takes every bus to 0. The room sound follows the floor in view
+  and goes to null under a sheet.
+- Contrast is 4.6:1 or better with and without high contrast. Glyph shapes, not colours, tell
+  the badge, curiosity and secret apart.
+- Six checks — see, understand, interact, feedback, why it matters, feel: PASS (audio not
+  heard).
+
+Checks: `npm run validate` exit 0 (885 unit tests, 75 files). E2E on local Chromium: 344/344
+across all 45 specs; `office-play` 22/22, and `incidents.spec` passed this run. The new
+full-room test fails on the old layout ("a face behind the machine", 0.37). New coverage:
+`roomLayout` (clearance, slide and ease, untouched when clear), `roomCapacity` (2), `art` (4),
+`animatedNumber` (1). `office-play` gained 8 tests: annex rooms, the badge at two sizes, a full
+room at two sizes, the secret, the header action, the slip before the reaction, and the
+counter.
+
 ## Blockers
 
 - Kiro Web listed no skills this session; `zooworkers-playtest/SKILL.md` was followed by hand.
 - `templates/AGENTS.md` may load as a nested second AGENTS.md (Kiro docs); kept as instructed.
-- Flaky, pre-existing (not Chapter 2): `incidents.spec` "a promise lands in the world" misses
-  the lab's moment slip in about a third of runs on `d9fab09` too. Owner: Chapter 6.
+- Flaky, pre-existing (not Chapters 2–3): `incidents.spec` "a promise lands in the world"
+  misses the lab's moment slip in about a third of runs on `d9fab09` too. Passed in Chapter 3's
+  run. Owner: Chapter 6.
 - AUDIO LISTENING REQUIRED: no playback here. Unheard: the purchase, claim and tap cues; the
   error cue on every short press (the button used to be disabled); the celebrate cue on a
   room bought in the shop; the golden cue when the pod mints a whole nut; the paper cue of a
   live welcome back. Also unheard: whether the ambient one-shots (every 2.6–7.8 s) and the
   music grow repetitive over an unattended hour, in active, quiet and mute play. Chapter 2:
   each teammate's babble on every check-in line, the error cue on a locked answer, the
-  upgrade cue on taking someone home.
+  upgrade cue on taking someone home. Chapter 3: the annex rooms' one-shots (studio tape hiss,
+  needle and meter; workshop ratchet, dropped screw and motor; conservatory drip, leaf and pane
+  tick), their volume against the office's usual sounds, and repetition over a long stay.
 - LOCAL WINDOWS VERIFICATION REQUIRED: the last recorded native run is `a4e03ad`. This sandbox
   has no Electron binary or display, so no smoke ran. On Windows: `npm run build:windows:folder`,
   `npm run verify:windows:packaged`, then `smoke:window`, `smoke:focus` and `smoke:mute`.
@@ -303,7 +385,11 @@ of 6 repeats, here 1 of 3. New coverage: `tests/checkIns.test.ts` (13), three `v
      at a quarter. With click-through off, the note's × and its lines work.
   5. At 320×420 and 100/125/150/200% DPI, the note sits under the HUD and above the dock,
      with lines ≥ 30 px tall.
+     Chapter 3 (no desktop code changed):
+  6. At 320×420 and 125/150/200% DPI, scroll to the studio, workshop and conservatory. Expect
+     each room's action to read in full, the ON AIR lamp to read as a word, the routine badge on
+     its machine with no face under it, and a waiting secret's sparkle at the fixture corner.
 
 ## Next prompt
 
-Chapter 3. Start its session on this branch; `main` has none of this configuration.
+Chapter 5. Start its session on this branch; `main` has none of this configuration.

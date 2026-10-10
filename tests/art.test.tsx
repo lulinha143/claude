@@ -179,3 +179,51 @@ describe('Tree around the company', () => {
     expect(html).toContain('aria-label="Acorn Holdings: open the company file"');
   });
 });
+
+// ---- Chapter 3: the annex rooms are their own places --------------------------
+
+import { RoomDressing } from '../src/art/RoomDressing';
+import { readFileSync } from 'node:fs';
+
+describe('the radio studio, repair workshop and conservatory', () => {
+  const css = readFileSync(new URL('../src/ui/game/rooms.css', import.meta.url), 'utf8');
+
+  it('each draws its own architecture, behind the light and the fixtures', () => {
+    const parts: Record<string, string[]> = {
+      broadcast: ['annex__cork', 'annex__door', 'annex__onair'],
+      repair: ['annex__bay', 'annex__rail', 'annex__trolley', 'annex__hazard'],
+      conservatory: ['annex__glass', 'annex__rib', 'annex__planter'],
+    };
+    for (const [room, pieces] of Object.entries(parts)) {
+      const html = renderToStaticMarkup(<RoomDressing roomId={room} />);
+      for (const piece of pieces) expect(html, `${room}: ${piece}`).toContain(piece);
+      // Behind the room's window, props and light wash, never painted over them.
+      const architecture = html.indexOf('annex-architecture');
+      expect(architecture).toBeGreaterThan(-1);
+      expect(architecture).toBeLessThan(html.indexOf('room-dressing__window'));
+      expect(architecture).toBeLessThan(html.indexOf('room-dressing__light'));
+    }
+  });
+
+  it('keeps the rest of the building free of annex architecture', () => {
+    for (const room of ['founder-desk', 'sorting', 'lab', 'vault']) {
+      expect(renderToStaticMarkup(<RoomDressing roomId={room} />)).not.toContain('annex');
+    }
+  });
+
+  it('gives each one materials and light of its own (the lost styles stay restored)', () => {
+    for (const room of ['broadcast', 'repair', 'conservatory']) {
+      for (const layer of ['wall', 'floor']) {
+        expect(css, `${room} ${layer}`).toContain(`.rd--${room} .room-dressing__${layer} {`);
+      }
+      expect(css, `${room} light`).toMatch(new RegExp(`\\.rd--${room} \\{[^}]*--room-light`));
+    }
+    expect(css).toContain('.annex-architecture {');
+  });
+
+  it("puts a potting shelf on the conservatory's wall, not a city skyline", () => {
+    const html = renderToStaticMarkup(<RoomDressing roomId="conservatory" />);
+    expect(html).toContain('room-dressing__prop--wallLeft');
+    expect(html).not.toContain('#ffe08a'); // the skyline's sun
+  });
+});

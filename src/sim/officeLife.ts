@@ -3,6 +3,7 @@ import type { Rng } from './rng';
 import { resolveEmployeeRoom } from './rooms';
 import { placedDecorationsInRoom } from './decorations';
 import { characterSlots } from '../content/roomLayout';
+import { stationsInRoom } from '../content/clickStations';
 
 // "Office life": occasionally a hired employee wanders over to a decoration
 // placed near their spot and interacts with it (react bubble + the object
@@ -44,7 +45,8 @@ export function pickOfficeInteraction(
       ([eid, rt]) => rt.hired && resolveEmployeeRoom(state, eid) === roomId,
     );
     const idx = occ.findIndex(([eid]) => eid === id);
-    const sx = characterSlots(occ.length, roomId)[idx]?.x ?? 0.5;
+    // The same slot the scene draws them in (clear of the room's machine).
+    const sx = characterSlots(occ.length, roomId, stationsInRoom(roomId)[0]?.x)[idx]?.x ?? 0.5;
 
     let best: { id: string; x: number } | null = null;
     let bestDx = PROXIMITY;

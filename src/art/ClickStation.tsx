@@ -63,6 +63,12 @@ export interface ClickStationProps {
   comboWindow?: number;
   /** the room's routine, so the machine itself shows it: brewing, ready, stuck, a blip. */
   playStatus?: RoutineStatus;
+  /**
+   * What else this machine does, in a sentence (the room's routine), and who in
+   * the room makes it better. A quiet routine shows no tag over the machine, so
+   * this is where a curious player finds out what the room is for.
+   */
+  routineTip?: { title: string; lines: string[] } | null;
 }
 
 export function ClickStation({
@@ -80,6 +86,7 @@ export function ClickStation({
   formatShare = (fraction) => `${Math.round(fraction * 100)}%`,
   comboWindow,
   playStatus,
+  routineTip,
 }: ClickStationProps) {
   const { t } = useTranslation();
   const [streak, setStreak] = useState(0);
@@ -237,6 +244,16 @@ export function ClickStation({
       <span className="station-tip__hint">
         {roomEmpty ? t('rush.empty') : t('rush.tip', { taps: rushAt, seconds: CLICK.rushSeconds })}
       </span>
+      {routineTip ? (
+        <span className="station-tip__routine">
+          <strong className="station-tip__name">{routineTip.title}</strong>
+          {routineTip.lines.map((line) => (
+            <span key={line} className="station-tip__hint">
+              {line}
+            </span>
+          ))}
+        </span>
+      ) : null}
     </span>
   );
   const rushing = rushEndsAt > Date.now();

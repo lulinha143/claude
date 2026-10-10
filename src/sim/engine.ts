@@ -531,8 +531,9 @@ export class GameEngine {
     this.repairedOnLoad = repairPlacements(this.state);
     // Older saves predate the four-per-room cap, and the fallback resolution can
     // pile unassigned teammates into one room regardless of when the save was
-    // written, so the invariant is established before anything renders.
-    enforceRoomCapacity(this.state);
+    // written, so the invariant is established before anything renders. Who had to
+    // move is remembered and told to the player (nobody is moved without a word).
+    this.noteRehomed(enforceRoomCapacity(this.state));
     this.unlockedRoomCount = unlockedRooms(this.state).length;
     // Repair the source instance model before its legacy placement projection,
     // then mirror any coordinate clamping back into the instances.
@@ -544,6 +545,23 @@ export class GameEngine {
 
   /** ids whose invalid placement was repaired at load (for dev-only logging). */
   repairedOnLoad: string[] = [];
+
+  /**
+   * Teammates the four-per-room cap moved to another desk, and where, waiting to
+   * be told to the player (drained by the store). An old save with six people in
+   * one room keeps all six; this is how the player learns who went where.
+   */
+  rehomed: Array<{ employeeId: string; roomId: string }> = [];
+
+  private noteRehomed(ids: readonly string[]): void {
+    for (const employeeId of ids) {
+      const roomId = this.state.employees[employeeId]?.room;
+      if (!roomId) continue;
+      this.rehomed = this.rehomed.filter((item) => item.employeeId !== employeeId);
+      this.rehomed.push({ employeeId, roomId });
+    }
+    if (this.rehomed.length > 12) this.rehomed.splice(0, this.rehomed.length - 12);
+  }
 
   // Session-only undo/redo history for authoritative decoration arrangement.
   // Identity and cosmetic metadata remain untouched while room, surface,
@@ -726,7 +744,7 @@ export class GameEngine {
     const openRooms = unlockedRooms(this.state).length;
     if (openRooms !== this.unlockedRoomCount) {
       this.unlockedRoomCount = openRooms;
-      enforceRoomCapacity(this.state);
+      this.noteRehomed(enforceRoomCapacity(this.state));
     }
 
     // prune expired boosts to avoid unbounded growth
@@ -1625,7 +1643,7 @@ export class GameEngine {
         home && isRoomIdUnlocked(this.state, home) && roomHasSpace(this.state, home)
           ? home
           : bestRoomWithSpace(this.state, id);
-      enforceRoomCapacity(this.state);
+      this.noteRehomed(enforceRoomCapacity(this.state));
     }
     this.emit();
     // A purchase is a deliberate step: keep it even if the game closes now.
@@ -1691,7 +1709,7 @@ export class GameEngine {
     rt.room = roomId;
     // Clearing an assignment hands them back to the fallback, which can overfill a
     // room; re-seat whoever that displaces.
-    if (roomId === null) enforceRoomCapacity(this.state);
+    if (roomId === null) this.noteRehomed(enforceRoomCapacity(this.state));
     this.emit();
     this.save(); // a room move is a deliberate action — persist it immediately
     return true;
@@ -1759,6 +1777,7 @@ export class GameEngine {
       }
     }
     if (changes > 0) {
+      // The player asked for this arrangement: nothing to announce.
       enforceRoomCapacity(this.state);
       this.emit();
     }
@@ -3345,7 +3364,7 @@ export class GameEngine {
     this.lastConsequence = null;
     this.resolvingEventInstanceId = null;
     repairEmployees(this.state);
-    enforceRoomCapacity(this.state);
+    this.noteRehomed(enforceRoomCapacity(this.state));
     this.repairedOnLoad = repairPlacements(this.state);
     repairBondMemories(this.state);
     repairDecorationInstances(this.state);

@@ -236,6 +236,79 @@ function spreadX(count: number): number[] {
 }
 
 /**
+ * Where a desk may stand. A teammate is drawn at their workstation, 0.16-0.22 of
+ * the room wide across the cast (half of that either side of the slot), so a slot
+ * this far in keeps the widest desk inside its room.
+ */
+const DESK_MIN_X = 0.11;
+const DESK_MAX_X = 0.89;
+/** Half a desk, as a share of the room. */
+const DESK_HALF = 0.09;
+/** Half a room's machine: a station is 70 scene px wide in a 700px room. */
+const STATION_HALF = 0.05;
+/**
+ * How close two neighbours may be brought to make room for the machine, centre to
+ * centre: a desk's width and a little air. The formations keep 0.2 or more.
+ */
+const DESK_MIN_GAP = 0.19;
+
+/**
+ * The floor a room's machine leaves for its team: everything on the far side of
+ * it, far enough that a desk ends where the machine begins.
+ */
+function teamFloor(stationX: number): readonly [from: number, to: number] {
+  return stationX < 0.5
+    ? [stationX + STATION_HALF + DESK_HALF, DESK_MAX_X]
+    : [DESK_MIN_X, stationX - STATION_HALF - DESK_HALF];
+}
+
+/**
+ * Keep the formation off the room's machine. The formations are authored for an
+ * empty floor and reach x 0.18-0.86 in a full room, which is where the machines
+ * stand (x 0.12-0.2 and 0.78-0.87): the outer teammate sat behind the machine and
+ * its routine badge landed on their face.
+ *
+ * A group that already clears the machine is left exactly as authored. Otherwise
+ * it SLIDES toward the far wall, keeping every gap, which is all a room of one to
+ * three needs. A full room has no such slack (four desks and a machine are four
+ * fifths of the floor), so its gaps close evenly toward DESK_MIN_GAP, only as far
+ * as the machine needs and never tighter: desks colliding is worse than a desk's
+ * corner behind the machine, which is then as small as the room allows. Order and
+ * depth, which carry each formation's character, are untouched.
+ */
+function clearOfStation(xs: number[], stationX: number | undefined): number[] {
+  if (stationX === undefined || xs.length === 0) return xs;
+  const nearLeft = stationX < 0.5;
+  const [from, to] = teamFloor(stationX);
+  const lo = Math.min(...xs);
+  const hi = Math.max(...xs);
+  if (lo >= from && hi <= to) return xs;
+  if (hi - lo <= to - from) {
+    const shift = nearLeft ? from - lo : to - hi;
+    return xs.map((x) => x + shift);
+  }
+  const order = xs.map((_, i) => i).sort((a, b) => xs[a] - xs[b]);
+  const gaps = order.slice(1).map((at, k) => xs[at] - xs[order[k]]);
+  const floors = gaps.map((gap) => Math.min(gap, DESK_MIN_GAP));
+  const slack = gaps.reduce((sum, gap, k) => sum + gap - floors[k], 0);
+  const least = floors.reduce((sum, gap) => sum + gap, 0);
+  const t = slack > 0 ? Math.max(0, Math.min(1, (to - from - least) / slack)) : 0;
+  const placed = [...xs];
+  // Built out from the far wall, so a room too full to clear the machine leaves
+  // the nearest teammate as far from it as it can.
+  if (nearLeft) {
+    placed[order[order.length - 1]] = to;
+    for (let k = gaps.length - 1; k >= 0; k -= 1)
+      placed[order[k]] = placed[order[k + 1]] - (floors[k] + (gaps[k] - floors[k]) * t);
+  } else {
+    placed[order[0]] = from;
+    for (let k = 0; k < gaps.length; k += 1)
+      placed[order[k + 1]] = placed[order[k]] + floors[k] + (gaps[k] - floors[k]) * t;
+  }
+  return placed;
+}
+
+/**
  * Positions for `count` hired employees in a given room.
  *
  * One to four occupants — every arrangement reachable under the room capacity —
@@ -243,14 +316,23 @@ function spreadX(count: number): number[] {
  * composed as a room of two rather than as a sparse room of four. Anything larger
  * falls back to the generated spread.
  */
-export function characterSlots(count: number, roomId?: string): CharacterSlot[] {
+export function characterSlots(
+  count: number,
+  roomId?: string,
+  /** where the room's machine stands (0..1), so nobody stands on it. */
+  stationX?: number,
+): CharacterSlot[] {
   if (count <= 0) return [];
   const style: SlotStyle = (roomId && ROOM_STYLE[roomId]) || 'cluster';
 
   const formation = FORMATIONS[style][count - 1];
   if (formation) {
-    return formation.map(([x, bottom]) => ({
-      x: clampX(x),
+    const xs = clearOfStation(
+      formation.map(([x]) => x),
+      stationX,
+    );
+    return formation.map(([, bottom], i) => ({
+      x: clampX(xs[i]),
       bottom: Math.round(bottom * PRESENCE),
     }));
   }

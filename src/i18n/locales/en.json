@@ -2486,6 +2486,9 @@
     "forMinutes": "for {{value}} min"
   },
   "notify": {
+    "rehomedTo": "{{name}} to {{room}}",
+    "rehomedFew": "A room holds four: {{moves}}.",
+    "rehomedMany": "{{count}} teammates moved to other rooms (a room holds four): {{names}}.",
     "hired": "{{name}} joined the company!",
     "roomUnlocked": "New room: {{name}}",
     "assigned": "{{name}} moved to {{room}}",
@@ -3960,7 +3963,7 @@
       "other": "The bottle label becomes damp. The sample is ordinary rainwater by lunchtime.",
       "evidence": "Winter garden, witnessed by Axel. Two ring stains, one on each side of the bench. No chemical anomaly survived. The invitation did.",
       "workReply": "Axel opens the window. The rain stops politely at the sill.",
-      "activity": "Bring coffee to the garden",
+      "activity": "Coffee to the garden",
       "roomQuip": "Sunny outside. Apparently not in here.",
       "afterQuip": "I left the second cup. Just in case.",
       "remember": "Keep a second cup on the bench, even on Tuesdays.",

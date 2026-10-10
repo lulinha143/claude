@@ -450,6 +450,30 @@ engine.subscribe(() => {
     }
   }
 
+  // Someone the four-per-room cap moved to another desk (an old save with a
+  // crowded room, a hire who took a seat). Nobody vanishes, and nobody is moved
+  // without the player hearing where they went.
+  if (engine.rehomed.length > 0) {
+    const moved = engine.rehomed.splice(0, engine.rehomed.length);
+    const nameOf = (id: string) =>
+      st.employees[id]?.nickname ?? i18n.t(EMPLOYEES_BY_ID[id]?.nameKey ?? id);
+    const roomOf = (id: string) => i18n.t(ROOMS_BY_ID[id]?.nameKey ?? id);
+    // Where each one went, when that is short enough to read (it usually is:
+    // an old save's crowded room sends one or two elsewhere); names past that.
+    const where = (item: { employeeId: string; roomId: string }) =>
+      i18n.t('notify.rehomedTo', { name: nameOf(item.employeeId), room: roomOf(item.roomId) });
+    notify(
+      'rooms',
+      moved.length <= 2
+        ? i18n.t('notify.rehomedFew', { moves: moved.map(where).join(' · ') })
+        : i18n.t('notify.rehomedMany', {
+            count: moved.length,
+            names: moved.map((item) => nameOf(item.employeeId)).join(', '),
+          }),
+      'neutral',
+    );
+  }
+
   // Promised consequences that have just come due. Announcing these is what keeps
   // a delayed penalty fair: the player sees the bill AND what it is settling up
   // for, rather than an unexplained swing minutes after the decision.

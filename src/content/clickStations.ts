@@ -87,7 +87,8 @@ export const CLICK_STATIONS: readonly ClickStationDef[] = [
     kind: 'mixing-desk',
     nameKey: 'station.broadcast.name',
     hintKey: 'station.broadcast.hint',
-    x: 0.2,
+    // Close enough to the wall that a full room still sits clear of it.
+    x: 0.18,
     bottom: 0,
     cadence: 'burst',
     payout: 0.7,
@@ -100,7 +101,8 @@ export const CLICK_STATIONS: readonly ClickStationDef[] = [
     kind: 'test-bench',
     nameKey: 'station.repair.name',
     hintKey: 'station.repair.hint',
-    x: 0.78,
+    // In the middle of the bay door, and far enough along that a full room sits clear of it.
+    x: 0.82,
     bottom: 0,
     cadence: 'charge',
     payout: 1.3,
@@ -113,7 +115,8 @@ export const CLICK_STATIONS: readonly ClickStationDef[] = [
     kind: 'rain-gauge',
     nameKey: 'station.conservatory.name',
     hintKey: 'station.conservatory.hint',
-    x: 0.2,
+    // Close enough to the wall that a full room still sits clear of it.
+    x: 0.18,
     bottom: 0,
     cadence: 'steady',
     payout: 0.8,
@@ -300,7 +303,8 @@ export const CLICK_STATIONS: readonly ClickStationDef[] = [
     kind: 'furnace',
     nameKey: 'station.furnaceValve.name',
     hintKey: 'station.furnaceValve.hint',
-    x: 0.8,
+    // Close enough to the wall that a full room still sits clear of it.
+    x: 0.82,
     bottom: 3,
     cadence: 'charge',
     payout: 0.02,

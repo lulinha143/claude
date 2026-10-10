@@ -42,13 +42,24 @@ function side(x: number): 'left' | 'right' | 'center' {
   return x < 0.3 ? 'left' : x > 0.7 ? 'right' : 'center';
 }
 
-/** The routine's own name and what it does, plus who helps and how. */
-function routineTip(
+/** The routine's name, what it does, and who helps and how (no live status). */
+export function routineSummary(
+  view: RoutineView,
+  t: TFunction,
+  nameOf: (employeeId: string) => string,
+): { title: string; lines: string[] } {
+  return {
+    title: t(`play.${view.roomId}.name`),
+    lines: routineLines(view, t, nameOf, null),
+  };
+}
+
+function routineLines(
   view: RoutineView,
   t: TFunction,
   nameOf: (employeeId: string) => string,
   extra: string | null,
-) {
+): string[] {
   const lines: Array<string | null> = [t(`play.${view.roomId}.tip`)];
   if (extra) lines.push(extra);
   if (view.helpers.length > 0) {
@@ -65,7 +76,22 @@ function routineTip(
     lines.push(t(`play.helpers.none.${view.kind}`));
   }
   if (view.done > 0) lines.push(t('play.doneCount', { count: view.done }));
-  return <TipContent title={t(`play.${view.roomId}.name`)} lines={lines} />;
+  return lines.filter((line): line is string => Boolean(line));
+}
+
+/** The routine's own name and what it does, plus who helps and how. */
+function routineTip(
+  view: RoutineView,
+  t: TFunction,
+  nameOf: (employeeId: string) => string,
+  extra: string | null,
+) {
+  return (
+    <TipContent
+      title={t(`play.${view.roomId}.name`)}
+      lines={routineLines(view, t, nameOf, extra)}
+    />
+  );
 }
 
 /**
@@ -167,8 +193,10 @@ export function RoutineChip({
 
   const style: CSSProperties = {
     left: `${station.x * 100}%`,
-    // Just above the machine (stations are drawn 81 scene pixels tall).
-    bottom: `calc(${station.bottom + 80}px * var(--asset-scale))`,
+    // Just above the machine (stations are drawn 81 scene pixels tall). In a
+    // corner window the room is too short for that (the wall fixture hangs right
+    // there), so the CSS seats it at the machine's shoulder instead.
+    ['--station-bottom' as string]: `${station.bottom}px`,
     ['--p' as string]: (view.progress ?? 0).toFixed(3),
   };
   const content = (

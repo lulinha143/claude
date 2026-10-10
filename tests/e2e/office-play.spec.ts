@@ -344,3 +344,293 @@ for (const [width, height] of [
     await page.screenshot({ path: `visual-artifacts/review/office-play-${width}x${height}.png` });
   });
 }
+
+// ---- Chapter 3 ------------------------------------------------------------------
+
+test('the radio studio, repair workshop and conservatory are each their own place', async ({
+  page,
+}) => {
+  await boot(
+    page,
+    company((s) => {
+      staff(s, 'broadcast', ['echo']);
+      staff(s, 'repair', ['bea']);
+      staff(s, 'conservatory', ['axel']);
+    }),
+    1280,
+    720,
+  );
+  const looks: Record<string, string> = {};
+  for (const [room, piece] of [
+    ['broadcast', '.annex__onair'],
+    ['repair', '.annex__bay'],
+    ['conservatory', '.annex__glass'],
+  ] as const) {
+    const floor = await goTo(page, room);
+    // Its own architecture is drawn and actually painted (it used to sit under
+    // the room's walls, styles lost, so the room drew as the default beige box).
+    const visible = await floor
+      .locator(piece)
+      .first()
+      .evaluate((el) => {
+        const r = el.getBoundingClientRect();
+        const style = getComputedStyle(el);
+        const layer = el.closest('.annex-architecture') ?? el;
+        return (
+          r.width > 0 &&
+          r.height > 0 &&
+          style.visibility !== 'hidden' &&
+          style.display !== 'none' &&
+          Number(style.opacity) > 0 &&
+          getComputedStyle(layer).position === 'absolute'
+        );
+      });
+    expect(visible, `${room}: ${piece} shows`).toBe(true);
+    looks[room] = await floor
+      .locator('.room-dressing__wall')
+      .evaluate((el) => getComputedStyle(el).backgroundImage);
+  }
+  // Three different walls, none of them the default beige gradient.
+  expect(new Set(Object.values(looks)).size).toBe(3);
+  await page.screenshot({ path: 'visual-artifacts/review/annex-rooms-1280x720.png' });
+});
+
+for (const [width, height] of [
+  [380, 460],
+  [1280, 720],
+] as const) {
+  test(`a routine's tag covers no teammate's face and no wall fixture at ${width}x${height}`, async ({
+    page,
+  }) => {
+    await boot(
+      page,
+      company((s) => {
+        staff(s, 'marketing', ['corvus', 'fenn', 'rosa']);
+        staff(s, 'lab', ['nixie', 'quincy']);
+        staff(s, 'morale', ['marlow']);
+        staff(s, 'conservatory', ['axel']);
+      }),
+      width,
+      height,
+    );
+    for (const room of ['marketing', 'lab', 'morale', 'conservatory']) {
+      const floor = await goTo(page, room);
+      const worst = await floor.evaluate((el) => {
+        const chip = el.querySelector('.play-chip')!.getBoundingClientRect();
+        const share = (b: DOMRect) => {
+          const x = Math.max(0, Math.min(chip.right, b.right) - Math.max(chip.left, b.left));
+          const y = Math.max(0, Math.min(chip.bottom, b.bottom) - Math.max(chip.top, b.top));
+          return (x * y) / Math.max(1, b.width * b.height);
+        };
+        const faces = [...el.querySelectorAll('.critter-btn img')].map((img) => {
+          const b = img.getBoundingClientRect();
+          return new DOMRect(b.left + b.width * 0.12, b.top, b.width * 0.76, b.height * 0.55);
+        });
+        const fixtures = [...el.querySelectorAll('.room-dressing__prop')].map((p) =>
+          p.getBoundingClientRect(),
+        );
+        return {
+          face: Math.max(0, ...faces.map(share)),
+          fixture: Math.max(0, ...fixtures.map(share)),
+        };
+      });
+      expect(worst.face, `${room}: a face`).toBeLessThanOrEqual(0.12);
+      expect(worst.fixture, `${room}: the wall fixture`).toBeLessThanOrEqual(0.12);
+    }
+  });
+}
+
+// Four to a room, each annex room full: the machine stands by one wall and the
+// team fills the floor beside it, so this is where a desk landed on the machine.
+const FULL_ANNEX: Record<string, string[]> = {
+  broadcast: ['echo', 'bia', 'fenn', 'canela'],
+  repair: ['bea', 'pingo', 'rizzo', 'otto'],
+  conservatory: ['axel', 'dorm', 'moss', 'mina'],
+};
+
+for (const [width, height] of [
+  [380, 460],
+  [1280, 720],
+] as const) {
+  test(`a full room seats its four clear of the machine and its badge at ${width}x${height}`, async ({
+    page,
+  }) => {
+    await boot(
+      page,
+      company((s) => {
+        for (const [room, ids] of Object.entries(FULL_ANNEX)) staff(s, room, ids);
+        s.office = {
+          rooms: { broadcast: { mode: 'upbeat' }, repair: { jamAt: NOW, taps: 1 } },
+          oddities: [],
+        };
+      }),
+      width,
+      height,
+    );
+    for (const room of Object.keys(FULL_ANNEX)) {
+      const floor = await goTo(page, room);
+      const m = await floor.evaluate((el) => {
+        const box = (node: Element) => node.getBoundingClientRect();
+        const share = (a: DOMRect, b: DOMRect) =>
+          (Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left)) *
+            Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top))) /
+          Math.max(1, b.width * b.height);
+        const sprites = [...el.querySelectorAll('.critter-btn img')].map(box);
+        const faces = sprites.map(
+          (b) => new DOMRect(b.left + b.width * 0.12, b.top, b.width * 0.76, b.height * 0.55),
+        );
+        const covers = (over: DOMRect[]) =>
+          Math.max(0, ...over.flatMap((o) => faces.map((f) => share(o, f))));
+        const sorted = [...sprites].sort((a, b) => a.left - b.left);
+        const collide = Math.max(0, ...sorted.slice(1).map((b, i) => sorted[i].right - b.left));
+        const room = box(el);
+        return {
+          people: sprites.length,
+          machine: covers([...el.querySelectorAll('.station-btn')].map(box)),
+          badge: covers([...el.querySelectorAll('.play-chip')].map(box)),
+          collide,
+          inside: sprites.every((b) => b.left >= room.left - 1 && b.right <= room.right + 1),
+        };
+      });
+      expect(m.people, room).toBe(4);
+      expect(m.machine, `${room}: a face behind the machine`).toBeLessThanOrEqual(0.12);
+      expect(m.badge, `${room}: a face under the badge`).toBeLessThanOrEqual(0.12);
+      expect(m.collide, `${room}: desks collide`).toBeLessThanOrEqual(6);
+      expect(m.inside, `${room}: a desk off the room`).toBe(true);
+    }
+  });
+}
+
+test("a facility room's secret is pinned clear of a full room and says what it is when reached", async ({
+  page,
+}) => {
+  await boot(
+    page,
+    company((s) => {
+      staff(s, 'repair', FULL_ANNEX.repair);
+      s.flags['oddity.borrowed-wrench'] = NOW - 60_000;
+      s.flags['oddity.dont-button'] = NOW - 30_000;
+    }),
+    380,
+    460,
+  );
+  const floor = await goTo(page, 'repair');
+  const secret = floor.locator('.floor__stage .floor__discovery');
+  await expect(secret).toBeVisible();
+  // With the machine at the far wall, the nearest desk stands under the fixture:
+  // the secret is pinned to the fixture's corner, not across that teammate.
+  const covered = await floor.evaluate((el) => {
+    const s = el.querySelector('.floor__discovery')!.getBoundingClientRect();
+    return Math.max(
+      0,
+      ...[...el.querySelectorAll('.critter-btn img')].map((img) => {
+        const b = img.getBoundingClientRect();
+        const f = new DOMRect(b.left + b.width * 0.12, b.top, b.width * 0.76, b.height * 0.55);
+        const x = Math.max(0, Math.min(s.right, f.right) - Math.max(s.left, f.left));
+        const y = Math.max(0, Math.min(s.bottom, f.bottom) - Math.max(s.top, f.top));
+        return (x * y) / (f.width * f.height);
+      }),
+    );
+  });
+  expect(covered, 'a face under the secret').toBeLessThanOrEqual(0.12);
+  // Reached by keyboard (from the room's machine) it reads in full, and opens with Enter.
+  await floor.locator('.station-btn').focus();
+  for (let i = 0; i < 12; i += 1) {
+    if (await secret.evaluate((el) => el === document.activeElement)) break;
+    await page.keyboard.press('Tab');
+  }
+  await expect(secret).toBeFocused();
+  const label = secret.locator('.office-oddity__label');
+  await expect(label).toHaveText(text('discovery.inspect'));
+  await expect
+    .poll(() => label.evaluate((el) => el.scrollWidth <= el.clientWidth + 1 && el.clientWidth > 0))
+    .toBe(true);
+  await page.keyboard.press('Enter');
+  await expect(page.locator('.annex-evidence')).toBeVisible();
+});
+
+test("an annex room's own activity reads in full in the smallest window", async ({ page }) => {
+  await boot(
+    page,
+    company((s) => {
+      for (const [room, ids] of Object.entries(FULL_ANNEX)) staff(s, room, ids.slice(0, 1));
+    }),
+    320,
+    420,
+  );
+  for (const room of Object.keys(FULL_ANNEX)) {
+    const floor = await goTo(page, room);
+    const action = floor.locator('.floor__header .floor__activity');
+    await expect(action).toHaveText(text(`annex.${room}.activity`));
+    const fits = await action.evaluate((el) => el.scrollWidth <= el.clientWidth);
+    expect(fits, `${room}: its action is cut short`).toBe(true);
+  }
+});
+
+test('what a routine did is read before anyone answers it', async ({ page }) => {
+  await boot(
+    page,
+    company((s) => {
+      staff(s, 'morale', ['marlow']);
+      s.office = {
+        rooms: { morale: { startedAt: NOW - 200_000, readyAt: NOW - 1_000 } },
+        oddities: [],
+      };
+    }),
+    1280,
+    720,
+  );
+  const floor = await goTo(page, 'morale');
+  await floor.locator('.play-chip').click();
+  const slip = floor.locator('.office-slip');
+  await expect(slip).toContainText(text('play.morale.done.pot'));
+  // Nobody talks over the slip: the room's reaction waits for it.
+  await expect(page.locator('.speech-note')).toHaveCount(0);
+  await expect(slip).toHaveCount(0, { timeout: 8_000 });
+  await expect(page.locator('.speech-note')).toContainText(text('play.morale.say'), {
+    timeout: 3_000,
+  });
+});
+
+test('the nut counter stays true while the elevator goes round the whole building', async ({
+  page,
+}) => {
+  test.setTimeout(60_000);
+  await boot(
+    page,
+    company((s) => {
+      s.settings.reducedMotion = false;
+      s.resources.nuts = 5_000_000;
+      // A late company (the whole cast at level 4): production fast enough that
+      // the counter gets a new target every frame, which is when it drifted.
+      const rooms = ['research', 'lab', 'marketing', 'procurement', 'founder-desk', 'sorting'];
+      const cast = Object.keys(s.employees);
+      cast.forEach((id, i) => staff(s, rooms[i % rooms.length], [id], 50));
+      for (const id of cast) s.employees[id].level = 4;
+    }),
+    1280,
+    720,
+  );
+  // The counter used to wander off while targets arrived faster than its tween,
+  // even below zero (-202M castanhas shown while the company had 5,8M).
+  const shown: number[] = [];
+  for (const room of ROOMS.map((r) => r.id)) {
+    await page.evaluate(
+      (roomId) => window.dispatchEvent(new CustomEvent('zw:focus-floor', { detail: { roomId } })),
+      room,
+    );
+    await page.waitForTimeout(300);
+    const text = (await page.locator('.hud__nuts-value').textContent()) ?? '';
+    shown.push(text.trim().startsWith('-') ? -1 : 1);
+  }
+  expect(
+    shown.filter((sign) => sign < 0),
+    'the counter went below zero',
+  ).toHaveLength(0);
+  const label = (await page.locator('.hud__nuts').getAttribute('aria-label')) ?? '';
+  const display = (await page.locator('.hud__nuts-value').textContent()) ?? '';
+  // Shown and true values agree to within a moment of production.
+  expect(label.replace(/[^\d,M.]/g, '').slice(0, 2)).toBe(
+    display.replace(/[^\d,M.]/g, '').slice(0, 2),
+  );
+});

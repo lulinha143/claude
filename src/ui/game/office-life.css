@@ -438,9 +438,11 @@
       width: 30px;
       height: 34px;
     }
-    /* The elevator column sits over the right edge of a full-width floor: keep
-       each floor's own controls and figures clear of it. */
-    .floor__header,
+    /* While arranging, the elevator column sits over the right edge of a
+       full-width floor: keep each floor's own controls clear of it. Otherwise it
+       waits in the bottom corner and the header has the room's whole width, so a
+       room's action reads in full at 320px ("Consertar a conexão", not "a con…"). */
+    .office--decorating .floor__header,
     .floor__tray--actions {
       padding-right: 44px;
     }
