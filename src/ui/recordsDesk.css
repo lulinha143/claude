@@ -154,7 +154,7 @@
   html:not([data-high-contrast='true'])
     .app
     .view:not(.view--focus-game)
-    :is(.panel, .card, .employee-card, .micro-card, .branch, .ach, .nut-cell, .decocard) {
+    :is(.panel, .card, .employee-card, .branch, .ach, .nut-cell, .decocard) {
     background-color: var(--panel-surface-raised);
     border-color: var(--border);
   }
@@ -162,7 +162,7 @@
   html:not([data-high-contrast='true'])
     .app
     .view:not(.view--focus-game)
-    :is(.employee-card, .card, .micro-card, .branch, .ach, .nut-cell, .decocard) {
+    :is(.employee-card, .card, .branch, .ach, .nut-cell, .decocard) {
     background-image: linear-gradient(125deg, #ffffff38, transparent);
   }
 
@@ -195,13 +195,6 @@
   }
   .view .employee-card__fullname {
     letter-spacing: 0.025em;
-  }
-  .view .micro-card__copy > :is(span, small) {
-    font-family: var(--font-body);
-    font-size: max(var(--fs-min), 0.85rem);
-    font-weight: 600;
-    line-height: 1.45;
-    text-shadow: none;
   }
   html:not([data-high-contrast='true'])
     .view:not(.view--focus-game)
@@ -327,10 +320,6 @@
     margin: 4px 0 0;
     max-width: 66ch;
     font-size: 0.85rem;
-  }
-  .view .micro-card__copy > .micro-card__souvenir {
-    color: var(--positive);
-    font-weight: 800;
   }
   @media (max-width: 520px) {
     .ensemble-selection {

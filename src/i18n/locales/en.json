@@ -1985,11 +1985,9 @@
     "scoreLabel": "Score",
     "finalScore": "Final score",
     "rewardEarned": "Company reward secured",
-    "rewardBoost": "Nuts earned + a 90 second productivity boost",
-    "backToOffice": "Back to office",
     "coffeeRescue": {
       "name": "Coffee Rescue",
-      "desc": "Move the mug with your pointer or arrow keys to catch each falling coffee drop. Big carafes are worth double, small espressos are worth most — but let the grey ringed decaf fall, because catching it ends your streak. With reduced motion, tap each drop instead.",
+      "desc": "Move the mug with the pointer, a finger or the arrow keys to catch the coffee. Carafes are worth double, espressos the most; let the grey decaf fall. Fill the order on the ticket for a bonus.",
       "drop": {
         "mug": "Coffee — catch it",
         "carafe": "Carafe — catch it, worth double",
@@ -1997,32 +1995,110 @@
         "decaf": "Decaf — do not catch this one"
       },
       "reaction": "Pip hugs the warm mug. Productivity has been rescued.",
-      "order": "Priority pour",
+      "order": "Order {{value}}",
       "warmth": "Mug warmth",
       "steady": "Steady paws",
-      "controls": "Coffee counter. Focus here, then use Left and Right Arrow to move the mug.",
+      "controls": "Coffee counter. Hold Left or Right Arrow (or A and D) to move the mug.",
       "caught": "Caught {{count}} coffee drop · +{{value}} points",
       "missed": "Coffee missed",
       "streakLost": "Coffee missed · {{count}} catch streak ended",
       "missMark": "Miss",
-      "hazardMark": "Decaf",
+      "hazardMark": "Decaf -{{value}}",
       "hazard": "Decaf caught · -{{value}} points",
       "hazardStreak": "Decaf caught · -{{value}} points · {{count}} catch streak ended",
       "assignment": "Keep the break room running. Save the good coffee; let the decaf fall.",
-      "brief": "Move the cup. Catch coffee; avoid grey decaf."
+      "rules": {
+        "a": "Catch the coffee. Espresso falls fastest and pays most.",
+        "b": "Let the grey decaf fall: catching it ends the streak.",
+        "c": "Fill the order on the ticket for a bonus."
+      },
+      "kind": {
+        "mug": "coffee",
+        "carafe": "carafe",
+        "espresso": "espresso",
+        "decaf": "decaf"
+      },
+      "orderLabel": "Order: {{items}}. {{done}} of {{total}} served.",
+      "orderStamp": "Served +{{value}}",
+      "orderDone": "Order served · +{{value}} points and a +{{bonus}} bonus",
+      "tapControls": "Coffee counter. Press a cup, or its number 1 to 5, to catch it.",
+      "controlsPointer": "Mouse or finger: the mug follows.",
+      "controlsKeys": "or A and D: hold to glide.",
+      "controlsTap": "Reduced motion: cups wait on the counter. Tap one, or press 1 to 5.",
+      "day": {
+        "morning": {
+          "title": "Today: morning rush",
+          "body": "Plenty of plain coffee, arriving quickly."
+        },
+        "espresso": {
+          "title": "Today: espresso hour",
+          "body": "More espressos, falling a touch faster."
+        },
+        "catering": {
+          "title": "Today: catering run",
+          "body": "Carafes everywhere, a little slower."
+        },
+        "audit": {
+          "title": "Today: decaf audit",
+          "body": "More decaf about. Look before you catch."
+        }
+      },
+      "phase": {
+        "service": {
+          "title": "Service",
+          "body": "The decaf starts turning up."
+        },
+        "rush": {
+          "title": "Rush!",
+          "body": "Two at a time. Pick one."
+        }
+      }
     },
     "bugSquash": {
       "name": "Bug Squash",
-      "desc": "Tap the office pests the instant they pop up — quick paws build a combo!",
+      "desc": "Pests pop out of the drawers: tap them before they duck back. Runners hop, armoured ones take two taps, the golden one pays most, and the sticky note is a feature, not a bug.",
       "reaction": "The IT desk is bug-free. The bugs have filed a complaint.",
-      "ticket": "Bug queue",
       "scanning": "Scanning desk…",
       "hit": "Bug fixed · +{{value}} points",
       "penalty": "Empty drawer · -{{value}} points",
       "empty": "Empty drawer — no points to deduct",
       "cracked": "Shell cracked — hit it again!",
       "assignment": "Quality control needs a steady hand. Every empty drawer costs points.",
-      "brief": "Catch the bugs. Armour takes two taps; empty spots cost points."
+      "rules": {
+        "a": "Squash the bugs. Runners hop to another drawer.",
+        "b": "Armoured bugs take two taps.",
+        "c": "The sticky note is a feature. Leave it alone."
+      },
+      "shift": {
+        "sorting": {
+          "title": "Triage",
+          "body": "One bug at a time."
+        },
+        "peak": {
+          "title": "Peak hour",
+          "body": "Two at once, armour, and the first feature."
+        },
+        "closing": {
+          "title": "Closing time",
+          "body": "Three at once. The golden bug is on its way."
+        }
+      },
+      "shiftCount": "Stage {{value}} of {{total}}",
+      "grid": "Bug drawers. Tap a bug, or press its drawer number, 1 to 9.",
+      "pest": {
+        "worker": "Drawer {{value}}: a bug. Squash it",
+        "runner": "Drawer {{value}}: a runner. Squash it before it hops",
+        "armoured": "Drawer {{value}}: an armoured bug. Two taps",
+        "rare": "Drawer {{value}}: the golden bug. Worth the most"
+      },
+      "featureLabel": "Drawer {{value}}: a feature. Do not squash it",
+      "feature": "That was a feature · -{{value}} points · streak ended",
+      "featureMark": "Feature!",
+      "escaped": "A bug got away · {{count}} streak ended",
+      "escapeMark": "Gone",
+      "golden": "The golden bug is out!",
+      "goldenHit": "Golden bug · +{{value}} points",
+      "controlsHint": "Mouse, finger, or the keys 1 to 9 (the drawer numbers). Arrows move between drawers."
     },
     "cableUntangle": {
       "name": "Cable Untangle Desk",
@@ -2042,7 +2118,7 @@
       "plug": "{{label}} plug",
       "port": "{{label}} port",
       "cleared": "All cables clear!",
-      "hint": "Drag plugs until no cables cross or overlap. Focus a plug and use arrow keys for fine control.",
+      "hint": "Drag plugs until no cable crosses or overlaps another. Each knot is marked where it is.",
       "doneHint": "No tangles. Loading the next desk…",
       "connected": "{{value}} / {{total}} connected",
       "difficulty": {
@@ -2060,10 +2136,18 @@
         "employee": "Employee"
       },
       "assignment": "Maintenance left another impossible diagram. There is a way through.",
-      "brief": "Move the plugs until no wires cross."
+      "rules": {
+        "a": "Drag the plugs. Every knot is marked where it is.",
+        "b": "A plug resting on a cable is in the way.",
+        "c": "Clear a desk under par for a speed bonus."
+      },
+      "par": "par {{value}} s",
+      "computerBlocking": "Plug {{value}}, in the way of a cable",
+      "deskPoints": "+{{value}} points",
+      "speedBonus": "Speed bonus +{{value}}",
+      "controlsHint": "Drag with the mouse or a finger. Keyboard: Tab to a plug, arrows nudge it, Shift for big steps, Esc puts a held plug back."
     },
-    "bug": "Squash the pest!",
-    "burrow": "Empty burrow",
+    "burrow": "Drawer {{value}}, empty",
     "score": "Score: {{value}}",
     "timeLeft": "{{value}}s",
     "result": "You scored {{value}}!",
@@ -2081,17 +2165,109 @@
       "perfect": "Nut-standing!"
     },
     "practiceComplete": "Practice shift filed",
-    "actualReward": "{{nuts}} nuts · +{{percent}}% production for 90 seconds",
-    "newBest": "New personal best: {{score}}",
+    "actualReward": "{{nuts}} nuts · +{{percent}}% production for {{seconds}} s",
     "personalBest": "Personal best: {{score}}",
     "masteryReward": "First mastery: 1 golden nut and a company moment",
     "teamReward": "{{names}} appreciated the help (+3 trust)",
     "souvenir": "Keepsake for the office: {{name}}. Available in Decorate.",
-    "colleagues": "18 points: encouragement for {{names}}.",
-    "masteryGoal": "30 points: a memory and {{name}} for the office.",
+    "colleagues": "{{value}} points: encouragement for {{names}}.",
+    "masteryGoal": "{{value}} points: a memory and {{name}} for the office.",
     "masteryFiled": "Mastery on file. Next challenge: your personal best.",
-    "masteryGoalOwned": "30 points: a memory and your first mastery award.",
-    "placeSouvenir": "Find a place for {{name}}"
+    "masteryGoalOwned": "{{value}} points: a memory and your first mastery award.",
+    "placeSouvenir": "Find a place for {{name}}",
+    "lede": "Short shifts with the team. Each game keeps its own record, and mastering one leaves something in the office.",
+    "pausedHint": "Esc carries on. Leaving ends the shift with no reward.",
+    "pauseKey": "Pause (Esc)",
+    "otherGames": "Other games",
+    "practiceBody": "No points this time, so nothing to pay. The team saw you try.",
+    "boostRenewed": "This round earned +{{value}}%. It went in as extra time on your stronger minigame boost, so the two never stack.",
+    "rewardFiled": "Shift already on file",
+    "rewardFiledBody": "This round was already paid, so nothing was added twice.",
+    "newBestStamp": "New record",
+    "masteryOnFile": "Mastery on file",
+    "masteryTarget": "Mastery: {{value}} points",
+    "masteryProgress": "{{score}} of {{value}} for mastery",
+    "masteryEarned": "Mastery earned!",
+    "masteryFirst": "First mastery!",
+    "masteryPrize": "+1 golden nut · a new company moment",
+    "firstShift": "No shift on file yet",
+    "chain_one": "{{count}} in a row",
+    "chain_other": "{{count}} in a row",
+    "comboNext_one": "{{count}} more for ×{{value}}",
+    "comboNext_other": "{{count}} more for ×{{value}}",
+    "comboMax": "Top combo",
+    "host": {
+      "coffeeRescue": {
+        "marlow": {
+          "intro": "The Coffee and Morale Division is counting on you. No rush. The coffee, however, is falling.",
+          "poor": "That is all right. Spilled coffee is still coffee. Just on the floor.",
+          "ok": "A good rhythm. The kettle is proud of you. So am I, more slowly.",
+          "great": "A lovely shift. Someone will cry about it later. The good kind.",
+          "perfect": "Not one cup lost. I am going to tell the kettle. It will be very moved.",
+          "best": "A new record. I will write it down calmly. Calm and quick can be friends."
+        },
+        "pip": {
+          "intro": "Coffee is the foundation of synergy! Catch the good stuff, let the decaf go. I wrote it on a sticky note.",
+          "poor": "Great! Really great. Let us schedule a meeting about the coffee on the floor.",
+          "ok": "Good work! That goes on the whiteboard. Then a meeting about the whiteboard.",
+          "great": "That is leadership! Productivity is up. Emotionally, too.",
+          "perfect": "Perfect! I am framing this shift. Say the score again, slower? It is for the frame.",
+          "best": "Personal best! I already booked a follow-up on the record."
+        }
+      },
+      "bugSquash": {
+        "quincy": {
+          "intro": "Steps to reproduce: open the drawers. Squash the bugs. Not the feature. Croak.",
+          "poor": "A few bugs went live. They waved at me. I opened a ticket.",
+          "ok": "Test passed, with notes. I like notes. They are honest.",
+          "great": "Clean desk! Well, nearly. I kept two for later. As a snack.",
+          "perfect": "Zero bugs. I ran it again to check. Zero again. That is a happy croak.",
+          "best": "New record. Logged, reproduced and approved."
+        },
+        "nixie": {
+          "intro": "Hi-hi-hi! Bugs are coming out of the drawers. Quick, before they learn to make backups!",
+          "poor": "Okay, okay, okay. Hardware problem. And a bit of a reflex problem.",
+          "ok": "Nice! Logged. With a backup of the backup.",
+          "great": "What speed! Fast is my favourite. Fast without sparks, even!",
+          "perfect": "Not a bug left! I am building a machine to say that every hour.",
+          "best": "New record! Saved to the log, with a backup and confetti."
+        },
+        "pip": {
+          "intro": "Bugs in the office! Squash every one. Except the feature: that one was my idea.",
+          "poor": "The bugs won this round. We won experience. And a meeting.",
+          "ok": "Good work! The notice board thanks you.",
+          "great": "What a steady paw! This is going in the quarterly report.",
+          "perfect": "No bugs at all! I am calling that innovation.",
+          "best": "A record! I am booking a meeting just to celebrate."
+        }
+      },
+      "cableUntangle": {
+        "nixie": {
+          "intro": "Hi-hi-hi! Someone plugged everything into everything. Untangle it before the router ties itself in a knot.",
+          "poor": "A few knots left. That is fine: a knot is just a cable overthinking.",
+          "ok": "Signals are getting through! Most of them. The rest are thinking.",
+          "great": "Look at that desk! You can see the floor. I did not know we had a floor.",
+          "perfect": "Not one crossing! Pingo can finally rest his wings.",
+          "best": "New record! Logged, with a backup of the backup."
+        },
+        "bea": {
+          "intro": "Whoa! These cables are a structural mess. Pull them gently: measure twice, drag once.",
+          "poor": "Bit wobbly, like a table with one short leg. We will level it next time.",
+          "ok": "Sturdy enough. I would still knock a nail in, but it holds.",
+          "great": "Solid as oak! You could build on that.",
+          "perfect": "All square! I am building a shelf just to keep this shift on.",
+          "best": "New record! I made a little notch on my ruler to remember it."
+        },
+        "pip": {
+          "intro": "The cables are… creative. Untangle them all. I would, but I have a meeting.",
+          "poor": "Still knotted. But it is a knot with potential.",
+          "ok": "Good work! Now I know where my charger went.",
+          "great": "Free cables, free company! That goes on the whiteboard.",
+          "perfect": "Not one knot! That is what I call physical synergy.",
+          "best": "A record! I am writing \"record\" on a sticky note. Then on another one."
+        }
+      }
+    }
   },
   "overview": {
     "workers": "{{count}} working here",

@@ -1,5 +1,19 @@
 import { BALANCE } from './config';
-import { MICRO_TEAM, MICRO_SOUVENIRS, type MicroMode, type MicroReward } from './minigames';
+import {
+  MICRO_BOOST_SECONDS,
+  MICRO_BOOST_SOURCE,
+  MICRO_CALIBRATION,
+  MICRO_MAX_SCORE,
+  MICRO_MIN_ROUND_GAP_MS,
+  MICRO_SOUVENIRS,
+  MICRO_TEAM,
+  isMicroMastered,
+  microGrade,
+  microMasteryFlag,
+  microPayout,
+  type MicroMode,
+  type MicroReward,
+} from './minigames';
 import { availableFacilityDiscoveries } from './facilityDiscoveries';
 import { createRng, hashStringToSeed, type Rng } from './rng';
 import type {
@@ -200,6 +214,8 @@ export interface Consequence {
 export interface TempBoost {
   multiplier: number;
   endsAt: number;
+  /** Boosts from one source share a slot instead of stacking (see `addBoost`). */
+  source?: string;
 }
 
 export interface ActiveEvent {
@@ -512,6 +528,10 @@ export class GameEngine {
    * what waits to be noticed holds its place instead of being decided offscreen.
    */
   private attended = true;
+
+  /** Minigame rounds that have started and not yet been paid or left. */
+  private openMicroRounds = new Map<string, MicroMode>();
+  private microRoundSerial = 0;
 
   constructor(state: GameState, opts: EngineOptions = {}) {
     this.state = state;
@@ -1811,8 +1831,21 @@ export class GameEngine {
     this.emit();
   }
 
-  /** `from`: when the encouragement began (default now; a completed session: when it ended). */
-  addBoost(multiplier: number, seconds: number, from: number = this.now()): void {
+  /**
+   * `from`: when the encouragement began (default now; a completed session: when it ended).
+   * `source`: boosts that share a source share one slot, so three minigame rounds in a
+   * row are one minigame boost, not three stacked. A stronger one takes the slot. A
+   * weaker one cannot water it down, and adds exactly its own worth: its seconds ×
+   * bonus, paid as extra time at the slot's stronger rate, never past `seconds` from
+   * `from`. (Renewing the full stronger boost instead let a 1-point round keep a +50%
+   * boost running indefinitely.)
+   */
+  addBoost(
+    multiplier: number,
+    seconds: number,
+    from: number = this.now(),
+    source?: string,
+  ): TempBoost | undefined {
     if (
       !Number.isFinite(multiplier) ||
       !Number.isFinite(seconds) ||
@@ -1821,14 +1854,37 @@ export class GameEngine {
       seconds <= 0
     )
       return;
-    // Repeated pets/coffee refresh the same encouragement instead of multiplying
-    // production exponentially with every click.
-    const existing = this.tempBoosts.find((boost) => boost.multiplier === multiplier);
-    if (existing) {
-      existing.endsAt = Math.max(existing.endsAt, from + seconds * 1000);
-      return;
+    const endsAt = from + seconds * 1000;
+    if (source) {
+      const slot = this.tempBoosts.find((boost) => boost.source === source);
+      if (!slot) {
+        const boost: TempBoost = { multiplier, endsAt, source };
+        this.tempBoosts.push(boost);
+        return boost;
+      }
+      if (slot.endsAt <= from || multiplier >= slot.multiplier) {
+        // Expired, or outclassed: the new boost takes the slot (never shortening it).
+        slot.endsAt = slot.endsAt <= from ? endsAt : Math.max(slot.endsAt, endsAt);
+        slot.multiplier = multiplier;
+        return slot;
+      }
+      const extra = (seconds * 1000 * (multiplier - 1)) / (slot.multiplier - 1);
+      slot.endsAt = Math.min(slot.endsAt + extra, Math.max(slot.endsAt, endsAt));
+      return slot;
     }
-    this.tempBoosts.push({ multiplier, endsAt: from + seconds * 1000 });
+    // Repeated pets/coffee refresh the same encouragement instead of multiplying
+    // production exponentially with every click. Only untagged boosts merge here:
+    // a 1.2 from an event must not swallow a 1.2 a minigame happened to earn.
+    const existing = this.tempBoosts.find(
+      (boost) => !boost.source && boost.multiplier === multiplier,
+    );
+    if (existing) {
+      existing.endsAt = Math.max(existing.endsAt, endsAt);
+      return existing;
+    }
+    const boost: TempBoost = { multiplier, endsAt };
+    this.tempBoosts.push(boost);
+    return boost;
   }
 
   // -- events ---------------------------------------------------------------
@@ -2901,42 +2957,70 @@ export class GameEngine {
   }
 
   // -- microgames -----------------------------------------------------------
-  rewardMicrogame(kind: MicroMode, score: number): MicroReward | undefined {
+  /**
+   * A round has started. Only a round on file can be paid, and only once: the ticket
+   * is spent by its reward or by leaving. Tickets live in memory on purpose — after a
+   * reload no round is running, so no stale completion can be paid.
+   */
+  beginMicrogameRound(kind: MicroMode): string {
+    this.microRoundSerial += 1;
+    const id = `${kind}:${this.microRoundSerial}:${this.now()}`;
+    // Bounded: a round that never ended (a closed sheet mid-countdown) is forgotten.
+    if (this.openMicroRounds.size >= 6) {
+      const oldest = this.openMicroRounds.keys().next().value;
+      if (oldest !== undefined) this.openMicroRounds.delete(oldest);
+    }
+    this.openMicroRounds.set(id, kind);
+    return id;
+  }
+
+  /** A round left before its whistle: nothing is paid and its ticket is spent. */
+  abandonMicrogameRound(roundId: string): void {
+    this.openMicroRounds.delete(roundId);
+  }
+
+  rewardMicrogame(kind: MicroMode, score: number, roundId?: string): MicroReward | undefined {
     if (!MICRO_TEAM[kind] || !Number.isFinite(score) || score < 0) return;
+    if (roundId !== undefined) {
+      if (this.openMicroRounds.get(roundId) !== kind) return;
+      this.openMicroRounds.delete(roundId);
+    }
     const now = this.now();
     const record = this.state.microgames[kind] ?? { best: 0, plays: 0, lastRewardAt: 0 };
     // A completed round lasts at least 30 seconds. Reject duplicate completion
     // callbacks even across a save/reload without throttling legitimate replays.
-    if (record.plays > 0 && now - record.lastRewardAt < 25_000) return;
-    score = Math.floor(score);
+    if (record.plays > 0 && now - record.lastRewardAt < MICRO_MIN_ROUND_GAP_MS) return;
+    score = Math.min(MICRO_MAX_SCORE, Math.floor(score));
+    const calibration = MICRO_CALIBRATION[kind];
+    const previousBest = record.best;
+    const masteredBefore = isMicroMastered(this.state, kind);
     const newBest = score > record.best;
-    const mastered = record.best < 30 && score >= 30;
+    const mastered = !masteredBefore && score >= calibration.mastery;
     record.best = Math.max(record.best, score);
     record.plays += 1;
     record.lastRewardAt = now;
     this.state.microgames[kind] = record;
     this.state.stats.microgamesPlayed += 1;
     this.progressDaily('playMicrogame', 1);
-    const boost = 1 + Math.min(0.5, score / 100);
+    const payout = microPayout(kind, score);
     // Pay from unboosted production, before granting this round's encouragement.
     // A reward must not multiply itself or compound the previous round's payout.
     const nuts =
-      score > 0
-        ? Math.round(
-            crateValue(this.state, this.isFocusActive()) * (0.5 + Math.min(2.5, score / 50)),
-          )
-        : 0;
-    this.addBoost(boost, 90);
+      score > 0 ? Math.round(crateValue(this.state, this.isFocusActive()) * payout.nutsFactor) : 0;
+    const ownBoost = 1 + payout.boostPercent / 100;
+    const running = this.addBoost(ownBoost, MICRO_BOOST_SECONDS, now, MICRO_BOOST_SOURCE);
     this.addNuts(nuts, false);
     const employeeIds =
-      score >= 18 ? MICRO_TEAM[kind].filter((id) => this.state.employees[id]?.hired) : [];
+      score >= calibration.great
+        ? MICRO_TEAM[kind].filter((id) => this.state.employees[id]?.hired)
+        : [];
     for (const id of employeeIds) {
       this.applyEffect({ type: 'friendship', employeeId: id, value: 3 });
       this.setEmployeeEmotion(id, 'proud', 180);
     }
     if (mastered) {
       this.state.resources.goldenNuts += 1;
-      this.state.flags[`microgame.${kind}.mastered`] = now;
+      this.state.flags[microMasteryFlag(kind)] = now;
       this.createMomentCard({
         id: `microgame:${kind}`,
         employeeId: employeeIds[0] ?? null,
@@ -2957,10 +3041,16 @@ export class GameEngine {
     this.emit();
     return {
       nuts,
-      boost,
+      boost: running?.multiplier ?? 1,
+      boostSeconds: running ? Math.max(0, Math.round((running.endsAt - now) / 1000)) : 0,
+      ownBoost: payout.boostPercent > 0 ? ownBoost : 1,
       best: record.best,
+      previousBest,
       newBest,
       mastered,
+      masteredBefore,
+      grade: microGrade(kind, score),
+      goldenNuts: mastered ? 1 : 0,
       employeeIds: [...employeeIds],
       decorationId,
     };

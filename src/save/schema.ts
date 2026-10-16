@@ -401,6 +401,8 @@ export const gameStateSchema = z.object({
       z.object({
         multiplier: z.number().finite().min(1).max(10),
         endsAt: z.number().finite(),
+        // Optional and forgiving: saves from before tagged boosts simply have none.
+        source: z.string().max(40).optional().catch(undefined),
       }),
     )
     .max(64)

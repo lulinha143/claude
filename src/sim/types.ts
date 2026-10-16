@@ -443,8 +443,11 @@ export interface GameState {
   scheduled: ScheduledConsequence[];
   /** Resume the exact unresolved decision after closing/reloading the game. */
   eventInProgress: { eventId: string; step: string | null } | null;
-  /** Earned encouragement expires against wall-clock time, including while away. */
-  boosts: { multiplier: number; endsAt: number }[];
+  /**
+   * Earned encouragement expires against wall-clock time, including while away.
+   * A `source` (the minigames) keeps one slot instead of stacking.
+   */
+  boosts: { multiplier: number; endsAt: number; source?: string }[];
   /** Personal bests and practice history survive company restructures. */
   microgames: Record<string, { best: number; plays: number; lastRewardAt: number }>;
 }

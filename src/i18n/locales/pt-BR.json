@@ -1973,7 +1973,7 @@
     "privacy": "Isso nunca bloqueia seu computador e nunca inspeciona o que você faz. Só acompanha o cronômetro da sessão."
   },
   "microgame": {
-    "title": "Mini-jogos",
+    "title": "Minijogos",
     "play": "Jogar",
     "shiftBreak": "Pequena emergência no escritório",
     "shiftComplete": "Turno concluído",
@@ -1985,11 +1985,9 @@
     "scoreLabel": "Pontos",
     "finalScore": "Pontuação final",
     "rewardEarned": "Recompensa da empresa garantida",
-    "rewardBoost": "Castanhas ganhas + impulso de produtividade por 90 segundos",
-    "backToOffice": "Voltar ao escritório",
     "coffeeRescue": {
       "name": "Resgate do Café",
-      "desc": "Mova a caneca com o ponteiro ou as setas para pegar cada gota de café. Garrafas grandes valem o dobro e espressos pequenos valem mais ainda — mas deixe cair o descafeinado cinza com anel, porque pegá-lo encerra sua sequência. Com movimento reduzido, toque em cada gota.",
+      "desc": "Mova a caneca com o ponteiro, o dedo ou as setas para pegar o café. Garrafas valem o dobro, e o espresso, mais ainda; deixe cair o descafeinado cinza. Complete o pedido do tíquete para ganhar um bônus.",
       "drop": {
         "mug": "Café — pegue",
         "carafe": "Garrafa — pegue, vale o dobro",
@@ -1997,32 +1995,110 @@
         "decaf": "Descafeinado — não pegue este"
       },
       "reaction": "Tico abraça a caneca quentinha. A produtividade foi salva.",
-      "order": "Café prioritário",
+      "order": "Pedido {{value}}",
       "warmth": "Calor da caneca",
       "steady": "Patas firmes",
-      "controls": "Balcão de café. Foque aqui e use as setas esquerda e direita para mover a caneca.",
+      "controls": "Balcão de café. Segure a seta esquerda ou direita (ou A e D) para mover a caneca.",
       "caught": "{{count}} gota de café salva · +{{value}} pontos",
       "missed": "O café caiu",
       "streakLost": "O café caiu · sequência de {{count}} encerrada",
       "missMark": "Caiu",
-      "hazardMark": "Descaf.",
+      "hazardMark": "Descaf. -{{value}}",
       "hazard": "Descafeinado pego · -{{value}} pontos",
       "hazardStreak": "Descafeinado pego · -{{value}} pontos · sequência de {{count}} encerrada",
       "assignment": "Mantenha a pausa funcionando. Salve o café bom; deixe o descafeinado cair.",
-      "brief": "Mova o copo. Pegue café; evite o descafeinado cinza."
+      "rules": {
+        "a": "Pegue o café. O espresso cai mais rápido e vale mais.",
+        "b": "Deixe cair o descafeinado cinza: pegá-lo encerra a sequência.",
+        "c": "Complete o pedido do tíquete para ganhar bônus."
+      },
+      "kind": {
+        "mug": "café",
+        "carafe": "garrafa",
+        "espresso": "espresso",
+        "decaf": "descafeinado"
+      },
+      "orderLabel": "Pedido: {{items}}. {{done}} de {{total}} servidos.",
+      "orderStamp": "Servido +{{value}}",
+      "orderDone": "Pedido servido · +{{value}} pontos e bônus de +{{bonus}}",
+      "tapControls": "Balcão de café. Toque numa xícara, ou aperte o número dela, de 1 a 5, para pegá-la.",
+      "controlsPointer": "Mouse ou dedo: a caneca acompanha.",
+      "controlsKeys": "ou A e D: segure para deslizar.",
+      "controlsTap": "Movimento reduzido: as xícaras esperam no balcão. Toque nelas ou aperte de 1 a 5.",
+      "day": {
+        "morning": {
+          "title": "Hoje: correria da manhã",
+          "body": "Muito café comum, chegando rápido."
+        },
+        "espresso": {
+          "title": "Hoje: hora do espresso",
+          "body": "Mais espressos, caindo um tiquinho mais rápido."
+        },
+        "catering": {
+          "title": "Hoje: dia de bufê",
+          "body": "Garrafas por todo lado, um pouco mais devagar."
+        },
+        "audit": {
+          "title": "Hoje: auditoria do descafeinado",
+          "body": "Mais descafeinado no ar. Olhe antes de pegar."
+        }
+      },
+      "phase": {
+        "service": {
+          "title": "Expediente",
+          "body": "O descafeinado começa a aparecer."
+        },
+        "rush": {
+          "title": "Hora do rush!",
+          "body": "Dois de cada vez. Escolha um."
+        }
+      }
     },
     "bugSquash": {
       "name": "Caça-Insetos",
-      "desc": "Toque nas pragas do escritório assim que aparecerem — patas rápidas fazem combo!",
+      "desc": "Os insetos saem das gavetas: toque neles antes que se escondam. O corredor pula de gaveta, o blindado leva dois toques, o dourado vale mais, e o post-it é uma feature, não um bug.",
       "reaction": "A mesa de TI está sem insetos. Eles registraram uma reclamação.",
-      "ticket": "Fila de insetos",
       "scanning": "Vasculhando a mesa…",
       "hit": "Inseto corrigido · +{{value}} pontos",
       "penalty": "Gaveta vazia · -{{value}} pontos",
       "empty": "Gaveta vazia — sem pontos para descontar",
       "cracked": "Carapaça rachada — bata de novo!",
       "assignment": "O controle de qualidade precisa de mão firme. Cada gaveta vazia custa pontos.",
-      "brief": "Pegue os insetos. Armadura exige dois toques; errar custa pontos."
+      "rules": {
+        "a": "Esmague os insetos. O corredor pula para outra gaveta.",
+        "b": "Os blindados levam dois toques.",
+        "c": "O post-it é uma feature. Deixe ele em paz."
+      },
+      "shift": {
+        "sorting": {
+          "title": "Triagem",
+          "body": "Um inseto por vez."
+        },
+        "peak": {
+          "title": "Horário de pico",
+          "body": "Dois de uma vez, blindados e a primeira feature."
+        },
+        "closing": {
+          "title": "Fim de expediente",
+          "body": "Três de uma vez. O inseto dourado está chegando."
+        }
+      },
+      "shiftCount": "Etapa {{value}} de {{total}}",
+      "grid": "Gavetas de insetos. Toque num inseto ou aperte o número da gaveta, de 1 a 9.",
+      "pest": {
+        "worker": "Gaveta {{value}}: um inseto. Esmague",
+        "runner": "Gaveta {{value}}: um corredor. Esmague antes que ele pule",
+        "armoured": "Gaveta {{value}}: um inseto blindado. Dois toques",
+        "rare": "Gaveta {{value}}: o inseto dourado. Vale mais que todos"
+      },
+      "featureLabel": "Gaveta {{value}}: uma feature. Não esmague",
+      "feature": "Era uma feature · -{{value}} pontos · sequência encerrada",
+      "featureMark": "Feature!",
+      "escaped": "Um inseto fugiu · sequência de {{count}} encerrada",
+      "escapeMark": "Fugiu",
+      "golden": "O inseto dourado apareceu!",
+      "goldenHit": "Inseto dourado · +{{value}} pontos",
+      "controlsHint": "Mouse, dedo ou as teclas de 1 a 9 (o número de cada gaveta). As setas andam entre as gavetas."
     },
     "cableUntangle": {
       "name": "Mesa de Cabos Embolados",
@@ -2042,7 +2118,7 @@
       "plug": "Plugue de {{label}}",
       "port": "Porta de {{label}}",
       "cleared": "Cabos desembolados!",
-      "hint": "Arraste os plugues até nenhum cabo cruzar ou se sobrepor. Foque um plugue e use as setas para ajustes finos.",
+      "hint": "Arraste os plugues até nenhum cabo cruzar ou se sobrepor a outro. Cada nó aparece marcado onde está.",
       "doneHint": "Sem nós. Carregando a próxima mesa…",
       "connected": "{{value}} / {{total}} conectados",
       "difficulty": {
@@ -2060,10 +2136,18 @@
         "employee": "Funcionário"
       },
       "assignment": "A manutenção deixou outro diagrama impossível. Existe uma solução.",
-      "brief": "Mova os conectores até nenhum fio se cruzar."
+      "rules": {
+        "a": "Arraste os plugues. Cada nó aparece marcado onde está.",
+        "b": "Plugue apoiado num cabo está atrapalhando.",
+        "c": "Desembole a mesa dentro do tempo para ganhar bônus."
+      },
+      "par": "meta {{value}} s",
+      "computerBlocking": "Plugue {{value}}, atrapalhando um cabo",
+      "deskPoints": "+{{value}} pontos",
+      "speedBonus": "Bônus de rapidez +{{value}}",
+      "controlsHint": "Arraste com o mouse ou o dedo. Teclado: Tab até um plugue, setas para ajustar, Shift para passos largos, Esc devolve um plugue que você está segurando."
     },
-    "bug": "Esmague a praga!",
-    "burrow": "Toca vazia",
+    "burrow": "Gaveta {{value}}, vazia",
     "score": "Pontos: {{value}}",
     "timeLeft": "{{value}}s",
     "result": "Você fez {{value}} pontos!",
@@ -2081,17 +2165,109 @@
       "perfect": "Sensacional!"
     },
     "practiceComplete": "Turno de prática registrado",
-    "actualReward": "{{nuts}} castanhas · +{{percent}}% de produção por 90 segundos",
-    "newBest": "Novo recorde pessoal: {{score}}",
+    "actualReward": "{{nuts}} castanhas · +{{percent}}% de produção por {{seconds}} s",
     "personalBest": "Recorde pessoal: {{score}}",
-    "masteryReward": "Primeiro domínio: 1 castanha dourada e uma lembrança da empresa",
+    "masteryReward": "Primeira maestria: 1 castanha dourada e uma lembrança da empresa",
     "teamReward": "{{names}} agradeceram a ajuda (+3 de confiança)",
     "souvenir": "Lembrança para o escritório: {{name}}. Disponível em Decorar.",
-    "colleagues": "18 pontos: incentivo para {{names}}.",
-    "masteryGoal": "30 pontos: uma lembrança e {{name}} para o escritório.",
+    "colleagues": "{{value}} pontos: incentivo para {{names}}.",
+    "masteryGoal": "{{value}} pontos: uma lembrança e {{name}} para o escritório.",
     "masteryFiled": "Maestria registrada. Próxima meta: seu recorde.",
-    "masteryGoalOwned": "30 pontos: uma lembrança e seu primeiro prêmio de maestria.",
-    "placeSouvenir": "Encontrar um lugar para {{name}}"
+    "masteryGoalOwned": "{{value}} pontos: uma lembrança e seu primeiro prêmio de maestria.",
+    "placeSouvenir": "Encontrar um lugar para {{name}}",
+    "lede": "Turnos curtos com a equipe. Cada jogo guarda seu recorde, e dominar um deixa alguma coisa no escritório.",
+    "pausedHint": "Esc continua. Sair encerra o turno sem recompensa.",
+    "pauseKey": "Pausar (Esc)",
+    "otherGames": "Outros jogos",
+    "practiceBody": "Sem pontos desta vez, então nada a pagar. A equipe viu o esforço.",
+    "boostRenewed": "Esta rodada valia +{{value}}%. Ela virou tempo extra no seu bônus de minijogo mais forte, então os dois nunca se somam.",
+    "rewardFiled": "Turno já registrado",
+    "rewardFiledBody": "Esta rodada já tinha sido paga, então nada foi somado duas vezes.",
+    "newBestStamp": "Novo recorde",
+    "masteryOnFile": "Maestria registrada",
+    "masteryTarget": "Maestria: {{value}} pontos",
+    "masteryProgress": "{{score}} de {{value}} para a maestria",
+    "masteryEarned": "Maestria conquistada!",
+    "masteryFirst": "Primeira maestria!",
+    "masteryPrize": "+1 castanha dourada · uma nova lembrança da empresa",
+    "firstShift": "Nenhum turno registrado ainda",
+    "chain_one": "Sequência de {{count}}",
+    "chain_other": "Sequência de {{count}}",
+    "comboNext_one": "falta {{count}} para ×{{value}}",
+    "comboNext_other": "faltam {{count}} para ×{{value}}",
+    "comboMax": "Combo máximo",
+    "host": {
+      "coffeeRescue": {
+        "marlow": {
+          "intro": "A Divisão de Café e Moral conta com você. Sem pressa. Mas o café, esse, está caindo.",
+          "poor": "Tudo bem. Café derramado também é café. Só que no chão.",
+          "ok": "Bom ritmo. A chaleira está orgulhosa de você. Eu também, mais devagar.",
+          "great": "Que turno bonito. Alguém vai chorar mais tarde. Do jeito bom.",
+          "perfect": "Nenhuma xícara perdida. Vou contar pra chaleira. Ela vai ficar emocionada.",
+          "best": "Recorde novo. Vou anotar com calma. Calma e rapidez podem ser amigas."
+        },
+        "pip": {
+          "intro": "Café é a base da sinergia! Pegue o bom, deixe o descafeinado. Já anotei num post-it.",
+          "poor": "Ótimo! Ótimo mesmo. Vamos marcar uma reunião sobre o café no chão.",
+          "ok": "Bom trabalho! Vai pro quadro. Depois faço uma reunião sobre o quadro.",
+          "great": "Isso é liderança! A produtividade subiu. Emocionalmente também.",
+          "perfect": "Perfeito! Vou emoldurar esse turno. Fala a pontuação de novo, mais devagar? É pro quadro.",
+          "best": "Recorde pessoal! Já marquei um acompanhamento do recorde."
+        }
+      },
+      "bugSquash": {
+        "quincy": {
+          "intro": "Passos pra reproduzir: abrir as gavetas. Esmagar os insetos. A feature, não. Croac.",
+          "poor": "Alguns insetos foram pro ar. Eles acenaram pra mim. Abri um chamado.",
+          "ok": "Teste aprovado, com ressalvas. Gosto de ressalvas. São honestas.",
+          "great": "Mesa limpa! Bom, quase. Guardei dois pra depois. Como petisco.",
+          "perfect": "Zero insetos. Rodei de novo pra conferir. Zero de novo. Esse é um croac feliz.",
+          "best": "Recorde novo. Registrado, reproduzido e aprovado."
+        },
+        "nixie": {
+          "intro": "Oi-oi-oi! Tem inseto saindo das gavetas. Rápido, antes que eles aprendam a fazer backup!",
+          "poor": "Tá, tá, tá. Problema de hardware. E um pouquinho de problema de reflexo.",
+          "ok": "Boa! Registrado no log. Com backup do backup.",
+          "great": "Que velocidade! Rápido é meu favorito. E sem faísca, ainda por cima!",
+          "perfect": "Não sobrou nenhum inseto! Vou fazer uma máquina que repete isso de hora em hora.",
+          "best": "Recorde novo! Salvo no log, com backup e confete."
+        },
+        "pip": {
+          "intro": "Insetos no escritório! Esmague todos. Menos a feature: essa foi ideia minha.",
+          "poor": "Os insetos ganharam essa rodada. Nós ganhamos experiência. E uma reunião.",
+          "ok": "Bom trabalho! O mural de avisos agradece.",
+          "great": "Que pata firme! Isso vai pro relatório trimestral.",
+          "perfect": "Nenhum inseto! Vou chamar isso de inovação.",
+          "best": "Recorde! Vou marcar uma reunião só pra comemorar."
+        }
+      },
+      "cableUntangle": {
+        "nixie": {
+          "intro": "Oi-oi-oi! Alguém ligou tudo em tudo. Desembola antes que o roteador dê um nó sozinho.",
+          "poor": "Ficaram uns nós. Tudo bem: nó é só um cabo pensando demais.",
+          "ok": "O sinal está passando! Quase todo. O resto está pensando.",
+          "great": "Olha essa mesa! Dá pra ver o chão. Eu nem sabia que a gente tinha chão.",
+          "perfect": "Nenhum cruzamento! O Pingo finalmente vai poder descansar as asinhas.",
+          "best": "Recorde novo! Registrado no log, com backup do backup."
+        },
+        "bea": {
+          "intro": "Opa! Esses cabos estão uma bagunça estrutural. Puxa com jeito: mede duas vezes, arrasta uma.",
+          "poor": "Ficou bambo, igual mesa com um pé mais curto. Na próxima a gente nivela.",
+          "ok": "Firme o bastante. Eu ainda bateria um preguinho, mas segura.",
+          "great": "Firme feito carvalho! Dá até pra construir em cima.",
+          "perfect": "Tudo no esquadro! Vou fazer uma prateleira só pra guardar esse turno.",
+          "best": "Recorde novo! Fiz uma marquinha na régua pra não esquecer."
+        },
+        "pip": {
+          "intro": "Os cabos estão… criativos. Desembole tudo. Eu desembolaria, mas tenho reunião.",
+          "poor": "Ainda tem nó. Mas é um nó com potencial.",
+          "ok": "Bom trabalho! Agora sei onde foi parar meu carregador.",
+          "great": "Cabos livres, empresa livre! Isso vai pro quadro.",
+          "perfect": "Nenhum nó! É isso que eu chamo de sinergia física.",
+          "best": "Recorde! Vou escrever \"recorde\" num post-it. Depois em outro."
+        }
+      }
+    }
   },
   "overview": {
     "workers": "{{count}} trabalhando aqui",

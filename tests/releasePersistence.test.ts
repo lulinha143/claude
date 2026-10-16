@@ -9,8 +9,10 @@ import { KEEPSAKE_TALKS } from '../src/content/employeeKeepsakes';
 import en from '../src/i18n/locales/en.json';
 import pt from '../src/i18n/locales/pt-BR.json';
 import type { GameState } from '../src/sim/types';
+import { MICRO_CALIBRATION } from '../src/sim/minigames';
 
 const start = 1_000_000;
+const COFFEE_MASTERY = MICRO_CALIBRATION.coffeeRescue.mastery;
 const roundtrip = (state: GameState) =>
   gameStateSchema.parse(migrate(JSON.parse(JSON.stringify(state)))) as GameState;
 function engineAt(state = createInitialState(start), now = start) {
@@ -59,15 +61,18 @@ describe('release progression survives a closed window', () => {
     expect(engine.rewardMicrogame('coffeeRescue', 0)?.nuts).toBe(0);
     const second = engineAt(roundtrip(engine.state), start + 31_000);
     const gold = second.state.resources.goldenNuts;
-    expect(second.rewardMicrogame('coffeeRescue', 35)?.mastered).toBe(true);
+    expect(second.rewardMicrogame('coffeeRescue', COFFEE_MASTERY)?.mastered).toBe(true);
     const paid = second.state.resources.nuts;
     const reloaded = engineAt(roundtrip(second.state), start + 32_000);
-    expect(reloaded.rewardMicrogame('coffeeRescue', 35)).toBeUndefined();
+    expect(reloaded.rewardMicrogame('coffeeRescue', COFFEE_MASTERY)).toBeUndefined();
     expect(reloaded.state.resources.nuts).toBe(paid);
     const later = engineAt(roundtrip(reloaded.state), start + 70_000);
-    expect(later.rewardMicrogame('coffeeRescue', 40)?.mastered).toBe(false);
+    expect(later.rewardMicrogame('coffeeRescue', COFFEE_MASTERY + 5)?.mastered).toBe(false);
     expect(later.state.resources.goldenNuts).toBe(gold + 1);
-    expect(later.state.microgames.coffeeRescue).toMatchObject({ best: 40, plays: 3 });
+    expect(later.state.microgames.coffeeRescue).toMatchObject({
+      best: COFFEE_MASTERY + 5,
+      plays: 3,
+    });
   });
 
   it('preserves personal decisions and records through prestige without aliasing them', () => {

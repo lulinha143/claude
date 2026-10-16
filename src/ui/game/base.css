@@ -185,9 +185,7 @@
     --amber: var(--c-acorn-600);
     color: var(--ink-strong);
   }
-  .sheet
-    .view
-    :is(.panel, .card, .employee-card, .micro-card, .branch, .ach, .nut-cell, .decocard) {
+  .sheet .view :is(.panel, .card, .employee-card, .branch, .ach, .nut-cell, .decocard) {
     background-color: var(--paper-bg-bright);
     background-image: none;
     border: 2px solid var(--paper-line);

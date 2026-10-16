@@ -7,7 +7,7 @@ import { DECORATIONS_BY_ID } from '../src/content/decorations';
 import { decorationEnsembles } from '../src/sim/decorationEnsembles';
 import { aggregateCompanyModifiers } from '../src/sim/companyModifiers';
 import { availableFacilityDiscoveries } from '../src/sim/facilityDiscoveries';
-import { MICRO_SOUVENIRS, type MicroMode } from '../src/sim/minigames';
+import { MICRO_CALIBRATION, MICRO_SOUVENIRS, type MicroMode } from '../src/sim/minigames';
 import { SaveManager } from '../src/save/saveManager';
 import { SAVE_VERSION } from '../src/sim/config';
 import { performPrestige } from '../src/sim/prestige';
@@ -101,12 +101,13 @@ describe('facility integration', () => {
         deterministic: true,
         now: () => 1000,
       });
-      expect(engine.rewardMicrogame(kind as MicroMode, 35)?.decorationId).toBe(id);
+      const mastery = MICRO_CALIBRATION[kind as MicroMode].mastery;
+      expect(engine.rewardMicrogame(kind as MicroMode, mastery)?.decorationId).toBe(id);
       expect(engine.state.collections.secrets).toContain(`deco:${id}`);
       expect(
         engine.state.decorationInstances.filter((item) => item.decorationId === id),
       ).toHaveLength(1);
-      expect(engine.rewardMicrogame(kind as MicroMode, 35)).toBeUndefined();
+      expect(engine.rewardMicrogame(kind as MicroMode, mastery)).toBeUndefined();
       expect(
         engine.state.decorationInstances.filter((item) => item.decorationId === id),
       ).toHaveLength(1);

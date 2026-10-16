@@ -40,6 +40,7 @@ import {
   applyBugEmptyPenalty,
   resolveBugWhack,
   microGrade,
+  MICRO_CALIBRATION,
 } from '../src/sim/minigames';
 
 describe('Coffee Rescue difficulty', () => {
@@ -373,11 +374,21 @@ describe('Cable Untangle logic', () => {
 });
 
 describe('grading', () => {
-  it('buckets scores sensibly', () => {
-    expect(microGrade(0)).toBe('poor');
-    expect(microGrade(10)).toBe('ok');
-    expect(microGrade(20)).toBe('great');
-    expect(microGrade(40)).toBe('perfect');
+  it('buckets each game against its own calibration', () => {
+    for (const mode of ['coffeeRescue', 'bugSquash', 'cableUntangle'] as const) {
+      const cal = MICRO_CALIBRATION[mode];
+      expect(cal.ok).toBeLessThan(cal.great);
+      expect(cal.great).toBeLessThan(cal.mastery);
+      expect(microGrade(mode, 0)).toBe('poor');
+      expect(microGrade(mode, cal.ok - 1)).toBe('poor');
+      expect(microGrade(mode, cal.ok)).toBe('ok');
+      expect(microGrade(mode, cal.great)).toBe('great');
+      expect(microGrade(mode, cal.mastery - 1)).toBe('great');
+      expect(microGrade(mode, cal.mastery)).toBe('perfect');
+    }
+    // The same raw score means different things in different games: that is the point.
+    expect(microGrade('cableUntangle', 40)).toBe('perfect');
+    expect(microGrade('coffeeRescue', 40)).toBe('poor');
   });
 });
 
@@ -467,11 +478,13 @@ describe('bug species', () => {
   });
 
   it('keeps a squash worth at least a point at any streak', () => {
-    for (const species of BUG_SPECIES) {
+    for (const species of BUG_SPECIES.filter((s) => !s.hazard)) {
       for (const streak of [0, 1, 5, 20]) {
         expect(bugSpeciesScore(species, streak)).toBeGreaterThanOrEqual(1);
       }
     }
+    // The feature is not a bug: squashing it is never worth anything.
+    expect(bugSpeciesScore(BUG_SPECIES_BY_ID.feature, 20)).toBe(0);
   });
 });
 

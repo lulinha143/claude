@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { createInitialState } from '../../src/sim/state';
+import { MICRO_CALIBRATION } from '../../src/sim/minigames';
 
 for (const config of [
   { width: 1280, lang: 'en' },
@@ -49,8 +50,9 @@ for (const config of [
     await expect(page.locator('.micro-card--coffeeRescue')).toContainText(
       config.lang === 'en' ? 'Pip' : 'Tico',
     );
+    // Each game names its OWN mastery line (calibrated per game, no longer a shared 30).
     await expect(page.locator('.micro-card--coffeeRescue .micro-card__souvenir')).toContainText(
-      '30',
+      String(MICRO_CALIBRATION.coffeeRescue.mastery),
     );
     await expect(page.locator('.micro-card--bugSquash .micro-card__souvenir')).toContainText(
       config.lang === 'en' ? 'first mastery award' : 'primeiro prêmio',

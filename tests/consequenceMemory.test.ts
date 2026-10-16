@@ -8,7 +8,7 @@ import { GAME_EVENTS, GAME_EVENTS_BY_ID } from '../src/content/events';
 import { ROOMS_BY_ID } from '../src/content/rooms';
 import { scoreChoice } from '../src/sim/eventAutoResolve';
 import { EMPLOYEE_TALKS, topicsForEmployee } from '../src/content/employeeTalks';
-import { MICRO_TEAM, type MicroMode } from '../src/sim/minigames';
+import { MICRO_CALIBRATION, MICRO_TEAM, type MicroMode } from '../src/sim/minigames';
 import { EMPLOYEES } from '../src/content/employees';
 import { ODDITIES, oddityFlag } from '../src/content/roomPlay';
 import { ANOMALY_THREAD_FLAG } from '../src/content/happenings';
@@ -308,7 +308,8 @@ describe('the authored memory content is coherent', () => {
     }
     // Runtime awards must really create the keys that authored events consume.
     const { engine } = engineAt(1_000_000);
-    for (const mode of Object.keys(MICRO_TEAM) as MicroMode[]) engine.rewardMicrogame(mode, 35);
+    for (const mode of Object.keys(MICRO_TEAM) as MicroMode[])
+      engine.rewardMicrogame(mode, MICRO_CALIBRATION[mode].mastery);
     for (const flag of Object.keys(engine.state.flags)) settable.add(flag);
     // Noticing a curiosity marks it; enough paranormal ones start the building's thread.
     for (const def of ODDITIES) settable.add(oddityFlag(def.id));

@@ -1,90 +1,116 @@
 # Micro-games
 
-The micro-games live in the **Focus** tab. They are short, optional, and grant a
-small temporary production boost plus nuts on completion. All of them are:
+Three short shifts in the Activities sheet, each hosted by a teammate (the first of
+its team on staff, else Pip), with its own record and a first-mastery prize. All of
+them are:
 
-- **Skill-based**, not random guessing — success depends on direct interaction.
-- **Deterministic** from a seed (pure rules in `src/sim/minigames.ts`), so the
-  logic is unit-tested and reproducible in the dev deterministic mode.
-- **Accessible** — mouse, keyboard, and touch (pointer events); Reduced Motion
-  removes belt/drag/flash animation; categories are told apart by
-  **icon + shape/pattern + label**, never colour alone.
-- **Reward-safe** — the shared shell (`MicroGame.tsx`) grants the reward exactly
-  once per completed play (`rewarded` ref), never on exit-without-finish, and
-  never twice.
+- **Skill-based** — success depends on reading the board and acting, never on luck.
+- **Deterministic** from a seed: the rules are pure functions in `src/sim/minigames.ts`.
+- **Accessible** — pointer, touch and keyboard; reduced motion gives a still board
+  (Coffee becomes tap mode); kinds are told apart by shape and label, not colour alone.
+- **Reward-safe** — a completed round is paid once, on its own ticket (see Rewards).
 
 ## Architecture
 
 ```
-src/sim/minigames.ts          pure, deterministic rules (no DOM/React)
-src/ui/minigames/MicroGame.tsx shared shell: timer, exit, result, single reward
-src/ui/minigames/*.tsx         one component per game (owns timing + DOM)
+src/sim/minigames.ts             rules: calibration, combos, coffee days/beats/orders,
+                                 the bug desk state machine, cable desks + conflict map
+src/sim/engine.ts                beginMicrogameRound, abandonMicrogameRound, rewardMicrogame
+src/ui/minigames/MicroGame.tsx   the cabinet: intro, countdown, bar, pause, result
+src/ui/minigames/MinigameArt.tsx hosts, emblems and the drawn board pieces
+src/ui/minigames/*.tsx           one board per game
+src/ui/game/minigames.css        all minigame styling (game layer)
 ```
 
-Each game component receives `SubGameProps { seed, reducedMotion, paused,
-timeLeft, onScore(absolute), onCombo(multiplier) }`. The shell owns the
-monotonic countdown, pause clock, “play again” flow, and once-only reward.
-Leaving an active shift abandons it immediately without opening a result or
-granted reward; only expiry of the full round enters the rewarded result state.
+| Mode            | Round | Team          | ok / great / mastery | Combo ×2 / ×3    |
+| --------------- | ----- | ------------- | -------------------- | ---------------- |
+| `coffeeRescue`  | 30 s  | Marlow, Pip   | 55 / 115 / 170       | 6 / 12 catches   |
+| `bugSquash`     | 30 s  | Quincy, Nixie | 40 / 115 / 200       | 4 / 9 squashes   |
+| `cableUntangle` | 45 s  | Nixie, Bea    | 10 / 20 / 32         | none (par bonus) |
 
-| Mode            | Component       | Duration | Department  | Core skill                      |
-| --------------- | --------------- | -------- | ----------- | ------------------------------- |
-| `coffeeRescue`  | `CoffeeRescue`  | 30s      | Kitchen     | Catch timing + combo streak     |
-| `bugSquash`     | `BugSquash`     | 30s      | Maintenance | Reaction precision              |
-| `cableUntangle` | `CableUntangle` | 45s      | IT / Maint. | Spatial: drag nodes to un-cross |
+`MICRO_CALIBRATION` holds this table. The bands come from bots that play the real rules
+(`tests/minigameRounds.test.ts`): idle play stays under "ok", steady play lands "great",
+mastery asks for a good round. The combo on screen and the combo in the score are the
+same table (`microComboMultiplier`).
 
-## Removed conveyor games (Sorting & Receiving Conveyor)
+## Rewards
 
-Two conveyor games were **removed** (they were not enjoyable):
+- The cabinet takes a ticket at the whistle (`beginMicrogameRound`).
+  `rewardMicrogame(mode, score, ticket)` pays only a ticket on file, once. Leaving the
+  round (Leave shift, or closing the sheet) spends the ticket with no pay. Tickets live
+  in memory, so after a reload nothing is open; a second completion of one game within
+  25 s is refused even across a reload (`lastRewardAt`). Scores cap at 5,000.
+- Pay reads the score as a share of the game's own mastery (`microPayout`): nuts =
+  unboosted crate value × (0.5 + 1.5 × share, share capped at 1.6), and a production
+  boost for 90 s (+35% at mastery, at most +50%).
+- Minigame boosts share one slot (`source: 'microgame'`). A stronger round takes it; a
+  weaker one adds its own seconds × bonus as extra time at the stronger rate, never past
+  90 s from now. Event and pet boosts never merge with it.
+- At the game's "great" line its team gets +3 trust and a proud mood. First mastery
+  (flag `microgame.<mode>.mastered`): +1 golden nut, a moment card and the game's
+  souvenir decoration. The flag, or a record at or above today's line, counts as
+  mastered, so a mastery from the old shared line of 30 is kept and never paid twice.
+- Save: `microgames` is unchanged; `boosts[].source` is optional, so old saves load as before.
 
-- **Sorting Conveyor** (`shellSort` / "Conveyor Sort" / "Esteira de Triagem") —
-  sort items into 3 bins.
-- **Receiving/Procurement Conveyor** (`procurement` / "Esteira de Recebimento")
-  — drag/rotate parcels to department chutes (this had itself replaced the old
-  Raccoon Inventory Check).
+## Coffee Rescue
 
-They were deleted end-to-end: the `MicroMode` union, the `MicroGame` dispatch +
-durations, the Focus menu list, `engine.rewardMicrogame` types, the component
-files, their i18n keys, docs, and unit tests. No save migration was needed — the
-mode id is never persisted (only a `stats.microgamesPlayed` counter and a
-count-based achievement, both mode-agnostic), so old saves keep their totals and
-show no dead buttons. The remaining games are `coffeeRescue`, `bugSquash`, and
-`cableUntangle`.
+- Drops: mug; carafe (slower, ×2); espresso (faster, ×2.5); decaf (catching it costs 3
+  points and the streak; letting it fall costs nothing).
+- Each round opens on one of four days, in turn: morning rush, espresso hour, catering
+  run, decaf audit. A day leans the mix and the tempo and never removes a kind.
+- Three beats: warm-up with no decaf (0–8 s), service, then a rush from 20 s whose
+  pairs land too far apart for one mug.
+- The ticket is an order of 2, then 3, then 4 drinks from the day's mix; filling it pays
+  3 points per drink.
+- Controls: the mug follows the pointer or a finger (captured, so a finger may slide off
+  the counter). Left/Right or A/D move it at once and glide while held; keys let go on
+  blur and pause. Reduced motion: cups wait in five numbered places; tap one or press 1–5.
+
+## Bug Squash
+
+- A desk is one value: `createBugBoard`, `advanceBugBoard`, `whackBugBoard`.
+- Species: worker; runner (×2, hops once to a free drawer mid-window); armoured (×2,
+  two taps, a crack always leaves at least 300 ms); golden (×5, sent once in the last
+  stage); feature, a sticky note (squashing it costs 4 points and the streak).
+- Three stages: triage (one at a time), peak hour from 9 s (two, armour and features),
+  closing time from 20 s (three).
+- Fairness: a tap counts on press; the opener is always a worker; one feature at a time;
+  a vacated drawer stays empty 320 ms; a late tap within 180 ms of a pest leaving is
+  forgiven, never charged.
+- Controls: pointer or touch; 1–9 tap a drawer; arrows move between drawers, Enter taps.
 
 ## Cable Untangle Desk
 
-A new skill-based **spatial** game (IT / Maintenance). A messy workstation's
-computers are wired into a single loop of cables that start **crossed**; the
-player drags each computer until **no two cables cross**.
+- Desks wire 5 to 9 plugs as a loop, a wheel, two loops or a loop with shortcuts; the
+  last three desks are never repeated, and every authored solution is conflict-free
+  (checked for the whole catalogue).
+- `cableConflictMap` places every conflict: a crossing (knot at the crossing point), a
+  plug resting on a cable (counted once per cable it blocks), cables doubled back on each
+  other, stacked plugs. `countCableConflicts` is its length, so the count and the marks
+  on the desk always agree.
+- Score: `cableSolveScore` per desk, plus a speed bonus for a desk cleared inside par
+  (2.2 s per plug).
+- Controls: drag with pointer capture (window fallbacks; blur cancels a drag), Esc puts a
+  held plug back; Tab to a plug, arrows nudge it 3.5%, Shift+arrows 10%.
 
-- The graph is always a **Hamiltonian cycle**, which is mathematically
-  guaranteed to be untangle-able into a convex ring — so **every board is
-  solvable and can never soft-lock**.
-- Clearing a board scores points (bigger tangles are worth more) and loads a
-  larger, messier board from 5 through 9 plugs; the shared countdown ends the
-  run. At the nine-plug cap, a three-layout history prevents recent desk
-  profiles from repeating.
-- The live **crossing count** is shown as text (non-colour feedback).
-- **Controls:** drag a computer (pointer/touch), or Tab to a computer and nudge
-  it with the arrow keys. Nodes are focusable buttons with `aria-label`s and a
-  visible focus ring. **Reduced Motion** removes transitions.
-- Positions are normalised `0..1`, with inset-safe profile bounds and smaller
-  high-density plugs, so all five board sizes scale to compact and desktop
-  windows without clipping.
+## Pausing
 
-**Rules (`src/sim/minigames.ts`):**
+Esc pauses a live round and resumes it; the sheet stays open. Losing window focus
+pauses too, and a hidden window freezes the clock. Leaving from the pause card pays
+nothing.
 
-- `cablePuzzle(seed, nodeCount, recentLevelIds)` → deterministic selection from
-  8 convex desk profiles per board size (40 profiles total), horizontal
-  mirroring, and a bounded seeded tangle search that never opens already clear.
-- `segmentsCross(...)` → proper X-crossing only (shared endpoints excluded).
-- `countCableConflicts(edges, positions)` / `cableSolved(...)` → win only when
-  there are no crossings, cable overlaps, or stacked plugs.
-- `cableNodeCount(solved)` grows 5→9 and `cableSolveScore(nodeCount)` rewards
-  larger desks.
+## Tests
 
-**Tests:** `tests/minigames.test.ts` covers crossing detection (X vs parallel vs
-shared endpoint), collapsed/overlapping rejection, all 40 responsive convex
-profiles, deterministic tangled generation, recent-profile exclusion, and full
-5→9 progression/scoring. `tests/e2e/cable-progression.spec.ts` physically solves
-consecutive transformed boards and verifies progression cannot stall.
+- `tests/minigames.test.ts`: species, drop kinds, cable generation and solvability.
+- `tests/minigameRounds.test.ts`: combos as shown, days, beats, orders, bug desks
+  (stages, hops, armour, feature, respawn guard, mashing), the conflict map, the bots.
+- `tests/minigameRewards.test.ts`: tickets, per-game mastery and legacy saves, the boost
+  slot, save round-trips.
+- `tests/minigame-shell.test.tsx`: the cabinet lifecycle.
+- E2E: `minigame-rounds.spec.ts`, `minigame-polish.spec.ts`, `cable-progression.spec.ts`.
+
+## Removed conveyor games
+
+Sorting Conveyor (`shellSort`) and Receiving Conveyor (`procurement`) were removed end to
+end. The mode id was never persisted, so old saves keep their totals and show no dead
+buttons.

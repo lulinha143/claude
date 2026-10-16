@@ -9,11 +9,15 @@ import {
 } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  cablePuzzle,
-  cablePositions,
-  countCableConflicts,
+  cableConflictMap,
+  cableKnottedEdges,
   cableNodeCount,
+  cableObstructingPlugs,
+  cableParSeconds,
+  cablePositions,
+  cablePuzzle,
   cableSolveScore,
+  cableSpeedBonus,
   type CablePuzzle,
 } from '../../sim/minigames';
 import { useStore } from '../../state/store';
@@ -56,17 +60,21 @@ const CABLES: readonly CableStyle[] = [
   { color: '#4fa4a2', highlight: '#c9f4ef' },
 ];
 
+/** Arrow-key nudge; with Shift a stride for crossing the desk. */
 const NUDGE = 0.035;
+const STRIDE = 0.1;
 const BOARD_MIN_X = 0.085;
 const BOARD_MAX_X = 0.915;
 const BOARD_MIN_Y = 0.12;
 const BOARD_MAX_Y = 0.88;
 
 // One rule, represented the same way everywhere: move the plugs until the
-// straight cables no longer cross or overlap. Pointer ownership lives in a ref so even a
-// very fast press/release cannot race React state, and window-level fallbacks
-// guarantee that an interrupted capture never leaves a plug stuck in mid-drag.
-export function CableUntangle({ seed, reducedMotion, paused, onScore, onCombo }: SubGameProps) {
+// straight cables no longer cross or overlap. Every conflict the counter counts is
+// drawn where it is (a knot on a crossing, a ring on a plug that is in the way),
+// from the same list. Pointer ownership lives in a ref so even a very fast
+// press/release cannot race React state, and window-level fallbacks guarantee that
+// an interrupted capture never leaves a plug stuck in mid-drag.
+export function CableUntangle({ seed, reducedMotion, paused, onScore }: SubGameProps) {
   const { t } = useTranslation();
   const audio = useStore((state) => state.audio);
   const [solvedCount, setSolvedCount] = useState(0);
@@ -80,14 +88,59 @@ export function CableUntangle({ seed, reducedMotion, paused, onScore, onCombo }:
   // lifecycle. `settled` mirrors it synchronously so a burst of pointer/render
   // events can never award the same board twice before React commits.
   const [stage, setStage] = useState<Stage>('solving');
+  const [lastClear, setLastClear] = useState<{
+    points: number;
+    bonus: number;
+    seconds: number;
+  } | null>(null);
   const settled = useRef(false);
   const scoreRef = useRef(0);
   const boardRef = useRef<HTMLDivElement | null>(null);
   const dragRef = useRef<ActiveDrag | null>(null);
   const rewardTimer = useRef<number | null>(null);
+  // The desk's own clock, in active milliseconds: pauses never count against its par.
+  const pausedAtRef = useRef<number | null>(paused ? performance.now() : null);
+  const pausedTotalRef = useRef(0);
+  const deskStartRef = useRef(performance.now());
   const cleared = stage === 'cleared';
 
-  const tangles = useMemo(() => countCableConflicts(puzzle.edges, pos), [puzzle.edges, pos]);
+  const activeNow = () => {
+    const now = performance.now();
+    const current = pausedAtRef.current == null ? 0 : now - pausedAtRef.current;
+    return now - pausedTotalRef.current - current;
+  };
+
+  useEffect(() => {
+    if (paused) {
+      if (pausedAtRef.current == null) pausedAtRef.current = performance.now();
+    } else if (pausedAtRef.current != null) {
+      pausedTotalRef.current += performance.now() - pausedAtRef.current;
+      pausedAtRef.current = null;
+    }
+  }, [paused]);
+
+  const conflicts = useMemo(() => cableConflictMap(puzzle.edges, pos), [puzzle.edges, pos]);
+  const tangles = conflicts.length;
+  const knotted = useMemo(() => cableKnottedEdges(conflicts), [conflicts]);
+  const blocking = useMemo(() => cableObstructingPlugs(conflicts), [conflicts]);
+  const markers = useMemo(() => {
+    const perPlug = new Map<number, number>();
+    return conflicts.map((conflict, index) => {
+      const onPlug = conflict.kind === 'touch' || conflict.kind === 'crowded';
+      const anchor = onPlug ? conflict.plugs[0] : -1;
+      const stack = onPlug ? (perPlug.get(anchor) ?? 0) : 0;
+      if (onPlug) perPlug.set(anchor, stack + 1);
+      const at = onPlug ? pos[anchor] : conflict;
+      return {
+        key: `${conflict.kind}-${index}`,
+        kind: conflict.kind,
+        x: at.x,
+        y: at.y,
+        onPlug,
+        stack,
+      };
+    });
+  }, [conflicts, pos]);
 
   const releaseCapture = useCallback((drag: ActiveDrag) => {
     try {
@@ -165,15 +218,25 @@ export function CableUntangle({ seed, reducedMotion, paused, onScore, onCombo }:
       finishActiveDrag(event.pointerId, event.clientX, event.clientY);
     const cancel = (event: PointerEvent) => cancelActiveDrag(event.pointerId);
     const cancelOnBlur = () => cancelActiveDrag();
+    // Escape puts a plug back where it was picked up. Registered before the shell's
+    // own Escape (which pauses), and it swallows the key only while a plug is held.
+    const escape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || !dragRef.current) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      cancelActiveDrag();
+    };
     window.addEventListener('pointermove', move, true);
     window.addEventListener('pointerup', finish, true);
     window.addEventListener('pointercancel', cancel, true);
     window.addEventListener('blur', cancelOnBlur);
+    window.addEventListener('keydown', escape, true);
     return () => {
       window.removeEventListener('pointermove', move, true);
       window.removeEventListener('pointerup', finish, true);
       window.removeEventListener('pointercancel', cancel, true);
       window.removeEventListener('blur', cancelOnBlur);
+      window.removeEventListener('keydown', escape, true);
       const drag = dragRef.current;
       if (drag) releaseCapture(drag);
       dragRef.current = null;
@@ -206,11 +269,15 @@ export function CableUntangle({ seed, reducedMotion, paused, onScore, onCombo }:
       );
       recentLayouts.current = [next.levelId, ...recentLayouts.current].slice(0, 3);
       settled.current = false;
+      deskStartRef.current = activeNow();
       setPuzzle(next);
       setPos(cablePositions(next.points));
       setActive(null);
       setStage('solving');
+      setLastClear(null);
     },
+    // activeNow reads refs only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [seed],
   );
 
@@ -221,9 +288,13 @@ export function CableUntangle({ seed, reducedMotion, paused, onScore, onCombo }:
     if (paused || settled.current || stage !== 'solving' || active !== null || tangles !== 0)
       return;
     settled.current = true;
-    scoreRef.current += cableSolveScore(puzzle.points.length, puzzle.topology);
+    const nodes = puzzle.points.length;
+    const seconds = Math.max(0, (activeNow() - deskStartRef.current) / 1000);
+    const base = cableSolveScore(nodes, puzzle.topology);
+    const bonus = cableSpeedBonus(nodes, seconds);
+    scoreRef.current += base + bonus;
     onScore(scoreRef.current);
-    onCombo(Math.min(3, 1 + Math.floor((solvedCount + 1) / 2)));
+    setLastClear({ points: base, bonus, seconds });
     setSolvedCount((count) => count + 1);
     setStage('cleared');
     audio.play('cableSnap');
@@ -235,16 +306,16 @@ export function CableUntangle({ seed, reducedMotion, paused, onScore, onCombo }:
       },
       reducedMotion ? 0 : 130,
     );
+    // activeNow reads refs only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     active,
     audio,
-    onCombo,
     onScore,
     paused,
     puzzle.points.length,
     puzzle.topology,
     reducedMotion,
-    solvedCount,
     stage,
     tangles,
   ]);
@@ -293,11 +364,12 @@ export function CableUntangle({ seed, reducedMotion, paused, onScore, onCombo }:
 
   function onKeyNode(event: ReactKeyboardEvent<HTMLButtonElement>, id: number) {
     if (paused || settled.current) return;
+    const step = event.shiftKey ? STRIDE : NUDGE;
     const deltas: Record<string, Pos> = {
-      ArrowUp: { x: 0, y: -NUDGE },
-      ArrowDown: { x: 0, y: NUDGE },
-      ArrowLeft: { x: -NUDGE, y: 0 },
-      ArrowRight: { x: NUDGE, y: 0 },
+      ArrowUp: { x: 0, y: -step },
+      ArrowDown: { x: 0, y: step },
+      ArrowLeft: { x: -step, y: 0 },
+      ArrowRight: { x: step, y: 0 },
     };
     const delta = deltas[event.key];
     if (!delta) return;
@@ -325,11 +397,17 @@ export function CableUntangle({ seed, reducedMotion, paused, onScore, onCombo }:
     [active, puzzle.edges],
   );
 
+  const par = cableParSeconds(puzzle.points.length);
+
   return (
     <div className={`cable ${reducedMotion ? 'is-reduced' : ''}`}>
-      <div className="cable__status" aria-live="polite">
-        <span className={`cable__crossings ${tangles === 0 ? 'is-clear' : ''}`}>
+      <div className="cable__status">
+        <span className={`cable__crossings ${tangles === 0 ? 'is-clear' : ''}`} aria-live="polite">
           {t('microgame.cableUntangle.crossings', { value: tangles })}
+        </span>
+        <span className="cable__desk-count">
+          {t('microgame.cableUntangle.board', { value: solvedCount + (cleared ? 0 : 1) })}
+          <small>{t('microgame.cableUntangle.par', { value: Math.round(par) })}</small>
         </span>
         <span className="cable__status-copy">
           {/* The goal line names THIS desk's wiring. A hub-and-spokes board with a
@@ -351,6 +429,7 @@ export function CableUntangle({ seed, reducedMotion, paused, onScore, onCombo }:
         data-topology={puzzle.topology}
         data-mirrored={puzzle.mirrored ? 'true' : 'false'}
         data-nodes={puzzle.points.length}
+        data-conflicts={tangles}
         aria-label={t('microgame.cableUntangle.name')}
         aria-describedby="cable-instructions"
       >
@@ -366,7 +445,7 @@ export function CableUntangle({ seed, reducedMotion, paused, onScore, onCombo }:
             return (
               <g
                 key={`${edge.a}-${edge.b}`}
-                className={`cable__strand ${lifted ? 'is-lifted' : ''}`}
+                className={`cable__strand ${lifted ? 'is-lifted' : ''} ${knotted.has(index) ? 'is-knotted' : ''}`}
                 style={{
                   ['--cable-color' as string]: style.color,
                   ['--cable-highlight' as string]: style.highlight,
@@ -391,15 +470,34 @@ export function CableUntangle({ seed, reducedMotion, paused, onScore, onCombo }:
           })}
         </svg>
 
+        {/* One mark per counted conflict, drawn where it is. A plug in the way is
+            itself the spot, so its mark rides on the plug's shoulder instead of
+            hiding underneath it, one per cable it is in the way of. */}
+        {cleared
+          ? null
+          : markers.map((marker) => (
+              <span
+                key={marker.key}
+                className={`cable__knot cable__knot--${marker.kind} ${marker.onPlug ? 'is-on-plug' : ''}`}
+                style={{
+                  left: `${marker.x * 100}%`,
+                  top: `${marker.y * 100}%`,
+                  ['--stack' as string]: marker.stack,
+                }}
+                aria-hidden="true"
+              />
+            ))}
+
         {puzzle.points.map((point) => {
           const current = pos[point.id];
           const style = CABLES[point.id % CABLES.length];
+          const inTheWay = !cleared && blocking.has(point.id);
           return (
             <button
               key={point.id}
               type="button"
               data-node-id={point.id}
-              className={`cable__node ${active === point.id ? 'is-active' : ''}`}
+              className={`cable__node ${active === point.id ? 'is-active' : ''} ${inTheWay ? 'is-blocking' : ''}`}
               style={{
                 left: `${current.x * 100}%`,
                 top: `${current.y * 100}%`,
@@ -414,7 +512,12 @@ export function CableUntangle({ seed, reducedMotion, paused, onScore, onCombo }:
               onLostPointerCapture={(event) => cancelActiveDrag(event.pointerId)}
               onKeyDown={(event) => onKeyNode(event, point.id)}
               disabled={paused}
-              aria-label={t('microgame.cableUntangle.computer', { value: point.id + 1 })}
+              aria-label={t(
+                inTheWay
+                  ? 'microgame.cableUntangle.computerBlocking'
+                  : 'microgame.cableUntangle.computer',
+                { value: point.id + 1 },
+              )}
             >
               <span className="cable__handle" aria-hidden="true">
                 <b>{point.id + 1}</b>
@@ -436,6 +539,16 @@ export function CableUntangle({ seed, reducedMotion, paused, onScore, onCombo }:
               </svg>
             </span>
             <strong>{t('microgame.cableUntangle.cleared')}</strong>
+            {lastClear ? (
+              <span className="cable__cleared-points">
+                <b>{t('microgame.cableUntangle.deskPoints', { value: lastClear.points })}</b>
+                {lastClear.bonus > 0 ? (
+                  <b className="is-bonus">
+                    {t('microgame.cableUntangle.speedBonus', { value: lastClear.bonus })}
+                  </b>
+                ) : null}
+              </span>
+            ) : null}
             <small>{t('microgame.cableUntangle.doneHint')}</small>
           </div>
         ) : null}

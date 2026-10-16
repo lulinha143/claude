@@ -4,9 +4,9 @@ Handoff only: design is in `DESIGN.md`, commands and matrix in `.kiro/steering/q
 
 ## Branch
 
-`feat/zooworkers-3.0-facility-pass`: Chapter 3 is the commit that records this entry, on top
-of Chapter 2 (`d6c4d28`), Chapter 9 (`d9fab09`), Chapter 4 (`e7bac62`), Chapter 1 (`80264a8`)
-and the setup commit `c55d356`; clean.
+`feat/zooworkers-3.0-facility-pass`: Chapter 5 is the commit that records this entry, on top
+of Chapter 3 (`8cbf590`), Chapter 2 (`d6c4d28`), Chapter 9 (`d9fab09`), Chapter 4 (`e7bac62`),
+Chapter 1 (`80264a8`) and the setup commit `c55d356`; clean.
 `7a7ee3d` (architect's snapshot) is an ancestor; never roll back to it.
 
 ## Active configuration
@@ -31,6 +31,11 @@ and the setup commit `c55d356`; clean.
   the CLI ran with `open --config` setting `launchOptions.executablePath` to rev 1232 and
   `chromiumSandbox: false` (root), and E2E used a scratch config that spreads
   `playwright.config.ts` and overrides only `launchOptions.executablePath`.
+- Chapter 5 session: Node was on `PATH`, and `npx playwright install chromium` fetched the
+  locked rev 1228, so E2E ran on the stock config. Background processes still end with each
+  shell call, so rendered play used throwaway scripts (kept in the ignored `visual-artifacts/`)
+  that serve `dist/` and drive Chromium in one process. A seeded save's own
+  `settings.language` wins over `wmno.lang` at boot: seed pt-BR in the save.
 
 ## Validation
 
@@ -41,7 +46,7 @@ and the setup commit `c55d356`; clean.
 
 Order: 1 → 4 → 9 → 2 → 3 → 5 → 6 → 7 → 8 → 10 → final integration.
 
-Accepted kit chapters: 1, 4, 9, 2, 3. Accepted pre-kit units: shell (`b138638`–`6189169`), living office
+Accepted kit chapters: 1, 4, 9, 2, 3, 5. Accepted pre-kit units: shell (`b138638`–`6189169`), living office
 (`bfaca01`–`d81ddc2`) and GC1–GC4 (`67cd776`–`7a7ee3d`), pinned by E2E specs but with no
 six-check record. Kit chapters reuse them as evidence and change only what fails the gate.
 GC numbers are not kit numbers.
@@ -53,7 +58,7 @@ GC numbers are not kit numbers.
 | 9   | `engine.catchUp`, `sim/offline`, `sim/timeline`, `state/returns`, `ui/ReturnNote`, `ui/Notifications`                     | Accepted (record below); diary unread     |
 | 2   | `views/EmployeesView`, `modals/EmployeeTalk`, `sim/bonds`                                                                 | Accepted (record below)                   |
 | 3   | `art/RoomDressing`, `RoomPlay`, `content/rooms`, `roomPlay`                                                               | Accepted (record below)                   |
-| 5   | `ui/minigames/*`, `sim/minigames`                                                                                         | Pre-shell fixes only                      |
+| 5   | `ui/minigames/*`, `sim/minigames`                                                                                         | Accepted (record below)                   |
 | 6   | `modals/IncidentScene`, `EventModal`, `content/incidents`, `ui/CuriosityLog`                                              | GC4 + GC3 curiosities                     |
 | 7   | `modals/EmployeeTalk`, `content/stories`, `employeeKeepsakes`                                                             | GC2 stories and scrapbook                 |
 | 8   | `views/DecorateView`, `ui/DecorationTray`, `sim/placement`, `depth`                                                       | Arranging rebuilt; catalog from `a4e03ad` |
@@ -350,13 +355,99 @@ full-room test fails on the old layout ("a face behind the machine", 0.37). New 
 room at two sizes, the secret, the header action, the slip before the reaction, and the
 counter.
 
+### Chapter 5 record — the three minigames
+
+The previous session's Chapter 5 work was never committed or pushed, and this sandbox was a
+fresh clone with no stash, reflog entry, dangling object or remote branch holding it, so the
+chapter was rebuilt from `8cbf590`. The only save change is an optional `boosts[].source`;
+there is no new currency. Rules live in `sim/minigames.ts`, the economy in `engine`; see
+`docs/MINIGAMES.md`.
+
+Broken or weak before (reproduced in pt-BR at 380×460 and 1280×720), fixed:
+
+- The live score was dark ink on the walnut bar, and the pause button's label was 0 px.
+  Bug Squash's bottom row of drawers was cut off. Holding → moved the mug one 5% step in half
+  a second, because it waited for key repeat. The result's buttons sat 71 px below a 460 px
+  window. Esc mid-round closed the sheet and silently dropped the round. Cable said
+  "Embolados: 3" with nothing on the desk to show where.
+- One mastery line (30) for all three: steady Coffee play passed it easily, while Cable
+  needed about four clean desks. Pay grew with the raw score, so Coffee paid several times
+  what Cable did. Bug's combo badge (×2 at 6) did not match its scoring (+1 per two
+  squashes). Boosts from different games stacked: three rounds gave up to +150%.
+- Now each game has its own bands (`MICRO_CALIBRATION`, set by bots that play the real
+  rules), and the badge and the score read one table. Pay reads the score as a share of that
+  game's mastery. Minigame boosts share one slot: a stronger round takes it, and a weaker one
+  adds only its own worth as time. A round is paid once, on a ticket taken at the whistle;
+  leaving spends the ticket. A mastery from the old line is kept and never paid again.
+- Coffee: the mug follows pointer or finger at once. Keys glide while held and let go on blur
+  or pause. Rounds open on one of four days, in turn, and run three beats: a warm-up without
+  decaf, service, then a rush of pairs too far apart for one mug. The ticket is a real order
+  (2 → 4 drinks, +3 a drink). Drinks differ by shape; the decaf is grey, dashed, ringed and
+  crossed out. Reduced motion: five numbered cups, tapped or keyed 1–5.
+- Bug: up to three pests over three stages, each announced over the status row, never over a
+  drawer. Runners hop once, armour takes two taps, the golden bug comes once at closing, and a
+  sticky-note "feature" costs 4 and the streak, so mashing loses. Taps count on press, a
+  vacated drawer stays empty 320 ms, and a late tap is forgiven. Keys 1–9 tap a drawer.
+- Cable: `cableConflictMap` marks each conflict where it is (a knot on a crossing, a dashed
+  ring on a plug in the way), and the count is that list's length. A plug on a cable counts
+  once per cable; it used to read 3 with two knots. A desk cleared inside par earns a speed
+  bonus. Esc puts a held plug back, and Shift+arrows stride.
+- The cabinet: walnut around paper screens. The intro shows the host in their own artwork with
+  their own line (EN and pt-BR, 7 hosts × 6 lines), three illustrated rules, the day, the
+  record and the mastery line, with Start pinned. The bar is paper chips. The result stamps
+  the grade, and "Novo recorde" beside the score; it shows a mastery bar, the slip, the
+  first-mastery prize and the host reacting, with Play again, the souvenir and Other games
+  pinned. Esc or a lost window focus pauses; a frozen countdown gets Continuar. Toasts rise
+  above the pinned buttons. The menu leads with the games: host, record and mastery bar.
+- 403 legacy minigame selectors and 41 keyframes left `styles.css` and `recordsDesk.css`
+  (audited: no other selector removed or changed). The games now style from `game/minigames.css`.
+
+Player gate (pt-BR, browser, built game, Chromium 1228; QA save):
+
+- Coffee 380×460: holding ← took the mug from 50% to 12% in 400 ms, and it stopped on
+  release. A scripted player made 20 with ×2 in 9 s while the order ticked. A caught decaf
+  stamped "Descaf. -3" on the mug and reset the streak. Reduced motion: five still,
+  numbered cups.
+- Bug 380×460: 24 taps made 160, at "Horário de pico · Etapa 2 de 3". A feature tap showed
+  −4 "Feature!" and cleared the combo. A fast player reached a first mastery (594): +1 golden
+  nut, the Estante de Amostras, Quincy's line, "Novo recorde". All three buttons fit without
+  scrolling at 380×460 and 320×420. After a reload: 1 play, no second golden nut, and the
+  card says "Maestria registrada".
+- Cable 380×460: two desks by real drags, 3 → 1 → 0 and 4 → … → 0 tangles, with marks equal
+  to the count at every step; "+6 pontos · Bônus de rapidez +2". Esc mid-drag put the plug
+  back without pausing.
+- Every phase of all three at 320×420, 380×460, 800×600, 1280×720, 1440×900 and 1920×1080:
+  no sideways scroll, no control off screen or under 30 px, no text under 11 px, and no toast
+  over a pinned button. Boards from smallest to largest: Coffee 286×185 to 1140×756, Bug grid
+  187×174 to 560×519, Cable 286×210 to 1140×761.
+- Resized mid-round (1280×720 → 380×460; 1920 → 320 wide): the mug stayed on the counter and
+  kept scoring (2 → 20), every plug stayed on the desk, and the grid stayed in the desk.
+- Touch, via Chromium's touch emulation: a finger steered the mug, also off the counter; a tap
+  squashed a pest; a drag landed a plug within 1 px.
+- Keyboard: Start, the board and Play again take focus in turn; Esc pauses and resumes. High
+  contrast with reduced motion is legible. Quiet mode: master 0.20 (0.80 normal) and the round
+  plays in full. Mute: every bus is 0 during a round. English fits at 800×600.
+- Images inspected one at a time (local only).
+- Six checks — see, understand, interact, feedback, why it matters, feel: PASS (audio not
+  heard).
+
+Checks: `npm run validate` exit 0 (943 unit tests, 77 files). Full web E2E: 351/352 before the
+last fixes, the failure being the pre-existing `incidents.spec` test (Blockers). On the final
+tree, one run hit two reload timeouts at the same moment (`economy`, `decoration`), which then
+passed 36/36 (3 repeats, 4 workers); the next full run was 352/352. No desktop code changed.
+New coverage: `tests/minigameRounds.test.ts` (30), `tests/minigameRewards.test.ts` (21),
+`minigame-shell` (+7) and `tests/e2e/minigame-rounds.spec.ts` (8; 24/24 over three repeats).
+`product-pass` now reads each game's own mastery line.
+
 ## Blockers
 
 - Kiro Web listed no skills this session; `zooworkers-playtest/SKILL.md` was followed by hand.
 - `templates/AGENTS.md` may load as a nested second AGENTS.md (Kiro docs); kept as instructed.
-- Flaky, pre-existing (not Chapters 2–3): `incidents.spec` "a promise lands in the world"
-  misses the lab's moment slip in about a third of runs on `d9fab09` too. Passed in Chapter 3's
-  run. Owner: Chapter 6.
+- Flaky, pre-existing (not Chapters 2–5): `incidents.spec` "a promise lands in the world"
+  misses the lab's moment slip when it runs after the file's other tests in one worker. In a
+  serial run of the file it failed on `8cbf590` and on Chapter 5 alike (7/8 each). Alone, it
+  passes on both: 8/8, and 16/16 at 8 workers. Fresh company and schedule timestamps did not
+  change that, so the module-level `NOW` is not the cause. Owner: Chapter 6.
 - AUDIO LISTENING REQUIRED: no playback here. Unheard: the purchase, claim and tap cues; the
   error cue on every short press (the button used to be disabled); the celebrate cue on a
   room bought in the shop; the golden cue when the pod mints a whole nut; the paper cue of a
@@ -366,6 +457,10 @@ counter.
   upgrade cue on taking someone home. Chapter 3: the annex rooms' one-shots (studio tape hiss,
   needle and meter; workshop ratchet, dropped screw and motor; conservatory drip, leaf and pane
   tick), their volume against the office's usual sounds, and repetition over a long stay.
+  Chapter 5: the catch and squash cues rising in pitch with the combo, the chime as a Bug
+  stage starts, the reward cue for a served order, celebrate (record or mastery) versus reward
+  on the result, and how they sit over a 30–45 s round and repeated rounds.
+- Touch was driven through Chromium's touch emulation, not a physical touchscreen.
 - LOCAL WINDOWS VERIFICATION REQUIRED: the last recorded native run is `a4e03ad`. This sandbox
   has no Electron binary or display, so no smoke ran. On Windows: `npm run build:windows:folder`,
   `npm run verify:windows:packaged`, then `smoke:window`, `smoke:focus` and `smoke:mute`.
@@ -389,7 +484,13 @@ counter.
   6. At 320×420 and 125/150/200% DPI, scroll to the studio, workshop and conservatory. Expect
      each room's action to read in full, the ON AIR lamp to read as a word, the routine badge on
      its machine with no face under it, and a waiting secret's sparkle at the fixture corner.
+     Chapter 5 (no desktop code changed):
+  7. At 320×420 and 125/150/200% DPI, open Atividades and play each game. Expect the cabinet
+     between HUD and dock, Iniciar turno and Jogar de novo on screen without scrolling, and a
+     held arrow key gliding the mug.
+  8. Click another window mid-round. Expect the round to pause and Continuar to resume it.
+     Also try it with always-on-top on, and with click-through off.
 
 ## Next prompt
 
-Chapter 5. Start its session on this branch; `main` has none of this configuration.
+Chapter 6. Start its session on this branch; `main` has none of this configuration.
