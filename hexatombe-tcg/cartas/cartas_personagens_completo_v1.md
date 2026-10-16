@@ -1,8 +1,16 @@
-# Hexatombe TCG — Catálogo completo de personagens (v1)
+# Hexatombe TCG — Catálogo completo de personagens (v2)
 
 Protótipo de fã inspirado em *Ordem Paranormal: Hexatombe* (campanha de RPG mestrada por Cellbit, exibida de 25/10/2025 a 27/12/2025). Este catálogo não tem arte e não é material oficial. Antes de planejar qualquer comercialização com conteúdo canônico, confira a licença aplicável junto aos detentores de Ordem Paranormal.
 
-Data desta versão: 16/10/2026. Revisão 1.1: inclusão de Caíto Rocha, confirmado como parte da seleção.
+Data desta versão: 16/10/2026.
+
+- **Revisão 1.1:** inclusão de Caíto Rocha, confirmado como parte da seleção.
+- **Revisão 2.0:**
+  - fim das máscaras, transformações e regras de corpo: cada carta é um personagem independente;
+  - rodadas com ativações alternadas, sem segunda ativação;
+  - efeitos descritos diretamente no texto, sem condições com nome;
+  - marcadores genéricos;
+  - Estigmas que passam adiante quando o portador é derrotado.
 
 ---
 
@@ -16,7 +24,7 @@ Antes de escrever, verifiquei o que existia de verdade:
 
 O que foi preservado dessa mensagem:
 
-- As duas habilidades de referência da **Kemi** (*Furtividade* e *Tiro de Precisão*) foram mantidas com o comportamento descrito. Só foram fixados os valores que a descrição deixava em aberto (o bônus de dano virou +1 ferimento, e a contagem de rodadas usa um marcador).
+- As duas habilidades de referência da **Kemi** (*Furtividade* e *Tiro de Precisão*) foram mantidas com o comportamento descrito. Só foram fixados os valores que a descrição deixava em aberto (o bônus de dano virou +1 ferimento, e a contagem das duas rodadas é feita girando a carta virada para baixo).
 - Os nomes de protótipo *Sem Recuar* (Colosso) e *Morte Natural* (Maria) foram mantidos como nomes de habilidade do TCG, marcados como **não oficiais**.
 - A restrição dos Pássaros: só **Pomba** e **Harpia** entram. Suellen e os demais Pássaros ficam de fora.
 - Todos os personagens citados no pedido entraram (menos Suellen), além de **Caíto Rocha**, confirmado depois como parte da seleção.
@@ -35,76 +43,98 @@ Cada carta traz:
   - **Fato** — o que as fontes afirmam. Quando o fato vem de material oficial fora das sessões (Arquivos Secretos, webcomics, episódio de bastidores), isso está indicado.
   - **Interpretação** — leitura ou inferência minha a partir dos fatos.
   - **Adaptação** — o que foi criado para o TCG.
-- **Equipe/identidade**: equipe, tipo de identidade e corpo (quando aplicável).
+- **Equipe/identidade**: a equipe pode ser citada por habilidades (como a de Cleo). A identidade narrativa (agente, receptáculo, forma mascarada) é só informação de história, exceto **Sacrifício**, que tem regra própria (seção 2.8).
 - **Fontes**: páginas e episódios usados na verificação.
 
 Referências como `Ep7 @4h46m` indicam o episódio de *Hexatombe* e o tempo aproximado citado pela Ordem Paranormal Wiki. Os episódios não foram assistidos nesta revisão; a verificação foi feita pelas páginas da wiki, que citam esses trechos.
 
 ---
 
-## 2. Premissas de regras usadas nos textos das cartas
+## 2. Regras gerais (v2)
 
-As regras do jogo ainda estão em desenvolvimento. Os textos das cartas usam só o vocabulário abaixo. Se uma regra-base mudar, ajuste esta seção antes de reescrever cartas.
+As regras do jogo ainda estão em desenvolvimento. Os textos das cartas usam só o que está abaixo. Se uma regra mudar, ajuste esta seção antes de reescrever as cartas.
 
-### 2.1 Base (já definida no projeto)
+### 2.1 Atributos e combate
 
 - ❤️ Vida de 1 a 6; ⚔️ Ataque de 1 a 5; 🛡️ Defesa de 1 a 5.
 - Um ataque acerta quando o Ataque do atacante é **igual ou maior** que a Defesa do alvo.
-- Um ataque que acerta causa **1 ferimento**. O personagem é derrotado quando seus ferimentos igualam sua Vida.
-- Movimento normal: **1 área adjacente por rodada**.
+- Um acerto causa **1 ferimento**. Quando os ferimentos de um personagem igualam a Vida dele, ele é **derrotado** e sai do jogo na hora.
+- Ataques normais só podem ter **inimigos** como alvo, a menos que a carta diga o contrário.
 - Não há dados, moedas, porcentagens, mana ou energia. Tudo é determinístico.
 
-### 2.2 Premissas provisórias assumidas por este catálogo
+### 2.2 Rodadas e ativações
 
-- **Ativação.** Cada personagem é ativado uma vez por rodada. Na ativação, ele pode se mover 1 área (antes ou depois da ação) e realizar **1 ação**. Movimentos concedidos por habilidades são **adicionais** a esse movimento, salvo texto contrário.
-- **Ação padrão: atacar** um inimigo na mesma área. Ataques normais só podem ter **inimigos** como alvo, a menos que a carta diga o contrário.
-- **Aliado** é **outro** personagem do mesmo lado; um personagem nunca é aliado de si mesmo. **Inimigo** é qualquer personagem do outro lado.
-- **Quem derrota.** É o personagem que causou o último ferimento. Ferimentos de marcadores (armadilhas, lampião) são causados por quem colocou o marcador. Se o ferimento não tiver causador (fim de rodada, tirar a Máscara) ou se o personagem o causou a si mesmo, ninguém o derrotou. Quando vários ferimentos acontecem ao mesmo tempo, aplique todos e só depois verifique as derrotas.
-- **Conflitos.** Uma proibição ("não pode atacar...") vence uma obrigação ("deve atacar..."). Uma obrigação impossível de cumprir é ignorada. Personagens Ocultos nunca contam para obrigações de alvo. Empates e conflitos restantes são decididos pelo dono do personagem afetado.
-- **Distância.** "Adjacente" = área conectada diretamente. "A até 1 área de distância" = a mesma área ou uma adjacente. "A até 2 áreas" = até duas conexões. "Em outra área, a qualquer distância" = qualquer área do tabuleiro, exceto a do próprio personagem.
-- **Tipos de habilidade.**
-  - **Ação**: substitui o ataque daquela ativação.
-  - **Passiva**: está sempre valendo.
-  - **Reação**: resolve-se no momento em que a condição acontece, mesmo fora da ativação do personagem. Cada Reação só pode ser usada **uma vez por rodada**, salvo texto diferente.
-  - **Uma vez por partida**: vire a carta de lado ou use um marcador para lembrar.
-- **+1 ferimento**: o acerto causa 1 ferimento adicional (total de 2).
-- **Remover ferimentos (cura)**: nunca deixa um personagem com menos de 0 ferimentos.
+1. Em cada rodada, os jogadores **alternam jogadas**. Na sua jogada, você escolhe **um** personagem seu que ainda não foi ativado nesta rodada e o ativa.
+2. Na ativação, o personagem pode **se mover 1 área adjacente** (antes ou depois da ação) e **realizar 1 ação**: atacar um inimigo na mesma área ou usar uma habilidade marcada como *Ação*.
+3. **Nenhum personagem é ativado mais de uma vez por rodada.** Habilidades podem dar movimento extra, ataques extras ou ações extras **dentro** da ativação, mas nunca uma segunda ativação.
+4. Se um jogador não tiver mais personagens para ativar, o outro ativa os que restarem, um por jogada.
+5. A rodada termina quando todos os personagens foram ativados. Na rodada seguinte, quem começa é o outro jogador.
+6. **Resolva cada ação por completo antes da próxima jogada**, incluindo as reações que ela provocar.
+
+### 2.3 Vocabulário dos textos
+
+- **Aliado**: outro personagem do mesmo lado; ninguém é aliado de si mesmo. **Inimigo**: personagem do outro lado.
+- **Distância:**
+  - "adjacente" = área conectada diretamente;
+  - "a até 1 área de distância" = a mesma área ou uma adjacente;
+  - "a até 2 áreas" = até duas conexões;
+  - "em outra área, a qualquer distância" = qualquer área, exceto a do próprio personagem.
 - **Deslocar**: mover outro personagem para uma área adjacente. Não conta como o movimento dele.
-- **Oculto**: o personagem continua no tabuleiro, mas não pode ser alvo de ataques nem de habilidades inimigas. Ele é revelado quando ataca ou quando uma regra o revela. Marque com o marcador de Oculto.
-- **Proteção**: só contam como proteção as habilidades marcadas com a palavra *proteção*. Elas impedem, anulam, enfraquecem ou redirecionam ataques ou ferimentos. Algumas cartas (como a Fantasma) ignoram esse tipo de habilidade.
-- **Condições** (marcador na carta; duram até o **fim da próxima ativação** do personagem afetado; uma condição recebida durante a própria ativação dura até o fim da ativação **seguinte**):
-  - **Atordoado**: não realiza ação (ainda pode se mover).
-  - **Preso**: não pode se mover nem ser deslocado.
-  - **Silenciado**: não pode usar habilidades de Ação nem de Reação. Passivas continuam valendo.
+- **+1 ferimento**: o acerto causa 1 ferimento adicional (total de 2).
+- **Remover ferimentos**: cura; nunca deixa ninguém com menos de 0 ferimentos.
+- **Vários alvos na mesma ação**: resolva um alvo de cada vez, na ordem que quem usa a habilidade escolher. Quem é derrotado sai na hora, e o efeito continua nos alvos restantes.
+- **Quem derrota**: o personagem cujo ataque ou habilidade causou o ferimento que derrotou o alvo. Ferimentos causados por marcadores contam para quem os colocou. Se o ferimento não tiver causador, ou se o personagem causou o ferimento a si mesmo, ninguém o derrotou.
+- **Efeitos disparados ao mesmo tempo**: se o mesmo acontecimento disparar efeitos dos dois jogadores, o jogador da vez resolve primeiro os dele; depois, o outro jogador.
+- **Conflitos**: uma proibição ("não pode atacar...") vence uma obrigação ("deve atacar..."). Uma obrigação impossível de cumprir é ignorada. Empates e conflitos restantes são decididos pelo dono do personagem afetado.
 
-### 2.3 Corpo, versões e máscaras (Mascarados)
+### 2.4 Tipos de habilidade
 
-Na história, cinco agentes da Ordo Realitas ocuparam os corpos de cinco assassinos. Primeiro viveram sem memória como os assassinos (receptáculos), depois escolheram o próprio nome ao tocar a Coroa de Espinhos (agentes) e, em momentos extremos, vestiram as máscaras dos assassinos (formas mascaradas). Para que isso funcione numa mesa física sem virar três personagens independentes:
+- **Ação**: substitui o ataque daquela ativação.
+- **Passiva**: está sempre valendo.
+- **Reação**: é usada no momento em que a condição acontece, mesmo fora da ativação do personagem. Cada Reação pode ser usada no máximo **uma vez por rodada**. Usar uma Reação **não** é uma ativação.
+- **Uma vez por partida**: coloque um marcador genérico na carta depois de usar.
+- **Proteção**: palavra que aparece no tipo de algumas habilidades. Indica que ela impede, anula, enfraquece ou redireciona ataques ou ferimentos. Algumas cartas (como a Fantasma) ignoram habilidades de proteção.
 
-1. **Mesmo Corpo.** Cartas com o mesmo campo *Corpo* nunca podem estar em jogo ao mesmo tempo do mesmo lado.
-2. **Versões.** *Receptáculo* e *Agente* são versões alternativas do mesmo corpo (antes e depois da escolha do nome). Escolha **uma** delas ao montar a equipe. Henri e Juan seguem a mesma regra.
-3. **Máscara.** A carta de Máscara fica fora do tabuleiro, ao lado da equipe.
-   - **Vestir:** no início da ativação do personagem com o mesmo Corpo, se houver um inimigo na área dele **ou** se ele tiver pelo menos 1 ferimento, coloque a Máscara por cima da carta. Isso não gasta a ação.
-   - Enquanto a Máscara estiver por cima, valem **só os atributos e habilidades da Máscara**; as habilidades da carta coberta ficam suspensas. Os ferimentos continuam os mesmos.
-   - Ao vestir ou tirar a Máscara, o personagem é **revelado** (perde Oculto). Condições e outros marcadores continuam nele, mas um marcador só tem efeito se a carta que está por cima tiver a habilidade que o usa. Marcadores que ele colocou em áreas ou em outros personagens permanecem.
-   - **Tirar:** no fim de qualquer ativação do personagem, você pode retirar a Máscara. Algumas máscaras saem sozinhas, conforme o texto delas.
-   - Não é possível vestir uma Máscara se os ferimentos já forem iguais ou maiores que a Vida dela. Se, ao tirar a Máscara, os ferimentos igualarem ou superarem a Vida da carta de baixo, o personagem é derrotado.
-   - Um personagem só pode vestir a Máscara **uma vez por rodada**.
+### 2.5 Efeitos temporários (sem condições com nome)
 
-### 2.4 Sacrifícios e estigmas
+As cartas descrevem o efeito diretamente. Os três efeitos mais comuns usam sempre a mesma redação, e todos duram **uma ativação**: valem durante a **próxima ativação** do personagem afetado e terminam no fim dela. Se o personagem estiver no meio da própria ativação quando receber o efeito, vale a ativação seguinte.
 
-No ritual, cada equipe protege um sacrifício marcado por um Estigma, e quem mata um sacrifício pode herdar esse estigma. No TCG:
+- "Na próxima ativação, ele **não pode realizar ações**." Ele ainda pode se mover.
+- "Na próxima ativação, ele **não pode se mover**." Ele também não pode ser deslocado durante essa ativação.
+- "Até o fim da próxima ativação dele, ele **não pode usar habilidades**." Esse efeito começa na hora e termina no fim da próxima ativação dele. Enquanto durar, as habilidades da carta dele não têm efeito, mas ele ainda pode se mover e atacar normalmente.
 
-- Cartas com a identidade **Sacrifício** têm uma habilidade de Estigma.
-- Quando um Sacrifício é derrotado, o personagem que o derrotou (ver "Quem derrota", em 2.2) recebe o **marcador de Estigma** correspondente. Deixe a carta derrotada ao lado dele como referência do efeito. Se ninguém o derrotou, ninguém recebe o Estigma.
-- Um personagem só pode ter um marcador de Estigma. Se receber outro, escolha qual manter.
+Coloque um **marcador genérico** na carta afetada e retire-o no fim dessa ativação.
 
-### 2.5 Marcadores usados no catálogo
+### 2.6 Ocultação
 
-- **Estados:** Oculto · Mira · Atordoado · Preso · Silenciado · Olhar (−1 Ataque).
-- **Marcas em personagens:** Rastro · Presa · Ritmo · Paixão · Vínculo · Sangue · Filho da Dor · Armadilha Sanguinária · Estigma.
-- **Marcas em áreas:** Marca X · Armadilha · Barricada · Olho · Lampião.
-- **Outros:** Contrato (anotação secreta) · Clone (fichas iguais com o verso marcado em segredo) · Proteção (lembrete opcional).
+- **Ficar oculto**: vire a carta do personagem para baixo, na área em que ele está.
+- Um personagem oculto não pode ser alvo de ataques nem de habilidades inimigas. Ele ainda é ativado e pode se mover normalmente.
+- Ele se revela (desvire a carta) **antes** de atacar, ou quando uma regra o revelar.
+- Uma carta virada para baixo nunca conta como alvo possível para obrigações de ataque.
+
+### 2.7 Marcadores
+
+- **Marcador genérico**: qualquer ficha, colocada numa carta ou numa área para lembrar um efeito que continua depois da ação.
+  - O texto da carta que coloca o marcador sempre diz o que ele significa e quando sai.
+  - Para não confundir, deixe cada marcador perto da carta de origem ou use fichas de cores diferentes.
+- **Fichas de Giovanni**: o único material específico, descrito na carta dele.
+
+### 2.8 Sacrifícios e Estigmas
+
+No ritual, cada equipe protege um sacrifício, e quem mata um sacrifício pode herdar o estigma dele e se tornar o novo sacrifício. No TCG:
+
+- Só as cartas com a identidade **Sacrifício** têm um Estigma. Ele está descrito na própria carta.
+- **Quando é recebido:** quando um Sacrifício é derrotado, o personagem que o derrotou recebe o Estigma. Coloque a carta do Sacrifício derrotado ao lado da carta dele, como lembrete. Se ninguém o derrotou, o Estigma sai do jogo.
+- **Quanto dura:** até o portador ser derrotado. Se o efeito for de uso único, cada novo portador pode usá-lo uma vez, e continua com o Estigma depois de usá-lo.
+- **Se o portador for derrotado:** o portador passa a contar como Sacrifício. Quem o derrotar recebe o mesmo Estigma, que passa adiante.
+- **Quando o Estigma sai do jogo:** se ninguém derrotou o portador, ou se quem o derrotou já tiver saído do jogo.
+- **Limite:** um personagem só pode ter 1 Estigma. Se receber outro, escolhe qual manter, e o outro sai do jogo.
+
+Assim, caçar um sacrifício é uma escolha: dá um prêmio, mas transforma quem o recebe no próximo alvo.
+
+### 2.9 Cartas relacionadas na mesma equipe
+
+Não existe regra proibindo cartas do mesmo personagem na mesma equipe (por exemplo, Kemi, Lena Viegas e Fantasma). Os possíveis problemas estão listados na seção 12, para decisão futura.
 
 ---
 
@@ -112,65 +142,65 @@ No ritual, cada equipe protege um sacrifício marcado por um Estigma, e quem mat
 
 Legenda do estado: **Nova** = criada nesta versão; **Preservada** = mantém decisões descritas no pedido; **Corrigida** = a descrição anterior divergia das fontes e foi ajustada.
 
-| # | Carta | Equipe | Identidade | Corpo | Estado | Fonte principal |
-|---|---|---|---|---|---|---|
-| 1 | Kemi | Mascarados | Receptáculo (Lena sem memória) | Kemi | Preservada + Nova | Wiki: Kemi; Ep1, Ep4 |
-| 2 | Lena Viegas | Mascarados | Agente | Kemi | Nova | Wiki: Lena Viegas; Ep9 |
-| 3 | Fantasma | Mascarados | Forma mascarada (faixas) | Kemi | Nova | Wiki: Kemi, Lena Viegas; Ep7, Ep9 |
-| 4 | Jonas Aguiar | Mascarados | Receptáculo (Jasper sem memória) | Jonas Aguiar | Nova | Wiki: Jonas Aguiar; Ep3, Ep4 |
-| 5 | Jasper | Mascarados | Agente | Jonas Aguiar | Nova | Wiki: Jasper; Ep9 |
-| 6 | Mutilador Noturno | Mascarados | Forma mascarada | Jonas Aguiar | Corrigida | Wiki: Jasper, Jonas Aguiar; Ep4, Ep7, Ep9 |
-| 7 | Labirinto | Mascarados | Receptáculo (Remi sem memória) | Labirinto | Nova | Wiki: Labirinto, Remi; Ep1–Ep8 |
-| 8 | Remi | Mascarados | Agente (líder) | Labirinto | Corrigida | Wiki: Remi; Ep9, Ep10 |
-| 9 | ??? | Mascarados | Forma mascarada (capacete) | Labirinto | Nova | Wiki: Labirinto, Remi; Ep7, Ep9 |
-| 10 | Dalmo Magno | Mascarados | Receptáculo (Tuco sem memória) | Dalmo Magno | Nova | Wiki: Dalmo Magno, Tuco Belez; Ep1, Ep2 |
-| 11 | Tuco Belez | Mascarados | Agente | Dalmo Magno | Nova | Wiki: Tuco Belez; Ep7; Ep11 |
-| 12 | Colosso | Mascarados | Forma mascarada (escafandro) | Dalmo Magno | Corrigida | Wiki: Dalmo Magno, Mosto; Ep5 |
-| 13 | Park Jae-Yoon | Mascarados | Receptáculo (Maria sem memória) | Park Jae-Yoon | Corrigida | Wiki: Park Jae-Yoon, Maria; Ep1, Ep7 |
-| 14 | Maria Helena Rodrigues | Mascarados | Agente | Park Jae-Yoon | Corrigida | Wiki: Maria Helena Rodrigues; Ep9 |
-| 15 | X | Mascarados | Forma mascarada (capuz) | Park Jae-Yoon | Corrigida | Wiki: Maria, Park Jae-Yoon; Ep5, Ep7 |
-| 16 | Henri | Mascarados | Sacrifício (Estigma do Desejo) | Lúcio Davo | Nova | Wiki: Juan; Ep3–Ep8 |
-| 17 | Juan | Mascarados | Sacrifício (Estigma do Desejo) | Lúcio Davo | Nova | Wiki: Juan; Ep9, Ep10 |
-| 18 | Escarlata | Couraças | Líder | — | Nova | Wiki: Escarlata; Ep5–Ep7 |
-| 19 | Torvo | Couraças | Membro | — | Nova | Wiki: Torvo; Ep5, Ep7 |
-| 20 | Ana Delgado dos Santos | Couraças | Membro (batedora) | — | Corrigida | Wiki: Ana Delgado dos Santos; Ep5–Ep7 |
-| 21 | Argano | Couraças | Membro (guardião) | — | Nova | Wiki: Argano; Ep7, Ep10 |
-| 22 | Chispa | Couraças | Membro (batedor) | — | Corrigida | Wiki: Chispa; Ep3, Ep7 |
-| 23 | Miasma | Couraças | Sacrifício (Estigma da Obsessão) | — | Corrigida | Wiki: Miasma; Ep7 |
-| 24 | Pomba | Pássaros | Membro (cartógrafo), desertor | — | Corrigida | Wiki: Pomba; Ep3–Ep10 |
-| 25 | Harpia | Pássaros | Líder, desertor, último sacrifício | — | Nova | Wiki: Harpia; Ep4, Ep10 |
-| 26 | Eloy Furtado | PSIKOLERA | Membro (bateria) | — | Corrigida | Wiki: Eloy Furtado; Ep7–Ep10 |
-| 27 | Cindy Lopes | PSIKOLERA | Líder (baixo) | — | Nova | Wiki: Cindy Lopes; Ep4, Ep7–Ep9 |
-| 28 | Caio Teles | PSIKOLERA | Membro (vocal) | — | Nova | Wiki: Caio Teles; Ep7–Ep9 |
-| 29 | Franco | PSIKOLERA | Membro (guitarra) | — | Nova | Wiki: Franco; Ep7 |
-| 30 | Alê | PSIKOLERA | Membro (teclado) | — | Corrigida | Wiki: Alê; Ep4, Ep7 |
-| 31 | Caíto Rocha | PSIKOLERA | Sacrifício (Estigma do Rancor) | — | Nova | Wiki: Caíto Rocha; Ep4, Ep7, Ep8 |
-| 32 | Giovanni Opspor | Transtornados | Líder | — | Corrigida | Wiki: Giovanni Opspor; Ep2–Ep10 |
-| 33 | Cristino | Transtornados | Membro (integrado à força) | — | Nova | Wiki: Cristino; Ep4–Ep10 |
-| 34 | Mosto | Transtornados | Membro (segurança) | — | Nova | Wiki: Mosto; Ep2, Ep5 |
-| 35 | Tarrafa | Transtornados | Membro | — | Nova | Wiki: Tarrafa, Zumbi Espinhento; Ep2, Ep3 |
-| 36 | Cleo Brisa | Transtornados | Membro (forçada) | — | Corrigida | Wiki: Cleo Brisa; Ep6, Ep9 |
-| 37 | Nando Salles | Transtornados | Sacrifício (Estigma do Orgulho) | — | Corrigida | Wiki: Nando Salles; Ep4, Ep5 |
-| 38 | Raziel | Vampiros | Líder, herdeiro do sacrifício | — | Nova | Wiki: Raziel; Ep7–Ep9 |
-| 39 | Alvira | Vampiros | Membro (a Primeira Vampira) | — | Nova | Wiki: Alvira; Ep7–Ep9 |
-| 40 | Sabara | Vampiros | Membro (batedora) | — | Nova | Wiki: Sabara; Ep4 |
-| 41 | Velisar | Vampiros | Membro (diplomata) | — | Corrigida | Wiki: Velisar; Ep6, Ep7, Ep9 |
-| 42 | Zéfero | Vampiros | Criatura da equipe | — | Nova | Wiki: Zéfero; Ep6, Ep7, Ep9 |
-| 43 | Damir Lukic | Vampiros | Sacrifício (Estigma da Culpa) | — | Corrigida | Wiki: Damir Lukic; Ep8 |
+| # | Carta | Equipe | Identidade | Estado | Fonte principal |
+|---|---|---|---|---|---|
+| 1 | Kemi | Mascarados | Receptáculo (Lena sem memória) | Preservada + Nova | Wiki: Kemi; Ep1, Ep4 |
+| 2 | Lena Viegas | Mascarados | Agente | Nova | Wiki: Lena Viegas; Ep9 |
+| 3 | Fantasma | Mascarados | Forma mascarada (faixas) | Nova | Wiki: Kemi, Lena Viegas; Ep7, Ep9 |
+| 4 | Jonas Aguiar | Mascarados | Receptáculo (Jasper sem memória) | Nova | Wiki: Jonas Aguiar; Ep3, Ep4 |
+| 5 | Jasper | Mascarados | Agente | Nova | Wiki: Jasper; Ep9 |
+| 6 | Mutilador Noturno | Mascarados | Forma mascarada | Corrigida | Wiki: Jasper, Jonas Aguiar; Ep4, Ep7, Ep9 |
+| 7 | Labirinto | Mascarados | Receptáculo (Remi sem memória) | Nova | Wiki: Labirinto, Remi; Ep1–Ep8 |
+| 8 | Remi | Mascarados | Agente (líder) | Corrigida | Wiki: Remi; Ep9, Ep10 |
+| 9 | ??? | Mascarados | Forma mascarada (capacete) | Nova | Wiki: Labirinto, Remi; Ep7, Ep9 |
+| 10 | Dalmo Magno | Mascarados | Receptáculo (Tuco sem memória) | Nova | Wiki: Dalmo Magno, Tuco Belez; Ep1, Ep2 |
+| 11 | Tuco Belez | Mascarados | Agente | Nova | Wiki: Tuco Belez; Ep7; Ep11 |
+| 12 | Colosso | Mascarados | Forma mascarada (escafandro) | Corrigida | Wiki: Dalmo Magno, Mosto; Ep5 |
+| 13 | Park Jae-Yoon | Mascarados | Receptáculo (Maria sem memória) | Corrigida | Wiki: Park Jae-Yoon, Maria; Ep1, Ep7 |
+| 14 | Maria Helena Rodrigues | Mascarados | Agente | Corrigida | Wiki: Maria Helena Rodrigues; Ep9 |
+| 15 | X | Mascarados | Forma mascarada (capuz) | Corrigida | Wiki: Maria, Park Jae-Yoon; Ep5, Ep7 |
+| 16 | Henri | Mascarados | Sacrifício (Estigma do Desejo) | Nova | Wiki: Juan; Ep3–Ep8 |
+| 17 | Juan | Mascarados | Sacrifício (Estigma do Desejo) | Nova | Wiki: Juan; Ep9, Ep10 |
+| 18 | Escarlata | Couraças | Líder | Nova | Wiki: Escarlata; Ep5–Ep7 |
+| 19 | Torvo | Couraças | Membro | Nova | Wiki: Torvo; Ep5, Ep7 |
+| 20 | Ana Delgado dos Santos | Couraças | Membro (batedora) | Corrigida | Wiki: Ana Delgado dos Santos; Ep5–Ep7 |
+| 21 | Argano | Couraças | Membro (guardião) | Nova | Wiki: Argano; Ep7, Ep10 |
+| 22 | Chispa | Couraças | Membro (batedor) | Corrigida | Wiki: Chispa; Ep3, Ep7 |
+| 23 | Miasma | Couraças | Sacrifício (Estigma da Obsessão) | Corrigida | Wiki: Miasma; Ep7 |
+| 24 | Pomba | Pássaros | Membro (cartógrafo), desertor | Corrigida | Wiki: Pomba; Ep3–Ep10 |
+| 25 | Harpia | Pássaros | Líder (na história, desertor e último sacrifício) | Nova | Wiki: Harpia; Ep4, Ep10 |
+| 26 | Eloy Furtado | PSIKOLERA | Membro (bateria) | Corrigida | Wiki: Eloy Furtado; Ep7–Ep10 |
+| 27 | Cindy Lopes | PSIKOLERA | Líder (baixo) | Nova | Wiki: Cindy Lopes; Ep4, Ep7–Ep9 |
+| 28 | Caio Teles | PSIKOLERA | Membro (vocal) | Nova | Wiki: Caio Teles; Ep7–Ep9 |
+| 29 | Franco | PSIKOLERA | Membro (guitarra) | Nova | Wiki: Franco; Ep7 |
+| 30 | Alê | PSIKOLERA | Membro (teclado) | Corrigida | Wiki: Alê; Ep4, Ep7 |
+| 31 | Caíto Rocha | PSIKOLERA | Sacrifício (Estigma do Rancor) | Nova | Wiki: Caíto Rocha; Ep4, Ep7, Ep8 |
+| 32 | Giovanni Opspor | Transtornados | Líder | Corrigida | Wiki: Giovanni Opspor; Ep2–Ep10 |
+| 33 | Cristino | Transtornados | Membro (integrado à força) | Nova | Wiki: Cristino; Ep4–Ep10 |
+| 34 | Mosto | Transtornados | Membro (segurança) | Nova | Wiki: Mosto; Ep2, Ep5 |
+| 35 | Tarrafa | Transtornados | Membro | Nova | Wiki: Tarrafa, Zumbi Espinhento; Ep2, Ep3 |
+| 36 | Cleo Brisa | Transtornados | Membro (forçada) | Corrigida | Wiki: Cleo Brisa; Ep6, Ep9 |
+| 37 | Nando Salles | Transtornados | Sacrifício (Estigma do Orgulho) | Corrigida | Wiki: Nando Salles; Ep4, Ep5 |
+| 38 | Raziel | Vampiros | Líder (na história, herdeiro do sacrifício) | Nova | Wiki: Raziel; Ep7–Ep9 |
+| 39 | Alvira | Vampiros | Membro (a Primeira Vampira) | Nova | Wiki: Alvira; Ep7–Ep9 |
+| 40 | Sabara | Vampiros | Membro (batedora) | Nova | Wiki: Sabara; Ep4 |
+| 41 | Velisar | Vampiros | Membro (diplomata) | Corrigida | Wiki: Velisar; Ep6, Ep7, Ep9 |
+| 42 | Zéfero | Vampiros | Criatura da equipe | Nova | Wiki: Zéfero; Ep6, Ep7, Ep9 |
+| 43 | Damir Lukic | Vampiros | Sacrifício (Estigma da Culpa) | Corrigida | Wiki: Damir Lukic; Ep8 |
 
 **Total: 43 cartas.** O motivo de cada exclusão está na seção 10.
 
-Como só uma carta por Corpo pode estar em jogo, os Mascarados colocam no máximo **6 personagens** na mesa (5 corpos + Henri ou Juan), o mesmo tamanho das outras equipes completas.
+Cada carta é um personagem independente. Os possíveis problemas de usar cartas da mesma pessoa juntas estão na seção 12.
 
 ---
 
 ## 4. Equipe Mascarados
 
-Agentes da Ordo Realitas nos corpos dos Assassinos, mais Henri/Juan, o sacrifício da equipe. A equipe venceu o ritual: Lena, Remi e Juan sobreviveram até o fim. Sobre como usar várias cartas do mesmo corpo, veja a seção 2.3.
+Agentes da Ordo Realitas nos corpos dos Assassinos, mais Henri/Juan, o sacrifício da equipe. A equipe venceu o ritual: Lena, Remi e Juan sobreviveram até o fim. Cada identidade (o assassino, o agente e a forma mascarada) é uma carta independente, com atributos e habilidades próprios.
 
 ---
 
-### 4.1 Corpo: Kemi
+### 4.1 Kemi, Lena Viegas e Fantasma
 
 #### 1. KEMI
 
@@ -178,7 +208,7 @@ Agentes da Ordo Realitas nos corpos dos Assassinos, mais Henri/Juan, o sacrifíc
 
 **Habilidade — Furtividade** *(Ação)*
 
-> Kemi fica Oculta: coloque o marcador de Oculto com o lado "1" para cima. Enquanto Oculta, ela pode se mover, mas não pode ser alvo. Atacar a revela. No fim de cada rodada em que ela continuar Oculta, vire o marcador para o lado "2"; se ele já estiver no "2", Kemi se revela e recebe o marcador de Mira. O próximo ataque dela com Mira causa +1 ferimento (descarte a Mira).
+> Kemi fica oculta (vire a carta para baixo). Enquanto oculta, ela pode se mover, mas não pode ser alvo; atacar a revela. No fim da primeira rodada em que ela continuar oculta, gire a carta virada de lado. No fim da segunda, Kemi se revela e recebe um marcador genérico: o próximo ataque dela causa +1 ferimento. Retire o marcador depois desse ataque.
 
 **Habilidade — Tiro de Precisão** *(Passiva)*
 
@@ -202,7 +232,7 @@ Agentes da Ordo Realitas nos corpos dos Assassinos, mais Henri/Juan, o sacrifíc
 - **Interpretação:** em Hexatombe, quem usa esse corpo é Lena sem memória. A carta representa esse período (Ep1–Ep8), em que ela age como a mercenária.
 - **Adaptação:** *Furtividade* e *Tiro de Precisão* são as habilidades de referência do protótipo, mantidas, mas não são nomes oficiais. A ficha oficial "Corpo de Kemi" tem *Perita*, *Disparo da Morte* e *Sniper da Morte*. *Contrato* foi criada para o tema dos contratos.
 
-**Equipe/identidade:** Mascarados (antes, Assassinos). Receptáculo. Corpo: Kemi. Alcunha: Fantasma.
+**Equipe/identidade:** Mascarados (antes, Assassinos). Identidade narrativa: receptáculo — a mercenária Kemi, com Lena Viegas sem memória no corpo. Alcunha: Fantasma.
 
 **Fontes:** [Kemi](https://ordemparanormal.fandom.com/wiki/Kemi); [Lena Viegas](https://ordemparanormal.fandom.com/wiki/Lena_Viegas); [Andrei Colfas](https://ordemparanormal.fandom.com/wiki/Andrei_Colfas); [Pacote 02](https://ordemparanormal.fandom.com/wiki/Arquivos_Secretos/Pacote_02:_Hexatombe_-_Parte_1); Ep1 e Ep4.
 
@@ -232,7 +262,7 @@ Agentes da Ordo Realitas nos corpos dos Assassinos, mais Henri/Juan, o sacrifíc
 - **Interpretação:** "cair em Morrendo" no RPG equivale a "ser derrotado" no TCG.
 - **Adaptação:** o alcance ilimitado da reação representa o rifle. O ataque normal dela fica na mesma área, para diferenciá-la da Kemi, que atira por iniciativa própria. Poder atacar um aliado reproduz o tiro em Jasper.
 
-**Equipe/identidade:** Mascarados; agente da Ordo Realitas. Corpo: Kemi.
+**Equipe/identidade:** Mascarados. Identidade narrativa: agente da Ordo Realitas (Lena no corpo de Kemi, depois de escolher o próprio nome).
 
 **Fontes:** [Lena Viegas](https://ordemparanormal.fandom.com/wiki/Lena_Viegas); [Mascarados](https://ordemparanormal.fandom.com/wiki/Mascarados); [Harpia](https://ordemparanormal.fandom.com/wiki/Harpia); [Velisar](https://ordemparanormal.fandom.com/wiki/Velisar); Ep6–Ep10.
 
@@ -244,17 +274,17 @@ Agentes da Ordo Realitas nos corpos dos Assassinos, mais Henri/Juan, o sacrifíc
 
 **Habilidade — Disparo Espiral** *(Passiva)*
 
-> Uma vez por rodada, o ataque da Fantasma pode ter como alvo um inimigo em outra área, a qualquer distância. Esse ataque pode mirar inimigos Ocultos e ignora habilidades de proteção.
+> Uma vez por rodada, o ataque da Fantasma pode ter como alvo um inimigo em outra área, a qualquer distância. Esse ataque pode mirar inimigos ocultos e ignora habilidades de proteção.
 
 **Habilidade — Cantiga da Múmia** *(Passiva)*
 
-> Quando a Fantasma derrotar um personagem, ela pode ficar Oculta imediatamente. Ela se revela ao atacar ou no fim da rodada seguinte.
+> Quando a Fantasma derrotar um personagem, ela pode ficar oculta imediatamente (vire a carta para baixo). Ela se revela ao atacar ou no fim da rodada seguinte.
 
 **Habilidade — Solitária** *(Passiva)*
 
 > A Fantasma não pode ter ferimentos removidos e não é afetada por habilidades de aliados.
 
-**Função:** forma de execução. Por algumas rodadas, é a melhor atiradora do jogo: acerta alvos escondidos ou protegidos e some depois de matar. Em troca, não recebe ajuda de ninguém.
+**Função:** atiradora de execução, a melhor do jogo: acerta alvos escondidos ou protegidos e some depois de matar. Em troca, não recebe ajuda de ninguém.
 
 **Base na lore:**
 - **Fato:** a ficha "Faixas da Fantasma" inclui *Disparo Espiral*: ela puxa a sniper com as faixas e atira balas curvas, que anulam cobertura não total e ignoram resistência. Usos:
@@ -264,13 +294,13 @@ Agentes da Ordo Realitas nos corpos dos Assassinos, mais Henri/Juan, o sacrifíc
 - **Interpretação:** a solidão e a cantiga sustentam a ideia de sumir depois de matar.
 - **Adaptação:** alcance e capacidade de ignorar proteção vêm do Disparo Espiral. *Cantiga da Múmia* e *Solitária* são criações do TCG. Não há registro de Lena perdendo o controle sob as faixas; por isso a desvantagem é o isolamento, e não descontrole.
 
-**Equipe/identidade:** Mascarados. Forma mascarada (faixas e casaco). Corpo: Kemi; veste-se sobre Kemi ou Lena Viegas.
+**Equipe/identidade:** Mascarados. Identidade narrativa: forma mascarada de Kemi (faixas e casaco).
 
 **Fontes:** [Kemi](https://ordemparanormal.fandom.com/wiki/Kemi); [Lena Viegas](https://ordemparanormal.fandom.com/wiki/Lena_Viegas); [Chispa](https://ordemparanormal.fandom.com/wiki/Chispa); [Velisar](https://ordemparanormal.fandom.com/wiki/Velisar); Ep4, Ep7, Ep9.
 
 ---
 
-### 4.2 Corpo: Jonas Aguiar
+### 4.2 Jonas Aguiar, Jasper e Mutilador Noturno
 
 #### 4. JONAS AGUIAR
 
@@ -278,22 +308,22 @@ Agentes da Ordo Realitas nos corpos dos Assassinos, mais Henri/Juan, o sacrifíc
 
 **Habilidade — Predador de Sangue** *(Passiva)*
 
-> Quando Aguiar ferir um inimigo, coloque nele o marcador de Rastro (tire-o de quem estava com ele). O personagem com Rastro não pode ficar Oculto. Aguiar pode se mover até 2 áreas na ativação, desde que termine o movimento na área do personagem com Rastro.
+> Aguiar pode se mover até 2 áreas na ativação, desde que termine o movimento na área de um inimigo ferido. Inimigos feridos na área de Aguiar não podem ficar ocultos; se estiverem, eles se revelam.
 
 **Habilidade — Arpão do Pescador** *(Ação)*
 
 > Escolha um inimigo em uma área adjacente e desloque-o para a área de Aguiar.
 
-**Função:** caçador. Fere uma presa, impede que ela se esconda, persegue mais rápido e puxa alvos para o corpo a corpo.
+**Função:** caçador. Persegue mais rápido quem já está sangrando, impede que feridos se escondam e puxa alvos para o corpo a corpo.
 
 **Base na lore:**
 - **Fato:** a ficha do corpo de Aguiar tem *Ataque Especial* e *Predador de Sangue*: ele memoriza o odor de uma vítima para rastreá-la e atacá-la.
 - **Fato (episódios):** em Hexatombe, Jasper sem memória é o rastreador da equipe. Segue pegadas (Ep3, Ep4) e fareja Pomba até o bunker (Ep8). Pega o arpão de Tarrafa (Ep3) e o usa para destruir o Zumbi Espinhento (Ep3 @2h07m) e para segurar o carro dos Couraças (Ep7).
 - **Interpretação:** rastrear pelo sangue combina com marcar quem ele já feriu.
-- **Adaptação:** Rastro, movimento extra e o puxão do arpão. *Ataque Especial* (um bônus numérico) não virou habilidade própria.
+- **Adaptação:** o faro de sangue virou perseguição a inimigos feridos e impede que eles se escondam; o arpão virou um puxão. *Ataque Especial* (um bônus numérico) não virou habilidade própria.
 - **Cuidado:** as táticas de Aguiar em *Natal Macabro* (armadilhas de urso, cães, cronômetro) são de outra campanha e não foram usadas.
 
-**Equipe/identidade:** Mascarados (antes, Assassinos). Receptáculo. Corpo: Jonas Aguiar. Alcunha: Mutilador Noturno.
+**Equipe/identidade:** Mascarados (antes, Assassinos). Identidade narrativa: receptáculo — o delegado Jonas Aguiar, com Jasper sem memória no corpo. Alcunha: Mutilador Noturno.
 
 **Fontes:** [Jonas Aguiar](https://ordemparanormal.fandom.com/wiki/Jonas_Aguiar); [Jasper](https://ordemparanormal.fandom.com/wiki/Jasper); [Tarrafa](https://ordemparanormal.fandom.com/wiki/Tarrafa); Ep3, Ep4, Ep7, Ep8.
 
@@ -309,7 +339,7 @@ Agentes da Ordo Realitas nos corpos dos Assassinos, mais Henri/Juan, o sacrifíc
 
 **Habilidade — Filho da Dor** *(Reação)*
 
-> Quando Jasper sofrer um ferimento, ele pode entrar em Filho da Dor (coloque um marcador). Enquanto estiver assim, ele recebe +2 Defesa e sofre 1 ferimento no fim de cada rodada. Você pode encerrar o efeito no início de qualquer ativação dele.
+> Quando Jasper sofrer um ferimento, você pode colocar um marcador genérico nele. Enquanto o marcador estiver nele, Jasper recebe +2 Defesa e sofre 1 ferimento no fim de cada rodada. Você pode retirar o marcador no início de qualquer ativação de Jasper.
 
 **Função:** protetor de linha de frente. Prende a atenção do inimigo mais perigoso e aguenta o castigo, pagando com o próprio corpo.
 
@@ -319,7 +349,7 @@ Agentes da Ordo Realitas nos corpos dos Assassinos, mais Henri/Juan, o sacrifíc
 - **Interpretação:** escolher se vincular ao inimigo mais forte funciona como uma provocação.
 - **Adaptação:** *Encarar a Fera* é criação do TCG baseada nesse vínculo. *Filho da Dor* converte a resistência em +2 Defesa e o dano por rodada em 1 ferimento.
 
-**Equipe/identidade:** Mascarados; agente da Ordo Realitas. Corpo: Jonas Aguiar.
+**Equipe/identidade:** Mascarados. Identidade narrativa: agente da Ordo Realitas (Jasper no corpo de Aguiar, depois de escolher o próprio nome).
 
 **Fontes:** [Jasper](https://ordemparanormal.fandom.com/wiki/Jasper); [Mascarados](https://ordemparanormal.fandom.com/wiki/Mascarados); [Raziel](https://ordemparanormal.fandom.com/wiki/Raziel); Ep4, Ep7, Ep9.
 
@@ -337,7 +367,7 @@ Agentes da Ordo Realitas nos corpos dos Assassinos, mais Henri/Juan, o sacrifíc
 
 > Se houver outro personagem ferido na área do Mutilador, os ataques dele devem ter como alvo o personagem com menos Vida restante (Vida menos ferimentos) na área, mesmo que seja um aliado. Em caso de empate, você escolhe.
 
-**Função:** forma de massacre. Dois golpes por ativação, mas sem controle: vai sempre atrás do mais fraco, inclusive dos aliados. Exige que a equipe mantenha os feridos longe dele.
+**Função:** máquina de massacre. Dois golpes por ativação, mas sem controle: vai sempre atrás do mais fraco, inclusive dos aliados. Exige que a equipe mantenha os feridos longe dele.
 
 **Base na lore:**
 - **Fato:** a ficha "Máscara do Mutilador Noturno" tem *Ataque Mutilador* (bônus de ataque e dano) e *Predador Perfeito* (uma ação extra na rodada). Agatha tinha avisado que as máscaras estavam impregnadas de "intenções macabras" (Ep2).
@@ -347,13 +377,13 @@ Agentes da Ordo Realitas nos corpos dos Assassinos, mais Henri/Juan, o sacrifíc
 - **Adaptação:** *Caçada* é a desvantagem criada para representar a cena de Caio. Ela combina com a *Sede de Vingança* da Lena.
 - **Correção da nota anterior:** a morte de Caio está confirmada, mas Caio já estava à beira da morte por causa de Raziel. A perda de controle aconteceu depois de Jasper escolher o próprio nome na Coroa.
 
-**Equipe/identidade:** Mascarados. Forma mascarada (máscara branca com a mão vermelha). Corpo: Jonas Aguiar; veste-se sobre Jonas Aguiar ou Jasper.
+**Equipe/identidade:** Mascarados. Identidade narrativa: forma mascarada de Jonas Aguiar (máscara branca com a mão vermelha).
 
 **Fontes:** [Jasper](https://ordemparanormal.fandom.com/wiki/Jasper); [Jonas Aguiar](https://ordemparanormal.fandom.com/wiki/Jonas_Aguiar); [Caio Teles](https://ordemparanormal.fandom.com/wiki/Caio_Teles); [Assassinos](https://ordemparanormal.fandom.com/wiki/Assassinos); [Sabara](https://ordemparanormal.fandom.com/wiki/Sabara); Ep2, Ep4, Ep7, Ep9.
 
 ---
 
-### 4.3 Corpo: Labirinto
+### 4.3 Labirinto, Remi e ???
 
 #### 7. LABIRINTO
 
@@ -361,11 +391,11 @@ Agentes da Ordo Realitas nos corpos dos Assassinos, mais Henri/Juan, o sacrifíc
 
 **Habilidade — Labirinto Mental** *(Ação)*
 
-> Escolha um inimigo a até 1 área de distância. Na próxima ativação dele, ele não realiza ação e deve se mover para uma área adjacente diferente da atual, escolhida pelo dono dele.
+> Escolha um inimigo a até 1 área de distância. Na próxima ativação, ele não pode realizar ações e deve se mover para uma área adjacente diferente da atual, escolhida pelo dono dele.
 
 **Habilidade — Capturar Momento** *(Ação)*
 
-> Coloque o marcador de Olho em uma área a até 1 área de distância. Só pode haver 1 Olho em jogo; ao colocar um novo, retire o anterior. Personagens na área do Olho são revelados e não podem ficar Ocultos, e marcadores virados para baixo nessa área são revelados.
+> Coloque um marcador genérico (o Olho) em uma área a até 1 área de distância. Só pode haver 1 Olho de Labirinto em jogo; ao colocar um novo, retire o anterior. Personagens na área do Olho se revelam e não podem ficar ocultos, e fichas viradas para baixo nessa área são reveladas. O Olho sai se Labirinto for derrotado.
 
 **Habilidade — A Antena** *(Passiva, uma vez por partida)*
 
@@ -386,9 +416,9 @@ Agentes da Ordo Realitas nos corpos dos Assassinos, mais Henri/Juan, o sacrifíc
   - Capturar Momento: espiral de lodo pela mansão (Ep6); Remi revê Pomba sendo levado por Cristino (Ep8).
   - Mapa Sanguíneo: Ep3 e Ep8.
 - **Interpretação:** como o jogo não tem sorteio, quem decide para onde o alvo "se perde" é o dono dele. O lançador não controla o caminho.
-- **Adaptação:** *Capturar Momento* e *Mapa Sanguíneo* viraram um único marcador de Olho. *A Antena* virou uma ação extra por partida. A Rajada Caótica ficou na carta de Remi, para separar as funções.
+- **Adaptação:** *Capturar Momento* e *Mapa Sanguíneo* viraram um único marcador de área, o Olho. *A Antena* virou uma ação extra por partida. A Rajada Caótica ficou na carta de Remi, para separar as funções.
 
-**Equipe/identidade:** Mascarados (antes, Assassinos). Receptáculo. Corpo: Labirinto. Alcunha mascarada: ???.
+**Equipe/identidade:** Mascarados (antes, Assassinos). Identidade narrativa: receptáculo — o ocultista sem nome, com Remi sem memória no corpo. Alcunha mascarada: ???.
 
 **Fontes:** [Labirinto](https://ordemparanormal.fandom.com/wiki/Labirinto); [Remi](https://ordemparanormal.fandom.com/wiki/Remi); [Assassinos](https://ordemparanormal.fandom.com/wiki/Assassinos); Ep1–Ep8.
 
@@ -424,7 +454,7 @@ Agentes da Ordo Realitas nos corpos dos Assassinos, mais Henri/Juan, o sacrifíc
 - **Correção da nota anterior:** o nome correto é Poder de Intenção *Novo Caminho*; a forma "Intenção Novo Caminho" não aparece. Ele **não** dá a Remi uma segunda vida: cura alguém quando **outro** personagem morre. A "segunda vida" é a recompensa do Estigma do Desejo, cujo sacrifício é Juan.
 - **Adaptação:** "metade dos PV máximos" virou "metade da Vida do derrotado". *Formação* foi criada a partir do papel de estrategista.
 
-**Equipe/identidade:** Mascarados; agente da Ordo Realitas, líder. Corpo: Labirinto.
+**Equipe/identidade:** Mascarados. Identidade narrativa: agente da Ordo Realitas e líder (Remi no corpo de Labirinto, depois de escolher o próprio nome).
 
 **Fontes:** [Remi](https://ordemparanormal.fandom.com/wiki/Remi); [Mascarados](https://ordemparanormal.fandom.com/wiki/Mascarados); [Alvira](https://ordemparanormal.fandom.com/wiki/Alvira); [Giovanni Opspor](https://ordemparanormal.fandom.com/wiki/Giovanni_Opspor); [Ritos do Hexatombe](https://ordemparanormal.fandom.com/wiki/Ritos_do_Hexatombe); Ep3, Ep9, Ep10.
 
@@ -432,7 +462,7 @@ Agentes da Ordo Realitas nos corpos dos Assassinos, mais Henri/Juan, o sacrifíc
 
 #### 9. ???
 
-❤️ 3 | ⚔️ 4 | 🛡️ 3
+❤️ 4 | ⚔️ 4 | 🛡️ 3
 
 **Habilidade — Tempestade Caótica** *(Ação)*
 
@@ -444,9 +474,9 @@ Agentes da Ordo Realitas nos corpos dos Assassinos, mais Henri/Juan, o sacrifíc
 
 **Habilidade — Cada Caminho, uma Alma** *(Passiva)*
 
-> No fim de cada rodada em que ??? não tenha derrotado nenhum personagem, retire a máscara.
+> No fim de cada rodada em que ??? não tenha derrotado nenhum personagem, ele sofre 1 ferimento.
 
-**Função:** finalizador de alcance. Vestido no momento certo, acaba com um alvo ferido de longe ou arrasta um inimigo para onde a equipe precisa. Se não matar, o capacete sai no fim da rodada.
+**Função:** finalizador de alcance. Acaba com alvos feridos de longe ou arrasta um inimigo para onde a equipe precisa, mas se desgasta a cada rodada em que não mata.
 
 **Base na lore:**
 - **Fato:** o capacete de ferro tem um rosto sem traços e um enorme sorriso macabro. Com ele, os rituais melhoram. A ficha "Capacete do ???" tem:
@@ -457,10 +487,10 @@ Agentes da Ordo Realitas nos corpos dos Assassinos, mais Henri/Juan, o sacrifíc
 - **Fato:** ao vesti-lo, Remi sente euforia e sede e quer "expandir o labirinto. Cada caminho, uma alma absorvida", entre gargalhadas (Ep7).
 - **Fato (Ep7):** mata Miasma (Ep7 @4h50m) e Escarlata (Ep7 @5h00m). Com o Labirinto Abissal, leva X até a oficina e baixa o capuz dela. Depois, a própria mão direita arranca o capacete.
 - **Fato (Ep9):** volta a vesti-lo na igreja.
-- **Interpretação:** o capacete arrancado depois da matança e a frase "cada caminho, uma alma" sugerem uma máscara que só se sustenta enquanto mata.
+- **Interpretação:** o capacete arrancado depois da matança e a frase "cada caminho, uma alma" sugerem uma força que cobra um preço de quem não mata.
 - **Adaptação:** alcance 2 e deslocamento duplo. *Consumir Momento* e *Revelação Sanguínea* não entraram, para manter a carta simples.
 
-**Equipe/identidade:** Mascarados. Forma mascarada (capacete). Corpo: Labirinto; veste-se sobre Labirinto ou Remi.
+**Equipe/identidade:** Mascarados. Identidade narrativa: forma mascarada de Labirinto (capacete).
 
 **Fontes:** [Labirinto](https://ordemparanormal.fandom.com/wiki/Labirinto); [Remi](https://ordemparanormal.fandom.com/wiki/Remi); [Escarlata](https://ordemparanormal.fandom.com/wiki/Escarlata); [Miasma](https://ordemparanormal.fandom.com/wiki/Miasma); Ep7, Ep9.
 
@@ -468,7 +498,7 @@ Agentes da Ordo Realitas nos corpos dos Assassinos, mais Henri/Juan, o sacrifíc
 
 ---
 
-### 4.4 Corpo: Dalmo Magno
+### 4.4 Dalmo Magno, Tuco Belez e Colosso
 
 #### 10. DALMO MAGNO
 
@@ -476,13 +506,13 @@ Agentes da Ordo Realitas nos corpos dos Assassinos, mais Henri/Juan, o sacrifíc
 
 **Habilidade — Golpes de Arena** *(Passiva)*
 
-> Uma vez por ativação, quando Dalmo acertar um ataque, escolha um efeito: desloque o alvo para uma área adjacente; **ou** ataque outro inimigo na mesma área; **ou** deixe o alvo Atordoado.
+> Uma vez por ativação, quando Dalmo acertar um ataque, escolha um efeito: desloque o alvo para uma área adjacente; **ou** ataque outro inimigo na mesma área; **ou** o alvo não pode realizar ações na próxima ativação dele.
 
 **Habilidade — Glória Viciante** *(Passiva)*
 
 > Quando Dalmo derrotar um inimigo, remova 1 ferimento dele.
 
-**Função:** lutador de arena. Cada acerto vira uma escolha: empurrar, emendar outro golpe ou atordoar. Fica mais forte quanto mais lutas vence.
+**Função:** lutador de arena. Cada acerto vira uma escolha: empurrar, emendar outro golpe ou tirar a próxima ação do alvo. Fica mais forte quanto mais lutas vence.
 
 **Base na lore:**
 - **Fato:** Dalmo Magno, o Colosso, lutava em arenas paranormais. Era motorista e diretor da TransMueller. Começou a lutar para pagar o tratamento da filha, Manu, e continuou pela glória: "a glória era viciante" (Mestre, Ep1 @5m33s).
@@ -492,9 +522,9 @@ Agentes da Ordo Realitas nos corpos dos Assassinos, mais Henri/Juan, o sacrifíc
   - *Manoplas do Colosso*, amaldiçoadas com Energia.
 - **Fato (episódios):** em Hexatombe, quem usa o corpo é Tuco sem memória. Ele rasga o Anulado ao meio (Ep1), mata mais de 15 no mosh pit (Ep2) e quebra o medidor de força do circo (Ep4).
 - **Interpretação:** a carta representa Tuco sem memória vivendo como Dalmo.
-- **Adaptação:** *Golpes de Arena* reúne as duas habilidades da ficha (a opção de atordoar é a *Pressão Atmosférica*). *Glória Viciante* foi criada a partir da fala do Mestre.
+- **Adaptação:** *Golpes de Arena* reúne as duas habilidades da ficha (a opção que impede o alvo de agir é a *Pressão Atmosférica*). *Glória Viciante* foi criada a partir da fala do Mestre.
 
-**Equipe/identidade:** Mascarados (antes, Assassinos). Receptáculo. Corpo: Dalmo Magno. Alcunha: Colosso.
+**Equipe/identidade:** Mascarados (antes, Assassinos). Identidade narrativa: receptáculo — o lutador Dalmo Magno, com Tuco Belez sem memória no corpo. Alcunha: Colosso.
 
 **Fontes:** [Dalmo Magno](https://ordemparanormal.fandom.com/wiki/Dalmo_Magno); [Tuco Belez](https://ordemparanormal.fandom.com/wiki/Tuco_Belez); [Manu Magno](https://ordemparanormal.fandom.com/wiki/Manu_Magno); Ep1, Ep2, Ep4.
 
@@ -526,10 +556,10 @@ Agentes da Ordo Realitas nos corpos dos Assassinos, mais Henri/Juan, o sacrifíc
   - morreu tentando impedir Raziel de chegar a Henri, e Velisar drenou seu sangue (Ep7 @4h17m).
 - **Fato:** Tuco só recuperou as memórias e o próprio nome ao morrer. Nunca tocou a Coroa.
 - **Fato (bastidores, Ep11 @2h59m):** o Poder de Intenção dele seria *Combatente de Arena*: com o incentivo de duas pessoas, +10 de Defesa ao contra-atacar e +10 na reação de contra-ataque se o atacante errasse. Nunca foi usado. O desejo dele seria curar Manu.
-- **Interpretação:** a versão Agente representa um Tuco consciente de quem é, algo que a história só mostra no momento da morte. Por isso o poder dele vem dos bastidores.
+- **Interpretação:** a carta representa um Tuco consciente de quem é, algo que a história só mostra no momento da morte. Por isso o poder dele vem dos bastidores.
 - **Adaptação:** *Combatente de Arena* foi simplificado para +1 Defesa com 2 aliados. O contra-ataque ficou de fora porque, num jogo determinístico, quase ninguém ataca sabendo que vai errar. *Assumir o Risco* e *Resgate* foram criadas a partir das cenas de proteção.
 
-**Equipe/identidade:** Mascarados; agente da Ordo Realitas. Corpo: Dalmo Magno.
+**Equipe/identidade:** Mascarados. Identidade narrativa: agente da Ordo Realitas (Tuco no corpo de Dalmo; só recupera o próprio nome ao morrer).
 
 **Fontes:** [Tuco Belez](https://ordemparanormal.fandom.com/wiki/Tuco_Belez); [Mascarados](https://ordemparanormal.fandom.com/wiki/Mascarados); [Juan](https://ordemparanormal.fandom.com/wiki/Juan); [Velisar](https://ordemparanormal.fandom.com/wiki/Velisar); Ep2, Ep3, Ep7, Ep8; [Revelando Hexatombe](https://www.youtube.com/watch?v=LVBZay042_c).
 
@@ -563,13 +593,13 @@ Agentes da Ordo Realitas nos corpos dos Assassinos, mais Henri/Juan, o sacrifíc
 - **Adaptação:** *Sem Recuar* é o nome do protótipo e **não é oficial** (não aparece nas fontes). *O Motivo* é criação do TCG baseada no chaveiro.
 - **Correção da nota anterior:** Nando chamou Dalmo de covarde **antes** da luta, quando ele estava indo embora. Dalmo não "voltou a lutar" depois de ter começado. Também não existe habilidade de resistência com nome para o Colosso; a resistência da carta é adaptação.
 
-**Equipe/identidade:** Mascarados. Forma mascarada (escafandro). Corpo: Dalmo Magno; veste-se sobre Dalmo Magno ou Tuco Belez.
+**Equipe/identidade:** Mascarados. Identidade narrativa: forma mascarada de Dalmo Magno (escafandro).
 
 **Fontes:** [Dalmo Magno](https://ordemparanormal.fandom.com/wiki/Dalmo_Magno); [Mosto](https://ordemparanormal.fandom.com/wiki/Mosto); [Nando Salles](https://ordemparanormal.fandom.com/wiki/Nando_Salles); [Tuco Belez](https://ordemparanormal.fandom.com/wiki/Tuco_Belez); Ep5, Ep7.
 
 ---
 
-### 4.5 Corpo: Park Jae-Yoon
+### 4.5 Park Jae-Yoon, Maria Helena Rodrigues e X
 
 #### 13. PARK JAE-YOON
 
@@ -577,11 +607,11 @@ Agentes da Ordo Realitas nos corpos dos Assassinos, mais Henri/Juan, o sacrifíc
 
 **Habilidade — Zona dos Sussurros** *(Ação)*
 
-> Coloque um marcador X na área de Jae. Ela só pode ter 2 marcadores X em jogo; ao colocar um terceiro, retire um dos anteriores. Numa área com marcador X, Jae recebe +1 Ataque. No fim de uma ativação em que não atacou, se estiver numa área com X, ela pode ficar Oculta. Ela se revela ao atacar ou ao sair de uma área com X.
+> Coloque um marcador genérico (um X) na área de Jae. Ela pode ter no máximo 2 X em jogo; ao colocar um terceiro, retire um dos anteriores. Os X saem se Jae for derrotada. Numa área com X, Jae recebe +1 Ataque. No fim de uma ativação em que não atacou, se estiver numa área com X, ela pode ficar oculta (vire a carta para baixo). Ela se revela ao atacar ou ao sair de uma área com X.
 
 **Habilidade — Punhal X** *(Ação)*
 
-> Ataque um inimigo na área de Jae. Se acertar, ele fica Atordoado.
+> Ataque um inimigo na área de Jae. Se acertar, na próxima ativação, ele não pode realizar ações.
 
 **Função:** assassina de território. Prepara pontos marcados, se esconde neles e ataca de dentro deles. O Punhal tira o alvo da rodada seguinte.
 
@@ -596,9 +626,9 @@ Agentes da Ordo Realitas nos corpos dos Assassinos, mais Henri/Juan, o sacrifíc
 - **Correção da nota anterior:**
   - A velocidade aparece só em *Natal Macabro* ("correndo quase que sobrenaturalmente"); não está na ficha nem em Hexatombe, por isso não entrou.
   - "Interromper o alvo" não faz parte do Punhal X, que cega. O silenciamento é do *Sabor do Silêncio*, da Maria.
-- **Adaptação:** *Zona dos Sussurros* ganhou o limite de 2 marcadores e a ocultação dentro da área. A cegueira virou Atordoado.
+- **Adaptação:** *Zona dos Sussurros* ganhou o limite de 2 marcas e a ocultação dentro da área. A cegueira virou a perda da próxima ação.
 
-**Equipe/identidade:** Mascarados (antes, Assassinos). Receptáculo. Corpo: Park Jae-Yoon. Alcunha: X.
+**Equipe/identidade:** Mascarados (antes, Assassinos). Identidade narrativa: receptáculo — a assassina Park Jae-Yoon, com Maria sem memória no corpo. Alcunha: X.
 
 **Fontes:** [Park Jae-Yoon](https://ordemparanormal.fandom.com/wiki/Park_Jae-Yoon); [Maria Helena Rodrigues](https://ordemparanormal.fandom.com/wiki/Maria_Helena_Rodrigues); [Chispa](https://ordemparanormal.fandom.com/wiki/Chispa); Ep1, Ep3, Ep7.
 
@@ -610,11 +640,11 @@ Agentes da Ordo Realitas nos corpos dos Assassinos, mais Henri/Juan, o sacrifíc
 
 **Habilidade — Sabor do Silêncio** *(Ação)*
 
-> Escolha um inimigo ferido na área de Maria e coloque nele o marcador de Presa (só uma Presa por vez). Enquanto a Presa estiver na área de Maria, ela não pode usar habilidades de Ação nem de Reação, e os ataques de Maria contra ela causam +1 ferimento.
+> Escolha um inimigo ferido na área de Maria e coloque nele um marcador genérico: ele é a presa de Maria (só uma presa por vez). Enquanto a presa estiver na área de Maria, ela não pode usar habilidades, e os ataques de Maria contra ela causam +1 ferimento. Retire o marcador se Maria escolher outra presa ou for derrotada.
 
 **Habilidade — Morte Natural** *(Passiva)*
 
-> Quando Maria derrotar um personagem, nenhuma habilidade é ativada por essa derrota.
+> Quando Maria derrotar um personagem, Reações e Passivas que seriam disparadas por essa derrota não são ativadas, e um Estigma que seria entregue por ela sai do jogo. Marcadores ligados ao personagem derrotado saem normalmente.
 
 **Função:** predadora silenciosa. Escolhe uma presa já ferida, a cala e a abate sem deixar rastro: a morte não ativa vingança, cura nem nenhum outro efeito.
 
@@ -626,7 +656,7 @@ Agentes da Ordo Realitas nos corpos dos Assassinos, mais Henri/Juan, o sacrifíc
 - **Adaptação:** *Sabor do Silêncio* dá +1 ferimento e cala a presa enquanto ela estiver perto. *Morte Natural* é nome do protótipo e **não é oficial**: vem da mentira do passado de Maria.
 - **Correção da nota anterior:** "Morte Natural" não é um poder, e quem acelerou a morte do paciente foi a chefe, não Maria. A experiência de enfermagem não virou cura, porque ela nunca cura ninguém em Hexatombe.
 
-**Equipe/identidade:** Mascarados; agente da Ordo Realitas. Corpo: Park Jae-Yoon.
+**Equipe/identidade:** Mascarados. Identidade narrativa: agente da Ordo Realitas (Maria no corpo de Jae, depois de escolher o próprio nome).
 
 **Fontes:** [Maria Helena Rodrigues](https://ordemparanormal.fandom.com/wiki/Maria_Helena_Rodrigues); [Raziel](https://ordemparanormal.fandom.com/wiki/Raziel); Ep4, Ep6, Ep8, Ep9.
 
@@ -638,17 +668,13 @@ Agentes da Ordo Realitas nos corpos dos Assassinos, mais Henri/Juan, o sacrifíc
 
 **Habilidade — Zona das Sombras** *(Ação)*
 
-> Coloque o marcador de Armadilha na área de X ou numa área adjacente. Só pode haver 1 Armadilha de X em jogo. Quando um inimigo entrar nessa área ou começar a ativação nela, ele sofre 1 ferimento e fica Atordoado; depois, retire a Armadilha.
+> Coloque um marcador genérico (a armadilha) na área de X ou numa área adjacente; só pode haver 1 armadilha de X em jogo. Quando um inimigo entrar nessa área, ele sofre 1 ferimento e, na próxima ativação, não pode realizar ações. Depois, retire o marcador. Ele também sai se X for derrotada.
 
 **Habilidade — Assassinato Cruel** *(Passiva)*
 
-> Os ataques de X causam +1 ferimento contra inimigos Atordoados ou que estejam na mesma área de outro aliado de X.
+> Os ataques de X causam +1 ferimento contra inimigos que estejam na mesma área de outro aliado de X.
 
-**Habilidade — O Capuz Cai** *(Passiva)*
-
-> Quando X sofrer um ferimento, retire a máscara.
-
-**Função:** forma de emboscada. Arma uma armadilha e pune quem está atordoado ou cercado. Com Defesa baixa, perde o capuz no primeiro golpe que leva.
+**Função:** emboscadora. Arma uma armadilha que tira a próxima ação de quem pisa nela e pune quem está cercado. Tem Defesa baixa e cai rápido se for pega sozinha.
 
 **Base na lore:**
 - **Fato:** a ficha "Capuz de X" tem:
@@ -660,19 +686,19 @@ Agentes da Ordo Realitas nos corpos dos Assassinos, mais Henri/Juan, o sacrifíc
   - dominada pela paixão de Escarlata, é obrigada a atacar o Mutilador;
   - enfurecida, fere Labirinto;
   - o Labirinto Abissal baixa o capuz, e ela chora.
-- **Interpretação:** o capuz cai com choques e interferências de fora.
-- **Adaptação:** *O Capuz Cai* (ser ferida remove a máscara) adapta essa fragilidade.
+- **Interpretação:** com o capuz, X é rápida e cruel, mas frágil.
+- **Adaptação:** a fragilidade virou Defesa baixa. A armadilha tira a próxima ação do alvo, no lugar da cegueira da ficha.
 - **Correção da nota anterior:** a punição a "inimigos isolados" não tem base. A ficha pune alvos desprevenidos ou flanqueados, ou seja, cercados; a carta segue a ficha.
 
-**Equipe/identidade:** Mascarados. Forma mascarada (capuz vermelho). Corpo: Park Jae-Yoon; veste-se sobre Park Jae-Yoon ou Maria Helena Rodrigues.
+**Equipe/identidade:** Mascarados. Identidade narrativa: forma mascarada de Park Jae-Yoon (capuz vermelho).
 
 **Fontes:** [Maria Helena Rodrigues](https://ordemparanormal.fandom.com/wiki/Maria_Helena_Rodrigues); [Park Jae-Yoon](https://ordemparanormal.fandom.com/wiki/Park_Jae-Yoon); [Ana Delgado dos Santos](https://ordemparanormal.fandom.com/wiki/Ana_Delgado_dos_Santos); Ep5, Ep7.
 
 ---
 
-### 4.6 Corpo: Lúcio Davo (Henri / Juan)
+### 4.6 Henri e Juan
 
-Henri e Juan são a mesma pessoa, antes e depois de escolher um novo nome na Coroa de Espinhos (Ep9). São versões alternativas: escolha uma ao montar a equipe.
+Henri e Juan são a mesma pessoa, antes e depois de escolher um novo nome na Coroa de Espinhos (Ep9). No TCG, são duas cartas independentes.
 
 #### 16. HENRI
 
@@ -680,11 +706,11 @@ Henri e Juan são a mesma pessoa, antes e depois de escolher um novo nome na Cor
 
 **Habilidade — Perturbação** *(Ação)*
 
-> Escolha um inimigo a até 1 área de distância e dê uma ordem: "Solta!" (ele fica Atordoado) ou "Senta!" (ele fica Preso).
+> Escolha um inimigo a até 1 área de distância e dê uma ordem: "Solta!" (na próxima ativação, ele não pode realizar ações) ou "Senta!" (na próxima ativação, ele não pode se mover).
 
 **Habilidade — Vínculo de Sangue** *(Ação · proteção)*
 
-> Coloque o marcador de Vínculo em um aliado na área de Henri (só um Vínculo por vez). Quando Henri sofrer ferimentos, você pode passar 1 deles para o aliado vinculado, esteja ele em qualquer área.
+> Coloque um marcador genérico (o vínculo) em um aliado na área de Henri; só um vínculo por vez. Quando Henri sofrer ferimentos, você pode passar 1 deles para o aliado vinculado, esteja ele em qualquer área. O vínculo sai se você o colocar em outro aliado ou se um dos dois for derrotado.
 
 **Habilidade — Faca Predadora** *(Passiva)*
 
@@ -692,7 +718,7 @@ Henri e Juan são a mesma pessoa, antes e depois de escolher um novo nome na Cor
 
 **Habilidade — Estigma do Desejo** *(Sacrifício)*
 
-> Quando Henri for derrotado, quem o derrotou recebe o Estigma do Desejo: na próxima vez que esse personagem sofreria o ferimento que o derrotaria, ele fica com 1 de Vida restante. Depois, descarte o marcador.
+> **Recebe:** quem derrotar Henri. **Efeito:** uma vez, quando o portador sofreria o ferimento que o derrotaria, ele fica com 1 de Vida restante. **Duração:** até o portador ser derrotado; nesse caso, o Estigma passa para quem o derrotar (seção 2.8). O efeito é de uso único.
 
 **Função:** sacrifício frágil que se defende com truques de sangue: ordens curtas, divisão de dano com um aliado e cura ao ferir. Quem o derrota ganha uma segunda chance.
 
@@ -711,7 +737,7 @@ Henri e Juan são a mesma pessoa, antes e depois de escolher um novo nome na Cor
 - **Adaptação:** a segunda vida foi simplificada para "fica com 1 de Vida". A Armadura de Sangue não virou habilidade própria.
 - **Cuidado:** o Vínculo de Sangue já existia em *Desconjuração*, quando Henri marcou a si mesmo para que agentes morressem com ele. Só o uso de Hexatombe foi considerado.
 
-**Equipe/identidade:** Mascarados. Sacrifício (Estigma do Desejo). Corpo: Lúcio Davo.
+**Equipe/identidade:** Mascarados. Sacrifício (Estigma do Desejo). Identidade narrativa: Lúcio Davo, chamado Henri desde o orfanato.
 
 **Fontes:** [Juan](https://ordemparanormal.fandom.com/wiki/Juan) (a página "Henri" redireciona para ela); [O Diabo](https://ordemparanormal.fandom.com/wiki/O_Diabo); [Ritos do Hexatombe](https://ordemparanormal.fandom.com/wiki/Ritos_do_Hexatombe); [Sabara](https://ordemparanormal.fandom.com/wiki/Sabara); Ep3–Ep8.
 
@@ -731,7 +757,7 @@ Henri e Juan são a mesma pessoa, antes e depois de escolher um novo nome na Cor
 
 **Habilidade — Estigma do Desejo** *(Sacrifício)*
 
-> Quando Juan for derrotado, quem o derrotou recebe o Estigma do Desejo: na próxima vez que esse personagem sofreria o ferimento que o derrotaria, ele fica com 1 de Vida restante. Depois, descarte o marcador.
+> **Recebe:** quem derrotar Juan. **Efeito:** uma vez, quando o portador sofreria o ferimento que o derrotaria, ele fica com 1 de Vida restante. **Duração:** até o portador ser derrotado; nesse caso, o Estigma passa para quem o derrotar (seção 2.8). O efeito é de uso único.
 
 **Função:** executor. Arranca a carne de alvos blindados à distância e finaliza quem estiver mais fraco por perto. Continua sendo o sacrifício da equipe.
 
@@ -746,7 +772,7 @@ Henri e Juan são a mesma pessoa, antes e depois de escolher um novo nome na Cor
 - **Interpretação:** a intenção sempre empurra Juan para quem está mais vulnerável, seja aliado ou inimigo.
 - **Adaptação:** *Descarnar* virou dano direto que ignora Defesa. *Desejo Diabólico* virou acerto automático contra o mais fraco, inclusive aliados.
 
-**Equipe/identidade:** Mascarados. Sacrifício (Estigma do Desejo). Corpo: Lúcio Davo.
+**Equipe/identidade:** Mascarados. Sacrifício (Estigma do Desejo). Identidade narrativa: Lúcio Davo, depois de escolher o nome Juan (Ep9).
 
 **Fontes:** [Juan](https://ordemparanormal.fandom.com/wiki/Juan); [Zéfero](https://ordemparanormal.fandom.com/wiki/Zéfero); [Cristino](https://ordemparanormal.fandom.com/wiki/Cristino); [Harpia](https://ordemparanormal.fandom.com/wiki/Harpia); [Raziel](https://ordemparanormal.fandom.com/wiki/Raziel); Ep9, Ep10.
 
@@ -764,11 +790,11 @@ Ocultistas de vários países presos a armaduras amaldiçoadas, com base no Ferr
 
 **Habilidade — Apaixonado** *(Ação)*
 
-> Coloque o marcador de Paixão em um inimigo na área de Escarlata. No máximo 2 inimigos podem ter Paixão ao mesmo tempo. Personagens com Paixão não podem atacar Escarlata.
+> Coloque um marcador genérico em um inimigo na área de Escarlata. Ela pode ter no máximo 2 desses marcadores em jogo; para colocar um terceiro, retire um dos anteriores. Inimigos com esse marcador não podem atacar Escarlata. O marcador sai quando a Dominação o usa ou quando Escarlata é derrotada.
 
 **Habilidade — Dominação** *(Ação)*
 
-> Escolha um personagem com Paixão a até 1 área de distância. Ele faz imediatamente um ataque contra um alvo na área dele escolhido por você, que pode ser um aliado dele. Depois, retire a Paixão dele.
+> Escolha um inimigo com o marcador de Escarlata a até 1 área de distância. Ele faz imediatamente um ataque contra um alvo na área dele escolhido por você, que pode ser um aliado dele. Depois, retire o marcador dele.
 
 **Habilidade — Transfusão Vital** *(Ação)*
 
@@ -798,7 +824,7 @@ Ocultistas de vários países presos a armaduras amaldiçoadas, com base no Ferr
 
 **Habilidade — Crucificado** *(Passiva)*
 
-> Torvo não pode se mover sozinho. Quando um aliado sair da área de Torvo, Torvo pode acompanhá-lo.
+> Torvo não pode se mover sozinho. Quando um aliado sair da área de Torvo, Torvo pode acompanhá-lo. Aliados na área de Torvo podem atacá-lo.
 
 **Habilidade — Fonte de Dor** *(Passiva)*
 
@@ -861,16 +887,16 @@ Ocultistas de vários países presos a armaduras amaldiçoadas, com base no Ferr
 
 **Habilidade — Crânio Dominador** *(Ação)*
 
-> Só pode ser usada depois que uma Escarlata da sua equipe tiver sido derrotada nesta partida. Escolha um inimigo a até 1 área de distância: desloque-o para a área de Argano. Ele fica Preso.
+> Escolha um inimigo a até 1 área de distância: desloque-o para a área de Argano. Na próxima ativação, ele não pode se mover.
 
-**Função:** muralha. Quase impossível de ferir no corpo a corpo, mas vulnerável a tiros. Se Escarlata estiver na equipe e cair, ele passa a arrastar inimigos para perto.
+**Função:** muralha. Quase impossível de ferir no corpo a corpo, mas vulnerável a tiros. Arrasta inimigos para perto e os segura ali.
 
 **Base na lore:**
 - **Fato:** Argano (Zacarías) é o guardião da base. Usa uma armadura colossal, fixada ao corpo por agulhas, que parece tomar as decisões por ele, com o coração exposto num buraco no peito. Luta com a Maça Adornada e quase quebra a coluna de Eloy (Ep7). Sobrevive ao incêndio dos dormitórios.
 - **Fato (Ep10):** usa o *Crânio Dominador*: o crânio carbonizado de Escarlata, envolto em correntes que voam até o alvo, o prendem e o puxam, deixando-o paralisado até que a corrente seja quebrada. Prende Cristino depois de levar um tiro no coração.
 - **Fato:** sobrevive, herda um estigma e vence. O desejo dele, trazer Escarlata de volta, parece se cumprir: o crânio começa a se regenerar.
 - **Interpretação:** o crânio só existe depois da morte de Escarlata.
-- **Adaptação:** Defesa 5 contra o corpo a corpo e *Coração Exposto* contra tiros (como o de Cristino). O *Crânio Dominador* só funciona depois que uma Escarlata aliada é derrotada, como na história; sem Escarlata na equipe, Argano não tem essa habilidade.
+- **Adaptação:** Defesa 5 contra o corpo a corpo e *Coração Exposto* contra tiros (como o de Cristino). O *Crânio Dominador* funciona desde o início da partida, para que a carta não dependa de Escarlata; na história, ele só aparece depois da morte dela.
 - **Correção da nota anterior:** o perfil não é só defensivo; ele também ataca na linha de frente. "Segura posições" é interpretação, não está nas fontes.
 
 **Equipe/identidade:** Couraças, guardião. Termina como desertor e um dos vencedores.
@@ -919,7 +945,7 @@ Ocultistas de vários países presos a armaduras amaldiçoadas, com base no Ferr
 
 **Habilidade — Grua Blindada** *(Ação · proteção)*
 
-> Coloque o marcador de Barricada na área de Miasma ou numa área adjacente. Só pode haver 1 Barricada em jogo. Personagens na área da Barricada não podem ser alvo de ataques feitos de outra área.
+> Coloque um marcador genérico (a barricada) na área de Miasma ou numa área adjacente; só pode haver 1 barricada de Miasma em jogo. Personagens na área da barricada não podem ser alvo de ataques feitos de outra área. A barricada sai quando Miasma coloca outra ou é derrotado.
 
 **Habilidade — Obsessão** *(Passiva)*
 
@@ -927,7 +953,7 @@ Ocultistas de vários países presos a armaduras amaldiçoadas, com base no Ferr
 
 **Habilidade — Estigma da Obsessão** *(Sacrifício)*
 
-> Quando Miasma for derrotado, quem o derrotou recebe o Estigma da Obsessão: enquanto estiver na mesma área de um aliado, recebe +1 Defesa.
+> **Recebe:** quem derrotar Miasma. **Efeito:** enquanto estiver na mesma área de um aliado, o portador recebe +1 Defesa. **Duração:** até o portador ser derrotado; nesse caso, o Estigma passa para quem o derrotar (seção 2.8).
 
 **Função:** sacrifício de apoio. Monta cobertura contra tiros e fortalece quem luta ao lado dele. Precisa ser protegido.
 
@@ -964,16 +990,16 @@ Por decisão do projeto, só **Pomba** e **Harpia** entram. Papagaio, Corvo, Cor
 
 **Habilidade — O Mais Fraco** *(Passiva)*
 
-> Quando Pomba for derrotado, se Harpia estiver na sua equipe, Harpia pode imediatamente fazer um ataque. Se Harpia ainda estiver fora do tabuleiro, ele primeiro entra na área onde Pomba foi derrotado. Isso não gasta a ativação de Harpia.
+> Quando Pomba for derrotado, um aliado na área de Pomba pode imediatamente fazer um ataque. Isso não é uma ativação.
 
-**Função:** guia frágil. Abre caminhos para a equipe e escapa uma vez, mas não luta. A morte dele desperta Harpia.
+**Função:** guia frágil. Abre caminhos para a equipe e escapa uma vez, mas não luta. A morte dele dá um último impulso a um aliado.
 
 **Base na lore:**
 - **Fato:** Pomba é tratado no masculino pelas fontes: "um jovem cartógrafo". Mapeou o perímetro da Coroa de Espinhos e sabia onde ficava cada base. Mantinha um mural sobre todas as equipes (Ep6) e analisou os estigmas (Ep8).
 - **Fato (Ep3–Ep5):** escapa do massacre. Kemi (Lena sem memória) o acerta nas costelas quando ele chega à mansão. Depois, os Mascarados o abrigam. O truque dos pássaros foi ensinado por Harpia: soltar os pássaros numa direção e fugir na oposta (Ep4). O desejo dele era "nunca mais ficar sozinho" (Ep5 @3h23m). Também conduziu o grupo dirigindo (Ep9, Ep10).
 - **Fato (desfecho, Ep10):** o plano com Harpia era que, quando restassem seis, Pomba mataria o mais fraco para abrir a vaga de Harpia. Pomba julgou que o mais fraco era ele mesmo e se matou com a pistola de Lena (Ep10 @3h01m). Isso forçou Harpia a sair do esconderijo.
 - **Interpretação:** conhecer o mapa vira mobilidade para a equipe.
-- **Adaptação:** *Cartógrafo* (atalhos), *Truque dos Pássaros* (fuga) e *O Mais Fraco* (gatilho para Harpia).
+- **Adaptação:** *Cartógrafo* (atalhos), *Truque dos Pássaros* (fuga) e *O Mais Fraco* (a morte dele abre caminho para um aliado, como abriu para Harpia).
 - **Correção da nota anterior:** as fontes usam o masculino; "cartógrafa" foi corrigido para "cartógrafo".
 
 **Equipe/identidade:** Pássaros; desertor desde a noite 1. Foi abrigado pelos Mascarados.
@@ -990,7 +1016,7 @@ Por decisão do projeto, só **Pomba** e **Harpia** entram. Papagaio, Corvo, Cor
 
 **Habilidade — Escondido no Bunker** *(Passiva)*
 
-> Harpia começa a partida fora do tabuleiro. No início de qualquer ativação dele, coloque-o em qualquer área. Se ele ainda estiver fora do tabuleiro na ativação dele na 3ª rodada, ele deve entrar nela.
+> Harpia começa a partida fora do tabuleiro. No início de qualquer ativação dele, coloque-o em qualquer área. Enquanto estiver fora, ele só pode ser ativado para entrar ou para passar. Ao entrar, ele age normalmente nessa mesma ativação. Se ainda estiver fora na ativação da 3ª rodada, ele deve entrar.
 
 **Habilidade — Rasante da Harpia** *(Passiva, uma vez por partida)*
 
@@ -998,7 +1024,7 @@ Por decisão do projeto, só **Pomba** e **Harpia** entram. Papagaio, Corvo, Cor
 
 **Habilidade — Garra do Harpia** *(Passiva)*
 
-> O primeiro ataque de Harpia depois de entrar no tabuleiro causa +1 ferimento e deixa o alvo Preso.
+> O primeiro ataque de Harpia depois de entrar no tabuleiro causa +1 ferimento e, na próxima ativação, o alvo não pode se mover.
 
 **Função:** emboscador estratégico. Fica fora da mesa até o momento certo, aparece onde quiser e prende a presa no primeiro golpe.
 
@@ -1010,7 +1036,7 @@ Por decisão do projeto, só **Pomba** e **Harpia** entram. Papagaio, Corvo, Cor
 - **Interpretação:** a divisão estratégica da equipe não virou habilidade, porque só ele e Pomba estão no catálogo.
 - **Adaptação:** entrada surpresa; o Rasante virou um movimento livre uma vez por partida; a Garra prende o alvo, como prendeu Lena.
 
-**Equipe/identidade:** Pássaros, líder; desertor desde a noite 1 e último sacrifício do ritual.
+**Equipe/identidade:** Pássaros, líder. Na história, foi desertor desde a noite 1 e acabou como o último sacrifício; no TCG, não é uma carta de Sacrifício.
 
 **Fontes:** [Harpia](https://ordemparanormal.fandom.com/wiki/Harpia); [Pássaros](https://ordemparanormal.fandom.com/wiki/Pássaros); [Pomba](https://ordemparanormal.fandom.com/wiki/Pomba); [Raziel](https://ordemparanormal.fandom.com/wiki/Raziel); Ep3, Ep4, Ep10.
 
@@ -1028,7 +1054,7 @@ Banda de nu metal formada por ocultistas ligados ao Sangue, com base no Circo e 
 
 **Habilidade — Moeller Method** *(Ação)*
 
-> Ataque um inimigo na área de Eloy e coloque nele o marcador de Ritmo (só um Ritmo em jogo; ao colocar um novo, retire o anterior). Enquanto o inimigo com Ritmo continuar na área de Eloy, no início de cada ativação de Eloy ele pode atacá-lo uma vez sem gastar a ação. O Ritmo sai se um dos dois deixar a área.
+> Ataque um inimigo na área de Eloy e coloque nele um marcador genérico (o ritmo); só um ritmo por vez. Enquanto esse inimigo continuar na área de Eloy, no início de cada ativação de Eloy, ele pode atacá-lo uma vez sem gastar a ação. Retire o marcador se um dos dois deixar a área.
 
 **Habilidade — Porrada Rítmica** *(Passiva · Bônus de Aliado)*
 
@@ -1042,7 +1068,7 @@ Banda de nu metal formada por ocultistas ligados ao Sangue, com base no Circo e 
   - *Porrada Rítmica* (Bônus de Aliado): ele incentiva os aliados a bater "no ritmo de um tambor de guerra", dando +5 em Luta corpo a corpo, sem valer para Pontaria.
 - **Fato (episódios):** no Ep7, pula em Argano e bate sem parar. Fala: "Uma bateria sem os outros instrumentos não serve pra nada!" (Ep7 @5h54m). É o personagem da série que mais vezes entrou em Morrendo; sobreviveu e foi um dos vencedores.
 - **Interpretação:** "até o alvo resistir ou Eloy se afastar" vira uma pressão que só termina quando alguém sai da área.
-- **Adaptação:** o marcador de Ritmo e o +1 Ataque corpo a corpo para aliados. A Vida alta representa as várias vezes em que ele sobreviveu à beira da morte.
+- **Adaptação:** o marcador genérico de ritmo e o +1 Ataque corpo a corpo para aliados. A Vida alta representa as várias vezes em que ele sobreviveu à beira da morte.
 - **Correção da nota anterior:** o nome oficial está em inglês ("Moeller Method"). O tambor de guerra é só uma imagem, e não existe bônus pela simples presença de um aliado: a *Porrada Rítmica* é um bônus que os aliados usam no corpo a corpo.
 
 **Equipe/identidade:** PSIKOLERA (bateria). Termina como desertor e um dos vencedores, ao lado dos Mascarados.
@@ -1065,7 +1091,7 @@ Banda de nu metal formada por ocultistas ligados ao Sangue, com base no Circo e 
 
 **Habilidade — Silenciar** *(Ação)*
 
-> Escolha um inimigo a até 2 áreas de distância: ele fica Silenciado.
+> Escolha um inimigo a até 2 áreas de distância: até o fim da próxima ativação dele, ele não pode usar habilidades.
 
 **Função:** cobertura ofensiva. Atira de longe, garante que o ataque de um aliado contra um alvo resistente cause dano mesmo assim e cala habilidades inimigas. Precisa manter distância.
 
@@ -1079,7 +1105,7 @@ Banda de nu metal formada por ocultistas ligados ao Sangue, com base no Circo e 
   - As fontes não mostram cenas com esses nomes.
 - **Fato:** planejou com Giovanni a morte de Andrei Colfas. Raziel a mata na igreja (Ep9 @6h39m).
 - **Interpretação:** é uma atiradora que prefere terreno alto e distância.
-- **Adaptação:** alcance 2, sem atacar na própria área. *Tiros de Aviso* transforma um erro em ferimento; *Silenciar* aplica a condição Silenciado.
+- **Adaptação:** alcance 2, sem atacar na própria área. *Tiros de Aviso* transforma um erro em ferimento; *Silenciar* impede o alvo de usar habilidades por uma ativação.
 
 **Equipe/identidade:** PSIKOLERA (baixo), líder.
 
@@ -1093,7 +1119,7 @@ Banda de nu metal formada por ocultistas ligados ao Sangue, com base no Circo e 
 
 **Habilidade — Berrão** *(Ação)*
 
-> Ataque um inimigo na área de Caio. Se acertar, o alvo escolhe: fica Atordoado ou sofre +1 ferimento.
+> Ataque um inimigo na área de Caio. Se acertar, o alvo escolhe: sofre +1 ferimento, ou não pode realizar ações na próxima ativação.
 
 **Habilidade — Barulheira** *(Reação · Bônus de Aliado · proteção)*
 
@@ -1122,7 +1148,7 @@ Banda de nu metal formada por ocultistas ligados ao Sangue, com base no Circo e 
 
 **Habilidade — Guitarra Lança-Chamas** *(Ação)*
 
-> Escolha a área de Franco ou uma área adjacente e faça um ataque separado contra cada outro personagem nela, inclusive aliados. Franco não pode usar esta habilidade em duas ativações seguidas.
+> Escolha a área de Franco ou uma área adjacente e faça um ataque separado contra cada outro personagem nela, inclusive aliados. Franco não pode usar esta habilidade em duas ativações seguidas: ao usá-la, coloque um marcador genérico nele e retire-o no fim da próxima ativação dele.
 
 **Habilidade — Fogo em Geral** *(Passiva · Bônus de Aliado)*
 
@@ -1152,7 +1178,7 @@ Banda de nu metal formada por ocultistas ligados ao Sangue, com base no Circo e 
 
 **Habilidade — Cicatrização** *(Ação)*
 
-> Remova 2 ferimentos de um aliado na área de Alê (exceto Alê). Depois, coloque Atordoado em Alê.
+> Remova 2 ferimentos de um aliado na área de Alê (exceto Alê). Depois, na próxima ativação, Alê não pode realizar ações.
 
 **Habilidade — Proteção Sigilosa** *(Ação · proteção)*
 
@@ -1170,7 +1196,7 @@ Banda de nu metal formada por ocultistas ligados ao Sangue, com base no Circo e 
   - *Proteção Sigilosa* (ritual): sigilos dourados de Conhecimento protegem uma área ou um objeto; exige melodia constante e se desfaz se a máscara cair;
   - *Prever Resultados* (Bônus de Aliado): permite que os aliados rolem de novo um dado de um teste.
 - **Fato (episódios):** lê a mão de Kemi e diz as palavras de intenção dela (Ep4 @3h37m). No Ep7, cura a perna de Franco e as feridas de Dalmo e fica muito cansada; ergue a Proteção Sigilosa em volta do globo de Caíto; Zéfero a mata enquanto ela mantém a proteção (Ep7 @4h04m).
-- **Adaptação:** o cansaço depois de curar virou Atordoado, o que impede cura infinita. A proteção cai se Alê for ferida, como na cena com Zéfero.
+- **Adaptação:** o cansaço depois de curar virou a perda da ação seguinte, o que impede cura infinita. A proteção cai se Alê for ferida, como na cena com Zéfero.
 - **Correção da nota anterior:** *Prever Resultados* não prevê ataques; vale para rolar de novo um dado em qualquer teste. Como o TCG não tem dados, virou um +1 Ataque.
 
 **Equipe/identidade:** PSIKOLERA (teclado).
@@ -1189,11 +1215,11 @@ Banda de nu metal formada por ocultistas ligados ao Sangue, com base no Circo e 
 
 **Habilidade — Ódio Suprimido** *(Reação)*
 
-> Quando Caíto sofrer um ferimento ou ficar Atordoado ou Preso, ele pode explodir de raiva: faça imediatamente um ataque com +1 Ataque contra qualquer personagem na área dele, inclusive um aliado. Depois, coloque Atordoado em Caíto.
+> Quando Caíto sofrer um ferimento, ele pode explodir de raiva: faça imediatamente um ataque com +1 Ataque contra qualquer personagem na área dele, inclusive um aliado. Depois, na próxima ativação, Caíto não pode realizar ações.
 
 **Habilidade — Estigma do Rancor** *(Sacrifício)*
 
-> Quando Caíto for derrotado, quem o derrotou recebe o Estigma do Rancor: depois que esse personagem derrotar outro personagem, os ataques dele causam +1 ferimento até o fim da rodada.
+> **Recebe:** quem derrotar Caíto. **Efeito:** depois que o portador derrotar outro personagem, os ataques dele causam +1 ferimento até o fim da rodada (marque com um marcador genérico e retire-o no fim da rodada). **Duração:** até o portador ser derrotado; nesse caso, o Estigma passa para quem o derrotar (seção 2.8).
 
 **Função:** sacrifício exigente. Só fica seguro cercado de defensores, explode de raiva quando é ferido ou contido (acertando inclusive a própria equipe) e entrega a quem o derrota um prêmio para emendar mortes.
 
@@ -1228,13 +1254,13 @@ Membros do culto de Giovanni, mais quem foi colocado na equipe à força para co
 
 **Habilidade — Espelho** *(Passiva e Ação)*
 
-> **Passiva:** Giovanni não começa no tabuleiro. No início da partida, coloque 3 fichas iguais em áreas diferentes; uma delas tem um sinal no lado virado para a mesa e representa Giovanni, as outras são Clones. Na ativação de Giovanni, escolha uma ficha, mova-a até 1 área e realize a ação de Giovanni a partir dela. As fichas só podem ser afetadas por ataques (com a Defesa de Giovanni) e pelo Olho; efeitos de área e ferimentos sem ataque as ignoram. Quando uma ficha for atacada ou estiver na área do Olho, revele-a: se for um Clone atacado, ele é destruído e o ataque não tem outro efeito; se for um Clone revelado pelo Olho, ele fica com a face para cima até ser destruído; se for Giovanni, coloque a carta no lugar e, se foi atacado, resolva o ataque normalmente. Depois de revelado, Giovanni age como um personagem comum.
+> **Passiva:** Giovanni não começa no tabuleiro. No início da partida, coloque 3 fichas iguais em áreas diferentes; uma delas tem um sinal no lado virado para a mesa e representa Giovanni, as outras são Clones. Na ativação de Giovanni, escolha uma ficha, mova-a até 1 área e realize a ação de Giovanni a partir dela. As fichas não são personagens para nenhuma regra: só podem ser atacadas (com a Defesa de Giovanni) ou afetadas por habilidades que citem as fichas de Giovanni ou que revelem fichas viradas para baixo. Quando uma ficha for atacada ou estiver na área do Olho, revele-a: se for um Clone atacado, ele é destruído e o ataque não tem outro efeito; se for um Clone revelado pelo Olho, ele fica com a face para cima até ser destruído; se for Giovanni, coloque a carta no lugar e, se foi atacado, resolva o ataque normalmente. Depois de revelado, Giovanni age como um personagem comum. Se Giovanni for derrotado, retire todas as fichas dele.
 >
-> **Ação:** coloque um novo Clone virado para baixo na área de um dos seus marcadores (máximo de 3 marcadores em jogo). Você pode embaralhar em segredo os marcadores dessa área.
+> **Ação:** coloque uma nova ficha de Clone virada para baixo na área de uma das suas fichas (máximo de 3 fichas em jogo). Você pode embaralhar em segredo as fichas dessa área. As fichas saem quando são destruídas ou quando Giovanni é derrotado.
 
 **Habilidade — Informação Vale Mais** *(Ação)*
 
-> Escolha um inimigo a até 1 área de distância de qualquer marcador seu ou de Giovanni. Até o fim da rodada, seus aliados recebem +1 Ataque contra ele.
+> Escolha um inimigo a até 1 área de distância de qualquer ficha sua ou de Giovanni. Até o fim da rodada, seus aliados recebem +1 Ataque contra ele: coloque um marcador genérico nele e retire-o no fim da rodada.
 
 **Função:** estrategista escondido. Ninguém sabe onde ele está de verdade. Sobrevive pelo blefe e ajuda a equipe apontando alvos. Se for encontrado sem clones, cai rápido.
 
@@ -1265,7 +1291,7 @@ Membros do culto de Giovanni, mais quem foi colocado na equipe à força para co
 
 **Habilidade — Lampiões Explosivos** *(Ação)*
 
-> Coloque o marcador de Lampião numa área a até 1 área de distância (só 1 Lampião em jogo). No início de qualquer ativação de Cristino, ele pode detoná-lo: cada personagem nessa área sofre 1 ferimento. Isso não é um ataque. Depois, retire o marcador.
+> Coloque um marcador genérico (o lampião) numa área a até 1 área de distância; só 1 lampião de Cristino em jogo. No início de qualquer ativação de Cristino, ele pode detoná-lo: cada personagem nessa área sofre 1 ferimento. Isso não é um ataque. Depois, retire o marcador.
 
 **Habilidade — Não é Pessoal** *(Passiva)*
 
@@ -1297,13 +1323,13 @@ Membros do culto de Giovanni, mais quem foi colocado na equipe à força para co
 
 **Habilidade — Trocação Justa** *(Ação)*
 
-> Só pode ser usada se Mosto tiver pelo menos 1 ferimento (o saco de pão já caiu). Escolha um inimigo na área de Mosto: cada um dos dois sofre 1 ferimento, ao mesmo tempo, causado pelo outro. Isso não é um ataque e ignora a Defesa.
+> Só pode ser usada se Mosto tiver pelo menos 1 ferimento (o saco de pão já caiu). Escolha um inimigo na área de Mosto: primeiro, o inimigo sofre 1 ferimento; depois, Mosto sofre 1 ferimento. Isso não é um ataque e ignora a Defesa.
 
 **Habilidade — Guarda-Costas** *(Reação · proteção)*
 
-> Quando Giovanni, ou um marcador de Giovanni, na área de Mosto for alvo de um ataque, Mosto pode se tornar o alvo desse ataque.
+> Quando um aliado na área de Mosto (inclusive uma ficha de Giovanni) for alvo de um ataque, Mosto pode se tornar o alvo desse ataque.
 
-**Função:** brigão de trocação. Quando já está sangrando, troca golpe por golpe com qualquer um, ignorando armaduras. Protege o chefe com o próprio corpo.
+**Função:** brigão de trocação. Quando já está sangrando, troca golpe por golpe com qualquer um, ignorando armaduras. Protege os aliados, e principalmente o chefe, com o próprio corpo.
 
 **Base na lore:**
 - **Fato:** Mosto é ex-lutador do submundo, segurança do The Monica Club e o "faz tudo e guarda-costas" de Giovanni, a quem é extremamente leal. Foi desfigurado pelo verdadeiro Dalmo (o Colosso) numa luta de arena antes do ritual e esconde o rosto com um saco de pão. Usa um cutelo de açougueiro.
@@ -1328,11 +1354,11 @@ Membros do culto de Giovanni, mais quem foi colocado na equipe à força para co
 
 **Habilidade — Engolir Metal** *(Ação)*
 
-> Retire do jogo um marcador (Armadilha, Barricada, Lampião, Olho, Marca X ou Clone) que esteja na área de Tarrafa.
+> Retire do jogo um marcador de área que esteja na área de Tarrafa, ou revele uma ficha de Giovanni nessa área: um Clone revelado é destruído; se for Giovanni, a carta dele entra no lugar.
 
-**Habilidade — Pacto: Zumbi Espinhento** *(Passiva)*
+**Habilidade — Pacto: Zumbi Espinhento** *(Passiva, uma vez por partida)*
 
-> Quando Tarrafa for derrotado pela primeira vez, retire os ferimentos dele e gire a carta de lado na mesma área. Ele volta como Zumbi Espinhento, com ❤️ 2 | ⚔️ 3 | 🛡️ 2 e sem outras habilidades. Se o Zumbi for derrotado, retire a carta do jogo.
+> Uma vez por partida, quando Tarrafa for derrotado, ele não sai do jogo: remova todos os ferimentos dele. Na próxima ativação, ele não pode realizar ações.
 
 **Função:** utilidade e incômodo. Desmonta armadilhas, barricadas e blefes, e obriga o inimigo a derrotá-lo duas vezes.
 
@@ -1344,7 +1370,7 @@ Membros do culto de Giovanni, mais quem foi colocado na equipe à força para co
   - o corpo vira um Zumbi Espinhento, porque ele morreu num local com a Membrana enfraquecida, e Aguiar o destrói com o machado e o arpão (Ep3 @2h07m).
 - **Fato:** o arsenal dele tem o *Arpão do Pescador* e uma *Faca*, mas nenhuma cena o mostra usando os dois.
 - **Correção da nota anterior:** arpão e faca estão no arsenal, mas não há uso em cena; o arpão foi usado por Aguiar, depois da morte de Tarrafa. A equipe dele é a dos **Transtornados**, não a dos Vampiros.
-- **Adaptação:** *Engolir Metal* remove marcadores, e o retorno como zumbi aparece com a carta girada.
+- **Adaptação:** *Engolir Metal* remove marcadores. O retorno como zumbi é uma segunda chance completa, com uma ação perdida, sem trocar os atributos da carta.
 
 **Equipe/identidade:** Transtornados.
 
@@ -1362,9 +1388,9 @@ Membros do culto de Giovanni, mais quem foi colocado na equipe à força para co
 
 **Habilidade — Eu Sei Quem Você É** *(Passiva)*
 
-> Cleo recebe +1 Ataque contra personagens que estejam usando uma Máscara.
+> Cleo recebe +1 Ataque contra personagens da equipe Mascarados.
 
-**Função:** investigadora acuada. Ataca quem chega perto e foge em seguida. Sabe reconhecer os assassinos mascarados.
+**Função:** investigadora acuada. Ataca quem chega perto e foge em seguida. Sabe reconhecer os assassinos da equipe Mascarados.
 
 **Base na lore:**
 - **Fato:** Cleo Brisa é investigadora da Polícia Civil de Inquisidor do Vale e colega de Aguiar, que ela investigava em segredo como o Mutilador Noturno.
@@ -1374,7 +1400,7 @@ Membros do culto de Giovanni, mais quem foi colocado na equipe à força para co
   - depois, é capturada e torturada por Velisar e transformada à força em vampira;
   - Ep9: Velisar a apresenta como sua obra-prima, uma armadilha ambulante, e ela explode quando Remi a toca (Ep9 @5h56m).
 - **Correção da nota anterior:** Cleo era da equipe **Transtornados**, não dos Vampiros. O nome oficial do ritual é *Armadilha Sanguinária*, de Velisar; "armadilha de sangue" não é o nome.
-- **Adaptação:** emboscada seguida de fuga, e um bônus contra personagens mascarados. A explosão do Ep9 está na carta de Velisar.
+- **Adaptação:** emboscada seguida de fuga, e um bônus contra a equipe Mascarados. A explosão do Ep9 está na carta de Velisar.
 
 **Equipe/identidade:** Transtornados, integrada à força.
 
@@ -1392,7 +1418,7 @@ Membros do culto de Giovanni, mais quem foi colocado na equipe à força para co
 
 **Habilidade — Estigma do Orgulho** *(Sacrifício)*
 
-> Quando Nando for derrotado, quem o derrotou recebe o Estigma do Orgulho: enquanto não tiver ferimentos, recebe +1 Ataque.
+> **Recebe:** quem derrotar Nando. **Efeito:** enquanto não tiver ferimentos, o portador recebe +1 Ataque. **Duração:** até o portador ser derrotado; nesse caso, o Estigma passa para quem o derrotar (seção 2.8).
 
 **Função:** sacrifício provocador. Força lutas que interessam à equipe dele, mas é frágil e entrega um prêmio a quem o derrota.
 
@@ -1424,7 +1450,7 @@ Os "Monstruosos de Sangue" da Igreja Antiga, liderados por Raziel. Fizeram o pri
 
 **Habilidade — Turno Extra** *(Passiva)*
 
-> Raziel é ativado duas vezes por rodada. Cada ativação segue as regras normais, inclusive o movimento.
+> Na ativação, Raziel pode se mover até 2 áreas e realizar 2 ações.
 
 **Habilidade — Endurecer Sangue** *(Reação · proteção, uma vez por partida)*
 
@@ -1432,9 +1458,9 @@ Os "Monstruosos de Sangue" da Igreja Antiga, liderados por Raziel. Fizeram o pri
 
 **Habilidade — Sede Incontrolável** *(Passiva, obrigatória)*
 
-> Se houver um personagem, aliado ou inimigo, com 1 de Vida restante na área de Raziel ou numa área adjacente, Raziel deve se mover até ele e atacá-lo na próxima ativação.
+> No início da ativação de Raziel, se houver um personagem, aliado ou inimigo, com 1 de Vida restante na área dele ou numa área adjacente, Raziel deve se mover até esse personagem e usar a primeira ação para atacá-lo.
 
-**Função:** chefe predador. Age duas vezes por rodada e derruba qualquer um, mas a sede o arrasta para quem está morrendo, mesmo que seja um aliado. Isso permite atraí-lo para armadilhas.
+**Função:** chefe predador. Faz o dobro numa única ativação e derruba qualquer um, mas a sede o arrasta para quem está morrendo, mesmo que seja um aliado. Isso permite atraí-lo para armadilhas.
 
 **Base na lore:**
 - **Fato:** Raziel é o líder dos Vampiros: um aristocrata cortês que ataca com garras e mordidas, com 390 PV. Habilidades na wiki:
@@ -1448,9 +1474,9 @@ Os "Monstruosos de Sangue" da Igreja Antiga, liderados por Raziel. Fizeram o pri
   - Ep8: mata Damir e herda o Estigma da Culpa (Ep8 @6h21m). Pela regra do ritual, quem mata o segundo sacrifício do mesmo dia herda o estigma;
   - Ep9: revela a forma verdadeira, tomado pela sede mata Cindy e Maria, e Juan o mata e o devora (Ep9 @7h06m).
 - **Interpretação:** a nota anterior dizia que a forma verdadeira é "mais perigosa". As fontes descrevem uma forma bestial com ficha própria, mas não dizem isso com essas palavras.
-- **Adaptação:** *Turno Extra* virou duas ativações. *Endurecer Sangue* ficou limitado a uma vez por partida. *Sede Incontrolável* virou uma compulsão. A herança da Culpa acontece pela carta de Damir.
+- **Adaptação:** *Turno Extra* virou movimento e ações dobrados dentro de uma única ativação. *Endurecer Sangue* ficou limitado a uma vez por partida. *Sede Incontrolável* virou uma compulsão. A herança da Culpa acontece pela carta de Damir.
 
-**Equipe/identidade:** Vampiros, líder e herdeiro do sacrifício (Estigma da Culpa).
+**Equipe/identidade:** Vampiros, líder. Na história, herdou o Estigma da Culpa; no TCG, só recebe um Estigma se derrotar um Sacrifício.
 
 **Fontes:** [Raziel](https://ordemparanormal.fandom.com/wiki/Raziel); [Vampiros](https://ordemparanormal.fandom.com/wiki/Vampiros); [Damir Lukic](https://ordemparanormal.fandom.com/wiki/Damir_Lukic); [Ritos do Hexatombe](https://ordemparanormal.fandom.com/wiki/Ritos_do_Hexatombe); Ep7–Ep9.
 
@@ -1462,11 +1488,11 @@ Os "Monstruosos de Sangue" da Igreja Antiga, liderados por Raziel. Fizeram o pri
 
 **Habilidade — Bolsa do Sangue** *(Ação)*
 
-> Alvira sofre 1 ferimento e remove 2 ferimentos de outro personagem a até 1 área de distância (pode ser um inimigo). Coloque nesse personagem o marcador de Sangue.
+> Alvira sofre 1 ferimento e remove 2 ferimentos de outro personagem a até 1 área de distância (pode ser um inimigo). Coloque nesse personagem um marcador genérico (o sangue de Alvira); ele sai como descrito em *Titereira de Sangue*.
 
 **Habilidade — Titereira de Sangue** *(Passiva)*
 
-> No início de cada ativação de Alvira, ela pode deslocar um personagem com o marcador de Sangue que esteja a até 2 áreas dela. Esse personagem pode retirar o marcador no início da própria ativação, sofrendo 1 ferimento.
+> No início de cada ativação de Alvira, ela pode deslocar um personagem com o sangue de Alvira que esteja a até 2 áreas dela. Esse personagem pode retirar o marcador no início da própria ativação, sofrendo 1 ferimento. Todos esses marcadores saem se Alvira for derrotada.
 
 **Função:** curandeira e titereira. Mantém aliados vivos com o próprio sangue e pode "comprar" um inimigo curando-o, para depois arrastá-lo pelo mapa.
 
@@ -1530,11 +1556,11 @@ Os "Monstruosos de Sangue" da Igreja Antiga, liderados por Raziel. Fizeram o pri
 
 **Habilidade — Olhar da Curiosidade Mórbida** *(Ação)*
 
-> Escolha um inimigo a até 1 área de distância. Ele escolhe: encara Velisar e fica Atordoado, ou desvia o olhar e recebe −1 Ataque até o fim da próxima ativação dele.
+> Escolha um inimigo a até 1 área de distância. Ele escolhe: encara Velisar e, na próxima ativação, não pode realizar ações; ou desvia o olhar e, até o fim da próxima ativação dele, tem −1 Ataque (marque com um marcador genérico e retire-o no fim dessa ativação).
 
 **Habilidade — Armadilha Sanguinária** *(Ação)*
 
-> Coloque o marcador de Armadilha Sanguinária em um personagem de qualquer lado a até 1 área de distância (só 1 em jogo). Quando esse personagem for atacado por um inimigo de Velisar ou for derrotado, a armadilha explode: cada outro personagem na área dele sofre 1 ferimento. Depois, retire o marcador.
+> Coloque um marcador genérico (a armadilha) em um personagem de qualquer lado a até 1 área de distância; só 1 armadilha de Velisar em jogo. Quando esse personagem for atacado por um inimigo de Velisar ou for derrotado, a armadilha explode: cada outro personagem na área dele sofre 1 ferimento. Depois, retire o marcador.
 
 **Função:** diplomata cruel. Paralisa ou enfraquece com o olhar e transforma corpos (até os de aliados) em bombas, punindo quem se agrupa.
 
@@ -1561,13 +1587,13 @@ Os "Monstruosos de Sangue" da Igreja Antiga, liderados por Raziel. Fizeram o pri
 
 **Habilidade — Coleira** *(Passiva)*
 
-> Se Velisar estiver em jogo, Zéfero só pode terminar o movimento a até 1 área de distância de Velisar. Enquanto estiver na área de Velisar, Zéfero recebe +1 Ataque.
+> Zéfero recebe +1 Ataque enquanto estiver na mesma área de um aliado. Se houver aliados em jogo, Zéfero não pode terminar o movimento a mais de 1 área de distância de todos eles.
 
 **Habilidade — Devorar Restos** *(Passiva)*
 
-> Quando um personagem for derrotado na área de Zéfero, ou quando um Clone for destruído nela, remova 1 ferimento de Zéfero.
+> Quando um personagem for derrotado na área de Zéfero, ou quando uma ficha de Giovanni for destruída nela, remova 1 ferimento de Zéfero.
 
-**Função:** fera de coleira. Rende mais ao lado do dono e se recupera com cada corpo que cai perto dele.
+**Função:** fera de coleira. Rende mais ao lado da matilha, não se afasta dela e se recupera com cada corpo que cai perto dele.
 
 **Base na lore:**
 - **Fato:** Zéfero é tratado como uma criatura da equipe. Velisar o carrega por uma coleira com espinhos e corrente, e Zéfero o chama de "Mestre". Tinha 70 PV. Nenhuma habilidade com nome foi encontrada nas fontes.
@@ -1594,7 +1620,7 @@ Os "Monstruosos de Sangue" da Igreja Antiga, liderados por Raziel. Fizeram o pri
 
 **Habilidade — Estigma da Culpa** *(Sacrifício)*
 
-> Quando Damir for derrotado, quem o derrotou recebe o Estigma da Culpa: uma vez por rodada, quando atacar, o alvo tem −1 Defesa contra esse ataque.
+> **Recebe:** quem derrotar Damir. **Efeito:** uma vez por rodada, quando o portador atacar, o alvo tem −1 Defesa contra esse ataque. **Duração:** até o portador ser derrotado; nesse caso, o Estigma passa para quem o derrotar (seção 2.8).
 
 **Função:** sacrifício prisioneiro. Não luta nem foge; serve de fonte de sangue para a própria equipe. Quem o matar, de qualquer lado, fica com a Culpa.
 
@@ -1663,12 +1689,42 @@ Os "Monstruosos de Sangue" da Igreja Antiga, liderados por Raziel. Fizeram o pri
 7. As fontes divergem em detalhes de algumas mortes (Raziel, Maria, Ana, Chispa). As cartas não dependem desses detalhes.
 
 **Regras e equilíbrio (para testar)**
-1. *Turno Extra* (Raziel) depende da regra de ordem de ativação, que ainda não existe.
-2. O alcance ilimitado de Kemi, Lena e Fantasma depende do tamanho do mapa. Se ele tiver muitas áreas, limitar a "até 3 áreas" é o primeiro ajuste a testar.
-3. *Espelho* (Giovanni) é o efeito mais complexo do catálogo. Use 3 fichas iguais com uma marca no verso.
-4. Ainda não está definido se uma equipe pode misturar facções. As cartas funcionam nos dois casos; só *Guarda-Costas* (Mosto), *Coleira* (Zéfero), *O Mais Fraco* (Pomba) e *Crânio Dominador* (Argano) citam outro personagem pelo nome. O *Crânio Dominador* só funciona se Escarlata estiver na mesma equipe de Argano e for derrotada.
-5. Também não está definido se as Máscaras contam no limite de cartas da equipe.
-6. *Morte Natural* (Maria) também impede que ela receba o Estigma de um Sacrifício que ela derrote. Isso é intencional.
+1. **Alcance ilimitado.** Kemi, Lena e Fantasma dependem do tamanho do mapa. Se o mapa tiver muitas áreas, o primeiro ajuste a testar é limitar a "até 3 áreas".
+2. **Espelho (Giovanni)** é o efeito mais complexo do catálogo. Use 3 fichas iguais, com uma marca no lado virado para a mesa.
+3. **Facções misturadas.** Ainda não está definido se uma equipe pode misturar facções. Todas as cartas funcionam sozinhas; nenhuma depende de outra carta para usar as próprias habilidades.
+4. ***Morte Natural* (Maria)** também impede que ela receba o Estigma de um Sacrifício que ela derrote. Isso é intencional.
+
+**Habilidades que podem ficar fortes demais (vigiar nos testes)**
+
+| Carta | Risco | Respostas que já existem | Primeiro ajuste, se dominar |
+|---|---|---|---|
+| Raziel | *Turno Extra*: 2 movimentos e 2 ações numa ativação, com Vida 6 e Ataque 4. É a carta mais forte. | A *Sede Incontrolável* o atrai para quem está com 1 de Vida. Efeitos que ignoram Defesa: *Descarnar*, *Trocação Justa*, *Lampiões*. | Reduzir para 1 movimento e 2 ações. |
+| Mutilador Noturno | 2 ataques com Ataque 4 por ativação: 2 ferimentos por rodada em quase todo o elenco. | A *Caçada* o obriga a mirar o mais ferido, inclusive aliados. Argano resiste no corpo a corpo. | Ataque 3. |
+| Fantasma | Tiro a qualquer distância que ignora ocultação e proteção. | Defesa 2 e Vida 3; *Solitária* impede cura e apoio. | Alcance de até 3 áreas. |
+| Alê | *Proteção Sigilosa* deixa os aliados da área imunes a ferimentos de ataques por uma rodada. | Ferir Alê (Defesa 2) quebra o efeito na hora; efeitos que não são ataques passam. | Vale só para 1 aliado. |
+| Argano | Defesa 5 no corpo a corpo; nenhuma carta tem Ataque 5 sem bônus. | *Coração Exposto* (Defesa 3 contra tiros); efeitos que ignoram Defesa. | Defesa 4. |
+| Escarlata | *Dominação* faz um inimigo atacar o próprio aliado. | Exige duas ações (apaixonar e dominar); sair da área dela evita a Paixão. | Um apaixonado por vez. |
+| Juan | *Desejo Diabólico*: acerto automático com +1 ferimento contra o mais fraco da área. | Afastar feridos dele; ele também pode ter de mirar um aliado. | Sem o +1 ferimento. |
+
+Nenhuma carta foi considerada impossível de responder. Ocultação, fichas de Giovanni e entrada tardia de Harpia têm limite de tempo ou formas de revelar (*Capturar Momento*, *Predador de Sangue*, *Disparo Espiral*, *Engolir Metal*).
+
+**Cartas da mesma pessoa na mesma equipe (decisão em aberto, sem regra imposta)**
+- **Coerência narrativa:** Kemi, Lena Viegas e Fantasma são a mesma pessoa no mesmo corpo. O mesmo vale para:
+  - Jonas Aguiar / Jasper / Mutilador Noturno;
+  - Labirinto / Remi / ???;
+  - Dalmo Magno / Tuco Belez / Colosso;
+  - Park Jae-Yoon / Maria Helena Rodrigues / X;
+  - Henri / Juan.
+
+  Usar duas ou três dessas cartas juntas cria a mesma pessoa em dois lugares.
+- **Equilíbrio:** os Mascarados têm 17 cartas, contra 6 das outras equipes (2 dos Pássaros). Uma equipe poderia juntar só as cinco formas mascaradas, todas com Ataque 4.
+- **Henri e Juan juntos:** a mesma equipe expõe dois Sacrifícios com o mesmo Estigma do Desejo.
+- **Opções para decidir depois:**
+  1. Regra de "pessoa única": no máximo uma carta por pessoa em cada equipe.
+  2. Pontos de montagem, com custo maior para as formas mascaradas.
+  3. Deixar livre no jogo casual.
+
+  Nada disso foi aplicado; as cartas funcionam em qualquer das três opções.
 
 **Verificação**
 - Os episódios não foram assistidos nesta revisão. Toda a verificação foi feita pelas páginas da Ordem Paranormal Wiki, que citam os episódios e os tempos usados aqui.
@@ -1687,13 +1743,13 @@ Os "Monstruosos de Sangue" da Igreja Antiga, liderados por Raziel. Fizeram o pri
 | 6 | Mutilador Noturno | 4 | 4 | 3 | 11 | 2 |
 | 7 | Labirinto | 3 | 2 | 3 | 8 | 3 |
 | 8 | Remi | 4 | 3 | 3 | 10 | 3 |
-| 9 | ??? | 3 | 4 | 3 | 10 | 3 |
+| 9 | ??? | 4 | 4 | 3 | 11 | 3 |
 | 10 | Dalmo Magno | 5 | 3 | 3 | 11 | 2 |
 | 11 | Tuco Belez | 5 | 3 | 3 | 11 | 3 |
 | 12 | Colosso | 5 | 4 | 4 | 13 | 2 |
 | 13 | Park Jae-Yoon | 3 | 3 | 3 | 9 | 2 |
 | 14 | Maria Helena Rodrigues | 3 | 3 | 3 | 9 | 2 |
-| 15 | X | 3 | 4 | 2 | 9 | 3 |
+| 15 | X | 3 | 4 | 2 | 9 | 2 |
 | 16 | Henri | 3 | 2 | 2 | 7 | 4 |
 | 17 | Juan | 4 | 3 | 3 | 10 | 3 |
 | 18 | Escarlata | 4 | 2 | 4 | 10 | 3 |
@@ -1724,9 +1780,9 @@ Os "Monstruosos de Sangue" da Igreja Antiga, liderados por Raziel. Fizeram o pri
 | 43 | Damir Lukic | 3 | 1 | 1 | 5 | 2 |
 
 **Leitura rápida do equilíbrio**
-- **Ataque 4** só aparece em máscaras e em Raziel. Nenhuma carta tem Ataque 5, para que Defesa 4 continue significando alguma coisa.
+- **Ataque 4** só aparece nas formas mascaradas (Fantasma, Mutilador Noturno, ???, Colosso, X) e em Raziel. Nenhuma carta tem Ataque 5, para que Defesa 4 continue significando alguma coisa.
 - **Defesa 4 ou 5** só em Colosso, Escarlata e Argano. Elas são vencidas por bônus de +1 Ataque e por efeitos que ignoram Defesa: *Descarnar*, *Trocação Justa*, *Lampiões Explosivos*, as armadilhas e a explosão de Velisar.
-- As somas mais altas (Argano 14, Colosso 13, Raziel 13) têm compensações explícitas: *Coração Exposto*; *Sem Recuar* e as condições para vestir a máscara; *Sede Incontrolável*. São as primeiras candidatas a ajuste depois dos testes.
+- As somas mais altas (Argano 14, Colosso 13, Raziel 13) têm compensações explícitas: *Coração Exposto*; *Sem Recuar*; *Sede Incontrolável*. São as primeiras candidatas a ajuste depois dos testes.
 - As somas mais baixas (Pomba, Damir, Alê, Giovanni) são peças de apoio, de blefe ou de sacrifício, com habilidades que compensam a fragilidade.
 
 ---
