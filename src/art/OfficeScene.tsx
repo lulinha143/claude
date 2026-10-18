@@ -61,7 +61,7 @@ import {
 } from './RoomPlay';
 import { routineView, routineWantsYou, speakerFor, type RoutineView } from '../sim/roomPlay';
 import { ODDITIES_BY_ID, type OddityDef } from '../content/roomPlay';
-import type { RoomPayout, RoomPlayResult } from '../sim/engine';
+import type { OfficeNews, RoomPayout, RoomPlayResult } from '../sim/engine';
 import { GAME_EVENTS_BY_ID } from '../content/events';
 import { HOOKS, WORLD_MOMENTS_BY_ID } from '../content/happenings';
 import { incidentsIn, memoriesFor, remarksDue } from '../sim/happenings';
@@ -449,6 +449,46 @@ function ghostAnchorClass(drag: DragState): string {
 
 // i18n suffix naming the surface being targeted (Floor / Wall / Ceiling).
 
+/** Small moments that may wait for the player to look at their floor. */
+const HELD_MOMENTS = 3;
+
+/** Keys that scroll the tower (a trip under way lets go when one is pressed). */
+const SCROLL_KEYS = new Set(['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' ']);
+
+/**
+ * The floor the player is looking at: the one nearest the middle of the view.
+ * The floors at either end of the tower can never reach the middle (the ground
+ * floor sits on the roots), so at either end of the scroll it is the end-most
+ * one fully in view.
+ */
+function floorNearestMiddle(scroller: HTMLElement): string | null {
+  const box = scroller.getBoundingClientRect();
+  const middle = box.top + scroller.clientHeight / 2;
+  let best: string | null = null;
+  let bestDistance = Infinity;
+  const floors = [...scroller.querySelectorAll<HTMLElement>('.floor[data-room]')];
+  floors.forEach((element) => {
+    const rect = element.getBoundingClientRect();
+    const distance = Math.abs(rect.top + rect.height / 2 - middle);
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      best = element.dataset.room ?? null;
+    }
+  });
+  const max = scroller.scrollHeight - scroller.clientHeight;
+  const atBottom = max > 0 && scroller.scrollTop >= max - 2;
+  const atTop = scroller.scrollTop <= 2;
+  if (atBottom || atTop) {
+    const inView = floors.filter((element) => {
+      const rect = element.getBoundingClientRect();
+      return rect.top >= box.top - 1 && rect.bottom <= box.top + scroller.clientHeight + 1;
+    });
+    const end = atBottom ? inView[inView.length - 1] : inView[0];
+    if (end?.dataset.room) best = end.dataset.room;
+  }
+  return best;
+}
+
 // Persistent per-employee state machines (kept across renders).
 const machines: Record<string, CritterStateMachine> = {};
 function machineFor(id: string): CritterStateMachine {
@@ -506,7 +546,15 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
   }, [audio, covered, currentFloor]);
   useEffect(() => () => audio.setRoomInView(null), [audio]);
   // A trip to a floor still under way: corrected once the scroll settles (below).
-  const tripRef = useRef<{ roomId: string; timer: number; tries: number } | null>(null);
+  // `rest` is the floor the trip itself last left in view (null while a smooth
+  // trip is still on its way): once another floor is in view, someone else moved
+  // the view since, and the trip lets go instead of pulling it back.
+  const tripRef = useRef<{
+    roomId: string;
+    timer: number;
+    tries: number;
+    rest: string | null;
+  } | null>(null);
   const scrollToFloor = useCallback(
     (roomId: string, behavior: ScrollBehavior = 'auto') => {
       const scroller = scrollerRef.current;
@@ -531,14 +579,22 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
       // "go there" — could end a floor or two short as they were drawn on the way.
       // Once the scroll has settled the floor is measured again and the view put
       // right, a few times at most, unless the player has taken over the scroll.
+      // The boot's own trip home used to run its last corrections a second after
+      // the office appeared and pull back a view the player (or a keyboard, or a
+      // focus) had already moved to another floor; the floor in view tells.
       if (tripRef.current) window.clearTimeout(tripRef.current.timer);
       const settle = () => {
         const trip = tripRef.current;
         if (!trip || trip.roomId !== roomId) return;
+        if (trip.rest !== null && floorNearestMiddle(scroller) !== trip.rest) {
+          tripRef.current = null;
+          return;
+        }
         const target = centredTop();
         if (target !== null && Math.abs(scroller.scrollTop - target) > 3) {
           scroller.scrollTo({ top: target, behavior: 'auto' });
         }
+        trip.rest = floorNearestMiddle(scroller);
         trip.tries += 1;
         if (trip.tries < 4) trip.timer = window.setTimeout(settle, 220);
         else tripRef.current = null;
@@ -546,12 +602,15 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
       tripRef.current = {
         roomId,
         tries: 0,
+        // An instant trip is already where it went; a smooth one is known once it settles.
+        rest: behavior === 'smooth' ? null : floorNearestMiddle(scroller),
         timer: window.setTimeout(settle, behavior === 'smooth' ? 650 : 120),
       };
     },
     [engine],
   );
-  // The player scrolling or pressing anything during a trip takes over from it.
+  // The player scrolling or pressing anything during a trip takes over from it:
+  // a wheel, a touch, a press, a scrolling key, or focus moving into the tower.
   useEffect(() => {
     const scroller = scrollerRef.current;
     if (!scroller) return undefined;
@@ -559,13 +618,20 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
       if (tripRef.current) window.clearTimeout(tripRef.current.timer);
       tripRef.current = null;
     };
+    const onKey = (event: KeyboardEvent) => {
+      if (SCROLL_KEYS.has(event.key)) takeOver();
+    };
     scroller.addEventListener('wheel', takeOver, { passive: true });
     scroller.addEventListener('touchstart', takeOver, { passive: true });
     scroller.addEventListener('pointerdown', takeOver);
+    scroller.addEventListener('focusin', takeOver);
+    window.addEventListener('keydown', onKey);
     return () => {
       scroller.removeEventListener('wheel', takeOver);
       scroller.removeEventListener('touchstart', takeOver);
       scroller.removeEventListener('pointerdown', takeOver);
+      scroller.removeEventListener('focusin', takeOver);
+      window.removeEventListener('keydown', onKey);
       if (tripRef.current) window.clearTimeout(tripRef.current.timer);
     };
   }, []);
@@ -692,33 +758,7 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
     let frame = 0;
     const measure = () => {
       frame = 0;
-      const box = scroller.getBoundingClientRect();
-      const middle = box.top + scroller.clientHeight / 2;
-      let best: string | null = null;
-      let bestDistance = Infinity;
-      const floors = [...scroller.querySelectorAll<HTMLElement>('.floor[data-room]')];
-      floors.forEach((element) => {
-        const rect = element.getBoundingClientRect();
-        const distance = Math.abs(rect.top + rect.height / 2 - middle);
-        if (distance < bestDistance) {
-          bestDistance = distance;
-          best = element.dataset.room ?? null;
-        }
-      });
-      // The floors at either end of the tower can never reach the middle of the
-      // view (the ground floor sits on the roots), so at either end of the scroll
-      // the floor the player is looking at is the end-most one fully in view.
-      const max = scroller.scrollHeight - scroller.clientHeight;
-      const atBottom = max > 0 && scroller.scrollTop >= max - 2;
-      const atTop = scroller.scrollTop <= 2;
-      if (atBottom || atTop) {
-        const inView = floors.filter((element) => {
-          const rect = element.getBoundingClientRect();
-          return rect.top >= box.top - 1 && rect.bottom <= box.top + scroller.clientHeight + 1;
-        });
-        const end = atBottom ? inView[inView.length - 1] : inView[0];
-        if (end?.dataset.room) best = end.dataset.room;
-      }
+      const best = floorNearestMiddle(scroller);
       if (best && best !== currentFloorRef.current) {
         currentFloorRef.current = best;
         setCurrentFloor(best);
@@ -1275,15 +1315,32 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
   }
 
   // What the office did on its own: a teammate points it out, if their floor is
-  // in view (otherwise the elevator's floor list carries the news).
+  // in view (otherwise the elevator's floor list carries the news). Nothing is
+  // said to a window nobody can see: the news waits in the engine until it shows.
+  //
+  // A small moment leaves nothing behind in the office to find later (a ticket, a
+  // curiosity and a remark all wait in their rooms), so one that happens on a
+  // floor nobody is looking at waits here instead, and plays out when the player
+  // gets there: a promise kept while they were on another floor (the bet in the
+  // lab) used to be paid and never seen. A few at most, the newest kept.
+  const heldMomentsRef = useRef<OfficeNews[]>([]);
   useEffect(() => {
-    if (covered) return;
+    if (covered || document.visibilityState === 'hidden') return;
     const st = stateRef.current;
-    for (const item of engine.drainOfficeNews()) {
+    const inView = (roomId: string) => {
       const floor = scrollerRef.current?.querySelector<HTMLElement>(
-        `.floor[data-room="${item.roomId}"]`,
+        `.floor[data-room="${roomId}"]`,
       );
-      if (!floor || floor.dataset.onscreen === 'false') continue;
+      return Boolean(floor) && floor?.dataset.onscreen !== 'false';
+    };
+    let played = false;
+    for (const item of engine.drainOfficeNews()) {
+      if (!inView(item.roomId)) {
+        if (item.kind === 'moment' && item.momentId) {
+          heldMomentsRef.current = [...heldMomentsRef.current, item].slice(-HELD_MOMENTS);
+        }
+        continue;
+      }
       // Something started happening: whoever noticed it says so, once. The
       // ticket they hold up waits for the player.
       if (item.kind === 'incident') {
@@ -1299,6 +1356,7 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
       }
       if (item.kind === 'moment' && item.momentId) {
         playMomentLines(item.roomId, item.momentId, item.payout ?? null);
+        played = true;
         continue;
       }
       const play = st.office.rooms[item.roomId];
@@ -1319,15 +1377,31 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
         say(who, t(`oddity.${item.oddityId}.hint`), false, 4600);
       }
     }
+    // A moment that waited for the player, now that its floor is in view: one at
+    // a time, never over someone talking, in arranging mode or behind a popup.
+    if (
+      !played &&
+      heldMomentsRef.current.length > 0 &&
+      !decorMode &&
+      !((bubbleRef.current?.until ?? 0) > Date.now()) &&
+      !document.querySelector('.popup-backdrop, .modal-backdrop')
+    ) {
+      const index = heldMomentsRef.current.findIndex((item) => inView(item.roomId));
+      if (index >= 0) {
+        const [item] = heldMomentsRef.current.splice(index, 1);
+        playMomentLines(item.roomId, item.momentId!, item.payout ?? null);
+      }
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [floorSecond, covered]);
 
   // Teammates bring up what they have been meaning to say (a choice they
   // remember, something that came of it) when their floor is in view: one at a
-  // time, never over someone else talking or behind a popup.
+  // time, never over someone else talking or behind a popup, and never to a
+  // window nobody can see (it waits for them).
   const lastRemarkRef = useRef(0);
   useEffect(() => {
-    if (covered || decorMode || opening) return;
+    if (covered || decorMode || opening || document.visibilityState === 'hidden') return;
     const nowMs = Date.now();
     if (nowMs - lastRemarkRef.current < 15_000) return;
     if (bubble && bubble.until > nowMs) return;
@@ -2503,9 +2577,11 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
                               label={moodLabel}
                               name={label}
                               tilt={stickerTilt(id)}
-                              speech={bubble?.employeeId === id ? bubble.text : null}
+                              // The note is portaled above the shell: while a sheet
+                              // covers the office, nobody in it talks over the sheet.
+                              speech={!covered && bubble?.employeeId === id ? bubble.text : null}
                               action={
-                                bubble?.employeeId === id && bubble.invite && !decorMode
+                                !covered && bubble?.employeeId === id && bubble.invite && !decorMode
                                   ? {
                                       label: canTalk(state, id, now)
                                         ? t('visit.invite.talk')

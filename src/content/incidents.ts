@@ -166,6 +166,9 @@ export const INCIDENT_EVENTS: GameEventDef[] = [
   },
 
   // --- friends: the night shift recorded the building -----------------------------
+  // It follows the basement's knocking pipes: noticing them, Echo says she has
+  // heard that tune somewhere else in the building, at night (the curiosity's
+  // lead), and this is where it goes.
   {
     id: 'night-shift-report',
     titleKey: k('nightShift', 'title'),
@@ -177,7 +180,11 @@ export const INCIDENT_EVENTS: GameEventDef[] = [
     employeeId: 'moss',
     cast: ['echo'],
     momentWorthy: true,
-    requires: { hiredAll: ['moss', 'echo'], missingFlag: 'nightshift.done' },
+    requires: {
+      hiredAll: ['moss', 'echo'],
+      flag: 'oddity.pipe-jingle',
+      missingFlag: 'nightshift.done',
+    },
     choices: [
       choice('play', 'nightShift', [
         { type: 'morale', value: 6 },

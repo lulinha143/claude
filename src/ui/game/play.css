@@ -1563,28 +1563,72 @@
   .curiosity-room__items {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     gap: 5px;
     margin: 0;
     padding: 0;
     list-style: none;
   }
+  /* A noticed curiosity is a card on the board: pick it up to read it. */
   .curiosity {
-    display: grid;
-    flex: 1 1 100%;
-    gap: 1px;
-    padding: 5px 8px 6px;
+    display: flex;
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .curiosity__card {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    min-width: 0;
+    max-width: 100%;
+    min-height: 30px;
+    padding: 4px 9px 4px 6px;
+    color: var(--ink-strong);
     background: var(--paper-bg);
-    border-radius: 8px;
+    border: 1.5px solid var(--paper-line);
+    border-radius: 4px 9px 9px 4px;
+    box-shadow: 0 1px 0 rgb(40 26 12 / 0.12);
+    font: 800 var(--fs-xs) / 1.25 var(--font-body);
+    text-align: left;
+    cursor: pointer;
+  }
+  .curiosity__card:hover {
+    border-color: color-mix(in srgb, var(--primary) 60%, var(--paper-line));
+  }
+  .curiosity__card[aria-expanded='true'] {
+    background: var(--paper-bg-bright);
+    border-color: var(--ink-body);
+    box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--primary) 55%, transparent);
+  }
+  .curiosity__glyph {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    color: var(--ink-body);
+    background: var(--paper-bg-sunken);
+    border-radius: 50%;
   }
   .curiosity__title {
-    font: 800 var(--fs-sm) / 1.25 var(--font-body);
-  }
-  .curiosity__found {
-    color: var(--ink-body);
-    font: italic 600 var(--fs-xs) / 1.35 var(--font-body);
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .curiosity--nut .curiosity__title {
     color: #2f6b3a;
+  }
+  .curiosity__lead-mark {
+    display: inline-grid;
+    flex: none;
+    place-items: center;
+    width: 16px;
+    height: 16px;
+    color: #7a5200;
+    background: #ffe9a8;
+    border-radius: 50%;
   }
   .curiosity.is-locked {
     display: grid;

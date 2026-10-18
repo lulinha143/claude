@@ -1149,26 +1149,26 @@
     },
     "ledgerDiscrepancy": {
       "title": "Divergência no Livro",
-      "body": "Compras encontrou 400 nozes que existem em dois lugares ao mesmo tempo. A papelada está impecável. Essa é a parte preocupante.",
-      "report": "Reportar para cima (custo: 400 nozes)",
+      "body": "Compras encontrou 400 castanhas que existem em dois lugares ao mesmo tempo. A papelada está impecável. Essa é a parte preocupante.",
+      "report": "Reportar para cima",
       "quiet": "Primeiro perguntar discretamente",
       "accountantBody": "O contador te encontra antes que você o encontre. Ele pode fazer o segundo lançamento desaparecer. Menciona, sem que ninguém pergunte, que tem família.",
       "pay": "Pagar as 1.200 e ficar devendo um favor",
-      "payLocked": "Nozes insuficientes para fazer isso desaparecer.",
+      "payLocked": "Castanhas insuficientes para fazer isso desaparecer.",
       "refuse": "Recusar, e ficar com as 900 que nunca existiram",
       "laterTitle": "A Divergência Retorna",
       "laterBody": "Um revisor externo achou o lançamento que você enterrou. Achou facilmente. Parece quase decepcionado."
     },
     "accountantRemembers": {
       "title": "O Contador Lembra",
-      "body": "Uma pasta aparece na sua mesa sem qualquer nota. Dentro: três nozes douradas e uma única linha: \"pelo que não discutimos.\"",
+      "body": "Uma pasta aparece na sua mesa sem qualquer nota. Dentro: três castanhas douradas e uma única linha: \"pelo que não discutimos.\"",
       "accept": "Aceitar a pasta",
       "decline": "Devolver, formalmente, por escrito"
     },
     "moralePetition": {
       "title": "Petição do Andar",
       "body": "Todos os funcionários assinaram o mesmo documento. É um bom documento. Melhor escrito que qualquer coisa que a empresa já publicou.",
-      "concede": "Conceder integralmente (custo: 2.500 nozes)",
+      "concede": "Conceder integralmente",
       "partial": "Conceder a metade razoável",
       "refuse": "Agradecer pelo retorno",
       "laterTitle": "A Petição, Externamente",
@@ -1240,7 +1240,7 @@
       "title": "Parada Informal de Trabalho",
       "body": "Ninguém declarou nada. Os corredores estão simplesmente cheios de gente parada, segurando canecas, esperando para ver o que acontece. É extremamente educado e completamente total.",
       "dayOff": "Fechar o prédio por hoje, com salário integral",
-      "dayOffLocked": "Precisa de 900 nozes para cobrir o fechamento pago.",
+      "dayOffLocked": "Precisa de 900 castanhas para cobrir o fechamento pago.",
       "address": "Ir até lá e ouvir o que têm a dizer",
       "ignore": "Seguir como se fosse uma pausa programada",
       "laterTitle": "Entrevistas de Desligamento",
@@ -1292,9 +1292,9 @@
     },
     "goldenBuyer": {
       "title": "Uma Oferta Não Solicitada",
-      "body": "Um interessado ofereceu uma quantia bem séria por uma única noz dourada. Não quer nenhuma outra quantidade, não diz para que serve, e já mandou preparar a papelada com nossos dados corretamente preenchidos.",
+      "body": "Um interessado ofereceu uma quantia bem séria por uma única castanha dourada. Não quer nenhuma outra quantidade, não diz para que serve, e já mandou preparar a papelada com nossos dados corretamente preenchidos.",
       "sell": "Vender uma e ficar com o dinheiro",
-      "sellLocked": "Precisa de uma noz dourada para vender.",
+      "sellLocked": "Precisa de uma castanha dourada para vender.",
       "refuse": "Recusar, com educação e em definitivo",
       "ask": "Perguntar para que serve antes de responder"
     },
@@ -1401,6 +1401,26 @@
       "study": "Estudar como se deve",
       "destroy": "Destruir de novo, com cuidado",
       "keep": "Deixar que ele fique com aquilo"
+    },
+    "effects": {
+      "label": "O que isso faz:",
+      "moraleUp": "+{{value}} de ânimo",
+      "moraleDown": "-{{value}} de ânimo",
+      "repUp": "+{{value}} de reputação",
+      "repDown": "-{{value}} de reputação",
+      "boost": "Produção ×{{value}} por {{time}}",
+      "mood": "{{name}} fica {{mood}}",
+      "friendship": "{{name}}: amizade {{value}}",
+      "everyone": "Todo mundo: amizade {{value}}",
+      "mode": "{{room}}: modo {{mode}}",
+      "roomMood": "{{room}}: todo mundo {{mood}}",
+      "rush": "{{room}}: hora do pique",
+      "rushShort": "Pique",
+      "souvenir": "Um Cartão de Momento para a coleção",
+      "souvenirShort": "Cartão de Momento",
+      "remembers": "{{name}} vai lembrar",
+      "later": "Pode voltar depois",
+      "continues": "Tem mais"
     }
   },
   "ach": {
@@ -2374,7 +2394,35 @@
     "curiosityLocked": "Ainda não notada",
     "roomFile": "Arquivo da sala completo",
     "nutWhere": "Aparece em algum lugar: {{room}}.",
-    "curiosityBonus": "Por causa de uma escolha"
+    "curiosityBonus": "Por causa de uma escolha",
+    "leads": "Pistas em aberto",
+    "curiosityPointed": "Uma pista aponta para cá",
+    "closeFile": "Guardar a ficha",
+    "file": {
+      "where": "Onde",
+      "when": "Notada em",
+      "origin": "Por causa de",
+      "leads": "Levou a",
+      "spot": {
+        "wall": "na parede",
+        "wallRight": "na parede",
+        "corner": "num canto",
+        "ceiling": "lá no alto"
+      },
+      "fromRoutine": "saiu da rotina: {{routine}}",
+      "originOddity": "Seguindo {{title}} ({{room}})",
+      "originDecision": "Uma decisão em “{{event}}”: {{choice}}",
+      "originStory": "A história de {{name}}",
+      "originDecoration": "{{decoration}} na sala",
+      "originHired": "{{name}}, na equipe",
+      "originNight": "A noite (só aparece depois que escurece)",
+      "leadFound": "{{title}} ({{room}})",
+      "leadWaiting": "Tem algo esperando em {{room}}",
+      "leadDecided": "“{{event}}”: {{choice}}",
+      "leadHappened": "“{{event}}”, já resolvido",
+      "leadHappening": "“{{event}}”, acontecendo agora em {{room}}",
+      "nut": "Também está na Enciclopédia da Castanha."
+    }
   },
   "company": {
     "title": "Visão Geral da Empresa",
@@ -3146,13 +3194,13 @@
     "meeting": "Coordenação. Estabiliza tudo, produz nada.",
     "research": "Descobertas se somam ao Laboratório. Afia toques críticos.",
     "rooftop": "Sequências longas e um sinal apontado para nada.",
-    "vault": "Onde as nozes douradas acumulam. Gosta de estoque cheio.",
+    "vault": "Onde as castanhas douradas acumulam. Gosta de estoque cheio.",
     "basement": "Extremamente produtivo. Por favor, não pergunte.",
     "cafeteria": "Alimenta a empresa. Ânimo barato, cedo.",
     "mailroom": "Deixa todo o prédio mais barato e mais sortudo.",
     "security": "Vigia as salas estranhas para custarem menos reputação.",
     "archive": "Transforma a própria papelada da empresa em descobertas.",
-    "incubator": "A sala mais forte em nozes douradas, e a menos agradável.",
+    "incubator": "A sala mais forte em castanhas douradas, e a menos agradável.",
     "broadcast": "Transforma pausas compartilhadas em reputação. Funciona melhor com alguém no Marketing.",
     "repair": "Conserte antes de trocar: reduz preços com alguém na Construção.",
     "conservatory": "Recuperação tranquila: restaura o ânimo mais rápido com alguém na Incubadora."
@@ -3232,7 +3280,7 @@
     "moraleTarget": "Ânimo",
     "moraleRegen": "Recuperação de ânimo",
     "reputationRate": "Reputação",
-    "goldenChance": "Chance de noz dourada",
+    "goldenChance": "Chance de castanha dourada",
     "critChance": "Chance de toque crítico",
     "comboWindow": "Janela de combo",
     "costReduction": "Custos",
@@ -3964,7 +4012,7 @@
       "correct": "Corrigir o relatório: alguém percebeu.",
       "sign": "Assinar. Reembolsar hoje o material de amanhã.",
       "corrected": "A tinta some e volta como “Obrigado”. Uma cópia entra nos arquivos restritos.",
-      "signed": "Duas nozes douradas escorregam da lombada. A assinatura é sua. A letra, não."
+      "signed": "Duas castanhas douradas escorregam da lombada. A assinatura é sua. A letra, não."
     },
     "security": {
       "title": "Câmera treze",
@@ -3985,7 +4033,7 @@
       "observe": "Observar em silêncio. Sem avaliação de desempenho.",
       "observed": "Você deixa um formulário em branco ao lado do vaso. Algo começa a preenchê-lo.",
       "laterTitle": "Um contracheque bem pequeno",
-      "laterBody": "A planta depositou uma noz dourada. O bilhete diz “aluguel”."
+      "laterBody": "A planta depositou uma castanha dourada. O bilhete diz “aluguel”."
     },
     "return": {
       "title": "O inquilino anterior",
@@ -3993,7 +4041,7 @@
       "welcome": "Dar boas-vindas. Manter o crachá antigo.",
       "welcomed": "Uma folha se vira para você. Por uma vez, a empresa lembra de algo que vale a pena guardar.",
       "rent": "Perguntar se o aluguel também atravessou as linhas do tempo.",
-      "rented": "Duas nozes douradas. Nenhum endereço para correspondência."
+      "rented": "Duas castanhas douradas. Nenhum endereço para correspondência."
     }
   },
   "secretFile": {
@@ -4029,7 +4077,7 @@
     },
     "negative_nut": {
       "title": "A quantidade ausente",
-      "body": "Uma noz a menos que uma gaveta vazia. Contá-la deixa a sala mais silenciosa."
+      "body": "Uma castanha a menos que uma gaveta vazia. Contá-la deixa a sala mais silenciosa."
     },
     "nutcoin": {
       "title": "Uma moeda descontinuada",
@@ -4052,7 +4100,7 @@
       "body": "A célula B12 continua calculando o que teria acontecido se você tivesse ido para casa."
     },
     "too_round": {
-      "title": "Uma noz geometricamente suspeita",
+      "title": "Uma castanha geometricamente suspeita",
       "body": "Perfeitamente redonda. Rolou ladeira acima na inspeção. Marcada como “provavelmente normal”."
     },
     "wind_chime": {
@@ -4106,7 +4154,8 @@
     "anomaly_thirteenth": {
       "title": "O décimo terceiro botão",
       "body": "Sem número, em forma de bolota, morno ao toque. Segundo o Mocho, sempre esteve lá. A manutenção preferiu não comentar. A lápis."
-    }
+    },
+    "from": "Arquivado depois de “{{event}}”"
   },
   "annex": {
     "remember": "Guardar isso na nossa história",

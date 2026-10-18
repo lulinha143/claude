@@ -393,7 +393,12 @@ export const gameStateSchema = z.object({
   eventCooldowns: z.record(z.number()).catch({}),
   pendingChain: z.object({ eventId: z.string(), step: z.number() }).nullable().catch(null),
   eventInProgress: z
-    .object({ eventId: z.string(), step: z.string().nullable() })
+    .object({
+      eventId: z.string(),
+      step: z.string().nullable(),
+      roomId: z.string().optional().catch(undefined),
+      employeeId: z.string().optional().catch(undefined),
+    })
     .nullable()
     .catch(null),
   boosts: z

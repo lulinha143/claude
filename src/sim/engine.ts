@@ -45,7 +45,7 @@ import {
   upgradeCost,
   upgradeSaturated,
 } from './economy';
-import { upgradeBonus } from './upgradeEffects';
+import { eventRewardMultiplier } from './upgradeEffects';
 import { crateCapacity, crateFill, splitProduction } from './crate';
 import { applyOffline, computeAway, type OfflineResult } from './offline';
 import { holdWaiting, shiftTimeline } from './timeline';
@@ -225,6 +225,23 @@ export interface ActiveEvent {
   instanceId: number;
   /** where it is happening and who is presenting it, for the card's scene. */
   place?: EventPlace;
+}
+
+/**
+ * The open card as the save keeps it: which event, which part of it, and where
+ * it is set, so a reload reopens it in the same room with the same presenter.
+ */
+function filedEvent(
+  eventId: string,
+  step: string | null,
+  place?: EventPlace,
+): NonNullable<GameState['eventInProgress']> {
+  return {
+    eventId,
+    step,
+    ...(place?.roomId ? { roomId: place.roomId } : {}),
+    ...(place?.employeeId ? { employeeId: place.employeeId } : {}),
+  };
 }
 
 /** Where an event happens, and who brings it to the player. */
@@ -784,7 +801,10 @@ export class GameEngine {
     }
 
     // random events
-    this.settleScheduled();
+    // A promise comes due when somebody can see the office: one due while the
+    // window is minimized or out of sight waits, like what is waiting in the
+    // rooms, so its notice (or the moment it plays) is not spent on nobody.
+    if (this.attended) this.settleScheduled();
     this.expireIncidents();
     if (this.activeEvent && this.state.settings.autoResolveEvents) this.autoResolveActiveEvent();
 
@@ -1556,9 +1576,10 @@ export class GameEngine {
   /**
    * Apply any promised consequences that have come due.
    *
-   * Run every tick, which also means a player who was away gets their bill on
-   * return rather than having it silently skipped: `tick` catches up elapsed time,
-   * so anything whose moment passed offline settles on the next tick.
+   * Run every tick somebody can see, which also means a player who was away gets
+   * their bill on return rather than having it silently skipped: anything whose
+   * moment passed while the game was closed, asleep or minimized settles on the
+   * first tick in view, where its notice can be read.
    */
   private settleScheduled(): void {
     if (this.state.scheduled.length === 0) return;
@@ -2054,7 +2075,7 @@ export class GameEngine {
           instanceId: this.nextEventInstanceId++,
           place: { roomId: incident.roomId, employeeId: incident.employeeId },
         };
-        this.state.eventInProgress = { eventId: def.id, step: null };
+        this.state.eventInProgress = filedEvent(def.id, null, this.activeEvent.place);
         this.autoResolveActiveEvent();
         this.writeDiary({ kind: 'handled', eventId: def.id, roomId: incident.roomId });
       } else if (!def || def.rarity === 'rare' || def.rarity === 'legendary') {
@@ -2159,7 +2180,7 @@ export class GameEngine {
       instanceId: this.nextEventInstanceId++,
       place: place ?? eventPlace(this.state, def),
     };
-    this.state.eventInProgress = { eventId: id, step: null };
+    this.state.eventInProgress = filedEvent(id, null, this.activeEvent.place);
     this.state.stats.eventsSeen += 1;
     this.progressDaily('employeeConversations', def.employeeId ? 1 : 0);
 
@@ -2191,11 +2212,22 @@ export class GameEngine {
       this.state.eventInProgress = null;
       return;
     }
+    // The card reopens where it was set (a save from before the place was kept
+    // works it out again; a room since closed, or a presenter since let go, too).
+    const filed =
+      pending.roomId && isRoomIdUnlocked(this.state, pending.roomId)
+        ? {
+            roomId: pending.roomId,
+            ...(pending.employeeId && this.state.employees[pending.employeeId]?.hired
+              ? { employeeId: pending.employeeId }
+              : {}),
+          }
+        : null;
     this.activeEvent = {
       def,
       step: pending.step,
       instanceId: this.nextEventInstanceId++,
-      place: eventPlace(this.state, def),
+      place: filed ?? eventPlace(this.state, def),
     };
   }
 
@@ -2309,7 +2341,7 @@ export class GameEngine {
           instanceId: active.instanceId,
           place: active.place,
         };
-        this.state.eventInProgress = { eventId: def.id, step: choice.next };
+        this.state.eventInProgress = filedEvent(def.id, choice.next, active.place);
         // mid-chain steps don't show a standalone result panel
         this.lastConsequence = null;
       } else {
@@ -2675,7 +2707,7 @@ export class GameEngine {
     // softening the unfavourable ones — so investing in decision-making changes
     // which choices are worth taking, rather than removing the risk from all of
     // them. Penalties are deliberately untouched.
-    const rewardBonus = 1 + upgradeBonus(this.state, 'eventReward');
+    const rewardBonus = eventRewardMultiplier(this.state);
     const gain = (value: number | undefined): number => {
       const raw = value ?? 0;
       return raw > 0 ? raw * rewardBonus : raw;

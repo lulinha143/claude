@@ -3,6 +3,7 @@ import { CuriosityLog } from '../CuriosityLog';
 import { NUT_SOURCES } from '../../content/roomPlay';
 import { ROOMS_BY_ID } from '../../content/rooms';
 import { isRoomIdUnlocked } from '../../sim/rooms';
+import { secretSource } from '../../sim/happenings';
 import { useTranslation } from 'react-i18next';
 import { DiscoveryArt } from '../../art/DiscoveryArt';
 import { useGame } from '../../state/hooks';
@@ -295,6 +296,12 @@ export function CollectionsView() {
                       defaultValue: t('secretFile.unknown.body'),
                     })}
                   </p>
+                  {/* Where it came from: the decision that filed it. */}
+                  {secretSource(secret) ? (
+                    <p className="secret-file__from">
+                      {t('secretFile.from', { event: t(secretSource(secret)!.event.titleKey) })}
+                    </p>
+                  ) : null}
                   <span>{t('secretFile.stamp')}</span>
                 </li>
               ))}

@@ -1150,7 +1150,7 @@
     "ledgerDiscrepancy": {
       "title": "Ledger Discrepancy",
       "body": "Procurement has found 400 nuts that exist in two places at once. The paperwork is immaculate. That is the concerning part.",
-      "report": "Report it upward (cost: 400 nuts)",
+      "report": "Report it upward",
       "quiet": "Ask around quietly first",
       "accountantBody": "The accountant finds you before you find them. They can make the second entry go away. They mention, unprompted, that they have a family.",
       "pay": "Pay the 1,200 and owe them one",
@@ -1168,7 +1168,7 @@
     "moralePetition": {
       "title": "Petition from the Floor",
       "body": "Every employee has signed the same document. It is a good document. It is better written than anything the company has ever published.",
-      "concede": "Grant it in full (cost: 2,500 nuts)",
+      "concede": "Grant it in full",
       "partial": "Grant the reasonable half",
       "refuse": "Thank them for their feedback",
       "laterTitle": "The Petition, Externally",
@@ -1401,6 +1401,26 @@
       "study": "Study it properly",
       "destroy": "Destroy it again, carefully",
       "keep": "Let him keep it"
+    },
+    "effects": {
+      "label": "What it does:",
+      "moraleUp": "+{{value}} morale",
+      "moraleDown": "-{{value}} morale",
+      "repUp": "+{{value}} reputation",
+      "repDown": "-{{value}} reputation",
+      "boost": "Production ×{{value}} for {{time}}",
+      "mood": "{{name}} ends up {{mood}}",
+      "friendship": "{{name}}: friendship {{value}}",
+      "everyone": "Everyone: friendship {{value}}",
+      "mode": "{{room}}: {{mode}} mode",
+      "roomMood": "{{room}}: everyone {{mood}}",
+      "rush": "{{room}}: a rush",
+      "rushShort": "Rush",
+      "souvenir": "A Moment Card for the collection",
+      "souvenirShort": "Moment Card",
+      "remembers": "{{name}} will remember",
+      "later": "May come back later",
+      "continues": "There's more to it"
     }
   },
   "ach": {
@@ -2360,7 +2380,35 @@
     "curiosityLocked": "Not noticed yet",
     "roomFile": "Room file complete",
     "nutWhere": "Turns up somewhere in the {{room}}.",
-    "curiosityBonus": "Because of a choice"
+    "curiosityBonus": "Because of a choice",
+    "leads": "Open leads",
+    "curiosityPointed": "A lead points here",
+    "closeFile": "Put it back",
+    "file": {
+      "where": "Where",
+      "when": "Noticed",
+      "origin": "Because of",
+      "leads": "Led to",
+      "spot": {
+        "wall": "on the wall",
+        "wallRight": "on the wall",
+        "corner": "in a corner",
+        "ceiling": "up by the ceiling"
+      },
+      "fromRoutine": "out of the routine: {{routine}}",
+      "originOddity": "Following {{title}} ({{room}})",
+      "originDecision": "A decision in “{{event}}”: {{choice}}",
+      "originStory": "{{name}}'s story",
+      "originDecoration": "{{decoration}} in the room",
+      "originHired": "{{name}}, on the team",
+      "originNight": "The night (it only comes out after dark)",
+      "leadFound": "{{title}} ({{room}})",
+      "leadWaiting": "Something is waiting in {{room}}",
+      "leadDecided": "“{{event}}”: {{choice}}",
+      "leadHappened": "“{{event}}”, already settled",
+      "leadHappening": "“{{event}}”, happening now in {{room}}",
+      "nut": "It is in the Nut Encyclopedia too."
+    }
   },
   "company": {
     "title": "Company Overview",
@@ -4092,7 +4140,8 @@
     "anomaly_thirteenth": {
       "title": "The thirteenth button",
       "body": "Unnumbered, acorn-shaped, warm to the touch. According to Moss it has always been there. Maintenance declined to comment, in pencil."
-    }
+    },
+    "from": "Filed after “{{event}}”"
   },
   "annex": {
     "remember": "Keep this in our story",

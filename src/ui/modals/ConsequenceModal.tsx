@@ -90,6 +90,10 @@ export function ConsequenceModal() {
           rarity={c.rarity ?? def.rarity}
           told
           reducedMotion={state.settings.reducedMotion}
+          // How they took it, as measured: the same marks the answer previewed.
+          reactions={Object.fromEntries(
+            r.employees.map((e) => [e.id, { emotion: e.emotion, friendship: e.friendshipDelta }]),
+          )}
         />
       ) : null}
       <div className="consequence-modal__head">

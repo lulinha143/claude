@@ -1,5 +1,5 @@
 import type { EventRarity, GameState, HappeningsState, PendingIncident } from './types';
-import type { GameEventDef } from '../content/types';
+import type { EventChoice, GameEventDef } from '../content/types';
 import {
   EVENT_MEMORIES,
   EVENT_PLACES,
@@ -8,9 +8,12 @@ import {
   type EventMemory,
   type WorldMomentDef,
 } from '../content/happenings';
+import { GAME_EVENTS } from '../content/events';
+import { EMPLOYEES_BY_ID } from '../content/employees';
+import { ODDITIES, ODDITIES_BY_ID, oddityFlag, type OddityDef } from '../content/roomPlay';
 import { ROOM_PROFILES_BY_ID } from '../content/roomProfiles';
 import { employeesInRoom, isRoomIdUnlocked, resolveEmployeeRoom } from './rooms';
-import { isNight } from './roomPlay';
+import { isNight, oddityNoticed } from './roomPlay';
 
 // Happenings, read from state. Pure: the engine owns every change and the dice.
 // See content/happenings.ts for what an incident, a moment and a remembered
@@ -178,4 +181,171 @@ export function happenedSince(state: GameState, since: number) {
     waiting: state.happenings?.incidents.length ?? 0,
     remarks: state.happenings?.remarks.length ?? 0,
   };
+}
+
+// ---- discoveries lead somewhere ----------------------------------------------------
+//
+// The connections between what the player has noticed and what it led to, read
+// from the content itself (what each curiosity and each incident needs before it
+// can turn up) and from the company's own marks. Nothing here is stored: the
+// curiosity log asks these questions of the save it is showing.
+
+/** Every choice in an event, its steps' too, with the step it belongs to. */
+function choicesOf(def: GameEventDef): Array<{ choice: EventChoice; step: string | null }> {
+  return [
+    ...def.choices.map((choice) => ({ choice, step: null })),
+    ...Object.entries(def.steps ?? {}).flatMap(([step, part]) =>
+      part.choices.map((choice) => ({ choice, step })),
+    ),
+  ];
+}
+
+/** The decision that leaves a mark (the first event and choice that sets it), if one does. */
+export function decisionSetting(flag: string): { event: GameEventDef; choice: EventChoice } | null {
+  for (const event of GAME_EVENTS) {
+    for (const { choice } of choicesOf(event)) {
+      if (choice.effects.some((effect) => effect.type === 'setFlag' && effect.flagId === flag)) {
+        return { event, choice };
+      }
+    }
+  }
+  return null;
+}
+
+/** What made a curiosity possible at all: shown once it has been noticed, never before. */
+export type CuriosityOrigin =
+  /** it only turns up once another curiosity has been noticed. */
+  | { kind: 'oddity'; def: OddityDef }
+  /** it is the aftermath of a choice. */
+  | { kind: 'decision'; event: GameEventDef; choice: EventChoice }
+  /** a teammate showed the way in their story. */
+  | { kind: 'story'; employeeId: string }
+  /** something placed in the room brought it out. */
+  | { kind: 'decoration'; decorationId: string }
+  /** it needs someone on the payroll. */
+  | { kind: 'hired'; employeeId: string }
+  /** it only comes out after dark. */
+  | { kind: 'night' };
+
+export function curiosityOrigins(def: OddityDef): CuriosityOrigin[] {
+  const needs = def.requires;
+  const out: CuriosityOrigin[] = [];
+  if (needs?.flag) {
+    const story = /^([a-z]+)\.arc\.(?:\d|done)/.exec(needs.flag);
+    const previous = needs.flag.startsWith('oddity.')
+      ? ODDITIES_BY_ID[needs.flag.slice('oddity.'.length)]
+      : undefined;
+    const decision = previous || story ? null : decisionSetting(needs.flag);
+    if (previous) out.push({ kind: 'oddity', def: previous });
+    else if (story && EMPLOYEES_BY_ID[story[1]]) out.push({ kind: 'story', employeeId: story[1] });
+    else if (decision) out.push({ kind: 'decision', ...decision });
+  }
+  if (needs?.decoration) out.push({ kind: 'decoration', decorationId: needs.decoration });
+  if (needs?.hired) out.push({ kind: 'hired', employeeId: needs.hired });
+  if (needs?.night) out.push({ kind: 'night' });
+  return out;
+}
+
+/** Where a noticed curiosity leads, and how far the player has followed it. */
+export type CuriosityLead =
+  | {
+      kind: 'oddity';
+      def: OddityDef;
+      /** found: noticed too; waiting: it has turned up in its room; open: not yet. */
+      status: 'found' | 'waiting' | 'open';
+    }
+  | {
+      kind: 'event';
+      def: GameEventDef;
+      /** decided: the player (or the team) made a call; happening: it is waiting now. */
+      status: 'decided' | 'happening' | 'open';
+      /** the call that was made, when the company's history still holds it. */
+      choice?: EventChoice;
+    };
+
+export function curiosityLeads(state: GameState, id: string): CuriosityLead[] {
+  const flag = oddityFlag(id);
+  const oddities: CuriosityLead[] = ODDITIES.filter((other) => other.requires?.flag === flag).map(
+    (other) => ({
+      kind: 'oddity',
+      def: other,
+      status: oddityNoticed(state, other.id)
+        ? 'found'
+        : (state.office?.oddities ?? []).some((item) => item.id === other.id)
+          ? 'waiting'
+          : 'open',
+    }),
+  );
+  const events: CuriosityLead[] = GAME_EVENTS.filter(
+    (event) => event.requires?.flag === flag || event.requires?.flags?.includes(flag),
+  ).map((event) => {
+    const last = [...(state.eventHistory ?? [])]
+      .reverse()
+      .find((entry) => entry.eventId === event.id);
+    const done = event.requires?.missingFlag
+      ? event.requires.missingFlag in state.flags
+      : Boolean(last);
+    const happening =
+      (state.happenings?.incidents ?? []).some((item) => item.eventId === event.id) ||
+      state.eventInProgress?.eventId === event.id;
+    const choice = last
+      ? choicesOf(event).find((entry) => entry.choice.id === last.choiceId)?.choice
+      : undefined;
+    return {
+      kind: 'event',
+      def: event,
+      status: done || last ? 'decided' : happening ? 'happening' : 'open',
+      ...(choice ? { choice } : {}),
+    };
+  });
+  return [...oddities, ...events];
+}
+
+/**
+ * Leads the player is holding: noticed curiosities that point somewhere they have
+ * not been yet. The clue is the curiosity's own lead line; where it points is
+ * never named beyond what that line says.
+ */
+export function openLeads(state: GameState): OddityDef[] {
+  return ODDITIES.filter(
+    (def) =>
+      def.lead &&
+      oddityNoticed(state, def.id) &&
+      curiosityLeads(state, def.id).some(
+        (lead) => lead.status !== 'found' && lead.status !== 'decided',
+      ),
+  );
+}
+
+/**
+ * Curiosities a lead points at, not noticed yet: the log marks their blank slot
+ * ("a lead points here") without saying what is there.
+ */
+export function pointedAt(state: GameState): Set<string> {
+  const out = new Set<string>();
+  for (const def of ODDITIES) {
+    if (!oddityNoticed(state, def.id)) continue;
+    for (const lead of curiosityLeads(state, def.id)) {
+      if (lead.kind === 'oddity' && lead.status !== 'found') out.add(lead.def.id);
+    }
+  }
+  return out;
+}
+
+/** The decision a secret file came out of (the first event and choice that files it). */
+export function secretSource(
+  secretId: string,
+): { event: GameEventDef; choice: EventChoice } | null {
+  for (const event of GAME_EVENTS) {
+    for (const { choice } of choicesOf(event)) {
+      if (
+        choice.effects.some(
+          (effect) => effect.type === 'unlockSecret' && effect.secretId === secretId,
+        )
+      ) {
+        return { event, choice };
+      }
+    }
+  }
+  return null;
 }

@@ -4,9 +4,9 @@ Handoff only: design is in `DESIGN.md`, commands and matrix in `.kiro/steering/q
 
 ## Branch
 
-`feat/zooworkers-3.0-facility-pass`: Chapter 5 is the commit that records this entry, on top
-of Chapter 3 (`8cbf590`), Chapter 2 (`d6c4d28`), Chapter 9 (`d9fab09`), Chapter 4 (`e7bac62`),
-Chapter 1 (`80264a8`) and the setup commit `c55d356`; clean.
+`feat/zooworkers-3.0-facility-pass`: Chapter 6 is the commit that records this entry, on top
+of Chapter 5 (`f4ae64c`), Chapter 3 (`8cbf590`), Chapter 2 (`d6c4d28`), Chapter 9 (`d9fab09`),
+Chapter 4 (`e7bac62`), Chapter 1 (`80264a8`) and the setup commit `c55d356`; clean.
 `7a7ee3d` (architect's snapshot) is an ancestor; never roll back to it.
 
 ## Active configuration
@@ -36,6 +36,8 @@ Chapter 1 (`80264a8`) and the setup commit `c55d356`; clean.
   shell call, so rendered play used throwaway scripts (kept in the ignored `visual-artifacts/`)
   that serve `dist/` and drive Chromium in one process. A seeded save's own
   `settings.language` wins over `wmno.lang` at boot: seed pt-BR in the save.
+- Chapter 6 session: the same (Node on `PATH`, `npm ci`, locked rev 1228 fetched, stock E2E
+  config); rendered play by throwaway scripts in the ignored `visual-artifacts/play/`.
 
 ## Validation
 
@@ -46,7 +48,7 @@ Chapter 1 (`80264a8`) and the setup commit `c55d356`; clean.
 
 Order: 1 → 4 → 9 → 2 → 3 → 5 → 6 → 7 → 8 → 10 → final integration.
 
-Accepted kit chapters: 1, 4, 9, 2, 3, 5. Accepted pre-kit units: shell (`b138638`–`6189169`), living office
+Accepted kit chapters: 1, 4, 9, 2, 3, 5, 6. Accepted pre-kit units: shell (`b138638`–`6189169`), living office
 (`bfaca01`–`d81ddc2`) and GC1–GC4 (`67cd776`–`7a7ee3d`), pinned by E2E specs but with no
 six-check record. Kit chapters reuse them as evidence and change only what fails the gate.
 GC numbers are not kit numbers.
@@ -59,7 +61,7 @@ GC numbers are not kit numbers.
 | 2   | `views/EmployeesView`, `modals/EmployeeTalk`, `sim/bonds`                                                                 | Accepted (record below)                   |
 | 3   | `art/RoomDressing`, `RoomPlay`, `content/rooms`, `roomPlay`                                                               | Accepted (record below)                   |
 | 5   | `ui/minigames/*`, `sim/minigames`                                                                                         | Accepted (record below)                   |
-| 6   | `modals/IncidentScene`, `EventModal`, `content/incidents`, `ui/CuriosityLog`                                              | GC4 + GC3 curiosities                     |
+| 6   | `modals/IncidentScene`, `EventModal`, `content/incidents`, `ui/CuriosityLog`                                              | Accepted (record below)                   |
 | 7   | `modals/EmployeeTalk`, `content/stories`, `employeeKeepsakes`                                                             | GC2 stories and scrapbook                 |
 | 8   | `views/DecorateView`, `ui/DecorationTray`, `sim/placement`, `depth`                                                       | Arranging rebuilt; catalog from `a4e03ad` |
 | 10  | `views/PrestigeView`, `CollectionsView`, `sim/prestige`, `nextStep`                                                       | Prestige fix `65c4f09` only               |
@@ -439,15 +441,100 @@ New coverage: `tests/minigameRounds.test.ts` (30), `tests/minigameRewards.test.t
 `minigame-shell` (+7) and `tests/e2e/minigame-rounds.spec.ts` (8; 24/24 over three repeats).
 `product-pass` now reads each game's own mastery line.
 
+### Chapter 6 record — incidents, events and discoveries
+
+Baseline: GC4 (incidents, moments, remembered choices) and GC3's curiosities, kept where good.
+No new currency, clock, queue or registry; the only save change is an optional place on
+`eventInProgress` (`roomId`, `employeeId`). Balance unchanged, except one gate (below).
+
+Broken or weak before (reproduced in pt-BR at 380×460 and 1280×720), fixed:
+
+- `incidents.spec` "a promise lands in the world" had two real causes:
+  1. The boot's trip home kept correcting for about 1.2 s and pulled back a view already
+     moved to the lab (logged: `scrollTo` from the lab to the Founder's Desk 58 ms after the
+     test's scroll). Only wheel, touch and press counted as taking over. Now the trip lets go
+     once another floor is in view than the one it left, and scroll keys and focus moving
+     into the tower take over too.
+  2. A small moment whose room was out of view was paid, put in the diary and never shown.
+     Run after the file's other tests, the file-level `NOW` was ~40 s old, so the bet came due
+     at the first tick, with the Founder's Desk in view. The earlier timestamp fix could not
+     help while cause 1 remained. Now a moment out of view, or while the window is hidden,
+     waits (three at most) and plays out when the player looks there.
+
+  Before: 1/1 serial and 3/3 alone failed here. After: the unchanged HEAD spec 8/8, three
+  serial runs; the updated spec 11/11 in four serial runs, 10/10 alone (×5) and 27/27 (×3, four
+  workers). It now takes timestamps per test and pins the out-of-view case.
+
+- Answers were green bars with words only: no cost, reward or risk (the forged signature that
+  comes back was invisible). Each is now a line on the incident report: a box to tick (green),
+  its words, and what it will do, from `previewEventChoice` (the engine's own rules).
+  - Costs come first, then rewards in gold.
+  - Who changes and how: sticker, name, mood word, heart ±. A room's mode, a Moment Card and
+    who will remember are named too.
+  - "Pode voltar depois" marks anything set in motion; "Tem mais" a next part.
+  - Secrets and new nuts stay unsaid.
+  - At ≤520 px tall or ≤340 px wide the line keeps to marks and numbers (the words stay in the
+    tooltip and for screen readers), and the report scrolls above the answers with a fade.
+  - A test takes every authored answer (every event and step, 200+ enabled) and checks the
+    preview against the measured outcome: resources, everyone's friendship, moods, modes,
+    souvenir, set in motion, remembered and "there's more".
+- The card's people never reacted. Pointing at an answer (or reaching it by keys) puts each
+  affected teammate's sticker and heart ± at their side in the scene, and the outcome shows the
+  same marks, as measured.
+- A reload reopened an open card through `eventPlace()`, sometimes with another presenter. The
+  place is now saved; older saves work it out again.
+- A promise due while minimized spent its notice (toasts expire while hidden), or its moment,
+  on nobody. Promises settle on the first tick in view (Chapter 9's hold, extended); remarks and
+  office news wait while hidden.
+- On a narrow window a speech note already up stayed over the sheet that covered the office
+  (Nino's line over the Archive's tabs at 380×460). Notes now drop while the office is covered.
+- The Archive's log was rows of "?" and text. Its lead arrow drew as a tofu box (U+2192 in CSS),
+  a lead into an incident (the soup) never closed, and the basement's pipes led nowhere. It is
+  now an investigation board:
+  - Open leads come first: the lead's words and where it was found.
+  - Each find is a card that opens a file: the hint and the thing, where (spot or routine),
+    when it was noticed, what made it possible and where it led.
+  - Origins: a find, a decision (its title and answer), a story, a decoration or the night.
+    Leads: a find, something waiting, or an incident happening or decided (with the answer).
+  - A blank a lead points at reads "Uma pista aponta para cá", never a name. An aftermath stays
+    absent until it turns up. Secret files say which decision filed them.
+  - The night shift's tape now needs the knocking pipes (`flag: 'oddity.pipe-jingle'`), so every
+    lead leads somewhere (tested).
+- pt-BR said "nozes" where the currency was meant. Now "castanha(s)": 8 event strings, 3
+  discovery lines, 2 secret files, the vault and incubator profiles and the golden-chance label.
+  Walnuts, the pecan and Fenn's jokes keep "noz". Two labels lost a typed cost (the line says
+  it now).
+
+Player gate (pt-BR, built game, Chromium 1228; a seeded company, real clicks and keys):
+
+- The whole path at 380×460 and 1280×720:
+  - The elevator marked the meeting floor; Hazel said her hook; a second click opened "A Ata"
+    with Hazel and Nino.
+  - Pointing at "A Avelã pode assinar por ele" showed Hazel worried. Tab, Tab, Enter took
+    "Plastificar a ata".
+  - The outcome showed Nino's sticker in the scene, Ânimo +5, the card saved, "Alguma coisa foi
+    posta em movimento" and "Avelã vai lembrar disso".
+  - 243 s later the laminated minutes were on the wall and Nino said so. The slip said
+    "Bônus", and the Archive's file read "Uma decisão em 'A Ata': Plastificar a ata…".
+  - After a reload the find, its flag, the decision and Hazel's waiting remark were all kept.
+- The rebrand and minutes cards at 320×420, 380×460, 800×600, 1280×720, 1440×900 and
+  1920×1080: inside the window, every answer and the report fully inside the card (it never
+  scrolls), no text under 11 px (the scene's label and stamp went up from 10–10.5 px), no
+  sideways scroll. The board at the same sizes: no sideways scroll, targets ≥ 30 px.
+- High contrast with reduced motion at 380×460: black ink and borders; signs and stickers carry
+  the meaning without colour; no animation or transition.
+- Six checks — see, understand, interact, feedback, why it matters, feel: PASS (audio not
+  heard).
+
+Checks: `npm run validate` exit 0 (961 unit tests, 79 files). Full web E2E 355/355 on the first
+run. `npm run build:desktop` exit 0; no desktop code changed. New coverage:
+`tests/incidentScenes.test.ts` (15), `tests/curiosityLog.test.tsx` (3), three `incidents.spec`
+tests.
+
 ## Blockers
 
 - Kiro Web listed no skills this session; `zooworkers-playtest/SKILL.md` was followed by hand.
 - `templates/AGENTS.md` may load as a nested second AGENTS.md (Kiro docs); kept as instructed.
-- Flaky, pre-existing (not Chapters 2–5): `incidents.spec` "a promise lands in the world"
-  misses the lab's moment slip when it runs after the file's other tests in one worker. In a
-  serial run of the file it failed on `8cbf590` and on Chapter 5 alike (7/8 each). Alone, it
-  passes on both: 8/8, and 16/16 at 8 workers. Fresh company and schedule timestamps did not
-  change that, so the module-level `NOW` is not the cause. Owner: Chapter 6.
 - AUDIO LISTENING REQUIRED: no playback here. Unheard: the purchase, claim and tap cues; the
   error cue on every short press (the button used to be disabled); the celebrate cue on a
   room bought in the shop; the golden cue when the pod mints a whole nut; the paper cue of a
@@ -459,8 +546,12 @@ New coverage: `tests/minigameRounds.test.ts` (30), `tests/minigameRewards.test.t
   tick), their volume against the office's usual sounds, and repetition over a long stay.
   Chapter 5: the catch and squash cues rising in pitch with the combo, the chime as a Bug
   stage starts, the reward cue for a served order, celebrate (record or mastery) versus reward
-  on the result, and how they sit over a 30–45 s round and repeated rounds.
-- Touch was driven through Chromium's touch emulation, not a physical touchscreen.
+  on the result, and how they sit over a 30–45 s round and repeated rounds. Chapter 6: the
+  paper cue on taking an answer right after the card's event cue, and the error cue on a
+  locked answer.
+- Touch was driven through Chromium's touch emulation, not a physical touchscreen. Chapter 6:
+  a tap takes an answer at once, so on touch the effect line is the explanation (the scene's
+  preview needs a pointer or keys); check that it reads well on a physical screen.
 - LOCAL WINDOWS VERIFICATION REQUIRED: the last recorded native run is `a4e03ad`. This sandbox
   has no Electron binary or display, so no smoke ran. On Windows: `npm run build:windows:folder`,
   `npm run verify:windows:packaged`, then `smoke:window`, `smoke:focus` and `smoke:mute`.
@@ -490,7 +581,14 @@ New coverage: `tests/minigameRounds.test.ts` (30), `tests/minigameRewards.test.t
      held arrow key gliding the mug.
   8. Click another window mid-round. Expect the round to pause and Continuar to resume it.
      Also try it with always-on-top on, and with click-through off.
+     Chapter 6 (no desktop code changed):
+  9. At 320×420 and 125/150/200% DPI, click a teammate's **!** ticket. Expect the card inside
+     the window, each answer with its line of marks and numbers on one row, a long report
+     scrolling with a fade above the answers, and Tab moving the tick between answers.
+  10. Right after launch, press Page Down or Tab into the office. Expect the view to stay where
+      you moved it. In the lab's bug bounty pick "Vira aposta", minimize for 10 min, restore
+      and go to the lab: the bet plays out then, once.
 
 ## Next prompt
 
-Chapter 6. Start its session on this branch; `main` has none of this configuration.
+Chapter 7. Start its session on this branch; `main` has none of this configuration.

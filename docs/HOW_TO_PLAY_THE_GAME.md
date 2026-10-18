@@ -54,10 +54,14 @@ after you build it yourself with Option B.
 - **Look closer:** when a magnifier appears on a corkboard, a shelf or in a
   corner, click it — something odd has turned up. Everything you notice is kept
   in **Archive → Secrets**, and some of it is the Nut Encyclopedia's missing nuts.
+  Click a find there to read it again: where and when it turned up, what made it
+  possible and where it led. Open leads are listed at the top.
 - **See what's happening:** when a teammate holds up a little **!** ticket (and
   the room's name has a **!** too), something has started happening there. It
   waits for you: click the ticket, or click the teammate twice, to look into it
-  and decide. What you choose can show up again later, in the office.
+  and decide. Under each answer is what it will do (costs, rewards, who it
+  changes); point at an answer and the people it is about show how they would
+  take it. What you choose can show up again later, in the office.
 - **Open menus:** use the tabs at the top (Upgrades, Team, Company, etc.).
 - **Move the window:** click-and-drag the **top bar** (the part with the company
   name) to anywhere on your screen — including a corner.

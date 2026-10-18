@@ -441,8 +441,18 @@ export interface GameState {
    * look profitable now and bill the company afterwards.
    */
   scheduled: ScheduledConsequence[];
-  /** Resume the exact unresolved decision after closing/reloading the game. */
-  eventInProgress: { eventId: string; step: string | null } | null;
+  /**
+   * Resume the exact unresolved decision after closing/reloading the game: the
+   * card open right now, if any, and where it is set (the room and whoever
+   * brought it to the player), so a reload reopens it with the same people in
+   * the same room. Older saves have no place: it is worked out again.
+   */
+  eventInProgress: {
+    eventId: string;
+    step: string | null;
+    roomId?: string;
+    employeeId?: string;
+  } | null;
   /**
    * Earned encouragement expires against wall-clock time, including while away.
    * A `source` (the minigames) keeps one slot instead of stacking.

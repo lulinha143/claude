@@ -232,7 +232,7 @@
     color: var(--ink-strong);
     background: rgb(255 250 240 / 0.88);
     border-radius: 6px;
-    font: 800 10.5px / 1.2 var(--font-body);
+    font: 800 11px / 1.2 var(--font-body);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -247,8 +247,8 @@
     background: rgb(255 250 240 / 0.86);
     border: 2px solid var(--stamp);
     border-radius: 4px;
-    font: 800 10px / 1.15 var(--font-body);
-    letter-spacing: 0.08em;
+    font: 800 11px / 1.15 var(--font-body);
+    letter-spacing: 0.06em;
     text-transform: uppercase;
     rotate: 5deg;
   }
@@ -269,6 +269,283 @@
   [data-reduced-motion='true'] .incident-scene__actor {
     animation: none;
   }
+  /* How someone takes an answer: a sticker and a heart that goes up or down,
+     pinned at their side. Shown while an answer is pointed at or focused, and on
+     the outcome for how they took it. Low on the figure, so it never covers a
+     face, the room's name or the stamp. */
+  .incident-scene__actor {
+    position: relative;
+  }
+  .incident-scene__reaction {
+    position: absolute;
+    left: 66%;
+    bottom: 34%;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    pointer-events: none;
+    animation: reaction-in 200ms var(--ease-pop) both;
+  }
+  .incident-scene__sticker {
+    display: block;
+    width: calc(26px * var(--asset-scale));
+    height: calc(26px * var(--asset-scale));
+  }
+  .incident-scene__sticker > svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  .incident-scene__heart {
+    display: inline-flex;
+    align-items: center;
+    gap: 1px;
+    padding: 1px 4px 1px 3px;
+    color: #fff;
+    background: var(--c-moss-600);
+    border: 1.5px solid #fff;
+    border-radius: 7px;
+    font: 800 11px / 1.15 var(--font-body);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .incident-scene__heart[data-tone='down'] {
+    background: var(--c-berry-700);
+  }
+  @keyframes reaction-in {
+    from {
+      opacity: 0;
+      translate: 0 4px;
+    }
+  }
+
+  /* ---- the card's answers: lines on the incident report, ticked to decide ------ */
+  /* Each answer is a line on the report with a box to tick (green: the action),
+     its words, and under them what it will do: what it costs and pays (gold), who
+     it changes and how, the room it changes, a souvenir, who will remember and
+     whether it may come back later. */
+  .event-modal .event-modal__choices {
+    display: grid;
+    gap: 6px;
+  }
+  .event-modal .event-choice {
+    display: grid;
+    grid-template-columns: 16px minmax(0, 1fr);
+    align-items: start;
+    gap: 3px 9px;
+    width: 100%;
+    padding: 7px 11px 8px 9px;
+    color: var(--ink-strong);
+    background: var(--paper-bg-bright);
+    border: 2px solid var(--paper-line);
+    border-left: 5px solid var(--primary);
+    border-radius: 5px 10px 10px 5px;
+    box-shadow: 0 2px 0 rgb(40 26 12 / 0.12);
+    text-align: left;
+    text-shadow: none;
+    filter: none;
+    cursor: pointer;
+    transition:
+      background-color var(--dur) var(--ease),
+      border-color var(--dur) var(--ease),
+      transform var(--dur-fast) var(--ease);
+  }
+  .event-modal .event-choice[data-considered='true']:not([aria-disabled='true']) {
+    background: color-mix(in srgb, var(--primary) 8%, var(--paper-bg-bright));
+    border-color: color-mix(in srgb, var(--primary) 55%, var(--paper-line));
+    border-left-color: var(--primary);
+    box-shadow: 0 3px 0 rgb(40 26 12 / 0.14);
+    filter: none;
+    transform: translateY(-1px);
+  }
+  .event-modal .event-choice:active:not([aria-disabled='true']) {
+    box-shadow: none;
+    transform: translateY(1px);
+  }
+  .event-choice__tick {
+    grid-row: 1 / span 3;
+    position: relative;
+    width: 16px;
+    height: 16px;
+    margin-top: 1px;
+    background: var(--paper-bg-bright);
+    border: 2px solid var(--primary);
+    border-radius: 4px;
+  }
+  /* The answer being considered (pointed at, or reached by keys) takes the tick:
+     only ever one, the one its people are reacting to. */
+  .event-modal
+    .event-choice:is(:active, [data-considered='true']):not([aria-disabled='true'])
+    .event-choice__tick {
+    background: var(--primary);
+  }
+  .event-modal
+    .event-choice:is(:active, [data-considered='true']):not([aria-disabled='true'])
+    .event-choice__tick::after {
+    content: '';
+    position: absolute;
+    left: 3.5px;
+    top: 0.5px;
+    width: 4px;
+    height: 8px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    rotate: 45deg;
+  }
+  .event-choice__label {
+    grid-column: 2;
+    font: 800 var(--fs-sm) / 1.3 var(--font-body);
+  }
+  .event-modal .event-choice__req {
+    grid-column: 2;
+    color: var(--c-berry-700);
+    font: 700 var(--fs-2xs) / 1.35 var(--font-body);
+    opacity: 1;
+  }
+  .event-modal .event-choice[aria-disabled='true'] {
+    color: var(--ink-soft);
+    background: var(--paper-bg-sunken);
+    border-color: var(--paper-line);
+    border-left-color: var(--paper-line);
+    border-left-style: dashed;
+    box-shadow: none;
+    filter: none;
+    transform: none;
+    cursor: not-allowed;
+  }
+  .event-modal .event-choice[aria-disabled='true'] .event-choice__tick {
+    background: transparent;
+    border-color: var(--paper-line);
+    border-style: dashed;
+  }
+  .event-modal .event-choice--fallback {
+    border-style: dashed;
+    border-left-style: solid;
+  }
+  .event-choice__effects {
+    grid-column: 2;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px 10px;
+    min-width: 0;
+    color: var(--ink-body);
+    font: 700 var(--fs-2xs) / 1.35 var(--font-body);
+  }
+  .choice-term {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    white-space: nowrap;
+  }
+  .choice-term__shown,
+  .choice-term__long,
+  .choice-term__short {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .choice-term__short {
+    display: none;
+  }
+  /* A corner window: the same line, one row of marks and numbers (the words stay
+     in the tooltip and with a screen reader; the risk keeps its words). */
+  @media (max-height: 520px), (max-width: 340px) {
+    .choice-term[data-short] .choice-term__long {
+      display: none;
+    }
+    .choice-term[data-short] .choice-term__short {
+      display: inline-flex;
+    }
+    /* A souvenir and who will remember are on the outcome card too: here they
+       are only read out, so the line keeps to what the choice costs and changes. */
+    .choice-term[data-kind='keep'] .choice-term__shown {
+      display: none;
+    }
+    .choice-term[data-kind='keep'] {
+      position: absolute;
+    }
+    .event-modal .event-choice {
+      position: relative;
+      gap: 2px 8px;
+      padding: 6px 9px 6px 8px;
+    }
+    .event-modal .event-choice__effects,
+    .event-modal .event-choice__req {
+      grid-column: 1 / -1;
+      gap: 1px 8px;
+      line-height: 1.25;
+    }
+    .event-choice__tick {
+      grid-row: auto;
+    }
+  }
+  /* The card's text gives way before its answers do: in a short window it keeps
+     at least three lines, scrolls, and fades at its foot while there is more. */
+  .popup.event-modal .popup__content {
+    display: flex;
+    flex-direction: column;
+  }
+  .popup.event-modal .popup__content > * {
+    flex: none;
+  }
+  .popup.event-modal .popup__content > .event-modal__body {
+    flex: 0 1 auto;
+    min-height: 3.1em;
+    margin: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
+  .popup.event-modal .event-modal__body[data-more='true'] {
+    mask-image: linear-gradient(to bottom, #000 calc(100% - 1.4em), transparent);
+  }
+  .choice-term .ui-icon,
+  .choice-term svg {
+    flex: none;
+  }
+  /* Rewards are gold; costs, and someone taking it badly, a muted berry. */
+  .choice-term--gain {
+    color: #7a5200;
+  }
+  .choice-term--cost {
+    color: var(--c-berry-700);
+  }
+  .choice-term--people {
+    color: var(--ink-body);
+  }
+  .choice-term--note {
+    color: #2c5f8f;
+  }
+  .choice-term__sticker {
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+  }
+  .choice-term__sticker > svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  .choice-term__name {
+    color: var(--ink-strong);
+  }
+  .choice-term__word {
+    font-weight: 600;
+  }
+  .choice-term__heart {
+    display: inline-flex;
+    align-items: center;
+    gap: 1px;
+    font-variant-numeric: tabular-nums;
+  }
+  [data-high-contrast='true'] .choice-term {
+    color: #000;
+  }
+  [data-high-contrast='true'] .event-modal .event-choice {
+    border-left-width: 6px;
+  }
   /* A corner window: a shorter strip and tighter spacing, so the words and the
      choices still fit without scrolling. */
   @media (max-height: 520px) {
@@ -284,28 +561,24 @@
     .popup.consequence-modal .popup__content {
       gap: 7px;
     }
+    /* The answers are lines to tick on the report: they speak for themselves,
+       and the report keeps the room to be read. */
     .event-modal .event-modal__prompt {
-      margin: 4px 0 2px;
-      padding-top: 6px;
+      display: none;
     }
     .event-modal .event-modal__choices {
       gap: 5px;
+      margin-top: 2px;
     }
     .event-modal .event-choice {
       padding: 7px 11px;
     }
   }
-  /* The smallest corner window: the choices speak for themselves. */
+  /* The smallest corner window: a shorter strip still. */
   @media (max-height: 440px) {
     .incident-scene {
       height: 68px;
       --asset-scale: 0.7;
-    }
-    .event-modal .event-modal__prompt {
-      display: none;
-    }
-    .event-modal .event-modal__choices {
-      margin-top: 2px;
     }
   }
   @media (min-height: 700px) and (min-width: 900px) {
@@ -436,13 +709,13 @@
     color: #2c5f8f;
   }
 
-  /* ---- the curiosity log: bonus finds and open leads ------------------------- */
-  .curiosity.is-bonus {
+  /* ---- the curiosity log: bonus finds, open leads and the file ---------------- */
+  .curiosity.is-bonus .curiosity__card {
     background: #fff8e2;
-    box-shadow: inset 0 0 0 2px #e8c867;
+    border-color: #e8c867;
   }
   .curiosity__bonus {
-    margin-left: 6px;
+    flex: none;
     padding: 1px 6px;
     color: #7a4f00;
     background: #ffe9a8;
@@ -451,11 +724,188 @@
     font-style: normal;
     white-space: nowrap;
   }
-  .curiosity__lead {
+  /* A blank a lead points at: still blank, only marked. */
+  .curiosity.is-locked.is-pointed {
+    color: #7a5200;
+    background: #fff3c4;
+    border-color: #d9a520;
+  }
+  /* The clues the player is holding, at the head of the board. */
+  .curiosity-leads {
+    display: grid;
+    gap: 5px;
+    padding: 8px 10px 9px;
+    background: #fff8e2;
+    border: 2px dashed #e0c070;
+    border-radius: 6px 12px 12px 6px;
+  }
+  .curiosity-leads h4 {
+    margin: 0;
     color: #6b4a1c;
+    font: 800 var(--fs-2xs) / 1.2 var(--font-body);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .curiosity-leads ul {
+    display: grid;
+    gap: 4px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .curiosity-lead {
+    display: grid;
+    grid-template-columns: 14px minmax(0, 1fr);
+    gap: 1px 6px;
+    width: 100%;
+    min-height: 30px;
+    padding: 4px 6px;
+    color: var(--ink-strong);
+    background: transparent;
+    border: 0;
+    border-radius: 6px;
+    text-align: left;
+    cursor: pointer;
+  }
+  .curiosity-lead:hover,
+  .curiosity-lead[aria-expanded='true'] {
+    background: rgb(255 255 255 / 0.6);
+  }
+  .curiosity-lead > svg {
+    margin-top: 3px;
+    color: #7a5200;
+  }
+  .curiosity-lead__text {
+    font: italic 700 var(--fs-xs) / 1.35 var(--font-body);
+  }
+  .curiosity-lead__from {
+    grid-column: 2;
+    color: var(--ink-soft);
+    font: 700 var(--fs-2xs) / 1.3 var(--font-body);
+  }
+  /* A curiosity picked up: the thing itself, where and when, and its threads. */
+  .curiosity-file {
+    display: grid;
+    gap: 6px;
+    margin-top: 2px;
+    padding: 9px 11px 10px 13px;
+    color: var(--ink-strong);
+    background: #f7efdc;
+    border: 1px solid #b8a582;
+    border-left: 5px double #b8a582;
+    border-radius: 3px 8px 8px 3px;
+    box-shadow: 0 2px 3px rgb(56 41 20 / 0.12);
+    animation: file-in 180ms var(--ease) both;
+  }
+  @keyframes file-in {
+    from {
+      opacity: 0;
+      translate: 0 -3px;
+    }
+  }
+  .curiosity-file__head {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .curiosity-file__head h5 {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    font: 800 var(--fs-sm) / 1.25 var(--font-body);
+  }
+  .curiosity-file__glyph {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    color: var(--ink-body);
+    background: var(--paper-bg-bright);
+    border: 1.5px solid #b8a582;
+    border-radius: 50%;
+  }
+  .curiosity-file__close {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    margin: -5px -6px -5px 0;
+    color: var(--ink-body);
+    background: transparent;
+    border: 0;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  .curiosity-file__close:hover {
+    background: rgb(74 47 25 / 0.08);
+  }
+  .curiosity-file__hint {
+    margin: 0;
+    color: var(--ink-soft);
+    font: italic 600 var(--fs-xs) / 1.35 var(--font-body);
+  }
+  .curiosity-file__found {
+    margin: 0;
+    padding: 6px 9px;
+    color: var(--ink-strong);
+    background: var(--paper-bg-bright);
+    border-left: 3px solid #b8a582;
+    font: 700 var(--fs-sm) / 1.45 var(--font-body);
+  }
+  /* One grid for every fact, so the labels and what they say line up. */
+  .curiosity-file__facts {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    align-items: baseline;
+    gap: 3px 10px;
+    margin: 0;
+  }
+  .curiosity-file__facts > div {
+    display: contents;
+  }
+  .curiosity-file__facts dt {
+    grid-column: 1;
+    color: var(--ink-soft);
+    font: 800 var(--fs-2xs) / 1.3 var(--font-body);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .curiosity-file__facts dd {
+    grid-column: 2;
+    margin: 0;
+    color: var(--ink-body);
     font: 700 var(--fs-xs) / 1.35 var(--font-body);
   }
-  .curiosity__lead::before {
-    content: '→ ';
+  .curiosity-file__open {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+    color: #7a5200 !important;
+    font-style: italic !important;
+  }
+  .curiosity-file__open > svg {
+    flex: none;
+    translate: 0 1px;
+  }
+  .curiosity-file__note {
+    margin: 0;
+    color: #6b4a1c;
+    font: italic 700 var(--fs-2xs) / 1.35 var(--font-body);
+  }
+  .secret-file .secret-file__from {
+    margin: 6px 0 0;
+    color: #6c5877;
+    font: italic 700 0.75rem / 1.35 var(--font-body);
+  }
+  [data-high-contrast='true'] :is(.curiosity-file, .curiosity-leads, .curiosity__card) {
+    color: #000;
+    background: #fff;
+    border-color: #000;
+  }
+  [data-high-contrast='true']
+    :is(.curiosity-file__open, .curiosity-file__note, .curiosity-lead__from) {
+    color: #000 !important;
   }
 }

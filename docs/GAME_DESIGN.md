@@ -146,7 +146,13 @@ The loop is notice → investigate → choose → experience → consequence →
 - **The card** is set in the room it is happening in, with the people it is
   about and a rarity stamp; the outcome is the same card turned over: their
   reaction first, then what changed. It says when something was set in motion
-  and who will remember, never what.
+  and who will remember, never what. Each answer is a line on the report with
+  what it will do under it (`previewEventChoice`, the engine's own rules: costs
+  before rewards, who it changes and how, a room's mode, a souvenir, who will
+  remember, "may come back later"); a secret or a new nut stays a surprise.
+  Pointing at an answer (or reaching it by keys) shows its people taking it in
+  the scene; the outcome shows the same marks as measured. A reload reopens an
+  open card in the same room with the same presenter.
 - **Consequences** come in three kinds. Immediate: resources, moods, a room's
   mode or rush, everyone's friendship. Later, and quiet (no notice): a teammate
   says something, a curiosity appears (eight exist only after a particular
@@ -155,12 +161,25 @@ The loop is notice → investigate → choose → experience → consequence →
   Remembered: 69 marks a choice can leave, each brought up by the teammate it
   concerns a few minutes later, then now and then when poked.
 - **Small moments** (11): one or two lines, a small reward, no card. A line said
-  on a floor out of view is on the room's slip instead.
+  on a floor out of view is on the room's slip instead; a moment whose own room
+  is out of view (or that happens while the window is hidden) waits, up to three,
+  and plays out when the player looks there.
+- **Nothing is spent on nobody.** A promise that comes due while the game is
+  closed, asleep or minimized waits for the first tick in view (its notice, or
+  the moment it plays, is then seen); remarks and the office's news wait too.
 - **Discoveries lead on.** Some curiosities point somewhere (the teammate says
-  where) and unlock the next; noticing three paranormal ones starts the
-  building's thread, which unlocks the legendary _Thirteenth Button_. Chapter 4
-  adds 13 incidents (one legendary, three rare), three secret files and a
-  follow-up chain.
+  where) and unlock the next: a curiosity, or an incident (the soup of the week
+  brings the soup back; the basement's knocking pipes bring the night shift's
+  tape). Noticing three paranormal ones starts the building's thread, which
+  unlocks the legendary _Thirteenth Button_. Chapter 4 adds 13 incidents (one
+  legendary, three rare), three secret files and a follow-up chain.
+- **The Archive's board** (Secrets) is read from the save: open leads first (the
+  lead's own words, where it was found), then each room's finds as cards. A card
+  opens its file: the thing in its words, where and when, what made it possible
+  (a find, a decision, a story, a decoration, the night) and where it led (a
+  find, a waiting curiosity, an incident happening or decided). A blank a lead
+  points at is marked, never named; an aftermath does not exist until it turns
+  up. Secret files say which decision filed them.
 - **For the return.** The diary keeps the last 40 things that happened (started,
   opened, handled, passed, moments, promises landed, remarks); time away starts
   at most one incident per quarter hour, up to two, waiting in their rooms, and
