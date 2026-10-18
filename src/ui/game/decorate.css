@@ -1,0 +1,564 @@
+/* Chapter 8: the decoration catalogue (Decorar) and the storage strip while a
+   piece is in the paw. The objects come first: one short row of controls, then
+   cards that say what a piece is, where it goes, whether it is yours, and what
+   it costs or what is still missing. Paper and ink, green for the one action,
+   gold only for a golden price. */
+@layer game {
+  .view--decorate {
+    display: grid;
+    /* Never wider than the sheet: a long room name in the filter must not widen
+       the page (a select reports its longest option as its width). */
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+    align-content: start;
+  }
+  .decorate__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 2px 12px;
+  }
+  .decorate__head h2 {
+    margin: 0;
+  }
+  .decorate__summary {
+    margin: 0;
+    color: var(--ink-soft);
+    font: 700 var(--fs-xs) / 1.3 var(--font-body);
+    font-variant-numeric: tabular-nums;
+  }
+  .view--decorate .ensemble-notes {
+    margin: 0;
+    padding: 6px 0;
+  }
+  .view--decorate .ensemble-selection {
+    margin: 0;
+    padding: 8px 10px;
+    border-radius: 0 10px 10px 0;
+  }
+
+  /* ---- the control row: which part of the catalogue, then narrowing it ------ */
+  .decorate__bar {
+    display: grid;
+    gap: 6px;
+  }
+  .catalogue-sections {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    padding: 3px;
+    background: var(--paper-bg-sunken);
+    border: 1.5px solid var(--paper-line);
+    border-radius: 12px;
+    container-type: inline-size;
+  }
+  /* A corner window: the words before the counts (the list itself says how many). */
+  @container (max-width: 359px) {
+    .catalogue-sections__count {
+      display: none;
+    }
+  }
+  .catalogue-sections > button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    min-width: 0;
+    min-height: 32px;
+    padding: 3px 6px;
+    color: var(--ink-body);
+    background: transparent;
+    border: 0;
+    border-radius: 9px;
+    font: 800 var(--fs-sm) / 1.15 var(--font-body);
+    cursor: pointer;
+  }
+  .catalogue-sections > button > span:first-child {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .catalogue-sections > button:hover {
+    color: var(--ink-strong);
+    background: rgb(255 255 255 / 0.55);
+  }
+  .catalogue-sections > button[aria-pressed='true'] {
+    color: var(--calm-ink);
+    background: var(--calm-bg);
+    box-shadow: 0 2px 0 var(--calm-edge);
+  }
+  .catalogue-sections > button:focus-visible {
+    outline: 3px solid var(--c-sky-500, #4aa3b1);
+    outline-offset: 1px;
+  }
+  .catalogue-sections__count {
+    flex: 0 0 auto;
+    min-width: 1.7em;
+    padding: 1px 5px;
+    color: inherit;
+    background: rgb(255 255 255 / 0.6);
+    border-radius: 999px;
+    font: 800 var(--fs-xs) / 1.2 var(--font-numeric);
+    font-variant-numeric: tabular-nums;
+  }
+  .catalogue-sections > button[aria-pressed='true'] .catalogue-sections__count {
+    background: rgb(255 255 255 / 0.2);
+  }
+  .decorate__filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .decorate__search {
+    display: flex;
+    flex: 1 1 9rem;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    min-height: 32px;
+    margin: 0;
+    padding: 0 10px;
+    color: var(--ink-soft);
+    background: var(--paper-bg-bright);
+    border: 1.5px solid var(--paper-line);
+    border-radius: 10px;
+  }
+  .decorate__search:focus-within {
+    border-color: var(--c-sky-500, #4aa3b1);
+    outline: 3px solid var(--c-sky-500, #4aa3b1);
+    outline-offset: 1px;
+  }
+  .decorate__search input {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 28px;
+    padding: 0;
+    color: var(--ink-strong);
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    outline: none;
+    appearance: none;
+    font: 700 var(--fs-sm) / 1.2 var(--font-body);
+  }
+  .decorate__select {
+    flex: 0 1 10rem;
+    width: 10rem;
+    min-width: 7.5rem;
+    min-height: 32px;
+  }
+
+  /* ---- room actions (the chosen room's tidy and undo) ----------------------- */
+  .decorate__roombar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px 10px;
+    padding: 6px 8px 6px 10px;
+    background: var(--paper-bg-sunken);
+    border-radius: 10px;
+  }
+  .decorate__roombar-room {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    min-width: 0;
+    color: var(--ink-strong);
+    font: 800 var(--fs-sm) / 1.2 var(--font-body);
+  }
+  .decorate__roombar-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .decorate__roombar-actions .mini-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 30px;
+    padding: 3px 10px;
+    font-size: var(--fs-xs);
+  }
+  .decorate__empty {
+    margin: 0;
+    padding: 14px;
+    color: var(--ink-soft);
+    background: var(--paper-bg-sunken);
+    border-radius: 12px;
+    text-align: center;
+    font: 700 var(--fs-sm) / 1.4 var(--font-body);
+  }
+
+  /* ---- the cards ------------------------------------------------------------ */
+  .decorate__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  /* Each card lays itself out by its own width: in a narrow one the actions
+     run under the words; in a wide one they stand beside them. */
+  .sheet .view .decocard {
+    position: relative;
+    min-width: 0;
+    margin: 0;
+    padding: 8px 10px 9px 8px;
+    border-radius: 12px;
+    container-type: inline-size;
+    transition: border-color var(--dur-fast) var(--ease);
+  }
+  .decocard__inner {
+    display: grid;
+    grid-template-columns: 64px minmax(0, 1fr);
+    grid-template-areas:
+      'art body'
+      'actions actions'
+      'note note';
+    align-items: start;
+    gap: 6px 10px;
+  }
+
+  .sheet .view .decocard.is-owned {
+    border-color: color-mix(in srgb, var(--c-leaf-500) 55%, var(--paper-line));
+  }
+  .sheet .view .decocard.is-coming {
+    background-color: var(--paper-bg);
+    box-shadow: none;
+  }
+  .sheet .view .decocard.is-ok {
+    border-color: var(--c-leaf-500);
+  }
+  /* A little of the room it stands in: a wall with a strip of floor, the wall
+     alone, or the wall under its ceiling line. */
+  .decocard__art {
+    grid-area: art;
+    position: relative;
+    display: grid;
+    place-items: end center;
+    width: 64px;
+    height: 72px;
+    overflow: hidden;
+    background: linear-gradient(180deg, #f4e8d2 0 64%, #dcbb8c 64% 100%);
+    border: 1px solid var(--paper-line);
+    border-radius: 9px;
+  }
+  .decocard__art--rug {
+    place-items: end center;
+    background: linear-gradient(180deg, #f4e8d2 0 52%, #dcbb8c 52% 100%);
+  }
+  .decocard__art--wall {
+    place-items: center;
+    background: linear-gradient(180deg, #f1e4cc 0 82%, #e4d1b2 82% 100%);
+  }
+  .decocard__art--ceiling {
+    place-items: start center;
+    background: linear-gradient(180deg, #ddcaa9 0 12%, #f4e8d2 12% 100%);
+  }
+  .decocard__art .decor {
+    padding: 0;
+    line-height: 0;
+    background: none;
+    border: 0;
+  }
+  .decocard__art .decor > svg {
+    width: 50px;
+    height: 58px;
+  }
+  .decocard__art--floor .decor,
+  .decocard__art--rug .decor {
+    margin-bottom: 4px;
+  }
+  .decocard.is-coming .decocard__art .decor {
+    filter: grayscale(0.5) opacity(0.78);
+  }
+
+  .decocard__body {
+    grid-area: body;
+    display: grid;
+    align-content: start;
+    gap: 2px;
+    min-width: 0;
+  }
+  .sheet .view .decocard__title {
+    margin: 0;
+    color: var(--ink-strong);
+    font: 800 var(--fs-base) / 1.2 var(--font-body);
+    overflow-wrap: anywhere;
+  }
+  .decocard__description {
+    display: -webkit-box;
+    margin: 0;
+    overflow: hidden;
+    color: var(--ink-body);
+    font: italic 600 var(--fs-xs) / 1.35 var(--font-body);
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  .decocard__where {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 10px;
+    margin: 2px 0 0;
+    color: var(--ink-soft);
+    font: 700 var(--fs-xs) / 1.3 var(--font-body);
+  }
+  .decocard__where > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    min-width: 0;
+  }
+  .decocard__gain {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    margin: 0;
+    color: var(--c-leaf-700);
+    font: 700 var(--fs-xs) / 1.3 var(--font-body);
+  }
+  .decocard__set {
+    margin: 0;
+    color: #6f4c06;
+    font: 700 var(--fs-xs) / 1.3 var(--font-body);
+  }
+
+  .decocard__actions {
+    grid-area: actions;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    padding-top: 6px;
+    border-top: 1px dashed var(--paper-line);
+  }
+  .decocard__room[data-state='placed'] {
+    color: var(--c-leaf-700);
+  }
+  .decocard__room[data-state='stored'] {
+    color: var(--ink-body);
+  }
+  .app .decocard__actions .mini-btn {
+    justify-content: center;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 30px;
+    padding: 3px 10px;
+    font-size: var(--fs-xs);
+  }
+  .app .decocard__buy {
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-rows: auto auto;
+    align-items: center;
+    justify-content: center;
+    justify-items: center;
+    column-gap: 4px;
+    min-width: 96px;
+    min-height: 36px;
+    margin-left: auto;
+    padding: 4px 12px;
+    font: 800 var(--fs-sm) / 1.1 var(--font-numeric);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .app .decocard__buy > svg,
+  .decocard__price {
+    grid-row: 1;
+  }
+  .decocard__short {
+    grid-column: 1 / span 2;
+    grid-row: 2;
+    font: 700 max(var(--fs-min), 11px) / 1.2 var(--font-body);
+  }
+  /* Short of the price: paper, not green, and still pressable (it explains). */
+  .app .decocard .decocard__buy[aria-disabled='true'],
+  .app .decocard .decocard__buy[aria-disabled='true']:is(:hover, :active) {
+    color: var(--ink-body);
+    background: var(--paper-bg-bright);
+    border-color: var(--paper-line);
+    box-shadow: 0 2px 0 var(--paper-line);
+    transform: none;
+  }
+  .app .decocard .decocard__buy[aria-disabled='true']:hover {
+    border-color: var(--c-walnut-400);
+  }
+  .app .decocard__buy.is-golden:not([aria-disabled='true']) {
+    color: var(--reward-ink);
+    background: var(--reward-bg);
+    border-color: var(--reward-edge);
+    box-shadow: 0 3px 0 var(--reward-edge);
+  }
+  .app .decocard__buy.is-golden:not([aria-disabled='true']):hover {
+    background: var(--reward-bg-hover);
+  }
+  .decocard__coming {
+    display: flex;
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 6px;
+    margin: 0;
+    color: var(--ink-soft);
+    font: 700 var(--fs-xs) / 1.3 var(--font-body);
+  }
+  .decocard__coming-price {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    margin-left: auto;
+    font: 800 var(--fs-xs) / 1 var(--font-numeric);
+    font-variant-numeric: tabular-nums;
+  }
+  .decocard__note {
+    grid-area: note;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin: 0;
+    font: 800 var(--fs-xs) / 1.3 var(--font-body);
+  }
+  .decocard__note.is-ok {
+    color: var(--c-leaf-700);
+  }
+  .decocard__note.is-short {
+    color: var(--c-berry-700);
+  }
+  .decocard.is-short .decocard__buy {
+    animation: shop-short 0.32s var(--ease);
+  }
+  /* A wide card: the actions stand beside the words (after the rules above, so
+     these win). */
+  @container (min-width: 430px) {
+    .decocard__inner {
+      grid-template-columns: 64px minmax(0, 1fr) auto;
+      grid-template-areas:
+        'art body actions'
+        'note note note';
+      align-items: center;
+    }
+    .decocard__actions {
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: center;
+      padding-top: 0;
+      border-top: 0;
+    }
+    .app .decocard__buy {
+      margin-left: 0;
+    }
+    .decocard__coming {
+      flex-direction: column;
+      align-items: flex-end;
+      max-width: 11rem;
+      text-align: right;
+    }
+    .decocard__coming-price {
+      margin-left: 0;
+    }
+  }
+  [data-reduced-motion='true'] .decocard,
+  [data-reduced-motion='true'] .decocard__buy {
+    animation: none !important;
+  }
+
+  [data-high-contrast='true'] .sheet .view .decocard,
+  [data-high-contrast='true'] .catalogue-sections,
+  [data-high-contrast='true'] .decorate__search,
+  [data-high-contrast='true'] .decorate__select {
+    color: #000;
+    background: #fff;
+    border-color: #000;
+  }
+  [data-high-contrast='true'] .catalogue-sections > button[aria-pressed='true'] {
+    color: #fff;
+    background: #000;
+  }
+  [data-high-contrast='true']
+    :is(.decocard__where, .decocard__room, .decocard__gain, .decocard__set, .decocard__coming) {
+    color: #000;
+  }
+  [data-high-contrast='true'] .decocard__art {
+    border-color: #000;
+  }
+
+  /* The room recipes, on this page and the company's: their small print stays
+     readable (it was 0.8rem, under the floor). */
+  .ensemble-notes > p,
+  .ensemble-notes li > div > span,
+  .ensemble-notes li p,
+  .ensemble-notes li small {
+    font-size: var(--fs-xs);
+  }
+  .view--decorate .ensemble-notes summary {
+    padding-block: 6px;
+  }
+
+  /* ---- the storage strip ------------------------------------------------------ */
+  /* Its names are read while arranging: never under the legibility floor, and
+     its one button is a real target, as tall as the search beside it. */
+  .deco-tray .deco-tray__card-name,
+  .deco-tray .deco-tray__card-room {
+    font-size: var(--fs-2xs);
+    line-height: 1.2;
+  }
+  .app .deco-tray .deco-tray__move {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 28px;
+    padding: 2px 10px;
+    font-size: var(--fs-2xs);
+  }
+
+  /* ---- the storage strip while a piece is in the paw ------------------------ */
+  /* It says, once and in place, what letting go over it does; it is not dimmed
+     (it sits under the rooms, never over them). */
+  .deco-tray.is-dragging {
+    opacity: 1;
+  }
+  .deco-tray__drop {
+    position: absolute;
+    inset: 5px;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 12px;
+    color: rgb(255 246 230 / 0.92);
+    background: color-mix(in srgb, var(--c-bark-900, #2b1d10) 94%, black);
+    border: 2px dashed rgb(255 246 230 / 0.42);
+    border-radius: 12px;
+    text-align: center;
+    font: 800 var(--fs-sm) / 1.2 var(--font-body);
+    pointer-events: none;
+  }
+  /* What the strip usually says waits under the message (it stays laid out: the
+     drag may have started on one of its cards). */
+  .deco-tray.is-dragging .deco-tray__head {
+    visibility: hidden;
+  }
+  .deco-tray.is-drop-over .deco-tray__drop {
+    color: #fffaf0;
+    background: rgb(63 108 56 / 0.92);
+    border-style: solid;
+    border-color: #fffaf0;
+  }
+  .drag-ghost--decoration.is-stow .decor {
+    filter: drop-shadow(0 6px 5px rgb(40 26 12 / 0.28));
+    opacity: 0.9;
+  }
+  [data-high-contrast='true'] .deco-tray__drop {
+    color: #fff;
+    background: #000;
+    border-color: #fff;
+  }
+}

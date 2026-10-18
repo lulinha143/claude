@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { EnsembleNotes } from '../EnsembleNotes';
 import { useGame } from '../../state/hooks';
@@ -6,24 +6,31 @@ import { useStore } from '../../state/store';
 import { useFmt } from '../useFmt';
 import { DECORATION_ENSEMBLES } from '../../content/decorationEnsembles';
 import { DECORATIONS } from '../../content/decorations';
+import type { DecorationDef } from '../../content/types';
 import { ROOMS_BY_ID } from '../../content/rooms';
 import { unlockedRooms } from '../../sim/rooms';
 import {
   isDecorationOwned,
   isDecorationPlaced,
   decorationRoom,
-  roomComfort,
   ownedDecorationsInRoom,
   placedDecorationsInRoom,
 } from '../../sim/decorations';
 import { decorKind, DecorationProp, type DecorKind } from '../../art/DecorationProp';
-import { Icon } from '../../art/UiIcon';
+import { Icon, type IconName } from '../../art/UiIcon';
 import { Acorn, GoldenNut } from '../../art/Icons';
 import { sparkleAt } from '../sparkle';
 import { notify } from '../notificationsStore';
 import { MoveDecorationModal } from '../modals/MoveDecorationModal';
-import { decorationSurface } from '../../sim/surfaces';
+import { decorationSurface, isRug } from '../../sim/surfaces';
 import { Tip, TipContent } from '../Tooltip';
+
+// The decoration catalogue: the objects first. Each card says what the piece is,
+// where it goes (its surface, and the room it belongs to or stands in now),
+// whether it is yours, and what it costs or what is still missing — before
+// anything is pressed. Buying is one step in the engine (checked, charged once,
+// filed, saved); the card then says where the piece went. Arranging happens in
+// the office itself ("Arrumar"), or room to room with "Mover…".
 
 const ROOM_ACCENT: Record<string, string> = {
   'founder-desk': 'var(--dept-founder)',
@@ -41,9 +48,28 @@ const ROOM_ACCENT: Record<string, string> = {
   rooftop: 'var(--dept-rooftop)',
 };
 
+const SURFACE_ICON: Record<'floor' | 'rug' | 'wall' | 'ceiling', IconName> = {
+  floor: 'rooms',
+  rug: 'rooms',
+  wall: 'photo',
+  ceiling: 'up',
+};
+
+/** The set (room recipe) each piece belongs to, if any. */
+const SET_OF: Record<string, string> = Object.fromEntries(
+  DECORATION_ENSEMBLES.flatMap((set) => set.items.map((id) => [id, set.id])),
+);
+
+type Section = 'available' | 'owned' | 'locked';
 type RoomFilter = 'all' | string;
 type TypeFilter = 'all' | DecorKind;
-type ResourceFilter = 'all' | 'nuts' | 'goldenNuts';
+
+interface CardNote {
+  id: string;
+  tone: 'ok' | 'short';
+  text: string;
+  key: number;
+}
 
 export function DecorateView() {
   const { t } = useTranslation();
@@ -52,11 +78,10 @@ export function DecorateView() {
   const buy = useStore((s) => s.buyDecoration);
   const audio = useStore((s) => s.audio);
   const arrangeDecoration = useStore((s) => s.arrangeDecoration);
-  const [availability, setAvailability] = useState<'available' | 'owned' | 'locked'>('available');
 
+  const [section, setSection] = useState<Section>('available');
   const [room, setRoom] = useState<RoomFilter>('all');
   const [type, setType] = useState<TypeFilter>('all');
-  const [resource, setResource] = useState<ResourceFilter>('all');
   const [query, setQuery] = useState('');
   const [ensembleId, setEnsembleId] = useState<string | null>(null);
   const ensemble = DECORATION_ENSEMBLES.find((set) => set.id === ensembleId);
@@ -65,38 +90,38 @@ export function DecorateView() {
     if (ensembleId) selectionRef.current?.focus();
   }, [ensembleId]);
   const [movingId, setMovingId] = useState<string | null>(null);
+  // What the last press on a card answered (a purchase, or what is missing).
+  const [note, setNote] = useState<CardNote | null>(null);
+  const noteKey = useRef(0);
 
-  // Decoration rooms that are actually unlocked (so the selector only offers
-  // places the player can decorate).
-  const rooms = useMemo(
-    () => unlockedRooms(state).filter((r) => DECORATIONS.some((d) => d.room === r.id)),
-    [state],
-  );
-  const roomIds = useMemo(() => new Set(rooms.map((r) => r.id)), [rooms]);
+  // Decoration rooms that are open (the room filter offers only places the
+  // player can decorate). Worked out each render: the engine changes its state
+  // in place, so a memo keyed on it would miss a room opening while this is open.
+  const rooms = unlockedRooms(state).filter((r) => DECORATIONS.some((d) => d.room === r.id));
+  const roomIds = new Set(rooms.map((r) => r.id));
 
-  const available = DECORATIONS.filter((d) =>
-    availability === 'owned'
+  const inSection = (d: DecorationDef, which: Section) =>
+    which === 'owned'
       ? isDecorationOwned(state, d.id)
-      : availability === 'locked'
+      : which === 'locked'
         ? !roomIds.has(d.room) && !isDecorationOwned(state, d.id)
-        : roomIds.has(d.room),
-  );
+        : roomIds.has(d.room);
+  const sections: readonly Section[] = ['available', 'owned', 'locked'];
+  const counts = Object.fromEntries(
+    sections.map((which) => [which, DECORATIONS.filter((d) => inSection(d, which)).length]),
+  ) as Record<Section, number>;
+  const listed = DECORATIONS.filter((d) => inSection(d, section));
 
-  // The decoration kinds present among available items (for the type filter).
-  const kinds = useMemo(() => {
-    const set = new Set<DecorKind>();
-    available.forEach((d) => set.add(decorKind(d.id)));
-    return [...set];
-  }, [available]);
+  // The kinds present in this section (for the type filter).
+  const kinds = [...new Set<DecorKind>(listed.map((d) => decorKind(d.id)))];
 
   const q = query.trim().toLowerCase();
-  const filtered = available.filter((d) => {
+  const filtered = listed.filter((d) => {
     if (ensemble && !ensemble.items.includes(d.id)) return false;
     const owned = isDecorationOwned(state, d.id);
     const assignedRoom = owned ? decorationRoom(state, d.id) : null;
     if (room !== 'all' && (assignedRoom ?? d.room) !== room) return false;
     if (type !== 'all' && decorKind(d.id) !== type) return false;
-    if (resource !== 'all' && d.cost.resource !== resource) return false;
     if (q && !t(`deco.${d.id}.name`).toLowerCase().includes(q)) return false;
     return true;
   });
@@ -106,28 +131,51 @@ export function DecorateView() {
   // offered-and-then-rejected.
   const ownedHere = room === 'all' ? 0 : ownedDecorationsInRoom(state, room).length;
 
-  // Scope summary (whole catalogue, or the selected room).
+  // Scope summary (the whole catalogue, or the selected room).
   const scopeRooms = room === 'all' ? rooms.map((r) => r.id) : [room];
-  const ownedCount = scopeRooms.reduce((s, r) => s + ownedDecorationsInRoom(state, r).length, 0);
+  const ownedCount =
+    room === 'all' ? DECORATIONS.filter((d) => isDecorationOwned(state, d.id)).length : ownedHere;
   const placedCount = scopeRooms.reduce((s, r) => s + placedDecorationsInRoom(state, r).length, 0);
-  const comfort = scopeRooms.reduce((s, r) => s + roomComfort(state, r), 0);
+
+  const roomName = (id: string) => t(ROOMS_BY_ID[id]?.nameKey ?? id);
+  const priceText = (d: DecorationDef, amount: number) =>
+    d.cost.resource === 'goldenNuts'
+      ? t('station.tip.goldenAmount', { amount: fmt.int(Math.ceil(amount)) })
+      : t('station.tip.nutAmount', { amount: fmt.int(Math.ceil(amount)) });
+
+  function purchase(d: DecorationDef, event: MouseEvent) {
+    const result = buy(d.id);
+    if (!result.ok) {
+      // What is missing is said live on the card (worked out as it renders), so
+      // it keeps agreeing with the button while production ticks in.
+      if (result.reason === 'short') {
+        setNote({ id: d.id, tone: 'short', text: '', key: ++noteKey.current });
+      }
+      return;
+    }
+    sparkleAt(event);
+    const where = result.roomId
+      ? t('decorate.boughtPlaced', { room: roomName(result.roomId) })
+      : t('decorate.boughtStored');
+    setNote({ id: d.id, tone: 'ok', text: where, key: ++noteKey.current });
+  }
 
   return (
     <section className="view view--decorate">
-      <div className="decorate__head">
+      <header className="decorate__head">
         <h2>{t('nav.decorate')}</h2>
         <p className="decorate__summary">
-          {t('decorate.summary', { owned: ownedCount, placed: placedCount, comfort })}
+          {t('decorate.ownedCount', { count: ownedCount })} ·{' '}
+          {t('decorate.placedCount', { count: placedCount })}
         </p>
-      </div>
+      </header>
 
       <EnsembleNotes
         onBrowse={(id) => {
           setRoom('all');
           setType('all');
-          setResource('all');
           setQuery('');
-          setAvailability('available');
+          setSection('available');
           setEnsembleId(id);
           audio.play('paper');
         }}
@@ -136,58 +184,90 @@ export function DecorateView() {
         <div className="ensemble-selection" ref={selectionRef} tabIndex={-1}>
           <div>
             <strong>{t(`ensemble.${ensemble.id}.name`)}</strong>
-            <p>{t('ensemble.selection', { room: t(ROOMS_BY_ID[ensemble.roomId].nameKey) })}</p>
+            <p>{t('ensemble.selection', { room: roomName(ensemble.roomId) })}</p>
           </div>
           <button className="ghost-btn" onClick={() => setEnsembleId(null)}>
             {t('ensemble.allPieces')}
           </button>
         </div>
       ) : null}
-      {/* room selector */}
-      <div className="decorate__rooms" role="tablist" aria-label={t('decorate.allRooms')}>
-        <button
-          className={`chip-btn ${room === 'all' ? 'is-on' : ''}`}
-          onClick={() => {
-            setRoom('all');
-            setEnsembleId(null);
-          }}
-          role="tab"
-          aria-selected={room === 'all'}
+
+      {/* One row of controls: which part of the catalogue, then narrowing it down. */}
+      <div className="decorate__bar">
+        <div
+          className="catalogue-sections"
+          role="group"
+          aria-label={t('decorate.catalogueSections')}
         >
-          {t('decorate.allRooms')}
-        </button>
-        {rooms.map((r) => (
-          <button
-            key={r.id}
-            className={`chip-btn ${room === r.id ? 'is-on' : ''}`}
-            onClick={() => {
-              setRoom(r.id);
+          {sections.map((value) => (
+            <button
+              key={value}
+              type="button"
+              data-section={value}
+              aria-pressed={section === value}
+              onClick={() => {
+                setSection(value);
+                setRoom('all');
+                setType('all');
+                setEnsembleId(null);
+              }}
+            >
+              <span>{t(`decorate.section.${value}`)}</span>
+              <span className="catalogue-sections__count">{counts[value]}</span>
+            </button>
+          ))}
+        </div>
+        <div className="decorate__filters">
+          <label className="decorate__search">
+            <Icon name="shop" size={14} />
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={t('decorate.searchPlaceholder')}
+              aria-label={t('decorate.searchPlaceholder')}
+            />
+          </label>
+          {/* One filter: a room, or a kind of piece (a search covers names). */}
+          <select
+            className="select decorate__select"
+            value={room !== 'all' ? `room:${room}` : type !== 'all' ? `kind:${type}` : 'all'}
+            aria-label={t('decorate.filter')}
+            onChange={(e) => {
+              const [scope, value] = e.target.value.split(':');
+              setRoom(scope === 'room' ? value : 'all');
+              setType(scope === 'kind' ? (value as DecorKind) : 'all');
               setEnsembleId(null);
             }}
-            role="tab"
-            aria-selected={room === r.id}
           >
-            {t(r.nameKey)}
-          </button>
-        ))}
+            <option value="all">{t('decorate.allPieces')}</option>
+            {section !== 'locked' ? (
+              <optgroup label={t('decorate.roomFilter')}>
+                {rooms.map((r) => (
+                  <option key={r.id} value={`room:${r.id}`}>
+                    {t(r.nameKey)}
+                  </option>
+                ))}
+              </optgroup>
+            ) : null}
+            <optgroup label={t('decorate.typeFilter')}>
+              {kinds.map((k) => (
+                <option key={k} value={`kind:${k}`}>
+                  {t(`decorate.type.${k}`)}
+                </option>
+              ))}
+            </optgroup>
+          </select>
+        </div>
       </div>
 
-      {/* Room actions.
-          "Tidy up" used to sit as the last chip INSIDE the filter toolbar, which
-          made a mutating, room-wide action look like one more filter — and it was
-          the only control there that changed the game rather than the view. Worse,
-          it is fully undoable (engine.resetRoomDecorations pushes decoration
-          history) but Undo lived only in the office toolbar, on a different screen,
-          so from here the player could rearrange every piece in a room with no
-          visible way back.
-
-          Actions now have their own bar, scoped to the selected room, with the
-          undo that belongs to them sitting right next to it. */}
+      {/* Room actions, for the room chosen above, with the undo that belongs to
+          them right beside them. */}
       {room !== 'all' ? (
         <div className="decorate__roombar">
           <span className="decorate__roombar-room">
             <Icon name="rooms" size={13} />
-            {t(ROOMS_BY_ID[room].nameKey)}
+            {roomName(room)}
           </span>
           <div className="decorate__roombar-actions">
             <Tip
@@ -224,185 +304,156 @@ export function DecorateView() {
         </div>
       ) : null}
 
-      {/* filters */}
-      <div className="catalogue-sections" aria-label={t('decorate.catalogueSections')}>
-        {(['available', 'owned', 'locked'] as const).map((value) => (
-          <button
-            key={value}
-            aria-pressed={availability === value}
-            onClick={() => {
-              setAvailability(value);
-              setRoom('all');
-              setEnsembleId(null);
-            }}
-          >
-            {t(`decorate.section.${value}`)}
-          </button>
-        ))}
-      </div>
-      <div className="decorate__filters">
-        <label className="decorate__search">
-          <Icon name="shop" size={14} />
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={t('decorate.searchPlaceholder')}
-            aria-label={t('decorate.searchPlaceholder')}
-          />
-        </label>
-        <div className="decorate__chiprow">
-          <button
-            className={`tag-btn ${type === 'all' ? 'is-on' : ''}`}
-            onClick={() => setType('all')}
-          >
-            {t('decorate.allTypes')}
-          </button>
-          {kinds.map((k) => (
-            <button
-              key={k}
-              className={`tag-btn ${type === k ? 'is-on' : ''}`}
-              onClick={() => setType(k)}
-            >
-              {t(`decorate.type.${k}`)}
-            </button>
-          ))}
-        </div>
-        <div className="decorate__chiprow">
-          <button
-            className={`tag-btn ${resource === 'all' ? 'is-on' : ''}`}
-            onClick={() => setResource('all')}
-          >
-            {t('decorate.anyResource')}
-          </button>
-          <button
-            className={`tag-btn ${resource === 'nuts' ? 'is-on' : ''}`}
-            onClick={() => setResource('nuts')}
-          >
-            <Acorn size={13} />
-          </button>
-          <button
-            className={`tag-btn ${resource === 'goldenNuts' ? 'is-on' : ''}`}
-            onClick={() => setResource('goldenNuts')}
-          >
-            <GoldenNut size={13} />
-          </button>
-        </div>
-      </div>
-
-      {/* grid */}
       {filtered.length === 0 ? (
-        <p className="decorate__empty">{t('decorate.noResults')}</p>
+        <p className="decorate__empty">
+          {section === 'owned' && counts.owned === 0
+            ? t('decorate.ownedEmpty')
+            : t('decorate.noResults')}
+        </p>
       ) : (
         <ul className="decorate__grid">
           {filtered.map((d) => {
+            const name = t(`deco.${d.id}.name`);
+            const description = t(`deco.${d.id}.desc`, { defaultValue: '' });
             const owned = isDecorationOwned(state, d.id);
             const placed = owned && isDecorationPlaced(state, d.id);
             const currentRoom = owned ? decorationRoom(state, d.id) : null;
-            const afford = state.resources[d.cost.resource] >= d.cost.amount;
-            const kind = decorKind(d.id);
-            const surface = decorationSurface(d.id);
+            const open = roomIds.has(d.room);
+            const have = state.resources[d.cost.resource];
+            const afford = have >= d.cost.amount;
+            const golden = d.cost.resource === 'goldenNuts';
+            const surface = isRug(d.id) ? 'rug' : decorationSurface(d.id);
+            const setId = SET_OF[d.id];
+            const pressed = note?.id === d.id ? note : null;
+            // A "short" answer lasts only while it is true, and counts down live.
+            const cardNote =
+              pressed?.tone === 'short'
+                ? afford || owned
+                  ? null
+                  : {
+                      ...pressed,
+                      text: t('shop.shortNote', {
+                        amount: priceText(d, Math.max(1, d.cost.amount - have)),
+                      }),
+                    }
+                : pressed;
+            // Where it is: the room it stands in (yours), storage (yours, put
+            // away), or the room it belongs to (not yet yours).
+            const where = owned
+              ? currentRoom
+                ? { icon: 'success' as const, text: roomName(currentRoom), state: 'placed' }
+                : { icon: 'hidden' as const, text: t('decorate.inStorage'), state: 'stored' }
+              : { icon: 'home' as const, text: roomName(d.room), state: 'home' };
             return (
               <li
                 key={d.id}
-                className={`decocard ${owned ? 'is-owned' : ''} ${placed ? 'is-placed' : ''}`}
-                data-kind={kind}
+                className={`decocard ${owned ? 'is-owned' : ''} ${placed ? 'is-placed' : ''} ${
+                  !owned && !open ? 'is-coming' : ''
+                } ${cardNote ? `is-${cardNote.tone}` : ''}`}
+                data-kind={decorKind(d.id)}
                 data-decoration={d.id}
+                data-surface={surface}
               >
-                <div className={`decocard__preview decocard__preview--${surface}`}>
-                  <DecorationProp
-                    id={d.id}
-                    accent={ROOM_ACCENT[d.room]}
-                    mode="interact"
-                    onInteract={() => audio.play('click')}
-                    title={t(`deco.${d.id}.name`)}
-                  />
-                  <span className="decocard__surface" aria-hidden>
-                    {t(`decorate.surface.${surface}`)}
-                  </span>
-                </div>
-                <div className="decocard__body">
-                  <div className="decocard__title">{t(`deco.${d.id}.name`)}</div>
-                  {t(`deco.${d.id}.desc`, { defaultValue: '' }) ? (
-                    <p className="decocard__description">{t(`deco.${d.id}.desc`)}</p>
-                  ) : null}
-                  <div className="decocard__meta">
-                    <span className="pill">
-                      {currentRoom
-                        ? t(ROOMS_BY_ID[currentRoom].nameKey)
-                        : owned
-                          ? t('decorate.inStorage')
-                          : t(ROOMS_BY_ID[d.room].nameKey)}
-                    </span>
-                    <span className="pill pill--soft">{t(`decorate.type.${kind}`)}</span>
+                <div className="decocard__inner">
+                  <div className={`decocard__art decocard__art--${surface}`}>
+                    <DecorationProp
+                      id={d.id}
+                      accent={ROOM_ACCENT[d.room]}
+                      mode="interact"
+                      onInteract={() => audio.play('click')}
+                      title={name}
+                    />
                   </div>
-                  <div className="decocard__comfort">
-                    <Icon name="morale" size={12} /> +{d.moraleBonus}{' '}
-                    {t('resource.morale').toLowerCase()}
+                  <div className="decocard__body">
+                    <h3 className="decocard__title">{name}</h3>
+                    {description ? <p className="decocard__description">{description}</p> : null}
+                    <p className="decocard__where">
+                      <span className="decocard__surface">
+                        <Icon name={SURFACE_ICON[surface]} size={12} />
+                        {/* A rug lies on the floor: that is its surface. */}
+                        {t(`decorate.surface.${surface === 'rug' ? 'floor' : surface}`)}
+                      </span>
+                      <span className="decocard__room" data-state={where.state}>
+                        <Icon name={where.icon} size={12} />
+                        {where.state === 'placed' ? (
+                          <span className="sr-only">{t('decorate.placed')}: </span>
+                        ) : null}
+                        {where.text}
+                      </span>
+                    </p>
+                    {!owned && open ? (
+                      <p className="decocard__gain">
+                        <Icon name="morale" size={12} />
+                        {t('decorate.moraleOnBuy', { value: d.moraleBonus })}
+                      </p>
+                    ) : null}
+                    {setId ? (
+                      <p className="decocard__set">
+                        {t('decorate.inSet', { name: t(`ensemble.${setId}.name`) })}
+                      </p>
+                    ) : null}
                   </div>
-                </div>
-                <div className="decocard__actions">
-                  {owned ? (
-                    <button
-                      className="mini-btn mini-btn--primary"
-                      onClick={() => arrangeDecoration(d.id)}
+                  <div className="decocard__actions">
+                    {owned ? (
+                      <>
+                        <button
+                          type="button"
+                          className="mini-btn mini-btn--primary decocard__arrange"
+                          onClick={() => arrangeDecoration(d.id)}
+                        >
+                          <Icon name="decorate" size={12} /> {t('decorate.arrangeHere')}
+                        </button>
+                        <button
+                          type="button"
+                          className="mini-btn decocard__move"
+                          onClick={() => setMovingId(d.id)}
+                        >
+                          <Icon name="rooms" size={12} /> {t('decorate.moveTo')}
+                        </button>
+                      </>
+                    ) : open ? (
+                      <button
+                        type="button"
+                        className={`buy-btn decocard__buy ${golden ? 'is-golden' : ''}`}
+                        aria-disabled={afford ? undefined : true}
+                        aria-label={`${t('shop.buy')} ${name}: ${priceText(d, d.cost.amount)}${
+                          afford
+                            ? ''
+                            : `. ${t('shop.short', { amount: priceText(d, d.cost.amount - have) })}`
+                        }`}
+                        onClick={(e) => purchase(d, e)}
+                      >
+                        {golden ? <GoldenNut size={15} /> : <Acorn size={15} />}
+                        <span className="decocard__price">{fmt.num(d.cost.amount)}</span>
+                        {afford ? null : (
+                          <span className="decocard__short">
+                            {t('shop.short', {
+                              amount: fmt.num(Math.max(1, Math.ceil(d.cost.amount - have))),
+                            })}
+                          </span>
+                        )}
+                      </button>
+                    ) : (
+                      <p className="decocard__coming">
+                        <Icon name="lock" size={12} />
+                        <span>{t('decorate.comesWith', { room: roomName(d.room) })}</span>
+                        <span className="decocard__coming-price">
+                          {golden ? <GoldenNut size={12} /> : <Acorn size={12} />}
+                          {fmt.num(d.cost.amount)}
+                        </span>
+                      </p>
+                    )}
+                  </div>
+                  {cardNote ? (
+                    <p
+                      key={cardNote.key}
+                      className={`decocard__note is-${cardNote.tone}`}
+                      role="status"
                     >
-                      {t('decorate.arrangeHere')}
-                    </button>
+                      {cardNote.tone === 'ok' ? <Icon name="success" size={12} /> : null}
+                      {cardNote.text}
+                    </p>
                   ) : null}
-                  {!owned ? (
-                    <button
-                      className="buy-btn"
-                      disabled={!afford || !roomIds.has(d.room)}
-                      onClick={(e) => {
-                        if (buy(d.id)) {
-                          audio.play('upgrade');
-                          sparkleAt(e);
-                        }
-                      }}
-                    >
-                      {d.cost.resource === 'goldenNuts' ? (
-                        <GoldenNut size={15} />
-                      ) : (
-                        <Acorn size={15} />
-                      )}
-                      <span>{fmt.num(d.cost.amount)}</span>
-                      {!roomIds.has(d.room) ? <span>{t('common.locked')}</span> : null}
-                    </button>
-                  ) : placed ? (
-                    <>
-                      <span className="decocard__badge">
-                        <Icon name="success" size={12} /> {t('decorate.placed')}
-                      </span>
-                      <button
-                        className="mini-btn mini-btn--primary"
-                        onClick={() => setMovingId(d.id)}
-                      >
-                        <Icon name="rooms" size={12} /> {t('decorate.moveTo')}
-                      </button>
-                      <button
-                        className="mini-btn"
-                        onClick={() => {
-                          if (engine.removeDecoration(d.id)) audio.play('click');
-                        }}
-                      >
-                        {t('decorate.remove')}
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <span className="decocard__badge decocard__badge--muted">
-                        <Icon name="hidden" size={12} /> {t('decorate.inStorage')}
-                      </span>
-                      <button
-                        className="mini-btn mini-btn--primary"
-                        title={t('decorate.moveTo')}
-                        onClick={() => setMovingId(d.id)}
-                      >
-                        <Icon name="rooms" size={12} /> {t('decorate.moveTo')}
-                      </button>
-                    </>
-                  )}
                 </div>
               </li>
             );

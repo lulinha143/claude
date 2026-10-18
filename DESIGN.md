@@ -74,9 +74,11 @@ and invalid release restore prior placement/inventory/ordering cleanly. A cancel
 catalog drag must not charge or consume an item. Valid placement commits once.
 
 Use the existing coherent scene-depth model, not unrelated z-index patches:
-wall props behind people; floor furniture in front when overlapping; ceiling
-props attached to ceiling/suspension anchors; floor props anchored at their
-visible base. Respect intended surface types. Manual front/back changes work
+wall props, rugs and hanging ceiling props behind people; floor furniture sorted
+with people by where its base stands (in front of whoever is behind it, behind
+whoever is in front, a person winning a tie); ceiling props attached to
+ceiling/suspension anchors; floor props anchored at their visible base.
+Respect intended surface types. Manual front/back changes work
 within appropriate constraints. Selection/drag may temporarily lift the visual;
 release restores stored ordering unless the player explicitly changed it.
 

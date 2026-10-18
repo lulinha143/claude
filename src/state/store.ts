@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { GameEngine } from '../sim/engine';
+import { GameEngine, type DecorationPurchase } from '../sim/engine';
 import { SaveManager } from '../save/saveManager';
 import {
   addAway,
@@ -14,7 +14,6 @@ import type { GameState, PrestigeBranchId } from '../sim/types';
 import { getPlatform } from '../platform/adapter';
 import { audio } from '../audio/audio';
 import { createAchievementAdapter } from '../platform/achievements';
-import { DECORATIONS_BY_ID } from '../content/decorations';
 import { evaluateAchievements } from '../sim/achievements';
 import { unlockedRooms } from '../sim/rooms';
 import { ROOMS_BY_ID } from '../content/rooms';
@@ -134,7 +133,7 @@ interface StoreState {
   finishOnboarding: () => void;
   replayOnboarding: () => void;
 
-  buyDecoration: (id: string) => boolean;
+  buyDecoration: (id: string) => DecorationPurchase;
   doPrestige: (branch: PrestigeBranchId) => void;
   buySkill: (id: string) => boolean;
   hardReset: () => void;
@@ -232,17 +231,12 @@ export const useStore = create<StoreState>((set) => {
     },
     replayOnboarding: () => set({ showOnboarding: true }),
 
+    // The catalogue's purchase: the engine checks, charges once, files it and
+    // saves (see engine.purchaseDecoration). The sheet says what happened.
     buyDecoration: (id) => {
-      const def = DECORATIONS_BY_ID[id];
-      if (!def) return false;
-      const key = `deco:${id}`;
-      if (engine.state.collections.secrets.includes(key)) return false;
-      if (!engine.canAfford(def.cost.resource, def.cost.amount)) return false;
-      engine.spendResource(def.cost.resource, def.cost.amount);
-      engine.buyDecoration(id);
-      engine.addMoraleFromDecoration(def.moraleBonus);
-      audio.play('upgrade');
-      return true;
+      const result = engine.purchaseDecoration(id);
+      audio.play(result.ok ? 'upgrade' : 'error');
+      return result;
     },
 
     doPrestige: (branch) => {

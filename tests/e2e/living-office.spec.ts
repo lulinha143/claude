@@ -1,12 +1,14 @@
 import { test, expect, type Page } from '@playwright/test';
 import { GAME_EVENTS } from '../../src/content/events';
-import { SCENE_DEPTH } from '../../src/sim/depth';
+import { SCENE_DEPTH, characterDepth } from '../../src/sim/depth';
+import { standingDepthPx } from '../../src/content/roomLayout';
 import { arrangeToggle } from './support/shell';
 
 // Phase 2 contract: the office itself is the game. Emotion stickers belong to
 // each teammate and stay readable; furniture is picked up and put down at its
-// real size; wall art and rugs sit behind the team, floor furniture in front,
-// and the player can swap a wall or floor piece and keep that choice.
+// real size; wall art and rugs sit behind the team, floor furniture stands among
+// them by where it stands (Chapter 8), and the player can swap a wall or floor
+// piece and keep that choice.
 
 const ROOM = 'founder-desk';
 
@@ -130,7 +132,9 @@ for (const [width, height] of [
   });
 }
 
-test('wall art and rugs sit behind the team, floor furniture in front', async ({ page }) => {
+test('wall art and rugs sit behind the team, floor furniture stands among them', async ({
+  page,
+}) => {
   await boot(page, 1280, 720, save(FURNISHED));
   const floor = `.floor[data-room="${ROOM}"]`;
   const characters = await page
@@ -140,8 +144,14 @@ test('wall art and rugs sit behind the team, floor furniture in front', async ({
   const back = Math.min(...characters);
   expect(await zOf(page, `${floor} [data-deco="motivational-poster"]`)).toBeLessThan(back);
   expect(await zOf(page, `${floor} [data-deco="tiny-rug"]`)).toBeLessThan(back);
-  expect(await zOf(page, `${floor} [data-deco="potted-fern"]`)).toBeGreaterThan(front);
-  expect(await zOf(page, `${floor} [data-deco="desk-lamp"]`)).toBeGreaterThan(front);
+  // A floor piece stands where its base is: in front of the teammates standing
+  // further back, behind the one at the front of the room (four here, so both).
+  for (const id of ['potted-fern', 'desk-lamp']) {
+    const z = await zOf(page, `${floor} [data-deco="${id}"]`);
+    expect(z, id).toBe(characterDepth(standingDepthPx(0.08)));
+    expect(z, id).toBeLessThan(front);
+    expect(z, id).toBeGreaterThan(back);
+  }
   await expect(page.locator(`${floor} [data-deco="motivational-poster"]`)).toHaveAttribute(
     'data-layer',
     'back',

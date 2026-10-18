@@ -62,6 +62,12 @@ after you build it yourself with Option B.
   in **Archive → Secrets**, and some of it is the Nut Encyclopedia's missing nuts.
   Click a find there to read it again: where and when it turned up, what made it
   possible and where it led. Open leads are listed at the top.
+- **Decorate:** open **Decorate** in the dock. Each piece says where it goes
+  (floor, wall or ceiling, and its room) and what it costs, or how much is still
+  missing; once bought, the card says where it went. **Arrange** takes a piece
+  to the office: drag it into a room (or tap a spot) to place it, let go over
+  the storage strip to put it away, or press Escape to drop the move. Furniture
+  stands among the team by where you put it: further back, it is behind them.
 - **See what's happening:** when a teammate holds up a little **!** ticket (and
   the room's name has a **!** too), something has started happening there. It
   waits for you: click the ticket, or click the teammate twice, to look into it

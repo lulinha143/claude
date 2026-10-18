@@ -12,6 +12,7 @@ import type { DecorationLayer, DecorationSurfaceType } from './types';
 import type { PlacementRegionKind } from './placementRegions';
 import { DECORATIONS_BY_ID } from '../content/decorations';
 import { decorationDefaultDepth, decorationRenderZ, type DecorationDepthKind } from './depth';
+import { standingDepthPx } from '../content/roomLayout';
 
 export type DecorationSurface = 'floor' | 'wall' | 'ceiling';
 
@@ -108,16 +109,24 @@ export function decorationDepthKind(id: string, surface: DecorationSurface): Dec
 
 /**
  * The z-index a placed piece is painted at, relative to the team (see
- * `decorationRenderZ`): wall art and rugs behind employees, floor furniture and
- * ceiling pieces in front, unless the player swapped a wall or floor piece.
+ * `decorationRenderZ`): wall art, rugs and hanging pieces behind employees;
+ * floor furniture standing among them by `supportY` (its base, 0..1 up the
+ * room stage), unless the player swapped a wall or floor piece.
  */
 export function decorationZ(
   id: string,
   surface: DecorationSurface,
   storedDepth?: number,
   layer?: DecorationLayer,
+  supportY?: number,
 ): number {
-  return decorationRenderZ(decorationDepthKind(id, surface), storedDepth, layer);
+  const kind = decorationDepthKind(id, surface);
+  return decorationRenderZ(
+    kind,
+    storedDepth,
+    layer,
+    kind === 'floor' && supportY !== undefined ? standingDepthPx(supportY) : undefined,
+  );
 }
 
 /**

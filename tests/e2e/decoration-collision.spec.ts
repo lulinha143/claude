@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
-import { SCENE_DEPTH } from '../../src/sim/depth';
+import { SCENE_DEPTH, characterDepth } from '../../src/sim/depth';
+import { standingDepthPx } from '../../src/content/roomLayout';
 import { arrangeToggle } from './support/shell';
 
 // Proves the composition rules on the RENDERED scene: an invalid drop is
@@ -235,15 +236,22 @@ test.describe('decoration composition protection', () => {
     await expect(lampCard).toHaveAttribute('data-placement', 'placed');
     await lampCard.locator('.decor').click();
     await expect(lamp).toHaveClass(/is-selected/);
-    // A picked piece keeps its own side of the team (so "Put behind / in front"
-    // is visible while it is picked); a floor lamp stands in front of everyone.
-    // Being buried under another piece never makes it unreachable: the tray
-    // picks it directly, and clicking a stack hands the pick down (see
-    // living-office.spec).
+    // A picked piece keeps its own depth (so "Put behind / in front" is visible
+    // while it is picked): a floor lamp stands among the team, at the depth a
+    // teammate standing where its base is would take. Being buried under
+    // another piece never makes it unreachable: the tray picks it directly, and
+    // clicking a stack hands the pick down (see living-office.spec).
     const selectedZ = Number(await lamp.evaluate((element) => getComputedStyle(element).zIndex));
     await expect(lamp).toHaveAttribute('data-layer', 'front');
-    expect(selectedZ).toBeGreaterThan(SCENE_DEPTH.character.max);
-    expect(selectedZ).toBeLessThan(SCENE_DEPTH.sticker);
+    const lampY = await page.evaluate(
+      () =>
+        JSON.parse(localStorage.getItem('wmno.save.v1')!).decorationInstances.find(
+          (i: { decorationId: string }) => i.decorationId === 'desk-lamp',
+        ).normalizedY as number,
+    );
+    expect(selectedZ).toBe(characterDepth(standingDepthPx(lampY)));
+    expect(selectedZ).toBeLessThanOrEqual(SCENE_DEPTH.character.max);
+    expect(selectedZ).toBeGreaterThanOrEqual(SCENE_DEPTH.character.min);
     await page.screenshot({ path: `${DIR}/collide-02-dense-overlap.png` });
   });
 

@@ -146,6 +146,26 @@ describe('semantic floor and rug placement previews', () => {
     expect(decorationFootprintFitsRegion('potted-fern', floor, preview!.point)).toBe(true);
   });
 
+  it('says which surface a piece belongs on when it is held over the room but off it', () => {
+    const state = createInitialState(0);
+    const engine = new GameEngine(state, { deterministic: true });
+    engine.buyDecoration('potted-fern');
+    engine.buyDecoration('motivational-poster');
+    const [floor] = regionsForKinds('founder-desk', ['floor']);
+    const [wall] = regionsForKinds('founder-desk', ['wall']);
+    // A plant held up on the wall, a poster held down at the floor.
+    const plant = evaluateRegionPlacement(state, 'potted-fern', 'founder-desk', floor, {
+      x: 0.5,
+      y: 0.7,
+    });
+    const poster = evaluateRegionPlacement(state, 'motivational-poster', 'founder-desk', wall, {
+      x: 0.5,
+      y: 0.05,
+    });
+    expect(plant).toMatchObject({ ok: false, reasonKey: 'decorate.reject.onFloor' });
+    expect(poster).toMatchObject({ ok: false, reasonKey: 'decorate.reject.onWall' });
+  });
+
   it('previews dense overlap without mutating the committed arrangement', () => {
     const state = createInitialState(0);
     const engine = new GameEngine(state, { deterministic: true });

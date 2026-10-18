@@ -175,6 +175,23 @@ import {
   watchSeconds,
 } from './roomPlay';
 
+/** Why a catalogue purchase did not go through (nothing was charged). */
+export type DecorationRefusal = 'unknown' | 'owned' | 'locked' | 'short';
+
+/** The answer to a catalogue purchase. */
+export type DecorationPurchase =
+  | {
+      ok: true;
+      /** where it went: the room it now stands in, or null for storage. */
+      roomId: string | null;
+    }
+  | {
+      ok: false;
+      reason: DecorationRefusal;
+      /** how much of the price is missing, when short. */
+      missing?: number;
+    };
+
 /** A single employee's measured change from an event choice (WHAT CHANGED). */
 export interface EmployeeChange {
   id: string;
@@ -3117,29 +3134,56 @@ export class GameEngine {
   }
 
   // -- prestige / skills / decorations --------------------------------------
+  /**
+   * Hand a piece over without charging for it (set-up, rewards). Ownership is a
+   * `deco:<id>` mark in the collections, added once. The player's purchase is
+   * `purchaseDecoration`, which charges first.
+   */
   buyDecoration(id: string): boolean {
-    // decorations are cosmetic + morale; stored as owned "secrets"-style flags
     const key = `deco:${id}`;
     if (this.state.collections.secrets.includes(key)) return false;
     return this.applyDecorationPurchase(id, key);
   }
 
-  private applyDecorationPurchase(id: string, key: string): boolean {
-    // Ownership is added exactly once. The item auto-places on its real support
-    // (floor, wall, ceiling, tabletop, shelf or a room-specific surface) at a
-    // tidy authored spot only when the complete footprint, room lock, and
-    // collision/capacity checks all pass; otherwise the stable instance stays
-    // safely in storage for explicit placement.
-    this.state.collections.secrets.push(key);
+  /**
+   * The catalogue's purchase, as one step: every check that can refuse runs
+   * before anything is charged, then the price is taken, the piece is owned
+   * exactly once (put on its home room's surface when there is room, otherwise
+   * in storage), the morale it brings is added and the company is saved. A
+   * refusal changes nothing and says why.
+   */
+  purchaseDecoration(id: string): DecorationPurchase {
     const def = DECORATIONS_BY_ID[id];
-    if (def) {
-      delete this.state.placements[id];
-      syncDecorationInstanceFromPlacement(this.state, id);
-      const index = placedCountOnSurface(this.state, def.room, decorationSurface(id));
-      const candidate = defaultRegionPlacementFor(this.state, id, def.room, index);
-      if (candidate?.ok && this.canMoveDecorationToRoom(id, def.room)) {
-        this.applyRegionPlacement(id, def.room, candidate);
-      }
+    if (!def) return { ok: false, reason: 'unknown' };
+    const key = `deco:${id}`;
+    if (this.state.collections.secrets.includes(key)) return { ok: false, reason: 'owned' };
+    if (!isRoomIdUnlocked(this.state, def.room)) return { ok: false, reason: 'locked' };
+    const { resource, amount } = def.cost;
+    const have = this.state.resources[resource];
+    if (!(have >= amount)) return { ok: false, reason: 'short', missing: amount - have };
+    this.state.resources[resource] = have - amount;
+    this.applyDecorationPurchase(id, key);
+    this.addMoraleFromDecoration(def.moraleBonus);
+    this.save();
+    this.emit();
+    return { ok: true, roomId: decorationRoom(this.state, id) };
+  }
+
+  private applyDecorationPurchase(id: string, key: string): boolean {
+    // Ownership is added exactly once, and only for a piece the catalogue has.
+    // The item auto-places on its real support (floor, wall or ceiling) at a tidy
+    // spot of its home room when that room is open and the spot is valid;
+    // otherwise the stable instance stays safely in storage for explicit
+    // placement.
+    const def = DECORATIONS_BY_ID[id];
+    if (!def) return false;
+    this.state.collections.secrets.push(key);
+    delete this.state.placements[id];
+    syncDecorationInstanceFromPlacement(this.state, id);
+    const index = placedCountOnSurface(this.state, def.room, decorationSurface(id));
+    const candidate = defaultRegionPlacementFor(this.state, id, def.room, index);
+    if (candidate?.ok && this.canMoveDecorationToRoom(id, def.room)) {
+      this.applyRegionPlacement(id, def.room, candidate);
     }
     this.emit();
     return true;

@@ -4,10 +4,10 @@ Handoff only: design is in `DESIGN.md`, commands and matrix in `.kiro/steering/q
 
 ## Branch
 
-`feat/zooworkers-3.0-facility-pass`: Chapter 7 is the commit that records this entry, on top
-of Chapter 6 (`25ba899`), Chapter 5 (`f4ae64c`), Chapter 3 (`8cbf590`), Chapter 2 (`d6c4d28`),
-Chapter 9 (`d9fab09`), Chapter 4 (`e7bac62`), Chapter 1 (`80264a8`) and the setup commit
-`c55d356`; clean.
+`feat/zooworkers-3.0-facility-pass`: Chapter 8 is the commit that records this entry, on top
+of Chapter 7 (`4639fa2`), Chapter 6 (`25ba899`), Chapter 5 (`f4ae64c`), Chapter 3
+(`8cbf590`), Chapter 2 (`d6c4d28`), Chapter 9 (`d9fab09`), Chapter 4 (`e7bac62`), Chapter 1
+(`80264a8`) and the setup commit `c55d356`; clean.
 `7a7ee3d` (architect's snapshot) is an ancestor; never roll back to it.
 
 ## Active configuration
@@ -37,8 +37,8 @@ Chapter 9 (`d9fab09`), Chapter 4 (`e7bac62`), Chapter 1 (`80264a8`) and the setu
   shell call, so rendered play used throwaway scripts (kept in the ignored `visual-artifacts/`)
   that serve `dist/` and drive Chromium in one process. A seeded save's own
   `settings.language` wins over `wmno.lang` at boot: seed pt-BR in the save.
-- Chapter 6 and 7 sessions: the same (Node on `PATH`, `npm ci`, locked rev 1228 fetched, stock
-  E2E config); rendered play by throwaway scripts in the ignored `visual-artifacts/play/`.
+- Chapter 6, 7 and 8 sessions: the same (Node on `PATH`, `npm ci`, locked rev 1228 fetched,
+  stock E2E config); rendered play by throwaway scripts in the ignored `visual-artifacts/play/`.
 
 ## Validation
 
@@ -49,23 +49,23 @@ Chapter 9 (`d9fab09`), Chapter 4 (`e7bac62`), Chapter 1 (`80264a8`) and the setu
 
 Order: 1 → 4 → 9 → 2 → 3 → 5 → 6 → 7 → 8 → 10 → final integration.
 
-Accepted kit chapters: 1, 4, 9, 2, 3, 5, 6, 7. Accepted pre-kit units: shell (`b138638`–`6189169`), living office
+Accepted kit chapters: 1, 4, 9, 2, 3, 5, 6, 7, 8. Accepted pre-kit units: shell (`b138638`–`6189169`), living office
 (`bfaca01`–`d81ddc2`) and GC1–GC4 (`67cd776`–`7a7ee3d`), pinned by E2E specs but with no
 six-check record. Kit chapters reuse them as evidence and change only what fails the gate.
 GC numbers are not kit numbers.
 
-| Kit | Entry points                                                                                                              | Baseline / known gaps                     |
-| --- | ------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
-| 1   | `App`, `ui/GameHud`, `GameDock`, `Sheet`, `modals/OpeningSequence`, `Onboarding`, `art/OfficeScene`, `views/SettingsView` | Accepted (record below)                   |
-| 4   | `sim/goals`, `crate`, `economy`, `ui/GoalTag`, `views/ShopView`                                                           | Accepted (record below)                   |
-| 9   | `engine.catchUp`, `sim/offline`, `sim/timeline`, `state/returns`, `ui/ReturnNote`, `ui/Notifications`                     | Accepted (record below); diary unread     |
-| 2   | `views/EmployeesView`, `modals/EmployeeTalk`, `sim/bonds`                                                                 | Accepted (record below)                   |
-| 3   | `art/RoomDressing`, `RoomPlay`, `content/rooms`, `roomPlay`                                                               | Accepted (record below)                   |
-| 5   | `ui/minigames/*`, `sim/minigames`                                                                                         | Accepted (record below)                   |
-| 6   | `modals/IncidentScene`, `EventModal`, `content/incidents`, `ui/CuriosityLog`                                              | Accepted (record below)                   |
-| 7   | `modals/EmployeeTalk`, `VisitScrapbook`, `content/stories`, `employeeKeepsakes`                                           | Accepted (record below)                   |
-| 8   | `views/DecorateView`, `ui/DecorationTray`, `sim/placement`, `depth`                                                       | Arranging rebuilt; catalog from `a4e03ad` |
-| 10  | `views/PrestigeView`, `CollectionsView`, `sim/prestige`, `nextStep`                                                       | Prestige fix `65c4f09` only               |
+| Kit | Entry points                                                                                                              | Baseline / known gaps                 |
+| --- | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| 1   | `App`, `ui/GameHud`, `GameDock`, `Sheet`, `modals/OpeningSequence`, `Onboarding`, `art/OfficeScene`, `views/SettingsView` | Accepted (record below)               |
+| 4   | `sim/goals`, `crate`, `economy`, `ui/GoalTag`, `views/ShopView`                                                           | Accepted (record below)               |
+| 9   | `engine.catchUp`, `sim/offline`, `sim/timeline`, `state/returns`, `ui/ReturnNote`, `ui/Notifications`                     | Accepted (record below); diary unread |
+| 2   | `views/EmployeesView`, `modals/EmployeeTalk`, `sim/bonds`                                                                 | Accepted (record below)               |
+| 3   | `art/RoomDressing`, `RoomPlay`, `content/rooms`, `roomPlay`                                                               | Accepted (record below)               |
+| 5   | `ui/minigames/*`, `sim/minigames`                                                                                         | Accepted (record below)               |
+| 6   | `modals/IncidentScene`, `EventModal`, `content/incidents`, `ui/CuriosityLog`                                              | Accepted (record below)               |
+| 7   | `modals/EmployeeTalk`, `VisitScrapbook`, `content/stories`, `employeeKeepsakes`                                           | Accepted (record below)               |
+| 8   | `views/DecorateView`, `ui/DecorationTray`, `sim/placement`, `depth`                                                       | Accepted (record below)               |
+| 10  | `views/PrestigeView`, `CollectionsView`, `sim/prestige`, `nextStep`                                                       | Prestige fix `65c4f09` only           |
 
 ### Chapter 1 record — core loop and desktop presentation
 
@@ -607,6 +607,91 @@ of half the specs each, exit 0). `npm run build:desktop` exit 0; no desktop code
 coverage: `tests/personalHistory.test.ts` (26), `tests/visitScrapbook.test.tsx` (3) and
 `tests/e2e/stories.spec.ts` (7).
 
+### Chapter 8 record — decoration catalogue, placement and world depth
+
+Baseline: the arranging rebuild (`4243259`, sides from `bfaca01`) and the catalogue from
+`a4e03ad`, audited in play and kept where good: the die-cut pick, the ghost at real size,
+stack picking, tap-to-place, Move To…, undo/redo, surface locks, load repair. No save field,
+currency or inventory added; balance unchanged. `docs/DECORATION_EDITOR_UI.md` is current.
+
+Broken or weak before (reproduced in pt-BR at 380×460 and 1280×720), fixed:
+
+- Floor furniture painted over every teammate wherever it stood: a billboard or an aquarium
+  behind Pip's desk covered his face. It now stands among the team, sorted with them by how
+  far back its base is (`decorationRenderZ`, with `STAGE_HEIGHT_PX`/`standingDepthPx` in
+  `content/roomLayout.ts`, the units teammates stand in); a teammate wins a tie. Hanging
+  pieces (a chandelier over a desk) moved behind the team, with wall art and rugs. "Pôr
+  atrás" still sends a floor piece behind everyone; brought back, it rejoins the team where it
+  stands. Saved depth and layer are unchanged (no migration).
+- A drag from the storage strip often failed. On the way up it crossed the tower's bottom
+  edge, which scrolled the rooms ~24 px under the pointer; the release then landed on the
+  room's action bar, which counted as "put away" and did nothing for a stored piece. Now:
+  - edge scroll waits for the pointer to be held at the edge (350 ms);
+  - only the strip puts a piece away, and the landing is worked out again when the window
+    resizes or the tower scrolls under a still pointer;
+  - off the rooms the ghost hangs from the pointer at its grab offset (it used to freeze).
+- Leaving arranging mid-drag (the switch, by keys) still committed the release; it cancels.
+- With a piece in the paw the strip says, in place, what letting go there does ("Solte aqui
+  para guardar no depósito" / "…deixar no depósito"), green when over it. A piece held off its
+  surface says where it belongs ("Isto vai na parede."), not "Mova mais para dentro da sala.",
+  and an engine refusal on release says so too.
+- The catalogue was five rows of pills (21 room chips with every room open) before the first
+  object; its section tabs were unstyled, an owned card's four controls spilled out, a short
+  buy button was grey with no reason, "Bloqueado" named no room, and every card said "+N
+  ânimo" though a placed piece gives no lasting morale. Now:
+  - one segmented control (Disponíveis / Suas peças / Em breve, with counts), a search and one
+    filter (a room or a kind);
+  - each card shows the piece in a little of its room, its line, surface, room (or Guardada)
+    and set, then its state: the price and "Ânimo +N ao comprar"; short, "Faltam N", and when
+    pressed "Ainda faltam N castanhas." with nothing charged; owned, "Arrumar" (to the office,
+    picked) and "Mover para…" (storage included); coming, "Chega com: <sala>" and the price;
+  - wide cards keep the actions beside the words.
+- Purchase: the store charged and the engine filed it, unsaved, with the cue played twice; an
+  unknown id became owned. `engine.purchaseDecoration` checks (unknown, owned, locked room,
+  short with the amount missing), charges once, owns once, places it in its room or storage,
+  adds its morale and saves; the card says "Feito! Já está na sala: Mesa do Fundador."
+- The room header's "+N conforto" (it changed nothing) became the room's decorations: how
+  many, and its set's progress or "Conjunto completo" with what it does.
+- The strip had 8–10 px names and 17 px chips. The chips went (the catalogue has the
+  filters); names, rooms and "Mover para…" are ≥ 11 px (a 28 px button). Its counts no longer
+  go stale (memos keyed on the mutable state). Tidy-up reads "Organizar" (it said "Arrumar",
+  like the mode switch) and is offered only where the room has pieces of its own.
+- Load repair gives pieces relocated together off a wrong surface their own default spots.
+- 80 legacy catalogue rules (five passes in `styles.css`) went; the catalogue styles from
+  `ui/game/decorate.css`.
+
+Player gate (pt-BR, built game, Chromium 1228; a young company with four rooms and 650
+castanhas; real pointer and keys):
+
+- At 320×420, 380×460, 800×600, 1280×720, 1440×900 and 1920×1080:
+  - the catalogue had no sideways scroll and no text under 11 px (the recipes' small print
+    went up from 10.7 px); the first card is on the first screen at 320×420;
+  - the plushie (800) answered "Ainda faltam 139 castanhas."; the poster was bought, said
+    where it went and was on the wall after a reload;
+  - "Arrumar" on the stored lamp opened arranging with it picked. Dragged up from the strip,
+    the room moved 0 px and the lamp landed where it was let go (x 0.70);
+  - Escape left the fern exactly where it was; let go over the strip it was put away, still
+    owned. After a reload all three were where they had been left.
+- Depth at every size: Pip 159 > fern 142 > Bento 140 > billboard 119. The billboard at the
+  back stands behind both desks, the fern between them.
+- 1280×720, normal motion: a wall piece moved along its wall (x 0.25 → 0.62). Pulled down to
+  the floor, its ghost stayed on the wall, greyed, and the release said "Isto vai na parede."
+- Keyboard at 380×460: Tab goes sheet × → recipes → sections → search → filter → each card's
+  piece and actions, with a 3 px ring. Enter bought the poster (focus stayed on its card);
+  "Mover para…" by keys sent the fern to Depósito; Enter on "Arrumar" opened arranging with it
+  picked. High contrast with reduced motion: black on white cards and controls, no animation.
+- Six checks — see, understand, interact, feedback, why it matters, feel: PASS (audio not
+  heard).
+
+Checks: `npm run validate` exit 0 (1002 unit tests, 82 files). Full web E2E 369/369 (two
+halves, exit 0). After the last change (the off-surface reason), the eleven decoration and
+layout specs ran 66/66. One earlier run of that batch timed out booting `release-transformation`
+at 1280 (the office not shown within its 10 s); it then passed 18/18 over three repeats.
+`npm run build:desktop` exit 0; no desktop code changed. New coverage:
+`tests/decorationCatalog.test.ts` (7), depth (+3), placement (+1), placement model (+1) and
+`tests/e2e/decor-catalog.spec.ts` (7); `living-office` and `decoration-collision` pin the new
+depth rule.
+
 ## Blockers
 
 - Kiro Web listed no skills this session; `zooworkers-playtest/SKILL.md` was followed by hand.
@@ -625,12 +710,16 @@ coverage: `tests/personalHistory.test.ts` (26), `tests/visitScrapbook.test.tsx` 
   on the result, and how they sit over a 30–45 s round and repeated rounds. Chapter 6: the
   paper cue on taking an answer right after the card's event cue, and the error cue on a
   locked answer. Chapter 7: the paper cue on picking up a keepsake in the office, and the
-  answer's paper cue as the only sound when a keepsake goes on the desk.
+  answer's paper cue as the only sound when a keepsake goes on the desk. Chapter 8: the one
+  upgrade cue on a catalogue purchase (it played twice), the error cue on a short press and on
+  a release off a piece's surface, and the place and click cues on landing and putting away.
 - Touch was driven through Chromium's touch emulation, not a physical touchscreen. Chapter 6:
   a tap takes an answer at once, so on touch the effect line is the explanation (the scene's
   preview needs a pointer or keys); check that it reads well on a physical screen. Chapter 7:
   on touch the office keepsake has no tooltip and a tap opens the Album; check that a tap on it
-  (26×23 px in the smallest windows) lands on it and not on its owner.
+  (26×23 px in the smallest windows) lands on it and not on its owner. Chapter 8: with a
+  finger, drag a piece up from the storage strip into a room (the tower must not scroll on the
+  way), hold it at an edge to scroll, and let it go over the strip to put it away.
 - LOCAL WINDOWS VERIFICATION REQUIRED: the last recorded native run is `a4e03ad`. This sandbox
   has no Electron binary or display, so no smoke ran. On Windows: `npm run build:windows:folder`,
   `npm run verify:windows:packaged`, then `smoke:window`, `smoke:focus` and `smoke:mute`.
@@ -673,7 +762,14 @@ coverage: `tests/personalHistory.test.ts` (26), `tests/visitScrapbook.test.tsx` 
       "Ver no álbum" opening the Album on its card.
   12. In the office, point at a keepsake by its owner's desk. Expect its tooltip inside the
       window; a click opens their Album on it, and clicking the owner still pokes them.
+      Chapter 8 (no desktop code changed):
+  13. At 320×420 and 125/150/200% DPI, open Decorar. Expect the sections, search and filter in
+      two rows and a card on the first screen; buy a piece and see where it went.
+  14. Press Arrumar on a stored piece and drag it up from the strip into its room. Expect the
+      room to stay still and the piece to land where you let go. Resize the window mid-drag:
+      expect the ghost to follow what is under the pointer. Let a placed piece go over the
+      strip: expect it in storage.
 
 ## Next prompt
 
-Chapter 8. Start its session on this branch; `main` has none of this configuration.
+Chapter 10. Start its session on this branch; `main` has none of this configuration.

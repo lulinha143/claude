@@ -133,9 +133,6 @@
   },
   "decorate": {
     "searchPlaceholder": "Search decorations…",
-    "allRooms": "All rooms",
-    "allTypes": "All types",
-    "anyResource": "Any currency",
     "placed": "Placed",
     "inStorage": "In storage",
     "place": "Place",
@@ -167,7 +164,10 @@
       "coversTeammate": "That would cover a teammate — give them room.",
       "moveInside": "Move it farther inside the room.",
       "incompatibleRoom": "That decoration can't be placed in this room.",
-      "invalid": "That doesn't fit here."
+      "invalid": "That doesn't fit here.",
+      "onFloor": "This stands on the floor.",
+      "onWall": "This goes on the wall.",
+      "onCeiling": "This hangs from the ceiling."
     },
     "roomEmpty": "No decorations for this room yet.",
     "noResults": "No decorations match your filters.",
@@ -177,7 +177,6 @@
     "pickedHint": "Tap a spot to move it there, or drag it. Tap it again to let go.",
     "inventory": "Storage",
     "inventoryEmpty": "Storage empty",
-    "summary": "{{owned}} owned · {{placed}} placed · +{{comfort}} comfort",
     "type": {
       "plant": "Plants",
       "lamp": "Lighting",
@@ -194,14 +193,31 @@
     "catalogueSections": "Catalogue sections",
     "section": {
       "available": "Available",
-      "owned": "Your objects",
-      "locked": "Future departments"
+      "owned": "Yours",
+      "locked": "Coming soon"
     },
-    "arrangeHere": "Arrange in office",
+    "arrangeHere": "Arrange",
     "layerBack": "Put behind",
     "layerFront": "Put in front",
     "layerBackTip": "Put it behind the team",
-    "layerFrontTip": "Put it in front of the team"
+    "layerFrontTip": "Put it in front of the team",
+    "ownedCount_one": "{{count}} piece",
+    "ownedCount_other": "{{count}} pieces",
+    "placedCount_one": "{{count}} placed",
+    "placedCount_other": "{{count}} placed",
+    "roomFilter": "By room",
+    "typeFilter": "By kind",
+    "ownedEmpty": "No decorations yet. Pick one from the available pieces.",
+    "boughtPlaced": "Done! It's already in {{room}}.",
+    "boughtStored": "Done! It's in storage, ready to arrange.",
+    "moraleOnBuy": "Morale +{{value}} when bought",
+    "inSet": "Set: {{name}}",
+    "comesWith": "Comes with: {{room}}",
+    "dropToStow": "Let go here to put it in storage",
+    "dropToKeep": "Let go here to leave it in storage",
+    "layerAmongTip": "Back among the team, by where it stands on the floor",
+    "filter": "Show",
+    "allPieces": "All pieces"
   },
   "decoReact": {
     "plant": "This little plant really freshens up the place.",
@@ -2295,9 +2311,12 @@
     "comfort": "Room comfort +{{value}}",
     "capacityTitle": "Room capacity",
     "capacityTip": "Teammates working here. Every room is laid out for up to four; a fifth has nowhere to stand.",
-    "comfortTitle": "Room comfort",
-    "comfortTip": "Bonus morale from this room's decorations.",
-    "autoRoom": "Default (department)"
+    "autoRoom": "Default (department)",
+    "decorTitle": "Room decorations",
+    "decorCount_one": "{{count}} piece arranged here.",
+    "decorCount_other": "{{count}} pieces arranged here.",
+    "setActive": "Complete set: {{name}}.",
+    "setProgress": "{{name}}: {{placed}} of {{total}} pieces here."
   },
   "nextStep": {
     "claimDaily": "A daily challenge is ready to claim!",

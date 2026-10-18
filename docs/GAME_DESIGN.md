@@ -117,6 +117,17 @@ specialists and the player's close friends working there brew faster (20% each,
 up to two), free a stuck machine on their own after a minute, and keep a blip on
 screen 50% longer; a complete decoration set in the room counts too.
 
+**Decorations** (67, `src/content/decorations.ts`) are bought from the Decorate
+catalogue for nuts or golden nuts; each card shows its surface (floor, wall or
+ceiling), its room, its price or what is still missing, and its set. Buying is
+one engine step (`purchaseDecoration`): checked, charged once, owned once, put
+on its room's surface when there is a spot (otherwise in storage) and saved. A
+piece gives its morale once, when bought; what lasts is a complete set in its
+own room (`src/content/decorationEnsembles.ts`). Any owned piece can stand in any
+open room, on its own surface. In the scene, wall art, rugs and hanging pieces
+are behind the team, and floor furniture stands among them by where it stands;
+the player can send a wall or floor piece to the other side.
+
 **Curiosities** (55) are the rooms' small surprises: funny, wholesome, strange,
 absurd and now and then paranormal. About half turn up on their own at a wall
 fixture, a corner or the ceiling (one at a time, every ~7 minutes on average,

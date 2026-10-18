@@ -195,6 +195,19 @@ const FORMATIONS: Record<SlotStyle, readonly Formation[]> = {
 const FLOOR_BAND_PX = Math.round(40 * PRESENCE);
 
 /**
+ * The room stage's height in those same units (styles.css `.floor__stage`:
+ * 118px × the scene scale × the cast's presence). A decoration's position is a
+ * share of this height, a teammate's `bottom` is pixels of it, so the two can be
+ * compared: that is how furniture and people stand in one room (`sim/depth.ts`).
+ */
+export const STAGE_HEIGHT_PX = 118 * PRESENCE;
+
+/** How far back, in slot pixels, a support point `y` (0..1 up the stage) stands. */
+export function standingDepthPx(y: number): number {
+  return Math.max(0, y) * STAGE_HEIGHT_PX;
+}
+
+/**
  * How much of its size a character loses standing at the very back of the floor.
  *
  * Depth used to be conveyed by raising a character up the floor band and nothing

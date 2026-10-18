@@ -400,7 +400,12 @@ export function auditDecorationState(state: GameState): DecorationAuditIssue[] {
  * exact coordinates — only genuinely misplaced pieces move. Returns whether the
  * instance changed. Inventory items only record a sensible kind.
  */
-function reconcileInstanceRegion(instance: DecorationInstance, def: DecorationDef): boolean {
+function reconcileInstanceRegion(
+  instance: DecorationInstance,
+  def: DecorationDef,
+  /** the next free default spot in a room, so pieces relocated together never stack. */
+  nextSlot: (roomId: string) => number = () => 0,
+): boolean {
   const desiredKind: PlacementRegionKind =
     instance.regionKind && def.compatibleRegionKinds.includes(instance.regionKind)
       ? instance.regionKind
@@ -451,8 +456,8 @@ function reconcileInstanceRegion(instance: DecorationInstance, def: DecorationDe
   }
 
   // The stored point is genuinely on the wrong surface. Relocate it onto a tidy
-  // default of its default kind.
-  const fallback = defaultCompatiblePlacement(instance.roomId, def);
+  // default of its default kind (each relocated piece in a room on its own spot).
+  const fallback = defaultCompatiblePlacement(instance.roomId, def, nextSlot(instance.roomId));
   if (!fallback) {
     if (instance.regionKind === desiredKind) return false;
     instance.regionKind = desiredKind;
@@ -477,6 +482,14 @@ export function repairDecorationInstances(state: GameState): string[] {
   if (!state.placements || typeof state.placements !== 'object') state.placements = {};
   const changed = new Set<string>();
   const mark = (id: string) => changed.add(id);
+  // Pieces moved off a wrong surface in one pass take a room's default spots in
+  // turn instead of piling onto its first one.
+  const relocated = new Map<string, number>();
+  const nextSlot = (roomId: string) => {
+    const index = relocated.get(roomId) ?? 0;
+    relocated.set(roomId, index + 1);
+    return index;
+  };
 
   // Collapse duplicate known ownership flags without touching unrelated or
   // unknown secrets, which may belong to newer content.
@@ -575,7 +588,7 @@ export function repairDecorationInstances(state: GameState): string[] {
         : 0;
       mark(instance.decorationId);
     }
-    if (reconcileInstanceRegion(instance, def)) mark(instance.decorationId);
+    if (reconcileInstanceRegion(instance, def, nextSlot)) mark(instance.decorationId);
     repaired.push(instance);
   }
   state.decorationInstances = repaired;
@@ -606,7 +619,7 @@ export function repairDecorationInstances(state: GameState): string[] {
       rotation: 0,
       interactionState: {},
     };
-    reconcileInstanceRegion(backfilled, def);
+    reconcileInstanceRegion(backfilled, def, nextSlot);
     state.decorationInstances.push(backfilled);
     represented.add(def.id);
     mark(def.id);

@@ -12,6 +12,7 @@ import {
   regionContainsPoint,
   type NormalizedPoint,
   type PlacementRegion,
+  type PlacementRegionKind,
 } from './placementRegions';
 import { regionArea } from './placementRegions';
 import { DECORATIONS_BY_ID } from '../content/decorations';
@@ -266,6 +267,11 @@ export function evaluateRegionPlacement(
     constrained.point.y - rawPoint.y,
   );
   const rawFits = clampDistance <= RAW_POINTER_TOLERANCE;
+  // Held over the room but off its own surface (a poster down at the floor, a
+  // plant up on the wall), it says which surface it belongs on; off the room
+  // altogether, to bring it inside.
+  const overStage = rawPoint.x >= 0 && rawPoint.x <= 1 && rawPoint.y >= 0 && rawPoint.y <= 1;
+  const offSurface = overStage ? OFF_SURFACE_REASON[region.kind] : 'decorate.reject.moveInside';
   const collision = evaluatePlacement(state, id, constrained.point.x, constrained.point.y, roomId);
   return {
     region,
@@ -276,9 +282,16 @@ export function evaluateRegionPlacement(
     depth: isRug(id) ? decorationDepth('rug') : depthAt(region, constrained.v),
     planeFootprint: decorationPlaneFootprint(id),
     ok: rawFits && collision.ok,
-    reasonKey: rawFits ? collision.reasonKey : 'decorate.reject.moveInside',
+    reasonKey: rawFits ? collision.reasonKey : offSurface,
   };
 }
+
+/** What a piece held off its own surface says: where it belongs. */
+const OFF_SURFACE_REASON: Record<PlacementRegionKind, string> = {
+  floor: 'decorate.reject.onFloor',
+  wall: 'decorate.reject.onWall',
+  ceiling: 'decorate.reject.onCeiling',
+};
 
 /**
  * Deterministically find a legal support point for non-pointer placement flows

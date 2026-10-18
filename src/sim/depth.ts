@@ -1,8 +1,14 @@
 import type { DecorationLayer } from './types';
 
-// Room painter order: architecture, the pieces BEHIND the team (rugs, wall art,
-// anything the player sent back), employees, the pieces IN FRONT of the team
-// (free-standing floor furniture, hanging ceiling pieces), then equipment.
+// Room painter order, back to front:
+//   1. architecture;
+//   2. the pieces BEHIND the team: rugs underfoot, wall art, what hangs from the
+//      ceiling, and anything the player sent back;
+//   3. the team AND the free-standing floor furniture, sorted together by how far
+//      back each one stands on the floor (a teammate wins a tie), so a piece
+//      stands in front of whoever is behind it and behind whoever is in front;
+//   4. a wall piece the player brought in front of the team;
+//   5. equipment, then stickers.
 //
 // `SCENE_DEPTH.rug/wall/floor/ceiling` are the STORED depth scale: placement
 // writes a piece's nearness on its surface into `DecorationInstance.depth` in
@@ -82,12 +88,13 @@ export const BACK_DEPTH: Record<DecorationDepthKind, DepthBand> = {
 };
 
 /**
- * The natural side for a kind of piece: art on the back wall and rugs under the
- * team's feet sit behind employees; free-standing floor furniture and hanging
- * ceiling pieces sit in front of them.
+ * The natural side for a kind of piece. Art on the back wall, rugs under the
+ * team's feet and what hangs from the ceiling sit behind employees (a lamp over
+ * a desk never hangs across a face). Free-standing floor furniture is on the
+ * team's side: it stands among them, by where it stands (`decorationRenderZ`).
  */
 export function defaultDecorationLayer(kind: DecorationDepthKind): DecorationLayer {
-  return kind === 'wall' || kind === 'rug' ? 'back' : 'front';
+  return kind === 'floor' ? 'front' : 'back';
 }
 
 /**
@@ -120,13 +127,30 @@ function storedNearness(kind: DecorationDepthKind, stored: number | undefined): 
  * The z-index a placed decoration is painted at: its side of the team (surface
  * default or the player's choice), ordered within that side by how near the
  * front of its surface it stands.
+ *
+ * Floor furniture on the team's side, given `standingPx` (how far back its base
+ * stands, in the units `CharacterSlot.bottom` uses), stands AMONG the team: it
+ * takes the depth a teammate standing there would take, so it paints over
+ * whoever stands behind it and under whoever stands in front. Teammates are
+ * drawn after the furniture, so one standing exactly as far back wins the tie.
+ * Without `standingPx` it keeps the older all-in-front band.
  */
 export function decorationRenderZ(
   kind: DecorationDepthKind,
   stored?: number,
   layer?: DecorationLayer,
+  standingPx?: number,
 ): number {
-  const band = decorationSide(kind, layer) === 'back' ? BACK_DEPTH[kind] : DECORATION_BANDS[kind];
+  const side = decorationSide(kind, layer);
+  if (
+    kind === 'floor' &&
+    side === 'front' &&
+    standingPx !== undefined &&
+    Number.isFinite(standingPx)
+  ) {
+    return characterDepth(standingPx);
+  }
+  const band = side === 'back' ? BACK_DEPTH[kind] : DECORATION_BANDS[kind];
   const t = storedNearness(kind, stored);
   return clampInt(band.min + (band.max - band.min) * t, band);
 }

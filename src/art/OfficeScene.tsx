@@ -93,8 +93,9 @@ import {
   isDecorationPlaced,
   decorationRoom,
   decorationInstance,
-  roomComfort,
+  ownedDecorationsInRoom,
 } from '../sim/decorations';
+import { decorationEnsembles } from '../sim/decorationEnsembles';
 import { decorationSurface, decorationZ, decorationDepthKind, isRug } from '../sim/surfaces';
 import {
   SCENE_DEPTH,
@@ -126,6 +127,14 @@ import type { SfxName } from '../audio/audio';
 const FOUNDER_FLOOR = 'founder-desk';
 
 const DRAG_THRESHOLD = 7; // px before a press becomes a drag (vs a tap)
+
+/**
+ * How long a carried piece (or teammate) must stay at the top or bottom edge of
+ * the tower before the building scrolls. Passing through the edge on the way in
+ * (every drag from the storage strip crosses the bottom one) never moves the
+ * room out from under the pointer.
+ */
+const EDGE_SCROLL_DWELL_MS = 350;
 
 /** How each kind of "come and see me" reads at a glance. */
 const NUDGE_GLYPH: Record<PendingMoment['kind'], GlyphName> = {
@@ -161,6 +170,8 @@ interface DragState {
   previewRoomId?: string;
   regionId?: string;
   regionKind?: PlacementRegionKind;
+  /** a decoration over the storage strip: letting go puts it away. */
+  stow?: boolean;
 }
 
 function sameDrag(a: DragState | null, b: DragState): boolean {
@@ -173,7 +184,8 @@ function sameDrag(a: DragState | null, b: DragState): boolean {
     a.valid === b.valid &&
     a.previewRoomId === b.previewRoomId &&
     a.regionId === b.regionId &&
-    a.regionKind === b.regionKind,
+    a.regionKind === b.regionKind &&
+    a.stow === b.stow,
   );
 }
 
@@ -183,7 +195,14 @@ function sameDrag(a: DragState | null, b: DragState): boolean {
 interface DragLive {
   x: number;
   y: number;
+  /** where it would land, while a room spot is under the pointer. */
   preview?: DecorationDragPreview;
+  /**
+   * Off every room (over the storage strip, the HUD, the sky): where the piece's
+   * contact point is, the pointer less the offset it was grabbed at, so it keeps
+   * hanging from the paw exactly as it was picked up.
+   */
+  free?: { x: number; y: number };
 }
 let dragLive: DragLive | null = null;
 const dragLiveListeners = new Set<() => void>();
@@ -369,7 +388,15 @@ function LayerToggle({
   if (!decorationLayerAdjustable(kind)) return null;
   const side = decorationSide(kind, layer);
   const target: DecorationLayer = side === 'front' ? 'back' : 'front';
-  const tip = t(target === 'back' ? 'decorate.layerBackTip' : 'decorate.layerFrontTip');
+  // A floor piece brought forward rejoins the team where it stands (in front of
+  // whoever is behind it); a wall piece comes in front of everyone.
+  const tip = t(
+    target === 'back'
+      ? 'decorate.layerBackTip'
+      : kind === 'floor'
+        ? 'decorate.layerAmongTip'
+        : 'decorate.layerFrontTip',
+  );
   return (
     <button
       className="mini-btn deco-layer-btn"
@@ -410,13 +437,13 @@ function DragGhost({
 }) {
   const live = useDragLive();
   if (!live || typeof document === 'undefined') return null;
-  const x = live.preview?.clientX ?? live.x;
-  const y = live.preview?.clientY ?? live.y;
+  const x = live.preview?.clientX ?? live.free?.x ?? live.x;
+  const y = live.preview?.clientY ?? live.free?.y ?? live.y;
   return createPortal(
     <div
       className={`drag-ghost ${drag.kind === 'decoration' ? 'drag-ghost--decoration' : ''} ${
-        drag.valid ? 'is-ok' : 'is-no'
-      } ${ghostAnchorClass(drag)}`}
+        drag.stow ? 'is-stow' : drag.valid ? 'is-ok' : 'is-no'
+      } ${ghostAnchorClass(drag, Boolean(live.preview || live.free))}`}
       style={{
         left: `${x}px`,
         top: `${y}px`,
@@ -441,9 +468,11 @@ function DragGhost({
 
 // The ghost and committed item consume the same authored baseline. Surface
 // selection decides where the support point is; item metadata decides which
-// visual contact point (base, mount, or suspension) sits on it.
-function ghostAnchorClass(drag: DragState): string {
-  if (drag.kind !== 'decoration' || !drag.previewRoomId) return 'drag-ghost--pointer-anchor';
+// visual contact point (base, mount, or suspension) sits on it. Off the rooms
+// the same contact point hangs where the paw holds it, so leaving a room never
+// makes the piece jump.
+function ghostAnchorClass(drag: DragState, anchored: boolean): string {
+  if (drag.kind !== 'decoration' || !anchored) return 'drag-ghost--pointer-anchor';
   return `drag-ghost--anchored ${decorationAnchorClass(drag.id)}`;
 }
 
@@ -682,6 +711,10 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
   // cancel function in a ref lets blur, visibility, IPC focus and unmount all
   // tear it down even when the OS swallowed pointerup/pointercancel.
   const cancelActiveDragRef = useRef<((options?: CancelDragOptions) => void) | null>(null);
+  // What that session carries, and whether arrange mode is on right now (read by
+  // a release, which may arrive after a render turned the mode off).
+  const activeDragKindRef = useRef<DragState['kind'] | null>(null);
+  const decorModeRef = useRef(false);
   // A cancelled pointer stream may deliver its swallowed pointerup/click only
   // after the window returns. Keep click suppression armed until that release
   // arrives (or a fresh pointerdown proves the stale stream is over).
@@ -696,6 +729,7 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
   const now = Date.now();
 
   const rooms = unlockedRooms(state).slice().reverse();
+  const roomSets = decorationEnsembles(state);
   // The floor under construction at the top of the tower: the locked room the
   // company can open soonest (by reputation or by buying it).
   // Re-picked at most once a second (it times every locked room at the current pace).
@@ -930,6 +964,15 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
       pendingFocusRestoreRef.current = null;
     };
   }, []);
+
+  // Leaving arrange mode with a piece in the paw puts it back where it was: the
+  // ghost goes, and a release that comes afterwards commits nothing.
+  decorModeRef.current = decorMode;
+  useEffect(() => {
+    if (!decorMode && activeDragKindRef.current === 'decoration') {
+      cancelActiveDragRef.current?.();
+    }
+  }, [decorMode]);
 
   // Ambient life only runs while someone can see it.
   useEffect(() => {
@@ -1622,6 +1665,11 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
     return floor?.dataset.room ?? null;
   }
 
+  /** Over the storage strip: a piece let go there is put away. */
+  function overStorage(x: number, y: number): boolean {
+    return Boolean(document.elementFromPoint(x, y)?.closest('.deco-tray'));
+  }
+
   function employeeTarget(
     x: number,
     y: number,
@@ -1788,25 +1836,33 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
         setDrag((prev) => (sameDrag(prev, next) ? prev : next));
         return;
       }
+      // Over the storage strip a release puts the piece away, so no room spot
+      // is offered there; anywhere off the rooms the piece hangs from the paw
+      // (never frozen at the last spot it passed) and a release changes nothing.
+      const stow = overStorage(clientX, clientY);
       // Bias toward the support already being targeted (hysteresis) so the
       // live preview does not flicker between overlapping compatible planes.
-      const target = decorationTarget(clientX, clientY, id, grabOffset, lastPreview?.regionKind);
+      const target = stow
+        ? { room: null, valid: false, preview: undefined }
+        : decorationTarget(clientX, clientY, id, grabOffset, lastPreview?.regionKind);
       if (target.preview) lastPreview = target.preview;
-      const preview = target.preview
-        ? target.preview
-        : lastPreview
-          ? { ...lastPreview, valid: false, reasonKey: 'decorate.reject.moveInside' }
-          : undefined;
-      setDragLive({ x: clientX, y: clientY, preview });
+      const preview = target.preview;
+      setDragLive({
+        x: clientX,
+        y: clientY,
+        preview,
+        free: preview ? undefined : { x: clientX - grabOffset.x, y: clientY - grabOffset.y },
+      });
       const next: DragState = {
         kind,
         id,
         room,
         overRoom: target.room,
-        valid: Boolean(preview ? preview.valid && target.room === preview.roomId : target.valid),
+        valid: Boolean(preview && preview.valid && target.room === preview.roomId),
         previewRoomId: preview?.roomId,
         regionId: preview?.regionId,
         regionKind: preview?.regionKind,
+        stow,
       };
       setDrag((prev) => (sameDrag(prev, next) ? prev : next));
     }
@@ -1822,6 +1878,8 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
     // floor that is out of sight in a corner window. Faster the closer to the edge;
     // nothing happens over the HUD, the dock or the storage strip.
     let scrollRafId = 0;
+    // When the pointer came to rest in an edge zone (0: it is not in one).
+    let edgeSince = 0;
     function edgeScroll() {
       scrollRafId = 0;
       const scroller = scrollerRef.current;
@@ -1833,13 +1891,32 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
       if (y >= box.top && y < box.top + zone) dy = -Math.ceil(((box.top + zone - y) / zone) * 14);
       else if (y <= box.bottom && y > box.bottom - zone)
         dy = Math.ceil(((y - (box.bottom - zone)) / zone) * 14);
-      if (dy === 0) return;
+      if (dy === 0) {
+        edgeSince = 0;
+        return;
+      }
+      // Held at the edge, not passing through it: only then does the tower move.
+      const at = performance.now();
+      if (!edgeSince) edgeSince = at;
+      if (at - edgeSince < EDGE_SCROLL_DWELL_MS) {
+        scrollRafId = requestAnimationFrame(edgeScroll);
+        return;
+      }
       const before = scroller.scrollTop;
       scroller.scrollTop = before + dy;
       if (scroller.scrollTop !== before) {
         applyMove(latest.x, latest.y);
         scrollRafId = requestAnimationFrame(edgeScroll);
       }
+    }
+
+    // The rooms can move under a still pointer (the window resized, the tower
+    // scrolled by wheel or keys): the landing is worked out again, so what the
+    // ghost shows is always what a release would do.
+    const viewport = scrollerRef.current;
+    function onViewMoved() {
+      if (!started || !latest || cleaned) return;
+      if (!rafId) rafId = requestAnimationFrame(flush);
     }
 
     function move(ev: PointerEvent) {
@@ -1861,8 +1938,13 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
       window.removeEventListener('pointerup', up);
       window.removeEventListener('pointercancel', cancelPointer);
       window.removeEventListener('keydown', onKey);
+      window.removeEventListener('resize', onViewMoved);
+      viewport?.removeEventListener('scroll', onViewMoved);
       source.removeEventListener('lostpointercapture', lostCapture);
-      if (cancelActiveDragRef.current === cancelSession) cancelActiveDragRef.current = null;
+      if (cancelActiveDragRef.current === cancelSession) {
+        cancelActiveDragRef.current = null;
+        activeDragKindRef.current = null;
+      }
       try {
         if (source.hasPointerCapture(pointerId)) source.releasePointerCapture(pointerId);
       } catch {
@@ -1908,8 +1990,10 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
 
     function up(ev: PointerEvent) {
       if (ev.pointerId !== pointerId) return;
+      // The release is judged exactly as the last move was: over the storage
+      // strip it puts the piece away, over a room it lands where the ghost was.
       const decorationDrop =
-        kind === 'decoration'
+        kind === 'decoration' && !overStorage(ev.clientX, ev.clientY)
           ? decorationTarget(ev.clientX, ev.clientY, id, grabOffset, lastPreview?.regionKind)
           : undefined;
       cleanup();
@@ -1933,8 +2017,11 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
     window.addEventListener('pointerup', up);
     window.addEventListener('pointercancel', cancelPointer);
     window.addEventListener('keydown', onKey);
+    window.addEventListener('resize', onViewMoved);
+    viewport?.addEventListener('scroll', onViewMoved, { passive: true });
     source.addEventListener('lostpointercapture', lostCapture);
     cancelActiveDragRef.current = cancelSession;
+    activeDragKindRef.current = kind;
 
     // Explicit capture keeps the stream alive while crossing stacked room
     // containers. If capture is lost for any reason, lostCapture rolls back the
@@ -1984,18 +2071,19 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
     target?: ReturnType<typeof decorationTarget>,
   ) {
     const def = DECORATIONS_BY_ID[id];
-    if (!def) return;
-    const el = document.elementFromPoint(x, y);
-    // Dropped on the inventory tray (bottom panel or a per-room actions bar) → stow it.
-    if (el?.closest('.deco-tray') || el?.closest('.floor__tray')) {
+    // Arranging was left while the piece was in the paw: nothing lands.
+    if (!def || !decorModeRef.current) return;
+    // Let go over the storage strip: it is put away (a piece already in storage
+    // simply stays there).
+    if (overStorage(x, y)) {
       if (engine.removeDecoration(id)) audio.play('click');
       return;
     }
 
     // Every category commits the exact normalized region candidate shown during
-    // the live preview — floor, wall, ceiling, tabletop, shelf, or a
-    // room-specific special surface. No state mutates until a valid drop, and an
-    // invalid release simply rolls back to the last committed placement.
+    // the live preview (floor, wall or ceiling). No state mutates until a valid
+    // drop, and an invalid release simply rolls back to the last committed
+    // placement, saying why when it was let go over a room.
     const preview = target?.preview;
     if (!preview || !target?.valid || preview.roomId !== target.room) {
       if (target?.room) {
@@ -2018,6 +2106,9 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
       dustPuff(preview.clientX, preview.clientY);
       setJustPlaced(id);
       window.setTimeout(() => setJustPlaced((current) => (current === id ? null : current)), 320);
+    } else {
+      notify('rooms', t('decorate.reject.invalid'), 'neutral');
+      audio.play('error');
     }
   }
 
@@ -2207,7 +2298,8 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
                   room.id,
                   stationsInRoom(room.id)[0]?.x,
                 );
-                const comfort = roomComfort(state, room.id);
+                // The room's own set of pieces, when it has one.
+                const roomSet = roomSets.find((set) => set.definition.roomId === room.id);
                 // The room's routine, and any curiosity waiting in it.
                 const playView = routineView(state, room.id, now);
                 const waitingOddity = state.office.oddities
@@ -2322,17 +2414,43 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
                             </span>
                           </Tip>
                         ) : null}
-                        {comfort > 0 ? (
+                        {/* What is arranged here, and how far its set has come: the
+                            only lasting thing a room's decorations do (a complete
+                            set in its own room). */}
+                        {placed.length > 0 ? (
                           <Tip
                             content={
                               <TipContent
-                                title={t('overview.comfortTitle')}
-                                lines={[t('overview.comfortTip'), `+${comfort}`]}
+                                title={t('overview.decorTitle')}
+                                lines={[
+                                  t('overview.decorCount', { count: placed.length }),
+                                  ...(roomSet
+                                    ? [
+                                        roomSet.active
+                                          ? t('overview.setActive', {
+                                              name: t(`ensemble.${roomSet.definition.id}.name`),
+                                            })
+                                          : t('overview.setProgress', {
+                                              name: t(`ensemble.${roomSet.definition.id}.name`),
+                                              placed: roomSet.placed.length,
+                                              total: roomSet.definition.items.length,
+                                            }),
+                                        ...(roomSet.active
+                                          ? [t(`ensemble.${roomSet.definition.id}.effect`)]
+                                          : []),
+                                      ]
+                                    : []),
+                                ]}
                               />
                             }
                           >
-                            <span className="floor__stat floor__stat--comfort" tabIndex={0}>
-                              <Icon name="morale" size={11} /> +{comfort}
+                            <span
+                              className="floor__stat floor__stat--decor"
+                              data-set={roomSet?.active ? 'complete' : undefined}
+                              tabIndex={0}
+                            >
+                              <Icon name={roomSet?.active ? 'success' : 'decorate'} size={11} />{' '}
+                              {placed.length}
                             </span>
                           </Tip>
                         ) : null}
@@ -2382,15 +2500,18 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
                             ...decorationAnchorStyle(def.id),
                             left: `${placement.x * 100}%`,
                             bottom: `${placement.y * 100}%`,
-                            // Its side of the team (wall art and rugs behind, floor
-                            // furniture in front, unless the player swapped it), then
-                            // its nearness on its surface. A picked-up piece keeps its
-                            // place in the room, so front/back is visible while chosen.
+                            // Its side of the team (wall art, rugs and hanging pieces
+                            // behind; floor furniture standing among the team by how
+                            // far back its base is, unless the player swapped it),
+                            // then its nearness on its surface. A picked-up piece
+                            // keeps its place in the room, so its depth is visible
+                            // while chosen.
                             zIndex: decorationZ(
                               def.id,
                               placement.surface,
                               decorationInstance(state, def.id)?.depth,
                               decorationInstance(state, def.id)?.layer,
+                              placement.y,
                             ),
                           }}
                         >
@@ -2826,6 +2947,9 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
                         ) : null}
                         <button
                           className="mini-btn"
+                          // Nothing of its own to tidy in this room: offered only
+                          // when it can do something (as in the catalogue).
+                          disabled={ownedDecorationsInRoom(state, room.id).length === 0}
                           onClick={() => {
                             if (engine.resetRoomDecorations(room.id)) audio.play('upgrade');
                             else {
@@ -2898,6 +3022,8 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
             setMoveDialog(id);
           }}
           dragging={drag?.kind === 'decoration'}
+          dropToStow={drag?.kind === 'decoration' ? (drag.room ? 'stow' : 'cancel') : undefined}
+          dropOver={drag?.kind === 'decoration' && Boolean(drag.stow)}
           hint={selected ? t('decorate.pickedHint') : t('office.decorateHint')}
         />
       ) : null}

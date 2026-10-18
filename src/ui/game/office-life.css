@@ -411,11 +411,7 @@
     .deco-tray__hint {
       display: none;
     }
-    .deco-tray__card-name,
-    .deco-tray__card-room {
-      font-size: 9px;
-      line-height: 1.15;
-    }
+
     .deco-tray__search {
       flex: 1 1 auto;
       min-width: 0;

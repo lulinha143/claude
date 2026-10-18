@@ -133,15 +133,12 @@
   },
   "decorate": {
     "searchPlaceholder": "Buscar decorações…",
-    "allRooms": "Todas as salas",
-    "allTypes": "Todos os tipos",
-    "anyResource": "Qualquer moeda",
     "placed": "Colocada",
     "inStorage": "Guardada",
     "place": "Colocar",
     "remove": "Remover",
     "stow": "Guardar",
-    "resetRoom": "Arrumar",
+    "resetRoom": "Organizar",
     "resetFull": "Esta sala está lotada — guarde algumas peças e arrume novamente.",
     "moveTo": "Mover para…",
     "moveToTitle": "Mover {{item}}",
@@ -167,7 +164,10 @@
       "coversTeammate": "Isso cobriria um colega — dê espaço a ele.",
       "moveInside": "Mova mais para dentro da sala.",
       "incompatibleRoom": "Essa decoração não pode ser colocada nesta sala.",
-      "invalid": "Isso não cabe aqui."
+      "invalid": "Isso não cabe aqui.",
+      "onFloor": "Isto fica no piso.",
+      "onWall": "Isto vai na parede.",
+      "onCeiling": "Isto pendura no teto."
     },
     "roomEmpty": "Nenhuma decoração para esta sala ainda.",
     "noResults": "Nenhuma decoração corresponde aos filtros.",
@@ -177,7 +177,6 @@
     "pickedHint": "Toque num lugar para levá-la até lá, ou arraste. Toque nela de novo para soltar.",
     "inventory": "Depósito",
     "inventoryEmpty": "Depósito vazio",
-    "summary": "{{owned}} obtidas · {{placed}} colocadas · +{{comfort}} conforto",
     "type": {
       "plant": "Plantas",
       "lamp": "Iluminação",
@@ -194,14 +193,31 @@
     "catalogueSections": "Seções do catálogo",
     "section": {
       "available": "Disponíveis",
-      "owned": "Seus objetos",
-      "locked": "Próximos departamentos"
+      "owned": "Suas peças",
+      "locked": "Em breve"
     },
-    "arrangeHere": "Arrumar no escritório",
+    "arrangeHere": "Arrumar",
     "layerBack": "Pôr atrás",
     "layerFront": "Pôr na frente",
     "layerBackTip": "Pôr atrás da equipe",
-    "layerFrontTip": "Pôr na frente da equipe"
+    "layerFrontTip": "Pôr na frente da equipe",
+    "ownedCount_one": "{{count}} peça",
+    "ownedCount_other": "{{count}} peças",
+    "placedCount_one": "{{count}} colocada",
+    "placedCount_other": "{{count}} colocadas",
+    "roomFilter": "Por sala",
+    "typeFilter": "Por tipo",
+    "ownedEmpty": "Ainda não tem nenhuma decoração. Escolha uma entre as disponíveis.",
+    "boughtPlaced": "Feito! Já está na sala: {{room}}.",
+    "boughtStored": "Feito! Está no depósito, pronta para arrumar.",
+    "moraleOnBuy": "Ânimo +{{value}} ao comprar",
+    "inSet": "Conjunto: {{name}}",
+    "comesWith": "Chega com: {{room}}",
+    "dropToStow": "Solte aqui para guardar no depósito",
+    "dropToKeep": "Solte aqui para deixar no depósito",
+    "layerAmongTip": "Volta para o meio da equipe, conforme onde está no piso",
+    "filter": "Mostrar",
+    "allPieces": "Todas as peças"
   },
   "decoReact": {
     "plant": "Essa plantinha deixa o ambiente bem mais fresco.",
@@ -2295,9 +2311,12 @@
     "comfort": "Conforto da sala +{{value}}",
     "capacityTitle": "Capacidade da sala",
     "capacityTip": "Colegas trabalhando aqui. Cada sala é planejada para até quatro; um quinto não teria onde ficar.",
-    "comfortTitle": "Conforto da sala",
-    "comfortTip": "Moral extra das decorações desta sala.",
-    "autoRoom": "Padrão (departamento)"
+    "autoRoom": "Padrão (departamento)",
+    "decorTitle": "Decoração da sala",
+    "decorCount_one": "{{count}} peça arrumada aqui.",
+    "decorCount_other": "{{count}} peças arrumadas aqui.",
+    "setActive": "Conjunto completo: {{name}}.",
+    "setProgress": "{{name}}: {{placed}} de {{total}} peças aqui."
   },
   "nextStep": {
     "claimDaily": "Tem recompensa de desafio diário esperando por você!",

@@ -3671,58 +3671,6 @@
     cursor: not-allowed;
   }
 
-  /* --- redesigned Decorate menu --- */
-  .decorate__head {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-  .decorate__summary {
-    font-size: max(var(--fs-min), 0.78em);
-    color: var(--text-secondary);
-    margin: 0;
-  }
-  .decorate__rooms {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-    margin: 8px 0;
-  }
-  .decorate__filters {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-bottom: 12px;
-  }
-  .decorate__search {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: var(--surface-sunken);
-    border: 1px solid var(--wood-light);
-    border-radius: var(--r-pill);
-    padding: 4px 10px;
-    color: var(--text-secondary);
-    flex: 1 1 180px;
-    min-width: 140px;
-  }
-  .decorate__search input {
-    border: none;
-    background: none;
-    color: var(--text);
-    font: inherit;
-    font-size: max(var(--fs-min), 0.85em);
-    width: 100%;
-    outline: none;
-  }
-  .decorate__chiprow {
-    display: inline-flex;
-    gap: 4px;
-    flex-wrap: wrap;
-  }
   .tag-btn {
     display: inline-flex;
     align-items: center;
@@ -3741,197 +3689,9 @@
     color: var(--text-on-accent);
     border-color: var(--primary);
   }
-  .decorate__empty {
-    color: var(--text-muted);
-    font-style: italic;
-    padding: 20px 0;
-    text-align: center;
-  }
-  .decorate__grid {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-    gap: 10px;
-  }
-  .decocard {
-    position: relative;
-    display: grid;
-    grid-template-columns: 72px minmax(0, 1fr);
-    align-items: center;
-    gap: 9px 11px;
-    min-height: 116px;
-    padding: 10px;
-    overflow: hidden;
-    background:
-      linear-gradient(145deg, rgba(255, 255, 255, 0.035), transparent 46%), var(--surface);
-    border: 1px solid var(--wood-light);
-    border-radius: var(--r-sm);
-    box-shadow: 1px 2px 0 rgba(37, 24, 12, 0.24);
-    transition:
-      transform var(--dur-fast) var(--ease),
-      border-color var(--dur-fast) var(--ease),
-      box-shadow var(--dur-fast) var(--ease);
-  }
-  .decocard:hover {
-    transform: translateY(-1px);
-    border-color: color-mix(in srgb, var(--gold) 54%, var(--wood-light));
-    box-shadow: 2px 4px 0 rgba(37, 24, 12, 0.2);
-  }
-  /* OWNED marker. Was a 26px diagonal colour wedge in the corner, which the card's
-   own border-radius clipped into a shape that read as a rendering artefact rather
-   than a badge. A hairline rule down the leading edge says the same thing calmly,
-   and cannot be clipped into something odd. */
-  .decocard.is-owned {
-    border-left: 2px solid color-mix(in srgb, var(--positive) 50%, var(--wood-light));
-  }
-  .decocard.is-placed {
-    border-color: color-mix(in srgb, var(--positive) 55%, var(--wood-light));
-  }
-  .decocard__preview {
-    position: relative;
-    isolation: isolate;
-    flex: 0 0 auto;
-    width: 72px;
-    height: 74px;
-    display: grid;
-    place-items: center;
-    overflow: hidden;
-    background: linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--paper-muted) 88%, var(--surface)) 0 68%,
-      #a87945 69% 100%
-    );
-    border: 1px solid color-mix(in srgb, var(--wood-light) 72%, transparent);
-    border-radius: var(--r-sm);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.22),
-      inset 0 -7px 12px rgba(63, 39, 16, 0.1);
-  }
-  .decocard__preview::before,
-  .decocard__preview::after {
-    content: '';
-    position: absolute;
-    z-index: -1;
-    pointer-events: none;
-  }
-  /* Intentionally EMPTY.
-   This drew a 12x12 rotated square outline in the top-right of every thumbnail,
-   meant to suggest a picture hook. At 12px, unfilled and hard-edged, it read as
-   an unstyled checkbox sitting in the corner of all 43 catalogue items — the
-   single most debug-looking thing on the screen. The niche now gets its depth
-   from the plate's own vignette instead. */
-  .decocard__preview::before {
-    display: none;
-  }
-  .decocard__preview::after {
-    left: 0;
-    right: 0;
-    bottom: 22px;
-    height: 1px;
-    background: rgba(84, 54, 28, 0.38);
-    box-shadow: 0 2px 0 rgba(255, 245, 220, 0.18);
-  }
-  .decocard__preview--wall {
-    background: linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--paper-muted) 90%, var(--surface)) 0 84%,
-      #a87945 85% 100%
-    );
-  }
-  .decocard__preview--wall::after {
-    bottom: 10px;
-  }
-  .decocard__preview--ceiling {
-    background: linear-gradient(
-      180deg,
-      #4b514e 0 16%,
-      color-mix(in srgb, var(--paper-muted) 80%, #9ea9a2) 17% 82%,
-      #a87945 83% 100%
-    );
-  }
-  .decocard__preview--ceiling::after {
-    top: 10px;
-    bottom: auto;
-    height: 2px;
-    background: rgba(239, 224, 190, 0.25);
-  }
-  .decocard__preview .decor {
-    z-index: 1;
-    transform: scale(0.92);
-    transition:
-      transform var(--dur-fast) var(--ease),
-      filter var(--dur-fast) var(--ease);
-  }
-  .decocard:hover .decocard__preview .decor {
-    transform: translateY(-1px) scale(0.98);
-    filter: drop-shadow(0 4px 5px rgba(0, 0, 0, 0.34));
-  }
-  .decocard__surface {
-    position: absolute;
-    right: 3px;
-    bottom: 3px;
-    z-index: 2;
-    padding: 1px 4px;
-    border-radius: 3px;
-    background: rgba(43, 30, 18, 0.78);
-    color: #fff4dc;
-    font-family: var(--type-caption-family);
-    font-size: max(var(--fs-min), 0.48em);
-    font-weight: 800;
-    line-height: 1.2;
-    text-transform: uppercase;
-    letter-spacing: 0.035em;
-    pointer-events: none;
-  }
-  .decocard__body {
-    flex: 1 1 auto;
-    min-width: 0;
-  }
-  .decocard__title {
-    font-weight: 700;
-    font-size: max(var(--fs-min), 0.82em);
-  }
-  .decocard__meta {
-    display: flex;
-    gap: 4px;
-    flex-wrap: wrap;
-    margin: 3px 0;
-  }
   .pill--soft {
     background: var(--surface-sunken);
     color: var(--text-secondary);
-  }
-  .decocard__comfort {
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
-    font-size: max(var(--fs-min), 0.7em);
-    color: var(--positive);
-  }
-  .decocard__actions {
-    grid-column: 1 / -1;
-    flex: 0 0 auto;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 5px;
-    min-height: 24px;
-    padding-top: 6px;
-    border-top: 1px dashed color-mix(in srgb, var(--wood-light) 42%, transparent);
-  }
-  .decocard__badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
-    font-size: max(var(--fs-min), 0.66em);
-    font-weight: 700;
-    color: var(--positive);
-  }
-  .decocard__badge--muted {
-    color: var(--text-muted);
   }
 
   /* A decoration a nearby employee is reacting to gets a soft glow. */
@@ -4155,7 +3915,6 @@
    translations) wrap instead of forcing horizontal overflow. */
   .card__body,
   .employee-card__info,
-  .decocard__body,
   .daily__info,
   .moment__info {
     min-width: 0;
@@ -4184,14 +3943,12 @@
 
   /* Guarantee media/canvas previews never overflow their container. */
   .moment-modal__img,
-  .decocard__preview,
   img {
     max-width: 100%;
   }
 
   /* Long, unbroken tokens (e.g. secret ids) wrap instead of overflowing. */
   .nut-cell__name,
-  .decocard__title,
   .moment__title,
   .card__title {
     overflow-wrap: anywhere;
@@ -4487,7 +4244,6 @@
   /* Brand / logo */
   /* Titles across cards, employees, decorations, rooms, achievements, results */
   .card__title,
-  .decocard__title,
   .employee-card__name,
   .big-number,
   .moment__title,
@@ -4606,16 +4362,6 @@
     font-size: var(--fs-xs);
     width: 100%;
     outline: none;
-  }
-  .deco-tray__chips {
-    display: flex;
-    gap: 4px;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    scrollbar-width: thin;
-  }
-  .deco-tray.is-dragging .deco-tray__chips {
-    display: none;
   }
   .deco-tray__items {
     display: flex;
@@ -4880,8 +4626,7 @@
   .pill,
   .outfit-chip,
   .chip-btn,
-  .tag-btn,
-  .decocard__badge {
+  .tag-btn {
     border-radius: var(--corner-control);
   }
   .pill {
@@ -5374,8 +5119,7 @@
       inset 0 -3px 0 var(--accent-rule),
       inset 0 1px 0 var(--control-highlight);
   }
-  .pill,
-  .decocard__badge {
+  .pill {
     border-style: dashed;
     box-shadow: inset 0 1px 0 rgba(255, 244, 224, 0.08);
   }
@@ -6871,8 +6615,7 @@
   /* ==========================================================================
    Commercial polish pass — typography rhythm and unified tactile controls
    ========================================================================== */
-  .view > h2,
-  .decorate__head h2 {
+  .view > h2 {
     margin-block: 0 10px;
     font-size: var(--type-section-size);
     text-wrap: balance;
@@ -6885,8 +6628,7 @@
   .card__desc,
   .employee-card__story,
   .nut-cell__desc,
-  .ach__desc,
-  .decorate__summary {
+  .ach__desc {
     line-height: var(--lh-snug);
   }
   .card__desc {
@@ -6894,19 +6636,14 @@
     font-size: var(--fs-xs);
   }
   .card__title,
-  .employee-card__name,
-  .decocard__title {
+  .employee-card__name {
     line-height: var(--lh-tight);
-  }
-  .decocard__title {
-    font-size: var(--fs-sm);
   }
   .pill,
   .tag-btn,
   .chip-btn,
   .tab,
-  .mini-btn,
-  .decocard__badge {
+  .mini-btn {
     letter-spacing: 0.005em;
   }
 
@@ -7009,8 +6746,7 @@
 
   /* Compact windows preserve the hierarchy while spending less vertical space. */
   @media (max-width: 520px) {
-    .view > h2,
-    .decorate__head h2 {
+    .view > h2 {
       margin-bottom: 7px;
       font-size: var(--fs-lg);
     }
@@ -7022,8 +6758,7 @@
     .card-list,
     .employee-list,
     .daily-list,
-    .moment-list,
-    .decorate__grid {
+    .moment-list {
       gap: 7px;
     }
     .card {
@@ -7037,14 +6772,6 @@
     .chip-btn,
     .tag-btn {
       padding-inline: 7px;
-    }
-    .decorate__filters,
-    .decorate__rooms {
-      gap: 5px;
-    }
-    .decocard {
-      gap: 7px 9px;
-      padding: 8px;
     }
   }
 
@@ -7122,8 +6849,7 @@
    made a collection the player has simply not started yet look like a broken panel.
    It is now a soft recessed shelf — the same "nothing on it yet" reading a real
    display case gives — with room for a line that says what belongs here. */
-  .empty-state,
-  .decorate__empty {
+  .empty-state {
     margin: 8px 0;
     padding: 22px 18px;
     color: var(--text-secondary);
@@ -7170,8 +6896,7 @@
     .view__head > h2 {
       margin-bottom: 7px;
     }
-    .empty-state,
-    .decorate__empty {
+    .empty-state {
       padding: 14px 12px;
     }
   }
@@ -7495,231 +7220,6 @@
     color: var(--positive);
   }
 
-  /* ===========================================================================
-   THE DECORATION CATALOGUE — presentation pass
-   ---------------------------------------------------------------------------
-   The underlying system is sound; how it was presented was not. What the screen
-   actually looked like:
-
-     * roughly two dozen identical rounded pills stacked in three wrapping rows
-       (one per room, one per type, one per currency) before a single item was
-       visible — a wall of component-library chips, and the clearest single
-       "generic web app" signal in the game;
-     * cards of ragged height, because an unowned item shows a price button while
-       an owned one shows two or three controls, so the grid never lined up;
-     * a 72px thumbnail plate darker than the art inside it, which made every
-       decoration hard to actually SEE — the one thing a shop must get right.
-
-   Nothing here changes the DOM, the filters or the purchase logic. It changes
-   density, alignment, contrast and hierarchy: the controls become one quiet
-   toolbar, the items become a tidy grid of framed objects, and the art gets a
-   lit plate to sit on.
-   ========================================================================= */
-
-  /* --- the controls, as one toolbar rather than three rows of pills ---------- */
-  .decorate__rooms {
-    gap: 4px;
-    margin: 10px 0 8px;
-    padding-bottom: 9px;
-    border-bottom: 1px solid color-mix(in srgb, var(--wood-light) 45%, transparent);
-  }
-  /* Room chips are a filter, not a primary action: smaller, quieter, and only the
-   active one carries weight. */
-  .decorate__rooms .chip-btn {
-    padding: 3px 9px;
-    font-size: max(var(--fs-min), 0.7em);
-    letter-spacing: 0.01em;
-    border-radius: 4px;
-    opacity: 0.82;
-  }
-  .decorate__rooms .chip-btn:hover {
-    opacity: 1;
-  }
-  .decorate__rooms .chip-btn.is-on {
-    opacity: 1;
-    font-weight: 800;
-  }
-
-  /* The secondary filters read as one instrument: a single recessed bar holding
-   the search field and the two chip groups, with hairline dividers between
-   them instead of loose rows floating on the page. */
-  .decorate__filters {
-    gap: 7px;
-    margin-bottom: 14px;
-    padding: 6px 8px;
-    background: rgba(0, 0, 0, 0.13);
-    border: 1px solid color-mix(in srgb, var(--wood-light) 40%, transparent);
-    border-radius: var(--r-sm);
-    box-shadow: inset 0 1px 2px rgba(37, 24, 12, 0.16);
-  }
-  .decorate__chiprow {
-    gap: 3px;
-    padding-left: 7px;
-    border-left: 1px solid color-mix(in srgb, var(--wood-light) 34%, transparent);
-  }
-  .decorate__chiprow .tag-btn {
-    padding: 2px 8px;
-    font-size: max(var(--fs-min), 0.66em);
-  }
-  .decorate__search {
-    flex: 1 1 190px;
-    min-width: 150px;
-  }
-
-  /* --- the grid ------------------------------------------------------------- */
-  .decorate__grid {
-    grid-template-columns: repeat(auto-fill, minmax(232px, 1fr));
-    gap: 11px;
-  }
-
-  /* Uniform cards. The row template is what fixes the ragged grid: the body takes
-   the slack and the action row is pinned to the bottom edge, so a priced card
-   and an owned card with three controls are exactly the same height and every
-   price in the grid sits on one line. */
-  .decocard {
-    grid-template-columns: 88px minmax(0, 1fr);
-    grid-template-rows: minmax(0, 1fr) auto;
-    align-items: start;
-    gap: 8px 12px;
-    min-height: 132px;
-    padding: 11px 11px 9px;
-  }
-  .decocard:hover {
-    transform: translateY(-2px);
-    border-color: color-mix(in srgb, var(--gold) 42%, var(--wood-light));
-    box-shadow:
-      1px 3px 0 rgba(37, 24, 12, 0.24),
-      0 6px 14px rgba(37, 24, 12, 0.2);
-  }
-  [data-reduced-motion='true'] .decocard:hover {
-    transform: none;
-  }
-
-  /* A LIT plate for the object. The old plate was darker than most of the art on
-   it; a shop item has to be the brightest thing in its own frame. Warm paper,
-   a floor line low down so standing props read as standing, and an inner
-   vignette so the object sits IN a niche rather than on a swatch. */
-  .decocard__preview {
-    width: 88px;
-    height: 92px;
-    align-self: center;
-    background:
-      radial-gradient(ellipse 66% 42% at 50% 88%, rgba(63, 39, 16, 0.16), transparent 70%),
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--paper) 92%, #fff) 0 74%,
-        color-mix(in srgb, #c79a5e 78%, var(--paper)) 75% 100%
-      );
-    border-color: color-mix(in srgb, var(--wood-light) 82%, transparent);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.55),
-      inset 0 -8px 14px rgba(63, 39, 16, 0.11),
-      inset 0 0 0 1px rgba(255, 255, 255, 0.2);
-  }
-  /* Let the artwork use the plate it was given. */
-  .decocard__preview .decor > svg {
-    width: 62px;
-    height: 70px;
-  }
-  /* Surface tag: a small stamped label on the frame, not a floating black chip. */
-  .decocard__surface {
-    right: 4px;
-    bottom: 4px;
-    padding: 1px 5px;
-    border-radius: 2px;
-    background: color-mix(in srgb, #2b1e12 62%, transparent);
-    border: 1px solid rgba(255, 244, 220, 0.22);
-    letter-spacing: 0.06em;
-  }
-
-  /* --- card text: one clear name, one quiet line of metadata ---------------- */
-  .decocard__title {
-    font-size: max(var(--fs-min), 0.86em);
-    line-height: 1.22;
-    /* Two lines maximum, so a long name cannot push the grid around. */
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-  /* The metadata was three competing pills. The room is the useful fact, so it
-   keeps a pill; the type becomes plain small caps beside it. */
-  .decocard__meta {
-    gap: 5px;
-    align-items: center;
-    margin-top: 4px;
-  }
-  .decocard__meta .pill--soft {
-    background: none;
-    border: 0;
-    padding: 0;
-    color: var(--ink-dim);
-    font-size: max(var(--fs-min), 0.62em);
-    font-weight: 800;
-    letter-spacing: 0.07em;
-    text-transform: uppercase;
-  }
-  .decocard__comfort {
-    margin-top: 5px;
-    color: color-mix(in srgb, #6fbf7f 76%, var(--ink));
-    font-size: max(var(--fs-min), 0.68em);
-    font-weight: 800;
-  }
-
-  /* --- the action row ------------------------------------------------------- */
-  .decocard__actions {
-    align-self: end;
-    margin-top: 2px;
-    padding-top: 7px;
-    /* A solid hairline. The dashed rule read as a dotted-line coupon. */
-    border-top: 1px solid color-mix(in srgb, var(--wood-light) 40%, transparent);
-  }
-  /* The price is the call to action: readable, tactile, and clearly a button —
-   without the oversized glossy slab it used to be. */
-  .decocard__actions .buy-btn {
-    padding: 4px 11px;
-    font-size: max(var(--fs-min), 0.78em);
-    border-radius: 5px;
-  }
-  .decocard__actions .buy-btn:disabled {
-    /* Cannot afford it yet: legible, obviously inert, not simply faded out. */
-    opacity: 1;
-    filter: saturate(0.25);
-    color: var(--ink-dim);
-  }
-  /* Owned states are information, not actions — so they stop competing with the
-   button next to them.
-
-   The border reset is the point: `.pill, .decocard__badge` share a stationery
-   rule that sets `border-style: dashed`, which on a pill reads as stitched paper
-   but on this badge produced a 3px dashed green box around the word PLACED — a
-   marching-ants rectangle on every owned item, indistinguishable from a debug
-   outline. A status like "placed" is a caption, not a container. */
-  .decocard__badge {
-    margin-right: auto;
-    padding: 0;
-    border: 0;
-    background: none;
-    box-shadow: none;
-    font-size: max(var(--fs-min), 0.66em);
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-  }
-
-  /* Placed items are the goal of the screen: mark them on the frame so the grid
-   can be read at a glance for what is already in the office. */
-  .decocard.is-placed .decocard__preview {
-    border-color: color-mix(in srgb, #6fbf7f 55%, var(--wood-light));
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.55),
-      inset 0 -8px 14px rgba(63, 39, 16, 0.11),
-      inset 0 0 0 1px color-mix(in srgb, #6fbf7f 30%, transparent);
-  }
-  /* Unowned items sit slightly back, so owned/placed ones come forward. */
-  .decocard:not(.is-owned) .decocard__preview .decor {
-    opacity: 0.92;
-  }
-
   /* WIDE = the figures gathered into one cluster.
    Deliberately at the end of the sheet: this and the base `.res-cell` block have
    equal specificity, so source order decides, and a media query adds none. Placed
@@ -7843,92 +7343,6 @@
    selection stuck. */
   .deco-tray.is-dragging {
     opacity: 0.55;
-  }
-
-  .deco-tray__chips .tag-btn {
-    padding: 2px 8px;
-    font-size: max(var(--fs-min), 0.66em);
-  }
-
-  /* ===========================================================================
-   ROOM ACTION BAR (decorate view)
-   ---------------------------------------------------------------------------
-   "Tidy up" was the last chip inside the filter toolbar: a room-wide, mutating
-   action sitting in the one group on the screen that otherwise only changes what
-   you are LOOKING at. It read as an orphan because it was one — and because the
-   Undo that makes it safe lived on a different screen (the office toolbar), so
-   from here a player could rearrange every piece in a room with no visible way
-   back.
-
-   Actions now get their own bar: scoped to the selected room, named after it, and
-   holding the undo that belongs with them. Styled as a shelf rather than a
-   recessed instrument, so it reads as "things you can DO here" against the
-   filter bar's "things you can FILTER by".
-   ========================================================================= */
-  .decorate__roombar {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin: 0 0 10px;
-    padding: 7px 10px;
-    background: linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--paper) 92%, transparent),
-      color-mix(in srgb, var(--paper-muted) 88%, transparent)
-    );
-    border: 1px solid color-mix(in srgb, var(--wood-light) 62%, transparent);
-    border-left: 3px solid color-mix(in srgb, var(--gold) 58%, var(--wood-light));
-    border-radius: var(--r-sm);
-    box-shadow:
-      0 1px 0 rgba(255, 255, 255, 0.42) inset,
-      0 2px 5px rgba(37, 24, 12, 0.14);
-  }
-  /* Which room these actions apply to. Stated, because a room-wide rearrange should
-   never be ambiguous about its target. */
-  .decorate__roombar-room {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    color: var(--ink);
-    font-family: var(--type-caption-family, inherit);
-    font-size: max(var(--fs-min), 0.72em);
-    font-weight: 800;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-  }
-  .decorate__roombar-room svg {
-    opacity: 0.75;
-  }
-  .decorate__roombar-actions {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-left: auto;
-  }
-  /* A disabled action must be READABLE but unmistakably inert.
-   `filter: saturate(.2)` alone was not enough: on an already-brown button it is
-   nearly invisible, so a disabled Undo looked exactly like the live Tidy up beside
-   it — the player cannot tell which of two adjacent controls will do something.
-   Flattening it onto the paper (no fill, no lift, hairline border) reads as
-   "not available yet" without reading as "broken". */
-  .decorate__roombar-actions .mini-btn:disabled {
-    opacity: 1;
-    cursor: not-allowed;
-    color: color-mix(in srgb, var(--ink) 45%, transparent);
-    background: color-mix(in srgb, var(--paper-muted) 55%, transparent);
-    border-color: color-mix(in srgb, var(--wood-light) 45%, transparent);
-    box-shadow: none;
-    text-shadow: none;
-  }
-  .decorate__roombar-actions .mini-btn:disabled svg {
-    opacity: 0.5;
-  }
-  @media (max-width: 620px) {
-    .decorate__roombar-actions {
-      margin-left: 0;
-      width: 100%;
-    }
   }
 
   /* ===========================================================================
