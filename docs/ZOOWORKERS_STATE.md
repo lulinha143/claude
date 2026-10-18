@@ -4,9 +4,10 @@ Handoff only: design is in `DESIGN.md`, commands and matrix in `.kiro/steering/q
 
 ## Branch
 
-`feat/zooworkers-3.0-facility-pass`: Chapter 6 is the commit that records this entry, on top
-of Chapter 5 (`f4ae64c`), Chapter 3 (`8cbf590`), Chapter 2 (`d6c4d28`), Chapter 9 (`d9fab09`),
-Chapter 4 (`e7bac62`), Chapter 1 (`80264a8`) and the setup commit `c55d356`; clean.
+`feat/zooworkers-3.0-facility-pass`: Chapter 7 is the commit that records this entry, on top
+of Chapter 6 (`25ba899`), Chapter 5 (`f4ae64c`), Chapter 3 (`8cbf590`), Chapter 2 (`d6c4d28`),
+Chapter 9 (`d9fab09`), Chapter 4 (`e7bac62`), Chapter 1 (`80264a8`) and the setup commit
+`c55d356`; clean.
 `7a7ee3d` (architect's snapshot) is an ancestor; never roll back to it.
 
 ## Active configuration
@@ -36,8 +37,8 @@ Chapter 4 (`e7bac62`), Chapter 1 (`80264a8`) and the setup commit `c55d356`; cle
   shell call, so rendered play used throwaway scripts (kept in the ignored `visual-artifacts/`)
   that serve `dist/` and drive Chromium in one process. A seeded save's own
   `settings.language` wins over `wmno.lang` at boot: seed pt-BR in the save.
-- Chapter 6 session: the same (Node on `PATH`, `npm ci`, locked rev 1228 fetched, stock E2E
-  config); rendered play by throwaway scripts in the ignored `visual-artifacts/play/`.
+- Chapter 6 and 7 sessions: the same (Node on `PATH`, `npm ci`, locked rev 1228 fetched, stock
+  E2E config); rendered play by throwaway scripts in the ignored `visual-artifacts/play/`.
 
 ## Validation
 
@@ -48,7 +49,7 @@ Chapter 4 (`e7bac62`), Chapter 1 (`80264a8`) and the setup commit `c55d356`; cle
 
 Order: 1 → 4 → 9 → 2 → 3 → 5 → 6 → 7 → 8 → 10 → final integration.
 
-Accepted kit chapters: 1, 4, 9, 2, 3, 5, 6. Accepted pre-kit units: shell (`b138638`–`6189169`), living office
+Accepted kit chapters: 1, 4, 9, 2, 3, 5, 6, 7. Accepted pre-kit units: shell (`b138638`–`6189169`), living office
 (`bfaca01`–`d81ddc2`) and GC1–GC4 (`67cd776`–`7a7ee3d`), pinned by E2E specs but with no
 six-check record. Kit chapters reuse them as evidence and change only what fails the gate.
 GC numbers are not kit numbers.
@@ -62,7 +63,7 @@ GC numbers are not kit numbers.
 | 3   | `art/RoomDressing`, `RoomPlay`, `content/rooms`, `roomPlay`                                                               | Accepted (record below)                   |
 | 5   | `ui/minigames/*`, `sim/minigames`                                                                                         | Accepted (record below)                   |
 | 6   | `modals/IncidentScene`, `EventModal`, `content/incidents`, `ui/CuriosityLog`                                              | Accepted (record below)                   |
-| 7   | `modals/EmployeeTalk`, `content/stories`, `employeeKeepsakes`                                                             | GC2 stories and scrapbook                 |
+| 7   | `modals/EmployeeTalk`, `VisitScrapbook`, `content/stories`, `employeeKeepsakes`                                           | Accepted (record below)                   |
 | 8   | `views/DecorateView`, `ui/DecorationTray`, `sim/placement`, `depth`                                                       | Arranging rebuilt; catalog from `a4e03ad` |
 | 10  | `views/PrestigeView`, `CollectionsView`, `sim/prestige`, `nextStep`                                                       | Prestige fix `65c4f09` only               |
 
@@ -531,6 +532,81 @@ run. `npm run build:desktop` exit 0; no desktop code changed. New coverage:
 `tests/incidentScenes.test.ts` (15), `tests/curiosityLog.test.tsx` (3), three `incidents.spec`
 tests.
 
+### Chapter 7 record — stories, keepsakes and personal history
+
+Baseline: GC2's three-part stories, keepsake talks and scrapbook, kept where good (all 23 play
+through; the Part 3 prompt opens on the Part 1 answer). No new save field, currency, clock,
+meter or registry: `sim/bonds` reads the durable flags already written (`storyNamed`,
+`keepsakeFor`, `talkAftermath`, `talkChoiceCost`). The only new saved item is one remark in
+Chapter 6's queue. Balance unchanged.
+
+Broken or weak before (reproduced in pt-BR at 380×460 and 1280×720), fixed:
+
+- A story part ended in silence. Part 3 put the keepsake on the desk unseen, Part 2's payoff
+  was invisible and the next step lived only in the Album. When a conversation ends, the
+  notepad now says, under the reply:
+  - where the story stands ("A próxima parte, quando vocês chegarem no nível Amizade
+    próxima.", "Você conhece a história inteira.");
+  - "Alguma coisa foi posta em movimento." and "Bento vai lembrar disso." as they apply,
+    never what (Chapter 6's rule); and "Virou um Cartão de Momento, guardado nas Coleções.";
+  - when the keepsake has just gone on the desk, its art, its name, "Agora fica na mesa
+    dele/dela." and "Ver no álbum". The engine gathers this per conversation
+    (`ActiveTalk.aftermath`), and it is read from the content's own marks.
+- Looking after a keepsake (50–240 castanhas) showed its price only after. The answer now
+  carries a gold nut tag with the number ("Custa 180 castanhas" to screen readers); the free
+  answer has none. The measured change still follows.
+- Part 1's answer came back only on 50% of pokes, forever, sometimes twice running. Now it
+  comes back once on its own about 5 min later (a `remark`, said when their floor is in
+  view). A line they bring back then rests 10 min (per session, unsaved).
+- The Album named a new face's story. Until Part 1 is ready it reads "A história de Nino" and
+  "Tem uma história pra te contar quando vocês chegarem no nível Conhecido." A keepsake is
+  named nowhere until you have talked about it or heard the whole story.
+- Album entries kept only their reply. Each now files "Você: …" above it. The keepsake talk is
+  its own entry, and a keepsake card heads the Album once known: art, name, its line, where it
+  is ("Na mesa dela desde 18 de out. de 2026." or in the drawer) and how it got there. Under a
+  long pt-BR date the words ran in a narrow column; they now take the full width.
+- The keepsake on display was inert and mostly hidden behind its owner's desk. It now leans
+  against the front of the desk (one step nearer than its owner; anyone nearer still covers
+  it). Pointed at, it reads "Lembrança de Beta. Clique para ver no álbum."; a click opens the
+  Album on its card. In the visit it is a button to the same card (the keyboard path).
+- The pt-BR stage lines read "quando vocês forem Amizade próxima" (and EN "once you are Close
+  friend"); now "chegarem no nível …" and "once you reach …". The topics pill that leads to
+  the keepsake talk answers to 38×30 px instead of its drawn 30×20, with nothing moved.
+
+Player gate (pt-BR, built game, Chromium 1228; seeded companies, real clicks and keys):
+
+- Otto's Part 3 at 320×420 and 380×460 (from his Team card) and at 800×600, 1280×720,
+  1440×900 and 1920×1080 (poked twice in the office):
+  - "Aqui também é sua casa, sabia?" brought the reveal "Livro-caixa impecável · Agora fica na
+    mesa dele" and both notes, with Confiança +5 and Castanhas Douradas +2.
+  - "Ver no álbum" opened the Album with focus on the card. After a reload the ledger is by
+    him, and the card says since when and "Foi pra mesa no fim de “A Pedra do Rio”".
+- Beta's plank at all six sizes: "180" on "Fazer um degrau para os menores." only. Taking it
+  measured Castanhas −180, Confiança +6 and Ânimo +4, and the reveal said "na mesa dela". In
+  the office, the plank stood by her desk; pointed at, its tooltip showed inside the window;
+  clicked, the Album opened on it.
+- Otto at Part 1, his line due: with his floor in view he said "A pedrinha está na caixa. A
+  etiqueta diz 'Casa, portátil'." once. Six pokes over 30 s did not repeat it, and the queue
+  emptied. Nino's Album named no story and no cushion.
+- All six sizes: no sideways scroll, no text under 11 px, and the reveal's button and the way
+  out on screen once scrolled to. In the visit the new targets are ≥ 30 px (the keepsake by
+  them 40×34). The office keepsake is 26×23 px up to 460 px wide and 36×32 above: scene scale,
+  larger than the waving balloons (20×20). The visit tabs stay 27–29 px.
+- Keyboard at 380×460:
+  - Enter on his Team card focused the first answer; Tab and Enter took Part 3, and focus went
+    to the way out.
+  - Tab reached "Ver no álbum" (3 px ring); Enter focused the card. Back on Conversar (arrow
+    keys), Tab and Enter on the keepsake by him focused the card too.
+  - Escape returned focus to his card. High contrast with reduced motion: black on white, no
+    animation.
+- Six checks — see, understand, interact, feedback, why it matters, feel: PASS (audio not
+  heard).
+
+Checks: `npm run validate` exit 0 (990 unit tests, 81 files). Full web E2E 362/362 (two runs
+of half the specs each, exit 0). `npm run build:desktop` exit 0; no desktop code changed. New
+coverage: `tests/personalHistory.test.ts` (26), `tests/visitScrapbook.test.tsx` (3) and
+`tests/e2e/stories.spec.ts` (7).
+
 ## Blockers
 
 - Kiro Web listed no skills this session; `zooworkers-playtest/SKILL.md` was followed by hand.
@@ -548,10 +624,13 @@ tests.
   stage starts, the reward cue for a served order, celebrate (record or mastery) versus reward
   on the result, and how they sit over a 30–45 s round and repeated rounds. Chapter 6: the
   paper cue on taking an answer right after the card's event cue, and the error cue on a
-  locked answer.
+  locked answer. Chapter 7: the paper cue on picking up a keepsake in the office, and the
+  answer's paper cue as the only sound when a keepsake goes on the desk.
 - Touch was driven through Chromium's touch emulation, not a physical touchscreen. Chapter 6:
   a tap takes an answer at once, so on touch the effect line is the explanation (the scene's
-  preview needs a pointer or keys); check that it reads well on a physical screen.
+  preview needs a pointer or keys); check that it reads well on a physical screen. Chapter 7:
+  on touch the office keepsake has no tooltip and a tap opens the Album; check that a tap on it
+  (26×23 px in the smallest windows) lands on it and not on its owner.
 - LOCAL WINDOWS VERIFICATION REQUIRED: the last recorded native run is `a4e03ad`. This sandbox
   has no Electron binary or display, so no smoke ran. On Windows: `npm run build:windows:folder`,
   `npm run verify:windows:packaged`, then `smoke:window`, `smoke:focus` and `smoke:mute`.
@@ -588,7 +667,13 @@ tests.
   10. Right after launch, press Page Down or Tab into the office. Expect the view to stay where
       you moved it. In the lab's bug bounty pick "Vira aposta", minimize for 10 min, restore
       and go to the lab: the bet plays out then, once.
+      Chapter 7 (no desktop code changed):
+  11. At 320×420 and 125/150/200% DPI, answer a story part in a visit. Expect the notes under
+      the reply and Voltar à equipe on screen. At Part 3, expect the keepsake reveal, with
+      "Ver no álbum" opening the Album on its card.
+  12. In the office, point at a keepsake by its owner's desk. Expect its tooltip inside the
+      window; a click opens their Album on it, and clicking the owner still pokes them.
 
 ## Next prompt
 
-Chapter 7. Start its session on this branch; `main` has none of this configuration.
+Chapter 8. Start its session on this branch; `main` has none of this configuration.

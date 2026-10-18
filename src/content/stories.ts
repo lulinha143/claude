@@ -8,7 +8,8 @@ import type { EventEffect } from './types';
 // shared so the whole cast scales cleanly:
 //
 //   Part 1 — once you are FAMILIAR. They bring something up; how you answer is
-//            remembered (`<id>.arc.1.a|b`) and they bring it back up in the office.
+//            remembered (`<id>.arc.1.a|b`) and they bring it back up in the office:
+//            once on their own a few minutes later, then now and then when poked.
 //   Part 2 — once you are TRUSTED, and a while later. One answer pays off later:
 //            they turn up in the office with something for you. The other pulls
 //            in a teammate from their story.
@@ -26,6 +27,13 @@ export const STORY_GAP_SECONDS = 8 * 60;
 
 /** How long after Part 2's kind answer they come back with something. */
 export const STORY_FIND_DELAY_SECONDS = 6 * 60;
+
+/**
+ * How long after Part 1 they bring your answer up in the office, unprompted, the
+ * first time (`arc.<id>.callback.a|b`; then now and then when poked). Said when
+ * their floor is in view, so it waits for the player like any other remark.
+ */
+export const STORY_CALLBACK_DELAY_SECONDS = 5 * 60;
 
 export function storyTopicId(employeeId: string, part: 1 | 2 | 3): string {
   return `story-${employeeId}-${part}`;
@@ -71,6 +79,12 @@ function storyFor(employeeId: string): TalkTopic[] {
     emotion: moods[index],
     durationSeconds: seconds,
   });
+  // What you said in Part 1 comes back: a few minutes later, in the office.
+  const callback = (choice: 'a' | 'b'): EventEffect => ({
+    type: 'remark',
+    lineKey: key(`callback.${choice}`),
+    delaySeconds: STORY_CALLBACK_DELAY_SECONDS,
+  });
   const base = {
     employeeId,
     titleKey: key('title'),
@@ -103,6 +117,7 @@ function storyFor(employeeId: string): TalkTopic[] {
               mood(0, 600),
               { type: 'setFlag', flagId: storyFlag(employeeId, 1) },
               { type: 'setFlag', flagId: storyFlag(employeeId, 1, 'a') },
+              callback('a'),
             ],
           },
           {
@@ -116,6 +131,7 @@ function storyFor(employeeId: string): TalkTopic[] {
               mood(1, 600),
               { type: 'setFlag', flagId: storyFlag(employeeId, 1) },
               { type: 'setFlag', flagId: storyFlag(employeeId, 1, 'b') },
+              callback('b'),
             ],
           },
         ],

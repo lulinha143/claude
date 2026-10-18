@@ -45,7 +45,13 @@ after you build it yourself with Option B.
   a sparkle: a hint), click it — or use **Visit** on their Team card. A visit has
   three tabs: **Talk** (their story, in three parts that open as you become
   familiar, trusted and close), **Gifts** (try presents to find their favourite)
-  and **Scrapbook** (everything you have shared).
+  and **Scrapbook** (everything you have shared). An answer that costs nuts shows
+  its price before you pick it, and when a conversation ends the notepad says
+  where their story stands and whether something was set in motion.
+- **Keepsakes:** every teammate has a personal object (in a visit, ask about it
+  from **Other things on your mind**, the dots beside the topic). Once it is on
+  their desk, click it, in the office or in the visit, to read its card in their
+  Scrapbook.
 - **Play the rooms:** every room's machine has something of its own to do, shown
   as a small tag on it: brew a pot in the Break Room and pour it, tap a jammed
   chute three times to clear it, catch what moves on the security cameras, hand

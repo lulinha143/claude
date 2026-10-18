@@ -128,7 +128,8 @@
     "roomFull": "{{room}} is full.",
     "roomFullSuggest": "{{room}} is full — try {{other}} instead.",
     "roomFullShort": "full",
-    "arrangeTip": "Move, stow and tidy the decorations on every floor. Drag a teammate onto another floor to move them."
+    "arrangeTip": "Move, stow and tidy the decorations on every floor. Drag a teammate onto another floor to move them.",
+    "keepsakeTip": "{{name}}'s keepsake. Click to see it in the scrapbook."
   },
   "decorate": {
     "searchPlaceholder": "Search decorations…",
@@ -3601,7 +3602,11 @@
       "label": "Leave this decision for another time.",
       "reply": "That is all right. We do not have to decide now."
     },
-    "otherTopics": "Other things on your mind"
+    "otherTopics": "Other things on your mind",
+    "cost": {
+      "nuts": "Costs {{value}} nuts",
+      "goldenNuts": "Costs {{value}} golden nuts"
+    }
   },
   "keepsake": {
     "pip": {
@@ -5496,19 +5501,33 @@
     "part": "Part {{n}} of 3",
     "storyTold": "{{n}} of 3 parts told",
     "storyWaiting": {
-      "friendship": "The next part, once you are {{tier}}.",
+      "friendship": "The next part, once you reach {{tier}}.",
       "time": "The next part, a little later. Give it time.",
       "ready": "They are ready to tell you the next part.",
-      "done": "You know their whole story."
+      "done": "You know their whole story.",
+      "first": "There's a story to tell you, once you reach {{tier}}."
     },
     "breakNote": "{{name}} is taking a breather. Back in {{time}}.",
     "finishFirst": "Finish the conversation first.",
-    "close": "Back to the office"
+    "close": "Back to the office",
+    "storyUnnamed": "{{name}}'s story",
+    "keepsake": {
+      "kind": "Keepsake",
+      "onDesk": "On {{name}}'s desk since {{date}}.",
+      "kept": "In the drawer for now: it goes on the desk once {{name}} has told you the whole story.",
+      "sinceTalk": "It went on the desk when you chose: {{choice}}",
+      "sinceStory": "It went on the desk at the end of “{{story}}”.",
+      "chosen": "You chose: {{choice}}",
+      "revealed": "Now on {{name}}'s desk.",
+      "see": "See it in the scrapbook",
+      "seeItem": "{{item}}: see it in the scrapbook"
+    },
+    "momentFiled": "It became a Moment Card, filed in Collections."
   },
   "scrapbook": {
     "empty": "Nothing here yet. Spend some time together.",
     "tier": "Became {{tier}}",
-    "story": "{{title}} · Part {{n}}",
+    "story": "{{title}} · Part\u00a0{{n}}",
     "gift": "Gave {{gift}}",
     "find": "They brought you something",
     "moment": "A moment together",
@@ -5518,7 +5537,9 @@
       "awkward": "A bit awkward around {{name}}",
       "mentor": "Looks out for {{name}}",
       "mentee": "Looks up to {{name}}"
-    }
+    },
+    "keepsake": "About: {{item}}",
+    "youSaid": "You: {{line}}"
   },
   "pair": {
     "night-shift": {

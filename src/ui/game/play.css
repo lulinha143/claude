@@ -376,18 +376,32 @@
     animation: none;
   }
 
-  /* Their keepsake, out on display beside where they stand. */
+  /* Their keepsake, out on display beside where they stand. It can be picked up:
+     pointed at, it names itself; clicked, their scrapbook opens on it. */
   .office-keepsake {
     position: absolute;
     width: clamp(26px, calc(36px * var(--asset-scale)), 40px);
     margin-left: clamp(14px, calc(24px * var(--asset-scale)), 30px);
-    pointer-events: none;
+    padding: 0;
+    color: inherit;
+    background: none;
+    border: 0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: translate var(--dur-fast) var(--ease);
+  }
+  .office-keepsake:hover {
+    translate: 0 -2px;
   }
   .office-keepsake > .keepsake-art {
     display: block;
     width: 100%;
     height: auto;
     filter: drop-shadow(0 2px 1px rgb(40 26 12 / 0.25));
+  }
+  /* Arranging the room: the keepsake is scenery, never in the way of a drag. */
+  .office--decorating .office-keepsake {
+    pointer-events: none;
   }
 
   /* ---- the office's notes: the suggestion and the goal ---------------------- */

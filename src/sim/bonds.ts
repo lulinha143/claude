@@ -9,7 +9,15 @@ import {
   type GiftReaction,
 } from '../content/employeeGifts';
 import { BOND_THRESHOLDS, storyDoneFlag, storyFlag, storyTopicId } from '../content/stories';
-import { TALKS_BY_ID } from '../content/employeeTalks';
+import { TALKS_BY_ID, topicsForEmployee, type TalkChoice } from '../content/employeeTalks';
+import {
+  KEEPSAKE_ANSWER,
+  keepsakeFlag,
+  keepsakeTopicId,
+  type KeepsakeDecision,
+} from '../content/employeeKeepsakes';
+import { EVENT_MEMORIES } from '../content/happenings';
+import { GAME_EVENTS } from '../content/events';
 import { PAIRS, partnerIn, type PairDef, type PairKind } from '../content/pairs';
 import { checkTalkRequirement, talkCooldownRemaining, topicSpent } from './talks';
 import { resolveEmployeeRoom } from './rooms';
@@ -126,6 +134,16 @@ export interface StoryState {
   readyIn: number;
 }
 
+/**
+ * Whether their story may be named yet: once it has begun, or its first part is
+ * ready to be told. Before that its title stays theirs (the scrapbook says only
+ * that there is a story, and when it starts).
+ */
+export function storyNamed(state: GameState, employeeId: string, now: number): boolean {
+  const story = storyState(state, employeeId, now);
+  return story.told > 0 || story.readyTopicId !== null;
+}
+
 export function storyState(state: GameState, employeeId: string, now: number): StoryState {
   const told =
     storyDoneFlag(employeeId) in state.flags
@@ -234,6 +252,18 @@ export type JournalEntry =
       part: 1 | 2 | 3;
       choice: 'a' | 'b';
       titleKey: string;
+      /** what the player said. */
+      saidKey: string;
+      /** what they said back. */
+      quoteKey: string;
+    }
+  | {
+      kind: 'keepsake';
+      at: number;
+      decision: KeepsakeDecision;
+      /** the object's name. */
+      titleKey: string;
+      saidKey: string;
       quoteKey: string;
     }
   | { kind: 'talk'; at: number; titleKey: string }
@@ -255,16 +285,19 @@ export function journalFor(state: GameState, employeeId: string): JournalEntry[]
     if (at !== undefined) out.push({ kind: 'tier', at, tier: tier as BondTier });
   }
   for (const part of [1, 2, 3] as const) {
+    const answers = TALKS_BY_ID[storyTopicId(employeeId, part)]?.nodes.open?.choices ?? [];
     for (const choice of ['a', 'b'] as const) {
       const at = flags[storyFlag(employeeId, part, choice)];
       if (at === undefined) continue;
+      const answer = answers.find((candidate) => candidate.id === choice);
       out.push({
         kind: 'story',
         at,
         part,
         choice,
         titleKey: `arc.${employeeId}.title`,
-        quoteKey: `arc.${employeeId}.${part}.${choice}.reply`,
+        saidKey: answer?.labelKey ?? `arc.${employeeId}.${part}.${choice}.label`,
+        quoteKey: answer?.replyKey ?? `arc.${employeeId}.${part}.${choice}.reply`,
       });
     }
   }
@@ -278,10 +311,23 @@ export function journalFor(state: GameState, employeeId: string): JournalEntry[]
       out.push({ kind: 'gift', at, gift: gift.id, reaction: giftReaction(employeeId, gift.id) });
     }
   }
-  // Their other personal conversations (the keepsake, their own topics).
+  // The conversation about their keepsake, with what was decided.
+  const keepsake = keepsakeFor(state, employeeId)?.talk ?? null;
+  if (keepsake) {
+    out.push({
+      kind: 'keepsake',
+      at: keepsake.at,
+      decision: keepsake.decision,
+      titleKey: EMPLOYEES_BY_ID[employeeId]?.favoriteItemKey ?? keepsakeTopicId(employeeId),
+      saidKey: keepsake.choiceLabelKey,
+      quoteKey: keepsake.replyKey,
+    });
+  }
+  // Their other personal conversations (their own topics).
   for (const [topicId, at] of Object.entries(state.employees[employeeId]?.talks?.seen ?? {})) {
     const topic = TALKS_BY_ID[topicId];
     if (!topic || topic.employeeId !== employeeId || topic.story) continue;
+    if (keepsake && topicId === keepsakeTopicId(employeeId)) continue;
     out.push({ kind: 'talk', at, titleKey: topic.titleKey });
   }
   // Moments from events they were part of (talk moments are already above).
@@ -306,7 +352,158 @@ export function journalFor(state: GameState, employeeId: string): JournalEntry[]
 
 /** Whether their keepsake has earned a place by their desk. */
 export function keepsakeOnDisplay(state: GameState, employeeId: string): boolean {
-  return `favorite.${employeeId}.cared` in state.flags || storyDoneFlag(employeeId) in state.flags;
+  return (
+    keepsakeFlag(employeeId, 'cared') in state.flags || storyDoneFlag(employeeId) in state.flags
+  );
+}
+
+// ---- their keepsake --------------------------------------------------------------
+
+/** A teammate's keepsake, as far as the player knows it. */
+export interface KeepsakeView {
+  employeeId: string;
+  /** the object's name. */
+  itemKey: string;
+  /** a line about it (the scene its conversation opens on). */
+  sceneKey: string;
+  /** out on their desk. */
+  onDisplay: boolean;
+  /** what put it there first: looking after it, or hearing their whole story. */
+  reason: 'cared' | 'story' | null;
+  /** since when it has been on their desk. */
+  since: number | null;
+  /** the conversation about it, if the two of you have had it. */
+  talk: {
+    decision: KeepsakeDecision;
+    at: number;
+    choiceLabelKey: string;
+    replyKey: string;
+  } | null;
+}
+
+/**
+ * Their keepsake once the player knows it: they have talked about it, or it went
+ * on their desk at the end of their story. Null before that, so nothing about it
+ * (not even its name) is shown early. Read from durable marks only, so it never
+ * drifts from what happened and an old save shows exactly what it earned.
+ */
+export function keepsakeFor(state: GameState, employeeId: string): KeepsakeView | null {
+  const def = EMPLOYEES_BY_ID[employeeId];
+  if (!def) return null;
+  const caredAt = state.flags[keepsakeFlag(employeeId, 'cared')];
+  const discussedAt = state.flags[keepsakeFlag(employeeId, 'discussed')];
+  const storyAt = state.flags[storyDoneFlag(employeeId)];
+  const decision: KeepsakeDecision | null =
+    caredAt !== undefined ? 'cared' : discussedAt !== undefined ? 'discussed' : null;
+  if (!decision && storyAt === undefined) return null;
+  const answer = decision
+    ? TALKS_BY_ID[keepsakeTopicId(employeeId)]?.nodes.open?.choices.find(
+        (choice) => choice.id === KEEPSAKE_ANSWER[decision],
+      )
+    : undefined;
+  const placed = [
+    caredAt !== undefined ? { reason: 'cared' as const, at: caredAt } : null,
+    storyAt !== undefined ? { reason: 'story' as const, at: storyAt } : null,
+  ]
+    .filter((entry): entry is { reason: 'cared' | 'story'; at: number } => entry !== null)
+    .sort((a, b) => a.at - b.at)[0];
+  return {
+    employeeId,
+    itemKey: def.favoriteItemKey,
+    sceneKey: `keepsake.${employeeId}.scene`,
+    onDisplay: Boolean(placed),
+    reason: placed?.reason ?? null,
+    since: placed?.at ?? null,
+    talk:
+      decision && answer
+        ? {
+            decision,
+            at: (decision === 'cared' ? caredAt : discussedAt)!,
+            choiceLabelKey: answer.labelKey,
+            replyKey: answer.replyKey,
+          }
+        : null,
+  };
+}
+
+// ---- what an answer leaves behind ------------------------------------------------
+
+/** What taking a conversation answer costs: what will be taken (it says so first). */
+export function talkChoiceCost(choice: TalkChoice): { nuts: number; goldenNuts: number } {
+  let nuts = 0;
+  let goldenNuts = 0;
+  for (const effect of choice.effects) {
+    const value = effect.value ?? 0;
+    if (effect.type === 'nuts' && value < 0) nuts -= value;
+    if (effect.type === 'goldenNuts' && value < 0) goldenNuts -= value;
+  }
+  return { nuts, goldenNuts };
+}
+
+/** What an answer sets going besides what it changes now. */
+export interface TalkAftermath {
+  /** something will come of it later: a delayed effect, a find, a follow-up. */
+  later: boolean;
+  /** this teammate will bring it up: a remark, or a mark their own words read. */
+  remembered: boolean;
+}
+
+/** A mark something of theirs reads back: their lines, a memory, an incident about them. */
+function teammateReads(employeeId: string, flag: string): boolean {
+  const variants = topicsForEmployee(employeeId).some((topic) =>
+    Object.values(topic.nodes).some((node) =>
+      (node.variants ?? []).some((variant) => variant.flag === flag || variant.since === flag),
+    ),
+  );
+  if (variants) return true;
+  if (EVENT_MEMORIES.some((memory) => memory.employeeId === employeeId && memory.flag === flag)) {
+    return true;
+  }
+  // An incident about them that offers a different answer because of it.
+  return GAME_EVENTS.some(
+    (event) =>
+      event.employeeId === employeeId &&
+      [...event.choices, ...Object.values(event.steps ?? {}).flatMap((step) => step.choices)].some(
+        (choice) => choice.requires?.flag === flag,
+      ),
+  );
+}
+
+/** A mark that opens something later: a conversation of theirs, or an incident. */
+function opensLater(employeeId: string, flag: string): boolean {
+  const topic = topicsForEmployee(employeeId).some(
+    (candidate) =>
+      !candidate.story &&
+      (candidate.requires?.flag === flag || candidate.requires?.after?.flag === flag),
+  );
+  if (topic) return true;
+  return GAME_EVENTS.some(
+    (event) => event.requires?.flag === flag || event.requires?.flags?.includes(flag),
+  );
+}
+
+/**
+ * What an answer leaves behind, read from the content itself (the same marks the
+ * rest of the game reads), so a visit says THAT something will come of a choice,
+ * or that they will bring it up, without ever saying what. Story parts opening
+ * the next part are not counted here: the visit says where the story stands.
+ */
+export function talkAftermath(employeeId: string, choice: TalkChoice): TalkAftermath {
+  const marks = choice.effects
+    .filter((effect) => effect.type === 'setFlag' && effect.flagId)
+    .map((effect) => effect.flagId as string);
+  const later =
+    choice.effects.some(
+      (effect) =>
+        (effect.type === 'schedule' && (effect.scheduled?.length ?? 0) > 0) ||
+        effect.type === 'find' ||
+        effect.type === 'incident' ||
+        effect.type === 'oddity',
+    ) || marks.some((flag) => opensLater(employeeId, flag));
+  const remembered =
+    choice.effects.some((effect) => effect.type === 'remark') ||
+    marks.some((flag) => teammateReads(employeeId, flag));
+  return { later, remembered };
 }
 
 /** The line they say in the office about what you told them in Part 1, if any. */

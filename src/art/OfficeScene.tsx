@@ -452,6 +452,9 @@ function ghostAnchorClass(drag: DragState): string {
 /** Small moments that may wait for the player to look at their floor. */
 const HELD_MOMENTS = 3;
 
+/** How long a remembered line (a story callback, a memory) rests once said. */
+const LINE_REST_MS = 10 * 60_000;
+
 /** Keys that scroll the tower (a trip under way lets go when one is pressed). */
 const SCROLL_KEYS = new Set(['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' ']);
 
@@ -1114,6 +1117,24 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
     setSlip(heard.length ? { ...slipData, notes: heard } : slipData);
   }
 
+  // A line brought back from the past (what you told them in their story, a choice
+  // they remember) rests a while once it has been said, so poking someone twice
+  // does not get the same words twice. Per session only: nothing to save.
+  const restingLinesRef = useRef(new Map<string, number>());
+  const lineRested = (key: string) => (restingLinesRef.current.get(key) ?? 0) <= Date.now();
+  const restLine = (key: string) => {
+    restingLinesRef.current.set(key, Date.now() + LINE_REST_MS);
+  };
+
+  /** Their keepsake, picked up from beside their desk: their scrapbook opens on it. */
+  function openKeepsake(employeeId: string) {
+    if (draggedRef.current || decorMode) return;
+    if (engine.openTalk(employeeId, undefined, true, { tab: 'scrapbook' })) {
+      setBubble(null);
+      audio.play('paper');
+    }
+  }
+
   /** Open a visit on whatever a teammate was waving you over for. */
   function openMoment(employeeId: string, moment: PendingMoment) {
     const opened =
@@ -1170,6 +1191,7 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
     // Something they have been waiting to tell you comes first.
     const remark = engine.takeRemark(employeeId);
     if (remark) {
+      restLine(remark);
       say(employeeId, t(remark), true, 5200);
       return;
     }
@@ -1180,16 +1202,21 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
         return;
       }
     }
-    // Someone in the middle of their story brings up what you told them about it.
+    // Someone in the middle of their story brings up what you told them about it
+    // (not again straight after saying it).
     const callback = storyCallbackKey(state, employeeId);
-    if (callback && Math.random() < 0.5) {
+    if (callback && lineRested(callback) && Math.random() < 0.5) {
+      restLine(callback);
       say(employeeId, t(callback), true, 4600);
       return;
     }
     // Now and then, a choice of yours they remember.
-    const memories = memoriesFor(state, employeeId);
+    const memories = memoriesFor(state, employeeId).filter((memory) =>
+      lineRested(`memory.${memory.key}`),
+    );
     if (memories.length > 0 && Math.random() < 0.3) {
       const memory = memories[Math.floor(Math.random() * memories.length)];
+      restLine(`memory.${memory.key}`);
       say(employeeId, t(`memory.${memory.key}`), true, 5200);
       return;
     }
@@ -1414,6 +1441,7 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
       const key = engine.takeRemark(remark.employeeId);
       if (!key) continue;
       lastRemarkRef.current = nowMs;
+      restLine(key);
       say(remark.employeeId, t(key), false, 5200);
       break;
     }
@@ -2656,20 +2684,39 @@ export const OfficeScene = memo(function OfficeScene({ covered = false }: { cove
                                 onOpen={() => openIncident(incident)}
                               />
                             ) : null}
-                            {keepsakeOnDisplay(state, id) ? (
-                              // Their keepsake, out on display by where they work.
-                              <span
-                                className="office-keepsake"
-                                data-employee={id}
-                                style={{
-                                  left: `${slot.x * 100}%`,
-                                  bottom: `calc(${slot.bottom}px * var(--asset-scale))`,
-                                  zIndex: characterDepth(slot.bottom) - 1,
-                                }}
-                                aria-hidden
+                            {keepsakeOnDisplay(state, id) && def ? (
+                              // Their keepsake, out on display by where they work: propped
+                              // against the front of their desk, one step nearer than its
+                              // owner so the desk does not hide it (anyone standing nearer
+                              // still paints over it). It can be picked up (pointed at,
+                              // clicked): their scrapbook opens on it. Keys reach the same
+                              // card through their visit.
+                              <Tip
+                                content={
+                                  <TipContent
+                                    title={t(def.favoriteItemKey)}
+                                    lines={[t('office.keepsakeTip', { name: label })]}
+                                  />
+                                }
                               >
-                                <KeepsakeArt employeeId={id} />
-                              </span>
+                                <button
+                                  type="button"
+                                  className="office-keepsake"
+                                  data-employee={id}
+                                  tabIndex={-1}
+                                  aria-label={t('visit.keepsake.seeItem', {
+                                    item: t(def.favoriteItemKey),
+                                  })}
+                                  style={{
+                                    left: `${slot.x * 100}%`,
+                                    bottom: `calc(${slot.bottom}px * var(--asset-scale))`,
+                                    zIndex: characterDepth(slot.bottom) + 1,
+                                  }}
+                                  onClick={() => openKeepsake(id)}
+                                >
+                                  <KeepsakeArt employeeId={id} />
+                                </button>
+                              </Tip>
                             ) : null}
                           </Fragment>
                         );

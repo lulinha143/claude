@@ -5,6 +5,29 @@ import type { EventEffect } from './types';
 // These are personal objects, not a second inventory. Spending time on one leaves
 // a remembered choice, a modest consequence and a personnel note in the album.
 // Costs stay within the early office economy; the alternative is always affordable.
+//
+// Each teammate has one (`favoriteItemKey`, drawn by art/KeepsakeArt). Talking
+// about it leaves `favorite.<id>.cared` (you looked after it: it goes on their
+// desk) or `favorite.<id>.discussed` (it stays put away until their story is
+// told in full, which also puts it on the desk). sim/bonds.ts reads the rest.
+
+/** The conversation about a teammate's keepsake. */
+export function keepsakeTopicId(employeeId: string): string {
+  return `keepsake-${employeeId}`;
+}
+
+/** What that conversation decided, as the mark it leaves. */
+export type KeepsakeDecision = 'cared' | 'discussed';
+
+export function keepsakeFlag(employeeId: string, decision: KeepsakeDecision): string {
+  return `favorite.${employeeId}.${decision}`;
+}
+
+/** Which answer in the conversation leaves which mark. */
+export const KEEPSAKE_ANSWER: Record<KeepsakeDecision, 'care' | 'other'> = {
+  cared: 'care',
+  discussed: 'other',
+};
 const outcomes: Record<string, { cost: number; care: EventEffect[]; other: EventEffect[] }> = {
   pip: {
     cost: 60,
@@ -265,7 +288,7 @@ export const KEEPSAKE_TALKS: readonly TalkTopic[] = EMPLOYEES.map((employee) => 
   const outcome = outcomes[employee.id];
   const prefix = `keepsake.${employee.id}`;
   return {
-    id: `keepsake-${employee.id}`,
+    id: keepsakeTopicId(employee.id),
     employeeId: employee.id,
     titleKey: employee.favoriteItemKey,
     blurbKey: `${prefix}.scene`,
@@ -287,7 +310,7 @@ export const KEEPSAKE_TALKS: readonly TalkTopic[] = EMPLOYEES.map((employee) => 
             effects: [
               { type: 'nuts', value: -outcome.cost },
               ...outcome.care,
-              { type: 'setFlag', flagId: `favorite.${employee.id}.cared` },
+              { type: 'setFlag', flagId: keepsakeFlag(employee.id, 'cared') },
               { type: 'momentCard' },
             ],
           },
@@ -298,7 +321,7 @@ export const KEEPSAKE_TALKS: readonly TalkTopic[] = EMPLOYEES.map((employee) => 
             tone: 'curious',
             effects: [
               ...outcome.other,
-              { type: 'setFlag', flagId: `favorite.${employee.id}.discussed` },
+              { type: 'setFlag', flagId: keepsakeFlag(employee.id, 'discussed') },
               { type: 'momentCard' },
             ],
           },

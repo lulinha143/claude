@@ -71,9 +71,17 @@ so they survive saves, old saves and prestige.
   is celebrated once, on the next visit; a close friend works 10% better.
 - **Stories** (`src/content/stories.ts`): three parts per teammate, opening at
   familiar, trusted and close, at least 8 minutes apart. Part 1's answer comes
-  back in office chatter and opens Part 3; Part 2's kind answer returns later as a
-  find with their own note; the other pulls in their story partner. Part 3 ends in
-  a moment card and a keepsake on display by their desk.
+  back once on its own about five minutes later, then in office chatter (a line
+  brought back rests ten minutes), and opens Part 3; Part 2's kind answer returns
+  later as a find with their own note; the other pulls in their story partner.
+  Part 3 ends in a moment card and their keepsake going on their desk. As a part
+  ends, the visit says where the story stands and whether the answer set something
+  in motion or will be remembered, never what.
+- **Keepsakes** (`src/content/employeeKeepsakes.ts`): one personal object each,
+  talked about from the visit's topics menu. Looking after it costs nuts (the
+  answer shows the price first) and puts it on their desk; otherwise it waits in
+  the drawer until their story is told. On display it can be picked up, in the
+  office or in the visit, to read its card in their scrapbook.
 - **Gifts:** six presents; each teammate loves one, likes one, is baffled by one
   and politely thanks the rest. Only what was actually given is learned; once
   trusted and two misses in, they drop a hint.
@@ -82,6 +90,8 @@ so they survive saves, old saves and prestige.
 - **Moments they start:** at most three teammates at a time wave the player over
   (a balloon on their sticker), never a popup.
 - **Scrapbook:** derived entirely from what happened; nothing extra is stored.
+  Each entry keeps what you said beside what they said back. A story is not named
+  before it begins, and a keepsake not before you know it.
 
 ## The office is the playground
 

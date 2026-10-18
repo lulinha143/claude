@@ -128,7 +128,8 @@
     "roomFull": "{{room}} está cheia.",
     "roomFullSuggest": "{{room}} está cheia — tente {{other}}.",
     "roomFullShort": "lotada",
-    "arrangeTip": "Mova, guarde e arrume as decorações de cada andar. Arraste um colega até outro andar para mudá-lo de lugar."
+    "arrangeTip": "Mova, guarde e arrume as decorações de cada andar. Arraste um colega até outro andar para mudá-lo de lugar.",
+    "keepsakeTip": "Lembrança de {{name}}. Clique para ver no álbum."
   },
   "decorate": {
     "searchPlaceholder": "Buscar decorações…",
@@ -3615,7 +3616,11 @@
       "label": "Deixar essa decisão para outro momento.",
       "reply": "Tudo bem. Não precisamos decidir agora."
     },
-    "otherTopics": "Outros assuntos"
+    "otherTopics": "Outros assuntos",
+    "cost": {
+      "nuts": "Custa {{value}} castanhas",
+      "goldenNuts": "Custa {{value}} castanhas douradas"
+    }
   },
   "keepsake": {
     "pip": {
@@ -5510,19 +5515,35 @@
     "part": "Parte {{n}} de 3",
     "storyTold": "{{n}} de 3 partes contadas",
     "storyWaiting": {
-      "friendship": "A próxima parte, quando vocês forem {{tier}}.",
+      "friendship": "A próxima parte, quando vocês chegarem no nível {{tier}}.",
       "time": "A próxima parte, um pouco mais tarde. Dá um tempo.",
       "ready": "Já quer te contar a próxima parte.",
-      "done": "Você conhece a história inteira."
+      "done": "Você conhece a história inteira.",
+      "first": "Tem uma história pra te contar quando vocês chegarem no nível {{tier}}."
     },
     "breakNote": "{{name}} está dando uma respirada. Volta em {{time}}.",
     "finishFirst": "Termine a conversa primeiro.",
-    "close": "Voltar ao escritório"
+    "close": "Voltar ao escritório",
+    "storyUnnamed": "A história de {{name}}",
+    "keepsake": {
+      "kind": "Lembrança",
+      "onDesk": "Na mesa dele desde {{date}}.",
+      "onDesk_female": "Na mesa dela desde {{date}}.",
+      "kept": "Na gaveta por enquanto: vai pra mesa quando {{name}} te contar a história inteira.",
+      "sinceTalk": "Foi pra mesa quando você escolheu: {{choice}}",
+      "sinceStory": "Foi pra mesa no fim de “{{story}}”.",
+      "chosen": "Você escolheu: {{choice}}",
+      "revealed": "Agora fica na mesa dele.",
+      "revealed_female": "Agora fica na mesa dela.",
+      "see": "Ver no álbum",
+      "seeItem": "{{item}}: ver no álbum"
+    },
+    "momentFiled": "Virou um Cartão de Momento, guardado nas Coleções."
   },
   "scrapbook": {
     "empty": "Nada aqui ainda. Passem um tempo juntos.",
     "tier": "Virou {{tier}}",
-    "story": "{{title}} · Parte {{n}}",
+    "story": "{{title}} · Parte\u00a0{{n}}",
     "gift": "Deu {{gift}}",
     "find": "Trouxe algo pra você",
     "moment": "Um momento juntos",
@@ -5532,7 +5553,9 @@
       "awkward": "Meio sem jeito perto de {{name}}",
       "mentor": "Cuida de {{name}}",
       "mentee": "Se inspira em {{name}}"
-    }
+    },
+    "keepsake": "Sobre: {{item}}",
+    "youSaid": "Você: {{line}}"
   },
   "pair": {
     "night-shift": {

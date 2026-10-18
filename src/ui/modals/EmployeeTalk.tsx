@@ -15,7 +15,7 @@ import { DEPT } from '../../art/roomStyle';
 import { STICKER_FOR_MOOD, StickerArt } from '../../art/EmotionSticker';
 import { speakAloud } from '../../art/voice';
 import { Icon } from '../../art/UiIcon';
-import { Glyph, type GlyphName } from '../../art/Glyph';
+import { Glyph } from '../../art/Glyph';
 import { EMPLOYEES_BY_ID } from '../../content/employees';
 import { ROOMS_BY_ID } from '../../content/rooms';
 import { GIFTS, type GiftId } from '../../content/employeeGifts';
@@ -25,13 +25,14 @@ import { affinityPercent, roomAffinity } from '../../sim/affinity';
 import {
   BOND_TIERS,
   giftHint,
-  journalFor,
   keepsakeOnDisplay,
   knownFavorite,
   knownReactions,
   storyState,
-  type JournalEntry,
+  talkChoiceCost,
 } from '../../sim/bonds';
+import { CHARACTERS } from '../../content/characters';
+import { REACTION_GLYPH, VisitScrapbook, keepsakeCardId } from './VisitScrapbook';
 import {
   checkTalkRequirement,
   eligibleTopics,
@@ -47,7 +48,6 @@ import { useStore } from '../../state/store';
 import { useFmt } from '../useFmt';
 import { BondMeter } from '../BondMeter';
 import { moodWord } from '../moodWord';
-import type { GiftReaction } from '../../content/employeeGifts';
 
 // A visit: going over to someone's desk to spend a moment with them.
 //
@@ -65,13 +65,6 @@ import type { GiftReaction } from '../../content/employeeGifts';
 //
 // Everything shown is read from real state, and every choice is applied (and
 // saved) the moment it is made: leaving early never undoes anything.
-
-const REACTION_GLYPH: Record<GiftReaction, GlyphName> = {
-  loved: 'heart',
-  liked: 'plus',
-  polite: 'tilde',
-  odd: 'question',
-};
 
 const FOCUSABLE =
   'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), summary, [tabindex]:not([tabindex="-1"])';
@@ -316,6 +309,59 @@ export function EmployeeTalk() {
   const milestone = active.milestone ?? null;
   const tierName = (tier: number) => t(`bond.tier.${BOND_TIERS[tier]}`);
 
+  // ---- what the conversation left behind ---------------------------------------------
+  // Said when it ends, besides what it changed (which is on the stage): where their
+  // story stands now, whether something will come of it later or they will bring it
+  // up (never what), and a Moment Card filed. Read from the engine and the story.
+  const after = finished ? active.aftermath : undefined;
+  const storyAfter = finished && active.topic.story && active.exchanges > 0 ? story : null;
+  const afterNotes: Array<{ key: string; icon: React.ReactNode; text: string }> = [];
+  if (storyAfter) {
+    const line =
+      storyAfter.told === 3
+        ? t('visit.storyWaiting.done')
+        : storyAfter.waitingFor === 'friendship' && storyAfter.next
+          ? t('visit.storyWaiting.friendship', { tier: tierName(storyAfter.next) })
+          : storyAfter.waitingFor === 'time'
+            ? t('visit.storyWaiting.time')
+            : storyAfter.readyTopicId
+              ? t('visit.storyWaiting.ready')
+              : null;
+    if (line) afterNotes.push({ key: 'story', icon: <Glyph name="note" size={12} />, text: line });
+  }
+  if (after?.later) {
+    afterNotes.push({
+      key: 'later',
+      icon: <Icon name="refresh" size={13} />,
+      text: t('incident.inMotion'),
+    });
+  }
+  if (after?.remembered) {
+    afterNotes.push({
+      key: 'remembered',
+      icon: <Icon name="employees" size={13} />,
+      text: t('incident.remembered', { name }),
+    });
+  }
+  // A gift's own souvenir is said by the notebook line below it.
+  if (after?.moment && active.topic.id !== 'gift') {
+    afterNotes.push({
+      key: 'moment',
+      icon: <Icon name="moment" size={13} />,
+      text: t('visit.momentFiled'),
+    });
+  }
+
+  /** Open their keepsake in the scrapbook (from the reveal, or the object by them). */
+  function showKeepsake() {
+    pickTab('scrapbook');
+    window.requestAnimationFrame(() => {
+      const card = document.getElementById(keepsakeCardId(def.id));
+      card?.scrollIntoView({ block: 'nearest' });
+      card?.focus({ preventScroll: true });
+    });
+  }
+
   function give(gift: GiftId) {
     if (!engine.openTalk(def.id, 'gift', true)) return;
     const instance = engine.activeTalk?.instanceId;
@@ -456,9 +502,17 @@ export function EmployeeTalk() {
           <span className="visit__mood-word">{moodLabel}</span>
         </span>
         {keepsake ? (
-          <span className="visit__keepsake" title={t(def.favoriteItemKey)} aria-hidden>
+          // Their keepsake, beside them: pick it up to read about it in the scrapbook.
+          <button
+            type="button"
+            className="visit__keepsake"
+            data-employee={def.id}
+            title={t('visit.keepsake.seeItem', { item: t(def.favoriteItemKey) })}
+            aria-label={t('visit.keepsake.seeItem', { item: t(def.favoriteItemKey) })}
+            onClick={showKeepsake}
+          >
             <KeepsakeArt employeeId={def.id} />
-          </span>
+          </button>
         ) : null}
       </div>
       <header className="visit__plate">
@@ -570,37 +624,89 @@ export function EmployeeTalk() {
                     {t('visit.youSay')}
                   </span>
                 ) : null}
-                {evaluated.map(({ choice, enabled, failures }) => (
-                  <button
-                    key={choice.id}
-                    className={`talk-choice talk-choice--${choice.tone ?? 'warm'}`}
-                    data-option-id={choice.id}
-                    data-eligible={enabled}
-                    aria-disabled={!enabled}
-                    onClick={() => {
-                      if (!enabled) {
-                        audio.play('error');
-                        return;
-                      }
-                      if (engine.chooseTalkOption(choice.id, active.instanceId))
-                        audio.play('paper');
-                    }}
-                  >
-                    <span className="talk-choice__label">{t(choice.labelKey)}</span>
-                    {failures.length > 0 ? (
-                      <span className="talk-choice__req">
-                        {failures.map(requirementText).join(' · ')}
-                      </span>
-                    ) : null}
-                  </button>
-                ))}
+                {evaluated.map(({ choice, enabled, failures }) => {
+                  // What it costs, said before it is taken (a locked one says what it needs).
+                  const cost = talkChoiceCost(choice);
+                  const golden = cost.goldenNuts > 0;
+                  const price = golden ? cost.goldenNuts : cost.nuts;
+                  const costText =
+                    price > 0
+                      ? t(golden ? 'talk.cost.goldenNuts' : 'talk.cost.nuts', {
+                          value: fmt.int(price),
+                        })
+                      : null;
+                  return (
+                    <button
+                      key={choice.id}
+                      className={`talk-choice talk-choice--${choice.tone ?? 'warm'}`}
+                      data-option-id={choice.id}
+                      data-eligible={enabled}
+                      aria-disabled={!enabled}
+                      onClick={() => {
+                        if (!enabled) {
+                          audio.play('error');
+                          return;
+                        }
+                        if (engine.chooseTalkOption(choice.id, active.instanceId))
+                          audio.play('paper');
+                      }}
+                    >
+                      <span className="talk-choice__label">{t(choice.labelKey)}</span>
+                      {costText && enabled ? (
+                        <span className="talk-choice__cost" title={costText}>
+                          <Icon name={golden ? 'golden' : 'nut'} size={12} />
+                          <span aria-hidden>{fmt.int(price)}</span>
+                          <span className="sr-only">{costText}</span>
+                        </span>
+                      ) : null}
+                      {failures.length > 0 ? (
+                        <span className="talk-choice__req">
+                          {failures.map(requirementText).join(' · ')}
+                        </span>
+                      ) : null}
+                    </button>
+                  );
+                })}
               </div>
             ) : (
               <div className="talk__end">
+                {/* The end of a story: their keepsake goes on their desk. */}
+                {after?.keepsake ? (
+                  <div className="visit__reveal" role="status">
+                    <span className="visit__reveal-art" aria-hidden>
+                      <KeepsakeArt employeeId={def.id} />
+                    </span>
+                    <span className="visit__reveal-text">
+                      <strong>{t(def.favoriteItemKey)}</strong>
+                      <span>
+                        {t('visit.keepsake.revealed', {
+                          name,
+                          context: CHARACTERS[def.id]?.gender,
+                        })}
+                      </span>
+                    </span>
+                    <button type="button" className="visit__reveal-see" onClick={showKeepsake}>
+                      {t('visit.keepsake.see')}
+                    </button>
+                  </div>
+                ) : null}
                 {active.topic.id === 'gift' &&
                 state.flags[`favorite.${def.id}.giftMemory`] !== undefined &&
                 knownFavorite(state, def.id) ? (
                   <p className="talk__gift-filed">{t('gifts.memoryFiled')}</p>
+                ) : null}
+                {afterNotes.length > 0 ? (
+                  <ul className="visit__after">
+                    {afterNotes.map((note) => (
+                      <li
+                        key={note.key}
+                        className={`visit__after-note visit__after-note--${note.key}`}
+                      >
+                        {note.icon}
+                        <span>{note.text}</span>
+                      </li>
+                    ))}
+                  </ul>
                 ) : null}
                 <p className="talk__end-note">{t('talk.ended')}</p>
                 <div className="visit__end-row">
@@ -689,93 +795,7 @@ export function EmployeeTalk() {
   );
 
   // ---- scrapbook ------------------------------------------------------------------
-  const entries = journalFor(state, def.id);
-  const entryText = (entry: JournalEntry): { title: string; quote?: string; icon: GlyphName } => {
-    switch (entry.kind) {
-      case 'tier':
-        return {
-          title: t('scrapbook.tier', { tier: tierName(entry.tier) }),
-          // What that stage meant, kept here for good (the visit says it only once).
-          quote: [
-            t(`bond.milestone.${BOND_TIERS[entry.tier]}`, { name }),
-            entry.tier === 3 ? t('bond.milestone.unlockClose', { name }) : '',
-          ]
-            .filter(Boolean)
-            .join(' '),
-          icon: 'heart',
-        };
-      case 'story':
-        return {
-          title: t('scrapbook.story', { title: t(entry.titleKey), n: entry.part }),
-          quote: t(entry.quoteKey),
-          icon: entry.part === 3 ? 'star' : 'note',
-        };
-      case 'talk':
-        return { title: t(entry.titleKey), icon: 'note' };
-      case 'gift':
-        return {
-          title: t('scrapbook.gift', { gift: t(`gifts.preferenceNames.${entry.gift}`) }),
-          quote: t(`gifts.reaction.${entry.reaction}`),
-          icon: REACTION_GLYPH[entry.reaction],
-        };
-      case 'find':
-        return { title: t('scrapbook.find'), quote: t(entry.quoteKey), icon: 'sparkle' };
-      case 'moment':
-        return { title: t('scrapbook.moment'), quote: t(entry.caption), icon: 'sparkle' };
-      case 'pair': {
-        const other =
-          state.employees[entry.other]?.nickname ??
-          t(EMPLOYEES_BY_ID[entry.other]?.nameKey ?? entry.other);
-        const kind = entry.pairKind === 'mentor' && !entry.mentor ? 'mentee' : entry.pairKind;
-        return { title: t(`scrapbook.pair.${kind}`, { name: other }), icon: 'smile' };
-      }
-    }
-  };
-  const storyLine =
-    story.told === 3
-      ? t('visit.storyWaiting.done')
-      : story.waitingFor === 'friendship' && story.next
-        ? t('visit.storyWaiting.friendship', {
-            tier: tierName(story.next === 1 ? 1 : story.next === 2 ? 2 : 3),
-          })
-        : story.waitingFor === 'time'
-          ? t('visit.storyWaiting.time')
-          : story.readyTopicId
-            ? t('visit.storyWaiting.ready')
-            : null;
-  const scrapbookPage = (
-    <div className="visit__scrapbook">
-      <p className="visit__story-line">
-        <strong>{t(`arc.${def.id}.title`)}</strong>
-        <span>{t('visit.storyTold', { n: story.told })}</span>
-        {storyLine ? <em>{storyLine}</em> : null}
-      </p>
-      {entries.length ? (
-        <ol className="talk__memories">
-          {entries.map((entry, index) => {
-            const text = entryText(entry);
-            return (
-              <li
-                key={`${entry.kind}-${entry.at}-${index}`}
-                className={`scrap scrap--${entry.kind}`}
-              >
-                <span className="scrap__icon" aria-hidden>
-                  <Glyph name={text.icon} size={12} />
-                </span>
-                <span className="scrap__body">
-                  <span className="scrap__title">{text.title}</span>
-                  {text.quote ? <q className="scrap__quote">{text.quote}</q> : null}
-                </span>
-                <time dateTime={new Date(entry.at).toISOString()}>{fmt.date(entry.at)}</time>
-              </li>
-            );
-          })}
-        </ol>
-      ) : (
-        <p className="visit__note">{t('scrapbook.empty')}</p>
-      )}
-    </div>
-  );
+  const scrapbookPage = <VisitScrapbook state={state} employeeId={def.id} now={now} />;
 
   const tabs: Array<{ id: VisitTab; icon: 'employees' | 'golden' | 'moment' }> = [
     { id: 'talk', icon: 'employees' },

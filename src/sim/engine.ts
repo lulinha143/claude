@@ -51,7 +51,15 @@ import { applyOffline, computeAway, type OfflineResult } from './offline';
 import { holdWaiting, shiftTimeline } from './timeline';
 import { ROOM_PROFILES_BY_ID } from '../content/roomProfiles';
 import { MOOD_POSITIVE } from './mood';
-import { acknowledgedTier, bondTier, pairFlag, tierFlag, type BondTier } from './bonds';
+import {
+  acknowledgedTier,
+  bondTier,
+  keepsakeOnDisplay,
+  pairFlag,
+  talkAftermath,
+  tierFlag,
+  type BondTier,
+} from './bonds';
 import { LEGACY_GIFT_FAVORITES, giftFlag } from '../content/employeeGifts';
 import { employeeMood, moodProductivityMultiplier } from './mood';
 import { repairEmployees } from './state';
@@ -280,6 +288,13 @@ export interface ActiveTalk {
   milestone?: BondTier | null;
   /** Which part of the visit to open on. */
   tab?: VisitTab;
+  /**
+   * What this conversation has set going besides what it changed, gathered over
+   * every answer taken in it and said when it ends: something will come of it
+   * later, they will bring it up, a Moment Card was filed, their keepsake has just
+   * gone on their desk. Never what.
+   */
+  aftermath?: { later: boolean; remembered: boolean; moment: boolean; keepsake: boolean };
 }
 
 /** The three things you can do on a visit. */
@@ -2508,6 +2523,8 @@ export class GameEngine {
     // Snapshot BEFORE, so what the player is shown afterwards is measured rather
     // than a restatement of the authored effect list.
     const before = this.snapshotForReport(now);
+    const keepsakeBefore = keepsakeOnDisplay(this.state, active.employeeId);
+    const momentsBefore = this.state.collections.moments.length;
     for (const effect of choice.effects) {
       // Effects that name no employee are about THIS conversation's employee. That is
       // what lets one topic be written once and reused across the whole cast.
@@ -2535,6 +2552,17 @@ export class GameEngine {
     active.exchanges += 1;
     active.lastReplyKey = choice.replyKey;
     active.report = report;
+    // What it set going, gathered over the conversation (said when it ends).
+    const left = talkAftermath(active.employeeId, choice);
+    const seen = active.aftermath;
+    active.aftermath = {
+      later: Boolean(seen?.later) || left.later,
+      remembered: Boolean(seen?.remembered) || left.remembered,
+      moment: Boolean(seen?.moment) || this.state.collections.moments.length > momentsBefore,
+      keepsake:
+        Boolean(seen?.keepsake) ||
+        (!keepsakeBefore && keepsakeOnDisplay(this.state, active.employeeId)),
+    };
     // A conversation that carries the relationship into a new stage says so then.
     const reached = this.acknowledgeBond(active.employeeId);
     if (reached !== null) active.milestone = reached;
