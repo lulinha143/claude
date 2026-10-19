@@ -6,7 +6,8 @@ import {
   specialOutfits,
   type ShelfEntry,
 } from '../src/sim/collections';
-import { curiosityProgress } from '../src/sim/roomPlay';
+import { curiosityBoardRooms, curiosityProgress } from '../src/sim/roomPlay';
+import { fileOddities } from '../src/content/roomPlay';
 import { isRoomIdUnlocked } from '../src/sim/rooms';
 import { decorationEnsembles } from '../src/sim/decorationEnsembles';
 import { keepsakeFor } from '../src/sim/bonds';
@@ -93,6 +94,36 @@ describe('collection counts come from the records that earn them', () => {
     const shelf = entry(after, 'curiosities');
     expect(shelf.have).toBe(1);
     expect(shelf.total).toBeLessThan(sum);
+  });
+
+  it('keeps what was noticed in a room a restructure closes, and points only at open rooms', () => {
+    const s = createInitialState(NOW);
+    for (const room of ROOMS) if (room.unlock.upgradeId) s.upgrades[room.unlock.upgradeId] = 1;
+    s.resources.reputation = 5_000;
+    const lab = fileOddities('lab');
+    s.flags[`oddity.${lab[0].id}`] = NOW;
+    s.flags[`oddity.${lab[1].id}`] = NOW;
+    expect(entry(s, 'curiosities').have).toBe(2);
+
+    s.stats.totalNutsEarned = 2_000_000;
+    const after = performPrestige(s, 'industrial', NOW);
+    expect(isRoomIdUnlocked(after, 'lab')).toBe(false);
+    // The lab is closed until it reopens, and its two stay on the board and in the count.
+    expect(curiosityBoardRooms(after).find((item) => item.room.id === 'lab')).toMatchObject({
+      open: false,
+    });
+    const shelf = entry(after, 'curiosities');
+    expect(shelf.have).toBe(2);
+    const open = curiosityBoardRooms(after).filter((item) => item.open);
+    const openTotal = open.reduce(
+      (sum, item) => sum + curiosityProgress(after, item.room.id).total,
+      0,
+    );
+    expect(shelf.total).toBe(openTotal + lab.length);
+    // Nothing can be finished in a closed room: the next word is about an open one.
+    if (shelf.next?.roomId) expect(isRoomIdUnlocked(after, shelf.next.roomId)).toBe(true);
+    // Rooms never looked into stay behind their doors.
+    expect(curiosityBoardRooms(after).some((item) => item.room.id === 'archive')).toBe(false);
   });
 
   it('counts a set complete only while its pieces stand in its room, as the bonus does', () => {

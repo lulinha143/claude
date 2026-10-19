@@ -6,6 +6,7 @@ import { ensureDailyForDate } from '../../src/sim/dailyChallenges';
 import { ROOMS } from '../../src/content/rooms';
 import { EMPLOYEES_BY_ID } from '../../src/content/employees';
 import { keepsakeFlag } from '../../src/content/employeeKeepsakes';
+import { fileOddities } from '../../src/content/roomPlay';
 import type { GameState } from '../../src/sim/types';
 
 /**
@@ -323,4 +324,42 @@ test('a curiosity noticed in the office lands in the encyclopedia, and stays aft
   await page.locator('.office').first().waitFor({ timeout: 15_000 });
   await openArchive(page, 'collections');
   await expect(nuts).toContainText(fill(text('collections.countOf'), { have: 1, total: 24 }));
+});
+
+test('what was noticed in a room the restructure closes stays on the board, and its lead still opens', async ({
+  page,
+}) => {
+  await boot(
+    page,
+    company((s) => {
+      s.flags['oddity.item-four'] = Date.now() - 60_000;
+    }),
+    380,
+    460,
+  );
+  await openArchive(page, 'prestige');
+  await page.locator('.restructure-open').click();
+  await page.locator('.restructure-confirm__go').click();
+  await expect(page.locator('.sheet')).toHaveCount(0);
+
+  await openArchive(page, 'collections');
+  // Counted from the board's rooms: the ones open now, and the meeting room, closed
+  // until it reopens, where the curiosity was noticed.
+  const total = fileOddities('founder-desk').length + fileOddities('meeting').length;
+  const drawer = page.locator('.collection-drawer[data-drawer="curiosities"]');
+  await expect(drawer).toContainText(fill(text('collections.countOf'), { have: 1, total }));
+  await drawer.click();
+  const meeting = page.locator('.curiosity-room[data-room="meeting"]');
+  await expect(meeting).toHaveAttribute('data-closed', 'true');
+  await expect(meeting).toContainText(text('collections.curiosityRoomClosed'));
+  await expect(meeting.locator('.curiosity[data-oddity="item-four"]')).toBeVisible();
+  // The clue it holds opens its file, as it did before the restructure.
+  await page.locator('.curiosity-lead[data-oddity="item-four"]').click();
+  await expect(page.locator('.curiosity-file[data-oddity="item-four"]')).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
+  // Kept after a reload.
+  await page.reload();
+  await page.locator('.office').first().waitFor({ timeout: 15_000 });
+  await openArchive(page, 'collections');
+  await expect(drawer).toContainText(fill(text('collections.countOf'), { have: 1, total }));
 });

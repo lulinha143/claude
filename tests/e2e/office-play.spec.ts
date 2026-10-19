@@ -627,8 +627,12 @@ test('the nut counter stays true while the elevator goes round the whole buildin
     shown.filter((sign) => sign < 0),
     'the counter went below zero',
   ).toHaveLength(0);
-  const label = (await page.locator('.hud__nuts').getAttribute('aria-label')) ?? '';
-  const display = (await page.locator('.hud__nuts-value').textContent()) ?? '';
+  // Both read in the same instant: two separate reads let a production step land
+  // between them, which could put a million boundary between the two numbers.
+  const { label, display } = await page.evaluate(() => ({
+    label: document.querySelector('.hud__nuts')?.getAttribute('aria-label') ?? '',
+    display: document.querySelector('.hud__nuts-value')?.textContent ?? '',
+  }));
   // Shown and true values agree to within a moment of production.
   expect(label.replace(/[^\d,M.]/g, '').slice(0, 2)).toBe(
     display.replace(/[^\d,M.]/g, '').slice(0, 2),

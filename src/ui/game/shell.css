@@ -870,7 +870,10 @@
     overflow: hidden;
     min-width: 0;
   }
-  .toast--routine .toast__text {
+  /* Routine office notes keep to one line. A reward (gold) may take two: the
+     restructure's "Ciclo 2 começou: +1 Grão Permanente · Castanhas Industriais."
+     was cut to "…Castanh…" at every window size. */
+  .toast--routine:not(.toast--gold) .toast__text {
     -webkit-line-clamp: 1;
   }
   .toast__count {

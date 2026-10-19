@@ -545,9 +545,16 @@
       0 3px 0 var(--c-walnut-900);
     overflow: hidden;
     /* A leave-open game: floors scrolled out of view skip rendering entirely,
-       so their animated artwork costs nothing while nobody is looking. */
+       so their animated artwork costs nothing while nobody is looking. A skipped
+       floor keeps the size it has when drawn. contain-intrinsic-size is the CONTENT
+       box (padding and borders come on top), and a floor's content is its stage, so
+       it is the stage's own height (.floor__stage), at the current scale: no
+       remembered size, which goes stale when the window is resized. It used to be
+       the whole floor's height, so every floor not yet drawn was 78 px too tall at
+       1280 px (and 72 px at 320 px); the tower shrank under a still pointer as
+       floors were first drawn, and a hovered keepsake slid away. */
     content-visibility: auto;
-    contain-intrinsic-size: auto calc(var(--floor-top) + 142px * var(--asset-scale) + 12px);
+    contain-intrinsic-size: calc(118px * var(--asset-scale) * var(--character-presence));
   }
   .floor__header {
     position: absolute;

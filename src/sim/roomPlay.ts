@@ -11,6 +11,8 @@ import {
   type TuneMode,
 } from '../content/roomPlay';
 import { ROOM_PROFILES_BY_ID } from '../content/roomProfiles';
+import { ROOMS } from '../content/rooms';
+import type { RoomDef } from '../content/types';
 import { BOND_THRESHOLDS } from '../content/stories';
 import { decorationEnsembles } from './decorationEnsembles';
 import { employeesInRoom, isRoomIdUnlocked } from './rooms';
@@ -262,6 +264,31 @@ export function curiosityProgress(
     noticed: all.filter((def) => oddityNoticed(state, def.id)).length,
     total: all.length,
   };
+}
+
+/**
+ * The rooms on the curiosity board: every room open now, and every room where the
+ * player has noticed something, open or not. What was noticed stays the player's
+ * (a restructure keeps it), so a room that closes until it reopens keeps its
+ * curiosities on the board and in the count; only rooms never looked into wait
+ * behind their doors. The Archive's board and the Collections cabinet both read this.
+ */
+export function curiosityBoardRooms(state: GameState): Array<{ room: RoomDef; open: boolean }> {
+  return ROOMS.flatMap((room) => {
+    const oddities = odditiesInRoom(room.id);
+    if (!oddities.length) return [];
+    const open = isRoomIdUnlocked(state, room.id);
+    return open || oddities.some((def) => oddityNoticed(state, def.id)) ? [{ room, open }] : [];
+  });
+}
+
+/** Whether rooms that are closed now hold curiosities nobody has noticed yet. */
+export function curiositiesBehindDoors(state: GameState): boolean {
+  return ROOMS.some(
+    (room) =>
+      !isRoomIdUnlocked(state, room.id) &&
+      fileOddities(room.id).some((def) => !oddityNoticed(state, def.id)),
+  );
 }
 
 /** The same, for the whole building. */

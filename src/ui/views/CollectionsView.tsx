@@ -91,7 +91,16 @@ export function CollectionsView() {
   useEffect(() => {
     if (open) {
       // The drawer opens at its head (the cabinet may have been scrolled to it).
-      backRef.current?.closest('.collection-open')?.scrollIntoView({ block: 'start' });
+      // Only the sheet's own scroller moves: scrollIntoView also scrolled the
+      // stage behind it (overflow hidden, but still scrollable by script), which in
+      // a corner window pushed the Archive's head off the top and left a dark band
+      // above the dock.
+      const drawer = backRef.current?.closest<HTMLElement>('.collection-open');
+      const scroller = drawer?.closest<HTMLElement>('.sheet__body');
+      if (drawer && scroller) {
+        scroller.scrollTop +=
+          drawer.getBoundingClientRect().top - scroller.getBoundingClientRect().top;
+      }
       backRef.current?.focus({ preventScroll: true });
       const onKey = (event: KeyboardEvent) => {
         if (event.key !== 'Escape' || event.defaultPrevented) return;

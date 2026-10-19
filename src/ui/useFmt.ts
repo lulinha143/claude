@@ -19,6 +19,11 @@ export function useFmt() {
     dur: (v: number) => formatDuration(v),
     date: (v: number) => formatDate(v, locale),
     dateTime: (v: number) => formatDateTime(v, locale),
+    /** names in a sentence, the locale's way: "Quincy e Nica", "Quincy and Nixie". */
+    list: (items: readonly string[]) =>
+      typeof Intl.ListFormat === 'function'
+        ? new Intl.ListFormat(locale, { style: 'long', type: 'conjunction' }).format(items)
+        : items.join(', '),
     locale,
   };
 }

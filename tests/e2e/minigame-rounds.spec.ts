@@ -61,6 +61,22 @@ async function start(page: Page, card: string) {
 }
 
 const score = async (page: Page) => Number(await page.locator('.microgame__score b').textContent());
+
+/**
+ * Click the first thing matching `selector` in the same instant it is found, if
+ * anything matches. React commits are not on the fake clock, so the desk can still
+ * change after `clock.runFor` returns: a pest counted by one call could be gone by
+ * the next, and a locator click would then wait for one forever (nothing new turns
+ * up while the clock stands still).
+ */
+const tapFirst = (page: Page, selector: string) =>
+  page.evaluate((target) => {
+    const element = document.querySelector(target);
+    element?.dispatchEvent(
+      new MouseEvent('click', { bubbles: true, cancelable: true, composed: true }),
+    );
+    return element !== null;
+  }, selector);
 const mugLeft = (page: Page) =>
   page.locator('.coffee__mug').evaluate((el) => parseFloat((el as HTMLElement).style.left));
 
@@ -102,8 +118,7 @@ test.describe('Chapter 5 minigame rounds', () => {
     let served = false;
     for (let step = 0; step < 120 && !served; step += 1) {
       await page.clock.runFor(150);
-      const cup = page.locator('.coffee__drop--tap:not(.coffee__drop--decaf)').first();
-      if (await cup.count()) await cup.dispatchEvent('click');
+      await tapFirst(page, '.coffee__drop--tap:not(.coffee__drop--decaf)');
       served = (await page.locator('.coffee__order-stamp').count()) > 0;
     }
     expect(served, 'no order was ever served').toBe(true);
@@ -176,8 +191,7 @@ test.describe('Chapter 5 minigame rounds', () => {
         featureTapped = true;
         break;
       }
-      const bug = page.locator('.burrow.is-up:not(.burrow--feature)').first();
-      if (await bug.count()) await bug.dispatchEvent('click');
+      await tapFirst(page, '.burrow.is-up:not(.burrow--feature)');
     }
     expect(sawPeak, 'the second shift was never announced').toBe(true);
     expect(featureTapped, 'no feature turned up to test').toBe(true);
@@ -294,8 +308,7 @@ test.describe('Chapter 5 minigame rounds', () => {
     for (let step = 0; step < 400; step += 1) {
       await page.clock.runFor(70);
       if ((await page.locator('.microgame').getAttribute('data-phase')) !== 'play') break;
-      const bug = page.locator('.burrow.is-up:not(.burrow--feature)').first();
-      if (await bug.count()) await bug.dispatchEvent('click');
+      await tapFirst(page, '.burrow.is-up:not(.burrow--feature)');
     }
     await page.clock.runFor(1_500);
     await expect(page.locator('.microgame')).toHaveAttribute('data-phase', 'result');

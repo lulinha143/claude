@@ -14,9 +14,11 @@ import { BALANCE } from '../../sim/config';
 import { formatClock } from '../../sim/format';
 import { MicroGame, type MicroMode } from '../minigames/MicroGame';
 import { MicroGameEmblem, MicroHost, microHostFor } from '../minigames/MinigameArt';
+import { useFmt } from '../useFmt';
 
 export function FocusView() {
   const { t } = useTranslation();
+  const fmt = useFmt();
   const { engine, state } = useGame();
   const audio = useStore((s) => s.audio);
   const activityRequest = useStore((s) => s.activityRequest);
@@ -112,11 +114,11 @@ export function FocusView() {
                     <small className="micro-card__team">
                       {t('microgame.colleagues', {
                         value: cal.great,
-                        names: hired
-                          .map(
+                        names: fmt.list(
+                          hired.map(
                             (id) => state.employees[id].nickname || t(EMPLOYEES_BY_ID[id].nameKey),
-                          )
-                          .join(', '),
+                          ),
+                        ),
                       })}
                     </small>
                   ) : null}

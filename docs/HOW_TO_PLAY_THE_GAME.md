@@ -60,7 +60,8 @@ after you build it yourself with Option B.
 - **Look closer:** when a magnifier appears on a corkboard, a shelf or in a
   corner, click it — something odd has turned up. Everything you notice is kept
   in **Archive → Collections → Curiosities and secrets**, and some of it is the Nut
-  Encyclopedia's missing nuts.
+  Encyclopedia's missing nuts. A room that closes when the company restructures
+  keeps what you noticed in it there, marked closed until it reopens.
   Click a find there to read it again: where and when it turned up, what made it
   possible and where it led. Open leads are listed at the top.
 - **Decorate:** open **Decorate** in the dock. Each piece says where it goes

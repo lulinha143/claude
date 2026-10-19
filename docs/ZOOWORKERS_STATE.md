@@ -4,10 +4,10 @@ Handoff only: design is in `DESIGN.md`, commands and matrix in `.kiro/steering/q
 
 ## Branch
 
-`feat/zooworkers-3.0-facility-pass`: Chapter 10 is the commit that records this entry, on top
-of Chapter 8 (`60fdd3c`), Chapter 7 (`4639fa2`), Chapter 6 (`25ba899`), Chapter 5 (`f4ae64c`),
-Chapter 3 (`8cbf590`), Chapter 2 (`d6c4d28`), Chapter 9 (`d9fab09`), Chapter 4 (`e7bac62`),
-Chapter 1 (`80264a8`) and the setup commit `c55d356`; clean.
+`feat/zooworkers-3.0-facility-pass`: final integration is the commit that records this entry,
+on top of Chapter 10 (`f2c5b90`), Chapter 8 (`60fdd3c`), Chapter 7 (`4639fa2`), Chapter 6
+(`25ba899`), Chapter 5 (`f4ae64c`), Chapter 3 (`8cbf590`), Chapter 2 (`d6c4d28`), Chapter 9
+(`d9fab09`), Chapter 4 (`e7bac62`), Chapter 1 (`80264a8`) and the setup commit `c55d356`; clean.
 `7a7ee3d` (architect's snapshot) is an ancestor; never roll back to it.
 
 ## Active configuration
@@ -41,6 +41,9 @@ Chapter 1 (`80264a8`) and the setup commit `c55d356`; clean.
   stock E2E config); rendered play by throwaway scripts in the ignored `visual-artifacts/play/`.
   Chapter 10: files written by one shell call can take a few seconds to appear to the file
   viewer, and it may show an earlier image for a reused path; give each screenshot a new name.
+- Final integration session: the same; `/tmp` is not kept between shell calls either, so raw
+  logs went to the ignored `visual-artifacts/logs/`. CI artifacts (the Playwright report)
+  cannot be downloaded from here (HTTP 403), so CI evidence is the job log.
 
 ## Validation
 
@@ -51,7 +54,8 @@ Chapter 1 (`80264a8`) and the setup commit `c55d356`; clean.
 
 Order: 1 → 4 → 9 → 2 → 3 → 5 → 6 → 7 → 8 → 10 → final integration.
 
-Accepted kit chapters: 1, 4, 9, 2, 3, 5, 6, 7, 8, 10. Accepted pre-kit units: shell (`b138638`–`6189169`), living office
+Accepted kit chapters: 1, 4, 9, 2, 3, 5, 6, 7, 8, 10, then final integration (record after
+Chapter 10's). Accepted pre-kit units: shell (`b138638`–`6189169`), living office
 (`bfaca01`–`d81ddc2`) and GC1–GC4 (`67cd776`–`7a7ee3d`), pinned by E2E specs but with no
 six-check record. Kit chapters reuse them as evidence and change only what fails the gate.
 GC numbers are not kit numbers.
@@ -819,6 +823,75 @@ chapter. `npm run build:desktop` exit 0; no desktop code changed. New coverage:
 `tests/restructure.test.ts` (12), `tests/collectionShelf.test.ts` (11), `nextstep` (+4) and
 `tests/e2e/restructure.spec.ts` (5); three specs now open Collections drawers instead of tabs.
 
+### Final integration record — the whole game
+
+Baseline `f2c5b90` (fresh clone, `npm ci`, Chromium 1228): `npm run validate` exit 0 (1029,
+84 files); full E2E 373/374 (the `office-play` counter test); `build:desktop` exit 0. CI on
+PR #9 at `f2c5b90`: the validate job passed; E2E 371/374, failing `minigame-rounds:288` (90 s),
+`release-transformation:201` (60 s) and `stories:273` (no keepsake tooltip). CI's E2E job was
+red on 8 of the last 10 chapter commits. The report upload hit the account's artifact storage
+quota: a repository-settings matter, separate from the failures, not changed here.
+
+Journey played (pt-BR, built game, real clicks and keys; seeds only for late states):
+
+- Fresh company, 380×460: opening by keys, the crate coach, 10 taps, the goal bought and the
+  next one, the guide to Tico's Part 1 (+6 trust), the guide to Activities, a Coffee round
+  (149, record, +31% for 90 s); after a reload nothing paid twice and pt-BR kept.
+- One company across a cycle, 1280×720: the daily claim (+1 golden); "A Ata" → laminate
+  (Moment Card, set in motion); the workshop set bought (each piece charged once, placed); its
+  discovery (secret file); 4 min later the laminated minutes on the wall, its file naming the
+  decision; Otto's Part 3 (keepsake on the desk); the cabinet; a reload (all kept); the
+  restructure: +1 kernel, golden nuts, Moment Cards, secrets, Otto's friendship, the founding
+  date and today's claimed challenge kept; only run flags reset (`minutes.*`,
+  `restructure.reviewed`, a moment).
+- Bug Squash first mastery (514), 380×460: +1 golden, the shelf souvenir and a Moment Card; it
+  brought the incubator's discovery to the guide; masteries 1 of 3; no second nut after a reload.
+
+Fixed, each reproduced first (new tests fail on `f2c5b90`, checked in a worktree):
+
+1. A restructure hid what was noticed in rooms it closes: the cabinet went from "13 de 55" to
+   "2 de 2", and a lead from such a room opened nothing. The board's rooms are now those open
+   or holding something noticed (`sim/roomPlay.curiosityBoardRooms`), closed ones marked
+   "Fechada até reabrir", counted alike by board and cabinet ("13 de 15"); the next step names
+   only open rooms. This supersedes Chapter 10's "curiosities in open rooms".
+2. Opening the curiosities drawer at 320×420 and 380×460 scrolled the stage (overflow hidden)
+   by 79 px: the Archive's head went off the top and a dark band sat over the dock. Only the
+   sheet scrolls now (stage 0 px for all 7 drawers at six sizes), and a lead's file, often far
+   below, is brought into view.
+3. `contain-intrinsic-size` (a content-box size) held the whole floor's height plus a size
+   remembered from the provisional first frame: 10–15 of 21 floors were 72–78 px too tall at
+   every size, the tower shrank under a still pointer as they were drawn (an elevator trip
+   drifted 113 px; a hovered keepsake slid away 37 ms later, CI's `stories:273`). It is now the
+   stage's height at the current scale: 0 floors off and 0 px drift at six sizes.
+4. The HUD counter restarted a 400 ms tween at every production step, trailing by a median
+   2.15 s (max 4.48 s) of production at CPU×4. Steps now move it at once; only jumps glide (on
+   frame time, landing within 400 ms). Measured 0.00 s at CPU×1, ×4 and ×8.
+5. pt-BR: "Tico agradeceram a ajuda". Now by count ("Quincy agradeceu", "Quincy e Nica
+   agradeceram"), names joined the locale's way, also on the menu card.
+6. The restructure's gold note was cut to one line ("…Castanh…"): gold notes take two lines.
+7. Tests, no assertion changed: `minigame-rounds` counted a pest, then clicked through a second
+   locator; React commits are not on the fake clock, so the desk changed after `runFor` in 7–10%
+   of steps (measured) and the click could wait forever. Each tap is one query and dispatch.
+   `release-transformation:201`'s walk (13 s untraced, 34–60 s traced in CI) is split by surface
+   into three tests with the same checks. `office-play` reads label and number in one instant.
+
+Rendered checks: the restructure note, the board, the lead's file and Escape ×2 at all six
+sizes (no sideways scroll, text ≥ 11 px, lock and words, not colour, mark a closed room; high
+contrast black on white); the elevator to the rooftop at 380×460 and 1280×720 holds still.
+Six checks — see, understand, interact, feedback, why it matters, feel: PASS for the whole
+journey and the changed flows (audio not heard).
+
+Checks (final tree): `npm run validate` exit 0 (1035 tests, 84 files). Full web E2E 377/377,
+exit 0. CI-like (1 worker) ×2 of the three CI failures' specs 46/46; the counter test under a
+6-worker load 24/24 (21/24 before). `npm run build:desktop` exit 0; no desktop code changed.
+`smoke:minimal` exit 1, "Process failed to launch!": this sandbox's Electron lacks
+`libgtk-3.so.0` and a display, so no Electron smoke or packaging ran. Not fixed (weak, not
+broken): the Team sheet's first opening with all 23 and every decoration takes ~0.85 s here
+(~0.2 s after), mostly style and layout of a ~2,900-node office.
+
+Release readiness: the browser build is integrated and green, but the release stays BLOCKED
+on the human checks below (audio, physical touch, native Windows/DPI). PR #9 is not merged.
+
 ## Blockers
 
 - Kiro Web listed no skills this session; `zooworkers-playtest/SKILL.md` was followed by hand.
@@ -842,7 +915,8 @@ chapter. `npm run build:desktop` exit 0; no desktop code changed. New coverage:
   a release off a piece's surface, and the place and click cues on landing and putting away.
   Chapter 10: the prestige cue on a restructure (once, then the office), the error cue on a
   refused restructure and on a short skill press, the upgrade cue on a skill bought, and the
-  paper cue on opening a keepsake's album from the Collections.
+  paper cue on opening a keepsake's album from the Collections. Final integration changed no
+  sound; all of the above is still unheard.
 - Touch was driven through Chromium's touch emulation, not a physical touchscreen. Chapter 6:
   a tap takes an answer at once, so on touch the effect line is the explanation (the scene's
   preview needs a pointer or keys); check that it reads well on a physical screen. Chapter 7:
@@ -851,9 +925,12 @@ chapter. `npm run build:desktop` exit 0; no desktop code changed. New coverage:
   finger, drag a piece up from the storage strip into a room (the tower must not scroll on the
   way), hold it at an edge to scroll, and let it go over the strip to put it away. Chapter 10: tap a
   branch card, the restructure action and both confirmation buttons, and a Collections drawer
-  and its way back.
-- LOCAL WINDOWS VERIFICATION REQUIRED: the last recorded native run is `a4e03ad`. This sandbox
-  has no Electron binary or display, so no smoke ran. On Windows: `npm run build:windows:folder`,
+  and its way back. Final integration: tap a lead on the curiosity board (its file comes into
+  view), and scroll the tower with a finger right after the elevator lands (it must not drift).
+- LOCAL WINDOWS VERIFICATION REQUIRED: the last recorded native run is `a4e03ad`. In the final
+  integration session the Electron binary downloaded but cannot start (`libgtk-3.so.0` missing,
+  no display; `smoke:minimal` exit 1, "Process failed to launch!"), so no smoke, packaging or
+  DPI check ran. On Windows: `npm run build:windows:folder`,
   `npm run verify:windows:packaged`, then `smoke:window`, `smoke:focus` and `smoke:mute`.
   Expect the HUD shelf to drag the window everywhere except buttons (masthead included), the
   masthead to show only at ≥760px beside the window controls and never collide with them, and
@@ -907,7 +984,22 @@ chapter. `npm run build:desktop` exit 0; no desktop code changed. New coverage:
       with both buttons on screen; confirmed, the gold note and the office with its first goal.
   16. Arquivo → Coleções: expect the drawers in one column, a drawer opening at its head,
       Escape back to the cabinet and Escape again closing the Archive.
+      Final integration (no desktop code changed):
+  17. At 320×420 and 125/150/200% DPI, open Arquivo → Coleções → Curiosidades e segredos.
+      Expect the Archive's title and tabs to stay on screen with no dark band above the dock;
+      press a lead under "Pistas em aberto" and expect its file in view.
+  18. In a company with every room open, ride the elevator to the rooftop and back home, then
+      point at a teammate's keepsake. Expect the view to stay where it landed and the tooltip
+      to stay up while pointed at.
+  19. With a heavy program running alongside (a build, a video export), watch the HUD counter
+      for a minute. Expect it to keep pace with its tooltip value; collecting the crate glides
+      up and lands within half a second.
+  20. Restructure a company past 1M and expect the gold note to read in full on two lines;
+      in Arquivo → Coleções, a room that closed reads "Fechada até reabrir" with what was
+      noticed in it.
 
 ## Next prompt
 
-Final integration. Start its session on this branch; `main` has none of this configuration.
+Release verification on this branch: the human checks under Blockers (audio, a physical
+touchscreen, native Windows packaging and 100–200% DPI), then the merge of PR #9 when the user
+decides. Read CI's E2E job on the pushed commit first; `main` has none of this configuration.

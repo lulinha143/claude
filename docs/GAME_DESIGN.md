@@ -243,6 +243,8 @@ cycle's production, morale and rare-event odds.
   minigame masteries (3), special outfits (24) and Moment Cards. Every count is read
   from where the thing is earned (`src/sim/collections.ts`); what is not found yet is
   never named, and Moment Cards and secret files keep their total to themselves.
+  Curiosities count over the board's rooms: those open now and those where something
+  was noticed (a room a restructure closed keeps its finds, marked closed).
 - **Daily challenges:** deterministic, date-seeded, offline, server-free.
 - **Focus Harvest:** opt-in, supportive productivity companion; never blocks the
   computer; never punishes cancellation.

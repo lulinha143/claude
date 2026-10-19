@@ -10,14 +10,18 @@
 
 import type { GameState } from './types';
 import { NUTS } from '../content/nuts';
-import { ODDITIES, ROOM_PLAY, fileOddities } from '../content/roomPlay';
-import { ROOMS } from '../content/rooms';
+import { ODDITIES, ROOM_PLAY } from '../content/roomPlay';
 import { EMPLOYEES } from '../content/employees';
 import { ACHIEVEMENTS } from '../content/achievements';
 import { keepsakeTopicId } from '../content/employeeKeepsakes';
 import { decorationEnsembles } from './decorationEnsembles';
 import { isRoomIdUnlocked } from './rooms';
-import { curiosityProgress, oddityAvailable } from './roomPlay';
+import {
+  curiositiesBehindDoors,
+  curiosityBoardRooms,
+  curiosityProgress,
+  oddityAvailable,
+} from './roomPlay';
 import { keepsakeFor } from './bonds';
 import { eligibleTopics } from './talks';
 import { isDecorationOwned } from './decorations';
@@ -99,23 +103,25 @@ function nutsEntry(state: GameState, now: number): ShelfEntry {
 }
 
 function curiositiesEntry(state: GameState): ShelfEntry {
-  const open = ROOMS.filter((room) => isRoomIdUnlocked(state, room.id));
+  // The board's rooms: open now, or holding something already noticed (a room a
+  // restructure closed keeps what was noticed in it, and it still counts).
   let have = 0;
   let total = 0;
   let closest: { roomId: string; left: number } | null = null;
-  for (const room of open) {
+  for (const { room, open } of curiosityBoardRooms(state)) {
     const progress = curiosityProgress(state, room.id);
     have += progress.noticed;
     total += progress.total;
     const left = progress.total - progress.noticed;
-    if (left > 0 && (!closest || left < closest.left)) closest = { roomId: room.id, left };
+    // Only an open room can be finished now.
+    if (open && left > 0 && (!closest || left < closest.left)) {
+      closest = { roomId: room.id, left };
+    }
   }
   const waiting = (state.office?.oddities ?? []).find((item) =>
     isRoomIdUnlocked(state, item.roomId),
   );
-  const closedHoldMore = ROOMS.some(
-    (room) => !isRoomIdUnlocked(state, room.id) && fileOddities(room.id).length > 0,
-  );
+  const closedHoldMore = curiositiesBehindDoors(state);
   const secrets = new Set(state.collections.secrets.filter((id) => !id.startsWith('deco:'))).size;
   return {
     id: 'curiosities',

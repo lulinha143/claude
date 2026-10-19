@@ -1574,6 +1574,19 @@
     font: 800 var(--fs-xs) / 1.2 var(--font-body);
     font-style: normal;
   }
+  /* A room a restructure closed: what was noticed in it stays on the board, read
+     as kept (paper, not greyed out), with a lock and the words saying it reopens. */
+  .curiosity-room.is-closed {
+    border-style: dashed;
+    background: var(--paper-bg-sunken);
+  }
+  .curiosity-room__closed {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    color: var(--ink-soft);
+    font: 800 var(--fs-xs) / 1.2 var(--font-body);
+  }
   .curiosity-room__items {
     display: flex;
     flex-wrap: wrap;

@@ -6,6 +6,7 @@ import { initI18n } from '../src/i18n';
 import en from '../src/i18n/locales/en.json';
 import { CuriosityLog } from '../src/ui/CuriosityLog';
 import { createInitialState } from '../src/sim/state';
+import { performPrestige } from '../src/sim/prestige';
 import { ROOMS } from '../src/content/rooms';
 import type { GameState } from '../src/sim/types';
 
@@ -91,6 +92,26 @@ describe('the curiosity log', () => {
     // Put back.
     click('.curiosity-file__close');
     expect(host.querySelector('.curiosity-file')).toBeNull();
+  });
+
+  it('keeps a closed room on the board after a restructure: its cards and its leads still open', () => {
+    const state = noticed('item-four');
+    state.stats.totalNutsEarned = 2_000_000;
+    const after = performPrestige(state, 'industrial', T0);
+    render(after);
+    // The meeting room closed with the restructure; what was noticed there is kept.
+    const room = host.querySelector('.curiosity-room[data-room="meeting"]');
+    expect(room, 'the closed room left the board').not.toBeNull();
+    expect(room!.getAttribute('data-closed')).toBe('true');
+    expect(room!.textContent).toContain(en.collections.curiosityRoomClosed);
+    expect(room!.textContent).toContain(oddity['item-four'].title);
+    expect(host.querySelector('.curiosity-log__count')?.textContent).toMatch(/^1 of \d+/);
+    // The clue it holds still opens its file (it used to open nothing).
+    click('.curiosity-lead[data-oddity="item-four"]');
+    expect(host.querySelector('.curiosity-file[data-oddity="item-four"]')).not.toBeNull();
+    click('.curiosity-file__close');
+    click('.curiosity[data-oddity="item-four"] .curiosity__card');
+    expect(host.querySelector('.curiosity-file[data-oddity="item-four"]')).not.toBeNull();
   });
 
   it('follows a lead to the incident it became, and the call that was made', () => {

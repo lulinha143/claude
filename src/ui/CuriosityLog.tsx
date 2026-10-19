@@ -1,13 +1,18 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { GameState } from '../sim/types';
-import { ROOMS, ROOMS_BY_ID } from '../content/rooms';
+import { ROOMS_BY_ID } from '../content/rooms';
 import { NUTS_BY_ID } from '../content/nuts';
 import { EMPLOYEES_BY_ID } from '../content/employees';
 import { DECORATIONS_BY_ID } from '../content/decorations';
 import { ANOMALY_THREAD_FLAG } from '../content/happenings';
 import { ODDITIES_BY_ID, odditiesInRoom, oddityFlag, type OddityDef } from '../content/roomPlay';
-import { curiosityProgress, oddityNoticed } from '../sim/roomPlay';
+import {
+  curiositiesBehindDoors,
+  curiosityBoardRooms,
+  curiosityProgress,
+  oddityNoticed,
+} from '../sim/roomPlay';
 import {
   curiosityLeads,
   curiosityOrigins,
@@ -16,7 +21,6 @@ import {
   type CuriosityLead,
   type CuriosityOrigin,
 } from '../sim/happenings';
-import { isRoomIdUnlocked } from '../sim/rooms';
 import { Glyph, type GlyphName } from '../art/Glyph';
 import { Icon } from '../art/UiIcon';
 import { useFmt } from './useFmt';
@@ -32,6 +36,9 @@ import { useFmt } from './useFmt';
 // it points there), and the aftermath of a choice does not exist until it has
 // turned up. All of it is read from the save (sim/happenings.ts); nothing new is
 // stored.
+
+/** The id of a curiosity's file on the board (what its card and its lead control). */
+const curiosityFileId = (id: string) => `curiosity-file-${id}`;
 
 const KIND_GLYPH: Record<OddityDef['kind'], GlyphName> = {
   note: 'note',
@@ -204,25 +211,41 @@ export function CuriosityLog({ state }: { state: GameState }) {
   const { t } = useTranslation();
   const names = useNames(state);
   const [open, setOpen] = useState<string | null>(null);
-  const rooms = ROOMS.filter(
-    (room) => isRoomIdUnlocked(state, room.id) && odditiesInRoom(room.id).length > 0,
-  );
-  // The count is the board's: the rooms open now (closed rooms hold the rest).
-  const totals = rooms.reduce(
-    (sum, room) => {
+  // The rooms open now and the ones where something was noticed: a room a
+  // restructure closed keeps its curiosities here (and their files and leads).
+  const board = curiosityBoardRooms(state);
+  // The count is the board's, as the Collections cabinet's is.
+  const totals = board.reduce(
+    (sum, { room }) => {
       const progress = curiosityProgress(state, room.id);
       return { noticed: sum.noticed + progress.noticed, total: sum.total + progress.total };
     },
     { noticed: 0, total: 0 },
   );
-  const moreBehindDoors = ROOMS.some(
-    (room) => !isRoomIdUnlocked(state, room.id) && odditiesInRoom(room.id).length > 0,
-  );
+  const moreBehindDoors = curiositiesBehindDoors(state);
   const leads = openLeads(state);
   const pointed = pointedAt(state);
   const inspected = open && oddityNoticed(state, open) ? ODDITIES_BY_ID[open] : undefined;
-  const fileId = (id: string) => `curiosity-file-${id}`;
+  const fileId = curiosityFileId;
   const toggle = (id: string) => setOpen((current) => (current === id ? null : id));
+
+  // A file opened from a lead at the head of the board sits in its room, often far
+  // below: in a corner window the press seemed to do nothing. Bring it into view,
+  // moving only the sheet's own scroller (never the stage behind it).
+  useEffect(() => {
+    if (!open) return;
+    const file = document.getElementById(curiosityFileId(open));
+    const scroller = file?.closest<HTMLElement>('.sheet__body');
+    if (!file || !scroller) return;
+    const box = file.getBoundingClientRect();
+    const view = scroller.getBoundingClientRect();
+    const gap = 8;
+    if (box.bottom > view.bottom - gap) {
+      scroller.scrollTop += Math.min(box.bottom - view.bottom + gap, box.top - view.top - gap);
+    } else if (box.top < view.top + gap) {
+      scroller.scrollTop += box.top - view.top - gap;
+    }
+  }, [open]);
 
   return (
     <section className="curiosity-log" aria-labelledby="curiosity-log-title">
@@ -265,20 +288,27 @@ export function CuriosityLog({ state }: { state: GameState }) {
       ) : null}
 
       <ul className="curiosity-log__rooms">
-        {rooms.map((room) => {
+        {board.map(({ room, open: roomOpen }) => {
           const progress = curiosityProgress(state, room.id);
           const complete = progress.noticed === progress.total;
           return (
             <li
               key={room.id}
-              className={`curiosity-room ${complete ? 'is-complete' : ''}`}
+              className={`curiosity-room ${complete ? 'is-complete' : ''} ${roomOpen ? '' : 'is-closed'}`}
               data-room={room.id}
+              data-closed={roomOpen ? undefined : 'true'}
             >
               <div className="curiosity-room__head">
                 <strong>{t(room.nameKey)}</strong>
                 <span>
                   {progress.noticed}/{progress.total}
                 </span>
+                {roomOpen ? null : (
+                  <span className="curiosity-room__closed">
+                    <Icon name="lock" size={11} />
+                    {t('collections.curiosityRoomClosed')}
+                  </span>
+                )}
                 {complete ? <em>{t('collections.roomFile')}</em> : null}
               </div>
               <ul className="curiosity-room__items">

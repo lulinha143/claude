@@ -723,10 +723,12 @@ export function MicroGame({
                   {reward && finalScore <= 0 ? <small>{t('microgame.practiceBody')}</small> : null}
                   {reward && reward.employeeIds.length > 0 ? (
                     <small>
+                      {/* The verb agrees with how many helped ("Tico agradeceu"). */}
                       {t('microgame.teamReward', {
-                        names: reward.employeeIds
-                          .map((id) => t(EMPLOYEES_BY_ID[id].nameKey))
-                          .join(', '),
+                        count: reward.employeeIds.length,
+                        names: fmt.list(
+                          reward.employeeIds.map((id) => t(EMPLOYEES_BY_ID[id].nameKey)),
+                        ),
                       })}
                     </small>
                   ) : null}

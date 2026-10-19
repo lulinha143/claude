@@ -198,7 +198,13 @@ for (const width of [1280, 390, 320]) {
   });
 }
 
-test('new departments, evidence and employee destination are visible in real play', async ({
+// The mature company (all 23, every piece placed) is a walk across most of the game.
+// It is split by surface so each part keeps within its own budget on a CI runner,
+// where recording a trace of this ~3,000-node office at every step is what costs:
+// the whole walk is ~13 s untraced and ran 34-60 s in CI, timing out about half
+// the time. Every check is the one the single walk made.
+
+test('arranging a mature office picks a tray card up whole, and Escape lets go', async ({
   page,
 }) => {
   test.setTimeout(60_000);
@@ -219,6 +225,13 @@ test('new departments, evidence and employee destination are visible in real pla
     await expect(page.locator('.drag-ghost')).toHaveCount(0);
   }
   await arrangeToggle(page).click();
+});
+
+test('new departments, evidence and employee destination are visible in real play', async ({
+  page,
+}) => {
+  test.setTimeout(60_000);
+  await boot(page, 1280, true);
   for (const id of ['broadcast', 'repair', 'conservatory']) {
     const room = page.locator(`.floor[data-room="${id}"]`);
     await room.scrollIntoViewIfNeeded();
@@ -241,6 +254,11 @@ test('new departments, evidence and employee destination are visible in real pla
   await page.locator('.talk__close').click();
   await expect(page.locator('.talk')).toHaveCount(0);
   await expect(page.locator('.sheet[data-sheet="employees"]')).toBeVisible();
+});
+
+test('every destination of a mature company opens without sideways scroll', async ({ page }) => {
+  test.setTimeout(60_000);
+  await boot(page, 1280, true);
   for (const view of [
     'office',
     'decorate',
