@@ -1,5 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
-import { SCENE_DEPTH } from '../../src/sim/depth';
+import { SCENE_DEPTH, characterDepth } from '../../src/sim/depth';
+import { standingDepthPx } from '../../src/content/roomLayout';
+import { arrangeToggle } from './support/shell';
 
 // Proves the composition rules on the RENDERED scene: an invalid drop is
 // rejected with a message and leaves the piece put; valid neighbours, a big
@@ -171,7 +173,7 @@ async function clearModals(page: Page) {
 }
 
 async function enterDecorateMode(page: Page) {
-  await page.locator('.office__toolbar button').first().click();
+  await arrangeToggle(page).click();
   await expect(page.locator('.office--decorating')).toHaveCount(1);
 }
 
@@ -234,12 +236,22 @@ test.describe('decoration composition protection', () => {
     await expect(lampCard).toHaveAttribute('data-placement', 'placed');
     await lampCard.locator('.decor').click();
     await expect(lamp).toHaveClass(/is-selected/);
-    // The piece being arranged is lifted above EVERYTHING (characters included)
-    // so it can never be lost mid-drag. Assert the intent via the shared depth
-    // bands rather than a magic number that goes stale when the bands move.
+    // A picked piece keeps its own depth (so "Put behind / in front" is visible
+    // while it is picked): a floor lamp stands among the team, at the depth a
+    // teammate standing where its base is would take. Being buried under
+    // another piece never makes it unreachable: the tray picks it directly, and
+    // clicking a stack hands the pick down (see living-office.spec).
     const selectedZ = Number(await lamp.evaluate((element) => getComputedStyle(element).zIndex));
-    expect(selectedZ).toBe(SCENE_DEPTH.arranging);
-    expect(selectedZ).toBeGreaterThan(SCENE_DEPTH.character.max);
+    await expect(lamp).toHaveAttribute('data-layer', 'front');
+    const lampY = await page.evaluate(
+      () =>
+        JSON.parse(localStorage.getItem('wmno.save.v1')!).decorationInstances.find(
+          (i: { decorationId: string }) => i.decorationId === 'desk-lamp',
+        ).normalizedY as number,
+    );
+    expect(selectedZ).toBe(characterDepth(standingDepthPx(lampY)));
+    expect(selectedZ).toBeLessThanOrEqual(SCENE_DEPTH.character.max);
+    expect(selectedZ).toBeGreaterThanOrEqual(SCENE_DEPTH.character.min);
     await page.screenshot({ path: `${DIR}/collide-02-dense-overlap.png` });
   });
 

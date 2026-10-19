@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
-import { INTERACTION_FOCUS_EVENT } from '../interactionLifecycle';
+import { INTERACTION_FOCUS_EVENT, cancelTransientInteractions } from '../interactionLifecycle';
 
 export type PopupVariant =
   | 'standard'
@@ -98,6 +98,14 @@ export function PopupShell({
       if (document.visibilityState === 'visible') restorePopupFocus();
     }
 
+    /* Opening a popup cancels transient pointer state underneath it.
+       A tooltip is dismissed by the pointer LEAVING its anchor, and a popup appearing
+       over the office does not move the pointer — so a tooltip that was open stayed
+       open, and at z-index 9999 it paints over every popup (which sit at 260 and
+       below). That was visible in the first run: an employee tooltip covered the
+       tutorial's own heading. This also aborts a drag the player can no longer see. */
+    cancelTransientInteractions('popup-open');
+
     document.addEventListener('keydown', onKeyDown);
     document.addEventListener('visibilitychange', onVisibility);
     window.addEventListener('focus', restorePopupFocus);
@@ -173,17 +181,20 @@ export function usePopupExit() {
     const reduced =
       document.documentElement.dataset.reducedMotion === 'true' ||
       window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    timer.current = window.setTimeout(() => {
-      // Event and consequence modal components remain mounted while returning
-      // null. Release both pieces of state before they are reused for a chain
-      // step or a later popup; otherwise every future action stays disabled.
-      timer.current = null;
-      try {
-        action();
-      } finally {
-        setClosing(false);
-      }
-    }, reduced ? 0 : 130);
+    timer.current = window.setTimeout(
+      () => {
+        // Event and consequence modal components remain mounted while returning
+        // null. Release both pieces of state before they are reused for a chain
+        // step or a later popup; otherwise every future action stays disabled.
+        timer.current = null;
+        try {
+          action();
+        } finally {
+          setClosing(false);
+        }
+      },
+      reduced ? 0 : 130,
+    );
   }, []);
 
   return { closing, exitThen };

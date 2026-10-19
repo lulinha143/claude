@@ -2,7 +2,13 @@ export const INTERACTION_CANCEL_EVENT = 'wmno:interaction-cancel';
 export const INTERACTION_FOCUS_EVENT = 'wmno:interaction-focus';
 
 export type InteractionCancelReason =
-  'window-blur' | 'window-focus' | 'document-hidden' | 'platform-blur' | 'platform-focus';
+  | 'window-blur'
+  | 'window-focus'
+  | 'document-hidden'
+  | 'platform-blur'
+  | 'platform-focus'
+  /** A popup opened over the scene, so anything the pointer was doing is now hidden. */
+  | 'popup-open';
 
 /**
  * Cancels renderer-local transient pointer state without touching committed

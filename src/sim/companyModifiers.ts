@@ -37,6 +37,8 @@ import { reputationTier } from '../content/reputationTiers';
 import { employeesInRoom, isRoomIdUnlocked } from './rooms';
 import { BALANCE } from './config';
 import { upgradeBonus } from './upgradeEffects';
+import { decorationEnsembles } from './decorationEnsembles';
+import { activeModeEffects } from './roomPlay';
 
 /** Every company-wide lever, resolved. */
 export interface CompanyModifiers {
@@ -269,6 +271,14 @@ export function aggregateCompanyModifiers(state: GameState): CompanyModifiers {
   }
 
   // Standing in the world pays its own small, permanent dividend.
+  for (const ensemble of decorationEnsembles(state)) {
+    if (ensemble.active) mods[ensemble.definition.effect.kind] += ensemble.definition.effect.value;
+  }
+
+  // The modes the player has set in the broadcast booth, the meeting room, the
+  // marketing floor and the vault, while someone works there (sim/roomPlay.ts).
+  for (const { mode } of activeModeEffects(state)) mods[mode.effect.kind] += mode.effect.value;
+
   const perk = reputationTier(state.resources.reputation).perk;
   if (perk) {
     mods.automation += perk.automation ?? 0;

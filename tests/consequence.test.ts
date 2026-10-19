@@ -17,7 +17,10 @@ describe('event consequences + history', () => {
     expect(engine.lastConsequence?.choiceLabelKey).toBe('common.ok');
     expect(engine.lastConsequence?.effects.some((e) => e.type === 'morale')).toBe(true);
     expect(engine.state.eventHistory).toHaveLength(1);
-    expect(engine.state.eventHistory[0]).toMatchObject({ eventId: 'casual-friday', choiceId: 'ok' });
+    expect(engine.state.eventHistory[0]).toMatchObject({
+      eventId: 'casual-friday',
+      choiceId: 'ok',
+    });
   });
 
   it('clears the consequence panel on dismiss', () => {

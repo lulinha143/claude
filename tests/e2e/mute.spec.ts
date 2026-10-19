@@ -13,7 +13,13 @@ async function boot(page: Page) {
           version: 3,
           onboardingComplete: true,
           lastSaved: Date.now(),
-          resources: { nuts: 100000, goldenNuts: 5, reputation: 200, morale: 80, permanentKernels: 0 },
+          resources: {
+            nuts: 100000,
+            goldenNuts: 5,
+            reputation: 200,
+            morale: 80,
+            permanentKernels: 0,
+          },
         }),
       );
     }
@@ -66,22 +72,40 @@ test('the visible mute button silences every audio bus and persists', async ({ p
 
   // a sound started AFTER muting is also silent (no new source is created)
   const srcBefore = muted.activeSources;
-  await page.getByRole('button', { name: /Upgrades|Melhorias/i }).click().catch(() => {});
+  await page
+    .locator('.dock__item[data-dock="upgrades"]')
+    .click()
+    .catch(() => {});
   await page.waitForTimeout(200);
   const afterClick = await diag(page);
   expect(afterClick.masterGain).toBe(0);
   expect(afterClick.activeSources).toBeLessThanOrEqual(srcBefore);
 
   // opening a minigame while muted stays silent too
-  await page.getByRole('button', { name: /Focus|Foco/i }).click().catch(() => {});
+  await page
+    .locator('.dock__item[data-dock="activities"]')
+    .click()
+    .catch(() => {});
   await page.waitForTimeout(150);
-  await page.locator('.micro-card').first().click().catch(() => {});
+  await page
+    .locator('.micro-card')
+    .first()
+    .click()
+    .catch(() => {});
   await page.waitForTimeout(300);
   const inGame = await diag(page);
   expect(inGame.masterGain).toBe(0);
   for (const ch of ['music', 'ambience', 'ui', 'sfx'] as const) expect(inGame.buses[ch]).toBe(0);
   // back out to the office for the reload check
-  await page.getByRole('button', { name: /Office|Escritório/i }).click().catch(() => {});
+  await page
+    .locator('.microgame button', { hasText: /Leave shift|Back/ })
+    .first()
+    .click()
+    .catch(() => {});
+  await page
+    .locator('.sheet__close')
+    .click()
+    .catch(() => {});
   await page.waitForTimeout(150);
 
   // persisted to the save
@@ -103,7 +127,9 @@ test('the visible mute button silences every audio bus and persists', async ({ p
   expect(restored.buses.music).toBeGreaterThan(0);
 });
 
-test('the music toggle mutes only music/ambience; SFX + UI keep playing; persists', async ({ page }) => {
+test('the music toggle mutes only music/ambience; SFX + UI keep playing; persists', async ({
+  page,
+}) => {
   await boot(page);
   const music = page.getByTestId('music-toggle');
   await expect(music).toBeVisible();

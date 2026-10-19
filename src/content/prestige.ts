@@ -44,9 +44,7 @@ export const PRESTIGE_BRANCHES: PrestigeBranchDef[] = [
   },
 ];
 
-export const PRESTIGE_BRANCHES_BY_ID = Object.fromEntries(
-  PRESTIGE_BRANCHES.map((b) => [b.id, b]),
-);
+export const PRESTIGE_BRANCHES_BY_ID = Object.fromEntries(PRESTIGE_BRANCHES.map((b) => [b.id, b]));
 
 // Permanent skill tree bought with Permanent Kernels.
 export const PRESTIGE_SKILLS: PrestigeSkillDef[] = [

@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { openView } from './support/shell';
 
 const LABEL = process.env.TYPO_SHOT_LABEL ?? 'current';
 const DIR = 'visual-artifacts/typography';
@@ -101,13 +102,19 @@ test('selected production fonts are bundled, active, and offline-safe', async ({
     .locator('body')
     .evaluate((element) => getComputedStyle(element).fontFamily);
   expect(families).toContain('Nunito');
-  const accentedRoomLabel = page.getByText('Câmara de Soneca', { exact: true });
+  // An accented room name renders in one of the two bundled faces (the floor
+  // plaques are set in the display face).
+  const accentedRoomLabel = page
+    .locator('.floor__label')
+    .filter({ hasText: 'Câmara de Soneca' })
+    .first();
+  await accentedRoomLabel.scrollIntoViewIfNeeded();
   await expect(accentedRoomLabel).toBeVisible();
   expect(
     await accentedRoomLabel.evaluate((element) => getComputedStyle(element).fontFamily),
-  ).toContain('Nunito');
+  ).toMatch(/DynaPuff|Nunito/);
 
-  await page.getByRole('button', { name: /^Collections$|^Coleções$/i }).click();
+  await openView(page, 'collections');
   await expect(page.locator('.view--collections')).toBeVisible();
   await page.locator('.view--collections .ghost-btn').first().click();
   await expect(page.locator('.photo-mode')).toBeVisible();

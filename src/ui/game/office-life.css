@@ -1,0 +1,496 @@
+/* Phase 2: the living office — emotion stickers, picking furniture up and
+   putting it down, and the team's front/back. Game layer: these replace (not
+   patch) the legacy treatments for the same parts. */
+@layer game {
+  /* ---- Emotion stickers ------------------------------------------------------- */
+  .employee-bubble {
+    /* Readable at companion size, never a billboard on a big window. */
+    --sticker: clamp(30px, calc(42px * var(--asset-scale)), 42px);
+    position: absolute;
+    display: block;
+    width: var(--sticker);
+    height: var(--sticker);
+    margin: 0 0 0 calc(var(--sticker) / -2);
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    transform: none;
+    pointer-events: none;
+    animation: none;
+    transition:
+      left 0.55s var(--ease),
+      opacity var(--dur) var(--ease),
+      translate var(--dur-fast) var(--ease);
+  }
+  .employee-bubble::after {
+    content: none;
+  }
+  .employee-bubble[data-mode] {
+    animation: none;
+  }
+  .employee-bubble .speech-anchor {
+    position: absolute;
+    inset: 0;
+  }
+  .employee-bubble__sticker.mood-emoji {
+    display: block;
+    width: 100%;
+    height: 100%;
+    flex: none;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    rotate: var(--sticker-tilt, 0deg);
+    transform-origin: 50% 85%;
+    animation: sticker-on 340ms var(--ease-pop) both;
+  }
+  .employee-bubble__sticker > .sticker {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    animation: sticker-bob 5.6s ease-in-out infinite;
+    animation-delay: var(--sticker-phase, 0s);
+  }
+  @keyframes sticker-on {
+    0% {
+      opacity: 0;
+      scale: 0.3;
+      rotate: calc(var(--sticker-tilt, 0deg) - 28deg);
+    }
+    65% {
+      opacity: 1;
+      scale: 1.12;
+    }
+    100% {
+      scale: 1;
+      rotate: var(--sticker-tilt, 0deg);
+    }
+  }
+  @keyframes sticker-bob {
+    0%,
+    100% {
+      translate: 0 0;
+    }
+    50% {
+      translate: 0 -1.5px;
+    }
+  }
+  /* Speaking: a little hop, then the words appear in the note above. */
+  .employee-bubble[data-mode='speech'] .employee-bubble__sticker {
+    animation: sticker-hop 420ms var(--ease-pop) both;
+  }
+  @keyframes sticker-hop {
+    0% {
+      translate: 0 0;
+    }
+    35% {
+      translate: 0 -6px;
+      scale: 1.1;
+    }
+    100% {
+      translate: 0 0;
+      scale: 1;
+    }
+  }
+  /* The sticker moves with its teammate: hover lift and celebration hop. */
+  .critter-btn:not(.is-dragging):hover + .employee-bubble {
+    translate: 0 -3px;
+  }
+  .critter-btn--sprite[data-anim='celebrate'] + .employee-bubble {
+    animation: sprite-jump 0.5s ease-in-out infinite;
+  }
+  .employee-bubble.is-carried,
+  .office--decorating .employee-bubble {
+    opacity: 0;
+  }
+  [data-reduced-motion='true'] .employee-bubble,
+  [data-reduced-motion='true'] .employee-bubble *,
+  [data-ambient='paused'] .employee-bubble * {
+    animation: none !important;
+  }
+
+  /* Sticker artwork (shared by the office and the small inline uses). */
+  .sticker__shadow {
+    fill: rgb(40 26 12 / 0.3);
+    stroke: rgb(40 26 12 / 0.3);
+    stroke-width: 5.6;
+    stroke-linejoin: round;
+  }
+  .sticker__contour {
+    fill: none;
+    stroke: rgb(74 50 28 / 0.6);
+    stroke-width: 5.8;
+    stroke-linejoin: round;
+  }
+  .sticker__cut {
+    fill: var(--sticker-fill);
+    stroke: #fffdf6;
+    stroke-width: 3.4;
+    stroke-linejoin: round;
+    paint-order: stroke;
+  }
+  .sticker__ink {
+    fill: none;
+    stroke: #3b2616;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .sticker__ink--thin {
+    stroke-width: 2;
+  }
+  .sticker__ink--bold {
+    stroke-width: 3.3;
+  }
+  .sticker__ink-fill {
+    fill: #3b2616;
+  }
+  .sticker__blush {
+    fill: rgb(255 112 112 / 0.5);
+  }
+  .sticker__leaf {
+    fill: #4c9a5a;
+  }
+  .sticker__drop {
+    fill: #7cc3f4;
+    stroke: #3b2616;
+    stroke-width: 1;
+  }
+  .sticker__shine {
+    fill: #fff;
+  }
+  .sticker__gloss {
+    fill: none;
+    stroke: #fff;
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    opacity: 0.85;
+  }
+  [data-high-contrast='true'] .sticker__contour {
+    stroke: #000;
+  }
+
+  /* Inline stickers (Team rows, the visit header, consequences): no box around
+     them any more, and a thin ink edge instead of the white die-cut so they hold
+     their shape on paper. */
+  .mood-emoji:not(.employee-bubble__sticker) {
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+  }
+  .mood-emoji:not(.employee-bubble__sticker) > .sticker {
+    width: 100%;
+    height: 100%;
+  }
+  .mood-emoji:not(.employee-bubble__sticker) .sticker__cut {
+    stroke: rgb(74 50 28 / 0.55);
+    stroke-width: 2.6;
+  }
+
+  /* ---- Arranging: pick it up, put it there ------------------------------------- */
+  .office {
+    --paw-open:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cg fill='%23fff6e6' stroke='%233b2616' stroke-width='1.4'%3E%3Cellipse cx='12' cy='15.6' rx='5.2' ry='4.4'/%3E%3Cellipse cx='5.7' cy='10.4' rx='2' ry='2.5'/%3E%3Cellipse cx='9.4' cy='6.6' rx='2' ry='2.6'/%3E%3Cellipse cx='14.6' cy='6.6' rx='2' ry='2.6'/%3E%3Cellipse cx='18.3' cy='10.4' rx='2' ry='2.5'/%3E%3C/g%3E%3C/svg%3E")
+        12 12,
+      default;
+    --paw-hold:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cg fill='%23ffe2b8' stroke='%233b2616' stroke-width='1.4'%3E%3Cellipse cx='12' cy='14.4' rx='5.8' ry='4.8'/%3E%3Cellipse cx='7.4' cy='9.6' rx='1.8' ry='2'/%3E%3Cellipse cx='10.5' cy='8.1' rx='1.8' ry='2'/%3E%3Cellipse cx='13.5' cy='8.1' rx='1.8' ry='2'/%3E%3Cellipse cx='16.6' cy='9.6' rx='1.8' ry='2'/%3E%3C/g%3E%3C/svg%3E")
+        12 12,
+      default;
+  }
+  /* Teammates can be picked up and carried to another room. */
+  .critter-btn.is-draggable {
+    cursor: var(--paw-open);
+  }
+  .critter-btn.is-draggable:active {
+    cursor: var(--paw-hold);
+  }
+  /* While arranging, the furniture is the subject: the team steps back (dimmed,
+     and clicks pass through them to whatever stands behind). */
+  .office--decorating .critter-btn {
+    opacity: 0.45;
+    filter: saturate(0.75);
+    pointer-events: none;
+    transition: opacity var(--dur) var(--ease);
+  }
+
+  /* Hit testing follows the ARTWORK: the painted shapes, plus a small grab core in
+     the middle so thin pieces stay easy to catch. The transparent corners of a
+     piece's box no longer steal clicks from what is visible behind it. */
+  .floor__deco,
+  .floor__deco::before,
+  .floor__deco::after {
+    pointer-events: none;
+  }
+  .floor__deco .decor {
+    position: relative;
+    pointer-events: none;
+  }
+  .floor__deco .decor > svg {
+    pointer-events: none;
+  }
+  .floor__deco .decor > svg * {
+    pointer-events: visiblePainted;
+  }
+  .floor__deco .decor::before {
+    content: '';
+    position: absolute;
+    inset: 22% 24% 10%;
+    pointer-events: auto;
+  }
+
+  /* At rest: nothing but the piece. Under the paw: it lifts a touch. */
+  .office--decorating .decor {
+    border-radius: 0;
+    filter: none;
+    cursor: var(--paw-open);
+  }
+  .office--decorating .decor:active,
+  .deco-tray__card:active {
+    cursor: var(--paw-hold);
+  }
+  .deco-tray__card {
+    cursor: var(--paw-open);
+  }
+  .office--decorating .floor__deco:not(.is-selected) .decor:hover {
+    translate: 0 -2px;
+  }
+  .office--decorating .decor:hover {
+    transform: none;
+  }
+  /* Picked: ONE treatment — a white die-cut edge that follows the art itself and a
+     soft lift shadow. No frame, no grips, no tint. */
+  .floor__deco.is-selected {
+    filter: none;
+  }
+  .floor__deco.is-selected::before,
+  .floor__deco.is-selected::after {
+    content: none;
+  }
+  .decor.is-selected {
+    outline: none;
+  }
+  .office--decorating .floor__deco.is-selected .decor {
+    translate: 0 -3px;
+    filter: drop-shadow(1.5px 0 0 #fffaf0) drop-shadow(-1.5px 0 0 #fffaf0)
+      drop-shadow(0 1.5px 0 #fffaf0) drop-shadow(0 -1.5px 0 #fffaf0)
+      drop-shadow(0 6px 5px rgb(40 26 12 / 0.34));
+    transition: translate var(--dur-fast) var(--ease-pop);
+  }
+  /* Picked up: it leaves its spot (it is in your paw now). */
+  .floor__deco.is-dragging {
+    opacity: 0;
+    transition: none;
+  }
+  .office--dragging,
+  .office--dragging * {
+    cursor: var(--paw-hold) !important;
+  }
+
+  /* The piece in your paw: same size as in the room, a lift shadow, no glow. */
+  .drag-ghost {
+    filter: none;
+    opacity: 1;
+  }
+  .drag-ghost.is-no {
+    filter: none;
+    opacity: 1;
+  }
+  .drag-ghost--pointer-anchor {
+    transform: translate(-50%, -62%);
+  }
+  .drag-ghost .decor {
+    filter: drop-shadow(0 9px 6px rgb(40 26 12 / 0.3));
+  }
+  .drag-ghost--decoration.is-ok .decor {
+    filter: drop-shadow(0 9px 6px rgb(40 26 12 / 0.3));
+  }
+  .drag-ghost--decoration.is-no .decor {
+    filter: grayscale(0.75) drop-shadow(0 9px 6px rgb(40 26 12 / 0.22));
+    opacity: 0.7;
+  }
+  .drag-ghost .decor > svg {
+    width: calc(70px * var(--deco-scale, 1) * var(--asset-scale));
+    height: calc(81px * var(--deco-scale, 1) * var(--asset-scale));
+  }
+
+  /* Where it will land: just a soft shadow on the surface under it. */
+  .floor__region-guide .floor__region-plane {
+    fill: rgb(255 250 240 / 0.07);
+    stroke: none;
+  }
+  .floor__region-guide.is-valid .floor__region-footprint {
+    fill: rgb(40 26 12 / 0.24);
+    stroke: none;
+  }
+  .floor__region-guide.is-invalid .floor__region-footprint {
+    fill: rgb(196 64 52 / 0.22);
+    stroke: rgb(196 64 52 / 0.7);
+    stroke-width: 0.5;
+    stroke-dasharray: none;
+  }
+  .floor__stage--dropping {
+    outline: none;
+  }
+  /* Rooms only speak up when it matters: the one under the paw. */
+  .floor.is-deco-target,
+  .floor.is-drop-target {
+    outline: none;
+  }
+  .floor.is-deco-hover,
+  .floor.is-drop-hover {
+    outline: 2px solid rgb(255 250 240 / 0.75);
+    outline-offset: -4px;
+  }
+  .floor.is-deco-invalid,
+  .floor.is-drop-invalid {
+    outline: 2px dashed rgb(196 64 52 / 0.75);
+    outline-offset: -4px;
+  }
+
+  /* The storage tray is a strip UNDER the room being decorated, never over it:
+     the tower view shrinks by the tray's height and the floor in view stays
+     centred above it, at every window size. */
+  .office {
+    --tray-h: 0px;
+  }
+  .office--decorating {
+    --tray-h: 172px;
+  }
+  @container app (max-width: 759px) {
+    .office--decorating {
+      --tray-h: 136px;
+    }
+  }
+  @media (max-height: 560px) {
+    .office--decorating {
+      --tray-h: 136px;
+    }
+  }
+  .office--decorating .office__view {
+    height: calc(100% - var(--tray-h));
+  }
+  .deco-tray {
+    box-sizing: border-box;
+    height: calc(var(--tray-h) - 12px);
+    max-height: none;
+  }
+  /* While a piece is in the paw the tray drops to a slim strip: the rooms stay in
+     view and the strip is the place to put a piece back in storage. */
+  .deco-tray.is-dragging {
+    height: 74px;
+    max-height: none;
+  }
+  .deco-tray__items {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  .deco-tray__hint {
+    flex: 1 1 12rem;
+    min-width: 0;
+    overflow: hidden;
+    color: rgb(255 246 230 / 0.78);
+    font: 600 var(--fs-xs) / 1.3 var(--font-body);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  @container app (max-width: 759px) {
+    .deco-tray {
+      gap: 4px;
+      padding: 6px 8px;
+    }
+    .deco-tray__head {
+      flex-wrap: nowrap;
+    }
+    .deco-tray__summary,
+    .deco-tray__hint {
+      display: none;
+    }
+
+    .deco-tray__search {
+      flex: 1 1 auto;
+      min-width: 0;
+      height: 26px;
+    }
+    .deco-tray__search input {
+      height: 22px;
+      padding-block: 0;
+      font-size: var(--fs-xs);
+    }
+    .deco-tray__items {
+      align-items: stretch;
+    }
+    .deco-tray__card {
+      width: 60px;
+      justify-content: flex-end;
+      gap: 1px;
+    }
+    .deco-tray__card .decor > svg {
+      width: 30px;
+      height: 34px;
+    }
+    /* While arranging, the elevator column sits over the right edge of a
+       full-width floor: keep each floor's own controls clear of it. Otherwise it
+       waits in the bottom corner and the header has the room's whole width, so a
+       room's action reads in full at 320px ("Consertar a conexão", not "a con…"). */
+    .office--decorating .floor__header,
+    .floor__tray--actions {
+      padding-right: 44px;
+    }
+  }
+
+  /* Front / back control for the picked piece. */
+  .deco-layer-btn[data-layer='back'] {
+    border-style: dashed;
+  }
+
+  /* ---- A note the player asked for offers to sit down with them ---------------- */
+  /* The note stays click-through; only its offer takes the pointer. It sits on
+     the name row (a 24px target, never a second row of its own). */
+  .speech-note__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px 10px;
+    margin-bottom: 3px;
+  }
+  .speech-note__head > .speech-note__who {
+    margin-bottom: 0;
+  }
+  .speech-note__action {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 3px;
+    min-height: 24px;
+    margin: -2px -4px -2px 0;
+    padding: 2px 9px 3px;
+    color: var(--action-ink, #fffaf0);
+    background: var(--action-bg, #4a7a42);
+    border: 1.5px solid var(--action-edge, #2f5428);
+    border-radius: 9px;
+    box-shadow: 0 2px 0 var(--action-edge, #2f5428);
+    font: 800 max(var(--fs-min), 0.66em) / 1.2 var(--font-body);
+    pointer-events: auto;
+    cursor: pointer;
+    transition: translate var(--dur-fast) var(--ease);
+  }
+  .speech-note__action:hover {
+    background: var(--action-bg-hover, #45763d);
+    translate: 0 -1px;
+  }
+  .speech-note__action:focus-visible {
+    outline: 3px solid var(--c-sky-500, #4aa3b1);
+    outline-offset: 2px;
+  }
+
+  /* ---- Floors out of sight rest ---------------------------------------------- */
+  .floor[data-onscreen='false'] :is(*, *::before, *::after) {
+    animation-play-state: paused !important;
+  }
+}

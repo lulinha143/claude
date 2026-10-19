@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useGame } from '../state/hooks';
 import { useStore } from '../state/store';
-import { computeOffline, applyOffline } from '../sim/offline';
 import { GAME_EVENTS } from '../content/events';
 import { EMPLOYEES } from '../content/employees';
 import { SAVE_VERSION } from '../sim/config';
@@ -145,30 +144,91 @@ export function DevPanel() {
         </table>
       ) : (
         <div className="dev-panel__grid">
-          <button onClick={() => { state.resources.nuts += 1e6; engine.save(); bump(engine); }}>+1M {t('dev.addNuts')}</button>
-          <button onClick={() => { state.resources.goldenNuts += 25; bump(engine); }}>+25 {t('dev.addGolden')}</button>
-          <button onClick={() => { state.resources.reputation += 500; bump(engine); }}>+500 {t('dev.addReputation')}</button>
-          <button onClick={() => { for (const e of EMPLOYEES) { const rt = state.employees[e.id]; rt.hired = true; if (rt.level < 1) rt.level = 1; } bump(engine); }}>
+          <button
+            onClick={() => {
+              state.resources.nuts += 1e6;
+              engine.save();
+              bump(engine);
+            }}
+          >
+            +1M {t('dev.addNuts')}
+          </button>
+          <button
+            onClick={() => {
+              state.resources.goldenNuts += 25;
+              bump(engine);
+            }}
+          >
+            +25 {t('dev.addGolden')}
+          </button>
+          <button
+            onClick={() => {
+              state.resources.reputation += 500;
+              bump(engine);
+            }}
+          >
+            +500 {t('dev.addReputation')}
+          </button>
+          <button
+            onClick={() => {
+              for (const e of EMPLOYEES) {
+                const rt = state.employees[e.id];
+                rt.hired = true;
+                if (rt.level < 1) rt.level = 1;
+              }
+              bump(engine);
+            }}
+          >
             {t('dev.unlockAll')}
+          </button>
+          <button
+            onClick={() => {
+              // One of each kind the building allows right now.
+              for (const kind of ['tend', 'watch', 'deliver', 'oddity'] as const) {
+                engine.spawnOfficeMoment(kind);
+              }
+              bump(engine);
+            }}
+          >
+            {t('dev.officeMoment')}
           </button>
           <label>
             {t('dev.triggerEvent')}
-            <select onChange={(e) => e.target.value && engine.triggerEvent(e.target.value)} defaultValue="">
-              <option value="" disabled>—</option>
+            <select
+              onChange={(e) => e.target.value && engine.triggerEvent(e.target.value)}
+              defaultValue=""
+            >
+              <option value="" disabled>
+                —
+              </option>
               {GAME_EVENTS.map((ev) => (
-                <option key={ev.id} value={ev.id}>{ev.id}</option>
+                <option key={ev.id} value={ev.id}>
+                  {ev.id}
+                </option>
               ))}
             </select>
           </label>
+          <button
+            onClick={() => {
+              engine.maybeRollEvent(true);
+              bump(engine);
+            }}
+          >
+            {t('dev.rollHappening')}
+          </button>
           <label>
             {t('dev.simOffline')}
-            <input type="number" value={offlineHours} min={0} max={48} onChange={(e) => setOfflineHours(Number(e.target.value))} />
+            <input
+              type="number"
+              value={offlineHours}
+              min={0}
+              max={48}
+              onChange={(e) => setOfflineHours(Number(e.target.value))}
+            />
             <button
               onClick={() => {
-                state.lastSaved = Date.now() - offlineHours * 3600 * 1000;
-                const r = computeOffline(state, Date.now());
-                applyOffline(state, r);
-                engine.save();
+                // The same settlement and welcome back as a closed game, `offlineHours` long.
+                useStore.getState().simulateAway(offlineHours * 3600);
                 bump(engine);
               }}
             >
@@ -182,15 +242,17 @@ export function DevPanel() {
           </label>
           <button
             disabled={!platform.isDesktop}
-            onClick={() => void platform.setWindowSettings({ corner: 'bottom-right' } as Partial<WindowSettings>)}
+            onClick={() =>
+              void platform.setWindowSettings({ corner: 'bottom-right' } as Partial<WindowSettings>)
+            }
           >
             {t('dev.resetWindow')}
           </button>
           <button
             onClick={() => {
               audio.resume();
-              (['click', 'collect', 'upgrade', 'event', 'celebrate', 'prestige'] as const).forEach((s, i) =>
-                setTimeout(() => audio.play(s), i * 250),
+              (['click', 'collect', 'upgrade', 'event', 'celebrate', 'prestige'] as const).forEach(
+                (s, i) => setTimeout(() => audio.play(s), i * 250),
               );
             }}
           >

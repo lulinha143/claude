@@ -31,7 +31,9 @@ describe('scene scale', () => {
 
   it('keeps the figure-to-room ratio constant across every window size', () => {
     // This is the actual product requirement: ROOM -> CHARACTER stays locked.
-    const widths = [824, 900, 948, 1024, 1100, 1140, 1600, 2560];
+    // Includes the real companion windows (a 296px floor at 320px, 356px at the
+    // default 380px) — the case the old 0.7 floor got wrong.
+    const widths = [296, 356, 480, 620, 700, 824, 1140, 1600, 2560];
     const ratios = widths.map((w) => {
       const scale = sceneScaleForRoomWidth(w);
       const roomWidth = Math.min(w, SCENE_REFERENCE_ROOM_WIDTH);
@@ -55,11 +57,11 @@ describe('scene scale', () => {
     // Scale changes the room's height, which can add/remove the column's scrollbar,
     // which changes the room's width. Snapping means a ~15px nudge lands on the same
     // step instead of feeding back.
-    const base = sceneScaleForRoomWidth(1000);
-    expect(sceneScaleForRoomWidth(1002)).toBe(base);
-    expect(sceneScaleForRoomWidth(998)).toBe(base);
+    const base = sceneScaleForRoomWidth(500);
+    expect(sceneScaleForRoomWidth(502)).toBe(base);
+    expect(sceneScaleForRoomWidth(498)).toBe(base);
     // Every value is on the step grid, with no float dust.
-    for (const w of [820, 900, 1000, 1100, 1139]) {
+    for (const w of [300, 420, 560, 640, 699]) {
       const s = sceneScaleForRoomWidth(w);
       expect(Number.isFinite(s)).toBe(true);
       expect(Math.abs(Math.round(s / SCENE_SCALE_STEP) * SCENE_SCALE_STEP - s)).toBeLessThan(1e-6);

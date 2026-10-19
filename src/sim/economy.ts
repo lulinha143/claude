@@ -1,9 +1,10 @@
 import { BALANCE, geometricCost } from './config';
+import { BOND_THRESHOLDS } from '../content/stories';
 import type { GameState, ProductionResult, ProductionBreakdownEntry } from './types';
 import { EMPLOYEES, EMPLOYEES_BY_ID } from '../content/employees';
 import { ROOMS } from '../content/rooms';
 import { UPGRADES_BY_ID } from '../content/upgrades';
-import type { EmployeeDef, UpgradeDef } from '../content/types';
+import type { EmployeeDef, PrestigeBranchDef, UpgradeDef } from '../content/types';
 import { PRESTIGE_BRANCHES_BY_ID, PRESTIGE_SKILLS_BY_ID } from '../content/prestige';
 import { teamMoodMultiplier } from './mood';
 import { affinityMultiplier } from './affinity';
@@ -16,8 +17,17 @@ import { nextReputationTier } from '../content/reputationTiers';
 /** An employee's output = their base contribution × room-specialization bonus. */
 export function employeeOutput(state: GameState, def: EmployeeDef, level: number): number {
   const room = resolveEmployeeRoom(state, def.id);
-  return employeeContribution(def, level) * affinityMultiplier(def.id, room);
+  // A close friend works a little better (see sim/bonds.ts: the "close" stage).
+  const close = (state.employees[def.id]?.friendship ?? 0) >= BOND_THRESHOLDS.close;
+  return (
+    employeeContribution(def, level) *
+    affinityMultiplier(def.id, room) *
+    (close ? 1 + CLOSE_FRIEND_BONUS : 1)
+  );
 }
+
+/** How much better a close friend works. Mirrors `CLOSE_OUTPUT_BONUS` in sim/bonds. */
+export const CLOSE_FRIEND_BONUS = 0.1;
 
 /** A single employee's raw nuts/second contribution at a given level. */
 export function employeeContribution(def: EmployeeDef, level: number): number {
@@ -123,9 +133,17 @@ export function aggregatePassives(state: GameState): Passives {
 // Multipliers
 // --------------------------------------------------------------------------
 
+/**
+ * Production multiplier for a morale value.
+ *
+ * Morale above the base cap keeps counting at the same slope. It can only get
+ * there through the Morale Ceiling upgrades (and a cheerful team pushing the
+ * target past 100), and that purchase used to buy nothing at all: the curve was
+ * clamped at 100, so the extra ceiling was invisible to production.
+ */
 export function moraleMultiplier(morale: number): number {
   const { min, baseCap, minMultiplier, maxMultiplier } = BALANCE.morale;
-  const t = Math.max(0, Math.min(1, (morale - min) / (baseCap - min)));
+  const t = Math.max(0, (morale - min) / (baseCap - min));
   return minMultiplier + (maxMultiplier - minMultiplier) * t;
 }
 
@@ -179,6 +197,36 @@ export function prestigeMultiplier(state: GameState): number {
     mult *= 1 + skill.effect.perLevel * compound;
   }
   return mult;
+}
+
+/*
+ * A prestige branch defines THREE effects, and for a long time only
+ * `productionMultiplier` above was actually applied. The other two are read here.
+ *
+ * That mattered more than a normal dead field, because branch choice is permanent and
+ * once per run, and the branch cards describe these effects to the player in so many
+ * words: "Everyone's happy. High morale" (moraleBonus +20), "More rare events"
+ * (rareEventChance +5%), "Big rare-event chance" (+10%), "lower morale" (-5). Three of
+ * the five branches were selling a benefit that did not exist, and Cozy Cooperative —
+ * whose entire pitch is the morale — also carries the lowest production multiplier, so
+ * the branch that read as the friendly option was strictly the worst pick in the game.
+ *
+ * Kept as two small named accessors rather than folded into `aggregateCompanyModifiers`
+ * because these come from the run's permanent identity, not from the building, and the
+ * two are worth telling apart when balancing.
+ */
+function activeBranch(state: GameState): PrestigeBranchDef | undefined {
+  return state.prestige.branch ? PRESTIGE_BRANCHES_BY_ID[state.prestige.branch] : undefined;
+}
+
+/** Morale equilibrium shift from the run's permanent branch. */
+export function prestigeMoraleBonus(state: GameState): number {
+  return activeBranch(state)?.moraleBonus ?? 0;
+}
+
+/** Added chance per roll that something interesting happens, from the branch. */
+export function prestigeRareEventChance(state: GameState): number {
+  return activeBranch(state)?.rareEventChance ?? 0;
 }
 
 // --------------------------------------------------------------------------
@@ -280,19 +328,82 @@ export function productionBreakdown(state: GameState, focusActive: boolean): Pro
   };
 }
 
-export function clickPower(state: GameState): number {
+/**
+ * The hand's own strength: the click upgrades, nudged by the company multiplier.
+ * With the rooms' sharpening (`roomTapMultiplier`) this is the whole of a tap in
+ * the first minutes, and the only part premium (golden-nut) stations use.
+ */
+export function flatClickPower(
+  state: GameState,
+  prod: ProductionResult = computeProduction(state, false),
+): number {
   let power = BALANCE.baseClickPower;
   for (const [id, level] of Object.entries(state.upgrades)) {
     const def = UPGRADES_BY_ID[id];
     if (!def || level <= 0) continue;
     if (def.effect.kind === 'clickPower') power += def.effect.perLevel * level;
   }
-  // Rooms that sharpen the active layer raise tap value directly, so building for
-  // clicking is a real strategy rather than an early-game phase.
-  power *= 1 + aggregateCompanyModifiers(state).clickPower;
-  // clicks also benefit from the global multiplier so they stay relevant.
-  const prod = computeProduction(state, false);
   return Math.max(BALANCE.baseClickPower * 0.25, power) * Math.max(1, Math.sqrt(prod.multiplier));
+}
+
+/**
+ * Rooms that sharpen the active layer (the founder desk, Marketing on Buzz, a
+ * room's trade-off) scale the WHOLE tap — the hand and the production slice — so
+ * building for clicking is a real strategy at every size of company and a
+ * "+10% tap power" says what it does even once the slice carries the tap.
+ */
+export function roomTapMultiplier(state: GameState): number {
+  return Math.max(0.25, 1 + aggregateCompanyModifiers(state).clickPower);
+}
+
+/**
+ * The slice of the company's production a tap carries (see
+ * `BALANCE.tapProductionSeconds`). Unboosted: rushes, boosts and focus already pay
+ * through production, and must not compound into every tap as well.
+ */
+export function tapProductionShare(
+  state: GameState,
+  prod: ProductionResult = computeProduction(state, false),
+): number {
+  return Math.max(0, prod.nutsPerSecond) * BALANCE.tapProductionSeconds;
+}
+
+/**
+ * Combine the hand's strength with the production slice. Whichever is larger
+ * carries the tap: early it is the hand (unchanged opening), mid-game the click
+ * upgrades already keep pace (unchanged balance), and late — when a big team
+ * leaves the hand far behind — the slice takes over, so a tap stays worth a
+ * steady fraction of a second of production instead of decaying to nothing.
+ * A plain sum stacked both and made a mid-game burst 4-5x passive income; a plain
+ * max would have made click upgrades dead purchases late. The norm does neither:
+ * more strength always helps, and less as the slice dominates — honestly so.
+ */
+export function combineTapPower(flat: number, share: number): number {
+  return Math.hypot(Math.max(0, flat), Math.max(0, share));
+}
+
+/**
+ * What a tap on a payout-1 station is worth, before cadence, combo, synergy and
+ * crit (see `combineTapPower` and `roomTapMultiplier`).
+ */
+export function clickPower(state: GameState): number {
+  const prod = computeProduction(state, false);
+  return (
+    combineTapPower(flatClickPower(state, prod), tapProductionShare(state, prod)) *
+    roomTapMultiplier(state)
+  );
+}
+
+/**
+ * True when buying another level would change nothing: automation already banks
+ * everything, or the offline cap is at its ceiling. Such an upgrade is shown as
+ * complete and never offered as a goal, instead of selling a dead level.
+ */
+export function upgradeSaturated(state: GameState, def: UpgradeDef): boolean {
+  if (def.effect.kind === 'autoCollect') return autoCollectRate(state) >= 1;
+  if (def.effect.kind === 'offlineCapHours')
+    return offlineCapHours(state) >= BALANCE.offline.maxCapHours;
+  return false;
 }
 
 export function crateValue(state: GameState, focusActive: boolean): number {
@@ -354,6 +465,9 @@ export function autoCollectRate(state: GameState): number {
 }
 
 export function isEmployeeUnlocked(state: GameState, def: EmployeeDef): boolean {
+  // Hiring is permanent for this run. A reputation setback must not remove a
+  // colleague's conversation, coffee or promotion controls.
+  if (state.employees[def.id]?.hired) return true;
   if (def.unlock.reputation && state.resources.reputation < def.unlock.reputation) return false;
   if (def.unlock.prestige && state.prestige.count < def.unlock.prestige) return false;
   return true;

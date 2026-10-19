@@ -6,6 +6,7 @@
 
 export type SfxName =
   | 'click'
+  | 'paper'
   | 'collect'
   | 'upgrade'
   | 'event'
@@ -131,9 +132,12 @@ export interface AudioDiagnostics {
   buses: Record<AudioChannel, number>;
   /** number of currently-live oscillators/sources routed through the graph. */
   activeSources: number;
+  /** the room whose small sounds the office is making (null: the general office). */
+  roomInView: string | null;
 }
 
 export class AudioManager {
+  private lastTextureAt = new Map<SfxName, number>();
   private ctx: AudioContext | null = null;
   private master: GainNode | null = null;
   private musicGain: GainNode | null = null;
@@ -147,6 +151,8 @@ export class AudioManager {
   private humSource: AudioBufferSourceNode | null = null;
   private volumes: AudioVolumes = { master: 0.8, music: 0.4, ambience: 0.5, ui: 0.8, sfx: 0.8 };
   private flags: AudioFlags = { muted: false, quiet: false, focus: false };
+  /** the room in view, for the office's small sounds (see setRoomInView). */
+  private roomInView: string | null = null;
   /** live count of scheduled oscillators/sources, for dev diagnostics. */
   private activeSources = 0;
 
@@ -170,6 +176,7 @@ export class AudioManager {
         null;
       if (!Ctor) return;
       this.ctx = new Ctor();
+      this.lastTextureAt.clear();
       this.master = this.ctx.createGain();
       // A gentle master limiter catches peaks so the louder mix never clips.
       this.limiter = this.ctx.createDynamicsCompressor();
@@ -216,6 +223,7 @@ export class AudioManager {
         sfx: channelGain('sfx', this.volumes, this.flags, this.channelMuted),
       },
       activeSources: this.activeSources,
+      roomInView: this.roomInView,
     };
   }
 
@@ -442,12 +450,53 @@ export class AudioManager {
     }, delay);
   }
 
+  /**
+   * The room the player is looking at, so the office's small sounds can be that
+   * room's. Only the annex rooms have a voice of their own; everywhere else the
+   * office keeps its usual typing, paper and coffee. Same bus, same volume.
+   */
+  setRoomInView(roomId: string | null): void {
+    this.roomInView = roomId;
+  }
+
+  /** A sound from the room in view, if it has its own (two in three of them). */
+  private playRoomSound(now: number): boolean {
+    const room = this.roomInView;
+    if (room !== 'broadcast' && room !== 'repair' && room !== 'conservatory') return false;
+    if (Math.random() < 1 / 3) return false;
+    const pick = Math.random();
+    if (room === 'broadcast') {
+      // The booth: tape hiss, the faint tick of a needle, a VU meter kissing red.
+      if (pick < 0.45) this.noiseBurst(now, 0.6, 5200, 0.018);
+      else if (pick < 0.8) this.ambientTone(now, 1200, 1180, 0.05, 0.03);
+      else {
+        this.ambientTone(now, 440, 440, 0.18, 0.018);
+        this.ambientTone(now + 0.2, 554, 554, 0.18, 0.016);
+      }
+    } else if (room === 'repair') {
+      // The bench: a ratchet, a screw dropped in a tray, the far hum of a motor.
+      if (pick < 0.45) {
+        for (let i = 0; i < 4; i += 1) this.keyClick(now + i * 0.045);
+      } else if (pick < 0.8) this.ambientTone(now, 2100, 1300, 0.09, 0.04);
+      else this.ambientTone(now, 98, 104, 0.9, 0.035);
+    } else {
+      // The glass: water dripping into a tray, a leaf, a pane ticking in the sun.
+      if (pick < 0.5) {
+        this.ambientTone(now, 1100, 620, 0.14, 0.045);
+        this.ambientTone(now + 0.26, 1300, 700, 0.12, 0.03);
+      } else if (pick < 0.8) this.noiseBurst(now, 0.45, 900, 0.025);
+      else this.ambientTone(now, 2600, 2550, 0.04, 0.02);
+    }
+    return true;
+  }
+
   private playAmbientSound(): void {
     if (!this.ctx || !this.ambienceGain) return;
     if (this.effectiveMaster() <= 0 || this.volumes.ambience <= 0) return;
+    const now = this.ctx.currentTime;
+    if (this.playRoomSound(now)) return;
     const kinds = ['type', 'type', 'paper', 'coffee', 'creak', 'drip'] as const;
     const kind = kinds[Math.floor(Math.random() * kinds.length)];
-    const now = this.ctx.currentTime;
     switch (kind) {
       case 'type': {
         const count = 3 + Math.floor(Math.random() * 5);
@@ -518,9 +567,52 @@ export class AudioManager {
     src.start(time);
   }
 
+  // -- voices ---------------------------------------------------------------
+  /**
+   * A teammate "speaking": a short, soft babble of syllables in their own voice
+   * (pitch, timbre and pace from content/characters.ts), the way little animals
+   * talk in games. Routed through the effects channel, so it obeys every mute and
+   * volume the effects do, and capped at a handful of syllables so it is never
+   * noise.
+   */
+  voice(
+    profile: { base: number; wave: OscillatorType; pace: number },
+    syllables = 4,
+    seed = 0,
+  ): void {
+    const bus = this.sfxGain;
+    if (!this.ctx || !bus || this.flags.muted) return;
+    if (channelGain('sfx', this.volumes, this.flags, this.channelMuted) <= 0) return;
+    const now = this.ctx.currentTime;
+    const step = Math.max(0.04, profile.pace / 1000);
+    const count = Math.max(1, Math.min(7, syllables));
+    // A small deterministic melody per line, so a sentence has a shape.
+    let x = (seed * 9301 + 49297) % 233280;
+    for (let i = 0; i < count; i += 1) {
+      x = (x * 9301 + 49297) % 233280;
+      const lift = 0.86 + (x / 233280) * 0.32 + (i === count - 1 ? 0.06 : 0);
+      const at = now + i * step;
+      const osc = this.ctx.createOscillator();
+      const g = this.ctx.createGain();
+      const lp = this.ctx.createBiquadFilter();
+      lp.type = 'lowpass';
+      lp.frequency.value = 1800;
+      osc.type = profile.wave;
+      osc.frequency.setValueAtTime(profile.base * lift, at);
+      osc.frequency.exponentialRampToValueAtTime(profile.base * lift * 0.92, at + step * 0.8);
+      g.gain.setValueAtTime(0.0001, at);
+      g.gain.exponentialRampToValueAtTime(profile.wave === 'sine' ? 0.12 : 0.06, at + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, at + step * 0.85);
+      osc.connect(g).connect(lp).connect(bus);
+      this.track(osc);
+      osc.start(at);
+      osc.stop(at + step);
+    }
+  }
+
   // -- SFX ------------------------------------------------------------------
   play(name: SfxName, opts: SfxOptions = {}): void {
-    const isUi = name === 'click' || name === 'error';
+    const isUi = name === 'click' || name === 'error' || name === 'paper';
     // A combo can run long, so clamp the pitch into a range that stays musical
     // instead of climbing into a whistle.
     const pitch = Math.max(0.5, Math.min(2.4, opts.pitch ?? 1));
@@ -532,6 +624,11 @@ export class AudioManager {
     // Skip creating nodes entirely when the channel is silent (CPU saving).
     if (channelGain(isUi ? 'ui' : 'sfx', this.volumes, this.flags, this.channelMuted) <= 0) return;
     const now = this.ctx.currentTime;
+    if (name === 'stationTap' || name === 'cableMove') {
+      const previous = this.lastTextureAt.get(name);
+      if (previous !== undefined && now - previous < 0.04) return;
+      this.lastTextureAt.set(name, now);
+    }
 
     const beep = (
       freq: number,
@@ -607,6 +704,10 @@ export class AudioManager {
         break;
       case 'event':
         beep(330, 0.18, 'sawtooth', 0, 0.2, 494);
+        break;
+      case 'paper':
+        beep(1800, 0.035, 'triangle', 0, 0.035, 700);
+        beep(1100, 0.045, 'triangle', 0.04, 0.025, 460);
         break;
       case 'footstep':
         beep(180, 0.04, 'triangle', 0, 0.12);

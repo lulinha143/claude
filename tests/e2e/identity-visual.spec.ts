@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { openView } from './support/shell';
 
 const LABEL = process.env.IDENTITY_SHOT_LABEL ?? 'current';
 const DIR = 'visual-artifacts/identity';
@@ -81,42 +82,66 @@ for (const scenario of [
     await dismiss(page);
     await page.evaluate(() => document.fonts.ready);
 
-    const brandMark = page.locator('.header__brand-mark');
+    // The HUD is a walnut shelf (grain + shadow) carrying a die-cut logo sticker.
+    const brandMark = page.locator('.hud__logo');
     await expect(brandMark).toBeVisible();
     await expect(brandMark.locator('svg')).toHaveAttribute('aria-hidden', 'true');
-    const tactileHeader = await page.locator('.header').evaluate((element) => {
+    const shelf = await page.locator('.hud').evaluate((element) => {
       const style = getComputedStyle(element);
       return { background: style.backgroundImage, shadow: style.boxShadow };
     });
-    expect(tactileHeader.background).not.toBe('none');
-    expect(tactileHeader.shadow).not.toBe('none');
+    expect(shelf.background).not.toBe('none');
+    expect(shelf.shadow).not.toBe('none');
+    const sticker = await brandMark.evaluate((element) => getComputedStyle(element).boxShadow);
+    expect(sticker).not.toBe('none');
 
-    const roomTagMark = await page
-      .locator('.floor__label')
+    // Each floor carries a painted name plaque, never an unstyled label.
+    const plaque = await page
+      .locator('.floor[data-room] .floor__label')
       .first()
-      .evaluate((element) => getComputedStyle(element, '::before').backgroundImage);
-    expect(roomTagMark).not.toBe('none');
+      .evaluate((element) => {
+        const style = getComputedStyle(element);
+        return { background: style.backgroundColor, font: style.fontFamily };
+      });
+    expect(plaque.background).not.toBe('rgba(0, 0, 0, 0)');
+    expect(plaque.font).toContain('DynaPuff');
+
+    // One two-face identity: no Georgia (or any serif) anywhere on screen.
+    const serif = await page.evaluate(() =>
+      [...document.querySelectorAll<HTMLElement>('.app *')]
+        .filter((element) => element.childElementCount === 0 && element.textContent?.trim())
+        .map((element) => getComputedStyle(element).fontFamily)
+        .filter((family) => /georgia|serif(?!-)/i.test(family) && !/sans-serif/i.test(family)),
+    );
+    expect(serif).toEqual([]);
 
     await page.screenshot({ path: `${DIR}/${LABEL}-${scenario.name}-office.png`, fullPage: false });
 
     if (scenario.width >= 1000) {
-      await page.getByRole('button', { name: /^Upgrades$|^Melhorias$/i }).click();
+      await openView(page, 'shop');
       await expect(page.locator('.view--shop')).toBeVisible();
       await page.mouse.move(scenario.width - 24, scenario.height - 24);
       await dismiss(page);
-      const card = page.locator('.card').first();
+      const card = page.locator('.sheet .card').first();
       await expect(card).toBeVisible();
-      const tactileCard = await card.evaluate((element) => {
+      // Cards are cream paper with an ink outline and a soft lift.
+      const paperCard = await card.evaluate((element) => {
         const style = getComputedStyle(element);
-        return { background: style.backgroundImage, shadow: style.boxShadow };
+        return {
+          border: style.borderTopWidth,
+          shadow: style.boxShadow,
+          radius: style.borderTopLeftRadius,
+        };
       });
-      expect(tactileCard.background).not.toBe('none');
-      expect(tactileCard.shadow).not.toBe('none');
+      expect(paperCard.border).not.toBe('0px');
+      expect(paperCard.shadow).not.toBe('none');
+      expect(parseFloat(paperCard.radius)).toBeGreaterThanOrEqual(8);
+      // The sheet's title is set in the display face.
       expect(
         await page
-          .locator('.view h2')
-          .evaluate((element) => getComputedStyle(element, '::after').backgroundImage),
-      ).not.toBe('none');
+          .locator('.sheet__title')
+          .evaluate((element) => getComputedStyle(element).fontFamily),
+      ).toContain('DynaPuff');
       await page.screenshot({
         path: `${DIR}/${LABEL}-${scenario.name}-cards.png`,
         fullPage: false,
@@ -137,28 +162,16 @@ test('high-contrast identity preserves marks, states, and compact reachability',
   const app = page.locator('.app');
   await expect(page.locator('html')).toHaveAttribute('data-high-contrast', 'true');
 
-  const brandMark = page.locator('.header__brand-mark');
+  const brandMark = page.locator('.hud__logo');
   const markColors = await brandMark.evaluate((element) => {
     const style = getComputedStyle(element);
     return { color: style.color, background: style.backgroundColor };
   });
   expect(markColors.color).not.toBe(markColors.background);
 
-  const activeNav = page.locator('.nav__item.is-active');
-  const activeColors = await activeNav.evaluate((element) => {
-    const style = getComputedStyle(element);
-    return { color: style.color, background: style.backgroundColor };
-  });
-  expect(activeColors.color).toBe('rgb(0, 0, 0)');
-  expect(activeColors.background).toBe('rgb(255, 255, 255)');
-
-  // The nav's decorative pseudo is now the open tab's join overlay, which reaches a
-  // pixel past the tab into the content and so must never intercept a click.
-  for (const selector of [
-    '.header::after',
-    '.nav__tab.is-active::after',
-    '.floor__label::before',
-  ]) {
+  // Decorative pseudo-elements (the room's wainscot and floor shading) never
+  // intercept a click.
+  for (const selector of ['.floor[data-room]::before', '.floor[data-room]::after']) {
     const [base, pseudo] = selector.split('::');
     expect(
       await page
@@ -172,23 +185,30 @@ test('high-contrast identity preserves marks, states, and compact reachability',
   }
 
   const appBox = await app.boundingBox();
-  const headerBox = await page.locator('.header').boundingBox();
-  const navBox = await page.locator('.nav').boundingBox();
+  const hudBox = await page.locator('.hud').boundingBox();
+  const dockBox = await page.locator('.dock').boundingBox();
   expect(appBox).not.toBeNull();
-  expect(headerBox).not.toBeNull();
-  expect(navBox).not.toBeNull();
-  expect(headerBox!.x).toBeGreaterThanOrEqual(appBox!.x);
-  expect(headerBox!.x + headerBox!.width).toBeLessThanOrEqual(appBox!.x + appBox!.width + 1);
-  expect(navBox!.x + navBox!.width).toBeLessThanOrEqual(appBox!.x + appBox!.width + 1);
+  expect(hudBox).not.toBeNull();
+  expect(dockBox).not.toBeNull();
+  expect(hudBox!.x).toBeGreaterThanOrEqual(appBox!.x);
+  expect(hudBox!.x + hudBox!.width).toBeLessThanOrEqual(appBox!.x + appBox!.width + 1);
+  expect(dockBox!.x + dockBox!.width).toBeLessThanOrEqual(appBox!.x + appBox!.width + 1);
 
   const audioButton = page.getByTestId('mute-toggle');
   const before = await audioButton.getAttribute('aria-pressed');
   await audioButton.click();
   await expect(audioButton).toHaveAttribute('aria-pressed', before === 'true' ? 'false' : 'true');
 
-  const upgradesNav = page.getByRole('button', { name: /^Upgrades$/i });
-  await upgradesNav.click();
-  await expect(upgradesNav).toHaveClass(/is-active/);
+  await openView(page, 'shop');
+  const upgradesDock = page.locator('.dock__item[data-dock="upgrades"]');
+  await expect(upgradesDock).toHaveClass(/is-active/);
+  // The open destination is ink on white paper in high contrast.
+  const activeColors = await upgradesDock.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return { color: style.color, background: style.backgroundColor };
+  });
+  expect(activeColors.color).toBe('rgb(0, 0, 0)');
+  expect(activeColors.background).toBe('rgb(255, 255, 255)');
   const disabledPurchase = page.locator('.buy-btn:disabled').first();
   if (await disabledPurchase.count()) {
     const disabledColors = await disabledPurchase.evaluate((element) => {

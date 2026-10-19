@@ -32,3 +32,12 @@ export function upgradeBonus(state: GameState, kind: UpgradeEffectKind): number 
   }
   return total;
 }
+
+/**
+ * What the "negotiation" line does to a decision's favourable outcomes: gains of
+ * nuts and reputation are worth this many times their authored amount (penalties
+ * are untouched). The engine applies it and a card's preview reads the same.
+ */
+export function eventRewardMultiplier(state: GameState): number {
+  return 1 + upgradeBonus(state, 'eventReward');
+}

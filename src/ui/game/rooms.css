@@ -1,0 +1,836 @@
+/* Phase 2: every room is its own place inside the same strange, cute company.
+   The legacy layer gave most departments a palette; this gives each one its own
+   architecture (where the window is and what shape it has), materials, light and
+   one small living detail tied to that architecture. Everything is decorative,
+   pointer-transparent, inside `.room-dressing` (z 0), and pauses off screen. */
+@layer game {
+  /* ---- Founder's Desk: the study where it all started ------------------------ */
+  .rd--founder-desk {
+    --fixture-x: 30%;
+    --fixture-glow: rgb(255 220 150 / 0.55);
+    --room-light: radial-gradient(110% 80% at 80% 0%, rgb(255 226 168 / 0.3), transparent 62%);
+  }
+  .rd--founder-desk .room-dressing__wall {
+    background:
+      linear-gradient(180deg, transparent 0 57%, #7d9b62 57% 58.6%, #557a4a 58.6% 100%),
+      radial-gradient(circle, rgb(150 110 60 / 0.2) 0 1.4px, transparent 1.7px) 0 0 / 16px 16px,
+      linear-gradient(180deg, #f7ebd3, #efdfc0);
+  }
+  .rd--founder-desk .room-dressing__wall::after {
+    inset: 58.6% 0 0 0;
+    background-image: repeating-linear-gradient(
+      90deg,
+      transparent 0 calc(14.28% - 2px),
+      rgb(28 48 24 / 0.28) calc(14.28% - 2px) 14.28%
+    );
+    opacity: 1;
+  }
+  .rd--founder-desk .room-dressing__rail {
+    display: none;
+  }
+  .rd--founder-desk .room-dressing__floor {
+    background: linear-gradient(180deg, #bd8a55, #a26d3d);
+  }
+  .rd--founder-desk .room-dressing__window {
+    top: 6%;
+    right: 13%;
+    width: calc(70px * var(--asset-scale));
+    height: calc(80px * var(--asset-scale));
+    border-radius: 40px 40px 4px 4px;
+    --win-frame: #8a6236;
+  }
+  /* Late-afternoon sun through the arched window, breathing slowly. */
+  .rd--founder-desk .room-dressing__light::before {
+    content: '';
+    position: absolute;
+    top: 4%;
+    right: 4%;
+    width: 30%;
+    height: 120%;
+    background: linear-gradient(196deg, rgb(255 240 196 / 0.42), transparent 72%);
+    transform: skewX(20deg);
+    transform-origin: top;
+    mix-blend-mode: screen;
+    animation: room-breathe 9s ease-in-out infinite alternate;
+  }
+
+  /* ---- Nut Cafeteria: tiles, a serving hatch and a checkered floor ----------- */
+  .rd--cafeteria {
+    --fixture-x: 20%;
+    --fixture-glow: rgb(255 214 140 / 0.6);
+    --room-light: linear-gradient(180deg, rgb(255 236 180 / 0.18), transparent 60%);
+  }
+  .rd--cafeteria .room-dressing__wall {
+    background:
+      linear-gradient(180deg, #f9e6a2 0 50%, #e5cf86 50% 51.6%, transparent 51.6%),
+      repeating-linear-gradient(0deg, #cfe9da 0 9px, #b5d6c4 9px 10px), #cfe9da;
+  }
+  .rd--cafeteria .room-dressing__wall::after {
+    inset: 51.6% 0 0 0;
+    background-image: repeating-linear-gradient(
+      90deg,
+      transparent 0 18px,
+      rgb(110 150 128 / 0.5) 18px 19px
+    );
+    opacity: 0.7;
+  }
+  .rd--cafeteria .room-dressing__floor {
+    background: conic-gradient(#efe5d2 0 25%, #8a6f58 0 50%, #efe5d2 0 75%, #8a6f58 0) 0 0 / 20px
+      20px;
+  }
+  .rd--cafeteria .room-dressing__floor::before,
+  .rd--cafeteria .room-dressing__floor::after {
+    content: none;
+  }
+  .rd--cafeteria .room-dressing__window {
+    top: 15%;
+    right: 7%;
+    width: calc(136px * var(--asset-scale));
+    height: calc(44px * var(--asset-scale));
+    border-radius: 6px;
+    --win-frame: #6f9c86;
+    --win-sky: linear-gradient(180deg, #ffe3a8, #f6c98a);
+  }
+  /* Steam curling up from the hatch. */
+  .rd--cafeteria .room-dressing__light::before {
+    content: '';
+    position: absolute;
+    top: 2%;
+    right: 12%;
+    width: 18%;
+    height: 22%;
+    background:
+      radial-gradient(40% 50% at 30% 70%, rgb(255 255 255 / 0.55), transparent 70%),
+      radial-gradient(35% 45% at 70% 40%, rgb(255 255 255 / 0.45), transparent 70%);
+    filter: blur(2px);
+    animation: room-steam 4.8s ease-in-out infinite;
+  }
+
+  /* ---- Mail Room: pigeonholes and a postal stripe --------------------------- */
+  .rd--mailroom {
+    --room-light: linear-gradient(180deg, rgb(235 245 255 / 0.18), transparent 70%);
+  }
+  .rd--mailroom .room-dressing__wall {
+    background:
+      linear-gradient(
+          180deg,
+          transparent 0 44%,
+          #c8463e 44% 46%,
+          #f4efe2 46% 47.5%,
+          #3e6db0 47.5% 49.5%,
+          transparent 49.5%
+        )
+        no-repeat,
+      repeating-linear-gradient(90deg, #8d6a44 0 3px, transparent 3px 30px) 0 100% / 100% 50%
+        no-repeat,
+      repeating-linear-gradient(0deg, #8d6a44 0 3px, transparent 3px 21px) 0 100% / 100% 50%
+        no-repeat,
+      linear-gradient(180deg, #e3e8ea 0 50%, #d6bf95 50%);
+  }
+  .rd--mailroom .room-dressing__wall::after {
+    content: none;
+  }
+  .rd--mailroom .room-dressing__floor {
+    background: linear-gradient(180deg, #b9b49f, #a49f8a);
+  }
+  .rd--mailroom .room-dressing__window {
+    top: 9%;
+    right: 44%;
+    width: calc(48px * var(--asset-scale));
+    height: calc(42px * var(--asset-scale));
+  }
+
+  /* ---- Security: the dark monitor room ------------------------------------ */
+  .rd--security {
+    --room-light: radial-gradient(90% 70% at 20% 30%, rgb(120 190 255 / 0.18), transparent 70%);
+  }
+  .rd--security .room-dressing__wall {
+    background:
+      repeating-linear-gradient(90deg, #34445a 0 calc(20% - 2px), #29374a calc(20% - 2px) 20%),
+      #34445a;
+  }
+  .rd--security .room-dressing__wall::after {
+    content: none;
+  }
+  .rd--security .room-dressing__floor {
+    background:
+      radial-gradient(circle, rgb(255 255 255 / 0.07) 0 1.2px, transparent 1.5px) 0 0 / 9px 9px,
+      linear-gradient(180deg, #3d434b, #2f343b);
+  }
+  .rd--security .room-dressing__window,
+  .rd--security .room-dressing__fixture {
+    display: none;
+  }
+  /* The red beacon turns lazily above the door. */
+  .rd--security .room-dressing__light::before {
+    content: '';
+    position: absolute;
+    top: -20%;
+    left: 40%;
+    width: 30%;
+    height: 70%;
+    background: radial-gradient(closest-side, rgb(255 80 70 / 0.42), transparent);
+    animation: room-beacon 3.2s ease-in-out infinite;
+  }
+
+  /* ---- Archive: a hushed library ----------------------------------------- */
+  .rd--archive {
+    --fixture-glow: rgb(255 210 140 / 0.45);
+    --room-light: radial-gradient(70% 90% at 50% 0%, rgb(255 222 160 / 0.22), transparent 70%);
+  }
+  .rd--archive .room-dressing__wall {
+    background: repeating-linear-gradient(
+      90deg,
+      #3f5a45 0 13px,
+      #47644e 13px 14px,
+      #3f5a45 14px 26px,
+      rgb(214 178 102 / 0.45) 26px 27px
+    );
+  }
+  .rd--archive .room-dressing__wall::after {
+    content: none;
+  }
+  .rd--archive .room-dressing__floor {
+    background:
+      repeating-linear-gradient(90deg, rgb(0 0 0 / 0.06) 0 2px, transparent 2px 12px),
+      linear-gradient(180deg, #84413a, #6c322d);
+  }
+  .rd--archive .room-dressing__window {
+    top: 5%;
+    right: auto;
+    left: calc(50% - 18px * var(--asset-scale));
+    width: calc(36px * var(--asset-scale));
+    height: calc(36px * var(--asset-scale));
+    border-radius: 50%;
+  }
+  /* A shaft of dusty light from the oculus. */
+  .rd--archive .room-dressing__light::before {
+    content: '';
+    position: absolute;
+    top: 8%;
+    left: 44%;
+    width: 14%;
+    height: 100%;
+    background: linear-gradient(180deg, rgb(255 236 190 / 0.32), transparent 85%);
+    transform: skewX(-8deg);
+    mix-blend-mode: screen;
+    animation: room-breathe 11s ease-in-out infinite alternate;
+  }
+
+  /* ---- Incubator: a humid little greenhouse -------------------------------- */
+  .rd--incubator {
+    --room-light: radial-gradient(90% 80% at 50% 0%, rgb(220 160 255 / 0.18), transparent 70%);
+  }
+  .rd--incubator .room-dressing__wall {
+    background:
+      repeating-linear-gradient(90deg, rgb(255 255 255 / 0.6) 0 2px, transparent 2px 38px),
+      repeating-linear-gradient(0deg, rgb(255 255 255 / 0.6) 0 2px, transparent 2px 28px),
+      linear-gradient(180deg, #cde8d0, #b4dbbc);
+  }
+  .rd--incubator .room-dressing__wall::after {
+    content: none;
+  }
+  .rd--incubator .room-dressing__floor {
+    background:
+      repeating-linear-gradient(90deg, #b3653f 0 1px, transparent 1px 18px),
+      linear-gradient(180deg, #cf7d55, #ba6a43);
+  }
+  .rd--incubator .room-dressing__window {
+    top: 6%;
+    right: 6%;
+    width: calc(118px * var(--asset-scale));
+    height: calc(74px * var(--asset-scale));
+    border-radius: 4px;
+    --win-frame: #f5f2ea;
+  }
+  /* The grow light hums. */
+  .rd--incubator .room-dressing__light::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(60% 50% at 50% 0%, rgb(210 140 255 / 0.22), transparent);
+    animation: room-breathe 6s ease-in-out infinite alternate;
+  }
+
+  /* ---- The three annex rooms -------------------------------------------------
+     Their look was lost with the old release stylesheet (b138638), so they drew
+     as the default beige room. Each now has its own architecture (AnnexArchitecture
+     draws what these layers cannot), materials and light, a living detail, and
+     the floor left clear for the player's furniture. */
+  .annex-architecture {
+    position: absolute;
+    inset: 0 0 32% 0;
+    width: 100%;
+    height: 68%;
+    pointer-events: none;
+  }
+
+  /* A corner window: the wall fixtures hang a little closer to the room's
+     corners, so the routine badge on a machine by that wall has the column
+     between the fixture and the first teammate to itself. (A curiosity at a
+     fixture moves with it: play.css, which owns the markers.) */
+  @container office (max-width: 559px) {
+    .room-dressing__prop--wallLeft {
+      top: 5%;
+      left: 2.5%;
+    }
+    .room-dressing__prop--wallRight {
+      top: 5%;
+      right: 3%;
+    }
+  }
+
+  /* -- Radio studio: a cork-lined booth in warm low light, the lamp always lit -- */
+  .rd--broadcast {
+    --fixture-x: 50%;
+    --fixture-glow: rgb(255 170 120 / 0.5);
+    --ceil: #5b4636;
+    --ceil-trim: #3e2f23;
+    --rail-y: 0%;
+    --room-ao: 0.3;
+    --room-light: radial-gradient(70% 90% at 50% 8%, rgb(255 132 96 / 0.2), transparent 70%);
+  }
+  .rd--broadcast .room-dressing__wall {
+    background:
+      linear-gradient(180deg, transparent 0 82%, rgb(40 26 12 / 0.18) 100%),
+      radial-gradient(circle, rgb(60 38 20 / 0.12) 0 1px, transparent 1.4px) 0 0 / 7px 7px,
+      linear-gradient(180deg, #8b6a4c, #775a40);
+  }
+  .rd--broadcast .room-dressing__wall::after {
+    content: none;
+  }
+  .rd--broadcast .room-dressing__floor {
+    /* carpet tiles, the sort that swallow footsteps */
+    background:
+      conic-gradient(
+          rgb(0 0 0 / 0.06) 0 25%,
+          transparent 0 50%,
+          rgb(0 0 0 / 0.06) 0 75%,
+          transparent 0
+        )
+        0 0 / 26px 26px,
+      linear-gradient(180deg, #6c4f5e, #5a4150);
+  }
+  .rd--broadcast .room-dressing__floor::before,
+  .rd--broadcast .room-dressing__floor::after {
+    content: none;
+  }
+  .rd--broadcast .room-dressing__baseboard {
+    background: #3e2f23;
+  }
+  /* The booth window: a dark control-room pane, a red tally reflected in it. */
+  .rd--broadcast .room-dressing__window {
+    top: 24%;
+    right: auto;
+    left: 37%;
+    width: 24%;
+    height: calc(44px * var(--asset-scale));
+    border-radius: 4px;
+    --win-frame: #2c2119;
+    --win-sky: linear-gradient(180deg, #2e3b44, #1e282f);
+  }
+  .rd--broadcast .room-dressing__window::before,
+  .rd--broadcast .room-dressing__window::after {
+    content: none;
+  }
+  .rd--broadcast .room-dressing__window-glow {
+    background:
+      radial-gradient(18% 50% at 76% 60%, rgb(255 90 70 / 0.35), transparent 70%),
+      linear-gradient(115deg, transparent 0 30%, rgb(255 255 255 / 0.1) 31% 38%, transparent 39%);
+  }
+  .rd--broadcast .room-dressing__fixture {
+    display: none;
+  }
+  .annex__cork {
+    fill: #b88a5a;
+    stroke: #8a6238;
+    stroke-width: 2;
+  }
+  .annex__cork-seam {
+    fill: none;
+    stroke: rgb(110 76 42 / 0.5);
+    stroke-width: 1.5;
+  }
+  .annex__door {
+    fill: rgb(46 33 24 / 0.55);
+    stroke: #3e2f23;
+    stroke-width: 4;
+  }
+  /* The ON AIR lamp over the door: lit, and breathing (always about to be live). */
+  .annex__onair {
+    position: absolute;
+    top: 13%;
+    right: 3.2%;
+    z-index: 1;
+    padding: calc(2px * var(--asset-scale)) calc(6px * var(--asset-scale));
+    color: #fff3e6;
+    background: #d8463a;
+    border: calc(3px * var(--asset-scale)) solid #2c2119;
+    border-radius: calc(5px * var(--asset-scale));
+    box-shadow: 0 0 calc(10px * var(--asset-scale)) rgb(255 90 70 / 0.55);
+    /* Still a word, not a red dot, in a corner window. */
+    font: 800 max(7px, calc(9px * var(--asset-scale))) / 1 var(--font-body);
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+    animation: annex-onair 3.2s ease-in-out infinite;
+  }
+  @keyframes annex-onair {
+    50% {
+      box-shadow: 0 0 calc(4px * var(--asset-scale)) rgb(255 90 70 / 0.3);
+      background: #c23d32;
+    }
+  }
+
+  /* -- Repair workshop: a maintenance bay, cool fluorescent light on steel ------ */
+  .rd--repair {
+    --fixture-x: 30%;
+    --fixture-glow: rgb(220 245 255 / 0.5);
+    --ceil: #9aa39c;
+    --ceil-trim: #6c766f;
+    --rail-y: 30%;
+    --wainscot: #8e9a90;
+    --room-ao: 0.22;
+    --room-light: linear-gradient(180deg, rgb(225 245 255 / 0.18), transparent 70%);
+  }
+  .rd--repair .room-dressing__wall {
+    /* painted cinder block */
+    background: repeating-linear-gradient(0deg, #b9c2b6 0 22px, #a6afa3 22px 24px), #b9c2b6;
+  }
+  .rd--repair .room-dressing__wall::after {
+    inset: 0;
+    background-image: repeating-linear-gradient(
+      90deg,
+      transparent 0 46px,
+      rgb(80 92 82 / 0.22) 46px 48px
+    );
+    background-size: 96px 24px;
+    opacity: 1;
+  }
+  .rd--repair .room-dressing__floor {
+    /* sealed concrete, with a painted safety line */
+    background:
+      linear-gradient(180deg, transparent 0 18%, #d6a93a 18% 24%, transparent 24%),
+      radial-gradient(circle, rgb(0 0 0 / 0.08) 0 1px, transparent 1.4px) 0 0 / 11px 9px,
+      linear-gradient(180deg, #a7aaa0, #8f9389);
+  }
+  .rd--repair .room-dressing__floor::before,
+  .rd--repair .room-dressing__floor::after {
+    content: none;
+  }
+  .rd--repair .room-dressing__baseboard {
+    background: #5b6560;
+  }
+  /* The window is a high, wired-glass strip over the bench. */
+  .rd--repair .room-dressing__window {
+    top: 16%;
+    right: auto;
+    left: 26%;
+    width: calc(120px * var(--asset-scale));
+    height: calc(26px * var(--asset-scale));
+    border-radius: 2px;
+    --win-frame: #55605a;
+    --win-sky: linear-gradient(180deg, #cfe2e2, #b7cfcf);
+  }
+  .rd--repair .room-dressing__window-glow {
+    background:
+      repeating-linear-gradient(45deg, rgb(70 80 74 / 0.25) 0 1px, transparent 1px 6px),
+      repeating-linear-gradient(-45deg, rgb(70 80 74 / 0.25) 0 1px, transparent 1px 6px);
+  }
+  .annex__rail {
+    stroke: #535d57;
+    stroke-width: 6;
+  }
+  .annex__steel {
+    fill: #7d8882;
+    stroke: #535d57;
+    stroke-width: 2;
+  }
+  .annex__chain {
+    fill: none;
+    stroke: #4b544f;
+    stroke-width: 2;
+    stroke-dasharray: 3 2;
+  }
+  .annex__hook {
+    fill: none;
+    stroke: #4b544f;
+    stroke-width: 3;
+    stroke-linecap: round;
+  }
+  .annex__bay {
+    fill: #8a958d;
+    stroke: #535d57;
+    stroke-width: 3;
+  }
+  .annex__slat {
+    stroke: #6f7a73;
+    stroke-width: 2;
+  }
+  .annex__hazard {
+    fill: #d6a93a;
+    stroke: #3a3a2c;
+    stroke-width: 1;
+    stroke-dasharray: 8 8;
+  }
+  .annex__breaker {
+    stroke: #3f4844;
+    stroke-width: 2;
+  }
+  /* The crane trolley creeps along its rail now and then. */
+  .annex__trolley {
+    animation: annex-trolley 22s ease-in-out infinite;
+  }
+  @keyframes annex-trolley {
+    0%,
+    30% {
+      translate: 0 0;
+    }
+    55%,
+    80% {
+      translate: 120px 0;
+    }
+  }
+
+  /* -- Conservatory: iron and glass, green light, a roof full of sky ------------ */
+  .rd--conservatory {
+    --fixture-x: 50%;
+    --rail-y: 0%;
+    --ceil-h: 0%;
+    --room-ao: 0.12;
+    --room-light: radial-gradient(90% 70% at 50% 0%, rgb(220 255 200 / 0.24), transparent 72%);
+  }
+  .rd--conservatory .room-dressing__ceiling,
+  .rd--conservatory .room-dressing__rail,
+  .rd--conservatory .room-dressing__fixture {
+    display: none;
+  }
+  .rd--conservatory .room-dressing__wall {
+    background: linear-gradient(180deg, #cfe6ec 0%, #e3f0dc 70%, #d4e4c4 100%);
+  }
+  .rd--conservatory .room-dressing__wall::after {
+    content: none;
+  }
+  .rd--conservatory .room-dressing__floor {
+    /* terracotta tiles, damp at the edges */
+    background:
+      repeating-linear-gradient(90deg, rgb(120 60 36 / 0.3) 0 2px, transparent 2px 34px),
+      repeating-linear-gradient(0deg, rgb(120 60 36 / 0.25) 0 2px, transparent 2px 14px),
+      linear-gradient(180deg, #c98a64, #b5754f);
+  }
+  .rd--conservatory .room-dressing__floor::before,
+  .rd--conservatory .room-dressing__floor::after {
+    content: none;
+  }
+  .rd--conservatory .room-dressing__baseboard {
+    height: 6px;
+    background: #4f6656;
+  }
+  /* Its window is the roof itself (drawn by AnnexArchitecture). */
+  .rd--conservatory .room-dressing__window {
+    display: none;
+  }
+  .annex__glass {
+    fill: rgb(200 230 238 / 0.55);
+  }
+  .annex__rib,
+  .annex__purlin {
+    fill: none;
+    stroke: #4f6656;
+    stroke-width: 4;
+  }
+  .annex__sill {
+    stroke: #4f6656;
+    stroke-width: 7;
+  }
+  .annex__pot {
+    fill: #b86f45;
+    stroke: #7c4628;
+    stroke-width: 1.5;
+  }
+  .annex__trail {
+    fill: none;
+    stroke: #5a9a5a;
+    stroke-width: 3;
+    stroke-linecap: round;
+  }
+  .annex-architecture--conservatory .annex__chain {
+    stroke: #4f6656;
+  }
+  /* Light comes through the glass and drifts as the clouds go over. */
+  .rd--conservatory .room-dressing__light::before {
+    content: '';
+    position: absolute;
+    inset: -10% -40% 30% -40%;
+    background:
+      linear-gradient(100deg, transparent 0 30%, rgb(255 255 230 / 0.28) 36% 44%, transparent 50%),
+      linear-gradient(100deg, transparent 0 58%, rgb(255 255 230 / 0.2) 62% 68%, transparent 72%);
+    mix-blend-mode: screen;
+    animation: annex-sun 30s ease-in-out infinite alternate;
+  }
+  @keyframes annex-sun {
+    to {
+      translate: 18% 0;
+    }
+  }
+  /* Condensation runs down the glass, very slowly. */
+  .rd--conservatory .room-dressing__light::after {
+    content: '';
+    position: absolute;
+    inset: 0 0 32% 0;
+    background:
+      radial-gradient(circle, rgb(255 255 255 / 0.55) 0 1.2px, transparent 1.6px) 12% 0 / 60px 70px,
+      radial-gradient(circle, rgb(255 255 255 / 0.45) 0 1px, transparent 1.4px) 44% 20px / 76px 64px;
+    animation: annex-drip 16s linear infinite;
+  }
+  @keyframes annex-drip {
+    to {
+      background-position:
+        12% 140px,
+        44% 148px;
+    }
+  }
+
+  /* ---- Window shapes for the rest of the building ---------------------------- */
+  /* Sorting: a long clerestory strip under the roof. */
+  .rd--sorting .room-dressing__window {
+    top: 4%;
+    right: 5%;
+    width: calc(176px * var(--asset-scale));
+    height: calc(20px * var(--asset-scale));
+    border-radius: 2px;
+  }
+  /* Break room: a round window with a cosy frame. */
+  .rd--morale .room-dressing__window {
+    top: 8%;
+    right: 17%;
+    width: calc(58px * var(--asset-scale));
+    height: calc(58px * var(--asset-scale));
+    border-radius: 50%;
+    border-width: 4px;
+  }
+  /* Procurement: a loading-bay shutter, half up. */
+  .rd--procurement .room-dressing__window {
+    top: 7%;
+    right: 8%;
+    width: calc(104px * var(--asset-scale));
+    height: calc(66px * var(--asset-scale));
+    border-radius: 3px;
+  }
+  .rd--procurement .room-dressing__window-glow {
+    background: repeating-linear-gradient(180deg, #9aa1a8 0 5px, #858c93 5px 6px) 0 0 / 100% 46%
+      no-repeat;
+  }
+  /* Lab: a thick porthole. */
+  .rd--lab .room-dressing__window {
+    top: 10%;
+    right: 12%;
+    width: calc(50px * var(--asset-scale));
+    height: calc(50px * var(--asset-scale));
+    border-radius: 50%;
+    border-width: 5px;
+  }
+  /* Research: one tall arched window, like an observatory slit. */
+  .rd--research .room-dressing__window {
+    top: 5%;
+    right: 9%;
+    width: calc(52px * var(--asset-scale));
+    height: calc(88px * var(--asset-scale));
+    border-radius: 26px 26px 3px 3px;
+  }
+  /* Meeting room: a wide window with the blinds half drawn. */
+  .rd--meeting .room-dressing__window {
+    top: 7%;
+    right: 5%;
+    width: calc(150px * var(--asset-scale));
+    height: calc(62px * var(--asset-scale));
+  }
+  .rd--meeting .room-dressing__window-glow {
+    background: repeating-linear-gradient(
+        180deg,
+        rgb(245 240 228 / 0.92) 0 4px,
+        transparent 4px 7px
+      )
+      0 0 / 100% 55% no-repeat;
+  }
+  /* Nap room: a round moon window, stars twinkling in it. */
+  .rd--nap .room-dressing__window {
+    top: 8%;
+    right: 40%;
+    width: calc(56px * var(--asset-scale));
+    height: calc(56px * var(--asset-scale));
+    border-radius: 50%;
+  }
+  .rd--nap .room-dressing__window-glow {
+    background:
+      radial-gradient(circle at 30% 30%, #fff 0 1px, transparent 1.6px),
+      radial-gradient(circle at 70% 55%, #fff 0 1px, transparent 1.6px),
+      radial-gradient(circle at 48% 78%, #fff 0 0.8px, transparent 1.4px),
+      radial-gradient(circle at 66% 28%, #ffe9a8 0 5px, transparent 5.6px);
+    animation: room-twinkle 3.6s ease-in-out infinite alternate;
+  }
+
+  /* ---- Living details for the departments that already had their materials --- */
+  /* Sorting: the hazard stripe runs like a conveyor. */
+  .rd--sorting .room-dressing__baseboard {
+    animation: room-conveyor 2.4s linear infinite;
+  }
+  /* Break room: a string of fairy lights along the ceiling. */
+  .rd--morale .room-dressing__light::before {
+    content: '';
+    position: absolute;
+    top: 3%;
+    left: 4%;
+    right: 4%;
+    height: 10px;
+    background:
+      radial-gradient(circle, #ffd65c 0 2.2px, transparent 2.8px) 0 0 / 28px 10px,
+      radial-gradient(circle, #ff8fa3 0 2.2px, transparent 2.8px) 14px 3px / 28px 10px;
+    animation: room-twinkle 2.8s ease-in-out infinite alternate;
+  }
+  /* Lab: bubbles rising past the porthole. */
+  .rd--lab .room-dressing__window-glow {
+    background:
+      radial-gradient(circle, rgb(255 255 255 / 0.8) 0 1.6px, transparent 2.2px) 30% 0 / 12px 14px,
+      radial-gradient(circle, rgb(255 255 255 / 0.6) 0 1.2px, transparent 1.8px) 70% 0 / 10px 11px;
+    animation: room-bubbles 3.4s linear infinite;
+  }
+  /* Vault: a slow glint travels across the plates. */
+  .rd--vault .room-dressing__light::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      105deg,
+      transparent 0 40%,
+      rgb(255 236 170 / 0.32) 48%,
+      transparent 56% 100%
+    );
+    background-size: 260% 100%;
+    animation: room-glint 7s ease-in-out infinite;
+  }
+  /* Basement: the bare bulb is not entirely reliable. */
+  .rd--basement .room-dressing__fixture-pool {
+    animation: room-flicker 6s steps(1) infinite;
+  }
+  /* Marketing: the billboard window glows in and out like a sign. */
+  .rd--marketing .room-dressing__window {
+    animation: room-sign 3s ease-in-out infinite alternate;
+  }
+  /* Rooftop: clouds drift past. */
+  .rd--rooftop .room-dressing__light::before {
+    content: '';
+    position: absolute;
+    top: 6%;
+    left: 0;
+    width: 200%;
+    height: 26%;
+    background:
+      radial-gradient(14% 50% at 20% 50%, rgb(255 255 255 / 0.6), transparent 70%),
+      radial-gradient(10% 40% at 62% 40%, rgb(255 255 255 / 0.5), transparent 70%);
+    animation: room-clouds 48s linear infinite;
+  }
+
+  @keyframes room-breathe {
+    from {
+      opacity: 0.55;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes room-steam {
+    0% {
+      opacity: 0;
+      translate: 0 8px;
+    }
+    40% {
+      opacity: 0.9;
+    }
+    100% {
+      opacity: 0;
+      translate: 0 -12px;
+    }
+  }
+  @keyframes room-beacon {
+    0%,
+    100% {
+      opacity: 0.25;
+      translate: -30% 0;
+    }
+    50% {
+      opacity: 1;
+      translate: 30% 0;
+    }
+  }
+  @keyframes room-twinkle {
+    from {
+      opacity: 0.55;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes room-conveyor {
+    to {
+      background-position: 24px 0;
+    }
+  }
+  @keyframes room-bubbles {
+    from {
+      background-position:
+        30% 110%,
+        70% 120%;
+    }
+    to {
+      background-position:
+        30% -20%,
+        70% -30%;
+    }
+  }
+  @keyframes room-glint {
+    0%,
+    30% {
+      background-position: 100% 0;
+    }
+    70%,
+    100% {
+      background-position: 0% 0;
+    }
+  }
+  @keyframes room-flicker {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    91% {
+      opacity: 0.35;
+    }
+    93% {
+      opacity: 1;
+    }
+    95% {
+      opacity: 0.5;
+    }
+  }
+  @keyframes room-sign {
+    from {
+      box-shadow: 0 0 0 transparent;
+    }
+    to {
+      box-shadow: 0 0 calc(14px * var(--asset-scale)) rgb(255 120 200 / 0.55);
+    }
+  }
+  @keyframes room-clouds {
+    to {
+      translate: -50% 0;
+    }
+  }
+
+  /* Reduced motion / battery saver: the places stay, the motion goes. */
+  [data-reduced-motion='true'] .room-dressing *,
+  [data-reduced-motion='true'] .room-dressing *::before,
+  [data-ambient='paused'] .room-dressing *,
+  [data-ambient='paused'] .room-dressing *::before {
+    animation: none !important;
+  }
+}

@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { openView, arrangeToggle } from './support/shell';
 
 // Real rendered-interface interaction tests: these drive the actual DOM with
 // mouse/pointer events (NOT engine method calls) and capture drag states for
@@ -195,7 +196,7 @@ test('blur, focus, lost pointer streams, popups, and arrange mode never leave in
   page,
 }) => {
   await boot(page);
-  const arrange = page.locator('.office__toolbar .chip-btn').first();
+  const arrange = arrangeToggle(page);
   await arrange.click();
   await expect(page.locator('.office--decorating')).toHaveCount(1);
 
@@ -436,9 +437,9 @@ test('event choices recover across chain steps, focus return, and repeated popup
 
   // The migrated v3 fixture must retain usable event input after ordinary view
   // changes and a complete decoration-drag/popup lifecycle.
-  await page.locator('.nav__item[aria-label="Settings"]').click();
-  await page.locator('.nav__item[aria-label="Office"]').click();
-  const arrange = page.locator('.office__toolbar .chip-btn').first();
+  await openView(page, 'settings');
+  await openView(page, 'office');
+  const arrange = arrangeToggle(page);
   await arrange.click();
   const trayDecoration = page.locator('.deco-tray__card .decor').first();
   await trayDecoration.evaluate((element) => {
@@ -557,7 +558,14 @@ test('event choices recover across chain steps, focus return, and repeated popup
   await expect(contain).toHaveAttribute('aria-disabled', 'true');
   await contain.focus();
   await expect(contain).toBeFocused();
-  await expect(contain.locator('.event-choice__req')).toContainText(/Requires unlocked employee/i);
+  /* The locked choice explains itself with the line the content AUTHORED for it —
+     "Requires Bea (Construction)", which names the department the player has to go and
+     look at — rather than the generic "Requires unlocked employee Bea". That copy has
+     been in the locale all along under the choice's `disabledKey`; the events UI simply
+     never rendered it. The machine-readable reason is unchanged and still asserted, so
+     this checks the human channel and the programmatic one separately. */
+  await expect(contain.locator('.event-choice__req')).toContainText(/Bea/);
+  await expect(contain.locator('.event-choice__req')).not.toHaveText('');
   await expect(contain).toHaveAttribute('data-disabled-reasons', 'hiredEmployee');
   const fireChoices = page.locator('.event-choice[data-event-id="technically-on-fire"]');
   expect(await fireChoices.count()).toBeGreaterThanOrEqual(2);

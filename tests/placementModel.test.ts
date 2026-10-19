@@ -145,6 +145,36 @@ describe('repairs saves with decorations stored on the wrong surface', () => {
     expect(fixed.normalizedY).toBeGreaterThan(0.8);
   });
 
+  it('gives wall pieces relocated together each their own spot, keeping both', () => {
+    const engine = engineWith('motivational-poster', 'window-view');
+    for (const id of ['motivational-poster', 'window-view']) {
+      // Saved by a region-aware build on the floor plane: too far off the wall to
+      // be nudged back, so both have to be moved to a default wall spot.
+      const instance = decorationInstance(engine.state, id)!;
+      instance.roomId = ROOM;
+      instance.regionKind = 'floor';
+      instance.surfaceType = 'floor';
+      instance.normalizedX = 0.5;
+      instance.normalizedY = 0.05;
+      engine.state.placements[id] = { surface: 'floor', x: 0.5, y: 0.05 };
+    }
+
+    repairDecorationInstances(engine.state);
+
+    const [a, b] = ['motivational-poster', 'window-view'].map((id) =>
+      decorationInstance(engine.state, id)!,
+    );
+    expect([a.roomId, b.roomId]).toEqual([ROOM, ROOM]);
+    expect([a.regionKind, b.regionKind]).toEqual(['wall', 'wall']);
+    expect({ x: a.normalizedX, y: a.normalizedY }).not.toEqual({
+      x: b.normalizedX,
+      y: b.normalizedY,
+    });
+    expect(engine.state.collections.secrets).toEqual(
+      expect.arrayContaining(['deco:motivational-poster', 'deco:window-view']),
+    );
+  });
+
   it('leaves a correctly placed decoration exactly where it is', () => {
     const engine = engineWith('potted-fern');
     const instance = decorationInstance(engine.state, 'potted-fern')!;

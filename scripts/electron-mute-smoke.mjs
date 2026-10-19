@@ -5,6 +5,10 @@
 // frameless-window drag region swallowing the click (which would leave
 // masterGain audible after the click).
 import { _electron as electron } from '@playwright/test';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+const smokeProfile = fs.mkdtempSync(path.join(os.tmpdir(), 'zooworkers-mute-'));
 
 const SAVE = {
   version: 6,
@@ -19,7 +23,12 @@ function fail(msg) {
 }
 
 const app = await electron.launch({
-  args: ['dist-electron/main.cjs', '--no-sandbox', '--disable-gpu'],
+  args: [
+    'dist-electron/main.cjs',
+    `--user-data-dir=${smokeProfile}`,
+    '--no-sandbox',
+    '--disable-gpu',
+  ],
   env: { ...process.env, WMNO_SMOKE: '1' },
 });
 
@@ -39,7 +48,8 @@ try {
   const diag = () => page.evaluate(() => window.__wmnoAudioDiag());
 
   const before = await diag();
-  if (before.flags.muted !== false) fail(`expected unmuted at start, got ${JSON.stringify(before.flags)}`);
+  if (before.flags.muted !== false)
+    fail(`expected unmuted at start, got ${JSON.stringify(before.flags)}`);
 
   // Click the REAL visible button (this is the drag-region test).
   await btn.click();
@@ -47,8 +57,10 @@ try {
 
   const muted = await diag();
   const pressed = await btn.getAttribute('aria-pressed');
-  if (pressed !== 'true') fail(`aria-pressed not true after click (drag region may have eaten the click): ${pressed}`);
-  if (muted.flags.muted !== true) fail(`flags.muted not true after click: ${JSON.stringify(muted.flags)}`);
+  if (pressed !== 'true')
+    fail(`aria-pressed not true after click (drag region may have eaten the click): ${pressed}`);
+  if (muted.flags.muted !== true)
+    fail(`flags.muted not true after click: ${JSON.stringify(muted.flags)}`);
   if (muted.masterGain !== 0) fail(`masterGain not 0 after mute: ${muted.masterGain}`);
   for (const ch of ['music', 'ambience', 'ui', 'sfx']) {
     if (muted.buses[ch] !== 0) fail(`bus ${ch} not 0 after mute: ${muted.buses[ch]}`);
@@ -59,9 +71,15 @@ try {
   await page.waitForTimeout(150);
   const restored = await diag();
   if (restored.flags.muted !== false) fail('unmute did not clear the flag');
-  if (!(restored.masterGain > 0)) fail(`masterGain not restored after unmute: ${restored.masterGain}`);
+  if (!(restored.masterGain > 0))
+    fail(`masterGain not restored after unmute: ${restored.masterGain}`);
 
-  console.log('SMOKE OK: visible Electron mute button toggled masterGain', before.masterGain, '-> 0 ->', restored.masterGain);
+  console.log(
+    'SMOKE OK: visible Electron mute button toggled masterGain',
+    before.masterGain,
+    '-> 0 ->',
+    restored.masterGain,
+  );
 } finally {
   await app.close();
 }

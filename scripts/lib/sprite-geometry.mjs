@@ -61,7 +61,9 @@ export function readRegistry(path = REGISTRY) {
     });
   }
   if (!entries.length) {
-    throw new Error(`could not read any characters from ${path} -- has the registry shape changed?`);
+    throw new Error(
+      `could not read any characters from ${path} -- has the registry shape changed?`,
+    );
   }
   return entries;
 }

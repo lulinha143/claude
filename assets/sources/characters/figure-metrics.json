@@ -37,6 +37,24 @@
       "frames": 121,
       "topPadFraction": 0.051724
     },
+    "bia": {
+      "bottomPadFraction": 0.0,
+      "box": {
+        "bottom": 199,
+        "left": 7,
+        "right": 199,
+        "top": 16
+      },
+      "canvasHeight": 200,
+      "canvasWidth": 200,
+      "figureCentreX": 0.5175,
+      "figureHeight": 184,
+      "figureHeightFraction": 0.92,
+      "figureWidth": 193,
+      "figureWidthFraction": 0.965,
+      "frames": 134,
+      "topPadFraction": 0.08
+    },
     "canela": {
       "bottomPadFraction": 0.0,
       "box": {
@@ -408,6 +426,11 @@
       "anchorX": 0.5,
       "baseline": 0.047414,
       "officeHeight": 102
+    },
+    "bia": {
+      "anchorX": 0.5175,
+      "baseline": 0.0,
+      "officeHeight": 100
     },
     "canela": {
       "anchorX": 0.502404,

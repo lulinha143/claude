@@ -1,0 +1,18 @@
+{
+  "name": "zooworkers",
+  "description": "Complete one ZooWorkers gameplay chapter, playtest, fix, validate and deliver it.",
+  "prompt": "Follow inherited AGENTS.md and relevant steering. Read docs/ZOOWORKERS_STATE.md once and only the current chapter's context. Use relevant DESIGN.md sections for game design. Finish implementation, actual rendered play via zooworkers-playtest, fixes, validation, commit and push; stop at the chapter boundary with concise evidence. Keep one primary agent, authored assets and the small desktop-window identity. Confirm the user's selected primary model; never silently reduce it. A blocked player gate remains unverified.",
+  "tools": [
+    "read",
+    "write",
+    "shell"
+  ],
+  "includeMcpJson": false,
+  "resources": [
+    "skill://.kiro/skills/zooworkers-playtest/SKILL.md"
+  ],
+  "allowedTools": [
+    "read",
+    "write"
+  ]
+}

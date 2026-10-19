@@ -7,15 +7,15 @@ is needed for development or testing.**
 
 ## Integration boundaries
 
-| Concern | Where | Fallback |
-| --- | --- | --- |
-| Achievements | `src/platform/achievements.ts` (`SteamAchievements`) | `LocalAchievements` (no-op mirror; game unlocks locally regardless) |
-| Stats | Same adapter pattern | Local `stats` in the save |
-| Rich Presence | Wire in Electron main via a Steamworks binding, expose over IPC | Omitted |
-| Cloud saves | Save to userData (see paths below) | Local file / localStorage |
-| Steam Deck detection | `electron/main.ts` (`SteamDeck`/`SteamOS` env) + `getPlatformInfo()` | `isSteamDeck: false` |
-| Overlay awareness | Electron `web-contents` events | No-op |
-| Shutdown callbacks | `app.on('will-quit')`, `beforeunload` save hook | Autosave on hide/unload |
+| Concern              | Where                                                                | Fallback                                                            |
+| -------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Achievements         | `src/platform/achievements.ts` (`SteamAchievements`)                 | `LocalAchievements` (no-op mirror; game unlocks locally regardless) |
+| Stats                | Same adapter pattern                                                 | Local `stats` in the save                                           |
+| Rich Presence        | Wire in Electron main via a Steamworks binding, expose over IPC      | Omitted                                                             |
+| Cloud saves          | Save to userData (see paths below)                                   | Local file / localStorage                                           |
+| Steam Deck detection | `electron/main.ts` (`SteamDeck`/`SteamOS` env) + `getPlatformInfo()` | `isSteamDeck: false`                                                |
+| Overlay awareness    | Electron `web-contents` events                                       | No-op                                                               |
+| Shutdown callbacks   | `app.on('will-quit')`, `beforeunload` save hook                      | Autosave on hide/unload                                             |
 
 To enable real Steamworks: add a native binding (e.g. `steamworks.js`) in the
 **main process only**, construct `new SteamAchievements(backend)` where `backend`
@@ -28,14 +28,14 @@ run.
 Internal ids map to Steamworks ids in `STEAM_ACHIEVEMENT_IDS`. Configure matching
 ids on the Steamworks partner site. Starter mapping (extend to all 41):
 
-| Internal | Steam id |
-| --- | --- |
-| first-day | ACH_FIRST_DAY |
-| working-nuts-off | ACH_WORKING_NUTS_OFF |
-| going-nuts | ACH_GOING_COMPLETELY_NUTS |
-| nice | ACH_NICE |
-| one-nutillion | ACH_ONE_NUTILLION |
-| full-staff | ACH_FULL_STAFF |
+| Internal         | Steam id                  |
+| ---------------- | ------------------------- |
+| first-day        | ACH_FIRST_DAY             |
+| working-nuts-off | ACH_WORKING_NUTS_OFF      |
+| going-nuts       | ACH_GOING_COMPLETELY_NUTS |
+| nice             | ACH_NICE                  |
+| one-nutillion    | ACH_ONE_NUTILLION         |
+| full-staff       | ACH_FULL_STAFF            |
 
 ## Recommended Steam Cloud save paths
 

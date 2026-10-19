@@ -107,6 +107,7 @@ if (gpuSafeMode) {
 
 // Startup state used by the recovery flow.
 let startupSucceeded = false;
+let quitting = false;
 
 /**
  * DISABLED during diagnosis (directive #5). The old behaviour — auto-write the
@@ -118,7 +119,9 @@ let startupSucceeded = false;
  * auto-relaunch, auto-exit, or auto-write the marker anymore.
  */
 function maybeGpuFallback(reason: string): boolean {
-  log(`renderer trouble during startup (${reason}) — GPU auto-relaunch is DISABLED; not restarting.`);
+  log(
+    `renderer trouble during startup (${reason}) — GPU auto-relaunch is DISABLED; not restarting.`,
+  );
   return false;
 }
 
@@ -270,7 +273,10 @@ function loadRenderer(): void {
   // Test hook: force the recovery path so the error window can be verified.
   if (process.env.WMNO_FORCE_RENDERER_FAIL) {
     log('WMNO_FORCE_RENDERER_FAIL set — simulating a renderer load failure.');
-    showStartupError('Simulated renderer failure (WMNO_FORCE_RENDERER_FAIL).', 'file:///nonexistent/index.html');
+    showStartupError(
+      'Simulated renderer failure (WMNO_FORCE_RENDERER_FAIL).',
+      'file:///nonexistent/index.html',
+    );
     return;
   }
   const rendererPath = resolveRendererPath();
@@ -289,7 +295,9 @@ function loadRenderer(): void {
     .loadFile(rendererPath)
     .then(() => log('loadFile resolved.'))
     .catch((e) => {
-      log(`loadFile rejected: ${String(e)} winDestroyed=${mainWindow ? mainWindow.isDestroyed() : 'null'}`);
+      log(
+        `loadFile rejected: ${String(e)} winDestroyed=${mainWindow ? mainWindow.isDestroyed() : 'null'}`,
+      );
       showStartupError(String(e), rendererPath);
     });
 }
@@ -325,6 +333,9 @@ function createRecoveryWindow(): BrowserWindow {
  * an unhandled rejection.
  */
 function showStartupError(description: string, failedPath: string): void {
+  // Renderer teardown is expected during quit, including an early quit while
+  // loading or while the recovery page is open. Never resurrect the window.
+  if (quitting) return;
   try {
     // The Windows crash proved a window can survive with a DESTROYED
     // webContents (mainWindow.isDestroyed()===false but
@@ -396,7 +407,8 @@ function createWindow(): void {
   const scaled = scaledSize();
   const width = clamp(settings.width ?? scaled.width, MIN_WIDTH, MAX_WIDTH);
   const height = clamp(settings.height ?? scaled.height, MIN_HEIGHT, MAX_HEIGHT);
-  const pos = settings.corner && settings.width == null ? cornerPosition(settings.corner) : undefined;
+  const pos =
+    settings.corner && settings.width == null ? cornerPosition(settings.corner) : undefined;
 
   // Only pass a validated NativeImage; never an undefined/invalid path.
   const appIcon = loadIconImage('icon.png');
@@ -467,7 +479,9 @@ function createWindow(): void {
   // explained in startup.log. `winDestroyed` pinpoints if/when the window dies.
   const wc = mainWindow.webContents;
   const winDestroyed = () => (mainWindow ? String(mainWindow.isDestroyed()) : 'null');
-  wc.on('did-start-loading', () => log(`renderer did-start-loading. winDestroyed=${winDestroyed()}`));
+  wc.on('did-start-loading', () =>
+    log(`renderer did-start-loading. winDestroyed=${winDestroyed()}`),
+  );
   wc.on('dom-ready', () => log(`renderer dom-ready (url=${wc.getURL()}).`));
   wc.on('did-finish-load', () => {
     log(`renderer did-finish-load (url=${wc.getURL()}).`);
@@ -503,7 +517,8 @@ function createWindow(): void {
         `winDestroyed=${winDestroyed()}`,
     );
     if (maybeGpuFallback(`render-process-gone ${details.reason}`)) return;
-    if (!startupSucceeded) showStartupError(`Renderer process gone: ${details.reason}`, wc.getURL());
+    if (!startupSucceeded)
+      showStartupError(`Renderer process gone: ${details.reason}`, wc.getURL());
   });
   wc.on('unresponsive', () => log('renderer unresponsive.'));
   wc.on('responsive', () => log('renderer responsive.'));
@@ -859,8 +874,12 @@ function runMinimalWindowTest(): void {
   const twc = testWindow.webContents;
   twc.on('dom-ready', () => log('MINIMAL WINDOW DOM READY'));
   twc.on('did-finish-load', () => log('MINIMAL WINDOW DID FINISH LOAD'));
-  twc.on('did-fail-load', (_e, code, desc) => log(`MINIMAL WINDOW did-fail-load: ${desc} (${code})`));
-  twc.on('render-process-gone', (_e, d) => log(`MINIMAL WINDOW render-process-gone: ${JSON.stringify(d)}`));
+  twc.on('did-fail-load', (_e, code, desc) =>
+    log(`MINIMAL WINDOW did-fail-load: ${desc} (${code})`),
+  );
+  twc.on('render-process-gone', (_e, d) =>
+    log(`MINIMAL WINDOW render-process-gone: ${JSON.stringify(d)}`),
+  );
   testWindow.once('ready-to-show', () => testWindow.show());
   void testWindow
     .loadURL('data:text/html,<html><body><h1>Electron renderer alive</h1></body></html>')
@@ -928,15 +947,23 @@ async function initializeApplication(): Promise<void> {
 // and must NOT register whenReady, create a window/tray/recovery, initialise
 // IPC, load the renderer, or run any async startup.
 if (gotLock) {
-  void app.whenReady().then(initializeApplication).catch((e) => log(`whenReady failed: ${String(e)}`));
+  void app
+    .whenReady()
+    .then(initializeApplication)
+    .catch((e) => log(`whenReady failed: ${String(e)}`));
 } else {
   log('lock not held — skipping whenReady/startup registration entirely.');
 }
 
-app.on('before-quit', () => log('app before-quit.'));
+app.on('before-quit', () => {
+  quitting = true;
+  log('app before-quit.');
+});
 
 app.on('window-all-closed', () => {
-  log(`window-all-closed (tray=${tray ? 'present' : 'none'} startupSucceeded=${startupSucceeded}).`);
+  log(
+    `window-all-closed (tray=${tray ? 'present' : 'none'} startupSucceeded=${startupSucceeded}).`,
+  );
   // If startup failed (renderer crashed before load), a recovery window is being
   // shown — don't quit out from under it. errorPageShown means recovery is up.
   if (!startupSucceeded && errorPageShown) {

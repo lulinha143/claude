@@ -54,20 +54,8 @@ async function openConstruction(page: Page) {
   await page.waitForTimeout(400);
 }
 
-// BLOCKED ON A MISSING ASSET, NOT ON CODE.
-//
-// `public/employees/` only contains Pip's artwork; bea.png / bea-poster.png (and
-// marlow / penguin / canela) are registered in EMPLOYEE_SPRITES but have never
-// been committed, so `npm run verify:assets` reports them missing and this test
-// cannot load frames to compare. It fails on the base branch for the same reason.
-//
-// Re-enable by committing Bea's APNG + poster. The behaviour that IS verifiable
-// today is covered by "a character with missing artwork falls back to the drawn
-// silhouette" below, and the animation/geometry contract is covered by the Pip
-// tests, which use the one character whose art is present.
-test.skip("Bea's animated workstation sprite renders and loops in her department", async ({
-  page,
-}) => {
+// The complete cast is present, including Bea's native-density animation.
+test("Bea's animated workstation sprite renders and loops in her department", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await seed(page, saveWith({}));
   await page.goto('/');
@@ -81,7 +69,7 @@ test.skip("Bea's animated workstation sprite renders and loops in her department
 
   // The animated APNG (not the poster) is the source, and it decoded.
   const src = await sprite.getAttribute('src');
-  expect(src).toContain('employees/bea.png');
+  expect(src).toMatch(/employees\/bea(-1x)?\.png$/);
   const natural = await sprite.evaluate((el) => (el as HTMLImageElement).naturalWidth);
   expect(natural).toBeGreaterThan(0);
 
@@ -97,10 +85,11 @@ test.skip("Bea's animated workstation sprite renders and loops in her department
   // re-render by interacting, and confirm the very same element persists and is
   // still the animated source (the loop is never reset by React state churn).
   const handle = await sprite.elementHandle();
-  await page.locator('.floor[data-room="construction"] .critter-btn').first().click();
+  await page.locator('.floor[data-room="construction"] .station-btn').first().click();
   await page.waitForTimeout(300);
   const stillThere = await handle!.evaluate(
-    (el) => el.isConnected && (el as HTMLImageElement).currentSrc.includes('employees/bea.png'),
+    (el) =>
+      el.isConnected && /employees\/bea(-1x)?\.png$/.test((el as HTMLImageElement).currentSrc),
   );
   expect(stillThere).toBe(true);
 
@@ -139,22 +128,30 @@ test('reduced motion swaps the animation for a static poster frame', async ({ pa
   expect(Buffer.compare(a, b)).toBe(0);
 });
 
-// An animal with NO registered artwork must still render — as the hand-drawn
+// An animal whose artwork does not arrive must still render — as the hand-drawn
 // Critter silhouette rather than a broken image.
 //
-// This example has had to move twice as the photographic cast filled in: Bea first,
-// then Marlow, both of whom now have real art, which is why the test had started
-// failing — it was asserting that an animal WITH artwork had none. The roster is now 22
-// of 23 covered, so there is exactly one genuine case left and it is unlikely to move
-// again soon: Bia the bear, whose artwork has not been supplied. She is the reason this
-// path has to keep working, so she is the right animal to guard it with.
-test('an animal without registered artwork renders as the drawn silhouette', async ({ page }) => {
+// This example has had to move three times as the photographic cast filled in: Bea
+// first, then Marlow, then Bia the bear — each time because the test was asserting
+// that an animal WITH artwork had none. The bear was the last gap, so with all 23
+// animals now covered there is no longer any employee that can stand in for "no
+// artwork", and moving it to a fourth animal is not possible.
+//
+// So it now triggers the fallback the way PRODUCTION can still trigger it: the
+// registered asset failing to load. That is the case src/art/spriteAvailability.ts
+// exists for — a file missing from a build, or a decode failure — and it is a
+// stronger test than the old one, because an absent registry entry only ever proved
+// the renderer handled `undefined`, while this proves the <img> error path actually
+// swaps in the silhouette instead of leaving a broken glyph with a mood bubble
+// floating above nothing.
+test('an animal whose artwork fails to load renders as the drawn silhouette', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
+  // Fail every candidate in the bear's srcSet, before the page can request them.
+  await page.route('**/employees/bia*.png', (route) => route.abort());
   await seed(
     page,
     saveWith({
       settings: { reducedMotion: true },
-      // Bia the bear is the only employee with no entry in the character-art registry.
       employees: {
         pip: { hired: true, level: 6, friendship: 70, room: 'founder-desk', x: 0.5 },
         bia: { hired: true, level: 4, friendship: 50, room: 'morale', x: 0.5 },
@@ -166,12 +163,39 @@ test('an animal without registered artwork renders as the drawn silhouette', asy
   await clearModals(page);
   const room = page.locator('.floor[data-room="morale"]');
   await room.scrollIntoViewIfNeeded();
-  await page.waitForTimeout(400);
 
-  // No <img> at all, so there is nothing that can render broken...
+  // The <img> is removed once the load fails, so nothing can render broken...
   await expect(room.locator('.employee-sprite')).toHaveCount(0);
-  // ...and he is still present and interactive as an SVG critter.
+  // ...and she is still present and interactive as an SVG critter.
   await expect(room.locator('.critter-btn svg.critter')).toHaveCount(1);
+});
+
+// The counterpart to the test above, and the guard the bear's absence used to make
+// impossible: with artwork present, every animal must take the PHOTOGRAPHIC path.
+// A silent degrade to the silhouette is the failure this catches — it looks like a
+// style choice rather than a bug, which is exactly why it needs asserting.
+test('an animal with artwork renders photographically, not as a silhouette', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await seed(
+    page,
+    saveWith({
+      settings: { reducedMotion: true },
+      employees: {
+        pip: { hired: true, level: 6, friendship: 70, room: 'founder-desk', x: 0.5 },
+        bia: { hired: true, level: 4, friendship: 50, room: 'morale', x: 0.5 },
+      },
+    }),
+  );
+  await page.goto('/');
+  await page.locator('.office').first().waitFor({ timeout: 15000 });
+  await clearModals(page);
+  const room = page.locator('.floor[data-room="morale"]');
+  await room.scrollIntoViewIfNeeded();
+
+  const sprite = room.locator('.employee-sprite');
+  await expect(sprite).toHaveCount(1);
+  await expect(sprite).toHaveAttribute('src', /employees\/bia/);
+  await expect(room.locator('.critter-btn svg.critter')).toHaveCount(0);
 });
 
 // GEOMETRY GUARD — Pip (squirrel).

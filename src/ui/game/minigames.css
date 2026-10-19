@@ -1,0 +1,2382 @@
+/* ==========================================================================
+   Game layer — the minigame cabinet: the three games, their intro, play and
+   result screens, and the Activities menu that opens them.
+
+   One piece of office equipment: a walnut cabinet (the frame) around a paper
+   screen (intro, countdown, result) or a board (play). Readouts are paper chips
+   with dark ink, so a score is never ink on walnut. Every animation's resting
+   state is its visible state, so reduced motion, quiet mode and the OS setting
+   (all of which stop animation globally) leave a complete, still board.
+   ========================================================================== */
+@layer game {
+  /* ---- the stage the games get ------------------------------------------------ */
+  .sheet__body:has(> .view--focus-game) {
+    display: flex;
+    flex-direction: column;
+    padding: 8px;
+    overflow: hidden;
+  }
+  .sheet__body > .view--focus-game {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+  }
+  /* In a short window the folder head steps aside while a round runs: the cabinet's
+     own bar carries the way out (Leave shift), and Esc pauses. */
+  @media (max-height: 600px) {
+    .sheet:has(.microgame:is([data-phase='play'], [data-phase='countdown'])) .sheet__head {
+      display: none;
+    }
+  }
+
+  /* ---- the cabinet ---------------------------------------------------------------- */
+  .microgame {
+    --cab-wood: var(--c-walnut-700);
+    --cab-edge: var(--c-walnut-900);
+    --cab-pad: 6px;
+    container: microgame / size;
+    position: relative;
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 6px;
+    min-height: 0;
+    padding: var(--cab-pad);
+    color: var(--ink-strong);
+    background:
+      var(--frame-grain), linear-gradient(180deg, var(--c-walnut-600), var(--c-walnut-800) 70%);
+    border: 3px solid var(--cab-edge);
+    border-radius: 16px;
+    box-shadow:
+      inset 0 1px 0 rgb(255 250 240 / 0.16),
+      0 3px 0 rgb(46 29 16 / 0.35);
+  }
+  /* Brass screws in the corners: the cabinet is a thing someone built. */
+  .microgame::before,
+  .microgame::after {
+    content: '';
+    position: absolute;
+    top: 4px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #f6d469, #a8801d 70%);
+    box-shadow: 0 1px 0 rgb(0 0 0 / 0.35);
+    pointer-events: none;
+  }
+  .microgame::before {
+    left: 4px;
+  }
+  .microgame::after {
+    right: 4px;
+  }
+
+  .micro-screen,
+  .microgame__intro,
+  .microgame__countdown,
+  .microgame__result {
+    position: relative;
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+    color: var(--ink-strong);
+    background: var(--paper-grain), var(--paper-bg-bright);
+    border: 2px solid var(--cab-edge);
+    border-radius: 11px;
+    box-shadow: inset 0 0 0 2px var(--paper-line);
+    overflow: hidden;
+  }
+
+  .microgame__eyebrow {
+    display: block;
+    color: var(--ink-soft);
+    font: 800 max(var(--fs-min), var(--fs-2xs)) / 1.2 var(--font-body);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .micro-glyph {
+    width: 14px;
+    height: 14px;
+    flex: 0 0 auto;
+  }
+  .micro-key {
+    width: 22px;
+    height: 20px;
+    flex: 0 0 auto;
+    color: var(--ink-body);
+  }
+
+  /* ---- the host and their words ------------------------------------------------- */
+  .micro-host {
+    position: relative;
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: flex-end;
+    justify-content: center;
+    min-height: var(--host-h);
+    pointer-events: none;
+  }
+  .micro-host__figure {
+    display: block;
+    line-height: 0;
+    filter: drop-shadow(0 3px 0 rgb(46 29 16 / 0.18));
+  }
+  .micro-host__figure .employee-sprite {
+    max-width: none;
+  }
+  .micro-host__sticker {
+    position: absolute;
+    top: 2px;
+    right: -8px;
+    width: 30px;
+    height: 30px;
+    animation: micro-sticker-in var(--dur-slow) var(--ease-pop) both;
+  }
+  .micro-host__sticker .sticker {
+    width: 100%;
+    height: 100%;
+  }
+  @keyframes micro-sticker-in {
+    from {
+      transform: scale(0.4) rotate(-20deg);
+      opacity: 0;
+    }
+  }
+
+  .micro-bubble {
+    position: relative;
+    display: grid;
+    gap: 1px;
+    align-self: center;
+    min-width: 0;
+    margin: 0;
+    padding: 7px 10px 8px;
+    color: var(--ink-strong);
+    background: var(--paper-bg-bright);
+    border: 2px solid var(--ink-strong);
+    border-radius: 12px;
+    box-shadow: 0 2px 0 rgb(46 29 16 / 0.2);
+    font: 600 max(var(--fs-min), var(--fs-sm)) / 1.32 var(--font-body);
+  }
+  .micro-bubble::before {
+    content: '';
+    position: absolute;
+    left: -9px;
+    bottom: 14px;
+    width: 12px;
+    height: 12px;
+    background: var(--paper-bg-bright);
+    border-left: 2px solid var(--ink-strong);
+    border-bottom: 2px solid var(--ink-strong);
+    transform: rotate(45deg);
+    border-radius: 0 0 0 3px;
+  }
+  .micro-bubble > b {
+    color: var(--c-walnut-600);
+    font: 700 max(var(--fs-min), var(--fs-2xs)) / 1.2 var(--font-display);
+    letter-spacing: 0.02em;
+  }
+
+  /* ---- stamps --------------------------------------------------------------------- */
+  .micro-stamp {
+    --stamp: var(--stamp-ink);
+    display: inline-block;
+    padding: 2px 9px 3px;
+    color: var(--stamp);
+    border: 2.5px solid currentColor;
+    border-radius: 7px;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 25%, transparent);
+    font: 800 max(var(--fs-min), var(--fs-sm)) / 1.1 var(--font-display);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    transform: rotate(-5deg);
+    animation: micro-stamp-in 0.32s var(--ease-pop) 0.18s both;
+  }
+  .micro-stamp--poor {
+    --stamp: var(--stamp-ink);
+  }
+  .micro-stamp--ok {
+    --stamp: var(--c-sage-600);
+  }
+  .micro-stamp--great {
+    --stamp: var(--c-sky-700);
+  }
+  .micro-stamp--perfect {
+    --stamp: var(--c-reward-600);
+  }
+  @keyframes micro-stamp-in {
+    from {
+      transform: scale(1.7) rotate(-14deg);
+      opacity: 0;
+    }
+  }
+
+  /* ---- banners: a shift or the rush starting ------------------------------------- */
+  .micro-banner {
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    z-index: 12;
+    display: grid;
+    justify-items: center;
+    gap: 1px;
+    max-width: min(92%, 320px);
+    padding: 5px 14px 6px;
+    color: var(--ink-strong);
+    text-align: center;
+    background: var(--paper-bg-bright);
+    border: 2px solid var(--ink-strong);
+    border-radius: 10px;
+    box-shadow: var(--lift-shadow);
+    transform: translateX(-50%);
+    pointer-events: none;
+    animation: micro-banner-in var(--dur-slow) var(--ease-pop) both;
+  }
+  .micro-banner::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    width: 46px;
+    height: 13px;
+    background: var(--tape);
+    border-radius: 2px;
+    transform: translateX(-50%) rotate(-3deg);
+  }
+  .micro-banner b {
+    font: 700 max(var(--fs-min), var(--fs-base)) / 1.1 var(--font-display);
+  }
+  .micro-banner small {
+    color: var(--ink-body);
+    font: 700 max(var(--fs-min), var(--fs-2xs)) / 1.25 var(--font-body);
+  }
+  .micro-banner--rush,
+  .micro-banner--closing {
+    border-color: var(--alert-deep);
+  }
+  .micro-banner--rush b,
+  .micro-banner--closing b {
+    color: var(--alert-deep);
+  }
+  @keyframes micro-banner-in {
+    from {
+      transform: translateX(-50%) translateY(-14px) scale(0.9);
+      opacity: 0;
+    }
+  }
+
+  .micro-feedback {
+    min-height: 0;
+    color: var(--frame-text);
+    font: 700 max(var(--fs-min), var(--fs-2xs)) / 1.25 var(--font-body);
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* ==== intro ============================================================================ */
+  .microgame__intro {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+  .microgame__intro-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-content: start;
+    gap: 8px;
+    min-height: 0;
+    padding: 10px 12px 6px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    outline: none;
+  }
+  /* More below in a short window: the bottom edge fades, so the page says so. */
+  :is(.microgame__intro-body, .microgame__result-scroll)[data-more='true'] {
+    mask-image: linear-gradient(180deg, #000 calc(100% - 26px), transparent);
+  }
+  :is(.microgame__intro-body, .microgame__result-scroll):focus-visible {
+    outline: 3px solid var(--c-sky-500);
+    outline-offset: -3px;
+  }
+  .microgame__intro-scene {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    height: 96px;
+    padding: 0 4px 0 6px;
+    background:
+      linear-gradient(180deg, transparent 72%, rgb(111 82 56 / 0.12) 72% 74%, transparent 74%),
+      var(--paper-bg-sunken);
+    border-radius: 10px;
+  }
+  .microgame__intro-scene .micro-bubble {
+    flex: 1 1 auto;
+    align-self: center;
+  }
+  .microgame__title-row {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-width: 0;
+  }
+  .microgame__title-emblem {
+    display: grid;
+    flex: 0 0 auto;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+  }
+  .microgame__title-emblem .microgame-emblem {
+    width: 100%;
+    height: 100%;
+  }
+  .microgame__intro-copy {
+    display: grid;
+    gap: 7px;
+    min-width: 0;
+  }
+  .microgame__intro-copy h3 {
+    margin: 0;
+    color: var(--ink-strong);
+    font: 700 max(var(--fs-min), var(--fs-xl)) / 1.05 var(--font-display);
+  }
+  .microgame__desc {
+    display: none;
+    margin: 0;
+    color: var(--ink-body);
+    font: 600 max(var(--fs-min), var(--fs-sm)) / 1.45 var(--font-body);
+  }
+  .microgame__rules {
+    display: grid;
+    gap: 4px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .microgame__rule {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 3px 8px 3px 4px;
+    color: var(--ink-strong);
+    background: var(--paper-bg);
+    border: 1.5px solid var(--paper-line);
+    border-radius: 9px;
+    font: 700 max(var(--fs-min), var(--fs-sm)) / 1.25 var(--font-body);
+  }
+  .microgame__rule-art {
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    width: 30px;
+    height: 30px;
+  }
+  .microgame__rule-art :is(svg, .bug) {
+    width: 28px;
+    height: 28px;
+  }
+  .microgame__today {
+    display: grid;
+    gap: 1px;
+    margin: 0;
+    padding: 5px 9px;
+    background: color-mix(in srgb, var(--reward-bg) 26%, var(--paper-bg-bright));
+    border: 1.5px dashed var(--reward-edge);
+    border-radius: 9px;
+  }
+  .microgame__today b {
+    font: 700 max(var(--fs-min), var(--fs-sm)) / 1.2 var(--font-display);
+  }
+  .microgame__today span {
+    color: var(--ink-body);
+    font: 600 max(var(--fs-min), var(--fs-xs)) / 1.3 var(--font-body);
+  }
+  .microgame__record-line {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 12px;
+    margin: 0;
+    color: var(--ink-body);
+    font: 800 max(var(--fs-min), var(--fs-xs)) / 1.3 var(--font-body);
+  }
+  .microgame__controls-hint {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 3px 10px;
+    margin: 0;
+    color: var(--ink-soft);
+    font: 700 max(var(--fs-min), var(--fs-2xs)) / 1.35 var(--font-body);
+  }
+  .microgame__keys {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .microgame__intro-actions,
+  .microgame__result-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 8px 10px 9px;
+    background: var(--paper-bg-sunken);
+    border-top: 2px solid var(--paper-line);
+  }
+  .microgame__intro-actions > button,
+  .microgame__result-actions > button {
+    display: inline-flex;
+    flex: 1 1 auto;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 40px;
+    padding: 6px 14px;
+    font-size: max(var(--fs-min), var(--fs-sm));
+  }
+  .microgame__start {
+    flex-grow: 2;
+  }
+  /* Play again and Other games share a row; a souvenir to place gets its own, last,
+     so a first mastery adds one row of buttons rather than three. */
+  .microgame__result-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  }
+  .microgame__souvenir-btn {
+    grid-column: 1 / -1;
+    order: 3;
+  }
+
+  /* Wide cabinets: the host stands left in their corner of the office, the brief
+     reads at full length on the right. */
+  @container microgame (min-width: 620px) and (min-height: 380px) {
+    .microgame__intro-body {
+      grid-template-columns: minmax(220px, 0.9fr) minmax(0, 1.1fr);
+      align-items: stretch;
+      gap: 14px;
+      padding: 14px 16px 10px;
+    }
+    .microgame__intro-scene {
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      height: auto;
+      min-height: 260px;
+      padding: 12px;
+      background:
+        linear-gradient(180deg, transparent 78%, rgb(111 82 56 / 0.14) 78% 80%, transparent 80%),
+        radial-gradient(ellipse at 50% 30%, rgb(255 250 240 / 0.9), transparent 70%),
+        var(--paper-bg-sunken);
+    }
+    .microgame__intro-scene .micro-bubble {
+      flex: 0 0 auto;
+      align-self: stretch;
+      order: -1;
+    }
+    .microgame__intro-scene .micro-bubble::before {
+      left: 42%;
+      bottom: -8px;
+      transform: rotate(-45deg);
+    }
+    .microgame__title-emblem {
+      width: 60px;
+      height: 60px;
+    }
+    .microgame__desc {
+      display: block;
+    }
+    .microgame__intro-copy h3 {
+      font-size: max(var(--fs-min), var(--fs-2xl));
+    }
+    .microgame__intro-actions {
+      justify-content: flex-end;
+    }
+    .microgame__intro-actions > button {
+      flex: 0 0 auto;
+      min-width: 150px;
+    }
+    .microgame__result-actions {
+      display: flex;
+      justify-content: flex-end;
+    }
+    .microgame__result-actions > button {
+      flex: 0 0 auto;
+      min-width: 150px;
+    }
+    .microgame__souvenir-btn {
+      order: -1;
+      margin-right: auto;
+    }
+  }
+  @container microgame (max-height: 330px) {
+    .microgame__intro-scene {
+      height: 78px;
+    }
+    .microgame__intro-body {
+      gap: 6px;
+      padding: 7px 9px 4px;
+    }
+    .microgame__rule {
+      padding-block: 1px;
+    }
+    .microgame__rule-art {
+      width: 24px;
+      height: 24px;
+    }
+    .microgame__rule-art :is(svg, .bug) {
+      width: 22px;
+      height: 22px;
+    }
+    .microgame__intro-actions,
+    .microgame__result-actions {
+      padding: 6px 8px;
+    }
+    .microgame__intro-actions > button,
+    .microgame__result-actions > button {
+      min-height: 36px;
+    }
+  }
+
+  /* ==== countdown ======================================================================== */
+  .microgame__countdown {
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    text-align: center;
+  }
+  .microgame__countdown .microgame-emblem {
+    width: 54px;
+    height: 54px;
+  }
+  .microgame__countdown-label {
+    color: var(--ink-body);
+    font: 800 max(var(--fs-min), var(--fs-sm)) / 1.2 var(--font-body);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .microgame__countdown strong {
+    color: var(--ink-strong);
+    font: 700 clamp(44px, 26cqh, 112px) / 1 var(--font-display);
+    animation: micro-count 0.9s var(--ease-pop) both;
+  }
+  .microgame__countdown small {
+    color: var(--alert-deep);
+    font: 800 max(var(--fs-min), var(--fs-xs)) / 1.2 var(--font-body);
+  }
+  .microgame__countdown-live {
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+  }
+  .microgame__countdown > button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-width: min(220px, 80%);
+    min-height: 38px;
+  }
+  @keyframes micro-count {
+    from {
+      transform: scale(1.5);
+      opacity: 0;
+    }
+    40% {
+      transform: scale(0.95);
+      opacity: 1;
+    }
+  }
+
+  /* ==== play: the bar ===================================================================== */
+  .microgame__bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 40px;
+    padding: 0 2px 0 4px;
+  }
+  .microgame__identity {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+  }
+  .microgame__identity .microgame-emblem {
+    flex: 0 0 auto;
+    width: 30px;
+    height: 30px;
+    filter: drop-shadow(0 1px 0 rgb(0 0 0 / 0.35));
+  }
+  .microgame__identity strong {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--frame-text);
+    font: 700 max(var(--fs-min), var(--fs-base)) / 1.1 var(--font-display);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .microgame__readouts {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 5px;
+  }
+  .microgame__score,
+  .microgame__timer,
+  .microgame__combo {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 34px;
+    padding: 0 9px;
+    color: var(--ink-strong);
+    background: var(--paper-bg-bright);
+    border: 2px solid var(--cab-edge);
+    border-radius: 9px;
+    box-shadow:
+      inset 0 -2px 0 var(--paper-line),
+      0 2px 0 rgb(0 0 0 / 0.25);
+    white-space: nowrap;
+  }
+  .microgame__score small {
+    color: var(--ink-soft);
+    font: 800 max(var(--fs-min), var(--fs-2xs)) / 1 var(--font-body);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .microgame__score b {
+    min-width: 2ch;
+    color: var(--ink-strong);
+    font: 700 max(var(--fs-min), var(--fs-lg)) / 1 var(--font-display);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+  .microgame__combo {
+    color: var(--reward-ink);
+    background: var(--reward-bg);
+    border-color: var(--reward-edge);
+    font: 800 max(var(--fs-min), var(--fs-sm)) / 1 var(--font-body);
+    animation: micro-pop 0.28s var(--ease-pop) both;
+  }
+  .microgame__timer {
+    font: 700 max(var(--fs-min), var(--fs-base)) / 1 var(--font-display);
+    font-variant-numeric: tabular-nums;
+  }
+  .microgame__timer .ui-icon {
+    color: var(--c-sage-600);
+  }
+  .microgame__timer.is-urgent {
+    color: var(--action-ink);
+    background: var(--alert-deep);
+    border-color: var(--cab-edge);
+  }
+  .microgame__timer.is-urgent .ui-icon {
+    color: currentColor;
+  }
+  @keyframes micro-pop {
+    from {
+      transform: scale(0.6);
+      opacity: 0;
+    }
+  }
+  .microgame__controls {
+    display: flex;
+    flex: 0 0 auto;
+    gap: 4px;
+  }
+  .microgame__controls > button {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 34px;
+    padding: 0 10px;
+    font-size: max(var(--fs-min), var(--fs-xs));
+    white-space: nowrap;
+  }
+  /* Narrow cabinets keep every readout and both controls; the words go first. */
+  @container microgame (max-width: 560px) {
+    .microgame__identity strong {
+      display: none;
+    }
+    .microgame__btn-label {
+      display: none;
+    }
+    .microgame__controls > button {
+      justify-content: center;
+      width: 36px;
+      padding: 0;
+    }
+  }
+  @container microgame (max-width: 360px) {
+    .microgame__identity {
+      flex: 0 0 auto;
+    }
+    .microgame__identity .microgame-emblem {
+      width: 24px;
+      height: 24px;
+    }
+    .microgame__score small {
+      display: none;
+    }
+    .microgame__score,
+    .microgame__timer,
+    .microgame__combo {
+      height: 32px;
+      padding: 0 7px;
+    }
+    .microgame__bar {
+      gap: 4px;
+      justify-content: space-between;
+    }
+  }
+
+  /* ==== play: the stage =================================================================== */
+  .microgame__stage {
+    position: relative;
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+    border-radius: 11px;
+  }
+  .microgame__playfield {
+    position: relative;
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+    outline: none;
+  }
+  .microgame__playfield > * {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  .microgame__paused {
+    position: absolute;
+    inset: 0;
+    z-index: 30;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px;
+    color: var(--ink-strong);
+    text-align: center;
+    background: rgb(46 29 16 / 0.62);
+    border-radius: 11px;
+  }
+  .microgame__paused > * {
+    position: relative;
+  }
+  .microgame__paused::before {
+    content: '';
+    position: absolute;
+    width: min(320px, 92%);
+    height: min(230px, 94%);
+    background: var(--paper-grain), var(--paper-bg-bright);
+    border: 2px solid var(--ink-strong);
+    border-radius: 14px;
+    box-shadow: var(--lift-shadow);
+  }
+  .microgame__paused > .micro-glyph {
+    width: 26px;
+    height: 26px;
+    color: var(--c-walnut-600);
+  }
+  .microgame__paused strong {
+    font: 700 max(var(--fs-min), var(--fs-lg)) / 1.1 var(--font-display);
+  }
+  .microgame__paused button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: min(220px, 80%);
+    min-height: 38px;
+  }
+  .microgame__paused small {
+    max-width: min(280px, 84%);
+    color: var(--ink-body);
+    font: 700 max(var(--fs-min), var(--fs-2xs)) / 1.3 var(--font-body);
+  }
+  @container microgame (max-height: 300px) {
+    .microgame__paused small {
+      display: none;
+    }
+    .microgame__paused button {
+      min-height: 34px;
+    }
+  }
+
+  /* Status rows inside the boards share one look: paper chips on the walnut. */
+  .coffee__status,
+  .bugsquash__status,
+  .cable__status {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: stretch;
+    gap: 6px;
+    min-width: 0;
+    margin-bottom: 6px;
+  }
+
+  /* ==== Coffee Rescue ======================================================================= */
+  .coffee {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .coffee > .micro-feedback {
+    flex: 0 0 auto;
+    margin: -2px 0 4px;
+  }
+  .coffee__status {
+    justify-content: space-between;
+  }
+  .coffee__order-ticket {
+    position: relative;
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    max-width: 440px;
+    padding: 4px 10px 4px 8px;
+    color: var(--ink-strong);
+    background: var(--paper-bg-bright);
+    border: 2px solid var(--cab-edge);
+    border-radius: 9px;
+    /* a torn, perforated left edge, the kitchen's own ticket */
+    mask: radial-gradient(circle at 0 6px, transparent 2.6px, #000 3px) 0 0 / 100% 12px;
+  }
+  .coffee__order-ticket > b {
+    flex: 0 0 auto;
+    font: 700 max(var(--fs-min), var(--fs-sm)) / 1 var(--font-display);
+    white-space: nowrap;
+  }
+  .coffee__order-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    min-width: 0;
+  }
+  .coffee__order-item {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    background: var(--paper-bg-sunken);
+    border: 1.5px solid var(--paper-line);
+    border-radius: 7px;
+  }
+  .coffee__order-item .drink {
+    width: 24px;
+    height: 24px;
+  }
+  .coffee__order-item.is-filled {
+    background: var(--c-sage-200);
+    border-color: var(--c-sage-600);
+  }
+  .coffee__order-item.is-filled .drink {
+    opacity: 0.45;
+  }
+  .coffee__order-item.is-filled::after {
+    content: '';
+    position: absolute;
+    left: 7px;
+    top: 4px;
+    width: 9px;
+    height: 15px;
+    border-right: 3.5px solid var(--c-sage-700);
+    border-bottom: 3.5px solid var(--c-sage-700);
+    transform: rotate(40deg);
+  }
+  .coffee__order-item.is-ticked {
+    animation: micro-pop 0.3s var(--ease-pop) both;
+  }
+  .coffee__order-stamp {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    padding: 1px 7px;
+    color: var(--c-sage-700);
+    background: var(--paper-bg-bright);
+    border: 2.5px solid currentColor;
+    border-radius: 6px;
+    font: 800 max(var(--fs-min), var(--fs-xs)) / 1.15 var(--font-display);
+    text-transform: uppercase;
+    transform: translateY(-50%) rotate(-6deg);
+    animation: micro-stamp-in 0.3s var(--ease-pop) both;
+  }
+  .coffee__streak {
+    display: grid;
+    grid-template-columns: auto;
+    align-content: center;
+    gap: 2px;
+    width: clamp(118px, 30cqw, 210px);
+    padding: 4px 9px 5px;
+    color: var(--ink-strong);
+    background: var(--paper-bg-bright);
+    border: 2px solid var(--cab-edge);
+    border-radius: 9px;
+  }
+  .coffee__streak-label {
+    font: 800 max(var(--fs-min), var(--fs-xs)) / 1.1 var(--font-body);
+    white-space: nowrap;
+  }
+  .coffee__streak-next {
+    color: var(--ink-soft);
+    font: 700 max(var(--fs-min), var(--fs-2xs)) / 1.1 var(--font-body);
+    white-space: nowrap;
+  }
+  .coffee__meter {
+    position: relative;
+    height: 7px;
+    overflow: hidden;
+    background: var(--paper-bg-sunken);
+    border: 1px solid var(--paper-line);
+    border-radius: 999px;
+  }
+  .coffee__meter-fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    background: linear-gradient(90deg, var(--c-acorn-400), var(--c-acorn-600));
+    border-radius: inherit;
+    transition: width var(--dur) var(--ease);
+  }
+  .coffee__streak.is-hot {
+    background: color-mix(in srgb, var(--reward-bg) 30%, var(--paper-bg-bright));
+    border-color: var(--reward-edge);
+  }
+  .coffee__streak.is-hot .coffee__meter-fill {
+    background: linear-gradient(90deg, var(--reward-bg), var(--c-acorn-500));
+  }
+
+  .coffee__area {
+    container: coffee / size;
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 120px;
+    overflow: hidden;
+    background: var(--paper-bg-sunken);
+    border: 2px solid var(--cab-edge);
+    border-radius: 11px;
+    cursor: none;
+    touch-action: none;
+    user-select: none;
+    outline: none;
+  }
+  .coffee__area.is-tap-mode {
+    cursor: default;
+  }
+  .coffee__area:focus-visible {
+    outline: 3px solid var(--c-sky-500);
+    outline-offset: -3px;
+  }
+  .coffee__cafe {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  /* The break room is furniture on a wall, each piece at its own size: a bigger
+     counter shows more of the room, not a bigger window. */
+  .coffee-cafe {
+    --counter-h: clamp(34px, 17cqh, 70px);
+    position: absolute;
+    inset: 0;
+  }
+  .coffee-cafe > * {
+    position: absolute;
+    display: block;
+  }
+  .coffee-cafe__wall {
+    inset: 0;
+    background:
+      linear-gradient(180deg, transparent 58%, #d9b98a 58% 59.4%, transparent 59.4%),
+      repeating-linear-gradient(90deg, transparent 0 58px, rgb(168 115 63 / 0.18) 58px 60px),
+      linear-gradient(180deg, #f6e3bf, #ecd2a3);
+  }
+  .coffee-cafe__wall::after {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    height: 10px;
+    background: rgb(217 185 138 / 0.6);
+  }
+  .coffee-cafe__window {
+    top: 13%;
+    left: 5%;
+    width: clamp(64px, 19cqw, 150px);
+  }
+  .coffee-cafe__board {
+    top: 9%;
+    left: 37%;
+    width: clamp(60px, 17cqw, 132px);
+  }
+  .coffee-cafe__shelf {
+    top: 27%;
+    right: 4%;
+    width: clamp(70px, 21cqw, 170px);
+  }
+  .coffee-cafe__machine {
+    right: 9%;
+    bottom: calc(var(--counter-h) - 3px);
+    display: none;
+    width: clamp(52px, 7cqw, 84px);
+  }
+  .coffee-cafe__lamp {
+    top: 0;
+    left: 64%;
+    display: none;
+    width: clamp(34px, 4.4cqw, 56px);
+  }
+  .coffee-cafe__plant {
+    left: 2.5%;
+    bottom: calc(var(--counter-h) - 3px);
+    display: none;
+    width: clamp(28px, 3.4cqw, 44px);
+  }
+  .coffee-cafe__counter {
+    inset: auto 0 0;
+    height: var(--counter-h);
+    background:
+      repeating-linear-gradient(90deg, transparent 0 66px, rgb(135 90 51 / 0.5) 66px 106px) 0 55% /
+        100% 2px no-repeat,
+      linear-gradient(180deg, #875a33 0 8px, #a8733f 8px);
+    border-top: 2px solid rgb(43 27 16 / 0.45);
+  }
+  @container coffee (min-width: 540px) {
+    .coffee-cafe__machine {
+      display: block;
+    }
+  }
+  @container coffee (min-width: 760px) {
+    .coffee-cafe__lamp,
+    .coffee-cafe__plant {
+      display: block;
+    }
+    .coffee-cafe__board {
+      left: 33%;
+    }
+  }
+  .coffee__drop {
+    position: absolute;
+    z-index: 3;
+    width: clamp(28px, 8.5cqmin, 54px);
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    filter: drop-shadow(0 3px 0 rgb(46 29 16 / 0.22));
+  }
+  .coffee__drop .drink {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  .coffee__drop--carafe {
+    width: clamp(32px, 10cqmin, 62px);
+  }
+  .coffee__drop--espresso {
+    width: clamp(26px, 7.5cqmin, 46px);
+  }
+  /* The hazard is ringed as well as grey and crossed out: three cues, no colour needed. */
+  .coffee__drop--decaf::before {
+    content: '';
+    position: absolute;
+    inset: -5px;
+    border: 2.5px dashed var(--c-gray-700);
+    border-radius: 50%;
+  }
+  .coffee__drop--tap {
+    top: 44%;
+    display: grid;
+    place-items: center;
+    width: clamp(48px, 14cqmin, 64px);
+    padding: 4px;
+    background: rgb(255 250 240 / 0.86);
+    border: 2px solid var(--ink-strong);
+    border-radius: 14px;
+    pointer-events: auto;
+    cursor: pointer;
+    animation: micro-pop 0.2s var(--ease-pop) both;
+  }
+  .coffee__drop--tap:focus-visible {
+    outline: 3px solid var(--c-sky-500);
+    outline-offset: 2px;
+  }
+  .coffee__drop--tap.coffee__drop--decaf {
+    background: var(--gray-bg);
+  }
+  .coffee__slot {
+    position: absolute;
+    top: -9px;
+    left: -9px;
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    color: var(--action-ink);
+    background: var(--calm-bg);
+    border-radius: 50%;
+    font: 800 11px / 1 var(--font-body);
+  }
+  .coffee__mug {
+    position: absolute;
+    bottom: 5%;
+    z-index: 4;
+    width: clamp(66px, 22cqw, 124px);
+    aspect-ratio: 82 / 64;
+    transform: translateX(-50%);
+    pointer-events: none;
+  }
+  .coffee__mug .coffee-mug {
+    display: block;
+    width: 100%;
+    height: 100%;
+    transform-origin: 50% 100%;
+  }
+  .coffee__mug.is-splash .coffee-mug {
+    animation: micro-mug-catch 0.36s var(--ease-pop);
+  }
+  .coffee__mug.is-stationary {
+    opacity: 0.85;
+  }
+  @keyframes micro-mug-catch {
+    40% {
+      transform: scale(1.08, 0.9);
+    }
+  }
+  .coffee__catch-fx,
+  .coffee__miss-fx {
+    position: absolute;
+    bottom: 26%;
+    z-index: 6;
+    transform: translateX(-50%);
+    pointer-events: none;
+  }
+  .coffee__catch-fx b {
+    display: block;
+    color: var(--c-sage-700);
+    font: 700 max(var(--fs-min), var(--fs-lg)) / 1 var(--font-display);
+    text-shadow:
+      0 2px 0 var(--paper-bg-bright),
+      0 -1px 0 var(--paper-bg-bright);
+    animation: micro-rise 0.46s var(--ease) both;
+  }
+  .coffee__catch-fx.is-order b {
+    color: var(--reward-edge);
+    font-size: max(var(--fs-min), var(--fs-xl));
+  }
+  .coffee__catch-fx i {
+    position: absolute;
+    left: 50%;
+    top: 60%;
+    width: 6px;
+    height: 6px;
+    background: var(--c-acorn-500);
+    border-radius: 50%;
+    transform: rotate(calc(var(--i) * 51deg)) translateY(-22px);
+    opacity: 0;
+    animation: micro-spark 0.42s var(--ease) both;
+  }
+  @keyframes micro-rise {
+    from {
+      transform: translateY(10px);
+      opacity: 0;
+    }
+    30% {
+      opacity: 1;
+    }
+    to {
+      transform: translateY(-18px);
+    }
+  }
+  @keyframes micro-spark {
+    from {
+      transform: rotate(calc(var(--i) * 51deg)) translateY(-4px);
+      opacity: 1;
+    }
+  }
+  .coffee__miss-fx {
+    bottom: 3%;
+  }
+  .coffee__miss-fx b {
+    display: block;
+    padding: 1px 8px;
+    color: var(--ink-body);
+    background: var(--paper-bg-bright);
+    border: 2px solid var(--ink-body);
+    border-radius: 7px;
+    font: 800 max(var(--fs-min), var(--fs-xs)) / 1.2 var(--font-body);
+    white-space: nowrap;
+    animation: micro-pop 0.22s var(--ease-pop) both;
+  }
+  .coffee__miss-fx.is-hazard {
+    bottom: 30%;
+  }
+  .coffee__miss-fx.is-hazard b {
+    color: var(--action-ink);
+    background: var(--alert-deep);
+    border-color: var(--ink-strong);
+    transform: rotate(-4deg);
+  }
+  /* Banners ride over a game's status row (the chips under the bar), never over the
+     board, so no drop or pest is ever hidden behind one. */
+  .coffee,
+  .bugsquash {
+    position: relative;
+  }
+  :is(.coffee, .bugsquash) > .micro-banner {
+    top: -2px;
+    width: min(96%, 340px);
+    max-width: none;
+    padding-block: 4px 5px;
+  }
+
+  /* ==== Bug Squash ========================================================================== */
+  .bugsquash {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .bugsquash > .micro-feedback {
+    order: 2;
+    flex: 0 0 auto;
+    margin-top: 4px;
+  }
+  .bugsquash__ticket,
+  .bugsquash__streak {
+    display: grid;
+    align-content: center;
+    gap: 1px;
+    min-width: 0;
+    padding: 4px 10px 5px;
+    color: var(--ink-strong);
+    background: var(--paper-bg-bright);
+    border: 2px solid var(--cab-edge);
+    border-radius: 9px;
+  }
+  .bugsquash__ticket {
+    flex: 1 1 auto;
+  }
+  .bugsquash__ticket b,
+  .bugsquash__streak b {
+    overflow: hidden;
+    font: 700 max(var(--fs-min), var(--fs-sm)) / 1.1 var(--font-display);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .bugsquash__ticket small,
+  .bugsquash__streak small {
+    color: var(--ink-soft);
+    font: 700 max(var(--fs-min), var(--fs-2xs)) / 1.15 var(--font-body);
+    white-space: nowrap;
+  }
+  .bugsquash__streak {
+    flex: 0 1 auto;
+    width: clamp(116px, 30cqw, 200px);
+  }
+  .bugsquash__streak.is-hot {
+    background: color-mix(in srgb, var(--reward-bg) 30%, var(--paper-bg-bright));
+    border-color: var(--reward-edge);
+  }
+  .bugsquash__threat {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 4px;
+    padding: 0 8px;
+    background: var(--c-walnut-800);
+    border: 2px solid var(--cab-edge);
+    border-radius: 9px;
+  }
+  .bugsquash__threat i {
+    width: 9px;
+    height: 9px;
+    background: var(--c-walnut-600);
+    border: 1px solid rgb(0 0 0 / 0.4);
+    border-radius: 50%;
+  }
+  .bugsquash__threat i.is-alert {
+    background: var(--c-berry-500);
+    box-shadow: 0 0 6px var(--c-berry-500);
+  }
+  .bugsquash__desk {
+    container: bugdesk / size;
+    position: relative;
+    display: grid;
+    flex: 1 1 auto;
+    place-items: center;
+    min-height: 150px;
+    overflow: hidden;
+    background:
+      repeating-linear-gradient(90deg, rgb(255 250 240 / 0.05) 0 2px, transparent 2px 46px),
+      linear-gradient(180deg, #9a6a3c, #7d522c);
+    border: 2px solid var(--cab-edge);
+    border-radius: 11px;
+  }
+  .bugsquash__props {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  .bugsquash__monitor {
+    position: absolute;
+    top: 12px;
+    left: 3%;
+    display: grid;
+    place-content: center;
+    width: 17%;
+    max-width: 150px;
+    aspect-ratio: 4 / 3;
+    color: #8fe3a8;
+    background: #20372b;
+    border: 5px solid #e2ddd4;
+    border-radius: 8px;
+    box-shadow: 0 4px 0 rgb(0 0 0 / 0.25);
+    font: 800 var(--fs-min) / 1.15 var(--font-body);
+    letter-spacing: 0.08em;
+    text-align: center;
+  }
+  .bugsquash__monitor i {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 6px;
+    height: 6px;
+    background: #8fe3a8;
+    border-radius: 50%;
+  }
+  .bugsquash__papers {
+    position: absolute;
+    top: 14px;
+    right: 3%;
+    width: 16%;
+    max-width: 150px;
+    aspect-ratio: 5 / 4;
+    background: #f6efe0;
+    border: 1px solid #d9c9a8;
+    border-radius: 3px;
+    box-shadow:
+      5px 5px 0 #efe4cc,
+      10px 9px 0 #e2d4b3;
+    transform: rotate(4deg);
+  }
+  .bugsquash__papers b {
+    position: absolute;
+    left: 14%;
+    top: 34%;
+    padding: 1px 4px;
+    color: #b0473a;
+    border: 1.5px solid currentColor;
+    border-radius: 3px;
+    font: 800 var(--fs-min) / 1 var(--font-body);
+    transform: rotate(-8deg);
+  }
+  .bugsquash__lamp {
+    position: absolute;
+    right: 6%;
+    bottom: 10%;
+    width: 9%;
+    max-width: 70px;
+    aspect-ratio: 1;
+    background: radial-gradient(circle, rgb(255 236 170 / 0.75), transparent 70%);
+  }
+  @container bugdesk (max-width: 560px) {
+    .bugsquash__props {
+      display: none;
+    }
+  }
+  .bugsquash__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: repeat(3, minmax(0, 1fr));
+    gap: clamp(5px, 2cqmin, 12px);
+    width: min(calc(100cqw - 14px), calc((100cqh - 14px) * 1.08), 560px);
+    aspect-ratio: 1.08;
+    padding: clamp(6px, 2cqmin, 12px);
+    background: linear-gradient(180deg, #8f9a8d, #6f7b6e);
+    border: 3px solid #43483f;
+    border-radius: 12px;
+    box-shadow:
+      inset 0 2px 0 rgb(255 255 255 / 0.25),
+      0 5px 0 rgb(0 0 0 / 0.28);
+    outline: none;
+  }
+  .bugsquash__grid:focus-visible {
+    outline: 3px solid var(--c-sky-500);
+    outline-offset: 3px;
+  }
+  .burrow {
+    --drawer: #dcd3c2;
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-width: 0;
+    min-height: 0;
+    padding: 0;
+    overflow: visible;
+    background: linear-gradient(180deg, var(--drawer), #c4b9a5);
+    border: 2px solid #43483f;
+    border-radius: 9px;
+    box-shadow:
+      inset 0 2px 0 rgb(255 255 255 / 0.5),
+      0 3px 0 rgb(0 0 0 / 0.22);
+    cursor: pointer;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .burrow:focus-visible {
+    outline: 3px solid var(--c-sky-500);
+    outline-offset: 2px;
+    z-index: 2;
+  }
+  .burrow:disabled {
+    cursor: default;
+  }
+  .burrow__folder-tab {
+    position: absolute;
+    top: -2px;
+    left: 8px;
+    padding: 1px 7px 2px;
+    color: var(--ink-strong);
+    background: #f6efe0;
+    border: 1.5px solid #43483f;
+    border-top: 0;
+    border-radius: 0 0 6px 6px;
+    font: 800 max(var(--fs-min), min(13px, 4.2cqmin)) / 1.1 var(--font-body);
+  }
+  .burrow__hole {
+    position: absolute;
+    left: 18%;
+    right: 18%;
+    bottom: 16%;
+    height: 22%;
+    background: radial-gradient(ellipse at 50% 40%, #1f1611, #3a2b20 70%);
+    border-radius: 50%;
+    box-shadow: inset 0 3px 4px rgb(0 0 0 / 0.6);
+  }
+  .burrow__pest,
+  .burrow__squashed {
+    position: absolute;
+    left: 50%;
+    bottom: 22%;
+    z-index: 2;
+    width: 74%;
+    aspect-ratio: 1;
+    transform: translateX(-50%);
+    pointer-events: none;
+  }
+  .burrow__pest {
+    animation: micro-pest-pop 0.18s var(--ease-pop) both;
+  }
+  .burrow__pest .bug,
+  .burrow__squashed .bug {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  .burrow__pest.has-hopped {
+    animation: micro-pest-hop 0.22s var(--ease-pop) both;
+  }
+  @keyframes micro-pest-pop {
+    from {
+      transform: translateX(-50%) translateY(38%) scale(0.7);
+      opacity: 0;
+    }
+  }
+  @keyframes micro-pest-hop {
+    from {
+      transform: translateX(-50%) translateY(-30%) scale(0.85);
+      opacity: 0.2;
+    }
+  }
+  .burrow.is-urgent .burrow__pest {
+    animation: micro-pest-nervous 0.18s linear infinite;
+  }
+  .burrow.is-urgent .burrow__folder-tab {
+    background: var(--reward-bg);
+  }
+  @keyframes micro-pest-nervous {
+    50% {
+      transform: translateX(-46%);
+    }
+  }
+  .burrow--feature {
+    --drawer: #e6ecd8;
+  }
+  .burrow--rare {
+    --drawer: #f6e7b2;
+  }
+  .burrow--rare .burrow__pest {
+    filter: drop-shadow(0 0 7px rgb(242 201 76 / 0.95));
+  }
+  .burrow__taps {
+    position: absolute;
+    left: 50%;
+    bottom: -8%;
+    display: flex;
+    gap: 3px;
+    transform: translateX(-50%);
+  }
+  .burrow__taps i {
+    width: 9px;
+    height: 9px;
+    background: #cfe2ec;
+    border: 1.5px solid #2f4757;
+    border-radius: 50%;
+  }
+  .burrow__taps i.is-spent {
+    background: #c94452;
+  }
+  .bug.is-squashed {
+    transform: scale(1.12, 0.42) translateY(55%);
+    opacity: 0.75;
+  }
+  .burrow__squashed {
+    animation: micro-fade 0.46s var(--ease) both;
+  }
+  @keyframes micro-fade {
+    to {
+      opacity: 0;
+    }
+  }
+  .burrow__impact {
+    position: absolute;
+    left: 50%;
+    top: 26%;
+    z-index: 4;
+    transform: translateX(-50%);
+    pointer-events: none;
+  }
+  .burrow__impact b {
+    display: block;
+    padding: 1px 7px;
+    color: var(--action-ink);
+    background: var(--action-bg);
+    border: 2px solid var(--action-edge);
+    border-radius: 8px;
+    font: 700 max(var(--fs-min), var(--fs-base)) / 1.1 var(--font-display);
+    white-space: nowrap;
+    animation: micro-rise 0.46s var(--ease) both;
+  }
+  .burrow__impact.is-golden b {
+    color: var(--reward-ink);
+    background: var(--reward-bg);
+    border-color: var(--reward-edge);
+  }
+  .burrow__impact i {
+    position: absolute;
+    left: 50%;
+    top: 70%;
+    width: 7px;
+    height: 7px;
+    background: #f6efe0;
+    border: 1px solid #43483f;
+    border-radius: 2px;
+    transform: rotate(calc(var(--i) * 60deg)) translateY(-26px);
+    opacity: 0;
+    animation: micro-spark 0.4s var(--ease) both;
+  }
+  .burrow.is-wrong {
+    animation: micro-knock 0.26s var(--ease);
+  }
+  @keyframes micro-knock {
+    30% {
+      transform: translateX(-3px);
+    }
+    65% {
+      transform: translateX(3px);
+    }
+  }
+  .burrow__miss,
+  .burrow__escape {
+    position: absolute;
+    left: 50%;
+    top: 34%;
+    z-index: 4;
+    display: grid;
+    justify-items: center;
+    transform: translateX(-50%);
+    pointer-events: none;
+  }
+  .burrow__miss b {
+    padding: 1px 7px;
+    color: var(--action-ink);
+    background: var(--alert-deep);
+    border: 2px solid var(--ink-strong);
+    border-radius: 8px;
+    font: 700 max(var(--fs-min), var(--fs-base)) / 1.1 var(--font-display);
+    animation: micro-pop 0.2s var(--ease-pop) both;
+  }
+  .burrow__miss small {
+    margin-top: 2px;
+    padding: 0 5px;
+    color: var(--ink-strong);
+    background: #fff1a8;
+    border: 1.5px solid var(--ink-strong);
+    border-radius: 5px;
+    font: 800 max(var(--fs-min), var(--fs-2xs)) / 1.25 var(--font-body);
+    white-space: nowrap;
+  }
+  .burrow__escape {
+    padding: 1px 7px;
+    color: var(--ink-body);
+    background: var(--paper-bg-bright);
+    border: 1.5px dashed var(--ink-body);
+    border-radius: 7px;
+    font: 800 max(var(--fs-min), var(--fs-2xs)) / 1.2 var(--font-body);
+    white-space: nowrap;
+    animation: micro-pop 0.2s var(--ease-pop) both;
+  }
+  .burrow__dust {
+    position: absolute;
+    left: 50%;
+    bottom: 24%;
+    width: 46%;
+    height: 22%;
+    background: radial-gradient(ellipse, rgb(246 239 224 / 0.9), transparent 70%);
+    border-radius: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+    animation: micro-fade 0.42s var(--ease) both;
+  }
+  @container microgame (max-width: 420px) {
+    .bugsquash__threat {
+      display: none;
+    }
+  }
+
+  /* ==== Cable Untangle ===================================================================== */
+  .cable {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .cable__crossings,
+  .cable__desk-count {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    color: var(--ink-strong);
+    background: var(--paper-bg-bright);
+    border: 2px solid var(--cab-edge);
+    border-radius: 9px;
+    font: 700 max(var(--fs-min), var(--fs-sm)) / 1.1 var(--font-display);
+    white-space: nowrap;
+  }
+  .cable__crossings {
+    color: var(--alert-deep);
+  }
+  .cable__crossings.is-clear {
+    color: var(--action-ink);
+    background: var(--action-bg);
+    border-color: var(--action-edge);
+  }
+  .cable__desk-count small {
+    color: var(--ink-soft);
+    font: 700 max(var(--fs-min), var(--fs-2xs)) / 1 var(--font-body);
+  }
+  .cable__status-copy {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    min-width: 0;
+    padding: 0 4px;
+    color: var(--frame-text);
+    font: 700 max(var(--fs-min), var(--fs-xs)) / 1.25 var(--font-body);
+  }
+  @container microgame (max-width: 460px) {
+    .cable__status {
+      flex-wrap: wrap;
+      row-gap: 4px;
+    }
+    .cable__status-copy {
+      flex-basis: 100%;
+      padding: 0 2px;
+    }
+  }
+  @container microgame (max-height: 300px) {
+    .cable__status-copy {
+      display: none;
+    }
+  }
+  @container microgame (max-height: 420px) {
+    .cable__hint {
+      display: none;
+    }
+  }
+  .cable__board {
+    container: cableboard / size;
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 160px;
+    overflow: hidden;
+    background:
+      radial-gradient(circle, rgb(111 82 56 / 0.2) 1.4px, transparent 1.6px) 0 0 / 18px 18px,
+      linear-gradient(180deg, #efe2c7, #e2d1ae);
+    border: 2px solid var(--cab-edge);
+    border-radius: 11px;
+    touch-action: none;
+    user-select: none;
+  }
+  .cable__wires {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+  }
+  .cable__strand line {
+    vector-effect: non-scaling-stroke;
+    stroke-linecap: round;
+  }
+  .cable__strand-shadow {
+    stroke: rgb(46 29 16 / 0.55);
+    stroke-width: 9px;
+  }
+  .cable__strand-body {
+    stroke: var(--cable-color);
+    stroke-width: 5.5px;
+  }
+  .cable__strand.is-knotted .cable__strand-shadow {
+    stroke: color-mix(in srgb, var(--c-berry-700) 70%, rgb(46 29 16));
+    stroke-width: 10px;
+  }
+  .cable__strand.is-lifted .cable__strand-shadow {
+    stroke-width: 12px;
+    stroke: rgb(46 29 16 / 0.35);
+  }
+  .cable__strand.is-lifted .cable__strand-body {
+    stroke: var(--cable-highlight);
+    stroke-width: 7px;
+  }
+  .cable__knot {
+    position: absolute;
+    z-index: 2;
+    width: 20px;
+    height: 20px;
+    background: var(--paper-bg-bright);
+    border: 3px solid var(--c-berry-500);
+    border-radius: 50%;
+    box-shadow: 0 1px 0 rgb(0 0 0 / 0.3);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    animation: micro-knot 1.2s ease-in-out infinite;
+  }
+  .cable__knot::before,
+  .cable__knot::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 10px;
+    height: 3px;
+    background: var(--c-berry-700);
+    border-radius: 2px;
+    transform: translate(-50%, -50%) rotate(45deg);
+  }
+  .cable__knot::after {
+    transform: translate(-50%, -50%) rotate(-45deg);
+  }
+  .cable__knot--touch,
+  .cable__knot--overlap,
+  .cable__knot--crowded {
+    border-color: var(--c-acorn-600);
+    border-style: dashed;
+  }
+  .cable__knot--touch::before,
+  .cable__knot--overlap::before,
+  .cable__knot--crowded::before {
+    width: 3px;
+    height: 8px;
+    background: var(--c-acorn-600);
+    transform: translate(-50%, -62%);
+  }
+  .cable__knot--touch::after,
+  .cable__knot--overlap::after,
+  .cable__knot--crowded::after {
+    width: 3px;
+    height: 3px;
+    background: var(--c-acorn-600);
+    transform: translate(-50%, 160%);
+  }
+  @keyframes micro-knot {
+    50% {
+      transform: translate(-50%, -50%) scale(1.15);
+    }
+  }
+  /* A mark about a plug sits on its shoulder, above it, so it is never covered. */
+  .cable__knot.is-on-plug {
+    z-index: 7;
+    width: 18px;
+    height: 18px;
+    transform: translate(
+      calc(-50% + clamp(16px, 4.6cqmin, 22px) + var(--stack, 0) * 14px),
+      calc(-50% - clamp(16px, 4.6cqmin, 22px))
+    );
+    animation: none;
+  }
+  .cable__node {
+    position: absolute;
+    z-index: 4;
+    display: grid;
+    place-items: center;
+    width: clamp(36px, 11cqmin, 50px);
+    aspect-ratio: 1;
+    padding: 0;
+    background: none;
+    border: 0;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    cursor: grab;
+    touch-action: none;
+  }
+  .cable__node:active {
+    cursor: grabbing;
+  }
+  .cable__handle {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    background:
+      radial-gradient(circle at 35% 30%, rgb(255 255 255 / 0.85), transparent 45%),
+      var(--cable-color);
+    border: 3px solid var(--ink-strong);
+    border-radius: 50%;
+    box-shadow:
+      inset 0 -3px 0 rgb(0 0 0 / 0.18),
+      0 3px 0 rgb(46 29 16 / 0.35);
+  }
+  .cable__handle b {
+    display: grid;
+    place-items: center;
+    width: 62%;
+    aspect-ratio: 1;
+    color: var(--ink-strong);
+    background: var(--paper-bg-bright);
+    border-radius: 50%;
+    font: 800 max(11px, min(15px, 4.4cqmin)) / 1 var(--font-body);
+  }
+  .cable__node.is-active {
+    z-index: 6;
+  }
+  .cable__node.is-active .cable__handle {
+    transform: scale(1.12);
+    box-shadow:
+      inset 0 -3px 0 rgb(0 0 0 / 0.18),
+      0 9px 12px rgb(46 29 16 / 0.35);
+  }
+  .cable__node.is-blocking .cable__handle {
+    outline: 3px dashed var(--c-acorn-600);
+    outline-offset: 2px;
+  }
+  .cable__node:focus-visible {
+    outline: none;
+  }
+  .cable__node:focus-visible .cable__handle {
+    outline: 3px solid var(--c-sky-500);
+    outline-offset: 3px;
+  }
+  .cable__board.is-solved .cable__strand-body {
+    stroke: var(--cable-highlight);
+  }
+  .cable__cleared {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 10;
+    display: grid;
+    justify-items: center;
+    gap: 4px;
+    width: min(300px, 86%);
+    padding: 12px 14px 12px;
+    color: var(--ink-strong);
+    text-align: center;
+    background: var(--paper-grain), var(--paper-bg-bright);
+    border: 2px solid var(--ink-strong);
+    border-radius: 14px;
+    box-shadow: var(--lift-shadow);
+    transform: translate(-50%, -50%);
+    animation: micro-pop 0.32s var(--ease-pop) both;
+  }
+  .cable__cleared strong {
+    font: 700 max(var(--fs-min), var(--fs-lg)) / 1.1 var(--font-display);
+  }
+  .cable__cleared small {
+    color: var(--ink-body);
+    font: 700 max(var(--fs-min), var(--fs-2xs)) / 1.3 var(--font-body);
+  }
+  .cable__cleared-mark {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    background: var(--action-bg);
+    border: 2px solid var(--action-edge);
+    border-radius: 50%;
+  }
+  .cable__cleared-mark svg {
+    width: 26px;
+    height: 26px;
+    fill: none;
+    stroke: var(--action-ink);
+    stroke-width: 5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .cable__cleared-points {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 5px;
+  }
+  .cable__cleared-points b {
+    padding: 2px 8px;
+    color: var(--action-ink);
+    background: var(--action-bg);
+    border: 2px solid var(--action-edge);
+    border-radius: 8px;
+    font: 800 max(var(--fs-min), var(--fs-xs)) / 1.2 var(--font-body);
+  }
+  .cable__cleared-points b.is-bonus {
+    color: var(--reward-ink);
+    background: var(--reward-bg);
+    border-color: var(--reward-edge);
+  }
+  .cable__confetti i {
+    position: absolute;
+    left: 50%;
+    top: 20%;
+    width: 7px;
+    height: 10px;
+    background: hsl(calc(var(--i) * 36deg) 65% 58%);
+    border-radius: 2px;
+    opacity: 0;
+    transform: rotate(calc(var(--i) * 36deg)) translateY(-60px);
+    animation: micro-spark 0.7s var(--ease) both;
+  }
+  .cable__hint {
+    flex: 0 0 auto;
+    margin: 5px 0 0;
+    color: var(--frame-text);
+    font: 700 max(var(--fs-min), var(--fs-2xs)) / 1.3 var(--font-body);
+    text-align: center;
+  }
+
+  /* ==== result ============================================================================== */
+  .microgame__result {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+  .microgame__result-scroll {
+    display: grid;
+    align-content: start;
+    gap: 10px;
+    min-height: 0;
+    padding: 10px 12px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    outline: none;
+  }
+  .microgame__report {
+    display: grid;
+    gap: 9px;
+    padding: 10px 12px 12px;
+    background: var(--paper-bg);
+    border: 2px solid var(--paper-line);
+    border-radius: 12px;
+  }
+  .microgame__report-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px 10px;
+  }
+  .microgame__final-score {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 2px 12px;
+  }
+  .microgame__final-score small {
+    flex-basis: 100%;
+    color: var(--ink-soft);
+    font: 800 max(var(--fs-min), var(--fs-2xs)) / 1.2 var(--font-body);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .microgame__final-score strong {
+    color: var(--ink-strong);
+    font: 700 clamp(36px, 13cqh, 64px) / 0.95 var(--font-display);
+    font-variant-numeric: tabular-nums;
+  }
+  /* The record stamp sits beside the number it is about, small enough to keep one row. */
+  .microgame__best-stamp {
+    --stamp: var(--c-berry-700);
+    align-self: center;
+    padding: 1px 7px 2px;
+    font-size: max(var(--fs-min), var(--fs-xs));
+    transform: rotate(-7deg);
+  }
+  .microgame__mastery {
+    display: grid;
+    gap: 4px;
+  }
+  .microgame__mastery-track {
+    position: relative;
+    height: 10px;
+    overflow: visible;
+    background: var(--paper-bg-sunken);
+    border: 1.5px solid var(--paper-line);
+    border-radius: 999px;
+  }
+  .microgame__mastery-track i {
+    position: absolute;
+    inset: 0 auto 0 0;
+    background: linear-gradient(90deg, var(--c-sage-500), var(--c-sage-600));
+    border-radius: inherit;
+  }
+  .microgame__mastery.is-mastered .microgame__mastery-track i {
+    background: linear-gradient(90deg, var(--reward-bg), var(--c-reward-600));
+  }
+  .microgame__mastery-track b {
+    position: absolute;
+    top: -4px;
+    bottom: -4px;
+    width: 3px;
+    background: var(--c-walnut-700);
+    border-radius: 2px;
+    transform: translateX(-50%);
+  }
+  .microgame__mastery small {
+    color: var(--ink-body);
+    font: 800 max(var(--fs-min), var(--fs-xs)) / 1.25 var(--font-body);
+  }
+  .microgame__reward-slip {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    padding: 9px 10px;
+    color: var(--ink-strong);
+    background: var(--paper-bg-bright);
+    border: 2px solid var(--reward-edge);
+    border-radius: 10px;
+  }
+  .microgame__reward-slip > .ui-icon {
+    flex: 0 0 auto;
+    margin-top: 1px;
+    color: var(--c-reward-600);
+  }
+  .microgame__reward-slip > span {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+  }
+  .microgame__reward-slip strong {
+    font: 700 max(var(--fs-min), var(--fs-sm)) / 1.2 var(--font-display);
+  }
+  .microgame__reward-slip small {
+    color: var(--ink-body);
+    font: 700 max(var(--fs-min), var(--fs-xs)) / 1.35 var(--font-body);
+  }
+  .microgame__renewed {
+    font-weight: 600;
+  }
+  .microgame__prize {
+    display: grid;
+    gap: 3px;
+    padding: 9px 11px;
+    color: var(--reward-ink);
+    background: color-mix(in srgb, var(--reward-bg) 42%, var(--paper-bg-bright));
+    border: 2px solid var(--reward-edge);
+    border-radius: 10px;
+  }
+  .microgame__prize strong {
+    font: 700 max(var(--fs-min), var(--fs-base)) / 1.15 var(--font-display);
+  }
+  .microgame__prize small {
+    font: 700 max(var(--fs-min), var(--fs-xs)) / 1.35 var(--font-body);
+  }
+  .microgame__host-line {
+    display: flex;
+    align-items: flex-end;
+    gap: 14px;
+    min-width: 0;
+    padding: 0 4px 2px;
+  }
+  .microgame__host-line .micro-bubble {
+    flex: 1 1 auto;
+  }
+  .reward-btn {
+    color: var(--reward-ink);
+    background: var(--reward-bg);
+    border: 2px solid var(--reward-edge);
+    border-radius: 10px;
+    box-shadow: 0 3px 0 var(--reward-edge);
+    font: 800 max(var(--fs-min), var(--fs-sm)) / 1.2 var(--font-body);
+    cursor: pointer;
+  }
+  .reward-btn:hover {
+    background: var(--reward-bg-hover);
+  }
+  @container microgame (min-width: 620px) and (min-height: 380px) {
+    /* The report and the host share the screen, centred in it rather than stuck to
+       the top with an empty half below; the report is as wide as it reads well. */
+    .microgame__result-scroll {
+      grid-template-columns: minmax(0, 560px) minmax(220px, 360px);
+      align-content: center;
+      align-items: center;
+      justify-content: center;
+      gap: 22px;
+      padding: 18px 22px;
+    }
+    .microgame__host-line {
+      flex-direction: column-reverse;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 12px 10px;
+      background:
+        linear-gradient(180deg, transparent 82%, rgb(111 82 56 / 0.14) 82% 84%, transparent 84%),
+        var(--paper-bg-sunken);
+      border-radius: 12px;
+    }
+    .microgame__host-line .micro-bubble {
+      align-self: stretch;
+    }
+    .microgame__host-line .micro-bubble::before {
+      left: 42%;
+      bottom: -8px;
+      transform: rotate(-45deg);
+    }
+  }
+  @container microgame (max-height: 330px) {
+    .microgame__result-scroll {
+      gap: 7px;
+      padding: 7px 9px;
+    }
+    .microgame__report {
+      gap: 6px;
+      padding: 8px 10px;
+    }
+  }
+
+  /* ==== the Activities menu ================================================================= */
+  .micro-cabinet h3 {
+    margin: 0 0 2px;
+  }
+  .micro-cabinet__lede {
+    margin: 0 0 10px;
+    color: var(--ink-body);
+    font: 600 max(var(--fs-min), var(--fs-sm)) / 1.4 var(--font-body);
+  }
+  .microgame-menu {
+    display: grid;
+    gap: 8px;
+  }
+  .micro-card {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 8px 10px 8px 6px;
+    color: var(--ink-strong);
+    text-align: left;
+    background: var(--paper-bg-bright);
+    border: 2px solid var(--paper-line);
+    border-radius: 14px;
+    box-shadow: 0 3px 0 var(--paper-line);
+    cursor: pointer;
+    transition:
+      transform var(--dur-fast) var(--ease),
+      border-color var(--dur-fast) var(--ease);
+  }
+  .micro-card:hover {
+    border-color: var(--c-walnut-400);
+    transform: translateY(-1px);
+  }
+  .micro-card:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 var(--paper-line);
+  }
+  .micro-card__art {
+    position: relative;
+    display: grid;
+    place-items: end center;
+    width: 76px;
+    height: 76px;
+    overflow: hidden;
+    background: var(--paper-bg-sunken);
+    border: 2px solid var(--paper-line);
+    border-radius: 11px;
+  }
+  .micro-card__art .micro-host {
+    min-height: 0;
+    transform: translateY(6px);
+  }
+  .micro-card__emblem {
+    position: absolute;
+    right: -2px;
+    bottom: -2px;
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    background: var(--paper-bg-bright);
+    border: 2px solid var(--paper-line);
+    border-radius: 9px 0 9px 0;
+  }
+  .micro-card__emblem .microgame-emblem {
+    width: 24px;
+    height: 24px;
+  }
+  .micro-card__copy {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+  }
+  .micro-card__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .micro-card__copy strong {
+    min-width: 0;
+    font: 700 max(var(--fs-min), var(--fs-base)) / 1.15 var(--font-display);
+  }
+  .micro-card__assignment {
+    display: -webkit-box;
+    overflow: hidden;
+    color: var(--ink-body);
+    font: 600 max(var(--fs-min), var(--fs-xs)) / 1.35 var(--font-body);
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  .micro-card__copy small {
+    color: var(--ink-body);
+    font: 700 max(var(--fs-min), var(--fs-2xs)) / 1.35 var(--font-body);
+  }
+  .micro-card__copy .micro-card__souvenir {
+    color: var(--c-sage-700);
+  }
+  .micro-card.is-mastered .micro-card__souvenir {
+    color: var(--c-reward-600);
+  }
+  .micro-card__progress {
+    position: relative;
+    display: block;
+    height: 6px;
+    margin: 2px 0 1px;
+    overflow: hidden;
+    background: var(--paper-bg-sunken);
+    border: 1px solid var(--paper-line);
+    border-radius: 999px;
+  }
+  .micro-card__progress i {
+    position: absolute;
+    inset: 0 auto 0 0;
+    background: var(--c-sage-500);
+    border-radius: inherit;
+  }
+  .micro-card.is-mastered .micro-card__progress i {
+    background: var(--reward-bg);
+  }
+  .micro-card__play {
+    display: grid;
+    flex: 0 0 auto;
+    place-items: center;
+    min-width: 58px;
+    min-height: 30px;
+    padding: 0 11px;
+    color: var(--action-ink);
+    background: var(--action-bg);
+    border: 2px solid var(--action-edge);
+    border-radius: 10px;
+    box-shadow: 0 3px 0 var(--action-edge);
+    font: 800 max(var(--fs-min), var(--fs-sm)) / 1 var(--font-body);
+  }
+  @container sheet (max-width: 400px) {
+    .micro-card {
+      gap: 8px;
+      padding: 7px 9px 7px 6px;
+    }
+    .micro-card__art {
+      width: 62px;
+      height: 72px;
+    }
+    .micro-card__assignment {
+      -webkit-line-clamp: 1;
+    }
+  }
+
+  /* Notes rise above the cabinet's pinned buttons, never over Start or Play again;
+     the countdown, like play, keeps the stage clear. */
+  .app--sheet-open:has(.microgame:is([data-phase='intro'], [data-phase='result'])) .toasts {
+    top: auto;
+    /* The dock, the sheet's and cabinet's frames, and the ~57px action bar. */
+    bottom: calc(var(--dock-h) + 100px);
+    left: 50%;
+    width: min(380px, calc(100% - 16px));
+    flex-direction: column-reverse;
+  }
+  .app:has(.microgame[data-phase='countdown']) .toasts {
+    display: none;
+  }
+
+  /* ==== high contrast ========================================================================= */
+  [data-high-contrast='true'] .microgame {
+    --cab-edge: #ffffff;
+    background: #000000;
+    border-color: #ffffff;
+  }
+  [data-high-contrast='true'] :is(.microgame__intro, .microgame__countdown, .microgame__result) {
+    border-color: #ffffff;
+    box-shadow: none;
+  }
+  [data-high-contrast='true'] :is(.coffee__area, .bugsquash__desk, .cable__board) {
+    border-color: #ffffff;
+  }
+  [data-high-contrast='true'] .burrow {
+    background: #ffffff;
+    border-color: #000000;
+  }
+  [data-high-contrast='true'] .bugsquash__grid {
+    background: #000000;
+    border-color: #ffffff;
+  }
+  [data-high-contrast='true'] :is(.micro-feedback, .cable__status-copy, .cable__hint) {
+    color: #ffffff;
+  }
+  [data-high-contrast='true'] .cable__board {
+    background: #ffffff;
+  }
+  [data-high-contrast='true'] .cable__strand-shadow {
+    stroke: #000000;
+  }
+  [data-high-contrast='true'] .cable__knot {
+    border-color: #000000;
+    background: #ffd54a;
+  }
+  [data-high-contrast='true'] .micro-stamp {
+    --stamp: #000000;
+  }
+}

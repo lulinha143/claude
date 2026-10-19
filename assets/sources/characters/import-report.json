@@ -1,54 +1,37 @@
 {
   "characters": [
     {
-      "employee": "perry",
-      "asset": "perry",
-      "source": "ORNITORRINCO.png",
-      "source_bytes": 126234206,
-      "crop": [
-        0,
-        54,
-        960,
-        960
-      ],
-      "crop_size": [
-        960,
-        906
-      ],
+      "employee": "bia",
+      "asset": "bia",
+      "source": "URSO.png",
+      "source_bytes": 109916653,
+      "crop": [0, 0, 960, 960],
+      "crop_size": [960, 960],
       "height_1x": 100,
       "height_2x": 200,
       "repaired_frames": {
-        "out_2x": 2,
-        "out_1x": 2
+        "out_2x": 5,
+        "out_1x": 5
       },
       "out_2x": {
-        "file": "perry.png",
-        "size": [
-          212,
-          200
-        ],
-        "frames": 160,
-        "bytes": 9402117
+        "file": "bia.png",
+        "size": [200, 200],
+        "frames": 134,
+        "bytes": 7550978
       },
       "out_1x": {
-        "file": "perry-1x.png",
-        "size": [
-          106,
-          100
-        ],
-        "frames": 160,
-        "bytes": 2809955
+        "file": "bia-1x.png",
+        "size": [100, 100],
+        "frames": 134,
+        "bytes": 2229365
       },
       "poster": {
-        "file": "perry-poster.png",
-        "size": [
-          297,
-          280
-        ],
+        "file": "bia-poster.png",
+        "size": [280, 280],
         "frames": 1,
-        "bytes": 103816
+        "bytes": 99175
       },
-      "source_sha256": "50e6e02d9a9303a5da86272e27e9c09418c237e4064c1edb14af4f886e4d310e"
+      "source_sha256": "1825b0f1e7ab634991f9c3d8ce667c016e8a3a8ecee23cd4ea7b269b46acc418"
     }
   ]
 }

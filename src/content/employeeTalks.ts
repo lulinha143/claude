@@ -28,6 +28,18 @@
 
 import type { EmployeeMood } from '../sim/types';
 import type { EventEffect } from './types';
+import { ANNEX_TALKS } from './annexTalks';
+import {
+  GIFTS,
+  REACTION_EFFECTS,
+  giftFlag,
+  giftReaction,
+  giftReplyKey,
+  type GiftId,
+} from './employeeGifts';
+import { KEEPSAKE_TALKS } from './employeeKeepsakes';
+import { STORY_TALKS } from './stories';
+import { CHARACTERS } from './characters';
 
 /** What a conversation option needs before it can be offered. */
 export interface TalkRequirement {
@@ -46,6 +58,8 @@ export interface TalkRequirement {
   /** company morale floor / ceiling. */
   moraleAbove?: number;
   moraleBelow?: number;
+  /** only once this flag has been set for at least this long (a story's "later"). */
+  after?: { flag: string; seconds: number };
 }
 
 export interface TalkChoice {
@@ -63,10 +77,36 @@ export interface TalkChoice {
   tone?: 'warm' | 'firm' | 'curious' | 'costly' | 'risky';
 }
 
+/**
+ * Something said instead of a node's usual prompt when every condition it names
+ * holds. Conditions about the teammate themselves (where they sit, how they feel,
+ * what happened since you last spoke) need to know who is speaking; without that
+ * context such a variant is simply skipped.
+ */
+export interface TalkVariant {
+  promptKey: string;
+  /** the company remembers this. */
+  flag?: string;
+  /**
+   * this was (re)stamped at or after the teammate's last time on this topic:
+   * "since we last spoke".
+   */
+  since?: string;
+  /** how the room they are sitting in suits them. */
+  affinity?: 'favorite' | 'acceptable' | 'disliked';
+  /** they are visibly in a low mood (a negative emotion sticker). */
+  lowMood?: boolean;
+}
+
 export interface TalkNode {
   id: string;
   /** what the employee says on arriving at this node. */
   promptKey: string;
+  /**
+   * Alternative openings that remember an earlier choice or read the moment: the
+   * first whose conditions hold is said instead of `promptKey`.
+   */
+  variants?: TalkVariant[];
   choices: TalkChoice[];
 }
 
@@ -84,6 +124,9 @@ export interface TalkTopic {
   once?: boolean;
   /** higher is likelier when several topics are eligible. */
   weight: number;
+  /** for a personal story: whose story it is, and which part (1-3). */
+  story?: string;
+  part?: number;
 }
 
 const k = (topic: string, rest: string) => `talk.${topic}.${rest}`;
@@ -283,58 +326,45 @@ const SUSPICIOUS_MEMO: TalkTopic = {
   },
 };
 
+// The gift topic is a TEMPLATE: six presents, each with its own cost. Who
+// receives it decides the reply and how much it means (see employeeGifts.ts and
+// `topicsForEmployee` below), so a gift only ever teaches you how that one
+// teammate felt about that one present.
+const giftCost = (gift: (typeof GIFTS)[number]) => {
+  const requires: TalkRequirement = {};
+  const effects: EventEffect[] = [];
+  if (gift.cost.nuts) {
+    requires.nuts = gift.cost.nuts;
+    effects.push({ type: 'nuts', value: -gift.cost.nuts });
+  }
+  if (gift.cost.goldenNuts) {
+    requires.goldenNuts = gift.cost.goldenNuts;
+    effects.push({ type: 'goldenNuts', value: -gift.cost.goldenNuts });
+  }
+  return { requires: Object.keys(requires).length ? requires : undefined, effects };
+};
+
 const GIFT: TalkTopic = {
   id: 'gift',
   titleKey: k('gift', 'title'),
   blurbKey: k('gift', 'blurb'),
   root: 'open',
   weight: 7,
-  requires: { nuts: 500 },
   nodes: {
     open: {
       id: 'open',
       promptKey: k('gift', 'open.prompt'),
-      choices: [
-        {
-          id: 'acorn',
-          tone: 'costly',
-          labelKey: k('gift', 'open.acorn.label'),
-          replyKey: k('gift', 'open.acorn.reply'),
-          requires: { nuts: 500 },
-          effects: [
-            { type: 'nuts', value: -500 },
-            { type: 'friendship', value: 5 },
-            { type: 'emotion', emotion: 'happy', durationSeconds: 300 },
-          ],
-        },
-        {
-          id: 'golden',
-          tone: 'costly',
-          labelKey: k('gift', 'open.golden.label'),
-          replyKey: k('gift', 'open.golden.reply'),
-          requires: { goldenNuts: 1 },
-          // A genuinely expensive gift, and it reads that way: a lasting emotion
-          // plus a durable mark that this employee was singled out.
-          effects: [
-            { type: 'goldenNuts', value: -1 },
-            { type: 'friendship', value: 16 },
-            { type: 'morale', value: 4 },
-            { type: 'emotion', emotion: 'inspired', durationSeconds: 1200 },
-            { type: 'setFlag', flagId: 'gift.golden' },
-          ],
-        },
-        {
-          id: 'coffee',
-          tone: 'warm',
-          labelKey: k('gift', 'open.coffee.label'),
-          replyKey: k('gift', 'open.coffee.reply'),
-          effects: [
-            { type: 'friendship', value: 3 },
-            { type: 'emotion', emotion: 'overcaffeinated', durationSeconds: 240 },
-            { type: 'productionBoost', value: 1.08, durationSeconds: 240 },
-          ],
-        },
-      ],
+      choices: GIFTS.map((gift) => {
+        const cost = giftCost(gift);
+        return {
+          id: gift.id,
+          tone: gift.cost.nuts || gift.cost.goldenNuts ? ('costly' as const) : ('warm' as const),
+          labelKey: k('gift', `open.${gift.id}.label`),
+          replyKey: k('gift', `open.${gift.id}.reply`),
+          requires: cost.requires,
+          effects: [...cost.effects, ...gift.base],
+        };
+      }),
     },
   },
 };
@@ -618,21 +648,452 @@ const RIZZO_INVENTORY: TalkTopic = {
   },
 };
 
+/* -------------------------------------------------------------------------- */
+/* Personal arcs, continued.                                                   */
+/*                                                                            */
+/* The catalogue had four universal topics and personal ones for exactly three  */
+/* animals — Pip, Dorm and Rizzo. With a cast of 23 that meant twenty employees */
+/* shared the same four conversations, so talking to the bear, the owl and the  */
+/* octopus produced identical dialogue and the roster read as interchangeable   */
+/* however distinct the artwork was.                                            */
+/*                                                                            */
+/* These are written to each animal's established role and voice (see           */
+/* `employee.<id>.story` in the locales) rather than being generic lines with a  */
+/* name swapped in. Breadth over volume: three authored topics, one of which is  */
+/* only reachable because of a choice made in another, is worth more than fifty  */
+/* interchangeable ones.                                                        */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Moss, Night Operations & Observation. She notices what everyone else misses and
+ * says so gently, which is what makes it unsettling.
+ *
+ * Step one of a two-part arc. Each option leaves a DIFFERENT mark, and only one of
+ * them opens `MOSS_LEDGER` below — so the follow-up is a consequence of a specific
+ * decision rather than a timer.
+ */
+const MOSS_COUNT: TalkTopic = {
+  id: 'moss-count',
+  employeeId: 'moss',
+  titleKey: k('moss-count', 'title'),
+  blurbKey: k('moss-count', 'blurb'),
+  root: 'open',
+  weight: 13,
+  once: true,
+  requires: { friendship: 30 },
+  nodes: {
+    open: {
+      id: 'open',
+      promptKey: k('moss-count', 'open.prompt'),
+      choices: [
+        {
+          id: 'log',
+          tone: 'curious',
+          labelKey: k('moss-count', 'open.log.label'),
+          replyKey: k('moss-count', 'open.log.reply'),
+          // The only option that opens the follow-up. Filing it officially is what
+          // gives the company something to later disagree with.
+          effects: [
+            { type: 'friendship', value: 7 },
+            { type: 'reputation', value: 10 },
+            { type: 'emotion', emotion: 'focused', durationSeconds: 900 },
+            { type: 'setFlag', flagId: 'moss.counted' },
+          ],
+          next: 'filed',
+        },
+        {
+          id: 'hush',
+          tone: 'firm',
+          labelKey: k('moss-count', 'open.hush.label'),
+          replyKey: k('moss-count', 'open.hush.reply'),
+          // Cheaper now, and it closes the door permanently: MOSS_LEDGER requires
+          // the flag this option does not set.
+          effects: [
+            { type: 'friendship', value: -8 },
+            { type: 'morale', value: -3 },
+            { type: 'emotion', emotion: 'worried', durationSeconds: 1200 },
+            { type: 'setFlag', flagId: 'moss.hushed' },
+          ],
+        },
+        {
+          id: 'join',
+          tone: 'costly',
+          labelKey: k('moss-count', 'open.join.label'),
+          replyKey: k('moss-count', 'open.join.reply'),
+          // Costs a night of production now and pays back later, in her company.
+          effects: [
+            { type: 'friendship', value: 14 },
+            { type: 'productionBoost', value: 0.85, durationSeconds: 300 },
+            { type: 'setFlag', flagId: 'moss.counted' },
+            {
+              type: 'schedule',
+              delaySeconds: 720,
+              scheduleTitleKey: 'talk.consequence.mossNight.title',
+              scheduleBodyKey: 'talk.consequence.mossNight.body',
+              scheduled: [
+                { type: 'reputation', value: 16 },
+                { type: 'goldenNuts', value: 2 },
+                { type: 'momentCard' },
+              ],
+            },
+          ],
+          next: 'filed',
+        },
+      ],
+    },
+    filed: {
+      id: 'filed',
+      promptKey: k('moss-count', 'filed.prompt'),
+      choices: [
+        {
+          id: 'thank',
+          tone: 'warm',
+          labelKey: k('moss-count', 'filed.thank.label'),
+          replyKey: k('moss-count', 'filed.thank.reply'),
+          effects: [
+            { type: 'friendship', value: 5 },
+            { type: 'morale', value: 3 },
+          ],
+        },
+        {
+          id: 'ask',
+          tone: 'curious',
+          labelKey: k('moss-count', 'filed.ask.label'),
+          replyKey: k('moss-count', 'filed.ask.reply'),
+          effects: [
+            { type: 'friendship', value: 3 },
+            { type: 'emotion', emotion: 'suspicious', durationSeconds: 900 },
+          ],
+        },
+      ],
+    },
+  },
+};
+
+/**
+ * The payoff. Reachable ONLY because the count was filed — the company has now
+ * returned the paperwork with a different number on it, which is the sort of thing
+ * Nutshell Inc. does without explaining itself.
+ *
+ * This is the arc the header of this file promised and nothing yet delivered: a
+ * conversation that exists because of an earlier conversation.
+ */
+const MOSS_LEDGER: TalkTopic = {
+  id: 'moss-ledger',
+  employeeId: 'moss',
+  titleKey: k('moss-ledger', 'title'),
+  blurbKey: k('moss-ledger', 'blurb'),
+  root: 'open',
+  weight: 16,
+  once: true,
+  requires: { flag: 'moss.counted', friendship: 35 },
+  nodes: {
+    open: {
+      id: 'open',
+      promptKey: k('moss-ledger', 'open.prompt'),
+      choices: [
+        {
+          id: 'accept',
+          tone: 'firm',
+          labelKey: k('moss-ledger', 'open.accept.label'),
+          replyKey: k('moss-ledger', 'open.accept.reply'),
+          // Taking the company's number is the profitable, slightly cowardly option.
+          effects: [
+            { type: 'reputation', value: 18 },
+            { type: 'friendship', value: -6 },
+            { type: 'emotion', emotion: 'tired', durationSeconds: 1200 },
+            { type: 'setFlag', flagId: 'moss.acceptedRevision' },
+          ],
+        },
+        {
+          id: 'recount',
+          tone: 'risky',
+          labelKey: k('moss-ledger', 'open.recount.label'),
+          replyKey: k('moss-ledger', 'open.recount.reply'),
+          effects: [
+            { type: 'goldenNuts', value: -2 },
+            { type: 'friendship', value: 12 },
+            { type: 'unlockSecret', secretId: 'memo.basement' },
+            { type: 'momentCard' },
+            { type: 'setFlag', flagId: 'moss.recounted' },
+          ],
+          requires: { goldenNuts: 2 },
+          disabledKey: 'talk.req.goldenNuts',
+        },
+      ],
+    },
+  },
+};
+
+/**
+ * Bia, Security & Facilities — the newest of the cast and the one who is told
+ * things. Big paws, bigger heart, and a corridor she has been instructed to walk
+ * past. Her arc is about whether the player backs their own security officer.
+ */
+const BIA_DOOR: TalkTopic = {
+  id: 'bia-door',
+  employeeId: 'bia',
+  titleKey: k('bia-door', 'title'),
+  blurbKey: k('bia-door', 'blurb'),
+  root: 'open',
+  weight: 13,
+  once: true,
+  requires: { friendship: 25 },
+  nodes: {
+    open: {
+      id: 'open',
+      promptKey: k('bia-door', 'open.prompt'),
+      choices: [
+        {
+          id: 'back',
+          tone: 'warm',
+          labelKey: k('bia-door', 'open.back.label'),
+          replyKey: k('bia-door', 'open.back.reply'),
+          effects: [
+            { type: 'friendship', value: 12 },
+            { type: 'morale', value: 5 },
+            { type: 'emotion', emotion: 'proud', durationSeconds: 900 },
+            { type: 'setFlag', flagId: 'bia.backed' },
+          ],
+          next: 'settled',
+        },
+        {
+          id: 'open-it',
+          tone: 'risky',
+          labelKey: k('bia-door', 'open.open-it.label'),
+          replyKey: k('bia-door', 'open.open-it.reply'),
+          // The interesting one: good for the company's standing now, and something
+          // arrives later that nobody asked for.
+          effects: [
+            { type: 'reputation', value: 12 },
+            { type: 'friendship', value: -4 },
+            { type: 'setFlag', flagId: 'bia.openedTheDoor' },
+            {
+              type: 'schedule',
+              delaySeconds: 840,
+              scheduleTitleKey: 'talk.consequence.biaDoor.title',
+              scheduleBodyKey: 'talk.consequence.biaDoor.body',
+              scheduled: [
+                { type: 'morale', value: -7 },
+                { type: 'reputation', value: -6 },
+                {
+                  type: 'emotion',
+                  employeeId: 'bia',
+                  emotion: 'suspicious',
+                  durationSeconds: 1800,
+                },
+                { type: 'momentCard' },
+              ],
+            },
+          ],
+          next: 'settled',
+        },
+        {
+          id: 'seal',
+          tone: 'firm',
+          labelKey: k('bia-door', 'open.seal.label'),
+          replyKey: k('bia-door', 'open.seal.reply'),
+          effects: [
+            { type: 'morale', value: 4 },
+            { type: 'friendship', value: 6 },
+            { type: 'setFlag', flagId: 'bia.sealed' },
+          ],
+          next: 'settled',
+        },
+      ],
+    },
+    settled: {
+      id: 'settled',
+      promptKey: k('bia-door', 'settled.prompt'),
+      choices: [
+        {
+          id: 'snacks',
+          tone: 'warm',
+          labelKey: k('bia-door', 'settled.snacks.label'),
+          replyKey: k('bia-door', 'settled.snacks.reply'),
+          effects: [
+            { type: 'nuts', value: -400 },
+            { type: 'friendship', value: 8 },
+            { type: 'morale', value: 4 },
+            { type: 'emotion', emotion: 'happy', durationSeconds: 900 },
+          ],
+          requires: { nuts: 400 },
+          disabledKey: 'talk.req.nuts',
+        },
+        {
+          id: 'rounds',
+          tone: 'firm',
+          labelKey: k('bia-door', 'settled.rounds.label'),
+          replyKey: k('bia-door', 'settled.rounds.reply'),
+          effects: [
+            { type: 'productionBoost', value: 1.2, durationSeconds: 600 },
+            { type: 'friendship', value: 2 },
+          ],
+        },
+      ],
+    },
+  },
+};
+
 export const EMPLOYEE_TALKS: readonly TalkTopic[] = [
+  MOSS_LEDGER,
   LOW_MORALE,
   PIP_DOUBT,
   DORM_SLEEP,
   RIZZO_INVENTORY,
+  MOSS_COUNT,
+  BIA_DOOR,
   SUSPICIOUS_MEMO,
   CHECK_IN,
   GIFT,
+  ...STORY_TALKS,
+  ...KEEPSAKE_TALKS,
+  ...ANNEX_TALKS,
 ];
 
 export const TALKS_BY_ID: Record<string, TalkTopic> = Object.fromEntries(
   EMPLOYEE_TALKS.map((topic) => [topic.id, topic]),
 );
 
+/* -------------------------------------------------------------------------- */
+/* The check-in, in each teammate's own words.                                 */
+/*                                                                            */
+/* "A quick word" is the conversation the whole cast shares, and it used to be  */
+/* word for word the same from the bear, the owl and the octopus. It keeps its  */
+/* shape (the same three openings, the same costs and consequences, so balance */
+/* and old saves are untouched) but every line is now theirs, under            */
+/* `checkin.<id>.*`: the small thing that bothers them, how they take praise,  */
+/* how they take being pushed.                                                 */
+/*                                                                            */
+/* How they open reads the moment, best match first:                           */
+/*   1. what happened since you last had this word: the promise that lapsed,   */
+/*      the thing you fixed, the push, the praise (stamped per teammate)       */
+/*   2. a low mood, the one their sticker is showing                           */
+/*   3. the room: a room that clashes with their work, or their own department */
+/*   4. otherwise, their ordinary hello                                        */
+/* -------------------------------------------------------------------------- */
+
+/** What the last check-in with someone left behind, for them to bring up. */
+export type CheckInMemory = 'praised' | 'pushed' | 'fixed' | 'broken';
+
+export function checkInMemoryFlag(employeeId: string, memory: CheckInMemory): string {
+  return `${employeeId}.checkin.${memory}`;
+}
+
+/** Re-stamp a memory each time it happens, so "since we last spoke" stays true. */
+function remember(employeeId: string, memory: CheckInMemory): EventEffect[] {
+  const flagId = checkInMemoryFlag(employeeId, memory);
+  return [
+    { type: 'clearFlag', flagId },
+    { type: 'setFlag', flagId },
+  ];
+}
+
+/** The check-in as one particular teammate has it. */
+function checkInTopicFor(employeeId: string): TalkTopic {
+  const key = (rest: string) => `checkin.${employeeId}.${rest}`;
+  const open = CHECK_IN.nodes.open;
+  const listened = CHECK_IN.nodes.listened;
+  const personal = (
+    choice: TalkChoice,
+    replyKey: string,
+    extra: EventEffect[] = [],
+    labelKey = choice.labelKey,
+  ): TalkChoice => ({ ...choice, labelKey, replyKey, effects: [...choice.effects, ...extra] });
+  const pick = (node: TalkNode, id: string) => node.choices.find((choice) => choice.id === id)!;
+  const promise = pick(listened, 'promise');
+  return {
+    ...CHECK_IN,
+    nodes: {
+      open: {
+        ...open,
+        promptKey: key('open'),
+        variants: [
+          { since: checkInMemoryFlag(employeeId, 'broken'), promptKey: key('broken') },
+          { since: checkInMemoryFlag(employeeId, 'fixed'), promptKey: key('fixed') },
+          { since: checkInMemoryFlag(employeeId, 'pushed'), promptKey: key('pushed') },
+          { since: checkInMemoryFlag(employeeId, 'praised'), promptKey: key('praised') },
+          { lowMood: true, promptKey: key('down') },
+          { affinity: 'disliked', promptKey: key('away') },
+          { affinity: 'favorite', promptKey: key('home') },
+        ],
+        choices: [
+          personal(pick(open, 'listen'), key('listen')),
+          personal(pick(open, 'praise'), key('praise'), remember(employeeId, 'praised')),
+          personal(pick(open, 'quota'), key('quota'), remember(employeeId, 'pushed')),
+        ],
+      },
+      listened: {
+        ...listened,
+        promptKey: key('problem'),
+        choices: [
+          personal(
+            pick(listened, 'fix'),
+            key('fix'),
+            remember(employeeId, 'fixed'),
+            key('fixLabel'),
+          ),
+          {
+            ...promise,
+            replyKey: key('promise'),
+            // The lapse is theirs to bring up: it lands with the consequence.
+            effects: promise.effects.map((effect) =>
+              effect.type === 'schedule'
+                ? {
+                    ...effect,
+                    scheduled: [...(effect.scheduled ?? []), ...remember(employeeId, 'broken')],
+                  }
+                : effect,
+            ),
+          },
+          personal(pick(listened, 'thanks'), key('thanks')),
+        ],
+      },
+    },
+  };
+}
+
+/** The gift topic as one particular teammate receives it. */
+function giftTopicFor(employeeId: string): TalkTopic {
+  return {
+    ...GIFT,
+    nodes: {
+      open: {
+        ...GIFT.nodes.open,
+        choices: GIFT.nodes.open.choices.map((choice) => {
+          const gift = choice.id as GiftId;
+          const reaction = giftReaction(employeeId, gift);
+          return {
+            ...choice,
+            replyKey: giftReplyKey(employeeId, reaction),
+            effects: [
+              ...choice.effects,
+              ...REACTION_EFFECTS[reaction],
+              // What you learned: how THIS teammate feels about THIS gift.
+              { type: 'setFlag' as const, flagId: giftFlag(employeeId, gift) },
+            ],
+          };
+        }),
+      },
+    },
+  };
+}
+
+const topicCache = new Map<string, readonly TalkTopic[]>();
+
 /** Every topic that could ever be offered to this employee, ignoring live state. */
 export function topicsForEmployee(employeeId: string): readonly TalkTopic[] {
-  return EMPLOYEE_TALKS.filter((t) => !t.employeeId || t.employeeId === employeeId);
+  const cached = topicCache.get(employeeId);
+  if (cached) return cached;
+  const personal = employeeId in CHARACTERS;
+  const topics = EMPLOYEE_TALKS.filter((t) => !t.employeeId || t.employeeId === employeeId).map(
+    (topic) =>
+      topic.id === 'gift'
+        ? giftTopicFor(employeeId)
+        : topic.id === 'check-in' && personal
+          ? checkInTopicFor(employeeId)
+          : topic,
+  );
+  topicCache.set(employeeId, topics);
+  return topics;
 }

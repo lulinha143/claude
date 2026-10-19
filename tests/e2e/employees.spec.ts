@@ -98,7 +98,10 @@ test('clicking a teammate shows their words in a readable note', async ({ page }
   await page.waitForTimeout(400);
 
   const critter = page.locator('.floor[data-room="founder-desk"] .critter-btn').first();
-  const bubble = critter.locator('.employee-bubble');
+  // The emotion sticker sits in the stage's top layer (so furniture in front of a
+  // teammate never hides it), linked to its teammate by data-employee.
+  const employeeId = await critter.getAttribute('data-employee');
+  const bubble = page.locator(`.employee-bubble[data-employee="${employeeId}"]`);
 
   // default: exactly one bubble, in emoji mode, with the mood emoji present.
   await expect(bubble).toHaveCount(1);

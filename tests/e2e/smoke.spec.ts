@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { openSettingsTab, openView } from './support/shell';
 
 // Turn on the in-game "reduced motion" setting so the app stops its looping
 // decorative animations (the bobbing acorn, the pulsing crate). Those never
@@ -53,19 +54,33 @@ test('new game onboarding flow can be completed', async ({ page }) => {
   await page.getByRole('button', { name: 'Claim the first acorn' }).click();
   await page.getByRole('button', { name: 'Start the company' }).click();
 
-  // Read every authored page and finish normally rather than bypassing the
-  // first-run experience this smoke test is intended to protect.
-  await expect(page.getByRole('heading', { name: 'Your first crate' })).toBeVisible();
-  for (const heading of [
-    'Turn nuts into momentum',
-    'Know your tiny team',
-    'Watch the company grow',
-    'Make the office yours',
-  ]) {
-    await page.getByRole('button', { name: 'Next page' }).click();
-    await expect(page.getByRole('heading', { name: heading })).toBeVisible();
+  // The first run teaches by doing: the coach points at the crate; tapping it
+  // pays out at once, and the first goal can be bought from the office itself.
+  await expect(page.locator('.popup.onboarding')).toHaveCount(0);
+  const crate = page.locator('.station-btn--crate');
+  await expect(crate).toHaveClass(/is-coached/);
+  const goal = page.locator('.goal-tag');
+  await expect(goal).toBeVisible();
+  await expect(goal).not.toHaveClass(/is-ready/);
+  const box = (await crate.boundingBox())!;
+  for (
+    let i = 0;
+    i < 60 && !(await goal.evaluate((el) => el.classList.contains('is-ready')));
+    i += 1
+  ) {
+    await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
   }
-  await page.getByRole('button', { name: 'Open the office' }).click();
+  await expect(crate).not.toHaveClass(/is-coached/);
+  await expect(goal).toHaveClass(/is-ready/);
+  const firstGoal = await goal.getAttribute('data-goal-id');
+  await goal.click();
+  await expect(page.locator('.goal-tag.is-bought')).toBeVisible();
+  // A purchase is saved at once.
+  await expect
+    .poll(() =>
+      page.evaluate(() => JSON.parse(localStorage.getItem('wmno.save.v1') ?? '{}')?.upgrades ?? {}),
+    )
+    .toHaveProperty(firstGoal!);
 
   // Office is visible and first-run completion persisted.
   await expect(page.locator('.office')).toBeVisible();
@@ -85,7 +100,7 @@ test('collect, purchase an upgrade, settings, language, persistence', async ({ p
   await page.locator('.station-btn').first().dispatchEvent('pointerdown', { button: 0 });
 
   // Go to the Upgrades shop and buy the first upgrade.
-  await page.getByRole('button', { name: 'Upgrades' }).click();
+  await openView(page, 'shop');
   const firstBuy = page.locator('.card-list .buy-btn').first();
   await expect(firstBuy).toBeEnabled();
   await firstBuy.click();
@@ -93,21 +108,22 @@ test('collect, purchase an upgrade, settings, language, persistence', async ({ p
   await expect(page.locator('.card-list .pill').first()).toBeVisible();
 
   // Open Settings and switch language to Brazilian Portuguese.
-  await page.getByRole('button', { name: 'Settings' }).click();
+  await openView(page, 'settings');
   await page.locator('select.select').first().selectOption('pt-BR');
 
-  // The nav should now be localized (Escritório = Office).
-  await expect(page.getByRole('button', { name: 'Escritório' })).toBeVisible();
+  // The dock should now be localized (Equipe = Team).
+  await expect(page.getByRole('button', { name: 'Equipe', exact: true })).toBeVisible();
 
   // Reload and confirm the language persisted.
   await page.reload();
-  await expect(page.getByRole('button', { name: 'Escritório' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Equipe', exact: true })).toBeVisible();
 });
 
 test('desktop-only settings are disabled in the browser demo', async ({ page }) => {
   await seedSave(page);
   await page.goto('/');
-  await page.getByRole('button', { name: 'Settings' }).click();
+  // The window options live on the Settings panel's Window page.
+  await openSettingsTab(page, 'display');
   // Without the Electron bridge the whole desktop-controls fieldset is disabled.
   // `toBeDisabled()` on a <fieldset> is unreliable (Playwright only treats
   // button/input/select/textarea/option/optgroup as disable-able), so assert

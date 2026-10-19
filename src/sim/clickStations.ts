@@ -18,7 +18,14 @@ import {
   type ClickStationCadence,
   type ClickStationDef,
 } from '../content/clickStations';
-import { clickPower, aggregatePassives } from './economy';
+import {
+  aggregatePassives,
+  combineTapPower,
+  computeProduction,
+  flatClickPower,
+  roomTapMultiplier,
+  tapProductionShare,
+} from './economy';
 import { upgradeBonus } from './upgradeEffects';
 import { aggregateCompanyModifiers } from './companyModifiers';
 import { employeesInRoom } from './rooms';
@@ -37,6 +44,30 @@ export const CLICK = {
   chargeRecoveryMs: 620,
   /** Tapping a charge station early still pays at least this share. */
   chargeMinShare: 0.35,
+  /** Premium stations benefit gently from clicking upgrades, without converting
+   * the nut economy's late-game multipliers into unlimited premium currency. */
+  premiumPowerCap: 3,
+  /**
+   * A premium station REFINES gold: a tap pays its golden share in full only
+   * once this long has passed since that station's previous tap, and pro rata
+   * before. Gold per minute is therefore set by time spent there, not by how
+   * fast the button is hit (mashing an incubation pod used to mint ~40 golden
+   * nuts a minute). The share accrues as golden dust; whole nuts are paid out.
+   */
+  premiumRecoveryMs: 10_000,
+  /**
+   * The production slice of a tap needs this long since the previous tap
+   * (anywhere) to count in full. A fast human hand stays under it; taps beyond
+   * ~8 a second still pay the hand's own strength, but no more production.
+   */
+  minTapIntervalMs: 125,
+  /**
+   * The golden-nut drop on nut taps is rolled per second of tapping, not per
+   * tap: a tap this long after the previous one rolls the full chance, a quicker
+   * one pro rata, so the drop rate follows time spent tapping, not tap count
+   * (five taps a second used to mint gold five times as fast).
+   */
+  goldenBeatMs: 1_000,
   /** Base chance a tap crits, before station/passive/morale bonuses. */
   baseCritChance: 0.04,
   /** A critical tap multiplies its payout by this. */
@@ -47,7 +78,18 @@ export const CLICK = {
   synergyPerEmployee: 0.35,
   /** Morale adds up to this much crit chance at full morale. */
   moraleCritBonus: 0.05,
+  /** A streak this long (or the station's combo ceiling, if lower) sets the room rushing. */
+  rushStreak: 10,
+  /** While a room rushes, the people working in it produce this much more. */
+  rushMultiplier: 2,
+  /** A rush lasts this long, and every tap that keeps the streak renews it. */
+  rushSeconds: 30,
 } as const;
+
+/** The streak at which a station's room starts to rush. */
+export function rushStreak(def: ClickStationDef): number {
+  return Math.min(CLICK.comboCeiling[def.cadence] + 1, CLICK.rushStreak);
+}
 
 /** Transient per-station combo tracking. Never persisted — a combo is a moment. */
 export interface ComboTracker {
@@ -90,9 +132,10 @@ export function nextStreak(
   def: ClickStationDef,
   tracker: ComboTracker | null,
   now: number,
+  windowMs: number = comboWindowMs(def.cadence),
 ): number {
   if (!tracker || tracker.stationId !== def.id) return 1;
-  if (now - tracker.lastTapAt > comboWindowMs(def.cadence)) return 1;
+  if (now - tracker.lastTapAt > windowMs) return 1;
   return tracker.streak + 1;
 }
 
@@ -174,9 +217,37 @@ export function stationComboWindowMs(state: GameState, def: ClickStationDef): nu
   return Math.max(400, comboWindowMs(def.cadence) * (1 + rooms + bought));
 }
 
+/** 0..1: how much of a tap's production slice counts, from the time since the last tap. */
+export function tapPace(tracker: ComboTracker | null, now: number): number {
+  if (!tracker) return 1;
+  return Math.max(0, Math.min(1, (now - tracker.lastTapAt) / CLICK.minTapIntervalMs));
+}
+
+/** 0..1: the share of the golden-nut drop chance a tap rolls (per beat, not per tap). */
+export function goldenBeat(tracker: ComboTracker | null, now: number): number {
+  if (!tracker) return 1;
+  return Math.max(0, Math.min(1, (now - tracker.lastTapAt) / CLICK.goldenBeatMs));
+}
+
+/**
+ * 0..1: how refined a premium station's gold is, from the time since that
+ * station's previous tap (persisted, so a reload is no shortcut). A clock that
+ * went backwards refines nothing until it moves forward again.
+ */
+export function premiumShare(state: GameState, def: ClickStationDef, now: number): number {
+  const at = state.clicker.premiumAt?.[def.id];
+  if (at === undefined || !Number.isFinite(at)) return 1;
+  if (now < at) return 0;
+  return Math.min(1, (now - at) / CLICK.premiumRecoveryMs);
+}
+
 /**
  * Resolve a tap. `critical` and `golden` are passed in by the caller (which owns
  * the seeded RNG) so this function stays deterministic and testable.
+ *
+ * Nut stations pay the hand's strength plus a slice of production (paced, see
+ * `tapPace`). Premium stations pay golden DUST: their payout scaled by how long
+ * the station has had to refine, with no combo, so gold follows time, not taps.
  */
 export function resolveClick(
   state: GameState,
@@ -185,11 +256,19 @@ export function resolveClick(
   now: number,
   rolls: { critical: boolean; golden: boolean },
 ): ClickResolution {
-  const streak = nextStreak(def, tracker, now);
-  const combo = comboMultiplier(def, streak);
-  const cadence = cadenceMultiplier(def, tracker, now);
+  // The window the player bought (Muscle Memory, Shift Rhythm) and the rooms
+  // widen: it used to reach only the readout, never the streak itself.
+  const streak = nextStreak(def, tracker, now, stationComboWindowMs(state, def));
+  const premium = def.resource === 'goldenNuts';
+  const combo = premium ? 1 : comboMultiplier(def, streak);
+  const cadence = premium ? premiumShare(state, def, now) : cadenceMultiplier(def, tracker, now);
   const synergy = synergyMultiplier(state, def);
-  const power = clickPower(state);
+  const prod = computeProduction(state, false);
+  const flat = flatClickPower(state, prod);
+  const rooms = roomTapMultiplier(state);
+  const power = premium
+    ? Math.min(CLICK.premiumPowerCap, Math.sqrt(flat * rooms))
+    : combineTapPower(flat, tapProductionShare(state, prod) * tapPace(tracker, now)) * rooms;
 
   let amount = power * def.payout * cadence * combo * synergy;
   if (rolls.critical) amount *= CLICK.critMultiplier;

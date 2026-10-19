@@ -58,7 +58,10 @@ describe('each decoration resolves to its single compatible surface', () => {
 
   it('resolves a wall item to the wall and a ceiling item to the ceiling', () => {
     const engine = engineWith('motivational-poster', 'chandelier');
-    const wall = pointerRegionPlacement(engine.state, 'motivational-poster', ROOM, { x: 0.5, y: 0.6 });
+    const wall = pointerRegionPlacement(engine.state, 'motivational-poster', ROOM, {
+      x: 0.5,
+      y: 0.6,
+    });
     expect(wall!.region.kind).toBe('wall');
     const ceiling = pointerRegionPlacement(engine.state, 'chandelier', ROOM, { x: 0.5, y: 0.9 });
     expect(ceiling!.region.kind).toBe('ceiling');

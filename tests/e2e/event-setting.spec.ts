@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { openView } from './support/shell';
 
 // Proves the "disable choice popups" setting is a real gameplay option, not a
 // decorative toggle: it persists, it stops the interruption, and the event it
@@ -45,12 +46,12 @@ async function boot(page: Page, dev = false) {
 }
 
 async function openSettings(page: Page) {
-  await page.getByRole('button', { name: 'Settings', exact: true }).click();
+  await openView(page, 'settings');
   await expect(page.getByRole('heading', { name: 'Gameplay' })).toBeVisible();
 }
 
 async function openOffice(page: Page) {
-  await page.getByRole('button', { name: 'Office', exact: true }).click();
+  await openView(page, 'office');
   await expect(page.locator('.office')).toBeVisible();
 }
 
@@ -86,8 +87,8 @@ test('the toggle exists, explains itself, and persists across a reload', async (
 
   const toggle = page.getByRole('checkbox', { name: CHOICE_TOGGLE });
   await expect(toggle).not.toBeChecked();
-  // The OFF state says events will ask.
-  await expect(page.getByText('pause the office and ask you to decide')).toBeVisible();
+  // The OFF state says events will wait for the player, then ask.
+  await expect(page.getByText('wait in their room until you look into them')).toBeVisible();
 
   await toggle.check();
   await expect(toggle).toBeChecked();

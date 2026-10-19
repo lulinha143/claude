@@ -1,0 +1,1685 @@
+/* Gameplay chapter 1: the core loop, in the office. The crate, the rush meter,
+   teammates' finds, the goal tag, the first-run coach and the small "what
+   changed" signals. Game layer. Nothing here animates a clickable element's own
+   box (Playwright and players both need a still target): motion lives on
+   children and pseudo-elements. */
+@layer game {
+  /* ---- the crate ------------------------------------------------------------- */
+  /* A heap of acorns rises inside the crate as the team packs it. */
+  .station-btn__heap {
+    position: absolute;
+    left: 18%;
+    right: 18%;
+    bottom: 46%;
+    height: 34%;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .station-btn__heap-nuts {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 20% 60%, #b77a3c 0 22%, transparent 24%) 0 0 / 9px 8px,
+      radial-gradient(circle at 70% 40%, #8f5a2b 0 20%, transparent 22%) 3px 2px / 9px 8px,
+      linear-gradient(180deg, #c58a4a, #8f5a2b);
+    border-radius: 45% 45% 10% 10% / 60% 60% 10% 10%;
+    transform: translateY(calc((1 - var(--crate-fill, 0)) * 100%));
+    transition: transform 0.8s var(--ease);
+  }
+  .station-btn[data-fill='0'] .station-btn__heap-nuts {
+    transform: translateY(100%);
+  }
+  /* Full: the heap spills over the rim and the crate glows softly, waiting. */
+  .station-btn--crate.is-full .station-btn__heap {
+    bottom: 50%;
+    height: 44%;
+    overflow: visible;
+  }
+  .station-btn--crate.is-full::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 10%;
+    width: 150%;
+    height: 90%;
+    background: radial-gradient(closest-side, rgb(255 214 120 / 0.55), transparent);
+    transform: translateX(-50%);
+    pointer-events: none;
+    animation: crate-glow 2.4s ease-in-out infinite alternate;
+    z-index: -1;
+  }
+  @keyframes crate-glow {
+    from {
+      opacity: 0.45;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  /* How much is waiting, on a little tag (only once it is worth a look). */
+  .station-btn__stash {
+    position: absolute;
+    left: 50%;
+    bottom: 104%;
+    z-index: 2;
+    padding: 2px 6px 3px;
+    color: var(--ink-strong);
+    background: var(--paper-bg-bright);
+    border: 2px solid var(--c-acorn-500);
+    border-radius: 8px;
+    box-shadow: 0 2px 0 rgb(40 26 12 / 0.25);
+    font: 800 max(var(--fs-min), 10px) / 1 var(--font-numeric);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    transform: translateX(-50%);
+    pointer-events: none;
+  }
+  .station-btn--crate.is-full .station-btn__stash {
+    color: #3a2a18;
+    background: var(--c-gold-300, #ffe08a);
+    border-color: var(--c-acorn-600);
+    animation: stash-wave 2.4s ease-in-out infinite;
+  }
+  @keyframes stash-wave {
+    0%,
+    100% {
+      translate: 0 0;
+    }
+    50% {
+      translate: 0 -3px;
+    }
+  }
+
+  /* ---- the rush meter -------------------------------------------------------- */
+  /* A ring behind the machine fills as the combo builds toward the room's rush. */
+  .station-btn__meter {
+    position: absolute;
+    left: 50%;
+    bottom: 6%;
+    width: 112%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: conic-gradient(
+      rgb(255 196 84 / 0.9) calc(var(--rush-meter, 0) * 360deg),
+      rgb(255 250 240 / 0.28) 0
+    );
+    -webkit-mask: radial-gradient(closest-side, transparent 78%, #000 80%);
+    mask: radial-gradient(closest-side, transparent 78%, #000 80%);
+    transform: translateX(-50%);
+    pointer-events: none;
+    z-index: -1;
+    transition: background 0.12s linear;
+  }
+  .station-btn.is-rushing .station-btn__meter {
+    background: rgb(255 170 60 / 0.95);
+    filter: drop-shadow(0 0 6px rgb(255 170 60 / 0.8));
+  }
+  /* While rushing, the ring drains toward the end of the rush. */
+  .station-btn__meter-drain {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: conic-gradient(transparent var(--drain, 0deg), rgb(90 50 20 / 0.55) 0);
+    animation: rush-ring linear forwards;
+  }
+  @property --drain {
+    syntax: '<angle>';
+    inherits: false;
+    initial-value: 0deg;
+  }
+  @keyframes rush-ring {
+    from {
+      --drain: 360deg;
+    }
+    to {
+      --drain: 0deg;
+    }
+  }
+
+  /* ---- a rushing room ------------------------------------------------------- */
+  .floor.is-rushing .floor__stage::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: radial-gradient(120% 90% at 50% 100%, rgb(255 190 90 / 0.22), transparent 70%);
+    pointer-events: none;
+    animation: rush-warm 1.2s ease-in-out infinite alternate;
+  }
+  @keyframes rush-warm {
+    from {
+      opacity: 0.55;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  /* Everyone in the room works at a brisk little bob (on the artwork, not the button). */
+  .floor.is-rushing .critter-btn .employee-sprite,
+  .floor.is-rushing .critter-btn > svg {
+    animation: rush-bob 0.42s ease-in-out infinite alternate;
+  }
+  @keyframes rush-bob {
+    from {
+      translate: 0 0;
+    }
+    to {
+      translate: 0 -2px;
+    }
+  }
+  .floor__rush {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    height: 21px;
+    padding: 0 9px;
+    overflow: hidden;
+    color: #3a2a18;
+    background: linear-gradient(180deg, #ffd26a, #f3a63c);
+    border: 2px solid #9a5a1c;
+    border-radius: 7px;
+    font: 500 12px/1 var(--font-display);
+    white-space: nowrap;
+    pointer-events: auto;
+  }
+  .floor__rush-bar {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 3px;
+    width: 100%;
+    background: #9a5a1c;
+    transform-origin: left;
+    animation: rush-drain linear forwards;
+  }
+  @keyframes rush-drain {
+    from {
+      transform: scaleX(1);
+    }
+    to {
+      transform: scaleX(0);
+    }
+  }
+
+  /* ---- teammates' finds ------------------------------------------------------ */
+  /* Held out just beside the teammate's sticker. */
+  .office-find {
+    --find: clamp(28px, calc(38px * var(--asset-scale)), 38px);
+    position: absolute;
+    width: var(--find);
+    height: var(--find);
+    margin: 0 0 0 calc(var(--find) * 0.42);
+    padding: 0;
+    background: none;
+    border: 0;
+    cursor: pointer;
+    transition: transform var(--dur-fast) var(--ease);
+  }
+  .office-find > .find {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    filter: drop-shadow(1.6px 0 0 #fffaf0) drop-shadow(-1.6px 0 0 #fffaf0)
+      drop-shadow(0 1.6px 0 #fffaf0) drop-shadow(0 -1.6px 0 #fffaf0)
+      drop-shadow(0 3px 2px rgb(40 26 12 / 0.35));
+    transform-origin: 50% 90%;
+    animation: find-offer 2.8s ease-in-out infinite;
+  }
+  @keyframes find-offer {
+    0%,
+    70%,
+    100% {
+      rotate: 0deg;
+      translate: 0 0;
+    }
+    80% {
+      rotate: -8deg;
+      translate: 0 -3px;
+    }
+    90% {
+      rotate: 6deg;
+      translate: 0 -2px;
+    }
+  }
+  .office-find:hover > .find,
+  .office-find:focus-visible > .find {
+    animation: none;
+    translate: 0 -3px;
+  }
+  .office--decorating .office-find {
+    display: none;
+  }
+  .find__cut {
+    fill: #f6e7c8;
+  }
+  .find__metal {
+    fill: #c9d3dc;
+  }
+  .find__pouch {
+    fill: #b88a52;
+  }
+  .find__box {
+    fill: #c8a6e6;
+  }
+  .find__lid {
+    fill: #a986d6;
+  }
+  .find__ribbon {
+    fill: #ffcf5a;
+  }
+  .find__nut {
+    fill: #b77a3c;
+    stroke: #5a3a1c;
+    stroke-width: 1.4;
+  }
+  .find__berry {
+    fill: #e2556a;
+    stroke: #5a2a2a;
+    stroke-width: 1.2;
+  }
+  .find__fluid {
+    fill: #8fd6a2;
+  }
+  .find__bubble {
+    fill: #fff;
+  }
+  .find__hole {
+    fill: #7d8894;
+  }
+  .find__coin {
+    fill: #ffcf5a;
+    stroke: #8a5a10;
+    stroke-width: 1.4;
+  }
+  .find__dot {
+    fill: #3b2616;
+  }
+  .find__ink {
+    fill: none;
+    stroke: #3b2616;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .find__ink--thin {
+    stroke-width: 1.6;
+  }
+  .find__ink--bold {
+    stroke-width: 2.8;
+  }
+  [data-reduced-motion='true'] .office-find > .find,
+  [data-ambient='paused'] .office-find > .find,
+  .floor[data-onscreen='false'] .office-find > .find {
+    animation: none;
+  }
+
+  /* ---- a teammate waving you over --------------------------------------------- */
+  /* A little speech balloon beside their mood sticker, its point toward it: dots,
+     they want to tell you something; a heart, your friendship grew; a sparkle, a
+     hint. It sits level with the sticker's upper half, never above it — above,
+     it reached into the room's name plaque in a compact window — and inside the
+     teammate's own share of a full room (56px at 320px), clear of both
+     neighbours. A teammate with a find waiting shows the find first. */
+  .office-nudge {
+    --sticker: clamp(30px, calc(42px * var(--asset-scale)), 42px);
+    --nudge: clamp(20px, calc(24px * var(--asset-scale)), 24px);
+    position: absolute;
+    display: grid;
+    place-items: center;
+    width: var(--nudge);
+    height: var(--nudge);
+    margin: 0 0 calc(var(--sticker) * 0.34) calc(var(--sticker) * 0.5 + 1px);
+    padding: 0;
+    color: var(--c-walnut-800, #4a2f19);
+    background: #fffaf0;
+    border: 2px solid var(--c-walnut-800, #4a2f19);
+    border-radius: 50% 50% 50% 4px;
+    box-shadow: 0 2px 0 rgb(40 26 12 / 0.3);
+    cursor: pointer;
+    transform-origin: 0 100%;
+    animation: nudge-bob 3.4s ease-in-out infinite;
+  }
+
+  .office-nudge[data-kind='milestone'] {
+    color: #c2405a;
+    background: #ffeef1;
+  }
+  .office-nudge[data-kind='hint'] {
+    color: #9a6a08;
+    background: #fff4cf;
+  }
+  .office-nudge:hover,
+  .office-nudge:focus-visible {
+    animation: none;
+    scale: 1.12;
+  }
+  @keyframes nudge-bob {
+    0%,
+    76%,
+    100% {
+      rotate: 0deg;
+    }
+    84% {
+      rotate: -9deg;
+    }
+    92% {
+      rotate: 5deg;
+    }
+  }
+  .office--decorating .office-nudge {
+    display: none;
+  }
+  [data-reduced-motion='true'] .office-nudge,
+  [data-ambient='paused'] .office-nudge,
+  .floor[data-onscreen='false'] .office-nudge {
+    animation: none;
+  }
+
+  /* Their keepsake, out on display beside where they stand. It can be picked up:
+     pointed at, it names itself; clicked, their scrapbook opens on it. */
+  .office-keepsake {
+    position: absolute;
+    width: clamp(26px, calc(36px * var(--asset-scale)), 40px);
+    margin-left: clamp(14px, calc(24px * var(--asset-scale)), 30px);
+    padding: 0;
+    color: inherit;
+    background: none;
+    border: 0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: translate var(--dur-fast) var(--ease);
+  }
+  .office-keepsake:hover {
+    translate: 0 -2px;
+  }
+  .office-keepsake > .keepsake-art {
+    display: block;
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 2px 1px rgb(40 26 12 / 0.25));
+  }
+  /* Arranging the room: the keepsake is scenery, never in the way of a drag. */
+  .office--decorating .office-keepsake {
+    pointer-events: none;
+  }
+
+  /* ---- the office's notes: the suggestion and the goal ---------------------- */
+  /* The notes are pinned in the meadow strip in front of the tree (world.css
+     reserves it as --note-room), so they never sit on the home floor's desks. */
+  .stage-notes {
+    position: absolute;
+    left: 8px;
+    bottom: 4px;
+    z-index: 30;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    max-width: min(calc(100% - 16px), 340px);
+    pointer-events: none;
+  }
+  .stage-notes > * {
+    pointer-events: auto;
+  }
+  /* The suggestion note sits above the goal, in the same corner. */
+  .stage-notes .next-hint {
+    position: relative;
+    left: auto;
+    bottom: auto;
+    max-width: 100%;
+    transform: rotate(-1deg);
+    animation-name: note-pop;
+  }
+  /* Wide windows: both notes side by side at the foot of the tree's left side. */
+  @container app (min-width: 1100px) {
+    .stage-notes {
+      left: max(8px, calc((100% - 732px) / 2 - 24px));
+      flex-direction: row;
+      align-items: flex-end;
+      max-width: min(calc(100% - 16px), 760px);
+    }
+    .stage-notes .next-hint {
+      flex: 0 1 auto;
+      max-width: 360px;
+    }
+    .stage-notes .goal-tag {
+      flex: 0 0 auto;
+      min-width: 300px;
+      /* Room for "name · Nv. 17" on one line at the larger type of big windows. */
+      max-width: 460px;
+    }
+    /* A side panel open: the notes keep to the office part of the window, under
+       the re-centred tree, instead of sliding under the panel's edge. */
+    .app--sheet-open .stage-notes {
+      left: max(8px, calc((100% - min(550px, 41%) - 732px) / 2 - 24px));
+      max-width: calc(100% - min(550px, 41%) - 16px);
+    }
+  }
+  @keyframes note-pop {
+    from {
+      opacity: 0;
+      transform: translateY(10px) rotate(-1deg) scale(0.94);
+    }
+  }
+  .app:has(.office--decorating) .stage-notes,
+  .app--game-on .stage-notes {
+    display: none;
+  }
+  /* Until the window is wide enough for the notes to sit in the meadow beside the
+     tree, only one note shows at a time (a new suggestion briefly takes the goal's
+     place) so they never stack up into a room. */
+  @container app (max-width: 1099px) {
+    .stage-notes:has(.next-hint) .goal-tag {
+      display: none;
+    }
+  }
+  /* Small windows: the sheet covers the stage, and so does it cover the notes. */
+  @container app (max-width: 759px) {
+    .app--sheet-open .stage-notes {
+      display: none;
+    }
+  }
+
+  .goal-tag {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+    max-width: 100%;
+    padding: 5px 8px 6px 6px;
+    color: var(--ink-strong);
+    background: var(--paper-bg-bright);
+    border: 2px solid var(--paper-line);
+    border-radius: 11px;
+    box-shadow: var(--lift-shadow);
+    text-align: left;
+    cursor: pointer;
+  }
+  .goal-tag::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 14px;
+    width: 34px;
+    height: 13px;
+    background: var(--tape);
+    transform: rotate(-5deg);
+    border-radius: 2px;
+  }
+  .goal-tag__icon {
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    width: 26px;
+    height: 26px;
+    color: var(--c-acorn-700, #7a4a1c);
+    background: var(--paper-bg-sunken);
+    border-radius: 50%;
+  }
+  .goal-tag__body {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+  }
+  /* The name wraps (two lines at most) rather than losing its tier number to an
+     ellipsis: "Linha de Produção 7" must say which line it is. */
+  .goal-tag__name {
+    display: -webkit-box;
+    overflow: hidden;
+    font: 800 var(--fs-sm) / 1.15 var(--font-body);
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow-wrap: anywhere;
+  }
+  .goal-tag__gain {
+    color: var(--c-leaf-700, #2f6b3a);
+    font: 800 var(--fs-xs) / 1.1 var(--font-body);
+    white-space: nowrap;
+  }
+  .goal-tag__bar {
+    display: block;
+    width: 100%;
+    min-width: 70px;
+    height: 5px;
+    overflow: hidden;
+    background: var(--paper-bg-sunken);
+    border-radius: 3px;
+  }
+  .goal-tag__fill {
+    display: block;
+    height: 100%;
+    width: calc(var(--goal-progress, 0) * 100%);
+    background: linear-gradient(90deg, var(--c-reward-400), var(--c-reward-600));
+    border-radius: 3px;
+    transition: width 0.3s linear;
+  }
+  .goal-tag__cost {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    flex: 0 0 auto;
+    margin-left: auto;
+    color: var(--ink-soft);
+    font: 800 var(--fs-xs) / 1 var(--font-numeric);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  /* Affordable: the tag turns into the purchase. */
+  .goal-tag.is-ready {
+    border-color: var(--action-bg);
+    background: linear-gradient(180deg, var(--paper-bg-bright), var(--c-sage-200));
+  }
+  .goal-tag__buy {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    min-height: 28px;
+    padding: 4px 9px;
+    color: var(--action-ink);
+    background: var(--action-bg);
+    border-radius: 8px;
+    box-shadow: 0 2px 0 var(--action-edge);
+  }
+  .goal-tag.is-ready:hover .goal-tag__buy {
+    background: var(--action-bg-hover);
+  }
+  .goal-tag.is-ready .goal-tag__icon {
+    animation: goal-ready 1.6s ease-in-out infinite;
+  }
+  @keyframes goal-ready {
+    0%,
+    100% {
+      scale: 1;
+    }
+    50% {
+      scale: 1.12;
+    }
+  }
+  /* Just bought: says what changed, then makes way for the next goal. */
+  .goal-tag.is-bought {
+    cursor: default;
+    border-color: var(--c-gold-500, #d9a520);
+    background: linear-gradient(180deg, #fff6d8, #ffe9a8);
+    animation: goal-bought 0.45s var(--ease-pop) both;
+  }
+  .goal-tag.is-bought .goal-tag__gain {
+    font-size: var(--fs-sm);
+  }
+  @keyframes goal-bought {
+    0% {
+      scale: 0.92;
+    }
+    60% {
+      scale: 1.05;
+    }
+    100% {
+      scale: 1;
+    }
+  }
+  [data-reduced-motion='true'] .goal-tag *,
+  [data-reduced-motion='true'] .goal-tag {
+    animation: none !important;
+  }
+
+  /* ---- the first-run coach: a paw pointing at the thing to do ------------------ */
+  .station-btn.is-coached::after,
+  .goal-tag.is-coached::after {
+    content: '';
+    position: absolute;
+    z-index: 3;
+    width: 30px;
+    height: 30px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='%23fff6e6' stroke='%233b2616' stroke-width='1.4'%3E%3Cellipse cx='12' cy='15.6' rx='5.2' ry='4.4'/%3E%3Cellipse cx='5.7' cy='10.4' rx='2' ry='2.5'/%3E%3Cellipse cx='9.4' cy='6.6' rx='2' ry='2.6'/%3E%3Cellipse cx='14.6' cy='6.6' rx='2' ry='2.6'/%3E%3Cellipse cx='18.3' cy='10.4' rx='2' ry='2.5'/%3E%3C/g%3E%3C/svg%3E")
+      center / contain no-repeat;
+    filter: drop-shadow(0 2px 2px rgb(40 26 12 / 0.4));
+    pointer-events: none;
+    animation: coach-tap 1.1s ease-in-out infinite;
+  }
+  .station-btn.is-coached::after {
+    left: 62%;
+    top: 30%;
+  }
+  .goal-tag.is-coached::after {
+    right: -10px;
+    top: 50%;
+  }
+  .station-btn.is-coached .station-btn__meter {
+    display: none;
+  }
+  /* A generous hit area around every machine while the art, the button's box and
+     its floor contact stay exactly where they were: a compact room draws a station
+     at ~36px, which is small to aim at. The span is part of the button, so a press
+     on it is a press on the machine. */
+  .station-btn__hit {
+    position: absolute;
+    inset: -8px -10px -4px;
+    border-radius: 10px;
+  }
+  /* The coach in words: a small gold tag over the crate (collecting is a reward),
+     anchored to the machine's right so it never leaves the room. */
+  .station-btn__coach {
+    position: absolute;
+    right: -4px;
+    bottom: calc(100% + 12px);
+    z-index: 4;
+    padding: 3px 8px 4px;
+    color: var(--reward-ink);
+    background: var(--reward-bg);
+    border: 2px solid var(--reward-edge);
+    border-radius: 8px;
+    box-shadow: 0 2px 0 rgb(46 29 16 / 0.3);
+    font: 800 max(var(--fs-min), 12px) / 1.1 var(--font-body);
+    white-space: nowrap;
+    pointer-events: none;
+    animation: coach-tag 1.6s ease-in-out infinite;
+  }
+  .station-btn__coach::after {
+    content: '';
+    position: absolute;
+    right: 14px;
+    top: 100%;
+    border: 6px solid transparent;
+    border-top-color: var(--reward-edge);
+  }
+  @keyframes coach-tag {
+    50% {
+      translate: 0 -3px;
+    }
+  }
+  [data-reduced-motion='true'] .station-btn__coach {
+    animation: none;
+  }
+  .station-btn.is-coached::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 6%;
+    width: 160%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 3px solid rgb(255 214 120 / 0.9);
+    transform: translateX(-50%);
+    pointer-events: none;
+    animation: coach-ring 1.1s ease-out infinite;
+    z-index: -1;
+  }
+  @keyframes coach-tap {
+    0%,
+    100% {
+      translate: 0 0;
+      scale: 1;
+    }
+    50% {
+      translate: -4px -6px;
+      scale: 0.92;
+    }
+  }
+  @keyframes coach-ring {
+    from {
+      opacity: 1;
+      scale: 0.6;
+    }
+    to {
+      opacity: 0;
+      scale: 1.1;
+    }
+  }
+
+  /* ---- the construction floor: the next room, being built ------------------------ */
+  .floor__construction {
+    display: grid;
+    justify-items: end;
+    gap: 3px;
+  }
+  .floor__construction-bar {
+    display: block;
+    width: clamp(64px, 18vw, 110px);
+    height: 5px;
+    overflow: hidden;
+    background: rgb(0 0 0 / 0.35);
+    border-radius: 3px;
+  }
+  .floor__construction-bar::after {
+    content: '';
+    display: block;
+    height: 100%;
+    width: calc(var(--built, 0) * 100%);
+    background: repeating-linear-gradient(-45deg, #ffd26a 0 6px, #f3a63c 6px 12px);
+  }
+  .floor__build:disabled {
+    opacity: 0.7;
+    cursor: default;
+  }
+
+  /* ---- what changed: the rate, the counter --------------------------------------- */
+  .hud__nuts {
+    position: relative;
+  }
+  /* Just under the counter, over the top of the office: room at every size. */
+  .hud__gain {
+    position: absolute;
+    left: 6px;
+    top: calc(100% + 6px);
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 2px 7px 2px 5px;
+    color: #fff;
+    background: var(--c-leaf-600, #3f8a4c);
+    border-radius: 7px;
+    font: 800 var(--fs-2xs, 10px) / 1.2 var(--font-numeric);
+    white-space: nowrap;
+    box-shadow: 0 2px 0 rgb(20 50 25 / 0.35);
+    pointer-events: none;
+    animation: gain-show 2.4s var(--ease) both;
+    z-index: 5;
+  }
+  @keyframes gain-show {
+    0% {
+      opacity: 0;
+      translate: 0 -4px;
+    }
+    12%,
+    80% {
+      opacity: 1;
+      translate: 0 0;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+  .hud__nuts.is-gaining .hud__nuts-icon {
+    animation: counter-bump 0.5s var(--ease-pop);
+  }
+  @keyframes counter-bump {
+    40% {
+      scale: 1.3;
+    }
+  }
+  .fly-nut {
+    position: fixed;
+    z-index: 9997;
+    width: 12px;
+    height: 13px;
+    border-radius: 50% 50% 46% 46% / 42% 42% 58% 58%;
+    background:
+      linear-gradient(180deg, #6a3f1c 0 34%, transparent 34%),
+      radial-gradient(circle at 40% 62%, #d49a58, #9a6230);
+    box-shadow: 0 1px 0 rgb(40 26 12 / 0.4);
+    pointer-events: none;
+  }
+  .tap-pop--collect .tap-pop__value {
+    font-size: max(var(--fs-min), 1.5em);
+    color: #fff1c4;
+    text-shadow:
+      0 1px 0 rgb(70 34 8 / 0.95),
+      0 0 12px rgb(255 190 90 / 0.8);
+  }
+  .tap-pop--rush .tap-pop__value {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: max(var(--fs-min), 1.6em);
+    color: #ffd26a;
+    text-shadow:
+      0 2px 0 #7a3a10,
+      0 0 12px rgb(255 160 60 / 0.85);
+  }
+
+  /* ---- the elevator: which floors have something waiting -------------------------- */
+  .elevator__list-btn[data-news='true']::after {
+    content: '';
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 8px;
+    height: 8px;
+    background: var(--c-acorn-500, #d98a2c);
+    border: 2px solid var(--paper-bg-bright);
+    border-radius: 50%;
+  }
+  .elevator__list-btn {
+    position: relative;
+  }
+  .elevator__floor-news {
+    display: inline-grid;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    color: #3a2a18;
+    background: #ffd26a;
+    border-radius: 50%;
+  }
+
+  /* ---- room play: each station's routine ---------------------------------------- */
+  /* A small tag on top of the machine, only when there is something to see: a
+     brew to start or share, a stuck machine, a blip, a delivery, the room's mode. */
+  .play-chip {
+    position: absolute;
+    z-index: 250;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    max-width: min(48%, 156px);
+    height: 22px;
+    padding: 0 8px 0 3px;
+    color: var(--c-walnut-900, #2e1d10);
+    background: #fffaf0;
+    border: 2px solid var(--c-walnut-800, #4a2f19);
+    border-radius: 11px;
+    box-shadow: 0 2px 0 rgb(40 26 12 / 0.3);
+    font: 800 11px/1 var(--font-body);
+    white-space: nowrap;
+    transform: translateX(-50%);
+    cursor: pointer;
+    transition: translate var(--dur-fast) var(--ease);
+  }
+  /* The tag sits on the machine's top corner as a round badge: glyph, progress
+     ring, pips and drain. A worded tag floated at a seated teammate's head height
+     (the station stands beside the front-row desk): measured, a label covered up
+     to 79% of a face and 61% of the room's wall art. The words are still there:
+     they slide out from the badge when the player points at it, the machine or
+     the room, or reaches it with the keyboard, and stay out while the routine
+     asks for a hand (ready, stuck, a blip, a delivery) wherever the room is wide
+     enough to hold them. */
+  .play-chip {
+    bottom: calc((var(--station-bottom, 0px) + 66px) * var(--asset-scale));
+    gap: 0;
+    min-width: 24px;
+    max-width: 24px;
+    padding: 0 3px;
+    justify-content: flex-start;
+    border-radius: 12px;
+    overflow: hidden;
+    transition:
+      max-width var(--dur) var(--ease),
+      padding var(--dur) var(--ease),
+      translate var(--dur-fast) var(--ease);
+  }
+  /* In the middle of a room it is centred on the machine (the base transform);
+     by a wall it opens toward the room's middle from the machine's corner. */
+  .play-chip[data-side='left'] {
+    transform: translateX(-12px);
+  }
+  .play-chip[data-side='right'] {
+    transform: translateX(calc(-100% + 12px));
+  }
+  /* A corner window: where the wall's fixture hangs right over a machine by that
+     wall, the badge takes the machine's room-side half, between the fixture and
+     the first teammate. With no fixture on that wall it stays centred. */
+  @container office (max-width: 559px) {
+    .floor:has(.room-dressing__prop--wallLeft) .play-chip[data-side='left'] {
+      transform: none;
+    }
+    .floor:has(.room-dressing__prop--wallRight) .play-chip[data-side='right'] {
+      transform: translateX(-100%);
+    }
+  }
+  .play-chip .play-chip__label {
+    max-width: 0;
+    opacity: 0;
+    transition:
+      max-width var(--dur) var(--ease),
+      opacity var(--dur-fast) var(--ease);
+  }
+  .floor:hover .play-chip,
+  .play-chip:focus-visible,
+  .floor:has(.station-btn:focus-visible) .play-chip {
+    max-width: min(48%, 156px);
+    padding: 0 8px 0 3px;
+    gap: 4px;
+  }
+  .floor:hover .play-chip .play-chip__label,
+  .play-chip:focus-visible .play-chip__label,
+  .floor:has(.station-btn:focus-visible) .play-chip .play-chip__label {
+    max-width: 140px;
+    opacity: 1;
+  }
+  /* A roomy window: the words stay out, beside the badge, opening away from the
+     teammate at the machine's shoulder (a machine by a wall has its neighbour on
+     the room side, so the label grows toward the wall). */
+  @container office (min-width: 560px) {
+    .play-chip[data-side='left'] {
+      flex-direction: row-reverse;
+      transform: translateX(calc(-100% + 24px));
+    }
+    /* By the right wall: from the machine's right corner, toward that wall. */
+    .play-chip[data-side='right'] {
+      transform: translateX(-24px);
+    }
+    .play-chip[data-side='left'] .play-chip__pips {
+      left: auto;
+      right: 12px;
+      translate: 50% 0;
+    }
+    .play-chip {
+      max-width: min(48%, 156px);
+      padding: 0 8px 0 3px;
+      gap: 4px;
+    }
+    .play-chip[data-side='left'] {
+      padding: 0 3px 0 8px;
+    }
+    .play-chip .play-chip__label {
+      max-width: 140px;
+      opacity: 1;
+    }
+    /* Toward a wall with a fixture, the words run just under its foot. */
+    .floor:has(.room-dressing__prop--wallLeft) .play-chip[data-side='left'],
+    .floor:has(.room-dressing__prop--wallRight) .play-chip[data-side='right'] {
+      bottom: calc((var(--station-bottom, 0px) + 58px) * var(--asset-scale));
+    }
+  }
+  /* Stuck: the three taps it needs sit just under the badge. */
+  .play-chip:has(.play-chip__pips) {
+    overflow: visible;
+  }
+  .play-chip__pips {
+    position: absolute;
+    left: 12px;
+    bottom: -9px;
+    margin: 0;
+    translate: -50% 0;
+  }
+  .play-chip__pips i {
+    width: 5px;
+    height: 5px;
+    background: rgb(194 81 63 / 0.35);
+    box-shadow: 0 0 0 1px #fffaf0;
+  }
+  .play-chip__pips i.is-on {
+    background: #c2513f;
+  }
+  button.play-chip:hover,
+  button.play-chip:focus-visible {
+    translate: 0 -2px;
+  }
+  .play-chip:focus-visible {
+    outline: 2px solid var(--gold, #d9a520);
+    outline-offset: 2px;
+  }
+  .play-chip__label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .play-chip__icon {
+    position: relative;
+    display: grid;
+    flex: 0 0 auto;
+    place-items: center;
+    width: 16px;
+    height: 16px;
+    background: rgb(74 47 25 / 0.1);
+    border-radius: 50%;
+  }
+  .play-chip.is-ready {
+    color: #3a2a06;
+    background: #ffe08a;
+    border-color: #8a5a10;
+    animation: chip-ready 2.6s ease-in-out infinite;
+  }
+  .play-chip.is-alert {
+    color: #fff;
+    background: #c2513f;
+    border-color: #6e2418;
+    animation: chip-alert 1.8s ease-in-out infinite;
+  }
+  .play-chip.is-alert .play-chip__icon {
+    background: rgb(255 255 255 / 0.22);
+  }
+  .play-chip.is-running {
+    color: var(--ink-body);
+    background: rgb(255 250 240 / 0.9);
+    border-color: var(--paper-line);
+    box-shadow: none;
+    font-variant-numeric: tabular-nums;
+    cursor: default;
+  }
+  .play-chip.is-mode {
+    color: #1d2f4f;
+    background: #e6efff;
+    border-color: #3d5a8a;
+  }
+  .play-chip.is-muted {
+    color: var(--ink-soft);
+    background: rgb(255 250 240 / 0.78);
+    border-color: var(--paper-line);
+    box-shadow: none;
+  }
+  span.play-chip.is-muted {
+    cursor: default;
+  }
+  /* A brew's progress, as a ring around its icon. */
+  .play-chip__ring {
+    position: absolute;
+    inset: -2px;
+    border-radius: 50%;
+    background: conic-gradient(
+      var(--c-leaf-600, #3f8a4c) calc(var(--p, 0) * 360deg),
+      transparent 0
+    );
+    -webkit-mask: radial-gradient(circle, transparent 6px, #000 6.5px);
+    mask: radial-gradient(circle, transparent 6px, #000 6.5px);
+  }
+  .play-chip__pips {
+    display: inline-flex;
+    gap: 2px;
+  }
+  .play-chip__pips i {
+    border-radius: 50%;
+  }
+  /* How long a blip has left. */
+  .play-chip__drain {
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    bottom: 2px;
+    height: 2px;
+    background: rgb(255 255 255 / 0.85);
+    border-radius: 1px;
+    transform-origin: left center;
+    animation: chip-drain linear forwards;
+  }
+  @keyframes chip-drain {
+    from {
+      transform: scaleX(var(--drain-from, 1));
+    }
+    to {
+      transform: scaleX(0);
+    }
+  }
+  @keyframes chip-ready {
+    0%,
+    100% {
+      box-shadow: 0 2px 0 rgb(40 26 12 / 0.3);
+    }
+    50% {
+      box-shadow:
+        0 2px 0 rgb(40 26 12 / 0.3),
+        0 0 0 4px rgb(255 214 110 / 0.45);
+    }
+  }
+  @keyframes chip-alert {
+    0%,
+    70%,
+    100% {
+      rotate: 0deg;
+    }
+    78% {
+      rotate: -4deg;
+    }
+    86% {
+      rotate: 3deg;
+    }
+  }
+
+  /* The station's tooltip ends with the room's routine: what else the machine
+     does and who helps, said once under a ruled line. */
+  .station-tip__routine {
+    display: grid;
+    gap: 2px;
+    margin-top: 4px;
+    padding-top: 5px;
+    border-top: 1px dashed rgb(255 250 240 / 0.28);
+  }
+
+  /* The machine itself shows its routine: brewing, ready, stuck, a blip. */
+  .station-btn.is-play-running .station__accent {
+    animation-duration: 1.3s;
+  }
+  .station-btn.is-play-ready > svg {
+    filter: drop-shadow(0 0 5px rgb(255 214 110 / 0.95));
+  }
+  .station-btn.is-play-ready::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 2%;
+    width: 18px;
+    height: 22px;
+    background:
+      radial-gradient(circle at 50% 72%, rgb(255 255 255 / 0.9) 0 4px, transparent 5px),
+      radial-gradient(circle at 38% 28%, rgb(255 255 255 / 0.65) 0 3px, transparent 4px);
+    translate: -50% 0;
+    pointer-events: none;
+    animation: station-steam 2.4s ease-out infinite;
+  }
+  @keyframes station-steam {
+    from {
+      opacity: 0;
+      translate: -50% 6px;
+    }
+    30% {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+      translate: -50% -14px;
+    }
+  }
+  .station-btn.is-play-jammed > svg {
+    animation: station-jam 2.4s ease-in-out infinite;
+  }
+  @keyframes station-jam {
+    0%,
+    70%,
+    100% {
+      rotate: 0deg;
+    }
+    76% {
+      rotate: -3deg;
+    }
+    82% {
+      rotate: 3deg;
+    }
+    88% {
+      rotate: -2deg;
+    }
+    94% {
+      rotate: 1deg;
+    }
+  }
+  .station-btn.is-play-blip::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 16%;
+    width: 64%;
+    aspect-ratio: 1;
+    border: 2px solid rgb(255 214 110 / 0.95);
+    border-radius: 50%;
+    translate: -50% 0;
+    pointer-events: none;
+    animation: station-blip 1.3s ease-out infinite;
+  }
+  @keyframes station-blip {
+    from {
+      scale: 0.4;
+      opacity: 1;
+    }
+    to {
+      scale: 1.25;
+      opacity: 0;
+    }
+  }
+
+  /* ---- curiosities ------------------------------------------------------------ */
+  /* Something odd at the room's wall fixture, in a corner, up by the ceiling. The
+     fixture itself hums a little, so the eye goes there before the marker. */
+  .office-oddity {
+    position: absolute;
+    z-index: 255;
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    color: #4a2f19;
+    background: #fff4cf;
+    border: 2px solid #8a5a10;
+    border-radius: 50%;
+    box-shadow:
+      0 0 0 3px rgb(255 214 110 / 0.35),
+      0 2px 0 rgb(40 26 12 / 0.3);
+    cursor: pointer;
+    animation: oddity-glint 3.4s ease-in-out infinite;
+  }
+  .office-oddity:hover,
+  .office-oddity:focus-visible {
+    scale: 1.12;
+    animation: none;
+  }
+  /* Pinned to the fixture's outer top corner, like a note tacked to it. Its inner
+     foot is where a full room's nearest teammate sits (a desk by the wall, when
+     the machine stands at the other one): measured there, it covered 28-40% of
+     that face in a corner window. */
+  .office-oddity[data-anchor='wall'] {
+    top: calc(9% - 10px);
+    left: calc(5% - 8px);
+  }
+  .office-oddity[data-anchor='wallRight'] {
+    top: calc(9% - 10px);
+    right: calc(6% - 8px);
+  }
+  /* A corner window hangs the fixtures nearer the corners (rooms.css). */
+  @container office (max-width: 559px) {
+    .office-oddity[data-anchor='wall'] {
+      top: calc(5% - 10px);
+      left: calc(2.5% - 8px);
+    }
+    .office-oddity[data-anchor='wallRight'] {
+      top: calc(5% - 10px);
+      right: calc(3% - 8px);
+    }
+  }
+  .office-oddity[data-anchor='corner'] {
+    bottom: calc(var(--floor-h, 32px) * 0.45);
+    left: 4%;
+  }
+  .office-oddity[data-anchor='ceiling'] {
+    top: 5%;
+    left: 50%;
+    translate: -50% 0;
+  }
+  @keyframes oddity-glint {
+    0%,
+    68%,
+    100% {
+      scale: 1;
+    }
+    78% {
+      scale: 1.14;
+      box-shadow:
+        0 0 0 6px rgb(255 214 110 / 0.25),
+        0 2px 0 rgb(40 26 12 / 0.3);
+    }
+  }
+  .floor[data-oddity='wall'] .room-dressing__prop--wallLeft,
+  .floor[data-oddity='wallRight'] .room-dressing__prop--wallRight {
+    opacity: 1;
+    filter: saturate(1) drop-shadow(0 0 4px rgb(255 214 110 / 0.85));
+    transform-origin: 50% 0;
+    animation: fixture-hum 3.4s ease-in-out infinite;
+  }
+  @keyframes fixture-hum {
+    0%,
+    70%,
+    100% {
+      rotate: 0deg;
+    }
+    78% {
+      rotate: -1.6deg;
+    }
+    86% {
+      rotate: 1.2deg;
+    }
+  }
+  /* A facility room's secret, once enough has been noticed there: a sparkle
+     pinned to the room's fixture, which glows and hums. Its words slide out when
+     the player points at it or reaches it with the keyboard. A worded pill there
+     was measured over the nearest teammate in a full room (47-74% of a face in a
+     corner window, 57% of a mood sticker on a desktop): with the machine at the
+     far wall, that teammate's desk stands right under the fixture. */
+  .office-oddity--discovery.floor__discovery {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0;
+    width: auto;
+    min-width: 24px;
+    max-width: 24px;
+    height: 24px;
+    margin: 0;
+    padding: 0 0 0 3.5px;
+    overflow: hidden;
+    color: var(--c-paper-50);
+    background: var(--c-sky-700);
+    border-color: var(--c-walnut-900);
+    border-radius: 12px;
+    font: 800 11px/1 var(--font-body);
+    animation: discovery-glow 2.4s ease-in-out infinite;
+    transition:
+      max-width var(--dur) var(--ease),
+      padding var(--dur) var(--ease);
+  }
+  .office-oddity--discovery .office-oddity__label {
+    max-width: 0;
+    opacity: 0;
+    transition:
+      max-width var(--dur) var(--ease),
+      opacity var(--dur-fast) var(--ease);
+  }
+  .office-oddity--discovery.floor__discovery:hover,
+  .office-oddity--discovery.floor__discovery:focus-visible {
+    /* Open, it reads over the stickers it passes. */
+    z-index: 262;
+    gap: 4px;
+    max-width: min(60%, 200px);
+    padding: 0 9px 0 3.5px;
+    scale: 1;
+  }
+  .office-oddity--discovery:hover .office-oddity__label,
+  .office-oddity--discovery:focus-visible .office-oddity__label {
+    max-width: 180px;
+    opacity: 1;
+  }
+  /* A curiosity waiting at the same fixture hangs just under the secret. */
+  .floor__stage:has(.office-oddity--discovery)
+    .office-oddity[data-anchor='wall']:not(.office-oddity--discovery) {
+    translate: 0 28px;
+  }
+  .office-oddity__label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* ---- the slip: what just happened -------------------------------------------- */
+  /* A paper note pinned along the top of the room, on the side where it
+     happened (the machine's side, or the curiosity's), so the people below stay
+     in view. Someone reacting to a curiosity speaks up once it has been read. */
+  .office-slip {
+    position: absolute;
+    top: 4px;
+    z-index: 5;
+    display: grid;
+    gap: 2px;
+    width: max-content;
+    max-width: min(72%, 260px);
+    padding: 6px 10px 7px;
+    color: #3a2a18;
+    background: #fffaf0;
+    border: 2px solid var(--paper-line, #d9c7a5);
+    border-radius: 12px;
+    box-shadow:
+      0 3px 0 rgb(40 26 12 / 0.16),
+      0 6px 14px rgb(40 26 12 / 0.18);
+    text-align: left;
+    font: 700 11.5px/1.3 var(--font-body);
+    transform: translateX(-50%);
+    cursor: pointer;
+  }
+  .office-slip[data-side='left'] {
+    left: 8px;
+    transform: none;
+    border-top-left-radius: 3px;
+  }
+  .office-slip[data-side='right'] {
+    right: 8px;
+    transform: none;
+    border-top-right-radius: 3px;
+  }
+  .office-slip.is-animated {
+    animation: slip-in 280ms var(--ease-pop) both;
+  }
+  @keyframes slip-in {
+    from {
+      opacity: 0;
+      translate: 0 8px;
+      scale: 0.96;
+    }
+  }
+  .office-slip--oddity,
+  .office-slip--nut {
+    background: #fff8e2;
+    border-color: #d9a520;
+  }
+  .office-slip__label {
+    color: #8a5a10;
+    font: 800 11px/1.1 var(--font-body);
+    letter-spacing: 0.03em;
+  }
+  .office-slip--nut .office-slip__label {
+    color: #2f6b3a;
+  }
+  .office-slip__title {
+    font: 500 12.5px/1.15 var(--font-display);
+  }
+  .office-slip__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    margin-top: 2px;
+  }
+  .office-slip__tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 1px 6px;
+    background: rgb(74 47 25 / 0.08);
+    border-radius: 6px;
+    font: 800 11px/1.3 var(--font-body);
+  }
+  .office-slip__tag.is-golden {
+    background: #ffe9a8;
+  }
+  .office-slip__tag.is-rush {
+    color: #8a2a16;
+    background: #ffdcd2;
+  }
+  .office-slip__complete {
+    color: #2f6b3a;
+    font: 800 11px/1.25 var(--font-body);
+    font-style: normal;
+  }
+  /* A corner window: one compact note. A routine's slip drops its heading (the
+     chip and the machine already say what it was) and keeps to two lines. */
+  @container office (max-width: 560px) {
+    .office-slip {
+      gap: 1px;
+      max-width: min(76%, 240px);
+      padding: 4px 8px 5px;
+      font-size: 11px;
+      line-height: 1.25;
+    }
+    .office-slip--play .office-slip__title {
+      display: none;
+    }
+    .office-slip__text {
+      display: -webkit-box;
+      overflow: hidden;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 3;
+    }
+    .office-slip--play .office-slip__text {
+      -webkit-line-clamp: 2;
+    }
+    .office-slip__tags {
+      margin-top: 1px;
+    }
+  }
+
+  .office--decorating .play-chip,
+  .office--decorating .office-oddity,
+  .office--decorating .office-slip,
+  .photo-mode__stage .play-chip,
+  .photo-mode__stage .office-oddity,
+  .photo-mode__stage .office-slip,
+  .photo-mode__stage .office-nudge {
+    display: none;
+  }
+  [data-reduced-motion='true'] .play-chip,
+  [data-reduced-motion='true'] .office-oddity,
+  [data-reduced-motion='true'] .station-btn[class*='is-play-'] > svg,
+  [data-reduced-motion='true'] .station-btn[class*='is-play-']::after,
+  [data-reduced-motion='true'] .floor[data-oddity] .room-dressing__prop,
+  [data-ambient='paused'] .play-chip,
+  [data-ambient='paused'] .office-oddity,
+  [data-ambient='paused'] .station-btn[class*='is-play-'] > svg,
+  [data-ambient='paused'] .station-btn[class*='is-play-']::after,
+  [data-ambient='paused'] .floor[data-oddity] .room-dressing__prop,
+  .floor[data-onscreen='false'] .play-chip,
+  .floor[data-onscreen='false'] .office-oddity,
+  .floor[data-onscreen='false'] .station-btn[class*='is-play-'] > svg,
+  .floor[data-onscreen='false'] .station-btn[class*='is-play-']::after,
+  .floor[data-onscreen='false'] .room-dressing__prop {
+    animation: none;
+  }
+  .elevator__floor-news--play {
+    color: #fff;
+    background: #c2513f;
+  }
+  .elevator__floor-news--oddity {
+    background: #fff4cf;
+    box-shadow: inset 0 0 0 2px #8a5a10;
+  }
+
+  /* ---- the Archive's curiosity log ------------------------------------------- */
+  .curiosity-log {
+    display: grid;
+    gap: 8px;
+    margin: 0 0 14px;
+  }
+  .curiosity-log__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 10px;
+  }
+  .curiosity-log__head h3 {
+    margin: 0;
+    font: 500 var(--fs-lg) / 1.1 var(--font-display);
+  }
+  .curiosity-log__count {
+    color: var(--ink-soft);
+    font: 800 var(--fs-xs) / 1.2 var(--font-body);
+  }
+  .curiosity-log__intro {
+    margin: 0;
+    color: var(--ink-soft);
+    font: 700 var(--fs-sm) / 1.35 var(--font-body);
+  }
+  .curiosity-log__rooms {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .curiosity-room {
+    display: grid;
+    align-content: start;
+    gap: 6px;
+    padding: 8px 10px 10px;
+    background: var(--paper-bg-bright);
+    border: 2px solid var(--paper-line);
+    border-radius: 6px 12px 12px 6px;
+    box-shadow: 0 2px 0 rgb(40 26 12 / 0.1);
+  }
+  .curiosity-room.is-complete {
+    border-color: #d9a520;
+    background: #fff8e2;
+  }
+  .curiosity-room__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 2px 8px;
+  }
+  .curiosity-room__head strong {
+    font: 500 var(--fs-base) / 1.15 var(--font-display);
+  }
+  .curiosity-room__head span {
+    color: var(--ink-soft);
+    font: 800 var(--fs-xs) / 1 var(--font-body);
+    font-variant-numeric: tabular-nums;
+  }
+  .curiosity-room__head em {
+    margin-left: auto;
+    color: #2f6b3a;
+    font: 800 var(--fs-xs) / 1.2 var(--font-body);
+    font-style: normal;
+  }
+  /* A room a restructure closed: what was noticed in it stays on the board, read
+     as kept (paper, not greyed out), with a lock and the words saying it reopens. */
+  .curiosity-room.is-closed {
+    border-style: dashed;
+    background: var(--paper-bg-sunken);
+  }
+  .curiosity-room__closed {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    color: var(--ink-soft);
+    font: 800 var(--fs-xs) / 1.2 var(--font-body);
+  }
+  .curiosity-room__items {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 5px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  /* A noticed curiosity is a card on the board: pick it up to read it. */
+  .curiosity {
+    display: flex;
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .curiosity__card {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    min-width: 0;
+    max-width: 100%;
+    min-height: 30px;
+    padding: 4px 9px 4px 6px;
+    color: var(--ink-strong);
+    background: var(--paper-bg);
+    border: 1.5px solid var(--paper-line);
+    border-radius: 4px 9px 9px 4px;
+    box-shadow: 0 1px 0 rgb(40 26 12 / 0.12);
+    font: 800 var(--fs-xs) / 1.25 var(--font-body);
+    text-align: left;
+    cursor: pointer;
+  }
+  .curiosity__card:hover {
+    border-color: color-mix(in srgb, var(--primary) 60%, var(--paper-line));
+  }
+  .curiosity__card[aria-expanded='true'] {
+    background: var(--paper-bg-bright);
+    border-color: var(--ink-body);
+    box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--primary) 55%, transparent);
+  }
+  .curiosity__glyph {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    color: var(--ink-body);
+    background: var(--paper-bg-sunken);
+    border-radius: 50%;
+  }
+  .curiosity__title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .curiosity--nut .curiosity__title {
+    color: #2f6b3a;
+  }
+  .curiosity__lead-mark {
+    display: inline-grid;
+    flex: none;
+    place-items: center;
+    width: 16px;
+    height: 16px;
+    color: #7a5200;
+    background: #ffe9a8;
+    border-radius: 50%;
+  }
+  .curiosity.is-locked {
+    display: grid;
+    flex: 0 0 auto;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    color: var(--ink-soft);
+    background: var(--paper-bg-sunken);
+    border: 2px dashed var(--paper-line);
+    border-radius: 50%;
+  }
+
+  /* The Company screen's department cards say what the player does in each room. */
+  .dept-card__play {
+    margin: 2px 0 4px;
+    padding: 4px 7px;
+    color: var(--ink-body);
+    background: rgb(74 47 25 / 0.06);
+    border-radius: 7px;
+    font: 700 max(var(--fs-min), 0.68em) / 1.35 var(--font-body);
+  }
+  .dept-card__play strong {
+    color: var(--ink-strong);
+  }
+}

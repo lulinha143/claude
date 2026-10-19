@@ -13,6 +13,9 @@ export function ProductionBreakdown() {
   const fmt = useFmt();
   const b = productionBreakdown(state, engine.isFocusActive());
   const boost = engine.currentBoostMultiplier();
+  const rush = engine.currentRushMultiplier();
+  // Exactly the rate on the HUD: the breakdown's product, boosts and rushes.
+  const total = b.total * boost * rush;
 
   const pct = (frac: number) => `+${Math.round(frac * 100)}%`;
   const signedPct = (frac: number) =>
@@ -20,10 +23,13 @@ export function ProductionBreakdown() {
   const mult = (m: number) => `×${m.toFixed(2)}`;
 
   return (
-    <div className="panel">
-      <h3>
-        <Icon name="production" size={15} /> {t('prod.title')}
-      </h3>
+    <details className="panel production-ledger">
+      <summary>
+        <span>
+          <Icon name="production" size={15} /> {t('prod.title')}
+        </span>
+        <strong className="tabular">{fmt.num(total)}/s</strong>
+      </summary>
       <ul className="prod-list">
         <li>
           <span>{t('prod.base')}</span>
@@ -89,11 +95,18 @@ export function ProductionBreakdown() {
             <span className="prod-pos">{mult(boost)}</span>
           </li>
         ) : null}
+        {/* A rushing room is part of the rate the HUD shows, so the total says so too. */}
+        {rush > 1.0005 ? (
+          <li>
+            <span>{t('prod.rush')}</span>
+            <span className="prod-pos">{mult(rush)}</span>
+          </li>
+        ) : null}
         <li className="prod-list__total">
           <span>{t('prod.total')}</span>
-          <span className="tabular">{fmt.num(b.total * boost)}/s</span>
+          <span className="tabular">{fmt.num(total)}/s</span>
         </li>
       </ul>
-    </div>
+    </details>
   );
 }

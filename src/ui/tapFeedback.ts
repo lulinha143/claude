@@ -46,7 +46,7 @@ function retire(node: HTMLElement): void {
   node.remove();
 }
 
-export type TapTone = 'normal' | 'critical' | 'golden';
+export type TapTone = 'normal' | 'critical' | 'golden' | 'collect' | 'rush';
 
 export interface TapPopOptions {
   /** viewport coordinates of the tap. */
@@ -78,9 +78,13 @@ export function tapPop({ x, y, text, tone = 'normal', streak = 0 }: TapPopOption
   node.style.left = `${x}px`;
   node.style.top = `${y}px`;
   if (!still) {
-    const drift = (Math.random() * 2 - 1) * 18;
+    // Spread widened from +/-18px along with the payout type size. The jitter has to
+    // scale with the glyphs it separates: at the larger, outlined size the old range
+    // was narrower than the numbers themselves, so a fast streak stacked them into an
+    // unreadable pile instead of a spray.
+    const drift = (Math.random() * 2 - 1) * 34;
     node.style.setProperty('--tap-drift', `${drift}px`);
-    node.style.setProperty('--tap-rise', `${34 + Math.random() * 14}px`);
+    node.style.setProperty('--tap-rise', `${40 + Math.random() * 20}px`);
   }
 
   const value = document.createElement('strong');
@@ -101,6 +105,33 @@ export function tapPop({ x, y, text, tone = 'normal', streak = 0 }: TapPopOption
   while (live.length > MAX_LIVE_POPS) retire(live[0]);
 
   window.setTimeout(() => retire(node), POP_LIFETIME_MS);
+}
+
+/**
+ * Mark a tap burst as in progress, so the rest of the UI can get out of the way.
+ *
+ * Exists for one specific problem: to tap a station you hover it, and hovering
+ * opens that station's tooltip, anchored right on top of the machine and its own
+ * floating payouts. Aiming at the thing hid the feedback for hitting it.
+ *
+ * The flag lives on <html> rather than on the button because the tooltip is
+ * portalled to <body>, so it is not reachable from the station's own subtree. It
+ * clears itself shortly after the last tap, which is why it is a debounced timer
+ * rather than a pointerup handler: mashing produces a stream of downs and ups, and
+ * the tooltip should stay out of the way for the whole burst, not flicker between
+ * every one of them.
+ */
+const TAP_BURST_LINGER_MS = 420;
+let burstTimer: number | null = null;
+
+export function markTapBurst(): void {
+  if (typeof document === 'undefined') return;
+  document.documentElement.setAttribute('data-station-tapping', 'true');
+  if (burstTimer !== null) window.clearTimeout(burstTimer);
+  burstTimer = window.setTimeout(() => {
+    burstTimer = null;
+    document.documentElement.removeAttribute('data-station-tapping');
+  }, TAP_BURST_LINGER_MS);
 }
 
 /**
@@ -127,4 +158,70 @@ export function clearTapFeedback(): void {
   while (live.length) retire(live[0]);
   layer?.remove();
   layer = null;
+  // Never leave the burst flag latched on <html>: it dims tooltips, and a scene
+  // torn down mid-burst would otherwise keep them dimmed for the rest of the session.
+  if (burstTimer !== null) window.clearTimeout(burstTimer);
+  burstTimer = null;
+  if (typeof document !== 'undefined') {
+    document.documentElement.removeAttribute('data-station-tapping');
+  }
+}
+
+/**
+ * A handful of nuts arc from where something was collected to the nut counter in
+ * the HUD, which gives a little bump when they land. One short burst per collect
+ * (never per tap), removed as soon as it finishes; reduced motion skips the
+ * flight and only bumps the counter.
+ */
+export function flyToCounter(fromX: number, fromY: number, count = 6): void {
+  if (typeof document === 'undefined') return;
+  const counter = document.querySelector<HTMLElement>('.hud__nuts');
+  if (!counter) return;
+  const bump = () => {
+    counter.classList.remove('is-gaining');
+    // restart the bump animation
+    void counter.offsetWidth;
+    counter.classList.add('is-gaining');
+    window.setTimeout(() => counter.classList.remove('is-gaining'), 520);
+  };
+  const host = ensureLayer();
+  if (!host || reducedMotion() || typeof Element.prototype.animate !== 'function') {
+    bump();
+    return;
+  }
+  const target = counter.getBoundingClientRect();
+  const tx = target.left + 16;
+  const ty = target.top + target.height / 2;
+  let landed = 0;
+  const n = Math.max(1, Math.min(8, count));
+  for (let i = 0; i < n; i += 1) {
+    const nut = document.createElement('span');
+    nut.className = 'fly-nut';
+    nut.style.left = `${fromX}px`;
+    nut.style.top = `${fromY}px`;
+    host.appendChild(nut);
+    const spread = (i - (n - 1) / 2) * 9;
+    const lift = 34 + Math.random() * 26;
+    const animation = nut.animate(
+      [
+        { transform: 'translate(-50%, -50%) scale(0.6)', opacity: 0 },
+        {
+          transform: `translate(calc(-50% + ${spread}px), calc(-50% - ${lift}px)) scale(1)`,
+          opacity: 1,
+          offset: 0.32,
+        },
+        {
+          transform: `translate(calc(-50% + ${tx - fromX}px), calc(-50% + ${ty - fromY}px)) scale(0.55)`,
+          opacity: 0.9,
+        },
+      ],
+      { duration: 620 + i * 45, easing: 'cubic-bezier(0.3, 0, 0.4, 1)', fill: 'forwards' },
+    );
+    animation.onfinish = () => {
+      nut.remove();
+      landed += 1;
+      if (landed === 1) bump();
+    };
+    window.setTimeout(() => nut.remove(), 1400);
+  }
 }

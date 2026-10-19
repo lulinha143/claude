@@ -22,7 +22,11 @@ const fail = (m) => {
 };
 
 const args1 = ['--no-sandbox', '--disable-gpu', `--user-data-dir=${userData}`];
-const app = await electron.launch({ executablePath: exe, args: args1, env: { ...process.env, WMNO_SMOKE: '1' } });
+const app = await electron.launch({
+  executablePath: exe,
+  args: args1,
+  env: { ...process.env, WMNO_SMOKE: '1' },
+});
 
 try {
   const page = await app.firstWindow({ timeout: 25000 });
@@ -60,10 +64,12 @@ try {
   const windows = await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().length);
   if (windows < 1) fail('first instance lost its window');
 
-  console.log('SINGLE-INSTANCE SMOKE OK: 2nd instance denied + exited without startup; 1st still alive.');
+  console.log(
+    'SINGLE-INSTANCE SMOKE OK: 2nd instance denied + exited without startup; 1st still alive.',
+  );
   console.log('--- second instance output (tail) ---');
   console.log(out.split('\n').filter(Boolean).slice(-6).join('\n'));
 } finally {
   await app.close();
-  fs.rmSync(userData, { recursive: true, force: true });
+  fs.rmSync(userData, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
 }

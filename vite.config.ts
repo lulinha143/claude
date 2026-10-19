@@ -54,6 +54,10 @@ export default defineConfig({
     strictPort: false,
   },
   test: {
+    // Keep transforms and jsdom workers from saturating a desktop while the game
+    // and browser QA are running alongside the suite.
+    maxWorkers: 4,
+    minWorkers: 1,
     globals: true,
     environment: 'node',
     include: ['tests/**/*.test.ts', 'tests/**/*.test.tsx'],

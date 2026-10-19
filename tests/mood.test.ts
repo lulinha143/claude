@@ -9,7 +9,15 @@ import {
 import { moodMultiplier, computeProduction } from '../src/sim/economy';
 import type { EmployeeMood } from '../src/sim/types';
 
-const ALL: EmployeeMood[] = ['focused', 'relaxed', 'inspired', 'tired', 'frustrated', 'curious', 'proud'];
+const ALL: EmployeeMood[] = [
+  'focused',
+  'relaxed',
+  'inspired',
+  'tired',
+  'frustrated',
+  'curious',
+  'proud',
+];
 
 describe('mood → productivity (modest, never punishing)', () => {
   it('keeps every emotion within ±5% and never zero', () => {
@@ -54,6 +62,9 @@ describe('mood → productivity (modest, never punishing)', () => {
     const s = createInitialState(0);
     s.employees.marlow.hired = true;
     s.employees.marlow.level = 5;
+    // Alone at the desk: sitting with Pip (whom Marlow looks out for) would make
+    // him proud regardless of friendship, and this compares friendship only.
+    s.employees.pip.hired = false;
     s.resources.morale = 75;
     s.employees.marlow.friendship = 90; // proud (morale 75 + friendship 90)
     expect(employeeMood(s, 'marlow')).toBe('proud');

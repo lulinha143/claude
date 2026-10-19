@@ -10,7 +10,9 @@ const problems = [];
 const warnings = [];
 
 if (!existsSync(OUT)) {
-  console.error(`[verify-steam] ${OUT} does not exist. Run "npm run build:steam" first (on Windows/CI).`);
+  console.error(
+    `[verify-steam] ${OUT} does not exist. Run "npm run build:steam" first (on Windows/CI).`,
+  );
   process.exit(1);
 }
 
@@ -43,7 +45,15 @@ for (const f of rel) {
   }
 }
 // 4. no secrets or saves
-const SECRETS = ['steam_appid.txt', '.env', 'save.json', 'window-settings.json', '.pem', '.p12', '.pfx'];
+const SECRETS = [
+  'steam_appid.txt',
+  '.env',
+  'save.json',
+  'window-settings.json',
+  '.pem',
+  '.p12',
+  '.pfx',
+];
 for (const f of rel) {
   if (SECRETS.some((s) => f.toLowerCase().endsWith(s))) problems.push(`Must not ship: ${f}`);
 }

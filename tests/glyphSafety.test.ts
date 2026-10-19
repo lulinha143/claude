@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, relative, sep } from 'node:path';
 
 // The bundled fonts (DynaPuff, Nunito) ship as LATIN SUBSETS for offline use, so a
 // decorative symbol from Arrows, Dingbats or Mathematical Operators has no glyph
@@ -46,19 +46,32 @@ function isRisky(ch: string): boolean {
 /**
  * Symbols that predate this guard.
  *
- * In practice a browser falls back to a system font for a missing glyph, so on a
- * normal desktop these render. They are recorded rather than fixed because
- * replacing decorative art in the minigames and the onboarding illustration is a
- * separate art decision, and `∞` / `›` are load-bearing in their own contexts.
+ * The original note here said "in practice a browser falls back to a system font for a
+ * missing glyph, so on a normal desktop these render". That was measured and found to
+ * be FALSE: rendering each of these in the app's own font stack and pixel-comparing it
+ * against a private-use codepoint showed U+2605, U+221E, U+2197 and U+25CF drawing the
+ * platform's notdef box. A screenshot of the cafe confirmed it — the menu board read
+ * "NUT ROAST" above three literal rectangles.
+ *
+ * So the player-facing ones were replaced with CSS art or ASCII:
+ *   U+2605 U+25CF U+2668  ->  drawn art (the cafe, now SVG in MinigameArt.tsx)
+ *   U+221E                ->  formatNumber() returns "Inf"
+ *   U+2197 U+25CF         ->  .onboarding-art__trend / .onboarding-art__pin
+ * U+203A survived the audit: it does render, and is left alone.
+ *
+ * What remains is `src/dev/typography.tsx`, a developer-only specimen page that is
+ * never reachable in a shipped build — it exists to show what the type looks like, and
+ * a tofu box in it is a finding rather than a defect.
  *
  * This is a RATCHET: the baseline may shrink, never grow. Anything new fails.
  */
 const KNOWN_BASELINE: Record<string, string[]> = {
   'src/dev/typography.tsx': ['\u25cf', '\u2302', '\u25a4', '\u2667'],
-  'src/sim/format.ts': ['\u221e'],
-  'src/ui/minigames/CoffeeRescue.tsx': ['\u2668', '\u2605', '\u25cf'],
-  'src/ui/modals/Onboarding.tsx': ['\u2197', '\u25cf'],
-  'src/ui/views/FocusView.tsx': ['\u203a'],
+  // CoffeeRescue.tsx used to be here with U+2668, U+2605 and U+25CF. A screenshot of
+  // the running cafe showed the star rendering as a literal tofu box on the menu
+  // board, disproving the "the OS will have a fallback" assumption below, so all
+  // three are now drawn (the cafe and its mugs are SVG art in MinigameArt.tsx).
+  // FocusView.tsx's U+203A went with the old "Play ›" card label.
 };
 
 /** Locales shipped as complete. Drafts use scripts served by system fallback. */
@@ -96,7 +109,10 @@ describe('glyph safety: every rendered character exists in the bundled fonts', (
   it('introduces no new unsupported symbols in UI source', () => {
     const offenders: string[] = [];
     for (const file of sourceFiles(SRC)) {
-      const rel = file.replace(SRC, 'src');
+      // Only the repository-relative lookup key uses '/'. Actual filesystem
+      // paths stay native; substring replacement confused Windows separators
+      // with new, unapproved source files.
+      const rel = `src/${relative(SRC, file).split(sep).join('/')}`;
       const allowed = new Set(KNOWN_BASELINE[rel] ?? []);
       const risky = riskyIn(readFileSync(file, 'utf8')).filter((c) => !allowed.has(c));
       if (risky.length) offenders.push(`${rel}: ${describeChars(risky)}`);

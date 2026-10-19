@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { useEffect, useMemo, useState } from 'react';
 import { useGame } from '../../state/hooks';
 import { useStore } from '../../state/store';
 import { useFmt } from '../useFmt';
@@ -17,6 +18,19 @@ import { MoodEmoji } from '../../art/EmployeeMoodBadge';
 import { roomAffinity, affinityPercent } from '../../sim/affinity';
 import { ROOMS_BY_ID } from '../../content/rooms';
 import { canTalk, talkCooldownRemaining } from '../../sim/talks';
+import { pendingMoment, wavingTeammates, type PendingMoment } from '../../sim/bonds';
+import { BondMeter } from '../BondMeter';
+import { employeeGain } from '../../sim/goals';
+import { announcePurchase } from '../officeEvents';
+import { Glyph, type GlyphName } from '../../art/Glyph';
+import { affinityWord, moodWord } from '../moodWord';
+
+/** The mark beside "wants to tell you something" (same as the office's). */
+const SHARE_GLYPH: Record<PendingMoment['kind'], GlyphName> = {
+  story: 'dots',
+  milestone: 'heart',
+  hint: 'sparkle',
+};
 
 export function EmployeesView() {
   const { t } = useTranslation();
@@ -38,7 +52,44 @@ export function EmployeesView() {
   // cooldown ticking down rather than a stale snapshot.
   const now = Date.now();
   const talkReady = (id: string) => canTalk(state, id, now);
+  const waving = wavingTeammates(state, now);
   const cooldown = (id: string) => talkCooldownRemaining(state, id, now);
+  const [showReady, setShowReady] = useState(false);
+  const readyCount = EMPLOYEES.filter(
+    (def) => state.employees[def.id].hired && talkReady(def.id),
+  ).length;
+
+  // What each hire or promotion would add per second, measured when the team,
+  // purchases, standing or morale move (not on every tick of the sim).
+  const [short, setShort] = useState<{ id: string; key: number } | null>(null);
+  useEffect(() => {
+    if (!short) return undefined;
+    const timer = window.setTimeout(() => setShort(null), 2600);
+    return () => window.clearTimeout(timer);
+  }, [short]);
+  const signature = [
+    Object.entries(state.upgrades)
+      .map(([id, level]) => `${id}${level}`)
+      .join(','),
+    Object.values(state.employees)
+      .map((rt) => `${rt.hired ? 1 : 0}${rt.level}${rt.room ?? ''}`)
+      .join(''),
+    Math.floor(state.resources.reputation),
+    Math.round(state.resources.morale),
+  ].join('|');
+  const gains = useMemo(
+    () => {
+      const map = new Map<string, number>();
+      for (const def of EMPLOYEES) {
+        if (!isEmployeeUnlocked(state, def)) continue;
+        const perSecond = employeeGain(state, def.id).perSecond;
+        if (perSecond > 0.0001) map.set(def.id, perSecond);
+      }
+      return map;
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [signature],
+  );
 
   return (
     <section className="view view--employees">
@@ -71,7 +122,23 @@ export function EmployeesView() {
         ) : null}
       </div>
       <ul className="employee-list">
-        {EMPLOYEES.map((def) => {
+        <li className="personnel-index">
+          <div>
+            <strong>{t('employee.personnelFile')}</strong>
+            <span>{t('employee.readyCount', { count: readyCount })}</span>
+          </div>
+          <button
+            className="ghost-btn"
+            aria-pressed={showReady}
+            onClick={() => setShowReady((v) => !v)}
+          >
+            {t(showReady ? 'employee.everyone' : 'employee.onlyReady')}
+          </button>
+          {showReady && !readyCount ? <p>{t('employee.noneReady')}</p> : null}
+        </li>
+        {EMPLOYEES.filter(
+          (def) => !showReady || (state.employees[def.id].hired && talkReady(def.id)),
+        ).map((def) => {
           const rt = state.employees[def.id];
           const unlocked = isEmployeeUnlocked(state, def);
           const reduction = def.hireCost.resource === 'nuts' ? passives.costReduction : 0;
@@ -117,21 +184,39 @@ export function EmployeesView() {
                   <span className="goal-label">{t('employee.goal')}</span> {t(def.goalKey)}
                 </div>
                 {rt.hired ? (
-                  <Tip
-                    content={
-                      <TipContent
-                        title={t('employee.friendship')}
-                        lines={[t('tip.friendship'), `${Math.round(rt.friendship)}%`]}
-                      />
-                    }
-                  >
-                    <div className="friendship">
-                      <span>{t('employee.friendship')}</span>
-                      <div className="bar">
-                        <div className="bar__fill" style={{ width: `${rt.friendship}%` }} />
-                      </div>
-                    </div>
-                  </Tip>
+                  <div className="employee-card__bond">
+                    <Tip
+                      content={
+                        <TipContent
+                          title={t('employee.friendship')}
+                          lines={[
+                            t('tip.friendship'),
+                            `${Math.round(rt.friendship)}%`,
+                            t('bond.closeBonus'),
+                          ]}
+                        />
+                      }
+                    >
+                      <span>
+                        <BondMeter friendship={rt.friendship} compact />
+                      </span>
+                    </Tip>
+                    {(() => {
+                      // Something they would like to share, said quietly here too
+                      // (for the same few the office shows waving).
+                      const moment = waving.get(def.id);
+                      return moment ? (
+                        <span className="employee-card__share" data-kind={moment.kind}>
+                          <span className="employee-card__share-mark" aria-hidden>
+                            <Glyph name={SHARE_GLYPH[moment.kind]} size={11} />
+                          </span>
+                          {t(`bond.pending.${moment.kind}`, {
+                            name: rt.nickname ?? t(def.nameKey),
+                          })}
+                        </span>
+                      ) : null;
+                    })()}
+                  </div>
                 ) : null}
                 {rt.hired ? (
                   <div className="employee-card__controls">
@@ -146,7 +231,10 @@ export function EmployeesView() {
                       return (
                         <Tip
                           content={
-                            <TipContent title={t(`mood.${mood}`)} lines={[t('tip.mood'), effect]} />
+                            <TipContent
+                              title={moodWord(t, mood, def.id)}
+                              lines={[t('tip.mood'), effect]}
+                            />
                           }
                         >
                           <span
@@ -155,7 +243,7 @@ export function EmployeesView() {
                             style={{ ['--mood-color' as string]: MOOD_TONE[mood] }}
                           >
                             <MoodEmoji mood={mood} color={MOOD_TONE[mood]} />
-                            <span className="mood-chip__label">{t(`mood.${mood}`)}</span>
+                            <span className="mood-chip__label">{moodWord(t, mood, def.id)}</span>
                             <em className={delta >= 0 ? 'prod-pos' : 'prod-neg'}>
                               {delta > 0 ? '+' : ''}
                               {delta}%
@@ -172,13 +260,13 @@ export function EmployeesView() {
                         <Tip
                           content={
                             <TipContent
-                              title={t(`affinity.${tier}`)}
+                              title={affinityWord(t, tier, def.id)}
                               lines={[t('tip.affinity'), t(ROOMS_BY_ID[room]?.nameKey ?? room)]}
                             />
                           }
                         >
                           <span className={`affinity-chip affinity-chip--${tier}`}>
-                            {t(`affinity.${tier}`)}
+                            {affinityWord(t, tier, def.id)}
                             {pct !== 0 ? (
                               <em className={pct > 0 ? 'prod-pos' : 'prod-neg'}>
                                 {pct > 0 ? '+' : ''}
@@ -260,14 +348,37 @@ export function EmployeesView() {
                   </span>
                 ) : (
                   <>
+                    {/* What the hire or promotion buys, measured like the goal tag. */}
+                    {gains.get(def.id) ? (
+                      <span className="employee-card__gain">
+                        {t('goal.perSecond', { value: fmt.num(gains.get(def.id) ?? 0) })}
+                      </span>
+                    ) : null}
                     <button
                       className="buy-btn"
-                      disabled={!afford}
-                      onClick={() =>
-                        engine.hireOrLevelEmployee(def.id)
-                          ? audio.play('upgrade')
-                          : audio.play('error')
-                      }
+                      // Short of the price: still pressable, so it can say what is missing.
+                      aria-disabled={afford ? undefined : true}
+                      onClick={() => {
+                        if (afford && engine.hireOrLevelEmployee(def.id)) {
+                          audio.play('upgrade');
+                          setShort(null);
+                          announcePurchase({
+                            title: rt.hired
+                              ? t('goal.level', {
+                                  name: rt.nickname ?? t(def.nameKey),
+                                  level: rt.level + 1,
+                                })
+                              : t('goal.hire', { name: t(def.nameKey) }),
+                            gain: gains.get(def.id)
+                              ? t('goal.perSecond', { value: fmt.num(gains.get(def.id) ?? 0) })
+                              : null,
+                            employeeId: def.id,
+                          });
+                        } else {
+                          audio.play('error');
+                          setShort({ id: def.id, key: Date.now() });
+                        }
+                      }}
                     >
                       {def.hireCost.resource === 'goldenNuts' ? (
                         <GoldenNut size={16} />
@@ -277,15 +388,37 @@ export function EmployeesView() {
                       <span>{fmt.num(cost)}</span>
                       <em>{rt.hired ? t('employee.promote') : t('employee.hire')}</em>
                     </button>
+                    {short?.id === def.id && !afford ? (
+                      <span key={short.key} className="employee-card__short" role="status">
+                        {t('shop.shortNote', {
+                          amount:
+                            def.hireCost.resource === 'goldenNuts'
+                              ? t('station.tip.goldenAmount', {
+                                  amount: fmt.int(
+                                    Math.ceil(cost - state.resources[def.hireCost.resource]),
+                                  ),
+                                })
+                              : t('station.tip.nutAmount', {
+                                  amount: fmt.int(
+                                    Math.ceil(cost - state.resources[def.hireCost.resource]),
+                                  ),
+                                }),
+                        })}
+                      </span>
+                    ) : null}
                     {rt.hired ? (
                       <button
                         className="ghost-btn"
+                        disabled={engine.coffeeCooldownRemaining(def.id) > 0}
                         onClick={() => {
-                          engine.giveCoffee(def.id);
-                          audio.play('coffee');
+                          if (engine.giveCoffee(def.id)) audio.play('coffee');
                         }}
                       >
-                        {t('employee.give_coffee')}
+                        {engine.coffeeCooldownRemaining(def.id) > 0
+                          ? t('employee.coffeeCooling', {
+                              seconds: engine.coffeeCooldownRemaining(def.id),
+                            })
+                          : t('employee.give_coffee')}
                       </button>
                     ) : null}
                     {/* The roster is the reliable way in: the office critter only opens
@@ -306,10 +439,16 @@ export function EmployeesView() {
                         <button
                           className="ghost-btn employee-card__talk"
                           data-employee={def.id}
-                          aria-disabled={!talkReady(def.id)}
                           onClick={() => {
-                            if (engine.openTalk(def.id)) audio.play('click');
-                            else audio.play('error');
+                            // A teammate with something to share opens straight onto it.
+                            const moment = pendingMoment(state, def.id, Date.now());
+                            const opened =
+                              moment?.kind === 'story'
+                                ? engine.openTalk(def.id, moment.topicId, true)
+                                : engine.openTalk(def.id, undefined, true, {
+                                    tab: moment?.kind === 'hint' ? 'gifts' : 'talk',
+                                  });
+                            audio.play(opened ? 'paper' : 'error');
                           }}
                         >
                           {t('talk.open')}

@@ -94,16 +94,16 @@ the official docs (they evolve): https://partner.steamgames.com/doc/store/applic
 Your options:
 
 - **Private beta branch (password-protected):** In Steamworks →
-  *SteamPipe → Builds*, upload a build and set it live on a branch named e.g.
-  `beta`, then set a password (*Builds → beta → password*). Give testers the
+  _SteamPipe → Builds_, upload a build and set it live on a branch named e.g.
+  `beta`, then set a password (_Builds → beta → password_). Give testers the
   password; they right-click the game in Steam → **Properties → Betas** → enter
   it. Great for updating fast and privately.
-- **Steam keys:** Request a batch of free keys (Steamworks → *Request Product
-  Keys*) and hand them to trusted testers. Keys grant the real app; use for small
+- **Steam keys:** Request a batch of free keys (Steamworks → _Request Product
+  Keys_) and hand them to trusted testers. Keys grant the real app; use for small
   trusted groups.
 - **Steam Playtest:** A separate, linked "Playtest" application so testers can
   request access from your store page **without** affecting your main game's
-  reviews or wishlists. Enable it under your app's *Playtest* settings. Update
+  reviews or wishlists. Enable it under your app's _Playtest_ settings. Update
   its build the same way (SteamPipe). Turn it off when finished, then carry the
   fixes back into your main build.
 
@@ -117,5 +117,6 @@ game's description, or a Discord invite.
 ---
 
 ## Printable QA checklist
+
 See [`PACKAGED_BUILD_QA.md`](PACKAGED_BUILD_QA.md) for a checkbox list you can
 print and tick off before every release.

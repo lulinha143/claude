@@ -25,22 +25,22 @@ npm run dev        # run the web/dev version at http://localhost:5173
 
 Other commands:
 
-| Command | What it does |
-| --- | --- |
-| `npm run dev` | Vite dev server (web + renderer). |
-| `npm run build` | Production web build into `dist/` (also the GitHub Pages demo). |
-| `npm run preview` | Serve the production build locally. |
-| `npm run build:electron` | Bundle the Electron main + preload into `dist-electron/`. |
-| `npm run dev:electron` | Build the shell and launch Electron against the dev server. |
-| `npm run package` | Build everything and produce native installers via electron-builder. |
-| `npm run package:win` / `:linux` / `:mac` | Package for a specific platform. |
-| `npm run test` | Vitest unit tests (72 tests). |
-| `npm run test:e2e` | Playwright end-to-end tests. |
-| `npm run lint` / `lint:fix` | ESLint. |
-| `npm run typecheck` | TypeScript (renderer + electron). |
-| `npm run format` | Prettier. |
-| `npm run check:i18n` | Localization completeness report. |
-| `npm run validate` | typecheck → lint → i18n → test → build (the full gate). |
+| Command                                   | What it does                                                         |
+| ----------------------------------------- | -------------------------------------------------------------------- |
+| `npm run dev`                             | Vite dev server (web + renderer).                                    |
+| `npm run build`                           | Production web build into `dist/` (also the GitHub Pages demo).      |
+| `npm run preview`                         | Serve the production build locally.                                  |
+| `npm run build:electron`                  | Bundle the Electron main + preload into `dist-electron/`.            |
+| `npm run dev:electron`                    | Build the shell and launch Electron against the dev server.          |
+| `npm run package`                         | Build everything and produce native installers via electron-builder. |
+| `npm run package:win` / `:linux` / `:mac` | Package for a specific platform.                                     |
+| `npm run test`                            | Vitest unit tests (72 tests).                                        |
+| `npm run test:e2e`                        | Playwright end-to-end tests.                                         |
+| `npm run lint` / `lint:fix`               | ESLint.                                                              |
+| `npm run typecheck`                       | TypeScript (renderer + electron).                                    |
+| `npm run format`                          | Prettier.                                                            |
+| `npm run check:i18n`                      | Localization completeness report.                                    |
+| `npm run validate`                        | typecheck → lint → i18n → test → build (the full gate).              |
 
 ### Try the desktop companion
 
@@ -64,32 +64,32 @@ This repository is a **stable, runnable v1.0 foundation / vertical slice**. The
 opening ~30 minutes of gameplay are polished; every visible control works; there
 are no dead buttons or `TODO` placeholders in core systems.
 
-| Area | Status |
-| --- | --- |
-| Deterministic simulation core (framework-independent) | ✅ Complete, unit-tested |
-| Nuts, morale, reputation, golden nuts, permanent kernels | ✅ |
-| Clicking, crate collection, automation, trickle production | ✅ |
-| 51 upgrades across 6 categories | ✅ |
-| 6 employees with passives, outfits, friendship, nicknames, dialogue | ✅ |
-| 13 rooms / floors that unlock and stack visually | ✅ |
-| 26 random events incl. 5 multi-step chains | ✅ |
-| 41 achievements (local, with Steam adapter boundary) | ✅ |
-| 24 collectible fictional nuts | ✅ |
-| 32 decorations | ✅ |
-| Prestige ("Go Completely Nuts") with 5 branches + 5-skill tree | ✅ |
-| Focus Harvest (opt-in, supportive, never blocking) | ✅ |
-| 3 micro-games | ✅ |
-| Daily challenges (deterministic, offline, server-free) | ✅ |
-| Moment Cards → save as PNG; Photo Mode | ✅ |
-| Offline progression (clamped, tamper-safe) | ✅ |
-| Save system: Zod schema, migrations, rotating backups, recovery, export/import | ✅ |
-| Localization: **English + Brazilian Portuguese complete**, 10 draft locales | ✅ |
-| Accessibility: reduced motion, high contrast, dyslexia font, colorblind, scaling, etc. | ✅ |
-| Web Audio synthesized SFX + ambience (no copyrighted assets) | ✅ |
-| Electron shell: frameless/transparent, tray, always-on-top, click-through, corners, scale, hotkey, single-instance, strict CSP | ✅ |
-| Platform adapters with browser-safe fallbacks | ✅ |
-| Original SVG art + reusable animation state machine | ✅ |
-| CI (lint/typecheck/test/build), release, and Pages workflows | ✅ |
+| Area                                                                                                                           | Status                   |
+| ------------------------------------------------------------------------------------------------------------------------------ | ------------------------ |
+| Deterministic simulation core (framework-independent)                                                                          | ✅ Complete, unit-tested |
+| Nuts, morale, reputation, golden nuts, permanent kernels                                                                       | ✅                       |
+| Clicking, crate collection, automation, trickle production                                                                     | ✅                       |
+| 51 upgrades across 6 categories                                                                                                | ✅                       |
+| 6 employees with passives, outfits, friendship, nicknames, dialogue                                                            | ✅                       |
+| 13 rooms / floors that unlock and stack visually                                                                               | ✅                       |
+| 26 random events incl. 5 multi-step chains                                                                                     | ✅                       |
+| 41 achievements (local, with Steam adapter boundary)                                                                           | ✅                       |
+| 24 collectible fictional nuts                                                                                                  | ✅                       |
+| 32 decorations                                                                                                                 | ✅                       |
+| Prestige ("Go Completely Nuts") with 5 branches + 5-skill tree                                                                 | ✅                       |
+| Focus Harvest (opt-in, supportive, never blocking)                                                                             | ✅                       |
+| 3 micro-games                                                                                                                  | ✅                       |
+| Daily challenges (deterministic, offline, server-free)                                                                         | ✅                       |
+| Moment Cards → save as PNG; Photo Mode                                                                                         | ✅                       |
+| Offline progression (clamped, tamper-safe)                                                                                     | ✅                       |
+| Save system: Zod schema, migrations, rotating backups, recovery, export/import                                                 | ✅                       |
+| Localization: **English + Brazilian Portuguese complete**, 10 draft locales                                                    | ✅                       |
+| Accessibility: reduced motion, high contrast, dyslexia font, colorblind, scaling, etc.                                         | ✅                       |
+| Web Audio synthesized SFX + ambience (no copyrighted assets)                                                                   | ✅                       |
+| Electron shell: frameless/transparent, tray, always-on-top, click-through, corners, scale, hotkey, single-instance, strict CSP | ✅                       |
+| Platform adapters with browser-safe fallbacks                                                                                  | ✅                       |
+| Original SVG art + reusable animation state machine                                                                            | ✅                       |
+| CI (lint/typecheck/test/build), release, and Pages workflows                                                                   | ✅                       |
 
 ### Documented tradeoffs & limitations
 

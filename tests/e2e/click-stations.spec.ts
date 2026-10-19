@@ -139,7 +139,7 @@ test('nuts actually increase when a station is tapped', async ({ page }) => {
   expect(await nutsFromEngine(page)).toBeGreaterThan(before);
 });
 
-test('characters always paint in front of decorations and stations', async ({ page }) => {
+test('furnishings and equipment paint in front of employees', async ({ page }) => {
   await boot(page);
   const founder = page.locator('.floor[data-room="founder-desk"]');
 
@@ -147,19 +147,19 @@ test('characters always paint in front of decorations and stations', async ({ pa
   await expect(character).toBeVisible();
   const characterZ = Number(await character.evaluate((el) => getComputedStyle(el).zIndex));
 
-  // Every decoration in the room must sit below the character.
+  // Every decoration paints in front of the character.
   const decoZ = await founder
     .locator('.floor__deco')
     .evaluateAll((els) => els.map((el) => Number(getComputedStyle(el).zIndex)));
   for (const z of decoZ) {
-    expect(z).toBeLessThan(characterZ);
+    expect(z).toBeGreaterThan(characterZ);
   }
 
-  // So must the station, so an employee is never hidden by the machine.
+  // Equipment follows the same foreground rule.
   const stationZ = Number(
     await founder.locator('.station-btn').evaluate((el) => getComputedStyle(el).zIndex),
   );
-  expect(stationZ).toBeLessThan(characterZ);
+  expect(stationZ).toBeGreaterThan(characterZ);
 
   // And the character must be inside the reserved character band.
   expect(characterZ).toBeGreaterThanOrEqual(SCENE_DEPTH.character.min);

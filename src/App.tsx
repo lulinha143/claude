@@ -1,29 +1,24 @@
-import { useEffect } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useStore, startGameLoop, getGameState, type ViewId } from './state/store';
+import {
+  useStore,
+  startGameLoop,
+  getGameState,
+  BOOT_SAVE_IS_NEW,
+  type ViewId,
+} from './state/store';
 import { ambientState } from './art/ambient';
 import { CHARACTER_PRESENCE_SCALE } from './art/employeeSprites';
 import { toggleHaloTest } from './art/haloTest'; // TEMP halo-isolation A/B (Ctrl+Alt+H)
 import { useGame } from './state/hooks';
-import { Header } from './ui/Header';
-import { NavBar } from './ui/NavBar';
-import { RecommendedStep } from './ui/RecommendedStep';
-import { OfficeScene } from './art/OfficeScene';
-import { OfficeBackground } from './art/OfficeBackground';
-import { ShopView } from './ui/views/ShopView';
-import { EmployeesView } from './ui/views/EmployeesView';
-import { CompanyView } from './ui/views/CompanyView';
-import { CollectionsView } from './ui/views/CollectionsView';
-import { AchievementsView } from './ui/views/AchievementsView';
-import { FocusView } from './ui/views/FocusView';
-import { DecorateView } from './ui/views/DecorateView';
-import { StatsView } from './ui/views/StatsView';
-import { PrestigeView } from './ui/views/PrestigeView';
-import { SettingsView } from './ui/views/SettingsView';
+import { GameHud } from './ui/GameHud';
+import { GameDock, NextStepHint, dockFor } from './ui/GameDock';
+import { Sheet } from './ui/Sheet';
+import { GoalTag } from './ui/GoalTag';
 import { EmployeeTalk } from './ui/modals/EmployeeTalk';
+import { OfficeScene } from './art/OfficeScene';
 import { EventModal } from './ui/modals/EventModal';
 import { ConsequenceModal } from './ui/modals/ConsequenceModal';
-import { OfflineModal } from './ui/modals/OfflineModal';
 import { Onboarding } from './ui/modals/Onboarding';
 import { OpeningSequence } from './ui/modals/OpeningSequence';
 import { Notifications } from './ui/Notifications';
@@ -35,23 +30,22 @@ import {
   restoreTransientInteractionFocus,
 } from './ui/interactionLifecycle';
 
-const VIEWS: Record<ViewId, () => JSX.Element> = {
-  office: OfficeScene,
-  shop: ShopView,
-  employees: EmployeesView,
-  company: CompanyView,
-  collections: CollectionsView,
-  achievements: AchievementsView,
-  focus: FocusView,
-  decorate: DecorateView,
-  stats: StatsView,
-  prestige: PrestigeView,
-  settings: SettingsView,
-};
+/** Something modal is on top: Escape belongs to it, not to the sheet. */
+const MODAL_LAYERS = '.popup-backdrop, .modal-backdrop, .opening-seq, .photo-mode';
+
+// Below the shell's 760px breakpoint a sheet covers the whole stage (see
+// game/shell.css), so the office behind it is not on screen at all.
+const NARROW_QUERY = '(max-width: 759px)';
+function subscribeNarrow(onChange: () => void): () => void {
+  const query = window.matchMedia?.(NARROW_QUERY);
+  query?.addEventListener?.('change', onChange);
+  return () => query?.removeEventListener?.('change', onChange);
+}
+const readNarrow = () => Boolean(window.matchMedia?.(NARROW_QUERY).matches);
 
 export function App() {
   const { i18n } = useTranslation();
-  const { state } = useGame();
+  const { state, engine } = useGame();
   const view = useStore((s) => s.view);
   const setView = useStore((s) => s.setView);
   const devEnabled = useStore((s) => s.devEnabled);
@@ -60,6 +54,8 @@ export function App() {
   const setQuiet = useStore((s) => s.setQuietMode);
   const photoMode = useStore((s) => s.photoMode);
   const batterySaver = useStore((s) => s.batterySaver);
+  const minigameOpen = useStore((s) => s.minigameOpen);
+  const narrow = useSyncExternalStore(subscribeNarrow, readNarrow, () => false);
 
   // Start the sim loop once.
   useEffect(() => {
@@ -72,6 +68,7 @@ export function App() {
   //                halo-stripped (ZERO semi-transparent pixels) variant, in place,
   //                so the real-GPU shimmer can be judged against one variable.
   useEffect(() => {
+    if (!devEnabled) return;
     const onKey = (e: KeyboardEvent) => {
       if (!e.ctrlKey || !e.altKey) return;
       if (e.key === 'd' || e.key === 'D') {
@@ -86,7 +83,7 @@ export function App() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, []);
+  }, [devEnabled]);
 
   // Mark the desktop (frameless) shell so the app can fill the window edge-to-
   // edge — no rounded margin/shadow gap — which keeps the native OS resize
@@ -135,10 +132,17 @@ export function App() {
     return () => document.removeEventListener('visibilitychange', apply);
   }, [batterySaver, state.settings.reducedMotion, state.settings.quietMode]);
 
-  // Keep i18n in sync with the saved language on boot.
+  // Keep i18n and the save in agreement on boot. A brand-new company has not
+  // chosen a language (the schema default is 'en'), so the detected one wins
+  // there — the player's last pick (wmno.lang), then the system language — and is
+  // recorded; otherwise the saved choice is applied.
   useEffect(() => {
-    if (state.settings.language && i18n.language !== state.settings.language) {
-      void i18n.changeLanguage(state.settings.language);
+    const saved = state.settings.language;
+    const detected = i18n.resolvedLanguage;
+    if (BOOT_SAVE_IS_NEW && detected && detected !== saved) {
+      engine.updateSettings({ language: detected });
+    } else if (saved && i18n.language !== saved) {
+      void i18n.changeLanguage(saved);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -172,7 +176,33 @@ export function App() {
     };
   }, [platform, setQuiet, setView, audio]);
 
-  const Current = VIEWS[view];
+  const talk = Boolean(engine.activeTalk);
+  const sheetOpen = talk || view !== 'office';
+  // The office rests (stops following sim ticks) while something covers it.
+  const gameOn = view === 'focus' && minigameOpen;
+  const officeCovered = talk || gameOn || (sheetOpen && narrow);
+
+  // Escape closes the open sheet (a popup above it consumes Escape first) and
+  // hands focus back to the dock button that opened it.
+  useEffect(() => {
+    if (!sheetOpen) return undefined;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || event.defaultPrevented) return;
+      if (document.querySelector(MODAL_LAYERS)) return;
+      event.preventDefault();
+      const dock = dockFor(view);
+      engine.closeTalk();
+      setView('office' as ViewId);
+      window.requestAnimationFrame(() => {
+        const origin = dock
+          ? document.querySelector<HTMLElement>(`.dock__item[data-dock="${dock}"]`)
+          : document.querySelector<HTMLElement>('.hud__settings');
+        origin?.focus({ preventScroll: true });
+      });
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [sheetOpen, view, engine, setView]);
 
   if (photoMode) {
     return (
@@ -184,20 +214,30 @@ export function App() {
   }
 
   return (
-    <div className="app">
-      <OfficeBackground visible={view === 'office'} />
-      <Header />
-      <NavBar />
-      <RecommendedStep />
-      <main className="app__main">
-        <div className="view-anim" key={view}>
-          <Current />
-        </div>
+    <div
+      className={`app ${sheetOpen ? 'app--sheet-open' : ''} ${gameOn ? 'app--game-on' : ''}`}
+      data-sheet={sheetOpen ? (talk ? 'talk' : view) : undefined}
+    >
+      <GameHud />
+      <main className="app__stage">
+        {/* The office never unmounts: sheets open over it and closing one returns
+            to the same floor and scroll position. */}
+        <OfficeScene covered={officeCovered} />
+        {/* The office's two notes: what the game suggests (when it has a new idea)
+            and the immediate goal, bought right here. */}
+        {!talk ? (
+          <div className="stage-notes">
+            <NextStepHint />
+            <GoalTag />
+          </div>
+        ) : null}
+        {/* A visit is its own full-stage mode (the office dims behind it); every
+            other screen is a sheet over the office. */}
+        {talk ? <EmployeeTalk /> : sheetOpen ? <Sheet view={view} /> : null}
       </main>
-      <EmployeeTalk />
+      <GameDock />
       <EventModal />
       <ConsequenceModal />
-      <OfflineModal />
       <OpeningSequence />
       <Onboarding />
       <Notifications />

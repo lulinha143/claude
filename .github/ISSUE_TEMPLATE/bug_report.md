@@ -23,7 +23,7 @@ What you expected to happen.
 ## Environment
 
 - Version: (e.g. 1.0.0)
-- Platform: [ ] Web demo  [ ] Windows  [ ] macOS  [ ] Linux
+- Platform: [ ] Web demo [ ] Windows [ ] macOS [ ] Linux
 - Browser (if web):
 
 ## Save / logs

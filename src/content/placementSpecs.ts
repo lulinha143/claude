@@ -89,6 +89,18 @@ function spec(input: SpecInput): DecorationPlacementSpec {
 // Explicit, hand-authored spec for every catalogue decoration. Footprints are
 // tuned to how the redrawn pixel-art sprite actually reads on the stage.
 export const DECORATION_PLACEMENT: Record<string, DecorationPlacementSpec> = {
+  'ribbon-microphone': spec({ w: 0.18, h: 0.2, anchor: 'base', scale: 1.3 }),
+  'reel-recorder': spec({ w: 0.18, h: 0.2, anchor: 'base', scale: 1.25 }),
+  'on-air-sign': spec({ w: 0.18, h: 0.2, anchor: 'center', scale: 1 }),
+  'acoustic-mobile': spec({ w: 0.18, h: 0.2, anchor: 'hanging', scale: 1.15 }),
+  'parts-trolley': spec({ w: 0.18, h: 0.2, anchor: 'base', scale: 1.5 }),
+  'repair-vise': spec({ w: 0.18, h: 0.2, anchor: 'base', scale: 1.1 }),
+  'borrow-board': spec({ w: 0.18, h: 0.2, anchor: 'center', scale: 1.3 }),
+  'inspection-lamp': spec({ w: 0.18, h: 0.2, anchor: 'hanging', scale: 1.3 }),
+  'rain-collector': spec({ w: 0.18, h: 0.2, anchor: 'base', scale: 1.5 }),
+  'folding-bench': spec({ w: 0.18, h: 0.2, anchor: 'base', scale: 1.5 }),
+  'growth-chart': spec({ w: 0.18, h: 0.2, anchor: 'center', scale: 1.15 }),
+  'glass-chimes': spec({ w: 0.18, h: 0.2, anchor: 'hanging', scale: 1.2 }),
   // Founder's Desk
   'potted-fern': spec({ w: 0.11, h: 0.18, anchor: 'base', mirror: true }),
   'desk-lamp': spec({ w: 0.09, h: 0.14, anchor: 'base', mirror: true }),

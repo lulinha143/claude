@@ -9,7 +9,13 @@ function save(reducedMotion: boolean) {
     version: 6,
     onboardingComplete: true,
     lastSaved: Date.now(),
-    resources: { nuts: 2_000_000, goldenNuts: 20, reputation: 400, morale: 80, permanentKernels: 1 },
+    resources: {
+      nuts: 2_000_000,
+      goldenNuts: 20,
+      reputation: 400,
+      morale: 80,
+      permanentKernels: 1,
+    },
     employees: { pip: { hired: true, level: 4, friendship: 50, room: 'founder-desk', x: 0.5 } },
     // Existing saves take settings from the save itself (not the settings key).
     settings: { reducedMotion },
@@ -19,7 +25,8 @@ function save(reducedMotion: boolean) {
 
 async function boot(page: Page, reducedMotion: boolean) {
   await page.addInitScript((data) => {
-    if (!localStorage.getItem('wmno.save.v1')) localStorage.setItem('wmno.save.v1', JSON.stringify(data));
+    if (!localStorage.getItem('wmno.save.v1'))
+      localStorage.setItem('wmno.save.v1', JSON.stringify(data));
   }, save(reducedMotion));
   await page.goto('/');
   await page.locator('.office').first().waitFor({ timeout: 15000 });

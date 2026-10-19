@@ -8,12 +8,20 @@ import path from 'node:path';
 
 const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'wmno-min-'));
 const app = await electron.launch({
-  args: ['dist-electron/main.cjs', '--minimal-window-test', '--no-sandbox', '--disable-gpu', `--user-data-dir=${userData}`],
+  args: [
+    'dist-electron/main.cjs',
+    '--minimal-window-test',
+    '--no-sandbox',
+    '--disable-gpu',
+    `--user-data-dir=${userData}`,
+  ],
   env: { ...process.env, WMNO_SMOKE: '1' },
 });
 try {
   const page = await app.firstWindow({ timeout: 20000 });
-  await page.waitForFunction(() => /renderer alive/i.test(document.body?.innerText || ''), { timeout: 15000 });
+  await page.waitForFunction(() => /renderer alive/i.test(document.body?.innerText || ''), {
+    timeout: 15000,
+  });
   await page.waitForTimeout(400);
   const log = (() => {
     try {
@@ -24,7 +32,12 @@ try {
   })();
   const ok = /MINIMAL WINDOW SUCCESS/.test(log) && /MINIMAL WINDOW DID FINISH LOAD/.test(log);
   console.log(ok ? 'MINIMAL SMOKE OK' : 'MINIMAL SMOKE FAIL');
-  console.log(log.split('\n').filter((l) => /MINIMAL WINDOW|app ready|GPU feature/.test(l)).join('\n'));
+  console.log(
+    log
+      .split('\n')
+      .filter((l) => /MINIMAL WINDOW|app ready|GPU feature/.test(l))
+      .join('\n'),
+  );
   if (!ok) process.exit(1);
 } finally {
   await app.close();

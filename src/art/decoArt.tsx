@@ -1,4 +1,5 @@
 import { Fragment, type CSSProperties } from 'react';
+import { AnnexDecorArt, ANNEX_DECOR_IDS } from './AnnexDecorArt';
 
 // ============================================================================
 //  Unified pixel-art decoration sprites
@@ -127,7 +128,10 @@ function spriteFor(id: string, on: boolean, variant: number, accent: string): Sp
         ],
       };
     case 'lab-plants':
-      return { base: pot(C.ml, C.m, C.ml, C.ms), leaf: bush('#2f7d6b', '#3fae94', '#7fdcc4', true) };
+      return {
+        base: pot(C.ml, C.m, C.ml, C.ms),
+        leaf: bush('#2f7d6b', '#3fae94', '#7fdcc4', true),
+      };
     case 'rooftop-garden-bed':
       // low wide wooden planter with tufts + a bloom
       return {
@@ -670,7 +674,6 @@ function spriteFor(id: string, on: boolean, variant: number, accent: string): Sp
         shadowR: 8,
       };
 
-
     // --- Second expansion --------------------------------------------------
     case 'coffee-urn':
       return {
@@ -1116,6 +1119,7 @@ export function DecoArt({
   /** Horizontally flip the sprite (deterministic per item) for variety. */
   mirror?: boolean;
 }) {
+  if (ANNEX_DECOR_IDS.includes(id)) return <AnnexDecorArt id={id} scale={scale} />;
   const sp = spriteFor(id, on, variant, accent);
   const shadowR = sp.shadowR ?? 8;
   return (

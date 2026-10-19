@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { arrangeToggle } from './support/shell';
 
 // End-to-end proof of the three placement surfaces in the RUNNING game: floor
 // items can never land on the wall/ceiling, wall items stay on walls, ceiling
@@ -11,7 +12,13 @@ const SAVE = {
   onboardingComplete: true,
   lastSaved: Date.now(),
   company: { name: 'Nutty Co.', icon: 'paw' },
-  resources: { nuts: 9_000_000_000, goldenNuts: 400, reputation: 4000, morale: 90, permanentKernels: 5 },
+  resources: {
+    nuts: 9_000_000_000,
+    goldenNuts: 400,
+    reputation: 4000,
+    morale: 90,
+    permanentKernels: 5,
+  },
   employees: { pip: { hired: true, level: 6, room: 'founder-desk', x: 0.85 } },
   placements: {
     'potted-fern': { surface: 'floor', x: 0.28, y: 0.12 },
@@ -21,32 +28,106 @@ const SAVE = {
     'conveyor-plushie': { surface: 'floor', x: 0.72, y: 0.12 },
   },
   decorationInstances: [
-    { instanceId: 'v-fern', decorationId: 'potted-fern', roomId: 'founder-desk', surfaceType: 'floor', regionKind: 'floor', normalizedX: 0.28, normalizedY: 0.12, depth: 3, interactionState: {} },
-    { instanceId: 'v-poster', decorationId: 'motivational-poster', roomId: 'founder-desk', surfaceType: 'wall', regionKind: 'wall', normalizedX: 0.55, normalizedY: 0.6, depth: 1, interactionState: {} },
-    { instanceId: 'v-chand', decorationId: 'chandelier', roomId: 'founder-desk', surfaceType: 'ceiling', regionKind: 'ceiling', normalizedX: 0.5, normalizedY: 0.9, depth: 6, interactionState: {} },
-    { instanceId: 'v-lamp', decorationId: 'desk-lamp', roomId: 'founder-desk', surfaceType: 'floor', regionKind: 'floor', normalizedX: 0.5, normalizedY: 0.12, depth: 3, interactionState: {} },
-    { instanceId: 'v-plush', decorationId: 'conveyor-plushie', roomId: 'founder-desk', surfaceType: 'floor', regionKind: 'floor', normalizedX: 0.72, normalizedY: 0.12, depth: 3, interactionState: {} },
+    {
+      instanceId: 'v-fern',
+      decorationId: 'potted-fern',
+      roomId: 'founder-desk',
+      surfaceType: 'floor',
+      regionKind: 'floor',
+      normalizedX: 0.28,
+      normalizedY: 0.12,
+      depth: 3,
+      interactionState: {},
+    },
+    {
+      instanceId: 'v-poster',
+      decorationId: 'motivational-poster',
+      roomId: 'founder-desk',
+      surfaceType: 'wall',
+      regionKind: 'wall',
+      normalizedX: 0.55,
+      normalizedY: 0.6,
+      depth: 1,
+      interactionState: {},
+    },
+    {
+      instanceId: 'v-chand',
+      decorationId: 'chandelier',
+      roomId: 'founder-desk',
+      surfaceType: 'ceiling',
+      regionKind: 'ceiling',
+      normalizedX: 0.5,
+      normalizedY: 0.9,
+      depth: 6,
+      interactionState: {},
+    },
+    {
+      instanceId: 'v-lamp',
+      decorationId: 'desk-lamp',
+      roomId: 'founder-desk',
+      surfaceType: 'floor',
+      regionKind: 'floor',
+      normalizedX: 0.5,
+      normalizedY: 0.12,
+      depth: 3,
+      interactionState: {},
+    },
+    {
+      instanceId: 'v-plush',
+      decorationId: 'conveyor-plushie',
+      roomId: 'founder-desk',
+      surfaceType: 'floor',
+      regionKind: 'floor',
+      normalizedX: 0.72,
+      normalizedY: 0.12,
+      depth: 3,
+      interactionState: {},
+    },
   ],
-  collections: { nuts: [], outfits: [], logos: [], moments: [], secrets: ['deco:potted-fern', 'deco:motivational-poster', 'deco:chandelier', 'deco:desk-lamp', 'deco:conveyor-plushie'] },
+  collections: {
+    nuts: [],
+    outfits: [],
+    logos: [],
+    moments: [],
+    secrets: [
+      'deco:potted-fern',
+      'deco:motivational-poster',
+      'deco:chandelier',
+      'deco:desk-lamp',
+      'deco:conveyor-plushie',
+    ],
+  },
   settings: { reducedMotion: true, language: 'en', background: { enabled: false } },
 };
 
 async function boot(page: Page, w = 1280, h = 900) {
   await page.setViewportSize({ width: w, height: h });
-  await page.addInitScript((s) => { localStorage.setItem('wmno.save.v1', JSON.stringify(s)); localStorage.setItem('wmno.lang', 'en'); }, SAVE);
+  await page.addInitScript((s) => {
+    localStorage.setItem('wmno.save.v1', JSON.stringify(s));
+    localStorage.setItem('wmno.lang', 'en');
+  }, SAVE);
   await page.goto('/');
   await page.locator('.office').first().waitFor({ timeout: 15000 });
-  for (let i = 0; i < 5; i++) { const b = page.locator('.popup__actions button, .modal button').first(); if (await b.count()) await b.click({ timeout: 800 }).catch(() => {}); await page.waitForTimeout(120); }
-  await page.locator('.office__toolbar button').first().click();
+  for (let i = 0; i < 5; i++) {
+    const b = page.locator('.popup__actions button, .modal button').first();
+    if (await b.count()) await b.click({ timeout: 800 }).catch(() => {});
+    await page.waitForTimeout(120);
+  }
+  await arrangeToggle(page).click();
   await expect(page.locator('.office--decorating')).toHaveCount(1);
   await page.locator('.floor[data-room="founder-desk"]').scrollIntoViewIfNeeded();
   await page.waitForTimeout(300);
 }
 
 const kindOf = (page: Page, deco: string) =>
-  page.locator(`.floor[data-room="founder-desk"] [data-deco="${deco}"]`).getAttribute('data-region-kind');
+  page
+    .locator(`.floor[data-room="founder-desk"] [data-deco="${deco}"]`)
+    .getAttribute('data-region-kind');
 const bottomPctOf = async (page: Page, deco: string) => {
-  const style = (await page.locator(`.floor[data-room="founder-desk"] [data-deco="${deco}"]`).getAttribute('style')) ?? '';
+  const style =
+    (await page
+      .locator(`.floor[data-room="founder-desk"] [data-deco="${deco}"]`)
+      .getAttribute('style')) ?? '';
   return parseFloat(/bottom:\s*([\d.]+)%/.exec(style)?.[1] ?? 'NaN');
 };
 
@@ -66,7 +147,9 @@ async function dragDecoToward(page: Page, deco: string, nx: number, ny: number) 
   await page.mouse.move((sx + tx) / 2, (sy + ty) / 2, { steps: 6 });
   await page.mouse.move(tx, ty, { steps: 8 });
   const ghost = page.locator('.drag-ghost');
-  const ghostClass = (await ghost.count()) ? ((await ghost.getAttribute('class').catch(() => '')) ?? '') : '';
+  const ghostClass = (await ghost.count())
+    ? ((await ghost.getAttribute('class').catch(() => '')) ?? '')
+    : '';
   await page.mouse.up();
   await page.waitForTimeout(150);
   return ghostClass;
@@ -117,7 +200,9 @@ test.describe('surface locks in the running game', () => {
     await page.screenshot({ path: `${DIR}/floor-items-locked.png` });
   });
 
-  test('preview position matches the final saved placement (no float/teleport)', async ({ page }) => {
+  test('preview position matches the final saved placement (no float/teleport)', async ({
+    page,
+  }) => {
     await boot(page);
     const stage = page.locator('.floor[data-room="founder-desk"] .floor__stage');
     const el = page.locator('.floor[data-room="founder-desk"] [data-deco="potted-fern"]');

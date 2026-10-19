@@ -66,7 +66,11 @@ export function PhotoMode() {
       <div className="photo-mode__toolbar">
         <button className="buy-btn" onClick={save}>
           <Icon name="photo" size={15} />{' '}
-          {status === 'saved' ? t('photo.saved') : status === 'error' ? t('photo.error') : t('photo.save')}
+          {status === 'saved'
+            ? t('photo.saved')
+            : status === 'error'
+              ? t('photo.error')
+              : t('photo.save')}
         </button>
         <button className="ghost-btn" onClick={() => setPhotoMode(false)}>
           <Icon name="close" size={15} /> {t('common.close')}

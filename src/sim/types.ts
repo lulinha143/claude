@@ -109,6 +109,8 @@ export interface ScheduledConsequence {
   bodyKey: string;
   /** authored effects, applied through the ordinary effect pipeline. */
   effects: EventEffect[];
+  /** settle without a notice: the consequence shows up in the world instead. */
+  quiet?: boolean;
 }
 
 export interface EventHistoryEntry {
@@ -121,6 +123,7 @@ export type PrestigeBranchId =
   'industrial' | 'cooperative' | 'science' | 'marketing' | 'underground';
 
 export interface PrestigeState {
+  nutsAtLastPrestige?: number;
   count: number;
   branch: PrestigeBranchId | null;
   skills: Record<string, number>; // skillId -> level
@@ -183,6 +186,116 @@ export interface ClickerState {
   goldenTaps: number;
   /** best combo streak ever reached. */
   bestStreak: number;
+  /** lifetime rushes started (a room run at full pace by keeping a combo going). */
+  rushes?: number;
+  /** lifetime finds handed over by teammates. */
+  findsCollected?: number;
+  /** gold refined toward the next whole golden nut (0..1) by premium stations. */
+  goldenDust?: number;
+  /** stationId -> epoch ms a premium station was last tapped (refining resumes from it). */
+  premiumAt?: Record<string, number>;
+}
+
+/**
+ * The founder's crate: the share of production the team packs by hand instead of
+ * sending straight to the vault. It waits, up to a capacity, until the player
+ * collects it (see `sim/crate.ts`).
+ */
+export interface CrateState {
+  nuts: number;
+}
+
+/** Something a teammate found in their room and is holding out for the player. */
+export interface OfficeFind {
+  id: string;
+  employeeId: string;
+  roomId: string;
+  /** what kind of thing it is: the temperament of the room it was found in. */
+  kind: 'operational' | 'social' | 'analytical' | 'industrial' | 'secure' | 'irregular';
+  createdAt: number;
+  /** a find from their personal story: what they say when you take it. */
+  noteKey?: string;
+}
+
+/** One room's routine, as it stands (see content/roomPlay.ts). */
+export interface RoomPlayState {
+  /** brew: when the batch was started, and when it will be ready. */
+  startedAt?: number;
+  readyAt?: number;
+  /** tend: the machine has needed a hand since `jamAt`; taps taken toward freeing it. */
+  jamAt?: number;
+  taps?: number;
+  /** watch: something has been on the screen since `blipAt`, until `blipUntil`. */
+  blipAt?: number;
+  blipUntil?: number;
+  /** deliver: something has been waiting since `parcelAt`, for `parcelFor` ('' = the company). */
+  parcelAt?: number;
+  parcelFor?: string;
+  /** tune: the room's chosen mode. */
+  mode?: string;
+  /** how many times the routine has been done in this room. */
+  done?: number;
+}
+
+/** A curiosity that has turned up in the office and is waiting to be noticed. */
+export interface OfficeOddity {
+  id: string;
+  roomId: string;
+  at: number;
+}
+
+export interface OfficeState {
+  rooms: Record<string, RoomPlayState>;
+  oddities: OfficeOddity[];
+}
+
+/** Something happening in the office, waiting for the player to look into it. */
+export interface PendingIncident {
+  id: string;
+  eventId: string;
+  /** where it is happening. */
+  roomId: string;
+  /** who is presenting it (the teammate it is about, or someone there). */
+  employeeId?: string;
+  at: number;
+  /** after this it resolves on its own (or fades, if it was rare). */
+  until: number;
+}
+
+/** Something a teammate will say when the player is next around. */
+export interface PendingRemark {
+  employeeId: string;
+  key: string;
+  /** not before this. */
+  at: number;
+}
+
+/**
+ * The office's diary: what happened, newest last. Bounded. It is what lets a
+ * returning player be told what went on while they were away.
+ */
+export interface DiaryEntry {
+  at: number;
+  kind:
+    | 'incident' // something started happening
+    | 'opened' // the player looked into it
+    | 'handled' // the team dealt with it themselves
+    | 'faded' // nobody looked, and it passed
+    | 'moment' // a small moment played out
+    | 'landed' // a promised consequence arrived
+    | 'remark'; // someone has something to say
+  eventId?: string;
+  momentId?: string;
+  roomId?: string;
+  employeeId?: string;
+}
+
+export interface HappeningsState {
+  incidents: PendingIncident[];
+  remarks: PendingRemark[];
+  diary: DiaryEntry[];
+  /** incidents since the last rare one (rare events grow likelier until one comes). */
+  sinceRare: number;
 }
 
 export interface GameSettings {
@@ -214,8 +327,13 @@ export interface GameSettings {
   autoResolveEvents: boolean;
   focusHarvestEnabled: boolean;
   offlineCapHours: number;
-  /** show the "recommended next step" hint banner. */
+  /** show the "recommended next step" hint (a sticker by the dock). */
   showHints: boolean;
+  /**
+   * The office floor (room id) the player last looked at, so the tower reopens
+   * there instead of at the rooftop. null = the Founder's Desk (home).
+   */
+  officeFloor: string | null;
   /** animated Office background (the official GIF asset) settings. */
   background: {
     enabled: boolean;
@@ -232,6 +350,13 @@ export interface GameSettings {
 /** Stable persisted decoration instance. Coordinates are normalized to its destination surface. */
 export type DecorationSurfaceType = 'floor' | 'wall' | 'ceiling';
 
+/**
+ * Which side of the team a placed piece is painted on. Unset means the natural
+ * side for its surface: wall pieces and rugs behind employees, free-standing
+ * floor pieces and hanging ceiling pieces in front of them.
+ */
+export type DecorationLayer = 'front' | 'back';
+
 export interface DecorationInstance {
   instanceId: string;
   decorationId: string;
@@ -247,6 +372,8 @@ export interface DecorationInstance {
   normalizedX: number;
   normalizedY: number;
   depth: number;
+  /** The player's front/back choice (optional: older saves use the natural side). */
+  layer?: DecorationLayer;
   variantId?: string;
   flipped?: boolean;
   rotation?: number;
@@ -284,6 +411,14 @@ export interface GameState {
   stats: StatsState;
   /** active-play (click station) record. */
   clicker: ClickerState;
+  /** the founder's crate (optional in older saves; the schema defaults it). */
+  crate: CrateState;
+  /** finds waiting in the office for the player to take (at most a few). */
+  finds: OfficeFind[];
+  /** the rooms' routines and the curiosities waiting to be noticed (optional in older saves). */
+  office: OfficeState;
+  /** incidents waiting, things to be said, and the office diary (optional in older saves). */
+  happenings: HappeningsState;
   settings: GameSettings;
   onboardingComplete: boolean;
   /** Cooldown bookkeeping for the event system: eventId -> next-eligible epoch ms. */
@@ -306,6 +441,25 @@ export interface GameState {
    * look profitable now and bill the company afterwards.
    */
   scheduled: ScheduledConsequence[];
+  /**
+   * Resume the exact unresolved decision after closing/reloading the game: the
+   * card open right now, if any, and where it is set (the room and whoever
+   * brought it to the player), so a reload reopens it with the same people in
+   * the same room. Older saves have no place: it is worked out again.
+   */
+  eventInProgress: {
+    eventId: string;
+    step: string | null;
+    roomId?: string;
+    employeeId?: string;
+  } | null;
+  /**
+   * Earned encouragement expires against wall-clock time, including while away.
+   * A `source` (the minigames) keeps one slot instead of stacking.
+   */
+  boosts: { multiplier: number; endsAt: number; source?: string }[];
+  /** Personal bests and practice history survive company restructures. */
+  microgames: Record<string, { best: number; plays: number; lastRewardAt: number }>;
 }
 
 export interface ProductionBreakdownEntry {

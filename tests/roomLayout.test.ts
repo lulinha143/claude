@@ -121,3 +121,80 @@ describe('curated per-room slot styles', () => {
     expect(lab.map((s) => s.bottom)).not.toEqual(generic.map((s) => s.bottom));
   });
 });
+
+import { CLICK_STATIONS } from '../src/content/clickStations';
+
+describe("nobody stands on the room's machine", () => {
+  // A full room's outer desk used to stand right on the machine (formations reach
+  // x 0.2 / 0.86, where most stations are), so the teammate covered it and its
+  // routine badge covered their face. A desk is about 0.18 of the room and a
+  // machine 0.1: a slot 0.14 from the machine is a desk ending where it begins.
+  const DESK_CLEAR = 0.14;
+  // Closer than this, two desks collide (shell-layout measures it in the build).
+  const DESK_GAP = 0.19;
+  // The widest desk stays inside its room.
+  const inside = (xs: number[]) => Math.min(...xs) >= 0.11 - 1e-9 && Math.max(...xs) <= 0.89 + 1e-9;
+
+  it('keeps every desk clear of the machine, at every count, in every room', () => {
+    for (const station of CLICK_STATIONS) {
+      for (let n = 1; n <= ROOM_CAP; n += 1) {
+        const xs = characterSlots(n, station.roomId, station.x).map((s) => s.x);
+        const nearest = Math.min(...xs.map((x) => Math.abs(x - station.x)));
+        expect(nearest, `${station.roomId} n=${n}`).toBeGreaterThanOrEqual(DESK_CLEAR - 1e-9);
+        if (n >= 2)
+          expect(minGap(xs), `${station.roomId} n=${n} gap`).toBeGreaterThanOrEqual(
+            DESK_GAP - 1e-9,
+          );
+        expect(inside(xs), `${station.roomId} n=${n} on stage`).toBe(true);
+      }
+    }
+  });
+
+  it('never squeezes desks together to make room: a full room only slides and eases', () => {
+    // A machine standing too far into the room for four desks to clear it: the
+    // group backs against the far wall at the narrowest safe spacing and the
+    // nearest desk stays as far from the machine as the floor allows.
+    for (const room of ['founder-desk', 'lab', 'morale', 'marketing', 'conservatory']) {
+      for (const stationX of [0.28, 0.72]) {
+        const xs = characterSlots(ROOM_CAP, room, stationX).map((s) => s.x);
+        expect(minGap(xs), `${room} @${stationX}`).toBeGreaterThanOrEqual(DESK_GAP - 1e-9);
+        expect(inside(xs), `${room} @${stationX} on stage`).toBe(true);
+        const farWall = stationX < 0.5 ? Math.max(...xs) : Math.min(...xs);
+        expect(farWall).toBeCloseTo(stationX < 0.5 ? 0.89 : 0.11, 9);
+      }
+    }
+  });
+
+  it('moves nobody when the machine is out of the way', () => {
+    for (const room of ['founder-desk', 'lab', 'morale', 'marketing', 'conservatory']) {
+      for (let n = 1; n <= ROOM_CAP; n += 1) {
+        expect(characterSlots(n, room, 0.02), `${room} n=${n}`).toEqual(characterSlots(n, room));
+      }
+    }
+  });
+
+  it('keeps the authored composition: same order, same depth, front occupant first', () => {
+    for (const station of CLICK_STATIONS) {
+      for (let n = 2; n <= ROOM_CAP; n += 1) {
+        const authored = characterSlots(n, station.roomId);
+        const placed = characterSlots(n, station.roomId, station.x);
+        expect(placed.map((s) => s.bottom)).toEqual(authored.map((s) => s.bottom));
+        const order = (slots: typeof authored) =>
+          slots
+            .map((s, i) => [s.x, i] as const)
+            .sort((a, b) => a[0] - b[0])
+            .map(([, i]) => i);
+        expect(order(placed), `${station.roomId} n=${n}`).toEqual(order(authored));
+      }
+    }
+  });
+
+  it('leaves a room alone when its group already clears the machine', () => {
+    // One teammate stands in the middle, nowhere near a machine by the wall.
+    for (const station of CLICK_STATIONS) {
+      expect(characterSlots(1, station.roomId, station.x)).toEqual(
+        characterSlots(1, station.roomId),
+      );
+    }
+  });
+});

@@ -5,6 +5,7 @@
 > below before you rely on a number. This guide never invents credentials or fees.
 
 Key official pages:
+
 - Getting started / fee: https://partner.steamgames.com/doc/gettingstarted
 - Steam Direct fee: https://partner.steamgames.com/doc/gettingstarted/appfee
 - Store assets: https://partner.steamgames.com/doc/store/assets
@@ -12,6 +13,7 @@ Key official pages:
 - App review / launch: https://partner.steamgames.com/doc/store/application
 
 Words explained once:
+
 - **Steamworks** — Valve's website where developers set up and manage games.
 - **AppID** — the unique number Steam gives your game (e.g. `1234567`).
 - **Depot** — a container of files for a platform (e.g. your Windows files).
@@ -24,7 +26,9 @@ Words explained once:
 ---
 
 ## Part 1 — Prepare before you make the store page
+
 Have these ready (write them in a document):
+
 - Final game name: **ZooWorkers**
 - Developer/Publisher name (a person or company you legally are).
 - Confirmation you own all assets. This game's art/audio are original and
@@ -42,6 +46,7 @@ Have these ready (write them in a document):
 ---
 
 ## Part 2 — Create a Steamworks partner account
+
 1. Go to https://partner.steamgames.com and sign in with a Steam account (make a
    new one for your company if you prefer).
 2. Complete the **Steam Direct** onboarding: company/individual legal details,
@@ -49,14 +54,15 @@ Have these ready (write them in a document):
    payments.
 3. Pay the **Steam Direct fee: $100 USD per app** (or local equivalent). Per the
    official docs this fee is **recoupable** — Steam credits it back against your
-   earnings once the game passes a sales threshold. *(Verified July 2026 — confirm
-   the current amount on the fee page above.)*
+   earnings once the game passes a sales threshold. _(Verified July 2026 — confirm
+   the current amount on the fee page above.)_
 4. Turn on **Steam Guard** (two-factor) on the account. Never share your login.
 5. Wait for any required verification (bank/tax checks can take a few days).
 
 ---
 
 ## Part 3 — Create the application
+
 1. In Steamworks, create your app. Steam assigns your **AppID** — write it down;
    you'll use it everywhere as `<YOUR_APP_ID>`.
 2. Steam creates a default **depot** for you; note its number as
@@ -72,7 +78,9 @@ Have these ready (write them in a document):
 ---
 
 ## Part 4 — Configure the store page
+
 In Steamworks → your app → **Store Presence → Store Page**, fill in:
+
 - Store **name**, **short description**, **long description**
 - **Genres** (Simulation, Casual, Indie) and **tags** (Idle, Cozy, Cute,
   Management, Singleplayer)
@@ -92,12 +100,15 @@ The exact list of visual assets and their pixel sizes is in
 ---
 
 ## Part 5 — Prepare the Steam build (on Windows)
+
 On a Windows machine with Node.js installed (see `HOW_TO_PLAY_THE_GAME.md`):
+
 ```
 npm install
 npm run build:steam
 npm run verify:steam
 ```
+
 - `build:steam` assembles a clean folder: **`release\steam\windows\`** with the
   `.exe`, the packaged app, and license docs — no source, no saves, no secrets.
 - `verify:steam` scans that folder and fails if anything unsafe is present.
@@ -109,9 +120,11 @@ use Spacewar / AppID 480 as a shipping app.
 ---
 
 ## Part 6 — Steamworks integration (optional, game runs without Steam)
+
 This game is designed to run fine **without** Steam; Steam features sit behind
 adapters (`src/platform/achievements.ts`, `docs/STEAM.md`) and fail safe when
 Steam is absent. When you're ready to wire real Steam features:
+
 - **Achievements / stats:** map the internal ids to Steamworks achievement ids
   (`STEAM_ACHIEVEMENT_IDS`) and call them from the Electron main process via a
   Steamworks binding, exposed over the existing IPC bridge.
@@ -122,7 +135,8 @@ Steam is absent. When you're ready to wire real Steam features:
 ---
 
 ## Part 7 — Upload with SteamPipe (SteamCMD)
-1. Download the **Steamworks SDK** (Steamworks → *SDK Download*). Inside it is the
+
+1. Download the **Steamworks SDK** (Steamworks → _SDK Download_). Inside it is the
    content builder (`tools/ContentBuilder/`) with `steamcmd`.
 2. In this repo, copy the templates and fill in your numbers:
    - `steam/app_build.example.vdf` → `steam/app_build.vdf`
@@ -148,6 +162,7 @@ To update later: rebuild, upload again, assign the new build to the branch.
 ---
 
 ## Part 8 — Test through the Steam client
+
 1. Set your new build live on a private **`beta`** branch and give it a password.
 2. In Steam → your library → the game → **Properties → Betas** → enter the
    password → let it download.
@@ -160,6 +175,7 @@ To update later: rebuild, upload again, assign the new build to the branch.
 ---
 
 ## Part 9 — Steam Playtest (optional public testing)
+
 - Playtest is a **separate, linked app** so people can request access from your
   store page without affecting your main game's reviews or wishlists.
 - Enable it in your app's **Playtest** settings, upload a build to it via
@@ -169,6 +185,7 @@ To update later: rebuild, upload again, assign the new build to the branch.
 ---
 
 ## Part 10 — Submit for review
+
 1. Submit the **store page** for review and the **build** for review (Steam
    checks the default-branch build runs and matches what you advertise).
 2. Complete every required checklist item in Steamworks (they highlight what's
@@ -180,6 +197,7 @@ To update later: rebuild, upload again, assign the new build to the branch.
 ---
 
 ## Part 11 — Release
+
 1. Set the final **price** and **release date/time**.
 2. Publish approved store changes.
 3. Move the reviewed, tested build to the **`default`** branch.
@@ -190,6 +208,7 @@ To update later: rebuild, upload again, assign the new build to the branch.
 ---
 
 ## Part 12 — Update the game later
+
 1. Bump the version in `package.json` (e.g. `1.0.1`).
 2. `npm run build:steam` → `npm run verify:steam`.
 3. Upload to a `beta` branch, test it there.

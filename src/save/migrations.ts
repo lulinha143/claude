@@ -235,6 +235,36 @@ const v10ToV11: Migration = (raw) => {
   return { ...raw, employees, version: 11 };
 };
 
+const v11ToV12: Migration = (raw) => ({
+  ...raw,
+  eventInProgress: raw.eventInProgress ?? null,
+  boosts: Array.isArray(raw.boosts) ? raw.boosts : [],
+  microgames: isRawSave(raw.microgames) ? raw.microgames : {},
+  version: 12,
+});
+
+// v12 -> v13: golden nuts become whole. Premium stations used to pay fractions
+// straight into the balance, so a company could hold 3.97 golden nuts that the HUD
+// rounded to "4.0" and that could not buy a 4-nut item. The fraction is kept, as
+// golden dust that the next refining completes; nothing earned is lost.
+const v12ToV13: Migration = (raw) => {
+  const resources = isRawSave(raw.resources) ? { ...raw.resources } : {};
+  const clicker = isRawSave(raw.clicker) ? { ...raw.clicker } : {};
+  const golden =
+    typeof resources.goldenNuts === 'number' && Number.isFinite(resources.goldenNuts)
+      ? Math.max(0, resources.goldenNuts)
+      : 0;
+  const dust =
+    typeof clicker.goldenDust === 'number' && Number.isFinite(clicker.goldenDust)
+      ? Math.max(0, clicker.goldenDust)
+      : 0;
+  const total = golden + dust;
+  const whole = Math.floor(total + 1e-9);
+  if ('goldenNuts' in resources) resources.goldenNuts = whole;
+  clicker.goldenDust = Math.min(0.999999, Math.max(0, total - whole));
+  return { ...raw, resources, clicker, version: 13 };
+};
+
 const MIGRATIONS: Record<number, Migration> = {
   1: v1ToV2,
   2: v2ToV3,
@@ -246,6 +276,8 @@ const MIGRATIONS: Record<number, Migration> = {
   8: v8ToV9,
   9: v9ToV10,
   10: v10ToV11,
+  11: v11ToV12,
+  12: v12ToV13,
 };
 
 export function migrate(raw: RawSave): RawSave {

@@ -1,12 +1,12 @@
 import { test, expect, type Page } from '@playwright/test';
+import { employeeSprite } from '../../src/art/employeeSprites';
 
 // Verifies the newly imported character artwork renders correctly in the real
 // browser: every animal loads its own asset, nothing is squashed, and Pip's
 // protected geometry is unchanged.
 
 // Four to a room at most (ROOM_CAP), so the whole photographic cast is on screen
-// at once. `bia` (bear) is deliberately absent: no artwork exists yet, and she is
-// covered separately by the vector-fallback assertion below.
+// at once. Include Bia's delivered artwork as well as the original cast.
 const ROSTER = [
   { id: 'pip', room: 'founder-desk', aspect: 103 / 93 },
   { id: 'nino', room: 'founder-desk', aspect: 105 / 98 },
@@ -14,6 +14,11 @@ const ROSTER = [
   { id: 'marlow', room: 'founder-desk', aspect: 108 / 100 },
   { id: 'bea', room: 'construction', aspect: 132 / 116 },
   { id: 'dorm', room: 'construction', aspect: 101 / 100 },
+  {
+    id: 'bia',
+    room: 'construction',
+    aspect: employeeSprite('bia')!.frameWidth / employeeSprite('bia')!.frameHeight,
+  },
   { id: 'rizzo', room: 'procurement', aspect: 114 / 104 },
   { id: 'nixie', room: 'procurement', aspect: 110 / 100 },
   { id: 'otto', room: 'procurement', aspect: 111 / 100 },
@@ -80,6 +85,18 @@ async function boot(page: Page, width = 1280, height = 950) {
 
 test('every imported animal renders its own artwork, fully loaded', async ({ page }) => {
   await boot(page);
+  await expect
+    .poll(() =>
+      page
+        .locator('.employee-sprite')
+        .evaluateAll((images) =>
+          images.every(
+            (image) =>
+              (image as HTMLImageElement).complete && (image as HTMLImageElement).naturalWidth > 0,
+          ),
+        ),
+    )
+    .toBe(true);
 
   const loaded = await page.locator('.employee-sprite').evaluateAll((els) =>
     els.map((el) => {
@@ -150,17 +167,26 @@ test('characters stay grounded and unclipped inside their rooms', async ({ page 
     const floor = page.locator(`.floor[data-room="${room}"]`);
     if ((await floor.count()) === 0) continue;
     await floor.scrollIntoViewIfNeeded();
-    const roomBox = (await floor.boundingBox())!;
-    const critters = floor.locator('.critter-btn');
-    const n = await critters.count();
-    for (let i = 0; i < n; i += 1) {
-      const box = (await critters.nth(i).boundingBox())!;
+    // The room and its cast are measured in the SAME frame: the tower may still be
+    // settling its scroll position under load, and two separate reads taken either
+    // side of that would compare a room and a character from different scrolls.
+    const { roomBox, boxes } = await floor.evaluate((element) => {
+      const rect = (el: Element) => {
+        const r = el.getBoundingClientRect();
+        return { y: r.y, height: r.height };
+      };
+      return {
+        roomBox: rect(element),
+        boxes: [...element.querySelectorAll('.critter-btn')].map(rect),
+      };
+    });
+    boxes.forEach((box, i) => {
       // Feet on the floor, head not cut off by the room's overflow clip.
       expect(box.y + box.height, `${room} critter ${i} bottom`).toBeLessThanOrEqual(
         roomBox.y + roomBox.height + 2,
       );
       expect(box.y, `${room} critter ${i} top`).toBeGreaterThanOrEqual(roomBox.y - 2);
-    }
+    });
   }
   await page.screenshot({ path: 'visual-artifacts/qa-characters-all.png', fullPage: true });
 });
@@ -175,7 +201,21 @@ test('reduced motion swaps every animal to its static poster', async ({ page }) 
   }, save());
   await page.goto('/');
   await expect(page.locator('.office')).toBeVisible();
-  await page.waitForTimeout(600);
+  await expect
+    .poll(() =>
+      page
+        .locator('.employee-sprite')
+        .evaluateAll(
+          (images) =>
+            images.length > 0 &&
+            images.every(
+              (image) =>
+                (image as HTMLImageElement).complete &&
+                (image as HTMLImageElement).currentSrc.includes('-poster.png'),
+            ),
+        ),
+    )
+    .toBe(true);
 
   const srcs = await page
     .locator('.employee-sprite')
@@ -185,7 +225,6 @@ test('reduced motion swaps every animal to its static poster', async ({ page }) 
     expect(src, `${src} should be a poster under reduced motion`).toContain('-poster.png');
   }
 });
-
 
 test('the cast scales with the room when the window is resized', async ({ page }) => {
   // The reported bug: making the window smaller shrank the room but not the

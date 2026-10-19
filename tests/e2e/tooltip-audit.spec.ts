@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { ROOM_CAP } from '../../src/sim/rooms';
+import { openSettingsTab } from './support/shell';
 
 // Audit proof for the newly-covered controls: the office room stats explain
 // themselves on hover, and Settings toggles reveal their hint on KEYBOARD FOCUS
@@ -14,7 +15,13 @@ const SAVE = {
     pip: { hired: true, level: 6, friendship: 70, room: 'founder-desk', x: 0.3 },
     marlow: { hired: true, level: 4, friendship: 55, room: 'founder-desk', x: 0.6 },
   },
-  collections: { nuts: [], outfits: [], logos: [], moments: [], secrets: ['deco:potted-fern', 'deco:motivational-poster'] },
+  collections: {
+    nuts: [],
+    outfits: [],
+    logos: [],
+    moments: [],
+    secrets: ['deco:potted-fern', 'deco:motivational-poster'],
+  },
 };
 
 async function seed(page: Page) {
@@ -28,7 +35,8 @@ async function seed(page: Page) {
     }
   });
   await page.addInitScript((data) => {
-    if (!localStorage.getItem('wmno.save.v1')) localStorage.setItem('wmno.save.v1', JSON.stringify(data));
+    if (!localStorage.getItem('wmno.save.v1'))
+      localStorage.setItem('wmno.save.v1', JSON.stringify(data));
   }, SAVE);
 }
 
@@ -43,7 +51,9 @@ async function clearModals(page: Page) {
   await page.waitForTimeout(200);
 }
 
-test('room stats and settings toggles are self-explanatory (hover + keyboard)', async ({ page }) => {
+test('room stats and settings toggles are self-explanatory (hover + keyboard)', async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await seed(page);
   await page.goto('/');
@@ -60,9 +70,11 @@ test('room stats and settings toggles are self-explanatory (hover + keyboard)', 
   // The room capacity is four, and the tooltip has to say so.
   await expect(tip).toContainText(new RegExp(`/\\s*${ROOM_CAP}|of\\s*${ROOM_CAP}|four`, 'i'));
 
-  // Settings: a desktop toggle reveals its hint on KEYBOARD FOCUS.
-  await page.getByRole('button', { name: 'Settings' }).click();
-  const alwaysOnTop = page.locator('fieldset.desktop-controls .toggle-row span[tabindex="0"]').first();
+  // Settings: a desktop toggle reveals its hint on KEYBOARD FOCUS (Window page).
+  await openSettingsTab(page, 'display');
+  const alwaysOnTop = page
+    .locator('fieldset.desktop-controls .toggle-row span[tabindex="0"]')
+    .first();
   await alwaysOnTop.scrollIntoViewIfNeeded();
   await alwaysOnTop.focus();
   await expect(tip).toBeVisible();

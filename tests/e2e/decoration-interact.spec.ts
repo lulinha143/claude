@@ -59,7 +59,8 @@ async function seed(page: Page) {
     }
   });
   await page.addInitScript((data) => {
-    if (!localStorage.getItem('wmno.save.v1')) localStorage.setItem('wmno.save.v1', JSON.stringify(data));
+    if (!localStorage.getItem('wmno.save.v1'))
+      localStorage.setItem('wmno.save.v1', JSON.stringify(data));
   }, SAVE);
 }
 

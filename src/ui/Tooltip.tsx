@@ -7,6 +7,7 @@ import {
   type FocusEvent as ReactFocusEvent,
   type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
+  type PointerEvent as ReactPointerEvent,
   type ReactElement,
   type ReactNode,
 } from 'react';
@@ -56,7 +57,46 @@ interface TooltipHandlers {
   onFocus?: (event: ReactFocusEvent<HTMLElement>) => void;
   onBlur?: (event: ReactFocusEvent<HTMLElement>) => void;
   onKeyDown?: (event: ReactKeyboardEvent<HTMLElement>) => void;
+  /** Pressing the anchor dismisses its tooltip: it has done its job, and a
+      tooltip left open over the page the click just opened would cover it. */
+  onPointerDown?: (event: ReactPointerEvent<HTMLElement>) => void;
   'aria-describedby'?: string;
+}
+
+// The focus that a mouse/touch press gives a button arrives in the same moment as
+// the press. Focus from the keyboard, or moved programmatically later, does not.
+let lastPressAt = -Infinity;
+// True from a press until the pointer really moves again. A click often changes
+// what is under a still pointer (a button relabels, a mode opens), and the
+// browser reports that as a fresh "enter": that is not the player hovering.
+let pressedStill = false;
+// The control that was pressed keeps its tooltip closed until the pointer leaves it.
+let pressedTarget: Element | null = null;
+if (typeof window !== 'undefined') {
+  window.addEventListener(
+    'pointerdown',
+    (event) => {
+      lastPressAt = performance.now();
+      pressedStill = true;
+      pressedTarget = event.target instanceof Element ? event.target : null;
+    },
+    true,
+  );
+  window.addEventListener(
+    'pointermove',
+    (event) => {
+      if (pressedStill && (event.movementX !== 0 || event.movementY !== 0)) pressedStill = false;
+    },
+    true,
+  );
+  // The keyboard is a deliberate new interaction.
+  window.addEventListener('keydown', () => (pressedStill = false), true);
+}
+function pressedHere(anchor: HTMLElement): boolean {
+  return Boolean(pressedTarget && (anchor === pressedTarget || anchor.contains(pressedTarget)));
+}
+function isKeyboardFocus(): boolean {
+  return performance.now() - lastPressAt > 80;
 }
 
 /** Returns handlers to spread onto one tooltip trigger (top-level use only). */
@@ -70,14 +110,28 @@ export function useTooltip(content: ReactNode): TooltipHandlers {
 
   if (content == null || content === '') return {};
   return {
-    onMouseEnter: (event) =>
-      showHovered({ content, anchor: event.currentTarget, id }),
-    onMouseLeave: (event) => hideHovered(event.currentTarget),
-    onFocus: (event) => showFocused({ content, anchor: event.currentTarget, id }),
+    onMouseEnter: (event) => {
+      if (pressedStill || pressedHere(event.currentTarget)) return;
+      showHovered({ content, anchor: event.currentTarget, id });
+    },
+    onMouseLeave: (event) => {
+      if (pressedHere(event.currentTarget)) pressedTarget = null;
+      hideHovered(event.currentTarget);
+    },
+    // Keyboard focus only: a mouse click also focuses a button, and a tooltip
+    // re-opening over the page the click just opened is exactly what we remove.
+    onFocus: (event) => {
+      // ...and not on the very control that was just pressed, when a click
+      // re-renders it and focus is handed back to it.
+      if (isKeyboardFocus() && !(pressedStill && pressedHere(event.currentTarget))) {
+        showFocused({ content, anchor: event.currentTarget, id });
+      }
+    },
     onBlur: (event) => hideFocused(event.currentTarget),
     onKeyDown: (event) => {
-      if (event.key === 'Escape') hideAll();
+      if (event.key === 'Escape' || event.key === 'Enter' || event.key === ' ') hideAll();
     },
+    onPointerDown: () => hideAll(),
     'aria-describedby': id,
   };
 }
@@ -117,6 +171,10 @@ export function Tip({ content, children }: { content: ReactNode; children: React
       props.onKeyDown?.(event);
       if (!event.defaultPrevented) tip.onKeyDown?.(event);
     },
+    onPointerDown: (event) => {
+      props.onPointerDown?.(event);
+      tip.onPointerDown?.(event);
+    },
     'aria-describedby': mergeDescriptionIds(props['aria-describedby'], tip['aria-describedby']),
   });
 }
@@ -151,7 +209,7 @@ export function TooltipLayer() {
       ? hovered.order >= focused.order
         ? hovered
         : focused
-      : hovered ?? focused;
+      : (hovered ?? focused);
   const inactive = active === hovered ? focused : hovered;
 
   // Native/Electron focus transitions do not consistently blur the focused
@@ -207,13 +265,24 @@ export function TooltipLayer() {
       const roomBelow = viewportBottom - anchor.bottom - SAFE_MARGIN - ANCHOR_GAP;
       const fitsAbove = measured.height <= roomAbove;
       const fitsBelow = measured.height <= roomBelow;
+      /* Prefer above, EXCEPT when going up would cover the header.
+         The destination rail sits directly under the header, so "above whenever it
+         fits" put every nav tooltip across the resource strip — hiding the live nut
+         count, morale and standing, which are exactly the numbers a player is watching
+         while they decide where to go. Opening downward there costs nothing: it lands
+         on the content area, which the tooltip is describing anyway. */
+      const headerRect = document.querySelector('.hud')?.getBoundingClientRect();
+      const wouldCoverHeader =
+        !!headerRect &&
+        anchor.top - ANCHOR_GAP - measured.height < headerRect.bottom &&
+        anchor.top >= headerRect.top;
       const side: TooltipPosition['side'] =
-        fitsAbove || (!fitsBelow && roomAbove >= roomBelow) ? 'above' : 'below';
+        (fitsAbove && !(wouldCoverHeader && fitsBelow)) || (!fitsBelow && roomAbove >= roomBelow)
+          ? 'above'
+          : 'below';
       const desiredLeft = anchor.left + anchor.width / 2 - measured.width / 2;
       const desiredTop =
-        side === 'above'
-          ? anchor.top - ANCHOR_GAP - measured.height
-          : anchor.bottom + ANCHOR_GAP;
+        side === 'above' ? anchor.top - ANCHOR_GAP - measured.height : anchor.bottom + ANCHOR_GAP;
 
       setPosition({
         left: clamp(

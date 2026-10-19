@@ -40,6 +40,16 @@ const employeeSchema = z.object({
     .optional(),
 });
 
+/** A list of ids: non-strings are dropped and repeats collapse, so nothing counts twice. */
+function idList(fallback: string[]) {
+  return z
+    .array(z.unknown())
+    .catch(fallback)
+    .transform((items) => [
+      ...new Set(items.filter((item): item is string => typeof item === 'string' && item !== '')),
+    ]);
+}
+
 const momentSchema = z.object({
   id: z.string(),
   eventId: z.string(),
@@ -56,6 +66,15 @@ const dailyChallengeSchema = z.object({
   claimed: z.boolean().catch(false),
 });
 
+const officeFindSchema = z.object({
+  id: z.string().min(1),
+  employeeId: z.string().min(1),
+  roomId: z.string().min(1),
+  kind: z.enum(['operational', 'social', 'analytical', 'industrial', 'secure', 'irregular']),
+  createdAt: z.number().finite(),
+  noteKey: z.string().optional().catch(undefined),
+});
+
 const decorationInstanceSchema = z
   .object({
     instanceId: z.string().min(1),
@@ -66,6 +85,7 @@ const decorationInstanceSchema = z
     normalizedX: z.number().min(0).max(1).catch(0.5),
     normalizedY: z.number().min(0).max(1).catch(0.1),
     depth: z.number().finite().catch(0),
+    layer: z.enum(['front', 'back']).optional().catch(undefined),
     variantId: z.string().optional().catch(undefined),
     flipped: z.boolean().optional().catch(undefined),
     rotation: z.number().finite().optional().catch(undefined),
@@ -111,6 +131,7 @@ const settingsSchema = z
     focusHarvestEnabled: z.boolean().catch(false),
     offlineCapHours: z.number().catch(8),
     showHints: z.boolean().catch(true),
+    officeFloor: z.string().nullable().catch(null),
     background: z
       .object({
         enabled: z.boolean().catch(true),
@@ -147,6 +168,26 @@ const effectSchema = z
   })
   .passthrough();
 
+/** One room's routine (see content/roomPlay.ts). Every field optional; junk is dropped. */
+const roomPlaySchema = z.object({
+  startedAt: z.number().finite().optional().catch(undefined),
+  readyAt: z.number().finite().optional().catch(undefined),
+  jamAt: z.number().finite().optional().catch(undefined),
+  taps: z.number().finite().nonnegative().optional().catch(undefined),
+  blipAt: z.number().finite().optional().catch(undefined),
+  blipUntil: z.number().finite().optional().catch(undefined),
+  parcelAt: z.number().finite().optional().catch(undefined),
+  parcelFor: z.string().optional().catch(undefined),
+  mode: z.string().optional().catch(undefined),
+  done: z.number().finite().nonnegative().optional().catch(undefined),
+});
+
+const officeOdditySchema = z.object({
+  id: z.string(),
+  roomId: z.string(),
+  at: z.number().finite(),
+});
+
 const scheduledConsequenceSchema = z.object({
   id: z.string(),
   at: z.number().finite(),
@@ -154,7 +195,46 @@ const scheduledConsequenceSchema = z.object({
   titleKey: z.string(),
   bodyKey: z.string(),
   effects: z.array(effectSchema),
+  quiet: z.boolean().optional().catch(undefined),
 });
+
+const pendingIncidentSchema = z.object({
+  id: z.string(),
+  eventId: z.string(),
+  roomId: z.string(),
+  employeeId: z.string().optional().catch(undefined),
+  at: z.number().finite(),
+  until: z.number().finite(),
+});
+
+const pendingRemarkSchema = z.object({
+  employeeId: z.string(),
+  key: z.string(),
+  at: z.number().finite(),
+});
+
+const diaryEntrySchema = z.object({
+  at: z.number().finite(),
+  kind: z.enum(['incident', 'opened', 'handled', 'faded', 'moment', 'landed', 'remark']),
+  eventId: z.string().optional().catch(undefined),
+  momentId: z.string().optional().catch(undefined),
+  roomId: z.string().optional().catch(undefined),
+  employeeId: z.string().optional().catch(undefined),
+});
+
+/** Validate a list item by item, dropping what does not parse and keeping the newest `max`. */
+function listOf<T extends z.ZodTypeAny>(item: T, max: number) {
+  return z
+    .array(z.unknown())
+    .catch([])
+    .transform((items) =>
+      items
+        .map((value) => item.safeParse(value))
+        .filter((r): r is z.SafeParseSuccess<z.infer<T>> => r.success)
+        .map((r) => r.data as z.infer<T>)
+        .slice(-max),
+    );
+}
 
 type ScheduledParsed = z.infer<typeof scheduledConsequenceSchema>;
 
@@ -192,17 +272,31 @@ export const gameStateSchema = z.object({
         return parsed.success ? [parsed.data] : [];
       }),
     ),
+  // Each list is read entry by entry: one malformed item drops that item, not
+  // everything the player ever collected, and a repeated id counts once.
   collections: z
     .object({
-      nuts: z.array(z.string()).catch([]),
-      outfits: z.array(z.string()).catch([]),
-      logos: z.array(z.string()).catch(['default']),
-      moments: z.array(momentSchema).catch([]),
-      secrets: z.array(z.string()).catch([]),
+      nuts: idList([]),
+      outfits: idList(['pip-classic']),
+      logos: idList(['default']),
+      moments: z
+        .array(z.unknown())
+        .catch([])
+        .transform((items) => {
+          const seen = new Set<string>();
+          return items.flatMap((item) => {
+            const parsed = momentSchema.safeParse(item);
+            if (!parsed.success || seen.has(parsed.data.id)) return [];
+            seen.add(parsed.data.id);
+            return [parsed.data];
+          });
+        }),
+      secrets: idList([]),
     })
     .catch({ nuts: [], outfits: [], logos: ['default'], moments: [], secrets: [] }),
   prestige: z
     .object({
+      nutsAtLastPrestige: z.number().finite().nonnegative().catch(0),
       count: z.number().catch(0),
       branch: z
         .enum(['industrial', 'cooperative', 'science', 'marketing', 'underground'])
@@ -210,7 +304,7 @@ export const gameStateSchema = z.object({
         .catch(null),
       skills: z.record(z.number()).catch({}),
     })
-    .catch({ count: 0, branch: null, skills: {} }),
+    .catch({ count: 0, branch: null, skills: {}, nutsAtLastPrestige: 0 }),
   focus: z
     .object({
       active: z.boolean().catch(false),
@@ -249,12 +343,107 @@ export const gameStateSchema = z.object({
       criticalTaps: z.number().finite().nonnegative().catch(0),
       goldenTaps: z.number().finite().nonnegative().catch(0),
       bestStreak: z.number().finite().nonnegative().catch(0),
+      rushes: z.number().finite().nonnegative().catch(0),
+      findsCollected: z.number().finite().nonnegative().catch(0),
+      goldenDust: z.number().finite().min(0).max(1).catch(0),
+      premiumAt: z.record(z.number().finite()).catch({}),
     })
-    .catch({ stationTaps: {}, criticalTaps: 0, goldenTaps: 0, bestStreak: 0 }),
+    .catch({
+      stationTaps: {},
+      criticalTaps: 0,
+      goldenTaps: 0,
+      bestStreak: 0,
+      rushes: 0,
+      findsCollected: 0,
+      goldenDust: 0,
+      premiumAt: {},
+    }),
+  crate: z.object({ nuts: z.number().finite().nonnegative().catch(0) }).catch({ nuts: 0 }),
+  finds: z
+    .array(z.unknown())
+    .catch([])
+    .transform((items) =>
+      items
+        .map((item) => officeFindSchema.safeParse(item))
+        .filter((r): r is { success: true; data: z.infer<typeof officeFindSchema> } => r.success)
+        .map((r) => r.data)
+        .slice(0, 6),
+    ),
+  // The rooms' routines and waiting curiosities. Older saves have none, and a bad
+  // entry costs only that entry.
+  office: z
+    .object({
+      rooms: z
+        .record(z.unknown())
+        .catch({})
+        .transform((rooms) =>
+          Object.fromEntries(
+            Object.entries(rooms)
+              .map(([roomId, value]) => [roomId, roomPlaySchema.safeParse(value)] as const)
+              .filter(([, parsed]) => parsed.success)
+              .map(([roomId, parsed]) => [
+                roomId,
+                (parsed as { success: true; data: z.infer<typeof roomPlaySchema> }).data,
+              ]),
+          ),
+        ),
+      oddities: z
+        .array(z.unknown())
+        .catch([])
+        .transform((items) =>
+          items
+            .map((item) => officeOdditySchema.safeParse(item))
+            .filter(
+              (r): r is { success: true; data: z.infer<typeof officeOdditySchema> } => r.success,
+            )
+            .map((r) => r.data)
+            .slice(0, 4),
+        ),
+    })
+    .catch({ rooms: {}, oddities: [] }),
+  // What is happening in the office, what someone has to say, and the diary.
+  // Older saves have none; a bad entry costs only that entry.
+  happenings: z
+    .object({
+      incidents: listOf(pendingIncidentSchema, 4),
+      remarks: listOf(pendingRemarkSchema, 12),
+      diary: listOf(diaryEntrySchema, 60),
+      sinceRare: z.number().finite().nonnegative().catch(0),
+    })
+    .catch({ incidents: [], remarks: [], diary: [], sinceRare: 0 }),
   settings: settingsSchema,
   onboardingComplete: z.boolean().catch(false),
   eventCooldowns: z.record(z.number()).catch({}),
   pendingChain: z.object({ eventId: z.string(), step: z.number() }).nullable().catch(null),
+  eventInProgress: z
+    .object({
+      eventId: z.string(),
+      step: z.string().nullable(),
+      roomId: z.string().optional().catch(undefined),
+      employeeId: z.string().optional().catch(undefined),
+    })
+    .nullable()
+    .catch(null),
+  boosts: z
+    .array(
+      z.object({
+        multiplier: z.number().finite().min(1).max(10),
+        endsAt: z.number().finite(),
+        // Optional and forgiving: saves from before tagged boosts simply have none.
+        source: z.string().max(40).optional().catch(undefined),
+      }),
+    )
+    .max(64)
+    .catch([]),
+  microgames: z
+    .record(
+      z.object({
+        best: z.number().finite().nonnegative().catch(0),
+        plays: z.number().finite().nonnegative().catch(0),
+        lastRewardAt: z.number().finite().nonnegative().catch(0),
+      }),
+    )
+    .catch({}),
   eventHistory: z
     .array(z.object({ eventId: z.string(), choiceId: z.string(), at: z.number() }))
     .catch([]),

@@ -94,7 +94,9 @@ describe('decoration surfaces + free placement', () => {
     expect(placedDecorationsInRoom(engine.state, ROOM).length).toBe(0);
     expect(engine.resetRoomDecorations(ROOM)).toBe(true);
     expect(placedDecorationsInRoom(engine.state, ROOM).length).toBe(2);
-    expect(engine.state.decorationInstances.every((instance) => instance.roomId === ROOM)).toBe(true);
+    expect(engine.state.decorationInstances.every((instance) => instance.roomId === ROOM)).toBe(
+      true,
+    );
   });
 
   it('supports undo and redo of placement changes', () => {
@@ -118,7 +120,9 @@ describe('decoration surfaces + free placement', () => {
     expect(engine.moveDecorationToRoom('potted-fern', 'morale', 0.72, 0.08)).toBe(true);
     expect(decorationRoom(engine.state, 'potted-fern')).toBe('morale');
     expect(placedDecorationsInRoom(engine.state, ROOM)).toHaveLength(0);
-    expect(placedDecorationsInRoom(engine.state, 'morale').map((item) => item.def.id)).toContain('potted-fern');
+    expect(placedDecorationsInRoom(engine.state, 'morale').map((item) => item.def.id)).toContain(
+      'potted-fern',
+    );
     expect(roomComfort(engine.state, ROOM)).toBe(0);
     expect(roomComfort(engine.state, 'morale')).toBe(DECORATIONS_BY_ID['potted-fern'].moraleBonus);
     expect(engine.state.decorationInstances[0].instanceId).toBe(instanceId);
@@ -151,7 +155,9 @@ describe('decoration surfaces + free placement', () => {
       }
       const engine = new GameEngine(state, { deterministic: true });
       expect(engine.buyDecoration(def.id), def.id).toBe(true);
-      const instance = engine.state.decorationInstances.find((item) => item.decorationId === def.id)!;
+      const instance = engine.state.decorationInstances.find(
+        (item) => item.decorationId === def.id,
+      )!;
       instance.interactionState = { visits: 3, active: true };
       instance.variantId = 'test-variant';
       const stableId = instance.instanceId;

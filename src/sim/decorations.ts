@@ -89,7 +89,10 @@ export function placedDecorationsInRoom(state: GameState, roomId: string): Place
 /** Stowed owned items whose catalogue default is this room (legacy grouping). */
 export function inventoryDecorationsInRoom(state: GameState, roomId: string): DecorationDef[] {
   return DECORATIONS.filter(
-    (def) => def.room === roomId && isDecorationOwned(state, def.id) && decorationRoom(state, def.id) === null,
+    (def) =>
+      def.room === roomId &&
+      isDecorationOwned(state, def.id) &&
+      decorationRoom(state, def.id) === null,
   );
 }
 
@@ -104,8 +107,13 @@ export function roomComfort(state: GameState, roomId: string): number {
 }
 
 /** How many decorations of a given surface are already placed in a room. */
-export function placedCountOnSurface(state: GameState, roomId: string, surface: DecorationSurface): number {
-  return placedDecorationsInRoom(state, roomId).filter((p) => p.placement.surface === surface).length;
+export function placedCountOnSurface(
+  state: GameState,
+  roomId: string,
+  surface: DecorationSurface,
+): number {
+  return placedDecorationsInRoom(state, roomId).filter((p) => p.placement.surface === surface)
+    .length;
 }
 
 /**
@@ -149,7 +157,11 @@ export function repairDecorations(state: GameState): string[] {
     // legacy regex surface, which can disagree for tabletop/shelf props.
     if (state.decorationInstances?.some((instance) => instance.decorationId === id)) continue;
     if (!isValidPlacement(id, p.surface, p.x, p.y)) {
-      state.placements[id] = placementAt(id, Number.isFinite(p.x) ? p.x : 0.5, Number.isFinite(p.y) ? p.y : 0.1);
+      state.placements[id] = placementAt(
+        id,
+        Number.isFinite(p.x) ? p.x : 0.5,
+        Number.isFinite(p.y) ? p.y : 0.1,
+      );
       changed.push(id);
     }
   }
@@ -191,7 +203,11 @@ function isLegacySurface(surface: DecorationSurfaceType): surface is DecorationS
   return LEGACY_SURFACES.has(surface);
 }
 
-function uniqueInstanceId(state: GameState, preferred: string, except?: DecorationInstance): string {
+function uniqueInstanceId(
+  state: GameState,
+  preferred: string,
+  except?: DecorationInstance,
+): string {
   const used = new Set(
     state.decorationInstances
       .filter((instance) => instance !== except)
@@ -204,7 +220,10 @@ function uniqueInstanceId(state: GameState, preferred: string, except?: Decorati
 }
 
 /** Keep the compatibility placement projection synchronized after a player action. */
-export function syncDecorationInstanceFromPlacement(state: GameState, decorationId: string): DecorationInstance | null {
+export function syncDecorationInstanceFromPlacement(
+  state: GameState,
+  decorationId: string,
+): DecorationInstance | null {
   const def = DECORATIONS_BY_ID[decorationId];
   if (!def || !isDecorationOwned(state, decorationId)) return null;
   if (!Array.isArray(state.decorationInstances)) state.decorationInstances = [];
@@ -290,7 +309,8 @@ export function auditDecorationState(state: GameState): DecorationAuditIssue[] {
     ownershipCounts.set(decorationId, (ownershipCounts.get(decorationId) ?? 0) + 1);
   }
   for (const [decorationId, count] of ownershipCounts) {
-    if (!DECORATIONS_BY_ID[decorationId]) issues.push({ code: 'unknown-owned-decoration', decorationId });
+    if (!DECORATIONS_BY_ID[decorationId])
+      issues.push({ code: 'unknown-owned-decoration', decorationId });
     if (count > 1) issues.push({ code: 'duplicate-ownership', decorationId });
   }
 
@@ -298,7 +318,8 @@ export function auditDecorationState(state: GameState): DecorationAuditIssue[] {
   const decorationIds = new Set<string>();
   for (const instance of state.decorationInstances ?? []) {
     const { instanceId, decorationId } = instance;
-    if (instanceIds.has(instanceId)) issues.push({ code: 'duplicate-instance-id', decorationId, instanceId });
+    if (instanceIds.has(instanceId))
+      issues.push({ code: 'duplicate-instance-id', decorationId, instanceId });
     instanceIds.add(instanceId);
     if (decorationIds.has(decorationId)) {
       issues.push({ code: 'duplicate-decoration-instance', decorationId, instanceId });
@@ -310,9 +331,11 @@ export function auditDecorationState(state: GameState): DecorationAuditIssue[] {
       issues.push({ code: 'unknown-instance-decoration', decorationId, instanceId });
       continue;
     }
-    if (!ownershipCounts.has(decorationId)) issues.push({ code: 'unowned-instance', decorationId, instanceId });
+    if (!ownershipCounts.has(decorationId))
+      issues.push({ code: 'unowned-instance', decorationId, instanceId });
     if (instance.roomId !== null) {
-      if (!ROOMS_BY_ID[instance.roomId]) issues.push({ code: 'invalid-instance-room', decorationId, instanceId });
+      if (!ROOMS_BY_ID[instance.roomId])
+        issues.push({ code: 'invalid-instance-room', decorationId, instanceId });
       else if (!def.compatibleRooms.includes(instance.roomId)) {
         issues.push({ code: 'incompatible-instance-room', decorationId, instanceId });
       }
@@ -330,7 +353,8 @@ export function auditDecorationState(state: GameState): DecorationAuditIssue[] {
     ) {
       issues.push({ code: 'invalid-instance-coordinates', decorationId, instanceId });
     }
-    if (!Number.isFinite(instance.depth)) issues.push({ code: 'invalid-instance-depth', decorationId, instanceId });
+    if (!Number.isFinite(instance.depth))
+      issues.push({ code: 'invalid-instance-depth', decorationId, instanceId });
 
     const projection = state.placements?.[decorationId];
     if (instance.roomId === null && projection) {
@@ -353,7 +377,8 @@ export function auditDecorationState(state: GameState): DecorationAuditIssue[] {
       issues.push({ code: 'unknown-placement-decoration', decorationId });
       continue;
     }
-    if (!ownershipCounts.has(decorationId)) issues.push({ code: 'unowned-placement', decorationId });
+    if (!ownershipCounts.has(decorationId))
+      issues.push({ code: 'unowned-placement', decorationId });
     if (!isValidPlacement(decorationId, placement.surface, placement.x, placement.y)) {
       issues.push({ code: 'invalid-placement-projection', decorationId });
     }
@@ -375,7 +400,12 @@ export function auditDecorationState(state: GameState): DecorationAuditIssue[] {
  * exact coordinates — only genuinely misplaced pieces move. Returns whether the
  * instance changed. Inventory items only record a sensible kind.
  */
-function reconcileInstanceRegion(instance: DecorationInstance, def: DecorationDef): boolean {
+function reconcileInstanceRegion(
+  instance: DecorationInstance,
+  def: DecorationDef,
+  /** the next free default spot in a room, so pieces relocated together never stack. */
+  nextSlot: (roomId: string) => number = () => 0,
+): boolean {
   const desiredKind: PlacementRegionKind =
     instance.regionKind && def.compatibleRegionKinds.includes(instance.regionKind)
       ? instance.regionKind
@@ -426,8 +456,8 @@ function reconcileInstanceRegion(instance: DecorationInstance, def: DecorationDe
   }
 
   // The stored point is genuinely on the wrong surface. Relocate it onto a tidy
-  // default of its default kind.
-  const fallback = defaultCompatiblePlacement(instance.roomId, def);
+  // default of its default kind (each relocated piece in a room on its own spot).
+  const fallback = defaultCompatiblePlacement(instance.roomId, def, nextSlot(instance.roomId));
   if (!fallback) {
     if (instance.regionKind === desiredKind) return false;
     instance.regionKind = desiredKind;
@@ -452,6 +482,14 @@ export function repairDecorationInstances(state: GameState): string[] {
   if (!state.placements || typeof state.placements !== 'object') state.placements = {};
   const changed = new Set<string>();
   const mark = (id: string) => changed.add(id);
+  // Pieces moved off a wrong surface in one pass take a room's default spots in
+  // turn instead of piling onto its first one.
+  const relocated = new Map<string, number>();
+  const nextSlot = (roomId: string) => {
+    const index = relocated.get(roomId) ?? 0;
+    relocated.set(roomId, index + 1);
+    return index;
+  };
 
   // Collapse duplicate known ownership flags without touching unrelated or
   // unknown secrets, which may belong to newer content.
@@ -469,7 +507,11 @@ export function repairDecorationInstances(state: GameState): string[] {
 
   // A known instance is stronger recovery evidence than a missing token.
   for (const instance of state.decorationInstances) {
-    if (!DECORATIONS_BY_ID[instance.decorationId] || isDecorationOwned(state, instance.decorationId)) continue;
+    if (
+      !DECORATIONS_BY_ID[instance.decorationId] ||
+      isDecorationOwned(state, instance.decorationId)
+    )
+      continue;
     state.collections.secrets.push(`deco:${instance.decorationId}`);
     seenOwnership.add(instance.decorationId);
     mark(instance.decorationId);
@@ -484,7 +526,10 @@ export function repairDecorationInstances(state: GameState): string[] {
       // Preserve unknown/newer content without interpreting its room or
       // metadata. Rename only colliding ids, which cannot both be stable.
       if (usedIds.has(instance.instanceId)) {
-        instance.instanceId = uniqueInstanceId({ ...state, decorationInstances: repaired } as GameState, instance.instanceId);
+        instance.instanceId = uniqueInstanceId(
+          { ...state, decorationInstances: repaired } as GameState,
+          instance.instanceId,
+        );
         mark(instance.decorationId);
       }
       usedIds.add(instance.instanceId);
@@ -533,7 +578,8 @@ export function repairDecorationInstances(state: GameState): string[] {
       : isLegacySurface(instance.surfaceType)
         ? clampToSurface(instance.surfaceType, y)
         : Math.max(0, Math.min(1, y));
-    if (nextX !== instance.normalizedX || nextY !== instance.normalizedY) mark(instance.decorationId);
+    if (nextX !== instance.normalizedX || nextY !== instance.normalizedY)
+      mark(instance.decorationId);
     instance.normalizedX = nextX;
     instance.normalizedY = nextY;
     if (!Number.isFinite(instance.depth)) {
@@ -542,7 +588,7 @@ export function repairDecorationInstances(state: GameState): string[] {
         : 0;
       mark(instance.decorationId);
     }
-    if (reconcileInstanceRegion(instance, def)) mark(instance.decorationId);
+    if (reconcileInstanceRegion(instance, def, nextSlot)) mark(instance.decorationId);
     repaired.push(instance);
   }
   state.decorationInstances = repaired;
@@ -573,7 +619,7 @@ export function repairDecorationInstances(state: GameState): string[] {
       rotation: 0,
       interactionState: {},
     };
-    reconcileInstanceRegion(backfilled, def);
+    reconcileInstanceRegion(backfilled, def, nextSlot);
     state.decorationInstances.push(backfilled);
     represented.add(def.id);
     mark(def.id);

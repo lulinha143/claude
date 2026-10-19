@@ -40,7 +40,10 @@ describe('save system', () => {
   it('never loses a save because an optional property is missing', () => {
     const store = new MemStore();
     // a minimal, partial save object
-    store.setItem('wmno.save.v1', JSON.stringify({ version: SAVE_VERSION, resources: { nuts: 42 } }));
+    store.setItem(
+      'wmno.save.v1',
+      JSON.stringify({ version: SAVE_VERSION, resources: { nuts: 42 } }),
+    );
     const sm = new SaveManager(store);
     const loaded = sm.load();
     expect(loaded.state.resources.nuts).toBe(42);
@@ -130,10 +133,13 @@ describe('save system', () => {
     });
 
     const engine = new GameEngine(loaded.state, { deterministic: true });
-    expect(engine.state.decorationInstances.find((item) => item.decorationId === 'potted-fern')?.instanceId).toBe(
-      'stable-fern',
-    );
-    expect(engine.state.decorationInstances.find((item) => item.decorationId === 'desk-lamp')).toBeTruthy();
+    expect(
+      engine.state.decorationInstances.find((item) => item.decorationId === 'potted-fern')
+        ?.instanceId,
+    ).toBe('stable-fern');
+    expect(
+      engine.state.decorationInstances.find((item) => item.decorationId === 'desk-lamp'),
+    ).toBeTruthy();
   });
 });
 
@@ -224,11 +230,15 @@ describe('migrations', () => {
     store.setItem('wmno.save.v1', JSON.stringify(v6));
     const loaded = new SaveManager(store).load(0);
     const engine = new GameEngine(loaded.state, { deterministic: true });
-    expect(engine.state.decorationInstances.find((item) => item.decorationId === 'potted-fern')).toMatchObject({
+    expect(
+      engine.state.decorationInstances.find((item) => item.decorationId === 'potted-fern'),
+    ).toMatchObject({
       roomId: 'founder-desk',
       normalizedX: 0.7,
     });
-    expect(engine.state.decorationInstances.find((item) => item.decorationId === 'desk-lamp')).toMatchObject({
+    expect(
+      engine.state.decorationInstances.find((item) => item.decorationId === 'desk-lamp'),
+    ).toMatchObject({
       roomId: null,
     });
     expect(engine.state.placements['desk-lamp']).toBeUndefined();

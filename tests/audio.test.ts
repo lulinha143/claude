@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { effectiveMasterGain, channelGain, AudioManager, type AudioChannel } from '../src/audio/audio';
+import {
+  effectiveMasterGain,
+  channelGain,
+  AudioManager,
+  type AudioChannel,
+} from '../src/audio/audio';
 
 const VOL = { master: 0.8, music: 0.7, ambience: 0.75, ui: 0.8, sfx: 0.85 };
 const NO_MUTES = { music: false, ambience: false, ui: false, sfx: false };
@@ -53,7 +58,6 @@ describe('audio gain math', () => {
     );
   });
 });
-
 
 describe('AudioManager centralized-bus diagnostics (headless, no Web Audio)', () => {
   const setup = () => {

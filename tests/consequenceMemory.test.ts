@@ -7,6 +7,11 @@ import { SAVE_VERSION } from '../src/sim/config';
 import { GAME_EVENTS, GAME_EVENTS_BY_ID } from '../src/content/events';
 import { ROOMS_BY_ID } from '../src/content/rooms';
 import { scoreChoice } from '../src/sim/eventAutoResolve';
+import { EMPLOYEE_TALKS, topicsForEmployee } from '../src/content/employeeTalks';
+import { MICRO_CALIBRATION, MICRO_TEAM, type MicroMode } from '../src/sim/minigames';
+import { EMPLOYEES } from '../src/content/employees';
+import { ODDITIES, oddityFlag } from '../src/content/roomPlay';
+import { ANOMALY_THREAD_FLAG } from '../src/content/happenings';
 import type { GameState } from '../src/sim/types';
 
 function engineAt(now: number, mutate?: (s: GameState) => void) {
@@ -279,6 +284,36 @@ describe('auto-resolution accounts for deferred costs', () => {
 describe('the authored memory content is coherent', () => {
   it('only references marks that some choice can actually set', () => {
     const settable = new Set<string>();
+    for (const topic of EMPLOYEE_TALKS) {
+      for (const node of Object.values(topic.nodes)) {
+        for (const choice of node.choices) {
+          for (const effect of choice.effects) {
+            if (effect.type === 'setFlag' && effect.flagId) settable.add(effect.flagId);
+          }
+        }
+      }
+    }
+    // Each teammate receives gifts through a topic of their own, which leaves a
+    // mark of what was given.
+    for (const employee of EMPLOYEES) {
+      for (const topic of topicsForEmployee(employee.id)) {
+        for (const node of Object.values(topic.nodes)) {
+          for (const choice of node.choices) {
+            for (const effect of choice.effects) {
+              if (effect.type === 'setFlag' && effect.flagId) settable.add(effect.flagId);
+            }
+          }
+        }
+      }
+    }
+    // Runtime awards must really create the keys that authored events consume.
+    const { engine } = engineAt(1_000_000);
+    for (const mode of Object.keys(MICRO_TEAM) as MicroMode[])
+      engine.rewardMicrogame(mode, MICRO_CALIBRATION[mode].mastery);
+    for (const flag of Object.keys(engine.state.flags)) settable.add(flag);
+    // Noticing a curiosity marks it; enough paranormal ones start the building's thread.
+    for (const def of ODDITIES) settable.add(oddityFlag(def.id));
+    settable.add(ANOMALY_THREAD_FLAG);
     for (const ev of GAME_EVENTS) {
       const all = [...ev.choices, ...Object.values(ev.steps ?? {}).flatMap((s) => s.choices)];
       for (const c of all) {
@@ -293,6 +328,23 @@ describe('the authored memory content is coherent', () => {
       }
       if (ev.requires?.missingFlag) {
         expect(settable).toContain(ev.requires.missingFlag);
+      }
+      // Individual CHOICES can be gated on a mark too, now that requires.flag is
+      // actually evaluated. A choice gated on a mark nothing can set would be dead
+      // content that silently never appears — the quieter twin of the bug where it
+      // was never evaluated and so always appeared.
+      const everyChoice = [
+        ...ev.choices,
+        ...Object.values(ev.steps ?? {}).flatMap((s) => s.choices),
+      ];
+      for (const choice of everyChoice) {
+        if (!choice.requires?.flag) continue;
+        expect(
+          settable,
+          `${ev.id}/${choice.id} requires unsettable flag ${choice.requires.flag}`,
+        ).toContain(choice.requires.flag);
+        // A locked choice must be able to say why, or the player just sees a dead button.
+        expect(choice.disabledKey, `${ev.id}/${choice.id} has no disabledKey`).toBeTruthy();
       }
     }
   });
@@ -310,6 +362,9 @@ describe('the authored memory content is coherent', () => {
         for (const e of c.effects) {
           if (e.type !== 'schedule') continue;
           expect(e.scheduled?.length, `${ev.id}/${c.id} schedules nothing`).toBeGreaterThan(0);
+          // A quiet promise lands in the world (a remark, a curiosity, a moment),
+          // never as a notice, so it has no copy of its own to need.
+          if (e.quiet) continue;
           // Without its own copy the callback would reuse the original event's
           // text, which reads as the same event happening twice.
           expect(e.scheduleTitleKey, `${ev.id}/${c.id} has no callback title`).toBeTruthy();

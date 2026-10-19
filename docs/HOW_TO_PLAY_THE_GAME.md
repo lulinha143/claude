@@ -23,14 +23,71 @@ after you build it yourself with Option B.
    - (Or, if you made the Steam folder: `release\steam\windows\`)
 2. Find the file named **`ZooWorkers.exe`**.
 3. **Double-click** it.
-4. Windows may show a blue box that says *"Windows protected your PC."* This is
+4. Windows may show a blue box that says _"Windows protected your PC."_ This is
    normal for new apps that aren't signed yet. Click **More info**, then
    **Run anyway**. (Only do this for a copy you trust.)
 5. The game opens in a small cozy window. 🐿️
 
 ### Playing in the little window
-- **Collect nuts:** click the glowing crate near Pip's desk.
-- **Pet Pip / talk to staff:** click any animal.
+
+- **Collect nuts:** click the crate near Pip's desk. The team packs half of
+  what it makes into it; it is full after about ten minutes, then it glows.
+- **Keep a rhythm:** tap a room's machine steadily and the ring around it fills;
+  at the top the whole room **rushes** (everyone there works double for 30 s).
+- **Take what they found:** when a teammate holds something out beside their
+  mood sticker, click it.
+- **Buy the next thing:** the paper tag in the corner of the office is your next
+  goal; when it turns green, one click buys it.
+- **Pet Pip / talk to staff:** click any animal (click again while they are
+  talking to sit down with them).
+- **Visit a teammate:** when a little speech balloon appears on someone's mood
+  sticker (dots: they want to tell you something; a heart: your friendship grew;
+  a sparkle: a hint), click it — or use **Visit** on their Team card. A visit has
+  three tabs: **Talk** (their story, in three parts that open as you become
+  familiar, trusted and close), **Gifts** (try presents to find their favourite)
+  and **Scrapbook** (everything you have shared). An answer that costs nuts shows
+  its price before you pick it, and when a conversation ends the notepad says
+  where their story stands and whether something was set in motion.
+- **Keepsakes:** every teammate has a personal object (in a visit, ask about it
+  from **Other things on your mind**, the dots beside the topic). Once it is on
+  their desk, click it, in the office or in the visit, to read its card in their
+  Scrapbook.
+- **Play the rooms:** every room's machine has something of its own to do, shown
+  as a small tag on it: brew a pot in the Break Room and pour it, tap a jammed
+  chute three times to clear it, catch what moves on the security cameras, hand
+  over a parcel, pick the show in the broadcast booth. Hover the tag to see what
+  it does and who is helping.
+- **Look closer:** when a magnifier appears on a corkboard, a shelf or in a
+  corner, click it — something odd has turned up. Everything you notice is kept
+  in **Archive → Collections → Curiosities and secrets**, and some of it is the Nut
+  Encyclopedia's missing nuts. A room that closes when the company restructures
+  keeps what you noticed in it there, marked closed until it reopens.
+  Click a find there to read it again: where and when it turned up, what made it
+  possible and where it led. Open leads are listed at the top.
+- **Decorate:** open **Decorate** in the dock. Each piece says where it goes
+  (floor, wall or ceiling, and its room) and what it costs, or how much is still
+  missing; once bought, the card says where it went. **Arrange** takes a piece
+  to the office: drag it into a room (or tap a spot) to place it, let go over
+  the storage strip to put it away, or press Escape to drop the move. Furniture
+  stands among the team by where you put it: further back, it is behind them.
+- **Collections:** **Archive → Collections** is a cabinet of drawers: nuts,
+  curiosities and secret files, decoration sets, keepsakes, minigame masteries,
+  special outfits and Moment Cards. Each says how far along it is, what you can do
+  for it now and what finishing it pays. Open a drawer to see the pieces (things not
+  found yet stay blank); Escape or **Collections** takes you back.
+- **Restructure (Go Completely Nuts):** once this cycle of the company has produced
+  a million nuts, **Archive → Restructure** shows the continuity file: the Permanent
+  Kernels you receive (each one you keep adds 2% production for good, or you can
+  spend them on permanent skills), what stays with you (golden nuts, collections,
+  decorations, achievements, friendships and stories) and what starts over (nuts,
+  hires, rooms, upgrades). Pick the next cycle's branch, press **Go Completely
+  Nuts…**, read the confirmation and confirm, or press **Not yet** / Escape.
+- **See what's happening:** when a teammate holds up a little **!** ticket (and
+  the room's name has a **!** too), something has started happening there. It
+  waits for you: click the ticket, or click the teammate twice, to look into it
+  and decide. Under each answer is what it will do (costs, rewards, who it
+  changes); point at an answer and the people it is about show how they would
+  take it. What you choose can show up again later, in the office.
 - **Open menus:** use the tabs at the top (Upgrades, Team, Company, etc.).
 - **Move the window:** click-and-drag the **top bar** (the part with the company
   name) to anywhere on your screen — including a corner.
@@ -47,6 +104,7 @@ after you build it yourself with Option B.
 - **Close completely:** right-click the tray icon → **Quit**, or close the window.
 
 ### Where is my save?
+
 Your progress saves automatically on your own computer. On Windows it lives in:
 
 ```
@@ -64,18 +122,22 @@ Do this if you downloaded the project (the code) and want to make the `.exe`
 yourself.
 
 ### Step 1 — Install Node.js (only once, ever)
+
 1. Go to **https://nodejs.org**
 2. Click the big button that says **LTS**.
 3. Open the downloaded file and click **Next / Install** until it finishes.
 
 To check it worked: open **PowerShell** (press the Windows key, type
 `powershell`, press Enter) and type:
+
 ```
 node --version
 ```
+
 If you see something like `v20.x.x`, you're good.
 
 ### Step 2 — Open the project folder in a terminal
+
 1. Unzip the project if it's a `.zip` (right-click → **Extract All**).
 2. Open **PowerShell**.
 3. Type `cd ` (the letters c, d, and a space), then **drag the project folder**
@@ -86,41 +148,52 @@ If you see something like `v20.x.x`, you're good.
 
 > If PowerShell says scripts are disabled when you run npm, run this once, press
 > `S` then Enter, and try again:
+>
 > ```
 > Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 > ```
 
 ### Step 3 — Install the game's parts (only once per download)
+
 ```
 npm install
 ```
+
 Wait for it to finish (1–2 minutes). Yellow "warn" lines are normal — ignore
 them.
 
 ### Step 4 — Try it in your browser first (fastest)
+
 ```
 npm run dev
 ```
+
 It prints a web address like `http://localhost:5173/`. Open your browser, type
 `localhost:5173`, press Enter — the game runs. Press **Ctrl + C** in PowerShell
 to stop it.
 
 ### Step 5 — Build the Windows app
+
 ```
 npm run build:windows
 ```
+
 When it finishes, your installer and app appear in the **`release`** folder:
+
 - Installer: `release\ZooWorkers-1.0.0-x64.exe`
 - Ready-to-run app folder: `release\win-unpacked\` → double-click
   **`ZooWorkers.exe`** inside it.
 
 A **portable** single-file version (no install needed):
+
 ```
 npm run build:portable
 ```
+
 → `release\ZooWorkers-1.0.0-portable.exe`
 
 ### Common problems
+
 - **"npm is not recognized"** → Node.js isn't installed or PowerShell needs to be
   reopened. Redo Step 1 and open a fresh PowerShell.
 - **"scripts is disabled"** → run the `Set-ExecutionPolicy` line above.

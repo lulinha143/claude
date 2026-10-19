@@ -43,12 +43,12 @@ so unmuting restores the previous levels. Both persist in the save
 
 ## Channels
 
-| Bus       | Sources                                             | Controls |
-| --------- | --------------------------------------------------- | -------- |
-| music     | evolving cozy score                                 | volume + mute |
-| ambience  | room hum + typing/paper/coffee/creak/drip one-shots | volume + mute |
-| ui        | `click`, `error`                                    | volume + mute |
-| sfx       | `collect`, `upgrade`, `event`, `coffee`, `celebrate`, `prestige`, `footstep` | volume + mute |
+| Bus      | Sources                                                                      | Controls      |
+| -------- | ---------------------------------------------------------------------------- | ------------- |
+| music    | evolving cozy score                                                          | volume + mute |
+| ambience | room hum + typing/paper/coffee/creak/drip one-shots                          | volume + mute |
+| ui       | `click`, `error`                                                             | volume + mute |
+| sfx      | `collect`, `upgrade`, `event`, `coffee`, `celebrate`, `prestige`, `footstep` | volume + mute |
 
 Extra global modifiers: **Quiet Mode** attenuates master ×0.25; **Focus Mode**
 ducks music/ambience; **Mute-when-unfocused** and tab-hidden suspend the whole

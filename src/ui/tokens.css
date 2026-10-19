@@ -1,11 +1,75 @@
 /* ==========================================================================
    Design tokens — the single source of truth for colour, elevation, spacing,
-   radius, and motion. Components reference these semantic tokens rather than
-   hardcoding hex values, so the whole game can be re-themed from one place and
-   high-contrast / colourblind modes stay consistent.
+   radius, type and motion. Components reference these semantic tokens rather
+   than hardcoding hex values, so the whole game can be re-themed from one place
+   and high-contrast / colourblind modes stay consistent.
+
+   CASCADE LAYERS. This file is imported first (main.tsx), so the order below is
+   the order of the whole game:
+     legacy — styles.css and the older per-screen sheets (pre-Phase-1 passes)
+     game   — the rebuilt shell, world and shared primitives (src/ui/game/*.css)
+   A rule in `game` beats any rule in `legacy` regardless of specificity, so the
+   new shell never fights the old passes; what it replaces was deleted instead.
    ========================================================================== */
+@layer legacy, game;
+
 :root {
-  /* --- raw palette (warm cozy tree-trunk office) --- */
+  /* --- the treehouse palette -------------------------------------------------
+     Anchored on the existing art: the cast's warm fur and baked-in walnut desks,
+     cream stationery, leaf greens. Frames are walnut, cards are cream paper,
+     actions are acorn orange, text and outlines are dark-brown ink (never black). */
+  --c-walnut-900: #2e1d10;
+  --c-walnut-800: #3d2716;
+  --c-walnut-700: #52341d;
+  --c-walnut-600: #6a4526;
+  --c-walnut-500: #875a33;
+  --c-walnut-400: #a8733f;
+  --c-paper-50: #fffaf0;
+  --c-paper-150: #fdf0d8;
+  --c-paper-250: #f6e3bf;
+  --c-paper-edge: #d9b98a;
+  --c-ink-900: #2b1b10;
+  --c-ink-700: #4a3322;
+  --c-ink-500: #6f5238;
+  --c-acorn-600: #b85a1c;
+  --c-acorn-500: #d9722a;
+  --c-acorn-400: #ee9444;
+  --c-acorn-200: #fbd3a4;
+  --c-leaf-700: #2f5e2c;
+  --c-leaf-600: #3f7a3a;
+  --c-leaf-500: #5c9a45;
+  --c-leaf-400: #86bd5c;
+  --c-leaf-200: #d4ebb5;
+  --c-sky-700: #22606b;
+  --c-sky-500: #4aa3b1;
+  --c-sky-300: #9fd6dc;
+  --c-sky-100: #e3f4f0;
+  --c-berry-700: #8e2634;
+  --c-berry-500: #c94452;
+  --c-berry-200: #f7c6c6;
+  /* Soft office grays: filing cabinets, steel trays, carbon copies. They cool the
+     cream/wood base down so it never turns into one orange wash. */
+  --c-gray-100: #f1eee8;
+  --c-gray-200: #e2ddd4;
+  --c-gray-300: #cbc4b8;
+  --c-gray-500: #8f877b;
+  --c-gray-700: #5d564d;
+  /* Restrained action green (cream text 4.9:1) — calmer than the leaf greens. */
+  --c-sage-700: #2f5428;
+  --c-sage-600: #45763d;
+  --c-sage-500: #4a7a42;
+  --c-sage-200: #dcebd2;
+  /* Reward gold (ink text 10:1): resources, payouts, claims. */
+  --c-reward-600: #a8801d;
+  --c-reward-500: #f2c94c;
+  --c-reward-400: #f6d469;
+  --c-reward-200: #fbecbc;
+  /* Rare purple (cream text 5:1): ONLY genuinely rare/special content. */
+  --c-rare-600: #5e4291;
+  --c-rare-500: #7d5bb8;
+  --c-rare-200: #ece4f7;
+
+  /* --- raw palette (pre-Phase-1 names, still referenced by legacy rules) --- */
   --c-bark-900: #1c150d;
   --c-bark-800: #241a12;
   --c-bark-700: #2a2016;
@@ -63,10 +127,10 @@
   --positive: #4f9d69;
   --warning: var(--c-amber-500);
   --negative: #b0473a;
-  --rare: #4f7dd6;
+  --rare: var(--c-rare-500);
   --gold: var(--c-gold-500);
   --focus-mode: #6fa8dc;
-  --quiet-mode: #9a8cff;
+  --quiet-mode: var(--c-gray-500);
 
   --interactive-hover: rgba(255, 255, 255, 0.06);
   --interactive-press: rgba(255, 255, 255, 0.12);
@@ -121,7 +185,13 @@
   /* Rubber-stamp ink: a desaturated violet that reads as "applied by a department",
      distinct from every semantic colour so a stamp is never mistaken for a warning
      or a reward. Used only by the letterhead's standing stamp. */
-  --stamp-ink: #a8879f;
+  /* Rubber-stamp ink. Was #a8879f, a cold lilac that was the only cool colour in
+     a warm cream/wood palette and read as a UI error rather than as ink — and it
+     spent purple, which the palette reserves for rare/special states, on a
+     permanent fixture. This is a faded violet-brown: still unmistakably a stamp,
+     still tinted toward the reputation tiers, but sitting in the same warm family
+     as the letterhead it is stamped on. */
+  --stamp-ink: #9c7a72;
   --panel-surface: color-mix(in srgb, var(--c-bark-700) 94%, var(--c-wood-500));
   --panel-surface-raised: color-mix(in srgb, var(--c-bark-600) 90%, var(--c-wood-400));
   --panel-texture:
@@ -199,15 +269,32 @@
   --tracking-tight: -0.01em;
   --tracking-wide: 0.06em;
 
-  /* Fluid type scale. Each step scales gently with the viewport and with the
-     player's font-size preference. */
-  --fs-2xs: calc(clamp(11px, 0.55vw + 0.5vh, 12px) * var(--font-scale));
-  --fs-xs: calc(clamp(12px, 0.6vw + 0.55vh, 13.5px) * var(--font-scale));
-  --fs-sm: calc(clamp(12.5px, 0.65vw + 0.6vh, 14.5px) * var(--font-scale));
-  --fs-base: calc(clamp(13px, 0.7vw + 0.65vh, 16.5px) * var(--font-scale));
-  --fs-lg: calc(clamp(15px, 0.8vw + 0.7vh, 19px) * var(--font-scale));
-  --fs-xl: calc(clamp(18px, 1vw + 0.9vh, 24px) * var(--font-scale));
-  --fs-2xl: calc(clamp(22px, 1.4vw + 1.1vh, 32px) * var(--font-scale));
+  /* Fluid type scale. Each step grows with the window between the 380px
+     companion size and a 1440px desktop (≈13.5px → 16px body), is held back by
+     short windows (the vh term), and follows the player's font-size setting.
+     The old scale sat flat at its 13px floor until ~1200px wide. */
+  --fs-2xs: calc(clamp(11px, min(10.6px + 0.12vw, 10px + 0.25vh), 12.5px) * var(--font-scale));
+  --fs-xs: calc(clamp(11.5px, min(11.2px + 0.16vw, 10.5px + 0.3vh), 13.5px) * var(--font-scale));
+  --fs-sm: calc(clamp(12.5px, min(11.8px + 0.2vw, 11px + 0.4vh), 15px) * var(--font-scale));
+  --fs-base: calc(clamp(13px, min(12.6px + 0.235vw, 11.5px + 0.5vh), 16.5px) * var(--font-scale));
+  --fs-lg: calc(clamp(15px, min(14.2px + 0.3vw, 13px + 0.6vh), 19px) * var(--font-scale));
+  --fs-xl: calc(clamp(18px, min(16.5px + 0.42vw, 15px + 0.8vh), 24px) * var(--font-scale));
+  --fs-2xl: calc(clamp(22px, min(19.5px + 0.65vw, 17px + 1.2vh), 32px) * var(--font-scale));
+
+  /* The smallest size any text in this game is allowed to render at.
+     The scale above already floors at 11px, but a great deal of the UI sizes itself
+     with `em` multipliers, and those COMPOUND: a 0.66em note inside a row that is
+     already 0.62em of a small parent lands at 8.5px, and the reputation stamp's cycle
+     label was measuring 6.81px. Nothing in the scale is at fault — the multiplication
+     is. Rules that would otherwise fall through the floor use
+     `max(var(--fs-min), <intent>)`, which keeps the relative intent where there is
+     room and refuses to go below legible. Scales with the player's font preference so
+     turning type up still works.
+
+     It used to be disabled below 1000×620 because the old 11-tab rail and letterhead
+     needed sub-11px type to fit a companion window. The Phase 1 HUD and dock are sized
+     for 320×420 at legible sizes, so the floor now applies at every window size. */
+  --fs-min: calc(11px * var(--font-scale));
 
   /* Semantic role tokens. Tiny labels deliberately stay in Nunito: DynaPuff's
      lively shapes become crowded below normal control sizes. */
@@ -254,6 +341,94 @@
   --text-xl: var(--fs-xl);
   --text-title: var(--fs-2xl);
   --text-hero: var(--type-hero-size);
+
+  /* --- game shell semantics (Phase 1) ------------------------------------------
+     Hierarchy: dark walnut frame (HUD, dock) → bright paper (sheets, cards,
+     popups) → the colourful scene. Every shell rule reads these, never raw hex. */
+  --frame-bg: var(--c-walnut-800);
+  --frame-bg-raised: var(--c-walnut-700);
+  --frame-edge: var(--c-walnut-900);
+  --frame-grain: repeating-linear-gradient(
+    90deg,
+    rgb(255 250 240 / 0.035) 0 2px,
+    transparent 2px 11px,
+    rgb(46 29 16 / 0.12) 11px 12px,
+    transparent 12px 23px
+  );
+  --frame-text: var(--c-paper-150);
+  --frame-text-muted: var(--c-acorn-200);
+  --paper-bg: var(--c-paper-150);
+  --paper-bg-bright: var(--c-paper-50);
+  --paper-bg-sunken: var(--c-paper-250);
+  --paper-line: var(--c-paper-edge);
+  --paper-grain:
+    radial-gradient(circle at 20% 10%, rgb(255 255 255 / 0.5), transparent 40%),
+    repeating-linear-gradient(0deg, rgb(111 82 56 / 0.035) 0 1px, transparent 1px 26px);
+  --ink-strong: var(--c-ink-900);
+  --ink-body: var(--c-ink-700);
+  --ink-soft: var(--c-ink-500);
+  /* Palette roles (DESIGN.md "Identity"): restrained green is the positive ACTION
+     (buy, open, confirm); gold is a REWARD being claimed; purple is RARE only;
+     selection is ink on paper, so green keeps meaning "do it". */
+  --action-bg: var(--c-sage-500);
+  --action-bg-hover: var(--c-sage-600);
+  --action-edge: var(--c-sage-700);
+  --action-ink: var(--c-paper-50);
+  --reward-bg: var(--c-reward-500);
+  --reward-bg-hover: var(--c-reward-400);
+  --reward-edge: var(--c-reward-600);
+  --reward-ink: var(--c-ink-900);
+  --rare-bg: var(--c-rare-500);
+  --rare-edge: var(--c-rare-600);
+  --rare-ink: var(--c-paper-50);
+  --calm-bg: var(--c-walnut-700);
+  --calm-edge: var(--c-walnut-900);
+  --calm-ink: var(--c-paper-50);
+  --gray-bg: var(--c-gray-100);
+  --gray-line: var(--c-gray-300);
+  --gray-ink: var(--c-gray-700);
+  --alert: var(--c-berry-500);
+  --alert-deep: var(--c-berry-700);
+  --cool: var(--c-sky-500);
+  --sticker-edge: var(--c-paper-50);
+  --sticker-shadow: 0 2px 0 rgb(46 29 16 / 0.35), 0 4px 10px rgb(46 29 16 / 0.18);
+  --lift-shadow: 0 10px 28px rgb(46 29 16 / 0.28), 0 2px 0 rgb(46 29 16 / 0.2);
+  --tape: color-mix(in srgb, var(--c-acorn-200) 72%, transparent);
+  --tape-cool: color-mix(in srgb, var(--c-sky-300) 70%, transparent);
+  --world-sky-top: #a9dbe3;
+  --world-sky-mid: #d7eee6;
+  --world-sky-low: #fbeed4;
+  --world-cloud: #fffdf7;
+  --world-hill-far: #b7d59a;
+  --world-hill-near: #8dbd66;
+  --world-ground: #6f8f3f;
+  --world-leaf: var(--c-leaf-500);
+  --world-leaf-light: var(--c-leaf-400);
+  --world-leaf-deep: var(--c-leaf-600);
+  --trunk-bark: var(--c-walnut-600);
+  --trunk-bark-light: var(--c-walnut-500);
+  --trunk-bark-deep: var(--c-walnut-700);
+  --radius-sticker: 12px;
+  --radius-sheet: 16px;
+  --hud-h: 44px;
+  --dock-h: 54px;
+}
+
+/**
+ * The floor's exemptions, in one place.
+ *
+ * `--fs-min` inherits, so resetting it on a container makes every `max(var(--fs-min),
+ * …)` inside that container fall back to its authored size. That is a far better tool
+ * than editing rules one at a time: the exemption is stated where the reason lives.
+ *
+ * The decoration tray is a dense tool palette inside a fixed 142px shelf, and it is
+ * documented as height-sensitive — growing its card height once pushed the search row
+ * over the first card and the "Move To…" button, and enlarging its chips made a tray
+ * drag intermittently unstartable. Its labels are supplementary anyway: the Decorate
+ * catalogue shows the same items at full size. (Rebuilt in Phase 2.)
+ */
+.deco-tray {
+  --fs-min: 0px;
 }
 
 /* High-contrast overrides only need to touch semantic tokens. */
@@ -288,4 +463,35 @@
   --control-surface: #000000;
   --control-edge: #ffffff;
   --control-highlight: transparent;
+  --frame-bg: #000000;
+  --frame-bg-raised: #000000;
+  --frame-edge: #ffffff;
+  --frame-grain: none;
+  --frame-text: #ffffff;
+  --frame-text-muted: #ffffff;
+  --paper-bg: #ffffff;
+  --paper-bg-bright: #ffffff;
+  --paper-bg-sunken: #ffffff;
+  --paper-line: #000000;
+  --paper-grain: none;
+  --ink-strong: #000000;
+  --ink-body: #000000;
+  --ink-soft: #000000;
+  --action-bg: #ffd54a;
+  --action-bg-hover: #ffe27a;
+  --action-edge: #000000;
+  --action-ink: #000000;
+  --reward-bg: #ffd54a;
+  --reward-bg-hover: #ffe27a;
+  --reward-edge: #000000;
+  --reward-ink: #000000;
+  --rare-bg: #ffffff;
+  --rare-edge: #000000;
+  --rare-ink: #000000;
+  --gray-bg: #ffffff;
+  --gray-line: #000000;
+  --gray-ink: #000000;
+  --calm-bg: #000000;
+  --calm-edge: #ffffff;
+  --calm-ink: #ffffff;
 }

@@ -1,0 +1,911 @@
+/* Gameplay chapter 4: things happen in the office. An incident is a ticket a
+   teammate holds up (or one pinned up in an empty room) and a "!" by the room's
+   name; its card is set in that room, with the people it is about, and the
+   outcome is the same card turned over. Small moments get a slip of their own. */
+@layer game {
+  /* ---- the ticket ------------------------------------------------------------- */
+  .office-incident {
+    --ticket: clamp(22px, calc(26px * var(--asset-scale)), 26px);
+    --ticket-ink: var(--c-walnut-800, #4a2f19);
+    --ticket-paper: #fffaf0;
+    position: absolute;
+    z-index: 255;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: var(--ticket);
+    min-width: var(--ticket);
+    padding: 0;
+    color: var(--ticket-ink);
+    background: var(--ticket-paper);
+    border: 2px solid var(--ticket-ink);
+    border-radius: 7px 7px 7px 2px;
+    box-shadow: 0 2px 0 rgb(40 26 12 / 0.3);
+    cursor: pointer;
+    transform-origin: 100% 100%;
+    animation: ticket-wave 3.6s ease-in-out infinite;
+  }
+  /* Held up beside the sticker of whoever noticed it, level with it: above it
+     is where their words go (and, in a small window, the room's name). */
+  .office-incident.is-held {
+    --sticker: clamp(30px, calc(42px * var(--asset-scale)), 42px);
+    justify-content: center;
+    width: var(--ticket);
+    margin: 0 0 calc(var(--sticker) * 0.16) calc(var(--sticker) * -0.5 - var(--ticket) - 1px);
+  }
+  .office-incident.is-held .office-incident__label {
+    display: none;
+  }
+  /* Nobody in the room: pinned up under the ceiling light, with a word. */
+  .office-incident.is-pinned {
+    top: 5%;
+    left: 50%;
+    max-width: 60%;
+    padding: 0 9px 0 0;
+    translate: -50% 0;
+    transform-origin: 50% 0;
+  }
+  .office-incident__mark {
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    width: calc(var(--ticket) - 4px);
+    height: calc(var(--ticket) - 4px);
+    font: 800 calc(var(--ticket) * 0.62) / 1 var(--font-display);
+  }
+  .office-incident.is-pinned .office-incident__mark {
+    color: var(--ticket-paper);
+    background: var(--ticket-ink);
+    border-radius: 4px 0 0 4px;
+  }
+  .office-incident__label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font: 800 11px / 1 var(--font-body);
+  }
+  .office-incident[data-rarity='uncommon'] {
+    --ticket-ink: #2c5f8f;
+    --ticket-paper: #eef6ff;
+  }
+  .office-incident[data-rarity='rare'] {
+    --ticket-ink: #6b2f78;
+    --ticket-paper: #fbefff;
+    box-shadow:
+      0 0 0 3px rgb(170 110 200 / 0.3),
+      0 2px 0 rgb(40 26 12 / 0.3);
+  }
+  .office-incident[data-rarity='legendary'] {
+    --ticket-ink: #7a4f00;
+    --ticket-paper: #fff3c4;
+    box-shadow:
+      0 0 0 3px rgb(255 205 80 / 0.45),
+      0 0 12px rgb(255 205 80 / 0.55),
+      0 2px 0 rgb(40 26 12 / 0.3);
+  }
+  .office-incident:hover,
+  .office-incident:focus-visible {
+    animation: none;
+    scale: 1.1;
+  }
+  @keyframes ticket-wave {
+    0%,
+    72%,
+    100% {
+      rotate: 0deg;
+    }
+    80% {
+      rotate: 8deg;
+    }
+    88% {
+      rotate: -5deg;
+    }
+  }
+  /* ...and the room's name says so too. */
+  .floor[data-incident] .floor__label::after {
+    content: '!';
+    display: inline-grid;
+    place-items: center;
+    width: 14px;
+    height: 14px;
+    margin-left: 5px;
+    color: #fff;
+    background: #c2513f;
+    border-radius: 50%;
+    font: 800 10px / 1 var(--font-display);
+    vertical-align: 1px;
+  }
+  .floor[data-incident='rare'] .floor__label::after {
+    background: #6b2f78;
+  }
+  .floor[data-incident='legendary'] .floor__label::after {
+    color: #4a2f19;
+    background: #ffcf5a;
+  }
+  .office--decorating .office-incident,
+  .photo-mode__stage .office-incident {
+    display: none;
+  }
+  [data-reduced-motion='true'] .office-incident,
+  [data-ambient='paused'] .office-incident,
+  .floor[data-onscreen='false'] .office-incident {
+    animation: none;
+  }
+
+  /* ---- the elevator --------------------------------------------------------- */
+  .elevator__floor-news--incident {
+    color: #fff;
+    background: #c2513f;
+    font: 800 11px / 1 var(--font-display);
+  }
+
+  /* ---- a small moment's slip, and where a curiosity points -------------------- */
+  .office-slip--moment {
+    background: #f3fbef;
+    border-color: #8cbf7a;
+  }
+  .office-slip__note {
+    color: #6b4a1c;
+    font: italic 700 11px / 1.3 var(--font-body);
+  }
+  .office-slip__note + .office-slip__note {
+    margin-top: 1px;
+  }
+  @container office (max-width: 560px) {
+    .office-slip__note {
+      display: -webkit-box;
+      overflow: hidden;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 3;
+    }
+    /* A moment's slip is mostly what someone out of view said: let it be read. */
+    .office-slip--moment .office-slip__note {
+      -webkit-line-clamp: 5;
+    }
+  }
+
+  /* ---- the card's scene ------------------------------------------------------ */
+  .incident-scene {
+    position: relative;
+    height: 108px;
+    margin: -4px -2px 0;
+    overflow: hidden;
+    isolation: isolate;
+    --asset-scale: 1;
+    background: color-mix(in srgb, var(--dept) 20%, var(--c-paper-150));
+    border: 2px solid var(--paper-line);
+    border-radius: 10px;
+  }
+  .popup:has(.incident-scene) .popup__tape {
+    z-index: 3;
+  }
+  .incident-scene > .room-dressing {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+  .incident-scene__cast {
+    position: absolute;
+    inset: auto 0 3px;
+    z-index: 1;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 2px;
+    pointer-events: none;
+  }
+  .incident-scene__actor {
+    display: grid;
+    place-items: end center;
+    line-height: 0;
+    filter: drop-shadow(0 4px 4px rgb(40 26 12 / 0.28));
+  }
+  .incident-scene__actor[data-told='true'] {
+    animation: incident-hop 560ms var(--ease-pop) both;
+  }
+  .incident-scene__actor[data-told='true']:nth-child(2) {
+    animation-delay: 120ms;
+  }
+  .incident-scene__actor[data-told='true']:nth-child(3) {
+    animation-delay: 220ms;
+  }
+  @keyframes incident-hop {
+    0% {
+      translate: 0 0;
+    }
+    40% {
+      translate: 0 -9px;
+    }
+    100% {
+      translate: 0 0;
+    }
+  }
+  .incident-scene__room {
+    position: absolute;
+    top: 8px;
+    left: 7px;
+    z-index: 2;
+    max-width: calc(100% - 120px);
+    padding: 2px 7px;
+    overflow: hidden;
+    color: var(--ink-strong);
+    background: rgb(255 250 240 / 0.88);
+    border-radius: 6px;
+    font: 800 11px / 1.2 var(--font-body);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .incident-scene__stamp {
+    --stamp: #6b4a2b;
+    position: absolute;
+    top: 9px;
+    right: 8px;
+    z-index: 2;
+    padding: 2px 7px;
+    color: var(--stamp);
+    background: rgb(255 250 240 / 0.86);
+    border: 2px solid var(--stamp);
+    border-radius: 4px;
+    font: 800 11px / 1.15 var(--font-body);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    rotate: 5deg;
+  }
+  .incident-scene[data-rarity='uncommon'] .incident-scene__stamp {
+    --stamp: #2c5f8f;
+  }
+  .incident-scene[data-rarity='rare'] .incident-scene__stamp {
+    --stamp: #6b2f78;
+  }
+  .incident-scene[data-rarity='legendary'] .incident-scene__stamp {
+    --stamp: #7a4f00;
+    background: #fff3c4;
+    box-shadow: 0 0 10px rgb(255 205 80 / 0.7);
+  }
+  .incident-scene[data-rarity='legendary'] {
+    border-color: #d9a520;
+  }
+  [data-reduced-motion='true'] .incident-scene__actor {
+    animation: none;
+  }
+  /* How someone takes an answer: a sticker and a heart that goes up or down,
+     pinned at their side. Shown while an answer is pointed at or focused, and on
+     the outcome for how they took it. Low on the figure, so it never covers a
+     face, the room's name or the stamp. */
+  .incident-scene__actor {
+    position: relative;
+  }
+  .incident-scene__reaction {
+    position: absolute;
+    left: 66%;
+    bottom: 34%;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    pointer-events: none;
+    animation: reaction-in 200ms var(--ease-pop) both;
+  }
+  .incident-scene__sticker {
+    display: block;
+    width: calc(26px * var(--asset-scale));
+    height: calc(26px * var(--asset-scale));
+  }
+  .incident-scene__sticker > svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  .incident-scene__heart {
+    display: inline-flex;
+    align-items: center;
+    gap: 1px;
+    padding: 1px 4px 1px 3px;
+    color: #fff;
+    background: var(--c-moss-600);
+    border: 1.5px solid #fff;
+    border-radius: 7px;
+    font: 800 11px / 1.15 var(--font-body);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .incident-scene__heart[data-tone='down'] {
+    background: var(--c-berry-700);
+  }
+  @keyframes reaction-in {
+    from {
+      opacity: 0;
+      translate: 0 4px;
+    }
+  }
+
+  /* ---- the card's answers: lines on the incident report, ticked to decide ------ */
+  /* Each answer is a line on the report with a box to tick (green: the action),
+     its words, and under them what it will do: what it costs and pays (gold), who
+     it changes and how, the room it changes, a souvenir, who will remember and
+     whether it may come back later. */
+  .event-modal .event-modal__choices {
+    display: grid;
+    gap: 6px;
+  }
+  .event-modal .event-choice {
+    display: grid;
+    grid-template-columns: 16px minmax(0, 1fr);
+    align-items: start;
+    gap: 3px 9px;
+    width: 100%;
+    padding: 7px 11px 8px 9px;
+    color: var(--ink-strong);
+    background: var(--paper-bg-bright);
+    border: 2px solid var(--paper-line);
+    border-left: 5px solid var(--primary);
+    border-radius: 5px 10px 10px 5px;
+    box-shadow: 0 2px 0 rgb(40 26 12 / 0.12);
+    text-align: left;
+    text-shadow: none;
+    filter: none;
+    cursor: pointer;
+    transition:
+      background-color var(--dur) var(--ease),
+      border-color var(--dur) var(--ease),
+      transform var(--dur-fast) var(--ease);
+  }
+  .event-modal .event-choice[data-considered='true']:not([aria-disabled='true']) {
+    background: color-mix(in srgb, var(--primary) 8%, var(--paper-bg-bright));
+    border-color: color-mix(in srgb, var(--primary) 55%, var(--paper-line));
+    border-left-color: var(--primary);
+    box-shadow: 0 3px 0 rgb(40 26 12 / 0.14);
+    filter: none;
+    transform: translateY(-1px);
+  }
+  .event-modal .event-choice:active:not([aria-disabled='true']) {
+    box-shadow: none;
+    transform: translateY(1px);
+  }
+  .event-choice__tick {
+    grid-row: 1 / span 3;
+    position: relative;
+    width: 16px;
+    height: 16px;
+    margin-top: 1px;
+    background: var(--paper-bg-bright);
+    border: 2px solid var(--primary);
+    border-radius: 4px;
+  }
+  /* The answer being considered (pointed at, or reached by keys) takes the tick:
+     only ever one, the one its people are reacting to. */
+  .event-modal
+    .event-choice:is(:active, [data-considered='true']):not([aria-disabled='true'])
+    .event-choice__tick {
+    background: var(--primary);
+  }
+  .event-modal
+    .event-choice:is(:active, [data-considered='true']):not([aria-disabled='true'])
+    .event-choice__tick::after {
+    content: '';
+    position: absolute;
+    left: 3.5px;
+    top: 0.5px;
+    width: 4px;
+    height: 8px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    rotate: 45deg;
+  }
+  .event-choice__label {
+    grid-column: 2;
+    font: 800 var(--fs-sm) / 1.3 var(--font-body);
+  }
+  .event-modal .event-choice__req {
+    grid-column: 2;
+    color: var(--c-berry-700);
+    font: 700 var(--fs-2xs) / 1.35 var(--font-body);
+    opacity: 1;
+  }
+  .event-modal .event-choice[aria-disabled='true'] {
+    color: var(--ink-soft);
+    background: var(--paper-bg-sunken);
+    border-color: var(--paper-line);
+    border-left-color: var(--paper-line);
+    border-left-style: dashed;
+    box-shadow: none;
+    filter: none;
+    transform: none;
+    cursor: not-allowed;
+  }
+  .event-modal .event-choice[aria-disabled='true'] .event-choice__tick {
+    background: transparent;
+    border-color: var(--paper-line);
+    border-style: dashed;
+  }
+  .event-modal .event-choice--fallback {
+    border-style: dashed;
+    border-left-style: solid;
+  }
+  .event-choice__effects {
+    grid-column: 2;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px 10px;
+    min-width: 0;
+    color: var(--ink-body);
+    font: 700 var(--fs-2xs) / 1.35 var(--font-body);
+  }
+  .choice-term {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    white-space: nowrap;
+  }
+  .choice-term__shown,
+  .choice-term__long,
+  .choice-term__short {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .choice-term__short {
+    display: none;
+  }
+  /* A corner window: the same line, one row of marks and numbers (the words stay
+     in the tooltip and with a screen reader; the risk keeps its words). */
+  @media (max-height: 520px), (max-width: 340px) {
+    .choice-term[data-short] .choice-term__long {
+      display: none;
+    }
+    .choice-term[data-short] .choice-term__short {
+      display: inline-flex;
+    }
+    /* A souvenir and who will remember are on the outcome card too: here they
+       are only read out, so the line keeps to what the choice costs and changes. */
+    .choice-term[data-kind='keep'] .choice-term__shown {
+      display: none;
+    }
+    .choice-term[data-kind='keep'] {
+      position: absolute;
+    }
+    .event-modal .event-choice {
+      position: relative;
+      gap: 2px 8px;
+      padding: 6px 9px 6px 8px;
+    }
+    .event-modal .event-choice__effects,
+    .event-modal .event-choice__req {
+      grid-column: 1 / -1;
+      gap: 1px 8px;
+      line-height: 1.25;
+    }
+    .event-choice__tick {
+      grid-row: auto;
+    }
+  }
+  /* The card's text gives way before its answers do: in a short window it keeps
+     at least three lines, scrolls, and fades at its foot while there is more. */
+  .popup.event-modal .popup__content {
+    display: flex;
+    flex-direction: column;
+  }
+  .popup.event-modal .popup__content > * {
+    flex: none;
+  }
+  .popup.event-modal .popup__content > .event-modal__body {
+    flex: 0 1 auto;
+    min-height: 3.1em;
+    margin: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
+  .popup.event-modal .event-modal__body[data-more='true'] {
+    mask-image: linear-gradient(to bottom, #000 calc(100% - 1.4em), transparent);
+  }
+  .choice-term .ui-icon,
+  .choice-term svg {
+    flex: none;
+  }
+  /* Rewards are gold; costs, and someone taking it badly, a muted berry. */
+  .choice-term--gain {
+    color: #7a5200;
+  }
+  .choice-term--cost {
+    color: var(--c-berry-700);
+  }
+  .choice-term--people {
+    color: var(--ink-body);
+  }
+  .choice-term--note {
+    color: #2c5f8f;
+  }
+  .choice-term__sticker {
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+  }
+  .choice-term__sticker > svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  .choice-term__name {
+    color: var(--ink-strong);
+  }
+  .choice-term__word {
+    font-weight: 600;
+  }
+  .choice-term__heart {
+    display: inline-flex;
+    align-items: center;
+    gap: 1px;
+    font-variant-numeric: tabular-nums;
+  }
+  [data-high-contrast='true'] .choice-term {
+    color: #000;
+  }
+  [data-high-contrast='true'] .event-modal .event-choice {
+    border-left-width: 6px;
+  }
+  /* A corner window: a shorter strip and tighter spacing, so the words and the
+     choices still fit without scrolling. */
+  @media (max-height: 520px) {
+    .incident-scene {
+      height: 80px;
+      --asset-scale: 0.8;
+    }
+    .popup.event-modal,
+    .popup.consequence-modal {
+      padding: 16px 14px 12px;
+    }
+    .popup.event-modal .popup__content,
+    .popup.consequence-modal .popup__content {
+      gap: 7px;
+    }
+    /* The answers are lines to tick on the report: they speak for themselves,
+       and the report keeps the room to be read. */
+    .event-modal .event-modal__prompt {
+      display: none;
+    }
+    .event-modal .event-modal__choices {
+      gap: 5px;
+      margin-top: 2px;
+    }
+    .event-modal .event-choice {
+      padding: 7px 11px;
+    }
+  }
+  /* The smallest corner window: a shorter strip still. */
+  @media (max-height: 440px) {
+    .incident-scene {
+      height: 68px;
+      --asset-scale: 0.7;
+    }
+  }
+  @media (min-height: 700px) and (min-width: 900px) {
+    .incident-scene {
+      height: 120px;
+    }
+  }
+
+  /* ---- the outcome: the same card, turned over ------------------------------- */
+  /* The scene, the title and the OK stay put; only what it changed scrolls, so
+     the team's reaction is the first thing read even in a corner window. */
+  .popup.consequence-modal {
+    overflow: hidden;
+  }
+  .consequence-modal .popup__content {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  .consequence-modal .popup__content > * {
+    flex: none;
+  }
+  .consequence-modal .popup__content > .modal__scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    margin: 0 -4px;
+    padding: 0 4px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .consequence-modal .popup__actions {
+    flex: none;
+    margin-top: 10px;
+  }
+  .consequence-modal__head {
+    margin-bottom: 0;
+  }
+  .consequence-modal .consequence-list {
+    gap: 4px;
+    margin: 0 0 6px;
+  }
+  .consequence-modal .consequence-line {
+    padding: 4px 9px;
+    background: rgb(74 47 25 / 0.06);
+    font: 700 var(--fs-sm) / 1.3 var(--font-body);
+  }
+  .consequence-modal .consequence-team {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px dashed var(--paper-line);
+  }
+  .consequence-modal .consequence-team__label {
+    margin-bottom: 4px;
+    color: var(--ink-soft);
+    font: 800 var(--fs-2xs) / 1.2 var(--font-body);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .consequence-modal .consequence-team__list {
+    gap: 4px;
+  }
+  .consequence-modal .consequence-emp {
+    gap: 2px 8px;
+    padding: 3px 8px;
+    background: rgb(74 47 25 / 0.05);
+  }
+  .consequence-modal .consequence-emp .mood-chip--sm {
+    min-height: 24px;
+    padding: 1px 7px 1px 2px;
+    background: var(--paper-bg-bright);
+    box-shadow: none;
+  }
+  .consequence-modal .consequence-emp .mood-chip--sm .mood-emoji {
+    width: 20px;
+    height: 20px;
+    flex-basis: 20px;
+  }
+  .consequence-modal .consequence-emp__meta {
+    gap: 8px;
+    font-size: var(--fs-xs);
+  }
+  .consequence-modal__eyebrow {
+    display: block;
+    color: var(--ink-soft);
+    font: 800 var(--fs-2xs) / 1.2 var(--font-body);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .consequence-modal__choice {
+    margin: 2px 0 0;
+    font-style: italic;
+  }
+  .consequence-modal .consequence-reactions {
+    display: grid;
+    gap: 6px;
+    margin: 0 0 10px;
+    padding: 0;
+    background: none;
+  }
+  .consequence-modal .consequence-reaction {
+    display: block;
+    margin: 0;
+    padding: 7px 10px 8px;
+    color: var(--ink-strong);
+    background: var(--paper-bg-bright);
+    border: 2px solid var(--paper-line);
+    border-radius: 12px 12px 12px 3px;
+    font: italic 600 var(--fs-sm) / 1.4 var(--font-body);
+  }
+  .consequence-notes {
+    display: grid;
+    gap: 4px;
+    margin-top: 8px;
+  }
+  .consequence-note {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    color: var(--ink-body);
+    font: 700 var(--fs-xs) / 1.35 var(--font-body);
+  }
+  .consequence-note--motion {
+    color: #6b4a1c;
+  }
+  .consequence-note--memory {
+    color: #2c5f8f;
+  }
+
+  /* ---- the curiosity log: bonus finds, open leads and the file ---------------- */
+  .curiosity.is-bonus .curiosity__card {
+    background: #fff8e2;
+    border-color: #e8c867;
+  }
+  .curiosity__bonus {
+    flex: none;
+    padding: 1px 6px;
+    color: #7a4f00;
+    background: #ffe9a8;
+    border-radius: 6px;
+    font: 800 var(--fs-2xs) / 1.3 var(--font-body);
+    font-style: normal;
+    white-space: nowrap;
+  }
+  /* A blank a lead points at: still blank, only marked. */
+  .curiosity.is-locked.is-pointed {
+    color: #7a5200;
+    background: #fff3c4;
+    border-color: #d9a520;
+  }
+  /* The clues the player is holding, at the head of the board. */
+  .curiosity-leads {
+    display: grid;
+    gap: 5px;
+    padding: 8px 10px 9px;
+    background: #fff8e2;
+    border: 2px dashed #e0c070;
+    border-radius: 6px 12px 12px 6px;
+  }
+  .curiosity-leads h4 {
+    margin: 0;
+    color: #6b4a1c;
+    font: 800 var(--fs-2xs) / 1.2 var(--font-body);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .curiosity-leads ul {
+    display: grid;
+    gap: 4px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .curiosity-lead {
+    display: grid;
+    grid-template-columns: 14px minmax(0, 1fr);
+    gap: 1px 6px;
+    width: 100%;
+    min-height: 30px;
+    padding: 4px 6px;
+    color: var(--ink-strong);
+    background: transparent;
+    border: 0;
+    border-radius: 6px;
+    text-align: left;
+    cursor: pointer;
+  }
+  .curiosity-lead:hover,
+  .curiosity-lead[aria-expanded='true'] {
+    background: rgb(255 255 255 / 0.6);
+  }
+  .curiosity-lead > svg {
+    margin-top: 3px;
+    color: #7a5200;
+  }
+  .curiosity-lead__text {
+    font: italic 700 var(--fs-xs) / 1.35 var(--font-body);
+  }
+  .curiosity-lead__from {
+    grid-column: 2;
+    color: var(--ink-soft);
+    font: 700 var(--fs-2xs) / 1.3 var(--font-body);
+  }
+  /* A curiosity picked up: the thing itself, where and when, and its threads. */
+  .curiosity-file {
+    display: grid;
+    gap: 6px;
+    margin-top: 2px;
+    padding: 9px 11px 10px 13px;
+    color: var(--ink-strong);
+    background: #f7efdc;
+    border: 1px solid #b8a582;
+    border-left: 5px double #b8a582;
+    border-radius: 3px 8px 8px 3px;
+    box-shadow: 0 2px 3px rgb(56 41 20 / 0.12);
+    animation: file-in 180ms var(--ease) both;
+  }
+  @keyframes file-in {
+    from {
+      opacity: 0;
+      translate: 0 -3px;
+    }
+  }
+  .curiosity-file__head {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .curiosity-file__head h5 {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    font: 800 var(--fs-sm) / 1.25 var(--font-body);
+  }
+  .curiosity-file__glyph {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    color: var(--ink-body);
+    background: var(--paper-bg-bright);
+    border: 1.5px solid #b8a582;
+    border-radius: 50%;
+  }
+  .curiosity-file__close {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    margin: -5px -6px -5px 0;
+    color: var(--ink-body);
+    background: transparent;
+    border: 0;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  .curiosity-file__close:hover {
+    background: rgb(74 47 25 / 0.08);
+  }
+  .curiosity-file__hint {
+    margin: 0;
+    color: var(--ink-soft);
+    font: italic 600 var(--fs-xs) / 1.35 var(--font-body);
+  }
+  .curiosity-file__found {
+    margin: 0;
+    padding: 6px 9px;
+    color: var(--ink-strong);
+    background: var(--paper-bg-bright);
+    border-left: 3px solid #b8a582;
+    font: 700 var(--fs-sm) / 1.45 var(--font-body);
+  }
+  /* One grid for every fact, so the labels and what they say line up. */
+  .curiosity-file__facts {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    align-items: baseline;
+    gap: 3px 10px;
+    margin: 0;
+  }
+  .curiosity-file__facts > div {
+    display: contents;
+  }
+  .curiosity-file__facts dt {
+    grid-column: 1;
+    color: var(--ink-soft);
+    font: 800 var(--fs-2xs) / 1.3 var(--font-body);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .curiosity-file__facts dd {
+    grid-column: 2;
+    margin: 0;
+    color: var(--ink-body);
+    font: 700 var(--fs-xs) / 1.35 var(--font-body);
+  }
+  .curiosity-file__open {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+    color: #7a5200 !important;
+    font-style: italic !important;
+  }
+  .curiosity-file__open > svg {
+    flex: none;
+    translate: 0 1px;
+  }
+  .curiosity-file__note {
+    margin: 0;
+    color: #6b4a1c;
+    font: italic 700 var(--fs-2xs) / 1.35 var(--font-body);
+  }
+  .secret-file .secret-file__from {
+    margin: 6px 0 0;
+    color: #6c5877;
+    font: italic 700 0.75rem / 1.35 var(--font-body);
+  }
+  [data-high-contrast='true'] :is(.curiosity-file, .curiosity-leads, .curiosity__card) {
+    color: #000;
+    background: #fff;
+    border-color: #000;
+  }
+  [data-high-contrast='true']
+    :is(.curiosity-file__open, .curiosity-file__note, .curiosity-lead__from) {
+    color: #000 !important;
+  }
+}

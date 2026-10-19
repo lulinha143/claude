@@ -104,7 +104,10 @@ describe('save migration v4 -> v5 (emotions)', () => {
       version: 4,
       employees: { pip: { hired: true, level: 1, friendship: 20, room: null, x: 0.2 } },
     };
-    const migrated = migrate(raw) as { version: number; employees: Record<string, { emotion: unknown }> };
+    const migrated = migrate(raw) as {
+      version: number;
+      employees: Record<string, { emotion: unknown }>;
+    };
     // migrate() runs the full chain up to the current save version; the v4->v5
     // step must still default emotion to null regardless of later migrations.
     expect(migrated.version).toBe(SAVE_VERSION);

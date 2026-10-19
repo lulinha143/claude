@@ -51,6 +51,11 @@ export type IconName =
   | 'hidden'
   | 'close'
   | 'back'
+  | 'up'
+  | 'down'
+  | 'home'
+  | 'layerFront'
+  | 'layerBack'
   | 'undo'
   | 'redo'
   | 'menu'
@@ -339,6 +344,30 @@ const PATHS: Record<IconName, JSX.Element> = {
   ),
   close: <path d="M6 6l12 12M18 6 6 18" strokeWidth="2" />,
   back: <path d="M15 5l-7 7 7 7" strokeWidth="2" />,
+  up: <path d="M5 15l7-7 7 7" strokeWidth="2.2" />,
+  down: <path d="M5 9l7 7 7-7" strokeWidth="2.2" />,
+  home: (
+    <>
+      <path d="M4 11.5 12 5l8 6.5" strokeWidth="2" />
+      <path d="M6.5 10v9h11v-9" />
+      <path d="M10.5 19v-4.5h3V19" />
+    </>
+  ),
+  // A piece in front of / behind a little teammate.
+  layerFront: (
+    <>
+      <circle cx="8.5" cy="6.5" r="2.6" />
+      <path d="M3.5 16.5a5 5 0 0 1 10 0" />
+      <rect x="10.5" y="10.5" width="10" height="9.5" rx="1.6" />
+    </>
+  ),
+  layerBack: (
+    <>
+      <rect x="10" y="3.5" width="10" height="9.5" rx="1.6" strokeDasharray="2.2 1.8" />
+      <circle cx="8.5" cy="10" r="2.6" />
+      <path d="M3.5 20a5 5 0 0 1 10 0" />
+    </>
+  ),
   undo: (
     <>
       <path d="M9 7 4 12l5 5" />

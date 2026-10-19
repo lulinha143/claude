@@ -118,6 +118,29 @@ export const EMPLOYEE_SPRITES: Record<string, EmployeeSpriteConfig> = Object.fro
   }),
 );
 
+// ---- one presentation scale for the whole cast --------------------------------
+//
+// `officeHeight` already draws every animal's visible figure at Pip's height (the
+// figure metrics fold each canvas's padding in), so the cast stays matched as long
+// as everybody is multiplied by the SAME number. A close-up (the visit) therefore
+// picks one scale for the space it has and applies it to all of them. Two limits
+// keep it honest: the tallest canvas must fit the space, and no cast member's
+// densest build may be enlarged, so the ceiling is the least dense one's ratio.
+
+const CAST = Object.values(EMPLOYEE_SPRITES);
+
+/** The tallest office canvas in the cast: if it fits, everyone fits. */
+export const CAST_TALLEST_OFFICE_HEIGHT = Math.max(...CAST.map((s) => s.officeHeight));
+
+/** The largest scale at which no cast member's densest build is drawn enlarged. */
+export const CAST_SCALE_CEILING = Math.min(...CAST.map((s) => s.srcHeight / s.officeHeight));
+
+/** One scale for every teammate, fitting `space` px of height (never enlarged art). */
+export function castScaleFor(space: number): number {
+  if (!Number.isFinite(space) || space <= 0) return 1;
+  return Math.max(0.6, Math.min(CAST_SCALE_CEILING, space / CAST_TALLEST_OFFICE_HEIGHT));
+}
+
 export function employeeSprite(id: string): EmployeeSpriteConfig | undefined {
   // Resolved through the registry so a development art override takes effect
   // everywhere at once.

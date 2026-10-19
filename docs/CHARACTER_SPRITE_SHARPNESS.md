@@ -7,6 +7,13 @@ packaged Electron application than in the development browser.
 > `1.000x` for all 22 characters, measured **+22.4% mean acutance**, with no halo
 > regression. See [The fix (done)](#the-fix-done). The two sections below describe the
 > defect as it was found, and are kept because the cause is easy to reintroduce.
+>
+> **Update — the cast is now 23.** The bear (`bia`) landed after the numbers below were
+> measured and went through the same pipeline, so the figures in this document describe
+> the 22 characters that existed at the time and are left exactly as measured. The bear
+> was verified the same way and reaches the same result: `1.000x` at DPR 1, halo
+> peak-to-peak 3.3/255 at `@1x`. `scripts/check-sprite-resampling.mjs` now reports
+> `DPR1 is pixel-exact for the whole cast` across all 23.
 
 ## Finding: every character was upscaled, on every display
 
@@ -118,8 +125,9 @@ no character's halo peak-to-peak regressed.**
    re-encode is the **shipped `@2x` build**, which for Pip _is_ the hand-repaired one
    — so the repair is inherited rather than risked. That also means no master had to
    be fetched: the masters are gitignored (~1.3 GB) and absent from a checkout.
-   `npm run verify:assets` re-checks halo temporal stability on all 22 new assets and
-   passes; Pip measures 5.0/255 peak-to-peak, far below the raw master's 16.95.
+   `npm run verify:assets` re-checks halo temporal stability on every shipped asset
+   (22 then, 23 now) and passes; Pip measures 5.0/255 peak-to-peak, far below the raw
+   master's 16.95.
 
 ### What this costs, stated plainly
 
@@ -171,9 +179,16 @@ Then verify:
 
 ```bash
 node scripts/check-sprite-resampling.mjs         # DPR1 must be 1.000x for everybody
-node scripts/verify-assets.mjs                   # halo temporal stability, all 22 @1x
+node scripts/verify-assets.mjs                   # halo temporal stability, every @1x
 python3 scripts/compare-sprite-sharpness.py      # acutance vs the previous pipeline
+python3 scripts/shot-cast-scale.py               # the cast on one floor line, vs Pip
 ```
+
+`shot-cast-scale.py` is the visual counterpart to the numbers: it draws every animal at
+the exact height the game renders it, on a shared floor line, with guide lines at Pip's
+figure top and bottom. Measure the **union** silhouette across the whole loop, which is
+what it does — a single mid-loop frame reported the bear 9.9% short and 10px airborne
+purely because its soft contact shadow only reaches full extent in a few frames.
 
 Provenance for every input and output, with SHA-256s, is written to
 `assets/sources/characters/reencode-report.json`. Only `<asset>-1x.png` is ever

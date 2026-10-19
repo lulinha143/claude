@@ -1,0 +1,935 @@
+/* ==========================================================================
+   Game layer — the world: a tree-trunk tower of floors in front of the sky.
+
+   Small windows: the trunk fills the width, ~3 floors are visible, the sky is a
+   sliver at the canopy and the roots. Large windows: floors stop at 700px (the
+   scene's reference width, see content/sceneScale.ts), more floors fit
+   vertically, and the extra width becomes sky, hills and branches around the
+   tree — never blank gutters, never a stretched 6:1 strip.
+   ========================================================================== */
+@layer game {
+  .office {
+    --floor-max-w: 700px;
+    --bark-w: clamp(6px, 1.6vw, 16px);
+    --tower-w: calc(var(--floor-max-w) + 2 * var(--bark-w));
+    /* Headroom above the stage: a row for the room's name plaque, and BELOW it the
+       space the mood stickers of teammates at the back of the room rise into
+       (measured: up to 38px above the stage at scale 1, ~29px at companion size,
+       where the sticker size bottoms out). They used to share one band, so a
+       back-row teammate's sticker slid under the plaque. */
+    --floor-top: calc(54px + 12px * var(--asset-scale));
+    position: relative;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+    transition: padding-right var(--dur-slow) var(--ease);
+  }
+  .office__view {
+    position: relative;
+    height: 100%;
+    overflow: hidden;
+    container: office / inline-size;
+  }
+
+  /* ---- the sky: fixed behind the scrolling tree --------------------------------- */
+  .office__sky {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+    background: linear-gradient(
+      180deg,
+      var(--world-sky-top) 0%,
+      var(--world-sky-mid) 55%,
+      var(--world-sky-low) 100%
+    );
+  }
+  .office__cloud {
+    position: absolute;
+    width: 150px;
+    height: 44px;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 30% 60%, var(--world-cloud) 0 18px, transparent 19px),
+      radial-gradient(circle at 55% 40%, var(--world-cloud) 0 24px, transparent 25px),
+      radial-gradient(circle at 78% 62%, var(--world-cloud) 0 16px, transparent 17px),
+      linear-gradient(var(--world-cloud), var(--world-cloud)) center 70% / 70% 40% no-repeat;
+    opacity: 0.9;
+    animation: cloud-drift 90s linear infinite;
+  }
+  .office__cloud--1 {
+    top: 9%;
+    left: 6%;
+  }
+  .office__cloud--2 {
+    top: 34%;
+    right: 4%;
+    transform: scale(0.7);
+    animation-duration: 120s;
+    animation-direction: reverse;
+  }
+  .office__cloud--3 {
+    top: 62%;
+    left: 12%;
+    transform: scale(0.55);
+    animation-duration: 150s;
+  }
+  @keyframes cloud-drift {
+    50% {
+      translate: 40px 0;
+    }
+  }
+  .office__hills {
+    position: absolute;
+    left: -10%;
+    right: -10%;
+    bottom: 0;
+    height: 18%;
+    background:
+      radial-gradient(ellipse 38% 90% at 22% 100%, var(--world-hill-far) 98%, transparent 100%),
+      radial-gradient(ellipse 44% 80% at 78% 100%, var(--world-hill-far) 98%, transparent 100%),
+      radial-gradient(ellipse 60% 55% at 50% 100%, var(--world-hill-near) 98%, transparent 100%);
+    opacity: 0.85;
+  }
+  [data-ambient='off'] .office__cloud,
+  [data-reduced-motion='true'] .office__cloud {
+    animation: none;
+  }
+  /* Wide windows see further: a far tree line along the hills and a second, paler
+     ridge, so the extra width is countryside around the company, not blank sky. */
+  .office__sky::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 14%;
+    height: 9%;
+    background:
+      radial-gradient(ellipse 22px 26px at 12px 100%, var(--world-leaf-deep) 98%, transparent) 0
+        100% / 46px 100% repeat-x,
+      radial-gradient(ellipse 30px 34px at 30px 100%, var(--world-leaf) 98%, transparent) 18px
+        100% / 78px 100% repeat-x;
+    opacity: 0.32;
+    display: none;
+  }
+  .office__sky::before {
+    content: '';
+    position: absolute;
+    left: -5%;
+    right: -5%;
+    bottom: 10%;
+    height: 22%;
+    background:
+      radial-gradient(ellipse 30% 70% at 14% 100%, var(--world-hill-far) 97%, transparent 100%),
+      radial-gradient(ellipse 34% 60% at 86% 100%, var(--world-hill-far) 97%, transparent 100%);
+    opacity: 0.45;
+    display: none;
+  }
+  @container office (min-width: 820px) {
+    .office__sky::before,
+    .office__sky::after {
+      display: block;
+    }
+  }
+  /* A warm late-morning sun behind the clouds. */
+  .office__sun {
+    position: absolute;
+    top: -90px;
+    left: -60px;
+    width: 340px;
+    height: 340px;
+    border-radius: 50%;
+    background: radial-gradient(
+      circle,
+      rgb(255 246 214 / 0.95) 0 16%,
+      rgb(255 236 186 / 0.45) 30%,
+      transparent 68%
+    );
+    display: none;
+  }
+  /* Nutshell's observation balloon: a small envelope in company walnut with a
+     basket and a camera lens peering down at the office. Wide windows only, a
+     slow drift, still under reduced motion. */
+  .office__balloon {
+    position: absolute;
+    top: 13%;
+    right: 12%;
+    width: 46px;
+    height: 54px;
+    border-radius: 50% 50% 46% 46% / 56% 56% 44% 44%;
+    background:
+      linear-gradient(90deg, transparent 44%, rgb(255 250 240 / 0.5) 44% 56%, transparent 56%),
+      radial-gradient(circle at 34% 30%, var(--c-walnut-400), var(--c-walnut-600) 70%);
+    box-shadow: inset -4px -6px 0 rgb(46 29 16 / 0.18);
+    display: none;
+    animation: balloon-drift 70s ease-in-out infinite alternate;
+  }
+  .office__balloon::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 100%;
+    width: 18px;
+    height: 12px;
+    border-left: 1px solid var(--c-walnut-800);
+    border-right: 1px solid var(--c-walnut-800);
+    transform: translateX(-50%);
+  }
+  .office__balloon-basket {
+    position: absolute;
+    left: 50%;
+    top: calc(100% + 11px);
+    width: 16px;
+    height: 10px;
+    background: var(--c-walnut-700);
+    border-radius: 2px 2px 4px 4px;
+    transform: translateX(-50%);
+  }
+  .office__balloon-basket::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 7px;
+    width: 7px;
+    height: 7px;
+    background: radial-gradient(circle at 40% 40%, #cfe4ea 0 22%, #2f3640 30%);
+    border: 1px solid var(--c-walnut-900);
+    border-radius: 50%;
+    transform: translateX(-50%);
+  }
+  @keyframes balloon-drift {
+    from {
+      translate: 0 0;
+    }
+    to {
+      translate: -120px 18px;
+    }
+  }
+  [data-ambient='off'] .office__balloon,
+  [data-reduced-motion='true'] .office__balloon {
+    animation: none;
+  }
+  @container office (min-width: 820px) {
+    .office__sun {
+      display: block;
+    }
+  }
+  @container office (min-width: 1100px) {
+    .office__balloon {
+      display: block;
+    }
+    /* More sky, bigger weather. */
+    .office__cloud--1 {
+      scale: 1.35;
+    }
+    .office__cloud--2 {
+      scale: 1.15;
+    }
+  }
+
+  /* ---- the scroller and the tower ---------------------------------------------- */
+  /* The meadow strip in front of the tree: a fixed band at the foot of the view
+     where the office's notes (the goal tag, a suggestion) and — on narrow windows —
+     the scene controls are pinned. The tower's scroller stops above it, so a note
+     never covers a room's desks, people or crate at any scroll position. */
+  /* As tall as the tallest note it holds (a two-line suggestion, or a goal whose
+     name wraps beside its Buy button) so neither ever reaches into a room. */
+  .office {
+    --note-room: 64px;
+  }
+  .office.office--decorating {
+    --note-room: 0px;
+  }
+  /* The lawn itself. Its top edge is a row of soft grass mounds in the meadow's own
+     colour: invisible where the tree stands on the ground (no seam), a foreground
+     verge when the tower is scrolled up behind it. */
+  .office__view::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+    height: calc(var(--note-room) + 7px);
+    background:
+      radial-gradient(9px 7px at 50% 100%, var(--world-hill-near) 96%, transparent) 0 0 / 22px 7px
+        repeat-x,
+      linear-gradient(
+        180deg,
+        transparent 0 7px,
+        var(--world-hill-near) 7px,
+        var(--world-hill-near) calc(100% - 14px),
+        var(--world-ground) 0,
+        var(--world-ground) calc(100% - 6px),
+        var(--c-walnut-600) 0
+      );
+    pointer-events: none;
+  }
+  .office--decorating .office__view::after {
+    display: none;
+  }
+  .office__world {
+    --base-h: clamp(40px, 7vw, 72px);
+    position: absolute;
+    inset: 0 0 var(--note-room);
+    z-index: 1;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--c-walnut-500) transparent;
+    /* The meadow the tree stands in: painted on the scroller itself and attached to
+       its CONTENT (local), so it sits at the foot of the tower across the whole
+       width without any element widening the scrollable area. It runs on into the
+       fixed strip below without a seam. */
+    background: linear-gradient(
+        180deg,
+        transparent calc(100% - var(--base-h) * 0.52),
+        var(--world-hill-near) 0
+      )
+      local;
+  }
+  /* A young company is a short tree: it still stands on the ground at the bottom
+     of the view, with sky above, instead of floating at the top. */
+  .office__tower {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    width: min(100%, var(--tower-w));
+    min-height: 100%;
+    margin: 0 auto;
+    padding-top: 8px;
+  }
+
+  /* ---- canopy, branches and roots (TreeWorld.tsx) ------------------------------- */
+  /* Nothing decorative may widen the scroller: every part of the tree fits inside
+     the office's width (checked by shell-layout.spec). */
+  .tree-canopy {
+    position: relative;
+    z-index: 2;
+    display: block;
+    width: 100%;
+    height: clamp(44px, 11vw, 120px);
+    margin: 0 0 -18px;
+    pointer-events: none;
+  }
+  /* The company's rooftop sign: a walnut board on two posts that sink into the
+     leaves, the player's own company name on it and the department typed on a
+     paper label. Behind the canopy, so the posts disappear into the crown. */
+  .company-sign {
+    position: relative;
+    z-index: 1;
+    align-self: center;
+    display: grid;
+    justify-items: center;
+    max-width: calc(100% - 24px);
+    margin: 0 auto calc(-14px - 2px * var(--asset-scale));
+    padding-bottom: 16px;
+    pointer-events: none;
+  }
+  .company-sign__post {
+    position: absolute;
+    bottom: 0;
+    width: 5px;
+    height: 26px;
+    background: linear-gradient(90deg, var(--trunk-bark-deep), var(--trunk-bark));
+    border-radius: 2px;
+  }
+  .company-sign__post--left {
+    left: 24%;
+  }
+  .company-sign__post--right {
+    right: 24%;
+  }
+  .company-sign__board {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+    min-width: 0;
+    max-width: 100%;
+    padding: 4px 14px 5px;
+    color: var(--c-paper-50);
+    background: var(--frame-grain), var(--c-walnut-700);
+    border: 2px solid var(--c-walnut-900);
+    border-radius: 8px;
+    box-shadow:
+      inset 0 1px 0 rgb(255 250 240 / 0.14),
+      0 3px 0 var(--c-walnut-900),
+      0 8px 14px rgb(46 29 16 / 0.22);
+    pointer-events: auto;
+    cursor: pointer;
+    transition: transform var(--dur) var(--ease-pop);
+  }
+  .company-sign__board:hover {
+    transform: translateY(-2px) rotate(-0.6deg);
+  }
+  .company-sign__name {
+    max-width: 100%;
+    overflow: hidden;
+    font: 600 clamp(14px, 0.9vw + 11px, 21px) / 1.1 var(--font-display);
+    letter-spacing: 0.01em;
+    text-shadow: 0 2px 0 rgb(0 0 0 / 0.28);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .company-sign__dept {
+    max-width: 100%;
+    padding: 1px 7px;
+    overflow: hidden;
+    color: var(--ink-body);
+    background: var(--paper-bg-bright);
+    border-radius: 3px;
+    box-shadow: 0 1px 0 rgb(46 29 16 / 0.3);
+    font: 800 var(--fs-min) / 1.25 var(--font-body);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  [data-high-contrast='true'] .company-sign__board {
+    color: #fff;
+    background: #000;
+    border-color: #fff;
+  }
+  /* Short windows: the sign is nailed onto the front of the crown instead of
+     standing on it, so it costs the office no height at all. */
+  @media (max-height: 560px) {
+    .company-sign {
+      z-index: 3;
+      margin-bottom: calc(-1 * clamp(44px, 11vw, 120px) + 6px);
+      padding-bottom: 0;
+    }
+    .company-sign__post {
+      display: none;
+    }
+    .company-sign__board {
+      padding: 2px 10px 3px;
+    }
+    .company-sign__dept {
+      display: none;
+    }
+  }
+  .tree-branch {
+    position: absolute;
+    z-index: 0;
+    /* As long as the sky beside the trunk allows, up to 230px. */
+    width: clamp(0px, calc((100cqw - var(--tower-w)) / 2 + 4px), 230px);
+    height: 120px;
+    pointer-events: none;
+  }
+  @container office (min-width: 800px) {
+    .tree-canopy {
+      width: calc(100% + 40px);
+      margin-inline: -20px;
+    }
+    .tree-base {
+      margin-inline: -34px;
+    }
+  }
+  .tree-branch--left {
+    right: calc(100% - 6px);
+  }
+  .tree-branch--right {
+    left: calc(100% - 6px);
+    transform: scaleX(-1);
+  }
+  .tree-base {
+    position: relative;
+    z-index: 0;
+    flex: 0 0 auto;
+    height: var(--base-h);
+    margin: -4px 0 0;
+    pointer-events: none;
+  }
+  .tree-roots {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .tree-leaf {
+    fill: var(--world-leaf);
+  }
+  .tree-leaf--light {
+    fill: var(--world-leaf-light);
+  }
+  .tree-leaf--deep {
+    fill: var(--world-leaf-deep);
+  }
+  .tree-bark {
+    fill: var(--trunk-bark);
+  }
+  .tree-bark--deep {
+    fill: var(--trunk-bark-deep);
+  }
+  .tree-bark-line {
+    fill: none;
+    stroke: var(--trunk-bark-deep);
+    stroke-linecap: round;
+  }
+  /* Branches only where there is sky to hold them. */
+  @container office (max-width: 820px) {
+    .tree-branch {
+      display: none;
+    }
+  }
+
+  /* ---- the trunk: bark around the floors -------------------------------------- */
+  .office__trunk {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px var(--bark-w) 14px;
+    background:
+      repeating-linear-gradient(
+        90deg,
+        transparent 0 13px,
+        rgb(46 29 16 / 0.28) 13px 15px,
+        transparent 15px 31px,
+        rgb(255 250 240 / 0.06) 31px 33px,
+        transparent 33px 47px
+      ),
+      linear-gradient(
+        90deg,
+        var(--trunk-bark-deep),
+        var(--trunk-bark) 18%,
+        var(--trunk-bark-light) 50%,
+        var(--trunk-bark) 82%,
+        var(--trunk-bark-deep)
+      );
+    border-radius: 18px 18px 10px 10px;
+    box-shadow:
+      inset 0 0 0 2px rgb(46 29 16 / 0.35),
+      0 6px 18px rgb(46 29 16 / 0.25);
+  }
+  .office--decorating .office__world {
+    padding-bottom: min(190px, 40%);
+  }
+  /* Arranging: the tray covers the foot of the view, so the soil is drawn by the
+     scroller itself again under the roots. */
+  .office--decorating .office__world {
+    background: linear-gradient(
+        180deg,
+        transparent calc(100% - var(--base-h) * 0.52),
+        var(--world-hill-near) 0,
+        var(--world-hill-near) calc(100% - var(--base-h) * 0.52 + 10px),
+        var(--world-ground) 0,
+        var(--world-ground) calc(100% - var(--base-h) * 0.52 + 22px),
+        var(--c-walnut-600) 0
+      )
+      local;
+  }
+
+  /* ---- a floor: one room of the company --------------------------------------- */
+  .floor {
+    --dept: var(--dept-founder);
+    /* Must equal FLOOR_BAND_PX in content/roomLayout.ts (40 × presence). */
+    --floor-h: calc(40px * var(--character-presence) * var(--asset-scale));
+    position: relative;
+    isolation: isolate;
+    padding: var(--floor-top) 8px 6px;
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--dept) 24%, var(--c-paper-150)) 0%,
+      color-mix(in srgb, var(--dept) 10%, var(--c-paper-150)) 42%,
+      var(--c-paper-250) calc(100% - var(--floor-h))
+    );
+    border: 3px solid var(--c-walnut-800);
+    border-radius: 12px;
+    box-shadow:
+      inset 0 3px 0 rgb(255 250 240 / 0.35),
+      0 3px 0 var(--c-walnut-900);
+    overflow: hidden;
+    /* A leave-open game: floors scrolled out of view skip rendering entirely,
+       so their animated artwork costs nothing while nobody is looking. A skipped
+       floor keeps the size it has when drawn. contain-intrinsic-size is the CONTENT
+       box (padding and borders come on top), and a floor's content is its stage, so
+       it is the stage's own height (.floor__stage), at the current scale: no
+       remembered size, which goes stale when the window is resized. It used to be
+       the whole floor's height, so every floor not yet drawn was 78 px too tall at
+       1280 px (and 72 px at 320 px); the tower shrank under a still pointer as
+       floors were first drawn, and a hovered keepsake slid away. */
+    content-visibility: auto;
+    contain-intrinsic-size: calc(118px * var(--asset-scale) * var(--character-presence));
+  }
+  .floor__header {
+    position: absolute;
+    top: 5px;
+    left: 8px;
+    right: 8px;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    min-width: 0;
+    height: 22px;
+    pointer-events: none;
+  }
+  .floor__header > * {
+    pointer-events: auto;
+  }
+  .floor__label {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+    max-width: 62%;
+    height: 21px;
+    padding: 0 9px;
+    color: var(--c-paper-50);
+    background: var(--c-walnut-700);
+    border: 2px solid var(--c-walnut-900);
+    border-radius: 7px;
+    box-shadow: 0 2px 0 rgb(46 29 16 / 0.35);
+    /* DynaPuff's heavy cut mis-spaces letters at label size ("Nozes" rasterised
+       as "Noz es" at 11px/700); the medium cut at 12px stays even. */
+    font: 500 12px/1 var(--font-display);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .floor__people {
+    display: none;
+    gap: 2px;
+    min-width: 0;
+    overflow: hidden;
+  }
+  .floor__people button {
+    padding: 1px 6px;
+    color: var(--ink-body);
+    background: rgb(255 250 240 / 0.7);
+    border: 1px solid var(--paper-line);
+    border-radius: 7px;
+    font: 700 11px/1.3 var(--font-body);
+    cursor: pointer;
+  }
+  .floor__people button:hover {
+    background: var(--paper-bg-bright);
+  }
+  .floor__activity,
+  .floor__discovery {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 46%;
+    height: 21px;
+    margin-left: auto;
+    padding: 0 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--action-ink);
+    background: var(--action-bg);
+    border: 2px solid var(--action-edge);
+    border-radius: 7px;
+    box-shadow: 0 2px 0 var(--action-edge);
+    font: 800 11px/1 var(--font-body);
+    cursor: pointer;
+  }
+  .floor__discovery {
+    color: var(--c-paper-50);
+    background: var(--c-sky-700);
+    border-color: var(--c-walnut-900);
+    box-shadow: 0 2px 0 var(--c-walnut-900);
+    /* A glow, not a wobble: the button must hold still to be easy to hit. */
+    animation: discovery-glow 2.4s ease-in-out infinite;
+  }
+  @keyframes discovery-glow {
+    50% {
+      box-shadow:
+        0 2px 0 var(--c-walnut-900),
+        0 0 0 4px color-mix(in srgb, var(--c-sky-300) 70%, transparent);
+    }
+  }
+  .floor__activity + .floor__discovery {
+    margin-left: 0;
+  }
+  .floor__status {
+    display: none;
+    gap: 3px;
+    margin-left: auto;
+  }
+  .floor__activity ~ .floor__status,
+  .floor__discovery ~ .floor__status {
+    margin-left: 0;
+  }
+  .floor__stat {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    height: 20px;
+    padding: 0 6px;
+    color: var(--ink-body);
+    background: rgb(255 250 240 / 0.8);
+    border: 1px solid var(--paper-line);
+    border-radius: 7px;
+    font: 800 11px/1 var(--font-body);
+  }
+  @container office (min-width: 560px) {
+    .floor__people,
+    .floor__status {
+      display: flex;
+    }
+    .floor__people {
+      margin-left: 4px;
+    }
+    .floor__label {
+      max-width: 42%;
+      font-size: 12px;
+    }
+  }
+  /* The next room, still under construction, caps the tower. */
+  .floor--locked {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-height: 0;
+    padding: 6px 10px;
+    color: var(--c-paper-150);
+    background: repeating-linear-gradient(
+      -45deg,
+      var(--c-walnut-700) 0 10px,
+      var(--c-walnut-800) 10px 20px
+    );
+    border-style: dashed;
+    content-visibility: visible;
+  }
+  .floor--locked .floor__label {
+    position: static;
+    flex: 0 1 auto;
+    max-width: 66%;
+    background: var(--c-walnut-900);
+  }
+  .floor__construction {
+    font: 800 11px/1.2 var(--font-body);
+    color: var(--c-acorn-200);
+    white-space: nowrap;
+  }
+
+  /* ---- scene controls: elevator + arrange, pinned beside the tree ------------- */
+  .scene-controls {
+    position: absolute;
+    z-index: 25;
+    top: 50%;
+    right: max(3px, calc((100% - var(--tower-w)) / 2 - 56px));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    transform: translateY(-50%);
+  }
+  .app--sheet-open .scene-controls {
+    right: auto;
+    left: max(3px, calc((100% - var(--tower-w)) / 2 - 56px));
+  }
+  /* Until there is real sky beside the tree, the controls sit in the meadow strip
+     at its foot, in a row beside the notes, so they never cover a room's crate or
+     people. */
+  @container office (max-width: 999px) {
+    .office:not(.office--decorating) .scene-controls {
+      top: auto;
+      right: 8px;
+      bottom: 9px;
+      flex-direction: row;
+      align-items: flex-end;
+      transform: none;
+    }
+    .office:not(.office--decorating) .elevator {
+      flex-direction: row;
+    }
+    .office:not(.office--decorating) .elevator__floors {
+      top: auto;
+      left: auto;
+      right: 0;
+      bottom: calc(100% + 8px);
+      transform: none;
+    }
+    /* A side sheet covers the right of a medium window: the controls move to the
+       top-left corner of the office part that is still showing. */
+    .app--sheet-open .office:not(.office--decorating) .scene-controls {
+      top: 8px;
+      bottom: auto;
+      left: 8px;
+      right: auto;
+    }
+    .app--sheet-open .office:not(.office--decorating) .elevator__floors {
+      top: calc(100% + 8px);
+      bottom: auto;
+      left: 0;
+      right: auto;
+    }
+  }
+  /* The companion window keeps the floor list (with its news dot) and drops the
+     step arrows: the tower scrolls under a wheel or a finger anyway. */
+  @container office (max-width: 559px) {
+    .office:not(.office--decorating) .elevator__step {
+      display: none;
+    }
+  }
+  /* Notes and controls share the meadow strip on narrow windows. */
+  @container app (max-width: 999px) {
+    .app__stage:has(.elevator) .stage-notes {
+      max-width: min(calc(100% - 158px), 340px);
+    }
+    .app__stage:not(:has(.elevator)) .stage-notes {
+      max-width: min(calc(100% - 66px), 340px);
+    }
+  }
+  @container app (max-width: 559px) {
+    .app__stage:has(.elevator) .stage-notes {
+      max-width: min(calc(100% - 104px), 340px);
+    }
+  }
+  /* With sky beside the tree, the controls hang in it next to the home floor —
+     entirely outside the trunk, so they never sit on a room — rather than floating
+     mid-sky beside a young, short tree. With a side sheet open they move to the
+     tree's other side, away from the sheet. */
+  @container office (min-width: 1000px) {
+    .office:not(.office--decorating) .scene-controls {
+      top: auto;
+      right: auto;
+      left: calc((100% + var(--tower-w)) / 2 + 10px);
+      bottom: calc(var(--note-room) + var(--base-h, 72px) + 20px);
+      align-items: flex-start;
+      transform: none;
+    }
+    .app--sheet-open .office:not(.office--decorating) .scene-controls {
+      left: auto;
+      right: calc((100% + var(--tower-w)) / 2 + 10px);
+      align-items: flex-end;
+    }
+  }
+  .elevator,
+  .scene-controls__arrange {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 3px;
+    background: var(--frame-grain), var(--frame-bg);
+    border: 2px solid var(--frame-edge);
+    border-radius: 12px;
+    box-shadow: var(--lift-shadow);
+  }
+  .scene-btn {
+    display: grid;
+    grid-auto-flow: column;
+    place-items: center;
+    gap: 5px;
+    min-width: 30px;
+    height: 30px;
+    padding: 0;
+    color: var(--frame-text);
+    background: rgb(255 250 240 / 0.08);
+    border: 1px solid rgb(255 250 240 / 0.14);
+    border-radius: 9px;
+    cursor: pointer;
+  }
+  .scene-btn:hover:not(:disabled) {
+    background: rgb(255 250 240 / 0.18);
+  }
+  .scene-btn:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+  .scene-btn.is-on {
+    color: var(--ink-strong);
+    background: var(--paper-bg);
+    border-color: var(--sticker-edge);
+  }
+  .scene-btn__label {
+    display: none;
+    font: 800 12px/1 var(--font-body);
+  }
+  @container office (min-width: 900px) {
+    .scene-btn {
+      min-width: 34px;
+      height: 34px;
+    }
+    .scene-btn--arrange {
+      padding: 0 10px;
+    }
+    .scene-btn--arrange .scene-btn__label {
+      display: inline;
+    }
+  }
+  .elevator__floors {
+    position: absolute;
+    top: 50%;
+    right: calc(100% + 8px);
+    z-index: 2;
+    width: min(230px, 70vw);
+    max-height: min(340px, 70vh);
+    margin: 0;
+    padding: 5px;
+    overflow-y: auto;
+    list-style: none;
+    background: var(--paper-bg-bright);
+    border: 2px solid var(--paper-line);
+    border-radius: 12px;
+    box-shadow: var(--lift-shadow);
+    transform: translateY(-50%);
+  }
+  .app--sheet-open .elevator__floors {
+    right: auto;
+    left: calc(100% + 8px);
+  }
+  .elevator__floors button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    width: 100%;
+    padding: 6px 8px;
+    color: var(--ink-strong);
+    background: none;
+    border: 0;
+    border-radius: 8px;
+    font: 700 var(--fs-xs) / 1.25 var(--font-body);
+    text-align: left;
+    cursor: pointer;
+  }
+  .elevator__floors button:hover {
+    background: var(--paper-bg-sunken);
+  }
+  .elevator__floors button.is-here {
+    color: var(--calm-ink);
+    background: var(--calm-bg);
+  }
+  .elevator__floor-people {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    flex: 0 0 auto;
+    font-size: 11px;
+    opacity: 0.85;
+  }
+  .scene-note {
+    position: absolute;
+    right: calc(100% + 8px);
+    bottom: 0;
+    width: 220px;
+    margin: 0;
+    padding: 7px 9px;
+    color: var(--ink-body);
+    background: var(--paper-bg-bright);
+    border: 2px solid var(--paper-line);
+    border-radius: 10px;
+    box-shadow: var(--lift-shadow);
+    font: 600 var(--fs-xs) / 1.35 var(--font-body);
+  }
+  @container office (max-width: 700px) {
+    .scene-note {
+      display: none;
+    }
+  }
+
+  /* The storage tray (rebuilt in Phase 2) sits above the dock, not over it. */
+  .deco-tray {
+    bottom: calc(var(--dock-h) + 8px);
+  }
+}

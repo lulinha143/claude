@@ -14,8 +14,22 @@ describe('number formatting', () => {
     expect(formatNumber(2_000_000_000)).toMatch(/2B/);
   });
 
-  it('handles infinity gracefully', () => {
-    expect(formatNumber(Infinity)).toBe('∞');
+  it('handles infinity and NaN gracefully, in characters the fonts actually have', () => {
+    // The bundled fonts are Latin subsets. This used to return the infinity sign,
+    // which has no glyph and rendered as a tofu box, so an enormous number looked
+    // like a rendering fault. The important property is that whatever comes out is
+    // printable with the shipped fonts, so assert that rather than a specific token.
+    expect(formatNumber(Infinity)).toBe('Inf');
+    expect(formatNumber(-Infinity)).toBe('-Inf');
+    expect(formatNumber(Number.NaN)).toBe('0');
+    for (const value of [Infinity, -Infinity, Number.NaN]) {
+      const out = formatNumber(value);
+      expect(out.length).toBeGreaterThan(0);
+      // Nothing above Latin-1: the same rule tests/glyphSafety.test.ts enforces on source.
+      for (const ch of out) {
+        expect(ch.codePointAt(0)!, `${out} contains a non-Latin-1 character`).toBeLessThan(0x100);
+      }
+    }
   });
 
   it('formats durations', () => {

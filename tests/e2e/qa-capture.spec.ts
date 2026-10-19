@@ -28,7 +28,13 @@ function save() {
     lastSaved: Date.now(),
     createdAt: Date.now() - 900_000,
     company: { name: 'Nutshell Inc.' },
-    resources: { nuts: 5_080_000, goldenNuts: 62, permanentKernels: 0, morale: 73, reputation: 400 },
+    resources: {
+      nuts: 5_080_000,
+      goldenNuts: 62,
+      permanentKernels: 0,
+      morale: 73,
+      reputation: 400,
+    },
     employees,
     upgrades: { 'room-sorting': 1, 'room-lab': 1, 'room-meeting': 1 },
     collections: { nuts: [], outfits: [], logos: ['default'], moments: [], secrets: [] },
@@ -60,7 +66,9 @@ test('a mood bubble belongs to its character, not the ceiling', async ({ page })
   const pairs = await page.locator('.critter-btn--sprite').evaluateAll((els) =>
     els
       .map((el) => {
-        const bubble = el.querySelector('.employee-bubble');
+        const bubble = el.parentElement?.querySelector(
+          `.employee-bubble[data-employee="${(el as HTMLElement).dataset.employee}"]`,
+        );
         if (!bubble) return null;
         const c = el.getBoundingClientRect();
         const b = bubble.getBoundingClientRect();

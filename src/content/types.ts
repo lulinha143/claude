@@ -136,7 +136,26 @@ export interface EventEffect {
     | 'clearFlag'
     | 'schedule' // promise effects that land later
     | 'unlockSecret'
-    | 'collectNut';
+    | 'collectNut'
+    // a teammate turns up in the office holding something for the player
+    | 'find'
+    // Consequences that land back in ordinary play (see content/happenings.ts):
+    // someone says something about it later, when the player is around
+    | 'remark'
+    // a specific event starts happening in the office (a follow-up)
+    | 'incident'
+    // a small moment plays out in the office, no popup
+    | 'moment'
+    // a specific curiosity turns up in its room
+    | 'oddity'
+    // a room's mode is set (the tune routines)
+    | 'roomMode'
+    // a room rushes for a while
+    | 'rush'
+    // everyone working in a room feels something
+    | 'roomMood'
+    // friendship for every hired teammate
+    | 'everyone';
   value?: number;
   durationSeconds?: number;
   employeeId?: string;
@@ -153,6 +172,26 @@ export interface EventEffect {
   scheduleBodyKey?: string;
   /** for `schedule`: the effects to apply then. */
   scheduled?: EventEffect[];
+  /** for `find`: what they say when the player takes it. */
+  findNoteKey?: string;
+  /** for `remark`: the line they will say (and, optionally, not before this many seconds). */
+  lineKey?: string;
+  /** for `incident`: the event that starts happening. */
+  eventId?: string;
+  /** for `moment`: the moment that plays out. */
+  momentId?: string;
+  /** for `oddity`: the curiosity that turns up. */
+  oddityId?: string;
+  /** for `roomMode` / `rush` / `roomMood`: the room. */
+  roomId?: string;
+  /** for `roomMode`: the mode to set. */
+  mode?: string;
+  /**
+   * for `schedule`: settle without announcing it. The consequence shows up in the
+   * world instead (someone says something, something turns up), so it is
+   * discovered rather than explained.
+   */
+  quiet?: boolean;
 }
 
 export interface GameEventDef {
@@ -176,8 +215,27 @@ export interface GameEventDef {
     moraleBelow?: number;
     /** only offer this event while morale is at or above this value. */
     moraleAbove?: number;
+    /** every one of these teammates is on the payroll. */
+    hiredAll?: readonly string[];
+    /** every one of these marks has been left. */
+    flags?: readonly string[];
+    /** someone works in this room. */
+    staffed?: string;
+    /** this room's routine has been done at least this many times. */
+    roomDone?: { room: string; count: number };
+    /** only in the player's evening and night. */
+    night?: boolean;
   };
   employeeId?: string | null;
+  /**
+   * Where in the office it happens. Defaults to the involved teammate's room,
+   * then the required room, then content/happenings.ts's EVENT_PLACES.
+   */
+  room?: string;
+  /** other teammates in it, shown with the presenter. */
+  cast?: readonly string[];
+  /** what the presenter says when it starts happening (defaults by rarity). */
+  hookKey?: string;
   choices: EventChoice[];
   /** true when this event is worth a shareable Moment Card automatically. */
   momentWorthy?: boolean;

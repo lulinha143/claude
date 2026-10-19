@@ -12,7 +12,13 @@ describe('minigames render without throwing', () => {
   it('mounts each mode with the shared illustrated intro and controls', () => {
     for (const mode of ['coffeeRescue', 'bugSquash', 'cableUntangle'] as MicroMode[]) {
       const html = renderToStaticMarkup(
-        <MicroGame mode={mode} seed={123} reducedMotion={false} onReward={() => {}} onClose={() => {}} />,
+        <MicroGame
+          mode={mode}
+          seed={123}
+          reducedMotion={false}
+          onReward={() => {}}
+          onClose={() => {}}
+        />,
       );
       expect(html).toContain('microgame__intro');
       expect(html).toContain(`microgame-emblem--${mode}`);

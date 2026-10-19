@@ -19,13 +19,22 @@ fs.cpSync(path.join(root, 'dist'), path.join(dir, 'dist'), { recursive: true });
 fs.cpSync(path.join(root, 'dist-electron'), path.join(dir, 'dist-electron'), { recursive: true });
 fs.copyFileSync(path.join(root, 'package.json'), path.join(dir, 'package.json'));
 try {
-  fs.symlinkSync(path.join(root, 'node_modules'), path.join(dir, 'node_modules'), 'dir');
+  fs.symlinkSync(
+    path.join(root, 'node_modules'),
+    path.join(dir, 'node_modules'),
+    process.platform === 'win32' ? 'junction' : 'dir',
+  );
 } catch {
   /* symlink may already exist */
 }
 
 const app = await electron.launch({
-  args: ['dist-electron/main.cjs', '--no-sandbox', '--disable-gpu'],
+  args: [
+    'dist-electron/main.cjs',
+    `--user-data-dir=${path.join(base, 'isolated-profile')}`,
+    '--no-sandbox',
+    '--disable-gpu',
+  ],
   cwd: dir,
   env: { ...process.env, WMNO_SMOKE: '1' },
 });
@@ -35,13 +44,19 @@ try {
   await page.waitForLoadState('domcontentloaded');
   const url = page.url();
   if (url.startsWith('data:')) {
-    console.error('SPACED-PATH FAIL: renderer fell back to the data: error page —', url.slice(0, 60));
+    console.error(
+      'SPACED-PATH FAIL: renderer fell back to the data: error page —',
+      url.slice(0, 60),
+    );
     process.exit(1);
   }
   // The real game UI must render (not an error page).
   await page.locator('.office, .opening, .modal').first().waitFor({ timeout: 20000 });
-  console.log('SPACED-PATH OK: renderer loaded from a spaced/parenthesized path. url starts', url.slice(0, 56));
+  console.log(
+    'SPACED-PATH OK: renderer loaded from a spaced/parenthesized path. url starts',
+    url.slice(0, 56),
+  );
 } finally {
   await app.close();
-  fs.rmSync(base, { recursive: true, force: true });
+  fs.rmSync(base, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
 }

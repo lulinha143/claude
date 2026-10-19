@@ -179,3 +179,38 @@ describe('assignment paths respect the cap', () => {
     expect(overfullRooms(engine.state)).toEqual([]);
   });
 });
+
+describe('nobody is moved without a word', () => {
+  it('records who an old crowded room sent elsewhere, and where, keeping everyone', () => {
+    const state = createInitialState();
+    state.resources.reputation = 60;
+    // A save from before the cap: six teammates at the founder's desk.
+    for (const id of ['pip', 'marlow', 'rizzo', 'bea', 'corvus', 'mina']) {
+      state.employees[id] = { ...state.employees[id], hired: true, room: 'founder-desk' };
+    }
+    const engine = new GameEngine(state, { deterministic: true });
+    expect(employeesInRoom(engine.state, 'founder-desk')).toHaveLength(ROOM_CAP);
+    expect(engine.rehomed).toHaveLength(2);
+    for (const { employeeId, roomId } of engine.rehomed) {
+      expect(engine.state.employees[employeeId].hired).toBe(true);
+      expect(resolveEmployeeRoom(engine.state, employeeId)).toBe(roomId);
+      expect(roomId).not.toBe('founder-desk');
+    }
+    // Every one of the six is still seated somewhere real.
+    const seated = ['pip', 'marlow', 'rizzo', 'bea', 'corvus', 'mina'].map((id) =>
+      resolveEmployeeRoom(engine.state, id),
+    );
+    expect(seated.every((room) => unlockedRooms(engine.state).some((r) => r.id === room))).toBe(
+      true,
+    );
+  });
+
+  it('records nothing when the cap already holds, and nothing for an arrangement asked for', () => {
+    const engine = new GameEngine(fullRoster(), { deterministic: true });
+    engine.rehomed.length = 0;
+    engine.autoArrangeEmployees('balanced');
+    engine.autoArrangeEmployees('department');
+    expect(engine.rehomed).toHaveLength(0);
+    expect(overfullRooms(engine.state)).toEqual([]);
+  });
+});

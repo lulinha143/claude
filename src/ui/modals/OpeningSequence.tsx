@@ -5,9 +5,10 @@ import { useGame } from '../../state/hooks';
 import { GAME_TITLE } from '../../brand';
 import { BrandEmblem } from '../../art/BrandLogo';
 import { Acorn } from '../../art/Icons';
-import { Critter } from '../../art/Critter';
-import { shapeFor } from '../../art/critterShapes';
-import { OfficeBackdrop } from '../../art/OfficeBackdrop';
+import { EmployeeSprite } from '../../art/EmployeeSprite';
+import { employeeSprite } from '../../art/employeeSprites';
+import { OfficeBackground } from '../../art/OfficeBackground';
+import { CompanyIcon } from '../../art/companyIcons';
 
 type OpeningPhase = 'intro' | 'impact' | 'title';
 
@@ -30,8 +31,9 @@ function useSystemReducedMotion(): boolean {
   return prefersReducedMotion;
 }
 
-// A short, tactile cold open: the first acorn becomes the first company asset,
-// the first coffee becomes the first workplace incident, and the title lands.
+// A short, tactile cold open. The authored office loop plays softly behind a
+// paper card; the real Pip (the same artwork as in the office) asks for the first
+// acorn; one click later the title lands and the company opens.
 export function OpeningSequence() {
   const { t } = useTranslation();
   const show = useStore((s) => s.showOpening);
@@ -41,10 +43,10 @@ export function OpeningSequence() {
   const [phase, setPhase] = useState<OpeningPhase>('intro');
   const dialogRef = useRef<HTMLDivElement>(null);
   const transitionTimer = useRef<number | null>(null);
-  const shape = shapeFor('pip');
   const systemReducedMotion = useSystemReducedMotion();
   const reducedMotion =
     state.settings.reducedMotion || state.settings.quietMode || systemReducedMotion;
+  const pip = employeeSprite('pip');
 
   useEffect(() => {
     if (!show) return;
@@ -101,11 +103,14 @@ export function OpeningSequence() {
     audio.resume();
     audio.play('collect');
     setPhase('impact');
-    transitionTimer.current = window.setTimeout(() => {
-      transitionTimer.current = null;
-      setPhase('title');
-      audio.play('reward');
-    }, reducedMotion ? 0 : 520);
+    transitionTimer.current = window.setTimeout(
+      () => {
+        transitionTimer.current = null;
+        setPhase('title');
+        audio.play('reward');
+      },
+      reducedMotion ? 0 : 560,
+    );
   }
 
   function completeOpening() {
@@ -117,11 +122,7 @@ export function OpeningSequence() {
   return (
     <div className={`opening-seq opening-seq--${phase}`}>
       <div className="opening-seq__backdrop" aria-hidden="true">
-        <OfficeBackdrop reducedMotion={reducedMotion} />
-        <span className="opening-seq__vignette" />
-        <span className="opening-seq__dust opening-seq__dust--one" />
-        <span className="opening-seq__dust opening-seq__dust--two" />
-        <span className="opening-seq__dust opening-seq__dust--three" />
+        <OfficeBackground visible />
       </div>
 
       <div
@@ -136,64 +137,64 @@ export function OpeningSequence() {
           {t('opening.skip')}
         </button>
 
-        <div className="opening-seq__stage" aria-live="polite">
-          <div className="opening-seq__desk" aria-hidden="true">
-            <span className="opening-seq__paper opening-seq__paper--back" />
-            <span className="opening-seq__paper opening-seq__paper--front">
-              <i /><i /><i />
-            </span>
-            <span className="opening-seq__mug"><i /></span>
-            <span className="opening-seq__spill" />
-            <span className="opening-seq__pencil" />
-          </div>
-
-          <div className="opening-seq__founder" aria-hidden={titleVisible}>
-            <Critter
-              species={shape.species}
-              color="#c65b3c"
-              accent="#3f7d4f"
-              state={phase === 'intro' ? 'think' : 'panic'}
-              hasGlasses
-              size={148}
-              reducedMotion={reducedMotion}
-              title={t('employee.pip.name')}
-            />
-          </div>
-
-          {phase !== 'title' ? (
-            <section className="opening-seq__intro">
-              <p className="opening-seq__eyebrow">{t('opening.eyebrow')}</p>
-              <h1 id="opening-prompt" className="opening-seq__prompt">
-                {t('opening.prompt')}
-              </h1>
-              <p id="opening-line" className="opening-seq__line">“{t('opening.line')}”</p>
-              <button className="acorn-cta" onClick={claimAcorn} disabled={phase !== 'intro'}>
-                <span className="acorn-cta__halo" aria-hidden="true" />
-                <span className="acorn-cta__nut"><Acorn size={64} /></span>
-                <span className="acorn-cta__label">{t('opening.clickAcorn')}</span>
-              </button>
-              <p className="opening-seq__founding-note">{t('opening.founded')}</p>
-            </section>
-          ) : (
-            <section className="opening-seq__title">
-              <p className="opening-seq__eyebrow opening-seq__eyebrow--stamp">
-                {t('opening.impact')}
-              </p>
-              <BrandEmblem size={78} title={GAME_TITLE} />
-              <h1 id="opening-title" className="title-card">{GAME_TITLE}</h1>
-              <p className="title-card__sub">{t('app.subtitle')}</p>
-              <p id="opening-title-note" className="opening-seq__title-note">
-                {t('opening.titleNote')}
-              </p>
-              <div className="opening-seq__rule" aria-hidden="true">
-                <span /><Acorn size={26} /><span />
-              </div>
-              <button className="buy-btn buy-btn--big opening-seq__continue" onClick={completeOpening}>
-                {t('opening.continue')}
-              </button>
-            </section>
-          )}
-        </div>
+        {/* Nutshell Inc. opens a file on its founder: one observation sheet with
+            the company's letterhead, the real Pip at his desk and one thing to do. */}
+        {!titleVisible ? (
+          <section className="opening-card opening-card--memo" aria-live="polite">
+            <header className="opening-card__letterhead">
+              <span className="opening-card__emblem" aria-hidden="true">
+                <CompanyIcon id={state.company.icon} size={20} />
+              </span>
+              <span className="opening-card__org">{state.company.name}</span>
+              <span className="opening-card__dept">{t('header.departmentFull')}</span>
+            </header>
+            <p className="opening-card__eyebrow">
+              <span>{t('opening.file')}</span>
+              <span className="opening-card__confidential">{t('opening.confidential')}</span>
+            </p>
+            <div className="opening-card__cast" aria-hidden="true">
+              {pip ? (
+                <EmployeeSprite config={pip} reducedMotion={reducedMotion} height={150} />
+              ) : null}
+              {phase === 'impact' ? (
+                <span className="opening-card__pop">
+                  <Acorn size={34} />
+                </span>
+              ) : null}
+            </div>
+            <h1 id="opening-prompt" className="opening-card__prompt">
+              {t('opening.prompt')}
+            </h1>
+            <p id="opening-line" className="opening-card__line">
+              “{t('opening.line')}”
+            </p>
+            <button className="acorn-cta" onClick={claimAcorn} disabled={phase !== 'intro'}>
+              <span className="acorn-cta__nut" aria-hidden="true">
+                <Acorn size={34} />
+              </span>
+              <span className="acorn-cta__label">{t('opening.clickAcorn')}</span>
+            </button>
+          </section>
+        ) : (
+          <section className="opening-card opening-card--title">
+            <p className="opening-card__stamp">{t('opening.impact')}</p>
+            <BrandEmblem size={56} title={GAME_TITLE} />
+            <h1 id="opening-title" className="title-card">
+              {GAME_TITLE}
+            </h1>
+            <p className="title-card__sub">{t('app.subtitle')}</p>
+            <p id="opening-title-note" className="opening-card__note">
+              {t('opening.titleNote')}
+            </p>
+            <button
+              className="buy-btn buy-btn--big opening-seq__continue"
+              onClick={completeOpening}
+            >
+              {t('opening.continue')}
+            </button>
+            <p className="opening-card__filed">{t('opening.founded')}</p>
+          </section>
+        )}
       </div>
     </div>
   );

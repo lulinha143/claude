@@ -1,11 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import {
-  IPC,
-  IPC_EVENTS,
-  type WindowSettings,
-  type WindowCorner,
-  type PlatformInfo,
-} from './ipc';
+import { IPC, IPC_EVENTS, type WindowSettings, type WindowCorner, type PlatformInfo } from './ipc';
 
 // The ONLY bridge between the sandboxed renderer and the main process.
 // Nothing here exposes `require`, `process`, or arbitrary IPC. Each method maps

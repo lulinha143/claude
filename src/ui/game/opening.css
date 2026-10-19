@@ -1,0 +1,272 @@
+/* ==========================================================================
+   Game layer — the opening: the authored office loop, softly, behind one paper
+   card with the real Pip on it. Ink on paper, so every word is readable.
+   ========================================================================== */
+@layer game {
+  .opening-seq {
+    position: fixed;
+    inset: 0;
+    z-index: 260;
+    display: grid;
+    place-items: center;
+    padding: 12px;
+    overflow: hidden;
+    background: var(--frame-bg);
+  }
+  .opening-seq__backdrop {
+    position: absolute;
+    inset: 0;
+  }
+  .opening-seq__backdrop .office-bg {
+    opacity: 1;
+  }
+  .opening-seq__backdrop .office-bg__media {
+    filter: blur(3px) saturate(1.05);
+    transform: scale(1.06);
+  }
+  .opening-seq__backdrop::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(120% 90% at 50% 40%, rgb(46 29 16 / 0.15), rgb(46 29 16 / 0.62));
+  }
+  .opening-seq__dialog {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    outline: none;
+  }
+  .opening-seq__skip {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 2;
+  }
+  /* One observation sheet from Nutshell Inc.'s files: company letterhead, a file
+     number with a restrained stamp, the founder at his desk and one action. It is
+     as tall as what it says and fits a 320×420 window under the skip button. */
+  .opening-card {
+    --sheet-pad: clamp(14px, 4.5vw, 24px);
+    position: relative;
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    width: min(400px, 100%);
+    margin-top: 34px;
+    padding: 0 var(--sheet-pad) clamp(14px, 3dvh, 20px);
+    color: var(--ink-strong);
+    text-align: center;
+    background: var(--paper-grain), var(--paper-bg-bright);
+    border: 2px solid var(--c-walnut-700);
+    border-radius: 10px;
+    /* a second sheet peeks out underneath: a file, not a floating card */
+    box-shadow:
+      5px 6px 0 -2px var(--c-paper-250),
+      5px 6px 0 0 var(--c-paper-edge),
+      var(--lift-shadow);
+    animation: opening-card-in 0.5s var(--ease-pop) both;
+  }
+  @keyframes opening-card-in {
+    from {
+      opacity: 0;
+      transform: translateY(16px) scale(0.97);
+    }
+  }
+  .opening-card__letterhead {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    column-gap: 8px;
+    width: calc(100% + 2 * var(--sheet-pad));
+    margin: 0 calc(-1 * var(--sheet-pad)) 4px;
+    padding: 9px var(--sheet-pad) 7px;
+    text-align: left;
+    background: var(--paper-bg);
+    border-bottom: 3px double var(--c-walnut-600);
+    border-radius: 8px 8px 0 0;
+  }
+  .opening-card__emblem {
+    grid-row: span 2;
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    color: var(--c-walnut-700);
+    background: var(--paper-bg-bright);
+    border: 2px solid var(--c-walnut-600);
+    border-radius: 7px;
+  }
+  .opening-card__org {
+    min-width: 0;
+    overflow: hidden;
+    font: 700 var(--fs-lg) / 1.05 var(--font-display);
+    color: var(--c-walnut-700);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .opening-card__dept {
+    min-width: 0;
+    font: 700 var(--fs-2xs) / 1.25 var(--font-body);
+    color: var(--ink-soft);
+  }
+  .opening-card__eyebrow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 4px 10px;
+  }
+  .opening-card__confidential {
+    padding: 1px 6px;
+    color: var(--c-berry-700);
+    border: 2px solid currentColor;
+    border-radius: 4px;
+    letter-spacing: 0.08em;
+    transform: rotate(-4deg);
+  }
+  .opening-card__cast {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    /* Uniform presentation scale of the registered sprite (never resampled):
+       the sheet must fit short windows without cropping the founder. */
+    --asset-scale: 1;
+    margin: 2px 0 0;
+    transform-origin: 50% 100%;
+    filter: drop-shadow(0 5px 4px rgb(46 29 16 / 0.28));
+  }
+  @media (max-height: 700px) {
+    .opening-card__cast {
+      --asset-scale: 0.82;
+    }
+  }
+  @media (max-height: 520px) {
+    .opening-card__cast {
+      --asset-scale: 0.66;
+    }
+  }
+  .opening-seq--impact .opening-card__cast {
+    animation: opening-hop 0.5s var(--ease-pop);
+  }
+  @keyframes opening-hop {
+    40% {
+      translate: 0 -12px;
+    }
+  }
+  .opening-card__pop {
+    position: absolute;
+    top: -6px;
+    right: -18px;
+    animation: opening-pop 0.55s var(--ease-pop) both;
+  }
+  @keyframes opening-pop {
+    from {
+      opacity: 0;
+      transform: translateY(30px) scale(0.4) rotate(-40deg);
+    }
+  }
+  .opening-card__eyebrow,
+  .opening-card__stamp {
+    margin: 0;
+    font: 800 var(--fs-2xs) / 1.2 var(--font-body);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-body);
+  }
+  .opening-card__stamp {
+    padding: 3px 9px;
+    color: var(--c-berry-700);
+    border: 2px solid currentColor;
+    border-radius: 6px;
+    transform: rotate(-3deg);
+  }
+  .opening-card__prompt {
+    margin: 0;
+    font: 700 clamp(21px, 2.6vw + 12px, 32px) / 1.12 var(--font-display);
+    color: var(--ink-strong);
+    text-wrap: balance;
+  }
+  .opening-card__line,
+  .opening-card__note {
+    margin: 0;
+    max-width: 34ch;
+    font: 600 var(--fs-base) / 1.4 var(--font-body);
+    color: var(--ink-body);
+  }
+  .opening-card__filed {
+    margin: 2px 0 0;
+    font: 700 var(--fs-2xs) / 1.2 var(--font-body);
+    color: var(--ink-soft);
+  }
+  /* Claiming the first acorn is a reward, so it is gold, not the action green. */
+  .acorn-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 4px;
+    min-height: 48px;
+    padding: 6px 18px 6px 10px;
+    color: var(--reward-ink);
+    background: var(--reward-bg);
+    border: 2px solid var(--reward-edge);
+    border-radius: 12px;
+    box-shadow: 0 4px 0 var(--reward-edge);
+    font: 700 var(--fs-lg) / 1.1 var(--font-display);
+    cursor: pointer;
+  }
+  /* The acorn bobs; the button itself stays still so it is easy to hit. */
+  .acorn-cta:not(:disabled) .acorn-cta__nut {
+    animation: acorn-cta-breathe 2.6s ease-in-out infinite;
+  }
+  .acorn-cta:hover:not(:disabled) {
+    background: var(--reward-bg-hover);
+  }
+  .acorn-cta:active:not(:disabled) {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 var(--reward-edge);
+  }
+  .acorn-cta:disabled {
+    animation: none;
+    opacity: 0.85;
+  }
+  @keyframes acorn-cta-breathe {
+    50% {
+      transform: translateY(-3px) rotate(-8deg);
+    }
+  }
+  .acorn-cta__nut {
+    display: grid;
+    filter: drop-shadow(0 2px 0 rgb(46 29 16 / 0.3));
+  }
+  .opening-card--title {
+    padding-top: clamp(16px, 4dvh, 28px);
+  }
+  .title-card {
+    margin: 0;
+    font: 700 clamp(30px, 3.4vw + 16px, 46px) / 1 var(--font-logo);
+    color: var(--c-acorn-600);
+    text-shadow: 0 3px 0 var(--c-walnut-800);
+  }
+  .title-card__sub {
+    margin: 0;
+    font: 700 var(--fs-base) / 1.3 var(--font-display);
+    color: var(--ink-strong);
+    text-wrap: balance;
+  }
+  .opening-seq__continue {
+    margin-top: 6px;
+    padding: 10px 22px;
+    font-size: var(--fs-lg);
+  }
+  @media (max-height: 520px) {
+    .opening-card {
+      gap: 4px;
+    }
+    .opening-card__line,
+    .opening-card__note {
+      font-size: var(--fs-sm);
+    }
+  }
+}

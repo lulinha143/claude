@@ -69,7 +69,11 @@ const probe = () => {
   const rr = room.getBoundingClientRect();
   const sprites = [...document.querySelectorAll('.employee-sprite')].map((el) => {
     const r = el.getBoundingClientRect();
-    return { src: (el.getAttribute('src') || '').split('/').pop(), w: +r.width.toFixed(2), h: +r.height.toFixed(2) };
+    return {
+      src: (el.getAttribute('src') || '').split('/').pop(),
+      w: +r.width.toFixed(2),
+      h: +r.height.toFixed(2),
+    };
   });
   const critters = [...document.querySelectorAll('.critter-btn svg')].map((el) => {
     const r = el.getBoundingClientRect();
@@ -133,7 +137,8 @@ const main = async () => {
           String(r.assetScale || '-').padEnd(7) +
           String(r.figures?.length ?? 0).padEnd(9) +
           r.tallest.toFixed(2).padEnd(9) +
-          (r.ratio * 100).toFixed(3) + '%',
+          (r.ratio * 100).toFixed(3) +
+          '%',
       );
     }
     const ratios = rows.map((r) => r.ratio).filter((v) => v > 0);

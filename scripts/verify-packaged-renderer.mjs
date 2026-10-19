@@ -7,6 +7,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
+import { readRegistry } from './lib/sprite-geometry.mjs';
+
 const roots = ['win-unpacked', 'linux-unpacked', 'mac', 'mac-arm64']
   .map((d) => path.join('release', d, 'resources', 'app.asar.unpacked', 'dist'))
   .filter((p) => fs.existsSync(p));
@@ -33,16 +35,54 @@ for (const dist of roots) {
   need('index.html', fs.existsSync(index));
 
   const assets = fs.existsSync(assetsDir) ? fs.readdirSync(assetsDir) : [];
-  need('a JavaScript bundle (assets/*.js)', assets.some((f) => f.endsWith('.js')));
-  need('a CSS bundle (assets/*.css)', assets.some((f) => f.endsWith('.css')));
-  need('a bundled font (assets/*.woff2)', assets.some((f) => f.endsWith('.woff2')));
+  need(
+    'a JavaScript bundle (assets/*.js)',
+    assets.some((f) => f.endsWith('.js')),
+  );
+  need(
+    'a CSS bundle (assets/*.css)',
+    assets.some((f) => f.endsWith('.css')),
+  );
+  need(
+    'a bundled font (assets/*.woff2)',
+    assets.some((f) => f.endsWith('.woff2')),
+  );
 
   // Background assets (video / poster / gif) — the animated office.
   const bg = path.join(dist, 'backgrounds');
-  const bgFiles = fs.existsSync(bg)
-    ? fs.readdirSync(bg, { recursive: true }).map(String)
-    : [];
-  need('animated background asset (backgrounds/**)', bgFiles.some((f) => /\.(mp4|gif|jpg|jpeg|png|webm)$/i.test(f)));
+  const bgFiles = fs.existsSync(bg) ? fs.readdirSync(bg, { recursive: true }).map(String) : [];
+  need(
+    'animated background asset (backgrounds/**)',
+    bgFiles.some((f) => /\.(mp4|gif|jpg|jpeg|png|webm)$/i.test(f)),
+  );
+
+  // The CAST. Every registered animal's three files must be in the packaged build.
+  //
+  // This was the one asset class the packaging check did not cover, and it is the one
+  // with the quietest failure: a missing sprite does not error, it falls back to the
+  // code-drawn critter, so a packaged build could ship an animal silently degraded and
+  // look merely stylistic. Driven off the registry rather than a hard-coded list, so
+  // adding or removing an animal updates this automatically.
+  const employeesDir = path.join(dist, 'employees');
+  const shipped = new Set(fs.existsSync(employeesDir) ? fs.readdirSync(employeesDir) : []);
+  const cast = readRegistry();
+  const missingArt = [];
+  for (const entry of cast) {
+    for (const file of [
+      `${entry.asset}.png`,
+      `${entry.asset}-1x.png`,
+      `${entry.asset}-poster.png`,
+    ]) {
+      if (!shipped.has(file)) missingArt.push(file);
+    }
+  }
+  need(
+    `character artwork for all ${cast.length} animals (employees/**)`,
+    cast.length > 0 && missingArt.length === 0,
+  );
+  if (missingArt.length) {
+    console.log(`         missing: ${missingArt.join(', ')}`);
+  }
 
   // index.html must reference its assets RELATIVELY (./assets/...), or file://
   // loading breaks.

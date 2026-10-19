@@ -24,7 +24,9 @@ import { pathToFileURL } from 'node:url';
 app.setName('wmno-diagnostic');
 
 const STAGES = 'abcdefghijklmn';
-const stageArg = (process.argv.find((a) => a.startsWith('--stage=')) ?? '--stage=a').split('=')[1].toLowerCase();
+const stageArg = (process.argv.find((a) => a.startsWith('--stage=')) ?? '--stage=a')
+  .split('=')[1]
+  .toLowerCase();
 const stageIdx = Math.max(0, STAGES.indexOf(stageArg));
 const upTo = (letter: string) => stageIdx >= STAGES.indexOf(letter);
 
@@ -41,7 +43,9 @@ function diagLog(msg: string): void {
 }
 
 process.on('uncaughtException', (e) => diagLog(`uncaughtException: ${e.stack ?? e}`));
-process.on('unhandledRejection', (r) => diagLog(`unhandledRejection: ${r instanceof Error ? r.stack : String(r)}`));
+process.on('unhandledRejection', (r) =>
+  diagLog(`unhandledRejection: ${r instanceof Error ? r.stack : String(r)}`),
+);
 
 // --- i: single-instance lock (must run before whenReady) ---
 if (upTo('i')) {
@@ -67,7 +71,11 @@ function rendererPath(): string {
 }
 
 function buildWebPreferences(): Electron.WebPreferences {
-  const wp: Electron.WebPreferences = { contextIsolation: true, nodeIntegration: false, sandbox: false };
+  const wp: Electron.WebPreferences = {
+    contextIsolation: true,
+    nodeIntegration: false,
+    sandbox: false,
+  };
   if (upTo('d')) wp.preload = path.join(__dirname, 'preload.cjs');
   if (upTo('e')) {
     wp.sandbox = true; // production webPreferences
@@ -79,7 +87,9 @@ function buildWebPreferences(): Electron.WebPreferences {
 
 function savedBounds(): { width: number; height: number } {
   try {
-    const raw = JSON.parse(fs.readFileSync(path.join(app.getPath('userData'), 'window-settings.json'), 'utf-8'));
+    const raw = JSON.parse(
+      fs.readFileSync(path.join(app.getPath('userData'), 'window-settings.json'), 'utf-8'),
+    );
     return { width: raw.width ?? 800, height: raw.height ?? 600 };
   } catch {
     return { width: 800, height: 600 };
@@ -105,7 +115,9 @@ function addCsp(): void {
     callback({
       responseHeaders: {
         ...details.responseHeaders,
-        'Content-Security-Policy': ["default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'"],
+        'Content-Security-Policy': [
+          "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'",
+        ],
       },
     });
   });
@@ -114,7 +126,9 @@ function addCsp(): void {
 function addTray(win: BrowserWindow): void {
   try {
     const iconPath = path.join(process.resourcesPath, 'icon.png');
-    const img = fs.existsSync(iconPath) ? nativeImage.createFromPath(iconPath) : nativeImage.createEmpty();
+    const img = fs.existsSync(iconPath)
+      ? nativeImage.createFromPath(iconPath)
+      : nativeImage.createEmpty();
     if (img.isEmpty()) {
       diagLog('tray icon empty — skipping tray.');
       return;
@@ -136,7 +150,9 @@ function attachLifecycle(win: BrowserWindow): void {
   wc.on('did-fail-load', (_e, code, desc, url, isMainFrame) =>
     diagLog(`did-fail-load code=${code} desc=${desc} url=${url} mainFrame=${isMainFrame}`),
   );
-  wc.on('render-process-gone', (_e, d) => diagLog(`render-process-gone reason=${d.reason} exitCode=${d.exitCode}`));
+  wc.on('render-process-gone', (_e, d) =>
+    diagLog(`render-process-gone reason=${d.reason} exitCode=${d.exitCode}`),
+  );
   wc.on('destroyed', () => diagLog('webContents destroyed'));
   (wc as unknown as { on: (e: string, cb: () => void) => void }).on('render-view-deleted', () =>
     diagLog('render-view-deleted'),
@@ -145,7 +161,9 @@ function attachLifecycle(win: BrowserWindow): void {
 }
 
 app.whenReady().then(async () => {
-  diagLog(`app ready. isPackaged=${app.isPackaged} electron=${process.versions.electron} chrome=${process.versions.chrome}`);
+  diagLog(
+    `app ready. isPackaged=${app.isPackaged} electron=${process.versions.electron} chrome=${process.versions.chrome}`,
+  );
 
   if (upTo('h')) {
     // A couple of harmless IPC handlers (should never affect renderer startup).
@@ -179,7 +197,9 @@ app.whenReady().then(async () => {
 
   const win = new BrowserWindow(opts);
   attachLifecycle(win);
-  diagLog(`BrowserWindow created. webPreferences=${JSON.stringify(opts.webPreferences)} frame=${opts.frame}`);
+  diagLog(
+    `BrowserWindow created. webPreferences=${JSON.stringify(opts.webPreferences)} frame=${opts.frame}`,
+  );
 
   if (upTo('l')) addTray(win);
   if (upTo('m')) {
@@ -194,15 +214,22 @@ app.whenReady().then(async () => {
     if (!upTo('b')) {
       await win.loadURL(
         'data:text/html;charset=UTF-8,' +
-          encodeURIComponent('<!doctype html><html><body style="font-family:Arial;padding:40px"><h1>Stage A — data URL</h1></body></html>'),
+          encodeURIComponent(
+            '<!doctype html><html><body style="font-family:Arial;padding:40px"><h1>Stage A — data URL</h1></body></html>',
+          ),
       );
     } else if (!upTo('c')) {
       const tmp = path.join(app.getPath('temp'), 'wmno-diag-stage-b.html');
-      fs.writeFileSync(tmp, '<!doctype html><html><body style="font-family:Arial;padding:40px"><h1>Stage B — local file</h1></body></html>');
+      fs.writeFileSync(
+        tmp,
+        '<!doctype html><html><body style="font-family:Arial;padding:40px"><h1>Stage B — local file</h1></body></html>',
+      );
       await win.loadFile(tmp);
     } else {
       const rp = rendererPath();
-      diagLog(`loading real renderer: ${rp} exists=${fs.existsSync(rp)} url=${pathToFileURL(rp).href}`);
+      diagLog(
+        `loading real renderer: ${rp} exists=${fs.existsSync(rp)} url=${pathToFileURL(rp).href}`,
+      );
       await win.loadFile(rp);
     }
     diagLog('STAGE LOAD RESOLVED');
@@ -211,8 +238,12 @@ app.whenReady().then(async () => {
   }
 });
 
-app.on('render-process-gone', (_e, _wc, d) => diagLog(`app render-process-gone reason=${d.reason} exitCode=${d.exitCode}`));
-app.on('child-process-gone', (_e, d) => diagLog(`child-process-gone type=${d.type} reason=${d.reason} exitCode=${d.exitCode}`));
+app.on('render-process-gone', (_e, _wc, d) =>
+  diagLog(`app render-process-gone reason=${d.reason} exitCode=${d.exitCode}`),
+);
+app.on('child-process-gone', (_e, d) =>
+  diagLog(`child-process-gone type=${d.type} reason=${d.reason} exitCode=${d.exitCode}`),
+);
 
 app.on('window-all-closed', () => {
   diagLog('window-all-closed');

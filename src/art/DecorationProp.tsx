@@ -1,4 +1,8 @@
-import { useState, type PointerEvent as ReactPointerEvent } from 'react';
+import {
+  useState,
+  type MouseEvent as ReactMouseEvent,
+  type PointerEvent as ReactPointerEvent,
+} from 'react';
 import type { SfxName } from '../audio/audio';
 import { DecoArt } from './decoArt';
 import { placementSpec } from '../content/placementSpecs';
@@ -19,15 +23,7 @@ function idHash(id: string): number {
 // decoration reads as its own distinct object.
 
 export type DecorKind =
-  | 'plant'
-  | 'lamp'
-  | 'poster'
-  | 'rug'
-  | 'aquarium'
-  | 'trophy'
-  | 'cushion'
-  | 'box'
-  | 'screen';
+  'plant' | 'lamp' | 'poster' | 'rug' | 'aquarium' | 'trophy' | 'cushion' | 'box' | 'screen';
 
 export function decorKind(id: string): DecorKind {
   if (/(fern|plant|garden|terrarium)/.test(id)) return 'plant';
@@ -85,7 +81,8 @@ export function DecorationProp({
   reacting?: boolean;
   title?: string;
   mode?: 'interact' | 'toggle';
-  onToggle?: () => void;
+  /** Arrange mode: the click (absent for keyboard activation) picks the piece. */
+  onToggle?: (event?: ReactMouseEvent) => void;
   onInteract?: () => void;
   onPointerDown?: (e: ReactPointerEvent) => void;
 }) {
@@ -96,9 +93,9 @@ export function DecorationProp({
   const [on, setOn] = useState(true); // lit/active state for toggleable kinds
   const [variant, setVariant] = useState(0); // poster "slogan" / emblem
 
-  function handleClick() {
+  function handleClick(event: ReactMouseEvent) {
     if (mode === 'toggle') {
-      onToggle?.();
+      onToggle?.(event);
       return;
     }
     // Kind-specific reaction: lights/screens/tanks flick on-off; posters cycle

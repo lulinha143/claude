@@ -33,6 +33,16 @@ function installCanvasContext(): DrawnText[] {
     save: vi.fn(),
     restore: vi.fn(),
     translate: vi.fn(),
+    // Drawing ops the moment-card renderer uses now that a card is a ruled,
+    // stamped document rather than a gradient with an acorn on it. This fake only
+    // exists to record fillText calls for the font assertions, so these just need
+    // to be callable — but they DO need to exist, or the renderer throws before it
+    // reaches the text.
+    lineTo: vi.fn(),
+    rotate: vi.fn(),
+    setTransform: vi.fn(),
+    clip: vi.fn(),
+    globalAlpha: 1,
     measureText: vi.fn((text: string) => ({ width: text.length * 8 })),
     fillText: vi.fn(function (this: { font: string }, text: string) {
       drawn.push({ text, font: this.font });
@@ -92,6 +102,14 @@ describe('typography canvas parity', () => {
       rarityLabel: 'Raro',
       employeeName: null,
       dateLabel: '17 de julho',
+      // The document vocabulary, added when moment cards stopped being one template
+      // and became a family of authored formats (ui/momentFormats.ts). Supplied by
+      // the caller so the canvas renderer stays free of i18n.
+      formatLabel: 'Relatório de Incidente',
+      orgLabel: 'Nutshell Inc. — Pesquisa Comportamental',
+      refLabel: 'Nº',
+      refCode: 'NI-1A2B/07',
+      stampLabel: 'Arquivado',
     });
 
     expect(drawn.find(({ text }) => text === 'A previsão está pronta!')?.font).toContain(

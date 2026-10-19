@@ -47,7 +47,12 @@ async function inspectRendererAt(page, width, height) {
       '#root',
       '.app',
       '.header',
-      '.header__resources',
+      // The divided resource strip. It was `.header__resources` until the masthead
+      // was rebuilt as a letterhead (f5cfa79/127dff4) and became `.header__strip`;
+      // this script kept the old name, so it had been failing on its very first
+      // assertion ever since and the whole window smoke never reached the resize,
+      // clamp and bounds-persistence checks below it.
+      '.header__strip',
       '.nav',
       '.app__main',
       '.view-anim',
@@ -65,8 +70,14 @@ async function inspectRendererAt(page, width, height) {
         height: box.height,
       };
     });
-    const items = [...document.querySelectorAll('.nav__item')];
-    const labels = [...document.querySelectorAll('.nav__label')];
+    const items = [...document.querySelectorAll('.nav__destination')];
+    const visible = (element) => {
+      const style = getComputedStyle(element);
+      const box = element.getBoundingClientRect();
+      return (
+        style.display !== 'none' && style.visibility !== 'hidden' && box.width > 0 && box.height > 0
+      );
+    };
     return {
       viewport: { width: window.innerWidth, height: window.innerHeight },
       uiScale: document.documentElement.dataset.uiScale,
@@ -78,16 +89,19 @@ async function inspectRendererAt(page, width, height) {
       })),
       metrics,
       navCount: items.length,
-      visibleLabels: labels.filter((label) => {
-        const style = getComputedStyle(label);
-        const box = label.getBoundingClientRect();
-        return (
-          style.display !== 'none' &&
-          style.visibility !== 'hidden' &&
-          box.width > 0 &&
-          box.height > 0
-        );
-      }).length,
+      // Reachable = visible, with its icon drawn and an accessible name. That is what
+      // "every destination is directly available" means now that the tabs carry no
+      // text label (see below).
+      navReachable: items.filter(
+        (item) =>
+          visible(item) &&
+          Boolean(item.getAttribute('aria-label')) &&
+          Boolean(item.querySelector('.ui-icon')),
+      ).length,
+      navOverflowControls: document.querySelectorAll('.nav__more-toggle, .nav__more-panel').length,
+      navScroll: document.querySelector('.nav')
+        ? document.querySelector('.nav').scrollWidth - document.querySelector('.nav').clientWidth
+        : 0,
       navRows: new Set(items.map((item) => Math.round(item.getBoundingClientRect().top))).size,
       controls: document.querySelectorAll('.window-controls .wc-btn').length,
       mainHeight: document.querySelector('.app__main')?.getBoundingClientRect().height ?? 0,
@@ -103,11 +117,23 @@ async function inspectRendererAt(page, width, height) {
       fail(`${metric.selector} escapes viewport at ${width}x${height}: ${JSON.stringify(metric)}`);
     }
   }
-  if (report.navCount !== 11 || report.visibleLabels !== 11) {
-    fail(`navigation is not fully labelled at ${width}x${height}: ${JSON.stringify(report)}`);
+  // Every destination present and directly reachable, in real Electron.
+  //
+  // This used to require 11 visible `.nav__label`s AND a wrapped (2+ row) strip below
+  // 800px. Both assertions now describe a navigation that no longer exists: the strip
+  // was rebuilt as file tabs that give up their NAMES rather than their row, so
+  // `.nav__label` is deliberately absent and the row count is deliberately always 1.
+  // tests/e2e/nav-layout.spec.ts pins that intent across eleven viewports; this is the
+  // same contract asserted against the packaged renderer instead of a browser.
+  if (report.navCount !== 11 || report.navReachable !== 11) {
+    fail(`navigation is not fully reachable at ${width}x${height}: ${JSON.stringify(report)}`);
   }
-  if (report.viewport.width <= 800 && report.navRows < 2) {
-    fail(`compact navigation did not wrap at ${width}x${height}: ${JSON.stringify(report)}`);
+  if (report.navRows !== 1) {
+    fail(`navigation must stay on one row at ${width}x${height}: ${JSON.stringify(report)}`);
+  }
+  // No destination may hide behind an overflow menu or a horizontal scroll gesture.
+  if (report.navOverflowControls !== 0 || report.navScroll > 2) {
+    fail(`navigation hides destinations at ${width}x${height}: ${JSON.stringify(report)}`);
   }
   if (report.controls !== 3) {
     fail(`desktop window controls missing at ${width}x${height}: ${JSON.stringify(report)}`);
@@ -212,12 +238,8 @@ app = await launch();
     fail(`persisted width lost after relaunch: ${stillPersisted.width}`);
   console.log('WINDOW SMOKE: relaunched with persisted bounds intact OK');
 }
-// Force the second process down instead of routing through window-close
-// handlers (which may intentionally hide to tray after persisted settings load).
-await Promise.race([
-  app.evaluate(({ app: electronApp }) => electronApp.exit(0)).catch(() => {}),
-  new Promise((resolve) => setTimeout(resolve, 3_000)),
-]);
+// Wait for Electron and its profile handles to close before removing the fixture.
+await app.close();
 
-fs.rmSync(userDataDir, { recursive: true, force: true });
+fs.rmSync(userDataDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
 console.log('WINDOW SMOKE OK');

@@ -1,6 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { getPlatform } from '../src/platform/adapter';
-import { LocalAchievements, SteamAchievements, STEAM_ACHIEVEMENT_IDS } from '../src/platform/achievements';
+import {
+  LocalAchievements,
+  SteamAchievements,
+  STEAM_ACHIEVEMENT_IDS,
+} from '../src/platform/achievements';
 
 describe('platform adapter (browser fallback)', () => {
   it('falls back to a browser adapter when no desktop bridge is present', async () => {

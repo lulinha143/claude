@@ -527,15 +527,38 @@ export const CHARACTER_ART: readonly CharacterArtEntry[] = [
     },
   },
 
-  // NOT REGISTERED, DELIBERATELY: 'bia' (bear).
+  // ---------------------------------------------------------------------------
+  // The bear completes the cast: 23 of 23 animals now render photographic artwork
+  // and nobody is left on the vector fallback.
   //
-  // The bear master has not been authored yet. There is no entry here because the
-  // absence is the correct behaviour: an employee with no registered art renders as
-  // the vector Critter, which is a complete, shipping fallback rather than a hole.
-  // Do NOT satisfy this by generating placeholder bear art, reusing another animal's
-  // APNG, or approximating one -- the cast is photographic and a substitute would be
-  // visibly wrong. assets/sources/characters/manifest.json carries the pending entry
-  // with the exact steps to finish it once URSO.png exists.
+  // This entry existed for a long time as a comment explaining why it did NOT
+  // exist — the master had not been authored, and inventing bear art or reusing
+  // another animal's APNG would have been visibly wrong against a photographic
+  // cast. URSO.png has now landed, so the placeholder reasoning is gone and the
+  // bear went through exactly the same pipeline as the twenty-two before it. No
+  // hand-tuned numbers: the figure block below is measured by
+  // scripts/measure-character-figures.py and re-checked by a test.
+  //
+  // The master carried the same collapsed-alpha defect that produced Pip's halo
+  // shimmer (8 of 134 frames deviating ~8.9/255 against a 0.07/255 median). It was
+  // caught by the importer's repair pass rather than by hand — 5 frames rebuilt
+  // from their nearest healthy neighbours — which is the whole reason that repair
+  // was moved into the pipeline.
+  // ---------------------------------------------------------------------------
+  {
+    employee: 'bia',
+    species: 'bear',
+    activeVersion: 'original',
+    variants: {
+      original: art(
+        'bia',
+        120,
+        120,
+        { officeHeight: 100, baseline: 0, anchorX: 0.5175, figureTop: 0.08 },
+        [200, 200],
+      ),
+    },
+  },
 ];
 
 export const CHARACTER_ART_BY_EMPLOYEE: Record<string, CharacterArtEntry> = Object.fromEntries(

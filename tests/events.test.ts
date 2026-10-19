@@ -10,7 +10,7 @@ import {
   GAME_EVENTS_BY_ID,
 } from '../src/content/events';
 import type { GameEventDef } from '../src/content/types';
-import { EMPLOYEES_BY_ID } from '../src/content/employees';
+import { EMPLOYEES, EMPLOYEES_BY_ID, FOUNDER_ID } from '../src/content/employees';
 import {
   evaluateEventChoice,
   eventChoicesForState,
@@ -190,9 +190,9 @@ describe('random events', () => {
     expect(unavailable.repairs).toContain('no-actionable-choice');
     state.resources.nuts = 1_000;
     const afterResourcesChange = eventChoicesForState(state, malformed, null);
-    expect(afterResourcesChange.choices.some(({ choice }) => choice.id === 'fallback-decline')).toBe(
-      true,
-    );
+    expect(
+      afterResourcesChange.choices.some(({ choice }) => choice.id === 'fallback-decline'),
+    ).toBe(true);
     state.resources.nuts = 0;
 
     malformed.choices = [
@@ -298,5 +298,210 @@ describe('random events', () => {
     engine.resolveEventChoice('grab');
     expect(engine.state.collections.moments.length).toBe(1);
     expect(engine.state.collections.nuts).toContain('executive-hazelnut');
+  });
+});
+
+describe('every member of the cast has the story event their data promises', () => {
+  // This guard is the one that was missing. Each employee declares a `rareEventId`,
+  // but nothing ever checked that the id resolved, and twelve of the twenty-three
+  // pointed at events that were never written — a promise in the data with nothing
+  // behind it, and no test to notice. `rareEventId` is read by no runtime code, so a
+  // dangling id could never fail loudly on its own.
+  it('resolves every declared rareEventId to a real event', () => {
+    const dangling: string[] = [];
+    for (const employee of EMPLOYEES) {
+      if (!employee.rareEventId) continue;
+      if (!GAME_EVENTS_BY_ID[employee.rareEventId]) {
+        dangling.push(`${employee.id} -> ${employee.rareEventId}`);
+      }
+    }
+    expect(
+      dangling,
+      `These employees promise a story event that does not exist:\n${dangling.join('\n')}`,
+    ).toEqual([]);
+  });
+
+  it('gives every employee a story event, gated on and attributed to them', () => {
+    const missing: string[] = [];
+    for (const employee of EMPLOYEES) {
+      const def = employee.rareEventId ? GAME_EVENTS_BY_ID[employee.rareEventId] : undefined;
+      if (!def) {
+        missing.push(`${employee.id} has no story event`);
+        continue;
+      }
+      /* Gated on the employee, so it cannot fire before the player has met them.
+         The founder is the one exception and deliberately so: Pip is hired before the
+         first tick (`hired: e.id === FOUNDER_ID` in createInitialState), so a
+         hiredEmployee gate on Pip could never exclude anything. Encoded as the founder
+         rather than as the literal id, so the rule keeps meaning what it says if the
+         starting character ever changes. */
+      if (employee.id !== FOUNDER_ID && def.requires?.hiredEmployee !== employee.id) {
+        missing.push(`${def.id} is not gated on ${employee.id}`);
+      }
+      // Attributed to them, so the moment card it leaves carries their face.
+      if (def.employeeId !== employee.id) {
+        missing.push(`${def.id} is not stamped with ${employee.id}`);
+      }
+    }
+    expect(missing, missing.join('\n')).toEqual([]);
+    // All 23 of the photographic cast, not just the early hires.
+    expect(EMPLOYEES.filter((e) => e.rareEventId).length).toBe(EMPLOYEES.length);
+  });
+
+  it('never points two employees at the same story event', () => {
+    const byEvent = new Map<string, string[]>();
+    for (const employee of EMPLOYEES) {
+      if (!employee.rareEventId) continue;
+      byEvent.set(employee.rareEventId, [
+        ...(byEvent.get(employee.rareEventId) ?? []),
+        employee.id,
+      ]);
+    }
+    const shared = [...byEvent.entries()].filter(([, owners]) => owners.length > 1);
+    expect(shared.map(([id, owners]) => `${id}: ${owners.join(', ')}`)).toEqual([]);
+  });
+});
+
+describe('a choice can be gated on what the company has already done', () => {
+  // `EventChoice.requires.flag` was part of the type, and authored in content, but
+  // `evaluateEventChoice` never looked at it — so a choice written as "only if the
+  // company did X" was silently offered to everyone. These lock that in.
+  it('hides a flag-gated choice until the mark exists', () => {
+    const state = createInitialState(0);
+    const choice = {
+      id: 'gated',
+      labelKey: 'x',
+      effects: [],
+      requires: { flag: 'intern-told-truth' },
+    };
+    expect(evaluateEventChoice(state, choice).enabled).toBe(false);
+    expect(evaluateEventChoice(state, choice).failures[0]?.kind).toBe('flag');
+
+    state.flags['intern-told-truth'] = 1;
+    expect(evaluateEventChoice(state, choice).enabled).toBe(true);
+    expect(evaluateEventChoice(state, choice).failures).toEqual([]);
+  });
+
+  it('never leaks the internal mark id into player-facing copy', () => {
+    const state = createInitialState(0);
+    const failure = evaluateEventChoice(state, {
+      id: 'gated',
+      labelKey: 'x',
+      effects: [],
+      requires: { flag: 'some-internal-bookkeeping-id' },
+    }).failures[0];
+    const en = JSON.parse(
+      readFileSync(join(__dirname, '..', 'src', 'i18n', 'locales', 'en.json'), 'utf8'),
+    );
+    const message = failure.messageKey
+      .split('.')
+      .reduce((node: Record<string, unknown> | string, part) => (node as never)[part], en);
+    expect(typeof message).toBe('string');
+    // No interpolation slot means the flag id can never be rendered.
+    expect(message as string).not.toContain('{{');
+  });
+
+  it('lets the returning intern quote the answer that was actually given', () => {
+    const t = { v: 0 };
+    const engine = engineAt(t);
+    const def = GAME_EVENTS_BY_ID['intern-returns'];
+    engine.state.resources.reputation = 500;
+
+    // Told the truth: standing by it is available.
+    engine.state.flags = { 'answered-the-intern': 1, 'intern-told-truth': 1 };
+    const truthful = eventChoicesForState(engine.state, def, null);
+    expect(truthful.choices.find((c) => c.choice.id === 'stand-by-the-truth')?.enabled).toBe(true);
+
+    // Read them the brochure instead: that path is closed, and correcting is open.
+    engine.state.flags = { 'answered-the-intern': 1, 'intern-told-brochure': 1 };
+    const spun = eventChoicesForState(engine.state, def, null);
+    expect(spun.choices.find((c) => c.choice.id === 'stand-by-the-truth')?.enabled).toBe(false);
+    expect(spun.choices.find((c) => c.choice.id === 'correct-the-record')?.enabled).toBe(true);
+
+    // Either way there is always an unconditional way out of the scene.
+    for (const set of [truthful, spun]) {
+      expect(set.choices.some((c) => c.enabled && c.choice.requires === undefined)).toBe(true);
+    }
+  });
+});
+
+describe('a momentWorthy event actually leaves the souvenir it promises', () => {
+  // `momentWorthy` is authored on 44 events and was read by nothing: cards were only
+  // ever created by an explicit `{ type: 'momentCard' }` effect on the chosen path, so
+  // most of those 44 quietly produced nothing and the collection stayed far emptier
+  // than the content intended.
+  it('is authored widely enough to be worth honouring', () => {
+    const flagged = GAME_EVENTS.filter((ev) => ev.momentWorthy);
+    expect(flagged.length).toBeGreaterThanOrEqual(20);
+  });
+
+  it('files a card when a flagged event closes on a path that filed none', () => {
+    const t = { v: 0 };
+    const engine = engineAt(t);
+    // `nut-audit` is not flagged; `printer-demands` is, and its steps end without an
+    // explicit momentCard on the fallback path.
+    const flagged = GAME_EVENTS.find(
+      (ev) =>
+        ev.momentWorthy &&
+        !ev.steps &&
+        ev.choices.every((c) => !c.effects.some((e) => e.type === 'momentCard')),
+    );
+    expect(flagged, 'expected at least one flagged event with no hand-placed card').toBeDefined();
+    expect(engine.state.collections.moments).toHaveLength(0);
+    engine.triggerEvent(flagged!.id);
+    const choice = eventChoicesForState(engine.state, flagged!, null).choices.find(
+      (c) => c.enabled,
+    );
+    engine.resolveEventChoice(choice!.choice.id);
+    expect(engine.state.collections.moments).toHaveLength(1);
+    expect(engine.state.collections.moments[0].eventId).toBe(flagged!.id);
+  });
+
+  it('never files two cards for one event', () => {
+    // An event that hand-places a card on the taken path must not also get an automatic
+    // one, or every such choice would produce a duplicate souvenir.
+    const t = { v: 0 };
+    const engine = engineAt(t);
+    engine.state.resources.goldenNuts = 5;
+    engine.triggerEvent('golden-acorn');
+    engine.resolveEventChoice('grab');
+    expect(engine.state.collections.moments).toHaveLength(1);
+  });
+
+  it('remembers the first time only, not every repeat', () => {
+    const t = { v: 0 };
+    const engine = engineAt(t);
+    const flagged = GAME_EVENTS.find(
+      (ev) =>
+        ev.momentWorthy &&
+        !ev.steps &&
+        ev.choices.every((c) => !c.effects.some((e) => e.type === 'momentCard')),
+    )!;
+    for (let round = 0; round < 3; round += 1) {
+      // Clear the cooldown so the same event can come round again.
+      delete engine.state.eventCooldowns[flagged.id];
+      engine.triggerEvent(flagged.id);
+      const choice = eventChoicesForState(engine.state, flagged, null).choices.find(
+        (c) => c.enabled,
+      );
+      engine.resolveEventChoice(choice!.choice.id);
+    }
+    // A souvenir is a memento of a thing happening, not a receipt printed every time.
+    expect(engine.state.collections.moments).toHaveLength(1);
+  });
+
+  it('files one card for a whole chain, at its conclusion', () => {
+    const t = { v: 0 };
+    const engine = engineAt(t);
+    // printer-demands is flagged and branches into a step before it closes.
+    engine.triggerEvent('printer-demands');
+    expect(engine.state.collections.moments).toHaveLength(0);
+    engine.resolveEventChoice('negotiate');
+    // Mid-chain: still open, so nothing is filed yet.
+    expect(engine.activeEvent).not.toBeNull();
+    expect(engine.state.collections.moments).toHaveLength(0);
+    engine.resolveEventChoice('ok');
+    expect(engine.activeEvent).toBeNull();
+    expect(engine.state.collections.moments).toHaveLength(1);
   });
 });

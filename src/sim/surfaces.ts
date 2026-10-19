@@ -8,10 +8,11 @@
 // On drop we clamp y into the surface's vertical band, so a floor object can
 // never end up on the ceiling and a wall object can never sit on the floor.
 
-import type { DecorationSurfaceType } from './types';
+import type { DecorationLayer, DecorationSurfaceType } from './types';
 import type { PlacementRegionKind } from './placementRegions';
 import { DECORATIONS_BY_ID } from '../content/decorations';
-import { decorationDefaultDepth } from './depth';
+import { decorationDefaultDepth, decorationRenderZ, type DecorationDepthKind } from './depth';
+import { standingDepthPx } from '../content/roomLayout';
 
 export type DecorationSurface = 'floor' | 'wall' | 'ceiling';
 
@@ -101,10 +102,37 @@ export function defaultPlacement(id: string, index = 0): DecorationPlacement {
   return { surface, x: isRug(id) ? 0.5 : x, y: isRug(id) ? 0.02 : y };
 }
 
+/** The depth kind a piece belongs to: rugs are their own kind, otherwise its surface. */
+export function decorationDepthKind(id: string, surface: DecorationSurface): DecorationDepthKind {
+  return isRug(id) ? 'rug' : surface;
+}
+
 /**
- * Resting render depth (z-index) for a placed decoration that carries no
- * perspective information of its own. Bands come from `sim/depth.ts`, which
- * guarantees every decoration stays behind every character.
+ * The z-index a placed piece is painted at, relative to the team (see
+ * `decorationRenderZ`): wall art, rugs and hanging pieces behind employees;
+ * floor furniture standing among them by `supportY` (its base, 0..1 up the
+ * room stage), unless the player swapped a wall or floor piece.
+ */
+export function decorationZ(
+  id: string,
+  surface: DecorationSurface,
+  storedDepth?: number,
+  layer?: DecorationLayer,
+  supportY?: number,
+): number {
+  const kind = decorationDepthKind(id, surface);
+  return decorationRenderZ(
+    kind,
+    storedDepth,
+    layer,
+    kind === 'floor' && supportY !== undefined ? standingDepthPx(supportY) : undefined,
+  );
+}
+
+/**
+ * Resting STORED depth for a placed decoration that carries no perspective
+ * information of its own (the nearness scale in `sim/depth.ts`). Which side of
+ * the team it is painted on is `decorationZ`.
  */
 export function surfaceZ(id: string, surface: DecorationSurface): number {
   if (isRug(id)) return decorationDefaultDepth('rug'); // rugs sit under everything

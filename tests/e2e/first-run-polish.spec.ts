@@ -1,19 +1,20 @@
 import { test, expect, type Page } from '@playwright/test';
+import { openView } from './support/shell';
 
 const DIR = 'visual-artifacts';
+const REPLAY_PT = 'Repetir tutorial';
 
-async function seedFreshSettings(
-  page: Page,
-  language = 'en',
-  reducedMotion = true,
-) {
-  await page.addInitScript(({ locale, reduceMotion }) => {
-    localStorage.removeItem('wmno.save.v1');
-    localStorage.setItem(
-      'wmno.settings.v1',
-      JSON.stringify({ reducedMotion: reduceMotion, language: locale }),
-    );
-  }, { locale: language, reduceMotion: reducedMotion });
+async function seedFreshSettings(page: Page, language = 'en', reducedMotion = true) {
+  await page.addInitScript(
+    ({ locale, reduceMotion }) => {
+      localStorage.removeItem('wmno.save.v1');
+      localStorage.setItem(
+        'wmno.settings.v1',
+        JSON.stringify({ reducedMotion: reduceMotion, language: locale }),
+      );
+    },
+    { locale: language, reduceMotion: reducedMotion },
+  );
 }
 
 async function expectContained(page: Page, selector: string) {
@@ -50,31 +51,45 @@ test('premium first run is illustrated, keyboard-safe, and fully navigable', asy
   await shot(page, 'first-run-opening-title-1280x720');
 
   await start.click();
+  // The first run teaches by doing: no guide is forced open; the coach points at
+  // the founder's crate instead.
+  await expect(page.locator('.office')).toBeVisible();
+  await expect(page.locator('.popup.onboarding')).toHaveCount(0);
+  await expect(page.locator('.station-btn--crate.is-coached')).toBeVisible();
+  await shot(page, 'first-run-coach-1280x720');
+
+  // The field guide is still there to read, from Settings.
+  await openView(page, 'settings');
+  await page.getByRole('button', { name: 'Replay tutorial' }).click();
   const guide = page.locator('.popup.onboarding');
   await expect(guide).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Your first crate' })).toBeVisible();
-  await expect(page.getByText('Page 1 of 5')).toBeVisible();
-  await shot(page, 'first-run-guide-collect-1280x720');
+  await expect(page.getByRole('heading', { name: 'A company in a tree' })).toBeVisible();
+  await expect(page.getByText('Page 1 of 4')).toBeVisible();
+  // The guide shows the real cast artwork, not a drawn stand-in.
+  await expect(guide.locator('.employee-sprite').first()).toBeVisible();
+  await shot(page, 'first-run-guide-office-1280x720');
 
-  await page.getByRole('button', { name: 'Page 4: Watch the company grow' }).click();
-  await expect(page.getByRole('heading', { name: 'Watch the company grow' })).toBeVisible();
-  await shot(page, 'first-run-guide-company-1280x720');
+  await page.getByRole('button', { name: 'Page 3: Make it yours' }).click();
+  await expect(page.getByRole('heading', { name: 'Make it yours' })).toBeVisible();
+  await shot(page, 'first-run-guide-grow-1280x720');
 
-  await page.getByRole('button', { name: 'Page 5: Make the office yours' }).click();
-  await expect(page.getByRole('heading', { name: 'Make the office yours' })).toBeVisible();
+  await page.getByRole('button', { name: 'Page 4: Come back any time' }).click();
+  await expect(page.getByRole('heading', { name: 'Come back any time' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Open the office' })).toBeVisible();
-  await shot(page, 'first-run-guide-desktop-1280x720');
+  await shot(page, 'first-run-guide-return-1280x720');
 
   // Direct page navigation is reversible and all progress is announced in text,
   // not by colour or dots alone.
-  await page.getByRole('button', { name: 'Back' }).click();
-  await expect(page.getByText('Page 4 of 5')).toBeVisible();
-  await page.getByRole('button', { name: 'Page 5: Make the office yours' }).click();
+  await page.getByRole('button', { name: 'Back', exact: true }).click();
+  await expect(page.getByText('Page 3 of 4')).toBeVisible();
+  await page.getByRole('button', { name: 'Page 4: Come back any time' }).click();
   await page.getByRole('button', { name: 'Open the office' }).click();
   await expect(page.locator('.office')).toBeVisible();
 });
 
-test('compact localized first run stays contained and respects reduced motion', async ({ page }) => {
+test('compact localized first run stays contained and respects reduced motion', async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 390, height: 700 });
   await seedFreshSettings(page, 'pt-BR');
   await page.goto('/');
@@ -86,12 +101,52 @@ test('compact localized first run stays contained and respects reduced motion', 
 
   await page.getByRole('button', { name: 'Pegar a primeira bolota' }).click();
   await page.getByRole('button', { name: 'Abrir a empresa' }).click();
-  await expect(page.getByRole('heading', { name: 'Sua primeira caixa' })).toBeVisible();
+  // Straight into the office, the coach on the crate, everything inside the window.
+  await expect(page.locator('.station-btn--crate.is-coached')).toBeVisible();
+  await expectContained(page, '.station-btn--crate');
+  await expectContained(page, '.goal-tag');
+  await openView(page, 'settings');
+  await page.getByRole('button', { name: REPLAY_PT }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Uma empresa dentro de uma árvore' }),
+  ).toBeVisible();
   await expectContained(page, '.popup.onboarding');
-  await page.getByRole('button', { name: 'Página 5: Deixe o escritório do seu jeito' }).click();
-  await expect(page.getByText('Página 5 de 5')).toBeVisible();
+  await page.getByRole('button', { name: 'Página 4: Volte quando quiser' }).click();
+  await expect(page.getByText('Página 4 de 4')).toBeVisible();
   await expectContained(page, '.popup.onboarding');
-  await shot(page, 'first-run-guide-desktop-390x700-ptBR');
+  await shot(page, 'first-run-guide-return-390x700-ptBR');
+});
+
+test('a brand-new company opens in the player’s own language and keeps it', async ({ browser }) => {
+  // A Brazilian player's system, no save and no language picked yet: the schema's
+  // default ('en') must not override what the system says.
+  const context = await browser.newContext({
+    locale: 'pt-BR',
+    viewport: { width: 380, height: 460 },
+  });
+  const page = await context.newPage();
+  await page.addInitScript(() => {
+    if (sessionStorage.getItem('lang-seeded')) return;
+    sessionStorage.setItem('lang-seeded', '1');
+    localStorage.clear();
+  });
+  await page.goto('/');
+  await expect(page.getByRole('button', { name: 'Pegar a primeira bolota' })).toBeVisible();
+  await expect(page.locator('html')).toHaveAttribute('lang', 'pt-BR');
+  // The observation file opens on the company's own letterhead.
+  await expect(page.locator('.opening-card__org')).toHaveText('Nutshell Inc.');
+  await expectContained(page, '.opening-card');
+  await page.getByRole('button', { name: 'Pegar a primeira bolota' }).click();
+  await page.getByRole('button', { name: 'Abrir a empresa' }).click();
+  await expect(page.getByRole('button', { name: 'Equipe', exact: true })).toBeVisible();
+  // Recorded in the save: a reload (or the next session) stays in Portuguese.
+  await page.reload();
+  await expect(page.getByRole('button', { name: 'Equipe', exact: true })).toBeVisible();
+  const saved = await page.evaluate(
+    () => JSON.parse(localStorage.getItem('wmno.save.v1') ?? '{}').settings?.language,
+  );
+  expect(saved).toBe('pt-BR');
+  await context.close();
 });
 
 test('Escape offers a complete keyboard bypass without trapping focus', async ({ page }) => {
@@ -100,15 +155,16 @@ test('Escape offers a complete keyboard bypass without trapping focus', async ({
   await expect(page.getByRole('button', { name: 'Claim the first acorn' })).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(page.locator('.opening-seq')).toHaveCount(0);
-  await expect(page.locator('.popup.onboarding')).toBeVisible();
-  await page.keyboard.press('Escape');
+  // Nothing else is stacked behind the opening: the office is playable at once.
   await expect(page.locator('.popup.onboarding')).toHaveCount(0);
   await expect(page.locator('.office')).toBeVisible();
+  await page.keyboard.press('Tab');
+  await expect(page.locator(':focus')).toHaveCount(1);
 });
 
-
-
-test('minimum desktop window keeps opening actions visible and focus locked during impact', async ({ page }) => {
+test('minimum desktop window keeps opening actions visible and focus locked during impact', async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 320, height: 420 });
   await seedFreshSettings(page, 'en', false);
   await page.goto('/');

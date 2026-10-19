@@ -1,5 +1,6 @@
 import { test, expect, type Locator, type Page } from '@playwright/test';
 import { ROOMS_BY_ID } from '../../src/content/rooms';
+import { arrangeToggle } from './support/shell';
 
 // Decoration surface-category + controlled free-placement E2E.
 //
@@ -34,11 +35,56 @@ const SAVE = {
     'window-view': { surface: 'wall', x: 0.7, y: 0.62 },
   },
   decorationInstances: [
-    { instanceId: 'deco-potted-fern-1', decorationId: 'potted-fern', roomId: 'founder-desk', surfaceType: 'floor', normalizedX: 0.2, normalizedY: 0.1, depth: 3, interactionState: {} },
-    { instanceId: 'deco-tiny-rug-1', decorationId: 'tiny-rug', roomId: 'founder-desk', surfaceType: 'floor', normalizedX: 0.5, normalizedY: 0.14, depth: 0, interactionState: {} },
-    { instanceId: 'deco-motivational-poster-1', decorationId: 'motivational-poster', roomId: 'founder-desk', surfaceType: 'wall', normalizedX: 0.32, normalizedY: 0.62, depth: 1, interactionState: {} },
-    { instanceId: 'deco-window-view-1', decorationId: 'window-view', roomId: 'founder-desk', surfaceType: 'wall', normalizedX: 0.7, normalizedY: 0.62, depth: 1, interactionState: {} },
-    { instanceId: 'deco-desk-lamp-1', decorationId: 'desk-lamp', roomId: null, surfaceType: 'floor', normalizedX: 0.5, normalizedY: 0.06, depth: 2, interactionState: {} },
+    {
+      instanceId: 'deco-potted-fern-1',
+      decorationId: 'potted-fern',
+      roomId: 'founder-desk',
+      surfaceType: 'floor',
+      normalizedX: 0.2,
+      normalizedY: 0.1,
+      depth: 3,
+      interactionState: {},
+    },
+    {
+      instanceId: 'deco-tiny-rug-1',
+      decorationId: 'tiny-rug',
+      roomId: 'founder-desk',
+      surfaceType: 'floor',
+      normalizedX: 0.5,
+      normalizedY: 0.14,
+      depth: 0,
+      interactionState: {},
+    },
+    {
+      instanceId: 'deco-motivational-poster-1',
+      decorationId: 'motivational-poster',
+      roomId: 'founder-desk',
+      surfaceType: 'wall',
+      normalizedX: 0.32,
+      normalizedY: 0.62,
+      depth: 1,
+      interactionState: {},
+    },
+    {
+      instanceId: 'deco-window-view-1',
+      decorationId: 'window-view',
+      roomId: 'founder-desk',
+      surfaceType: 'wall',
+      normalizedX: 0.7,
+      normalizedY: 0.62,
+      depth: 1,
+      interactionState: {},
+    },
+    {
+      instanceId: 'deco-desk-lamp-1',
+      decorationId: 'desk-lamp',
+      roomId: null,
+      surfaceType: 'floor',
+      normalizedX: 0.5,
+      normalizedY: 0.06,
+      depth: 2,
+      interactionState: {},
+    },
   ],
   collections: {
     nuts: [],
@@ -79,7 +125,7 @@ async function clearModals(page: Page) {
 }
 
 async function enterDecorateMode(page: Page) {
-  const toggle = page.locator('.office__toolbar button').first();
+  const toggle = arrangeToggle(page);
   await toggle.click();
   await expect(page.locator('.office--decorating')).toHaveCount(1);
 }
@@ -117,7 +163,7 @@ async function dragFromElementTo(
 async function expectReachableForPointer(target: Locator) {
   const probe = await target.evaluate((element) => {
     const box = element.getBoundingClientRect();
-    const main = document.querySelector<HTMLElement>('.app__main')!.getBoundingClientRect();
+    const main = document.querySelector<HTMLElement>('.office__world')!.getBoundingClientRect();
     const tray = document.querySelector<HTMLElement>('.deco-tray')?.getBoundingClientRect();
     return {
       top: box.top,
@@ -213,7 +259,9 @@ test.describe('decoration free-placement', () => {
     await expect(card).toBeVisible();
     await page.screenshot({ path: `${DIR}/deco-04-tray.png` });
 
-    const placedBefore = await page.locator('.floor[data-room="founder-desk"] .floor__deco').count();
+    const placedBefore = await page
+      .locator('.floor[data-room="founder-desk"] .floor__deco')
+      .count();
     const box = (await stage.boundingBox())!;
     await dragFromElementTo(page, card, box.x + box.width * 0.5, box.y + box.height * 0.85);
 
@@ -240,7 +288,13 @@ test.describe('decoration free-placement', () => {
     const deco = page.locator('.floor[data-room="founder-desk"] [data-deco="potted-fern"]');
     const before = styleNumbers((await deco.getAttribute('style')) ?? '');
     const box = (await stage.boundingBox())!;
-    await dragFromElementTo(page, deco, box.x + box.width * 0.78, box.y + box.height * 0.9, 54 / 56);
+    await dragFromElementTo(
+      page,
+      deco,
+      box.x + box.width * 0.78,
+      box.y + box.height * 0.9,
+      54 / 56,
+    );
     const moved = styleNumbers((await deco.getAttribute('style')) ?? '');
     // Sanity: the drag actually moved it before we test persistence.
     expect(Math.abs(moved.left - before.left)).toBeGreaterThan(8);
@@ -261,7 +315,9 @@ test.describe('decoration free-placement', () => {
     expect(Math.abs(reloaded.bottom - moved.bottom)).toBeLessThan(2);
   });
 
-  test('dragging highlights compatible rooms and moves the instance across floors', async ({ page }) => {
+  test('dragging highlights compatible rooms and moves the instance across floors', async ({
+    page,
+  }) => {
     // Morale is upstairs from the Founder's Desk; that difference is the point of
     // this test, so it is asserted rather than assumed.
     expect(ROOMS_BY_ID.morale.floor).not.toBe(ROOMS_BY_ID['founder-desk'].floor);
@@ -270,36 +326,59 @@ test.describe('decoration free-placement', () => {
     const destination = page.locator('.floor[data-room="morale"] .floor__stage');
     await expect(source).toBeVisible();
     await expect(destination).toBeVisible();
-    // `toBeVisible` only means "rendered and non-empty"; a room scrolled up behind
-    // the letterhead still passes it. The drop is a real pointer gesture, so both
-    // ends have to be inside the office's scroll window and clear of the tray, or
-    // the pointer silently lands on whatever chrome is in the way.
+    // The storage strip sits under the rooms while arranging, so the upstairs room
+    // may be out of sight: the drag itself has to bring it into reach. The source
+    // must be reachable for the pointer to pick it up at all.
     await expectReachableForPointer(source);
-    await expectReachableForPointer(destination);
 
     const sourceBox = (await source.boundingBox())!;
-    const destinationBox = (await destination.boundingBox())!;
     const sx = sourceBox.x + sourceBox.width / 2;
     const sy = sourceBox.y + sourceBox.height / 2;
-    const desiredAnchorX = destinationBox.x + destinationBox.width * 0.75;
-    const desiredAnchorY = destinationBox.y + destinationBox.height * 0.9;
-    const tx = desiredAnchorX + (sx - (sourceBox.x + sourceBox.width / 2));
-    const ty = desiredAnchorY + (sy - (sourceBox.y + sourceBox.height * (54 / 56)));
 
     await page.mouse.move(sx, sy);
     await page.mouse.down();
     await page.mouse.move(sx + 12, sy + 4, { steps: 3 });
     await expect(page.locator('.floor[data-room="morale"]')).toHaveClass(/is-deco-target/);
+
+    // Hold the piece at the top of the tower view: the building scrolls the upper
+    // floors down to it. Then step back into the middle so the scrolling stops.
+    const view = (await page.locator('.office__world').boundingBox())!;
+    await page.mouse.move(sx, view.y + 10, { steps: 6 });
+    await expect
+      .poll(
+        async () => {
+          const box = await destination.boundingBox();
+          return Boolean(box && box.y >= view.y + 60 && box.y + box.height <= view.y + view.height);
+        },
+        { timeout: 10_000 },
+      )
+      .toBe(true);
+    await page.mouse.move(sx, view.y + view.height / 2, { steps: 4 });
+    await expectReachableForPointer(destination);
+
+    const destinationBox = (await destination.boundingBox())!;
+    const desiredAnchorX = destinationBox.x + destinationBox.width * 0.75;
+    const desiredAnchorY = destinationBox.y + destinationBox.height * 0.9;
+    const tx = desiredAnchorX + (sx - (sourceBox.x + sourceBox.width / 2));
+    const ty = desiredAnchorY + (sy - (sourceBox.y + sourceBox.height * (54 / 56)));
     await page.mouse.move(tx, ty, { steps: 10 });
     await expect(page.locator('.floor[data-room="morale"]')).toHaveClass(/is-deco-hover/);
     await page.mouse.up();
 
-    await expect(page.locator('.floor[data-room="founder-desk"] [data-deco="potted-fern"]')).toHaveCount(0);
-    await expect(page.locator('.floor[data-room="morale"] [data-deco="potted-fern"]')).toBeVisible();
+    await expect(
+      page.locator('.floor[data-room="founder-desk"] [data-deco="potted-fern"]'),
+    ).toHaveCount(0);
+    await expect(
+      page.locator('.floor[data-room="morale"] [data-deco="potted-fern"]'),
+    ).toBeVisible();
   });
 
-  test('Move To dialog supports keyboard dismissal and touch-friendly room choice', async ({ page }) => {
-    const decoration = page.locator('.floor[data-room="founder-desk"] [data-deco="potted-fern"] .decor');
+  test('Move To dialog supports keyboard dismissal and touch-friendly room choice', async ({
+    page,
+  }) => {
+    const decoration = page.locator(
+      '.floor[data-room="founder-desk"] [data-deco="potted-fern"] .decor',
+    );
     await decoration.click();
     const moveButton = page.getByRole('button', { name: 'Move To…' }).first();
     await moveButton.focus();
@@ -313,6 +392,8 @@ test.describe('decoration free-placement', () => {
     await moveButton.click();
     await page.getByRole('button', { name: /Move to Coffee & Morale Division/i }).click();
     await expect(page.getByRole('dialog')).toHaveCount(0);
-    await expect(page.locator('.floor[data-room="morale"] [data-deco="potted-fern"]')).toBeVisible();
+    await expect(
+      page.locator('.floor[data-room="morale"] [data-deco="potted-fern"]'),
+    ).toBeVisible();
   });
 });

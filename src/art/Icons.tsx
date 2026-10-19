@@ -17,8 +17,26 @@ export function Acorn({ size = 40, golden = false }: { size?: number; golden?: b
 export function Crate({ size = 56 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 64 64" role="img" aria-label="crate">
-      <rect x="10" y="20" width="44" height="36" rx="4" fill="#b9803f" stroke="#7a4a24" strokeWidth="2" />
-      <rect x="10" y="20" width="44" height="10" rx="3" fill="#caa062" stroke="#7a4a24" strokeWidth="1.5" />
+      <rect
+        x="10"
+        y="20"
+        width="44"
+        height="36"
+        rx="4"
+        fill="#b9803f"
+        stroke="#7a4a24"
+        strokeWidth="2"
+      />
+      <rect
+        x="10"
+        y="20"
+        width="44"
+        height="10"
+        rx="3"
+        fill="#caa062"
+        stroke="#7a4a24"
+        strokeWidth="1.5"
+      />
       <line x1="20" y1="30" x2="20" y2="56" stroke="#7a4a24" strokeWidth="1.5" />
       <line x1="44" y1="30" x2="44" y2="56" stroke="#7a4a24" strokeWidth="1.5" />
       <circle cx="26" cy="18" r="6" fill="#c98a4b" stroke="#7a4a24" strokeWidth="1" />

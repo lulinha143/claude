@@ -165,11 +165,11 @@ describe('decoration surface metadata', () => {
 
     for (const decoration of DECORATIONS) {
       // Exactly one valid surface — no multi-surface props.
-      expect(decoration.compatibleRegionKinds, decoration.id).toEqual([decoration.defaultRegionKind]);
-      expect(decoration.placementSurface, decoration.id).toBe(decorationSurface(decoration.id));
-      expect(decoration.compatibleSurfaces, decoration.id).toEqual([
-        decoration.placementSurface,
+      expect(decoration.compatibleRegionKinds, decoration.id).toEqual([
+        decoration.defaultRegionKind,
       ]);
+      expect(decoration.placementSurface, decoration.id).toBe(decorationSurface(decoration.id));
+      expect(decoration.compatibleSurfaces, decoration.id).toEqual([decoration.placementSurface]);
       expect(decoration.compatibleRegionSurfaces, decoration.id).toEqual([
         REGION_KIND_SURFACE[decoration.defaultRegionKind],
       ]);
@@ -197,7 +197,9 @@ describe('decoration surface metadata', () => {
       billboard: 'floor',
     };
     for (const [id, kind] of Object.entries(expected)) {
-      expect(DECORATIONS.find((decoration) => decoration.id === id)?.defaultRegionKind, id).toBe(kind);
+      expect(DECORATIONS.find((decoration) => decoration.id === id)?.defaultRegionKind, id).toBe(
+        kind,
+      );
     }
   });
 

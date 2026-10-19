@@ -1,0 +1,181 @@
+/* ==========================================================================
+   Game layer — the welcome back. A paper note taped under the HUD, heading the
+   notices column: what the time away brought (reward gold), by which rule (small
+   print), and the things waiting in their rooms as lines that go there. It never
+   dims the office: the crate it talks about stays tappable behind it.
+   ========================================================================== */
+@layer game {
+  .return-note {
+    position: relative;
+    width: 100%;
+    margin: 6px 0 2px;
+    padding: 8px 9px 9px;
+    color: var(--ink-strong);
+    background: var(--paper-grain), var(--paper-bg-bright);
+    border: 2px solid var(--paper-line);
+    border-radius: 11px;
+    box-shadow: var(--lift-shadow);
+    pointer-events: auto;
+    text-align: left;
+    rotate: -0.6deg;
+    animation: return-note-in var(--dur-slow) var(--ease-pop) both;
+  }
+  .return-note::before {
+    content: '';
+    position: absolute;
+    top: -9px;
+    left: 50%;
+    width: 52px;
+    height: 16px;
+    background: var(--tape);
+    border-radius: 2px;
+    translate: -50% 0;
+    rotate: 3deg;
+  }
+  @keyframes return-note-in {
+    from {
+      opacity: 0;
+      transform: translateY(-12px) scale(0.96);
+    }
+  }
+  [data-reduced-motion='true'] .return-note {
+    animation: none;
+  }
+
+  .return-note__head {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .return-note__mark {
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    width: 32px;
+    height: 32px;
+    background: var(--paper-bg-sunken);
+    border-radius: 9px;
+  }
+  .return-note__heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 7px;
+    min-width: 0;
+    margin: 0;
+  }
+  .return-note__title {
+    font: 700 var(--fs-sm) / 1.2 var(--font-display);
+  }
+  .return-note__away {
+    color: var(--ink-soft);
+    font: 700 var(--fs-xs) / 1.2 var(--font-body);
+    white-space: nowrap;
+  }
+  .return-note__close {
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    width: 28px;
+    height: 28px;
+    margin: -2px -2px 0 auto;
+    padding: 0;
+    color: var(--ink-soft);
+    background: none;
+    border: 0;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  .return-note__close:hover,
+  .return-note__close:focus-visible {
+    color: var(--ink-strong);
+    background: var(--paper-bg-sunken);
+  }
+
+  /* The payoff, in reward gold; then the rule it was paid by, in small print. */
+  .return-note__payoff {
+    margin: 4px 0 0;
+    color: var(--c-reward-600);
+    font: 800 var(--fs-lg) / 1.15 var(--font-numeric);
+    font-variant-numeric: tabular-nums;
+  }
+  .return-note__rule {
+    margin: 2px 0 0;
+    color: var(--ink-soft);
+    font: 600 var(--fs-2xs) / 1.35 var(--font-body);
+  }
+
+  /* What is waiting, each in its own room: a line that takes you there. */
+  .return-note__waiting {
+    display: grid;
+    gap: 4px;
+    margin: 7px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  /* What it is, and under it where: a room's whole name is part of the point. */
+  .return-note__go {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0 6px;
+    width: 100%;
+    min-height: 34px;
+    padding: 3px 8px 3px 5px;
+    color: var(--ink-strong);
+    background: var(--paper-bg-sunken);
+    border: 1px solid var(--paper-line);
+    border-radius: 9px;
+    font: 700 var(--fs-xs) / 1.2 var(--font-body);
+    text-align: left;
+    cursor: pointer;
+  }
+  .return-note__go:hover,
+  .return-note__go:focus-visible {
+    border-color: var(--c-walnut-400);
+    background: var(--paper-bg-bright);
+  }
+  .return-note__go-icon {
+    display: grid;
+    grid-row: 1 / span 2;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    color: var(--c-acorn-600);
+  }
+  .return-note__go[data-go='crate'] .return-note__go-what {
+    color: var(--c-reward-600);
+  }
+  .return-note__go-what,
+  .return-note__go-where {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .return-note__go-where {
+    grid-column: 2;
+    grid-row: 2;
+    color: var(--ink-soft);
+    font-size: var(--fs-2xs);
+    font-weight: 600;
+  }
+  .return-note__go-arrow {
+    display: grid;
+    grid-column: 3;
+    grid-row: 1 / span 2;
+    color: var(--ink-soft);
+    scale: -1 1;
+  }
+
+  [data-high-contrast='true'] .return-note {
+    border-color: #000;
+  }
+  [data-high-contrast='true'] .return-note__rule,
+  [data-high-contrast='true'] .return-note__away,
+  [data-high-contrast='true'] .return-note__go-where {
+    color: #000;
+  }
+  [data-high-contrast='true'] .return-note__go {
+    border-color: #000;
+  }
+}

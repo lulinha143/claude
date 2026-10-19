@@ -31,12 +31,37 @@ export function BrandEmblem({ size = 64, title }: { size?: number; title?: strin
       </defs>
 
       {/* warm rounded badge */}
-      <rect x="2" y="2" width="60" height="60" rx="16" fill={`url(#${grad})`} stroke="#7a4f28" strokeWidth="3" />
-      <rect x="5.5" y="5.5" width="53" height="53" rx="12.5" fill="none" stroke="#fff3d4" strokeOpacity="0.5" strokeWidth="1.5" />
+      <rect
+        x="2"
+        y="2"
+        width="60"
+        height="60"
+        rx="16"
+        fill={`url(#${grad})`}
+        stroke="#7a4f28"
+        strokeWidth="3"
+      />
+      <rect
+        x="5.5"
+        y="5.5"
+        width="53"
+        height="53"
+        rx="12.5"
+        fill="none"
+        stroke="#fff3d4"
+        strokeOpacity="0.5"
+        strokeWidth="1.5"
+      />
 
       {/* cozy office window glow + arch behind the worker */}
       <ellipse cx="32" cy="27" rx="17" ry="17" fill={`url(#${glow})`} />
-      <path d="M19 31 V22 a13 13 0 0 1 26 0 V31" fill="none" stroke="#8a5c2f" strokeWidth="2.2" opacity="0.5" />
+      <path
+        d="M19 31 V22 a13 13 0 0 1 26 0 V31"
+        fill="none"
+        stroke="#8a5c2f"
+        strokeWidth="2.2"
+        opacity="0.5"
+      />
       <path d="M32 9 V31 M19.5 22 H44.5" stroke="#8a5c2f" strokeWidth="1.5" opacity="0.32" />
 
       {/* ears */}
@@ -53,7 +78,13 @@ export function BrandEmblem({ size = 64, title }: { size?: number; title?: strin
       <circle cx="27" cy="32.3" r="0.7" fill="#fff" />
       <circle cx="36.2" cy="32.3" r="0.7" fill="#fff" />
       <circle cx="32" cy="37.4" r="1.9" fill="#3a2817" />
-      <path d="M29 41 q3 2.2 6 0" fill="none" stroke="#3a2817" strokeWidth="1.4" strokeLinecap="round" />
+      <path
+        d="M29 41 q3 2.2 6 0"
+        fill="none"
+        stroke="#3a2817"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+      />
 
       {/* a little office bow-tie, peeking above the desk */}
       <path d="M32 44 l-4.5 -3 v6 Z" fill="#4f9d69" stroke="#2f5f42" strokeWidth="1" />
@@ -61,7 +92,16 @@ export function BrandEmblem({ size = 64, title }: { size?: number; title?: strin
       <circle cx="32" cy="44" r="1.4" fill="#3c7d54" />
 
       {/* the desk the whole company works at */}
-      <rect x="6" y="46" width="52" height="10" rx="3.5" fill="#a9702f" stroke="#5f3d1c" strokeWidth="2" />
+      <rect
+        x="6"
+        y="46"
+        width="52"
+        height="10"
+        rx="3.5"
+        fill="#a9702f"
+        stroke="#5f3d1c"
+        strokeWidth="2"
+      />
       <rect x="8.5" y="47.5" width="47" height="2" rx="1" fill="#d99a54" />
     </svg>
   );

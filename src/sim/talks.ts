@@ -8,16 +8,28 @@ import { EMPLOYEES_BY_ID } from '../content/employees';
 import {
   topicsForEmployee,
   type TalkChoice,
+  type TalkNode,
   type TalkRequirement,
   type TalkTopic,
+  type TalkVariant,
 } from '../content/employeeTalks';
-import { employeeMood } from './mood';
+import { roomAffinity } from './affinity';
+import { employeeMood, MOOD_POSITIVE } from './mood';
 import { resolveEmployeeRoom } from './rooms';
 import type { GameState } from './types';
 
 /** Why an option cannot be taken, in a form the UI can localise. */
 export interface TalkRequirementFailure {
-  kind: 'nuts' | 'goldenNuts' | 'friendship' | 'flag' | 'missingFlag' | 'room' | 'mood' | 'morale';
+  kind:
+    | 'nuts'
+    | 'goldenNuts'
+    | 'friendship'
+    | 'flag'
+    | 'missingFlag'
+    | 'room'
+    | 'mood'
+    | 'morale'
+    | 'later';
   messageKey: string;
   required?: number;
 }
@@ -95,7 +107,65 @@ export function checkTalkRequirement(
   if (req.moraleBelow !== undefined && state.resources.morale >= req.moraleBelow) {
     out.push({ kind: 'morale', messageKey: 'talk.req.moraleBelow', required: req.moraleBelow });
   }
+  if (req.after) {
+    const since = state.flags[req.after.flag];
+    const ready = since === undefined ? Infinity : since + req.after.seconds * 1000;
+    if (now < ready) {
+      out.push({
+        kind: 'later',
+        messageKey: 'talk.req.later',
+        required: Number.isFinite(ready) ? Math.ceil((ready - now) / 1000) : undefined,
+      });
+    }
+  }
   return out;
+}
+
+/** Who is speaking, on which topic, and when: what a personal variant reads. */
+export interface PromptContext {
+  employeeId: string;
+  topicId: string;
+  now: number;
+}
+
+function variantHolds(
+  state: GameState,
+  variant: TalkVariant,
+  context: PromptContext | undefined,
+): boolean {
+  if (variant.flag !== undefined && !(variant.flag in state.flags)) return false;
+  const personal =
+    variant.since !== undefined || variant.affinity !== undefined || variant.lowMood !== undefined;
+  if (!personal) return true;
+  if (!context) return false;
+  const { employeeId, topicId, now } = context;
+  if (variant.since !== undefined) {
+    const at = state.flags[variant.since];
+    const lastTime = talkMemory(state, employeeId).seen[topicId] ?? 0;
+    if (at === undefined || at < lastTime) return false;
+  }
+  if (
+    variant.affinity !== undefined &&
+    roomAffinity(employeeId, resolveEmployeeRoom(state, employeeId)) !== variant.affinity
+  ) {
+    return false;
+  }
+  if (variant.lowMood !== undefined) {
+    const low = !MOOD_POSITIVE[employeeMood(state, employeeId, now)];
+    if (low !== variant.lowMood) return false;
+  }
+  return true;
+}
+
+/**
+ * What the employee says arriving at `node`: the first variant whose conditions
+ * hold (an earlier choice remembered, the room they are in, how they feel, what
+ * happened since you last spoke), otherwise the node's own prompt. Personal
+ * conditions need `context`; without it only the flag variants are considered.
+ */
+export function nodePrompt(state: GameState, node: TalkNode, context?: PromptContext): string {
+  const variant = node.variants?.find((candidate) => variantHolds(state, candidate, context));
+  return variant?.promptKey ?? node.promptKey;
 }
 
 /** Topics this employee is willing to open right now, best first. */
@@ -109,7 +179,16 @@ export function eligibleTopics(state: GameState, employeeId: string, now: number
       return checkTalkRequirement(state, employeeId, topic.requires, now).length === 0;
     })
     .slice()
-    .sort((a, b) => b.weight - a.weight || a.id.localeCompare(b.id));
+    .sort((a, b) => {
+      // Urgent situations retain priority. Otherwise give unseen material a turn,
+      // then revisit the oldest exchange: a repeatable check-in must not permanently
+      // hide gifts, discoveries or any lower-weight authored topic.
+      if (a.weight >= 14 || b.weight >= 14) return b.weight - a.weight;
+      const seen = talkMemory(state, employeeId).seen;
+      return (
+        (seen[a.id] ?? 0) - (seen[b.id] ?? 0) || b.weight - a.weight || a.id.localeCompare(b.id)
+      );
+    });
 }
 
 /**
@@ -132,9 +211,8 @@ export function canTalk(state: GameState, employeeId: string, now: number): bool
  *
  * Options that fail are returned DISABLED WITH REASONS rather than dropped, because a
  * conversation where the interesting option silently vanishes teaches the player
- * nothing. A node always ends up with at least one enabled option: if gating would
- * close every door, the requirements are ignored on the first option so the
- * conversation can never trap the player.
+ * nothing. If every door closes, offer a consequence-free exit; never bypass a
+ * resource or relationship requirement to repair a dead end.
  */
 export function evaluateTalkNode(
   state: GameState,
@@ -147,7 +225,18 @@ export function evaluateTalkNode(
     return { choice, enabled: failures.length === 0, failures };
   });
   if (evaluated.length > 0 && !evaluated.some((e) => e.enabled)) {
-    evaluated[0] = { ...evaluated[0], enabled: true };
+    let id = 'defer';
+    while (choices.some((choice) => choice.id === id)) id += '-exit';
+    evaluated.push({
+      choice: {
+        id,
+        labelKey: 'talk.defer.label',
+        replyKey: 'talk.defer.reply',
+        effects: [],
+      },
+      enabled: true,
+      failures: [],
+    });
   }
   return evaluated;
 }

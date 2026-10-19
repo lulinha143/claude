@@ -56,5 +56,5 @@ and a break room feel different yet clearly part of one building.
 ## Adding room/prop art
 
 - Prefer inline SVG or CSS; if a raster asset is ever added, document its source
-  + license in `assets/` and keep the outline/scale/perspective consistent with
-  this guide. Do **not** paste in mismatched internet artwork.
+  - license in `assets/` and keep the outline/scale/perspective consistent with
+    this guide. Do **not** paste in mismatched internet artwork.

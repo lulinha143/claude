@@ -232,7 +232,11 @@ describe('engine.tapStation', () => {
     const gold = engine.state.resources.goldenNuts;
     const result = engine.tapStation('furnace-valve');
     expect(result?.resource).toBe('goldenNuts');
-    expect(engine.state.resources.goldenNuts).toBeGreaterThan(gold);
+    // It refines gold: dust toward the next whole golden nut (never a fraction of one).
+    expect(
+      engine.state.resources.goldenNuts + (engine.state.clicker.goldenDust ?? 0),
+    ).toBeGreaterThan(gold);
+    expect(Number.isInteger(engine.state.resources.goldenNuts)).toBe(true);
     expect(engine.state.resources.nuts).toBe(nuts);
   });
 

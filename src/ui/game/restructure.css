@@ -1,0 +1,391 @@
+/* Chapter 10: the restructure, as the paperwork it is. A continuity file says what
+   the company receives, what stays and what starts over; the branch is a choice of
+   cards; the decision is a separate confirmation that restates the trade. Paper and
+   ink, green for the one action, gold for resources, purple only for the kernels. */
+@layer game {
+  .view--prestige.restructure {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    align-content: start;
+  }
+  .restructure h3 {
+    margin: 0 0 4px;
+    color: var(--ink-strong);
+    font: 600 var(--fs-sm) / 1.25 var(--font-display);
+  }
+  .restructure p {
+    margin: 0;
+  }
+  .restructure-note {
+    color: var(--ink-soft);
+    font: 600 var(--fs-xs) / 1.35 var(--font-body);
+  }
+
+  /* ---- the continuity file -------------------------------------------------------- */
+  .restructure-file {
+    position: relative;
+    display: grid;
+    gap: 10px;
+    padding: 10px 12px 12px;
+    color: var(--ink-body);
+    background: var(--paper-bg-bright);
+    border: 1.5px solid var(--paper-line);
+    border-radius: 12px;
+    box-shadow: 0 2px 0 rgb(46 29 16 / 0.12);
+    container-type: inline-size;
+  }
+  .restructure-file__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 10px;
+    padding-bottom: 6px;
+    border-bottom: 1.5px dashed var(--paper-line);
+  }
+  .restructure-file__kind {
+    color: var(--ink-soft);
+    font: 800 var(--fs-2xs) / 1.2 var(--font-body);
+    letter-spacing: 0.08em;
+  }
+  .restructure-file__cycle {
+    color: var(--ink-strong);
+    font: 800 var(--fs-xs) / 1.2 var(--font-numeric);
+    font-variant-numeric: tabular-nums;
+  }
+  /* A rubber stamp: words and a frame, so it reads without its colour. */
+  .restructure-file__stamp {
+    margin-left: auto;
+    padding: 1px 7px;
+    color: var(--ink-soft);
+    border: 2px solid currentColor;
+    border-radius: 4px;
+    font: 800 var(--fs-2xs) / 1.3 var(--font-body);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    transform: rotate(-3deg);
+  }
+  .restructure-file__stamp.is-ready {
+    color: var(--c-sage-700);
+  }
+  .restructure-file__lede {
+    font: 600 var(--fs-sm) / 1.4 var(--font-body);
+  }
+
+  /* ---- what it pays ----------------------------------------------------------------- */
+  .restructure-gain {
+    display: grid;
+    gap: 4px;
+    padding: 8px 10px;
+    background: var(--paper-bg-sunken);
+    border-radius: 10px;
+    font: 600 var(--fs-xs) / 1.4 var(--font-body);
+  }
+  .restructure-gain__kernels {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--c-rare-600);
+    font: 800 var(--fs-base) / 1.2 var(--font-numeric);
+  }
+  .restructure-progress {
+    display: grid;
+    gap: 4px;
+  }
+  .restructure-progress__bar {
+    height: 8px;
+    overflow: hidden;
+    background: var(--paper-bg-bright);
+    border: 1.5px solid var(--reward-edge);
+    border-radius: 999px;
+  }
+  .restructure-progress__bar > span {
+    display: block;
+    height: 100%;
+    background: var(--reward-bg);
+  }
+  .restructure-progress__numbers {
+    color: var(--ink-strong);
+    font: 800 var(--fs-xs) / 1.2 var(--font-numeric);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---- what stays, what starts over ------------------------------------------------- */
+  .restructure-columns {
+    display: grid;
+    gap: 10px;
+  }
+  @container (min-width: 520px) {
+    .restructure-columns {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .restructure-list ul {
+    display: grid;
+    gap: 3px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .restructure-list li {
+    position: relative;
+    padding-left: 14px;
+    color: var(--ink-body);
+    font: 600 var(--fs-xs) / 1.35 var(--font-body);
+  }
+  /* Kept: a filled dot. Starting over: a dash. Shape, not only colour. */
+  .restructure-list li::before {
+    content: '';
+    position: absolute;
+    left: 2px;
+    top: 0.5em;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--c-sage-600);
+  }
+  .restructure-list--reset li::before {
+    top: 0.62em;
+    height: 2.5px;
+    border-radius: 2px;
+    background: var(--c-walnut-400);
+  }
+  .restructure-list li[data-tone='gold'] {
+    color: var(--ink-strong);
+    font-weight: 800;
+  }
+  .restructure-list li[data-tone='gold']::before {
+    background: var(--reward-bg);
+    box-shadow: 0 0 0 1px var(--reward-edge);
+  }
+
+  /* ---- the branch ------------------------------------------------------------------ */
+  .restructure-branches {
+    display: grid;
+    gap: 6px;
+  }
+  .restructure .branch-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 6px;
+    margin: 0;
+  }
+  .restructure .branch {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    padding: 8px 10px;
+    color: var(--ink-body);
+    background: var(--paper-bg-bright);
+    border: 1.5px solid var(--paper-line);
+    border-radius: 10px;
+    text-align: left;
+    cursor: pointer;
+  }
+  .restructure .branch:hover {
+    background: var(--paper-bg);
+  }
+  .restructure .branch strong {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px 6px;
+    color: var(--ink-strong);
+    font: 600 var(--fs-sm) / 1.2 var(--font-display);
+  }
+  .restructure .branch > span {
+    color: var(--ink-body);
+    font: 600 var(--fs-xs) / 1.3 var(--font-body);
+  }
+  /* The one picked: a thick action edge and a tick-shaped corner, not colour alone. */
+  .restructure .branch.is-active {
+    border: 2.5px solid var(--action-edge);
+    box-shadow: inset 0 0 0 2px var(--c-sage-200);
+    background: var(--paper-bg-bright);
+  }
+  .restructure .branch.is-active strong::after {
+    content: '';
+    width: 9px;
+    height: 5px;
+    margin-left: auto;
+    border-left: 2.5px solid var(--action-edge);
+    border-bottom: 2.5px solid var(--action-edge);
+    transform: rotate(-45deg) translateY(-2px);
+  }
+  .branch__current {
+    padding: 0 6px;
+    color: var(--ink-soft);
+    border: 1px solid var(--paper-line);
+    border-radius: 999px;
+    font: 800 var(--fs-2xs) / 1.4 var(--font-body);
+  }
+  .restructure .branch__effects {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: auto;
+    padding-top: 2px;
+  }
+  .restructure .branch__effects em {
+    padding: 0 7px;
+    color: var(--c-sage-700);
+    background: var(--c-sage-200);
+    border: 1px solid color-mix(in srgb, var(--c-sage-600) 45%, transparent);
+    border-radius: 999px;
+    font: 800 var(--fs-2xs) / 1.5 var(--font-body);
+    font-style: normal;
+    white-space: nowrap;
+  }
+  .restructure .branch__effects em.is-cost {
+    color: var(--c-berry-700);
+    background: var(--c-berry-200);
+    border-color: color-mix(in srgb, var(--c-berry-500) 45%, transparent);
+  }
+
+  /* ---- the decision ------------------------------------------------------------------ */
+  .restructure-open {
+    justify-self: stretch;
+  }
+  .restructure-confirm {
+    display: grid;
+    gap: 6px;
+    padding: 10px 12px;
+    color: var(--ink-body);
+    background: var(--paper-bg-bright);
+    border: 2.5px solid var(--calm-edge);
+    border-radius: 12px;
+    box-shadow: var(--lift-shadow);
+    font: 600 var(--fs-xs) / 1.4 var(--font-body);
+  }
+  .restructure-confirm__final {
+    color: var(--ink-strong);
+    font-weight: 800;
+  }
+  .restructure-confirm__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 2px;
+  }
+  .restructure-confirm__actions > button {
+    flex: 1 1 140px;
+    min-height: 40px;
+  }
+
+  /* ---- the skills ------------------------------------------------------------------- */
+  .restructure-skills {
+    display: grid;
+    gap: 6px;
+  }
+  .restructure-skills .skill-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .restructure-skills .kernel-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--c-rare-600);
+    font: 800 var(--fs-sm) / 1 var(--font-numeric);
+  }
+  .restructure-skill-list {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .restructure-skill {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    background: var(--paper-bg-bright);
+    border: 1.5px solid var(--paper-line);
+    border-radius: 10px;
+  }
+  .restructure-skill__body {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+  }
+  .restructure-skill__title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 2px 8px;
+  }
+  .restructure-skill__title strong {
+    color: var(--ink-strong);
+    font: 600 var(--fs-sm) / 1.2 var(--font-display);
+  }
+  .restructure-skill__level {
+    color: var(--ink-soft);
+    font: 800 var(--fs-2xs) / 1.2 var(--font-numeric);
+    font-variant-numeric: tabular-nums;
+  }
+  .restructure-skill__desc {
+    color: var(--ink-soft);
+    font: 600 var(--fs-xs) / 1.3 var(--font-body);
+  }
+  .restructure-skill__effect {
+    color: var(--ink-body);
+    font: 700 var(--fs-xs) / 1.3 var(--font-body);
+  }
+  .restructure-skill__note {
+    font: 800 var(--fs-xs) / 1.3 var(--font-body);
+  }
+  .restructure-skill__note.is-ok {
+    color: var(--c-sage-700);
+  }
+  .restructure-skill__note.is-short {
+    color: var(--c-berry-700);
+  }
+  .restructure-skill__buy {
+    display: inline-grid;
+    justify-items: center;
+    align-content: center;
+    gap: 0;
+    min-width: 72px;
+    min-height: 40px;
+    padding: 4px 10px;
+  }
+  .restructure-skill__price {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  /* Short: still pressable (it says what is missing), but no longer the green action.
+     Hovered or pressed it stays paper, as in the shop: the shared green hover must
+     not make a short button look ready. */
+  .app .restructure-skill__buy[aria-disabled='true'],
+  .app .restructure-skill__buy[aria-disabled='true']:is(:hover, :active) {
+    color: var(--ink-body);
+    background: var(--paper-bg-sunken);
+    border-color: var(--paper-line);
+    box-shadow: 0 2px 0 var(--paper-line);
+    transform: none;
+    cursor: pointer;
+  }
+  .app .restructure-skill__buy[aria-disabled='true']:hover {
+    border-color: var(--c-walnut-400);
+  }
+  [data-high-contrast='true'] .app .restructure-skill__buy[aria-disabled='true'],
+  [data-high-contrast='true']
+    .app
+    .restructure-skill__buy[aria-disabled='true']:is(:hover, :active) {
+    color: #000;
+    background: #fff;
+    border-color: #000;
+  }
+  .restructure-skill__short {
+    font: 800 var(--fs-2xs) / 1.2 var(--font-body);
+  }
+  .restructure-skill.is-maxed {
+    background: var(--paper-bg);
+  }
+}

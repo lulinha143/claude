@@ -89,11 +89,14 @@ try {
     }
   })();
   if (/ERR_FAILED/.test(logText)) fail('startup.log contains ERR_FAILED');
-  if (/Object has been destroyed/.test(logText)) fail('startup.log contains "Object has been destroyed"');
+  if (/Object has been destroyed/.test(logText))
+    fail('startup.log contains "Object has been destroyed"');
   if (!/did-finish-load/.test(logText)) fail('startup.log missing did-finish-load');
   if (!/STARTUP SUCCESS/.test(logText)) fail('startup.log missing STARTUP SUCCESS');
 
-  console.log(`\nverify:windows:packaged OK — ${path.resolve(exe)} launched and rendered the game.`);
+  console.log(
+    `\nverify:windows:packaged OK — ${path.resolve(exe)} launched and rendered the game.`,
+  );
 } finally {
   await app.close();
   fs.rmSync(userData, { recursive: true, force: true });
