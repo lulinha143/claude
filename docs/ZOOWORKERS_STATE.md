@@ -4,10 +4,10 @@ Handoff only: design is in `DESIGN.md`, commands and matrix in `.kiro/steering/q
 
 ## Branch
 
-`feat/zooworkers-3.0-facility-pass`: Chapter 8 is the commit that records this entry, on top
-of Chapter 7 (`4639fa2`), Chapter 6 (`25ba899`), Chapter 5 (`f4ae64c`), Chapter 3
-(`8cbf590`), Chapter 2 (`d6c4d28`), Chapter 9 (`d9fab09`), Chapter 4 (`e7bac62`), Chapter 1
-(`80264a8`) and the setup commit `c55d356`; clean.
+`feat/zooworkers-3.0-facility-pass`: Chapter 10 is the commit that records this entry, on top
+of Chapter 8 (`60fdd3c`), Chapter 7 (`4639fa2`), Chapter 6 (`25ba899`), Chapter 5 (`f4ae64c`),
+Chapter 3 (`8cbf590`), Chapter 2 (`d6c4d28`), Chapter 9 (`d9fab09`), Chapter 4 (`e7bac62`),
+Chapter 1 (`80264a8`) and the setup commit `c55d356`; clean.
 `7a7ee3d` (architect's snapshot) is an ancestor; never roll back to it.
 
 ## Active configuration
@@ -37,8 +37,10 @@ of Chapter 7 (`4639fa2`), Chapter 6 (`25ba899`), Chapter 5 (`f4ae64c`), Chapter 
   shell call, so rendered play used throwaway scripts (kept in the ignored `visual-artifacts/`)
   that serve `dist/` and drive Chromium in one process. A seeded save's own
   `settings.language` wins over `wmno.lang` at boot: seed pt-BR in the save.
-- Chapter 6, 7 and 8 sessions: the same (Node on `PATH`, `npm ci`, locked rev 1228 fetched,
+- Chapter 6, 7, 8 and 10 sessions: the same (Node on `PATH`, `npm ci`, locked rev 1228 fetched,
   stock E2E config); rendered play by throwaway scripts in the ignored `visual-artifacts/play/`.
+  Chapter 10: files written by one shell call can take a few seconds to appear to the file
+  viewer, and it may show an earlier image for a reused path; give each screenshot a new name.
 
 ## Validation
 
@@ -49,7 +51,7 @@ of Chapter 7 (`4639fa2`), Chapter 6 (`25ba899`), Chapter 5 (`f4ae64c`), Chapter 
 
 Order: 1 → 4 → 9 → 2 → 3 → 5 → 6 → 7 → 8 → 10 → final integration.
 
-Accepted kit chapters: 1, 4, 9, 2, 3, 5, 6, 7, 8. Accepted pre-kit units: shell (`b138638`–`6189169`), living office
+Accepted kit chapters: 1, 4, 9, 2, 3, 5, 6, 7, 8, 10. Accepted pre-kit units: shell (`b138638`–`6189169`), living office
 (`bfaca01`–`d81ddc2`) and GC1–GC4 (`67cd776`–`7a7ee3d`), pinned by E2E specs but with no
 six-check record. Kit chapters reuse them as evidence and change only what fails the gate.
 GC numbers are not kit numbers.
@@ -65,7 +67,7 @@ GC numbers are not kit numbers.
 | 6   | `modals/IncidentScene`, `EventModal`, `content/incidents`, `ui/CuriosityLog`                                              | Accepted (record below)               |
 | 7   | `modals/EmployeeTalk`, `VisitScrapbook`, `content/stories`, `employeeKeepsakes`                                           | Accepted (record below)               |
 | 8   | `views/DecorateView`, `ui/DecorationTray`, `sim/placement`, `depth`                                                       | Accepted (record below)               |
-| 10  | `views/PrestigeView`, `CollectionsView`, `sim/prestige`, `nextStep`                                                       | Prestige fix `65c4f09` only           |
+| 10  | `views/PrestigeView`, `CollectionsView`, `sim/prestige`, `collections`, `nextStep`                                        | Accepted (record below)               |
 
 ### Chapter 1 record — core loop and desktop presentation
 
@@ -692,6 +694,131 @@ at 1280 (the office not shown within its 10 s); it then passed 18/18 over three 
 `tests/e2e/decor-catalog.spec.ts` (7); `living-office` and `decoration-collision` pin the new
 depth rule.
 
+### Chapter 10 record — progression, collections and the restructure
+
+Baseline: `65c4f09` (branch effects applied, shown as chips) was the only Chapter 10 work.
+Kept: the branch cards and chips, the kernel and skill rules, the eligibility line, the
+Moment Card documents, the curiosity board and the secret files. No save field, currency,
+timer, registry or goal engine was added; balance unchanged (line 1M, kernels √(M/1M), +2%
+production per kernel held, branch and skill numbers).
+
+Broken or weak before (reproduced in pt-BR at 380×460), fixed:
+
+- The restructure (`sim/prestige.ts`):
+  - It regenerated the day's challenges, so one already claimed could be claimed again (golden
+    nuts twice). The day now carries over: claimed stays claimed, progress stands.
+  - It reset the founding date ("Fundada em" changed), marked onboarding undone and dropped the
+    golden dust (the fraction of a golden nut refining) while keeping golden nuts. All three
+    are kept now.
+  - It accepted an unknown branch id; that is refused now, like a cycle below the line, with
+    nothing changed.
+- The screen was unstyled ("TERMO DE CONTINUIDADE01 – 02"). It said "recursos da empresa
+  recomeçam" though golden nuts are kept, never said what a kernel does or that a skill spends
+  its +2%, said "1 objetos", and confirmed with "Ficar Completamente Louco? Confirmar /
+  Cancelar". It had four names (Prestígio, Ficar Completamente Louco, Pirar na Castanha,
+  "Linhas do tempo"). Now:
+  - one vocabulary: tab, stats and achievements say Reestruturação; the act is "Pirar na
+    Castanha" (EN "Go Completely Nuts");
+  - a continuity file read from `restructurePreview`, which runs the operation and reads its
+    result, listing only the lines that apply: what you receive (kernels, their worth now and
+    after, the Head Start), what stays (golden nuts, decorations where they stand and how many
+    wait in rooms that close, collections, achievements, the people who know you, records,
+    identity, kernels/skills/today's challenges/settings), and what starts over (nuts from →
+    to, hires and levels with the founder staying, rooms that close, upgrades, morale and
+    reputation, sets that stop counting, the crate, what was waiting, promises, boosts, a focus
+    session);
+  - the branch is a radio group (arrows, Home/End, one tab stop), the current one marked;
+  - the confirmation restates the trade as one list ("Recomeçam: 4 contratações, 20 salas e
+    2,5M castanhas."), says "Não dá para desfazer." and focuses "Ainda não"; Escape steps back
+    to the file; the button locks after one press and the sim refuses a second;
+  - afterwards a gold note ("Ciclo 2 começou: +2 Grãos Permanentes · Castanhas Industriais.")
+    and the office with its first goal;
+  - from half way to the line the file is in sight, locked, with a progress bar and what the
+    line pays (the tab used to appear only once ready);
+  - skills give numbers from the effect the sim reads ("Agora: … · próximo nível: …") and the
+    trade-off; a short press stays pressable, as in the shop ("Ainda faltam 2 Grãos.",
+    nothing charged); "moral" became "ânimo".
+- The guide (`sim/nextStep.ts`, `GameDock`):
+  - Past 1M, "pronta para Pirar na Castanha" outranked a waiting discovery, hires and upgrades
+    for the rest of the cycle. A waiting discovery now comes first and names its room. The
+    restructure is offered once per cycle: the `restructure.reviewed` flag is set when the
+    file is read while open, and a restructure does not keep it.
+  - "Try Focus Harvest" never retired; it does after a session.
+  - The note gives a reason on a second line (golden nuts waiting, kernels offered, the room),
+    unclipped at 320×420. A step in the office (a discovery on another floor) now shows its
+    note there too; it was hidden.
+  - The Company file's ladder says what the next rung brings.
+- Collections (`sim/collections.ts`, `CollectionsView`):
+  - Before: four tabs of "???" cells. Free and worn outfits showed as unknown (the Team names
+    them). A nut's hint named a room before it could turn up there (the founder's acorn before
+    Pip's story). The curiosity count included rooms not on the board. Hidden achievements
+    showed their reward. Sets, keepsakes and masteries were absent. One bad entry wiped a whole
+    list on load.
+  - Now a cabinet of seven drawers (Enciclopédia, Curiosidades e segredos, Conjuntos,
+    Lembranças, Maestrias, Roupas especiais, Cartões de Momento). Each shows its count, what can
+    be done now and the real reward if any (the gold icon only for golden nuts). A drawer opens
+    at its head under "Coleções"; Escape steps back to the cabinet.
+  - Counts are derived from the record that earns each thing (nothing stored): nuts within the
+    24; curiosities in open rooms (as the board); sets active as their bonus is (all pieces in
+    the room); keepsakes `keepsakeFor` knows; masteries by `isMicroMastered` (the discoveries
+    now read it too, so a record from before the flag opens them); the 24 outfits with a price;
+    Moment Cards without a total, like secret files.
+  - Unfound things stay blank: a nut names a room only when its curiosity can turn up
+    (`oddityAvailable`); an unknown keepsake is "A lembrança de Beta" with what opens it.
+  - The schema reads each list entry by entry: a bad entry or a repeat is dropped, not the list.
+  - Decorate says when a placed piece's room is closed for this cycle.
+
+Reset and retention, as implemented (`restructured`) and pinned (`tests/restructure.test.ts`):
+
+- Kept: company name, logo and founding date; settings and onboarding; kernels (plus those
+  earned), skills, the branch chosen, the count and the new cycle's starting line; golden nuts
+  and dust; every collection list (decoration ownership included) and the decorations where
+  they stand; achievements; lifetime stats; minigame records; completed focus sessions; each
+  teammate's friendship, outfit, nickname and conversations; history flags (employee-prefixed,
+  `favorite.`, `discovery.`, `annex.`, `microgame.`, `pair.`, `oddity.`, the anomaly thread);
+  the day's challenges.
+- Reset: nuts (to the Head Start), hires and levels (the founder at 1), rooms, upgrades, morale,
+  reputation, the clicker record, the crate, finds, routines and waiting curiosities,
+  incidents, remarks, the diary, event cooldowns, history, chains and the open card, promised
+  consequences, boosts, a focus session in progress, other flags (crises, promises,
+  `restructure.reviewed`).
+- Refused, state untouched: below the line (this cycle's nuts) or an unknown branch. A second
+  confirmation finds the new cycle at zero, also after a reload.
+
+Player gate (pt-BR, built game, Chromium 1228; seeded companies, real clicks and keys):
+
+- A 4.2M-nut company at 320×420, 380×460, 800×600, 1280×720, 1440×900 and 1920×1080:
+  - the dot on Arquivo and "A empresa pode Pirar na Castanha. Rende +2 Grãos Permanentes.";
+    reading the file saved the flag and moved the dot to Equipe;
+  - the confirmation on screen at 320×420 (both 40 px buttons), focus on "Ainda não"; Escape
+    went back to the file, focus on the action;
+  - a double press: count 1, 2 kernels, the gold note, the first goal; after a reload still 1
+    and 2, the day still claimed, the founding date, Otto's friendship and keepsake kept, the
+    3 repair-set pieces waiting in their closed room.
+- Early company, 380×460: "Conheça Tico…" opened Team; the goal tag bought Linha de Produção and
+  showed "Nv. 2"; no Reestruturação tab yet. The acorn by Pip's desk gave "Novidade na
+  Enciclopédia", and the drawer went 0 → 1 de 24 with its name, also after a reload.
+- A 620K company: the tab in sight, the file locked at "620K de 1M", no action.
+- Keyboard, 380×460: the arrows chose Ciência Questionável (3 px ring); Tab, Enter, Shift+Tab,
+  Enter restructured on it. Vantagem Inicial bought (Nv. 1/10, "Agora: começa cada ciclo com
+  500 castanhas"); Refinaria short: "Ainda faltam 2 Grãos.", kernels unchanged.
+- Cabinet and drawers at all six sizes: no sideways scroll; text ≥ 11 px except the evidence
+  sketch's own label (9 px, aria-hidden art); targets ≥ 29 px except the Moment Card's hover
+  export shortcut (22 px; the card opens a dialog with the full button). High contrast with
+  reduced motion legible; normal motion at 1280×720.
+- Six checks — see, understand, interact, feedback, why it matters, feel: PASS (audio not
+  heard).
+
+Checks: `npm run validate` exit 0 (1029 unit tests, 84 files). Full web E2E 374/374 on the
+final code (two halves, exit 0), as on an earlier pass of the chapter. A run between them, under
+heavy host load (load average 12–17, the preview server lost), failed 24 on timeouts and refused
+connections; the same code then passed 374/374. `office-play` "the nut counter stays true…" is
+timing-sensitive under load: the tweened counter can trail the label across a million (6
+against 7M). It failed 2 of 36 repeats here and 1 of 36 on `60fdd3c`, so it predates this
+chapter. `npm run build:desktop` exit 0; no desktop code changed. New coverage:
+`tests/restructure.test.ts` (12), `tests/collectionShelf.test.ts` (11), `nextstep` (+4) and
+`tests/e2e/restructure.spec.ts` (5); three specs now open Collections drawers instead of tabs.
+
 ## Blockers
 
 - Kiro Web listed no skills this session; `zooworkers-playtest/SKILL.md` was followed by hand.
@@ -713,13 +840,18 @@ depth rule.
   answer's paper cue as the only sound when a keepsake goes on the desk. Chapter 8: the one
   upgrade cue on a catalogue purchase (it played twice), the error cue on a short press and on
   a release off a piece's surface, and the place and click cues on landing and putting away.
+  Chapter 10: the prestige cue on a restructure (once, then the office), the error cue on a
+  refused restructure and on a short skill press, the upgrade cue on a skill bought, and the
+  paper cue on opening a keepsake's album from the Collections.
 - Touch was driven through Chromium's touch emulation, not a physical touchscreen. Chapter 6:
   a tap takes an answer at once, so on touch the effect line is the explanation (the scene's
   preview needs a pointer or keys); check that it reads well on a physical screen. Chapter 7:
   on touch the office keepsake has no tooltip and a tap opens the Album; check that a tap on it
   (26×23 px in the smallest windows) lands on it and not on its owner. Chapter 8: with a
   finger, drag a piece up from the storage strip into a room (the tower must not scroll on the
-  way), hold it at an edge to scroll, and let it go over the strip to put it away.
+  way), hold it at an edge to scroll, and let it go over the strip to put it away. Chapter 10: tap a
+  branch card, the restructure action and both confirmation buttons, and a Collections drawer
+  and its way back.
 - LOCAL WINDOWS VERIFICATION REQUIRED: the last recorded native run is `a4e03ad`. This sandbox
   has no Electron binary or display, so no smoke ran. On Windows: `npm run build:windows:folder`,
   `npm run verify:windows:packaged`, then `smoke:window`, `smoke:focus` and `smoke:mute`.
@@ -769,7 +901,13 @@ depth rule.
       room to stay still and the piece to land where you let go. Resize the window mid-drag:
       expect the ghost to follow what is under the pointer. Let a placed piece go over the
       strip: expect it in storage.
+      Chapter 10 (no desktop code changed):
+  15. At 320×420 and 125/150/200% DPI, open Arquivo → Reestruturação on a company past 1M.
+      Expect the file, the branch cards and "Pirar na Castanha…"; pressed, the confirmation
+      with both buttons on screen; confirmed, the gold note and the office with its first goal.
+  16. Arquivo → Coleções: expect the drawers in one column, a drawer opening at its head,
+      Escape back to the cabinet and Escape again closing the Archive.
 
 ## Next prompt
 
-Chapter 10. Start its session on this branch; `main` has none of this configuration.
+Final integration. Start its session on this branch; `main` has none of this configuration.

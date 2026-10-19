@@ -22,7 +22,7 @@ import { Icon, type IconName } from '../art/UiIcon';
 import { Tip, TipContent } from './Tooltip';
 import { computeNextStep, type NextStep } from '../sim/nextStep';
 import { EMPLOYEES_BY_ID } from '../content/employees';
-import { availableFacilityDiscoveries } from '../sim/facilityDiscoveries';
+import { ROOMS_BY_ID } from '../content/rooms';
 import { focusFloor } from './officeEvents';
 
 export const ARCHIVE_VIEWS: readonly ViewId[] = [
@@ -102,6 +102,7 @@ export function GameDock() {
                   lines={[
                     t(`dock.tip.${item.id}`),
                     hinted === item.id && step ? stepText(t, step) : null,
+                    hinted === item.id && step ? stepReason(t, step) : null,
                   ]}
                   titleAriaHidden
                 />
@@ -132,9 +133,18 @@ export function GameDock() {
   );
 }
 
-function stepText(t: (key: string, options?: Record<string, unknown>) => string, step: NextStep) {
+type Translate = (key: string, options?: Record<string, unknown>) => string;
+
+function stepText(t: Translate, step: NextStep) {
   const name = step.employeeId ? t(EMPLOYEES_BY_ID[step.employeeId]?.nameKey ?? '') : '';
   return t(`nextStep.${step.key}`, { name });
+}
+
+/** Why it is worth doing, when the suggestion has a reason to give (else null). */
+function stepReason(t: Translate, step: NextStep): string | null {
+  const room = step.roomId ? t(ROOMS_BY_ID[step.roomId]?.nameKey ?? '') : '';
+  const text = t(`nextStep.why.${step.key}`, { count: step.amount ?? 0, room, defaultValue: '' });
+  return text || null;
 }
 
 const HINT_VISIBLE_MS = 9000;
@@ -145,7 +155,7 @@ const HINT_VISIBLE_MS = 9000;
  */
 export function NextStepHint() {
   const { t } = useTranslation();
-  const { state, engine } = useGame();
+  const { engine } = useGame();
   const view = useStore((s) => s.view);
   const setView = useStore((s) => s.setView);
   const opening = useStore((s) => s.showOpening || s.showOnboarding);
@@ -170,10 +180,12 @@ export function NextStepHint() {
   const visible = stepId !== null && visibleFor === stepId;
   const setVisible = (on: boolean) => setVisibleFor(on ? stepId : null);
 
-  const discoveryRoom =
-    step?.view === 'office' ? availableFacilityDiscoveries(state)[0]?.roomId : undefined;
+  const discoveryRoom = step?.view === 'office' ? step.roomId : undefined;
 
-  if (!step || !visible || engine.activeTalk || dockFor(step.view) === dockFor(view)) {
+  // Already at the destination it names: nothing to point at. A step in the office
+  // (something waiting on another floor) still shows there: its note takes you to it.
+  const there = step !== null && step.view !== 'office' && dockFor(step.view) === dockFor(view);
+  if (!step || !visible || engine.activeTalk || there) {
     return null;
   }
 
@@ -189,11 +201,15 @@ export function NextStepHint() {
   }
 
   const target = dockFor(step.view);
+  const reason = stepReason(t, step);
   return (
     <div className="next-hint" data-target={target ?? 'office'} role="status">
       <button type="button" className="next-hint__note" onClick={go}>
         <Icon name="notification" size={14} />
-        <span>{stepText(t, step)}</span>
+        <span className="next-hint__text">
+          <span className="next-hint__line">{stepText(t, step)}</span>
+          {reason ? <span className="next-hint__why">{reason}</span> : null}
+        </span>
       </button>
       <button
         type="button"

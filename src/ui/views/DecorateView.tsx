@@ -339,9 +339,16 @@ export function DecorateView() {
                 : pressed;
             // Where it is: the room it stands in (yours), storage (yours, put
             // away), or the room it belongs to (not yet yours).
+            // A piece left in a room a restructure closed waits there until it reopens.
             const where = owned
               ? currentRoom
-                ? { icon: 'success' as const, text: roomName(currentRoom), state: 'placed' }
+                ? {
+                    icon: 'success' as const,
+                    text: roomIds.has(currentRoom)
+                      ? roomName(currentRoom)
+                      : t('decorate.roomClosed', { room: roomName(currentRoom) }),
+                    state: 'placed',
+                  }
                 : { icon: 'hidden' as const, text: t('decorate.inStorage'), state: 'stored' }
               : { icon: 'home' as const, text: roomName(d.room), state: 'home' };
             return (

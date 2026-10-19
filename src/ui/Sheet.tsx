@@ -13,7 +13,7 @@ import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useGame } from '../state/hooks';
 import { useStore, type ViewId } from '../state/store';
-import { canPrestige } from '../sim/prestige';
+import { restructureInSight } from '../sim/prestige';
 import { Icon, type IconName } from '../art/UiIcon';
 import { ShopView } from './views/ShopView';
 import { EmployeesView } from './views/EmployeesView';
@@ -63,11 +63,9 @@ export function Sheet({ view }: { view: ViewId }) {
   const dock = dockFor(view);
   const title =
     view === 'settings' ? t('nav.settings') : dock ? t(`dock.${dock}`) : t(`nav.${view}`);
-  const prestigeRelevant =
-    view === 'prestige' ||
-    canPrestige(state) ||
-    state.prestige.count > 0 ||
-    state.resources.permanentKernels > 0;
+  // The restructure comes into sight half way to its line (anticipation), and stays
+  // once it has been done; a brand-new company is not shown a late-game page.
+  const prestigeRelevant = view === 'prestige' || restructureInSight(state);
   const tabs = ARCHIVE_VIEWS.filter((id) => id !== 'prestige' || prestigeRelevant);
 
   useEffect(() => {

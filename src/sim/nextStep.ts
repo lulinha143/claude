@@ -10,23 +10,39 @@ import {
   upgradeCost,
   upgradeSaturated,
 } from './economy';
-import { canPrestige } from './prestige';
+import { RESTRUCTURE_REVIEWED_FLAG, canPrestige, kernelsFromPrestige } from './prestige';
 import { isRoomIdUnlocked } from './rooms';
 import { isDecorationOwned } from './decorations';
 import { availableFacilityDiscoveries } from './facilityDiscoveries';
+import { goldenForChallenge } from './dailyChallenges';
 
 export interface NextStep {
-  key: string; // localization key under `nextStep.`
+  key: string; // localization key under `nextStep.` (and `nextStep.why.` when it has a reason)
   view: string; // ViewId to navigate to
   employeeId?: string;
+  /** The room it concerns (a discovery waiting there). */
+  roomId?: string;
+  /** The number its reason quotes: golden nuts waiting, kernels on offer. */
+  amount?: number;
 }
 
 // A gentle, non-forcing "recommended next step" suggestion. Returns the single
 // most useful action right now, or null. Pure so it can be unit-tested.
+//
+// Order: what is already earned and waiting, then the first invitations (each
+// retires when the player tries it), then what the building is holding for them,
+// then a decision (a restructure, offered once per cycle), then growth, then
+// optional things to try. Every step is open right now: nothing here suggests what
+// is done, locked or out of reach.
 export function computeNextStep(state: GameState): NextStep | null {
   // 1. a completed daily challenge waiting to be claimed (free reward)
-  if (state.daily.challenges.some((c) => !c.claimed && c.progress >= c.goal)) {
-    return { key: 'claimDaily', view: 'company' };
+  const claimable = state.daily.challenges.filter((c) => !c.claimed && c.progress >= c.goal);
+  if (claimable.length) {
+    return {
+      key: 'claimDaily',
+      view: 'company',
+      amount: claimable.reduce((sum, c) => sum + goldenForChallenge(c.id), 0),
+    };
   }
 
   const passives = aggregatePassives(state);
@@ -54,9 +70,17 @@ export function computeNextStep(state: GameState): NextStep | null {
   )
     return { key: 'firstDecoration', view: 'decorate' };
 
+  // Something the building found waits to be looked into; it does not expire, and
+  // a restructure keeps what it leads to, so it comes before the decision.
+  const discovery = availableFacilityDiscoveries(state)[0];
+  if (discovery) return { key: 'investigate', view: 'office', roomId: discovery.roomId };
+
   // A new company cycle is a meaningful decision, not another upgrade in the queue.
-  if (canPrestige(state)) return { key: 'prestige', view: 'prestige' };
-  if (availableFacilityDiscoveries(state).length) return { key: 'investigate', view: 'office' };
+  // It is offered until the player has read the continuity file this cycle; after
+  // that it waits in the Archive and the guide goes back to the office.
+  if (canPrestige(state) && !(RESTRUCTURE_REVIEWED_FLAG in state.flags)) {
+    return { key: 'prestige', view: 'prestige', amount: kernelsFromPrestige(state) };
+  }
 
   // 2. an unlocked employee you can afford to hire
   for (const def of EMPLOYEES) {
@@ -81,8 +105,12 @@ export function computeNextStep(state: GameState): NextStep | null {
     }
   }
 
-  // 5. try Focus Harvest once it's had time to matter
-  if (!state.settings.focusHarvestEnabled && state.stats.playTimeSeconds > 120) {
+  // 5. try Focus Harvest once it's had time to matter (retires once a session is done)
+  if (
+    !state.settings.focusHarvestEnabled &&
+    state.focus.completedSessions === 0 &&
+    state.stats.playTimeSeconds > 120
+  ) {
     return { key: 'focus', view: 'focus' };
   }
 

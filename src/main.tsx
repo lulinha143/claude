@@ -36,6 +36,8 @@ import './ui/game/happenings.css';
 import './ui/game/settings.css';
 import './ui/game/shop.css';
 import './ui/game/decorate.css';
+import './ui/game/collections.css';
+import './ui/game/restructure.css';
 import './ui/game/return.css';
 import './ui/game/minigames.css';
 

@@ -42,3 +42,8 @@ export function ensureDailyForDate(current: DailyState | undefined, now: number)
   if (current && current.date === date) return current;
   return { date, challenges: generateDailyChallenges(date) };
 }
+
+/** Golden nuts a claimed challenge pays (by its template). */
+export function goldenForChallenge(id: string): number {
+  return id.startsWith('completeFocus') ? 2 : 1;
+}

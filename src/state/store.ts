@@ -20,6 +20,7 @@ import { ROOMS_BY_ID } from '../content/rooms';
 import { REPUTATION_TIERS, reputationTier } from '../content/reputationTiers';
 import { EMPLOYEES_BY_ID } from '../content/employees';
 import { ACHIEVEMENTS_BY_ID } from '../content/achievements';
+import { PRESTIGE_BRANCHES_BY_ID } from '../content/prestige';
 import { notify } from '../ui/notificationsStore';
 import i18n from '../i18n';
 
@@ -134,7 +135,8 @@ interface StoreState {
   replayOnboarding: () => void;
 
   buyDecoration: (id: string) => DecorationPurchase;
-  doPrestige: (branch: PrestigeBranchId) => void;
+  /** Restructure the company (refused unless it is open); true when it happened. */
+  doPrestige: (branch: PrestigeBranchId) => boolean;
   buySkill: (id: string) => boolean;
   hardReset: () => void;
   importSave: (json: string) => boolean;
@@ -239,13 +241,31 @@ export const useStore = create<StoreState>((set) => {
       return result;
     },
 
+    // One restructure per confirmation: the sim refuses unless this cycle reached
+    // the line (a second press, or a stale screen, finds the new cycle at zero), and
+    // the old company stays untouched until the new one replaces it whole.
     doPrestige: (branch) => {
-      const next = performPrestige(engine.state, branch, Date.now());
-      if (next === engine.state) return;
+      const before = engine.state;
+      const next = performPrestige(before, branch, Date.now());
+      if (next === before) {
+        audio.play('error');
+        return false;
+      }
+      const earned = next.resources.permanentKernels - before.resources.permanentKernels;
       replaceStateQuietly(next);
       engine.save();
       audio.play('prestige');
+      notify(
+        'kernel',
+        i18n.t('notify.restructured', {
+          cycle: next.prestige.count + 1,
+          count: earned,
+          branch: i18n.t(PRESTIGE_BRANCHES_BY_ID[branch]?.nameKey ?? ''),
+        }),
+        'gold',
+      );
       set({ view: 'office' });
+      return true;
     },
 
     buySkill: (id) => {
@@ -254,6 +274,9 @@ export const useStore = create<StoreState>((set) => {
         engine.save();
         set({ frame: engine.getVersion() + 1 });
         audio.play('upgrade');
+      } else {
+        // A short press is answered (the card says how many kernels are missing).
+        audio.play('error');
       }
       return ok;
     },

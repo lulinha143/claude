@@ -412,7 +412,7 @@ test('what was noticed can be picked up in the Archive, with where it came from 
   );
   const open = async () => {
     await openView(page, 'collections');
-    await page.locator('.view--collections .tab').last().click();
+    await page.locator('.collection-drawer[data-drawer="curiosities"]').click();
     return page.locator('.curiosity-log');
   };
   let log = await open();

@@ -92,7 +92,8 @@ import {
 } from './clickStations';
 import { aggregateCompanyModifiers } from './companyModifiers';
 import { evaluateAchievements } from './achievements';
-import { ensureDailyForDate } from './dailyChallenges';
+import { ensureDailyForDate, goldenForChallenge } from './dailyChallenges';
+import { RESTRUCTURE_REVIEWED_FLAG, canPrestige } from './prestige';
 import {
   ROOM_CAP,
   bestRoomWithSpace,
@@ -1739,6 +1740,17 @@ export class GameEngine {
     rt.outfitId = outfitId;
     this.emit();
     return true;
+  }
+
+  /**
+   * The player has read the continuity file while a restructure is open to them:
+   * the guide stops pointing at it for the rest of this cycle. (A restructure does
+   * not keep the flag, so the next cycle offers it again, once.)
+   */
+  reviewRestructure(): void {
+    if (!canPrestige(this.state) || RESTRUCTURE_REVIEWED_FLAG in this.state.flags) return;
+    this.state.flags[RESTRUCTURE_REVIEWED_FLAG] = this.now();
+    this.emit();
   }
 
   renameCompany(name: string): void {
@@ -3590,9 +3602,4 @@ export class GameEngine {
   reseed(seedString: string): void {
     this.rng = createRng(hashStringToSeed(seedString));
   }
-}
-
-function goldenForChallenge(id: string): number {
-  // reward encoded by challenge template; kept simple and safe.
-  return id.startsWith('completeFocus') ? 2 : 1;
 }

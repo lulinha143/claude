@@ -40,6 +40,16 @@ const employeeSchema = z.object({
     .optional(),
 });
 
+/** A list of ids: non-strings are dropped and repeats collapse, so nothing counts twice. */
+function idList(fallback: string[]) {
+  return z
+    .array(z.unknown())
+    .catch(fallback)
+    .transform((items) => [
+      ...new Set(items.filter((item): item is string => typeof item === 'string' && item !== '')),
+    ]);
+}
+
 const momentSchema = z.object({
   id: z.string(),
   eventId: z.string(),
@@ -262,13 +272,26 @@ export const gameStateSchema = z.object({
         return parsed.success ? [parsed.data] : [];
       }),
     ),
+  // Each list is read entry by entry: one malformed item drops that item, not
+  // everything the player ever collected, and a repeated id counts once.
   collections: z
     .object({
-      nuts: z.array(z.string()).catch([]),
-      outfits: z.array(z.string()).catch([]),
-      logos: z.array(z.string()).catch(['default']),
-      moments: z.array(momentSchema).catch([]),
-      secrets: z.array(z.string()).catch([]),
+      nuts: idList([]),
+      outfits: idList(['pip-classic']),
+      logos: idList(['default']),
+      moments: z
+        .array(z.unknown())
+        .catch([])
+        .transform((items) => {
+          const seen = new Set<string>();
+          return items.flatMap((item) => {
+            const parsed = momentSchema.safeParse(item);
+            if (!parsed.success || seen.has(parsed.data.id)) return [];
+            seen.add(parsed.data.id);
+            return [parsed.data];
+          });
+        }),
+      secrets: idList([]),
     })
     .catch({ nuts: [], outfits: [], logos: ['default'], moments: [], secrets: [] }),
   prestige: z

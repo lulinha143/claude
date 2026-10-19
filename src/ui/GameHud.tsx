@@ -33,6 +33,7 @@ import { AnimatedNumber } from './AnimatedNumber';
 import { useTooltip, TipContent } from './Tooltip';
 import { WindowControls } from './WindowControls';
 import { CompanyIconPicker } from './modals/CompanyIconPicker';
+import { BALANCE } from '../sim/config';
 
 interface HudStatProps {
   kind: string;
@@ -156,7 +157,12 @@ export function GameHud() {
   const tipKernels = useTooltip(
     <TipContent
       title={t('tip.kernels.t')}
-      lines={[t('tip.kernels.d'), t('tip.current', { value: fmt.num(kernels) })]}
+      lines={[
+        t('tip.kernels.d', {
+          each: `+${Math.round(BALANCE.prestige.kernelGlobalBonus * 100)}%`,
+        }),
+        t('tip.current', { value: fmt.num(kernels) }),
+      ]}
     />,
   );
   const tipMute = useTooltip(

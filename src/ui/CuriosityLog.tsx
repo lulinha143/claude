@@ -7,7 +7,7 @@ import { EMPLOYEES_BY_ID } from '../content/employees';
 import { DECORATIONS_BY_ID } from '../content/decorations';
 import { ANOMALY_THREAD_FLAG } from '../content/happenings';
 import { ODDITIES_BY_ID, odditiesInRoom, oddityFlag, type OddityDef } from '../content/roomPlay';
-import { curiosityProgress, curiosityTotals, oddityNoticed } from '../sim/roomPlay';
+import { curiosityProgress, oddityNoticed } from '../sim/roomPlay';
 import {
   curiosityLeads,
   curiosityOrigins,
@@ -204,9 +204,19 @@ export function CuriosityLog({ state }: { state: GameState }) {
   const { t } = useTranslation();
   const names = useNames(state);
   const [open, setOpen] = useState<string | null>(null);
-  const totals = curiosityTotals(state);
   const rooms = ROOMS.filter(
     (room) => isRoomIdUnlocked(state, room.id) && odditiesInRoom(room.id).length > 0,
+  );
+  // The count is the board's: the rooms open now (closed rooms hold the rest).
+  const totals = rooms.reduce(
+    (sum, room) => {
+      const progress = curiosityProgress(state, room.id);
+      return { noticed: sum.noticed + progress.noticed, total: sum.total + progress.total };
+    },
+    { noticed: 0, total: 0 },
+  );
+  const moreBehindDoors = ROOMS.some(
+    (room) => !isRoomIdUnlocked(state, room.id) && odditiesInRoom(room.id).length > 0,
   );
   const leads = openLeads(state);
   const pointed = pointedAt(state);
@@ -222,7 +232,10 @@ export function CuriosityLog({ state }: { state: GameState }) {
           {t('collections.curiositiesCount', { count: totals.noticed, total: totals.total })}
         </span>
       </header>
-      <p className="curiosity-log__intro">{t('collections.curiositiesIntro')}</p>
+      <p className="curiosity-log__intro">
+        {t('collections.curiositiesIntro')}
+        {moreBehindDoors ? ` ${t('collections.curiositiesMore')}` : ''}
+      </p>
 
       {/* The clues the player is holding, where they were found. */}
       {leads.length > 0 ? (

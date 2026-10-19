@@ -7219,6 +7219,13 @@
     font-weight: 700;
     color: var(--positive);
   }
+  .rep-ladder__brings {
+    margin: 2px 0 0;
+    color: var(--ink-body);
+    font-size: max(var(--fs-min), 0.6em);
+    font-weight: 700;
+    line-height: 1.3;
+  }
 
   /* WIDE = the figures gathered into one cluster.
    Deliberately at the end of the sheet: this and the base `.res-cell` block have

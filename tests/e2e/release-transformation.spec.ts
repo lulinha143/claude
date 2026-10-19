@@ -49,7 +49,7 @@ test('company ledger and archive support focused reading and keyboard return', a
     animations: 'disabled',
   });
   await openView(page, 'collections');
-  await page.getByRole('tab', { name: /moment/i }).click();
+  await page.locator('.collection-drawer[data-drawer="moments"]').click();
   await page.locator('.archive-search input').fill('Pip');
   await expect(page.locator('.moment-doc')).toHaveCount(1);
   const open = page.locator('.moment-doc__open');

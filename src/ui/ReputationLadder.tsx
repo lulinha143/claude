@@ -93,6 +93,17 @@ export function ReputationLadder() {
           </ul>
         );
       })()}
+
+      {/* What reaching the next rung changes (its perks replace the current ones). */}
+      {(() => {
+        const lines = next ? perkLines(next.perk, t) : [];
+        if (!next || lines.length === 0) return null;
+        return (
+          <p className="rep-ladder__brings">
+            {t('repTier.nextBrings', { name: t(next.nameKey), perks: lines.join(' · ') })}
+          </p>
+        );
+      })()}
     </div>
   );
 }

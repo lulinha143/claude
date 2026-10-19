@@ -64,7 +64,7 @@
     "decorate": "Decorate",
     "settings": "Settings",
     "stats": "Stats",
-    "prestige": "Prestige",
+    "prestige": "Restructure",
     "more": "More",
     "moreCurrent": "More, current destination: {{destination}}",
     "moreDestinations": "More destinations"
@@ -76,7 +76,7 @@
     },
     "golden": {
       "t": "Golden Nuts",
-      "d": "Rare premium currency from milestones and prestige. Buys powerful upgrades and skills."
+      "d": "Rare currency earned through play (achievements, daily challenges, rare finds). Buys outfits, pieces and special upgrades, and stays with you when you restructure."
     },
     "morale": {
       "t": "Morale",
@@ -112,7 +112,7 @@
     },
     "kernels": {
       "t": "Permanent Kernels",
-      "d": "Banked through restructuring. They persist through every cycle and fund permanent skills."
+      "d": "Earned by restructuring. Each kernel you hold adds {{each}} production in every cycle, or buys a permanent skill."
     }
   },
   "office": {
@@ -217,7 +217,8 @@
     "dropToKeep": "Let go here to leave it in storage",
     "layerAmongTip": "Back among the team, by where it stands on the floor",
     "filter": "Show",
-    "allPieces": "All pieces"
+    "allPieces": "All pieces",
+    "roomClosed": "{{room}} (closed until it reopens)"
   },
   "decoReact": {
     "plant": "This little plant really freshens up the place.",
@@ -1472,11 +1473,11 @@
     },
     "goingNuts": {
       "name": "Going Completely Nuts",
-      "desc": "Perform your first prestige."
+      "desc": "Restructure the company for the first time."
     },
     "multiverse": {
       "name": "Nut Multiverse",
-      "desc": "Prestige 5 times."
+      "desc": "Restructure the company 5 times."
     },
     "employeeMinute": {
       "name": "Employee of the Minute",
@@ -1934,18 +1935,15 @@
   },
   "prestige": {
     "title": "Go Completely Nuts",
-    "explain": "Reset your company to earn Permanent Kernels. Keep your collections, cosmetics, achievements, employee memories, and skill tree.",
-    "confirm": "Go Completely Nuts?",
-    "willEarn": "You will earn {{value}} Permanent Kernels.",
-    "lockedUntil": "Unlocks after earning {{value}} nuts in this company cycle.",
-    "chooseBranch": "Choose a company branch",
+    "explain": "A restructure starts the company over from nothing, but the team carries its history along. In return you receive Permanent Kernels, which count in every cycle.",
+    "lockedUntil": "Opens once this cycle has produced {{value}} nuts.",
+    "chooseBranch": "Choose the next cycle's branch",
     "effect": {
       "production": "{{value}} production",
       "morale": "{{value}} morale",
       "rareEvents": "{{value}} rare events"
     },
-    "skillTree": "Permanent Skill Tree",
-    "memory": "You remember a previous timeline…",
+    "skillTree": "Permanent skills",
     "branch": {
       "industrial": {
         "name": "Industrial Nuts",
@@ -1971,30 +1969,111 @@
     "skill": {
       "headStart": {
         "name": "Head Start",
-        "desc": "Begin each run with bonus nuts."
+        "desc": "A piggy bank that survives any restructure."
       },
       "compound": {
         "name": "Compound Nuts",
-        "desc": "+5% global production per level."
+        "desc": "Nuts that earn nuts. Nobody can explain it."
       },
       "refinery": {
         "name": "Kernel Refinery",
-        "desc": "Earn more Permanent Kernels on prestige."
+        "desc": "Squeezes more kernel out of every cycle."
       },
       "deepStorage": {
         "name": "Deep Storage",
-        "desc": "+1h offline cap per level."
+        "desc": "A basement where production waits for you."
       },
       "goodVibes": {
         "name": "Good Vibes",
-        "desc": "Raise the minimum morale floor."
+        "desc": "A plant, an aquarium and someone who always remembers birthdays."
       }
     },
     "transferFile": "CONTINUITY FILE",
-    "keptTitle": "Travels with the team",
-    "keptSummary": "{{objects}} objects, {{moments}} moments and {{talks}} conversations. Friendships, histories, records and keepsakes remain.",
-    "rebuiltTitle": "Rebuilt this cycle",
-    "rebuiltSummary": "Hiring, levels, departments, upgrades and company resources restart. Pending promises belong to the previous cycle."
+    "keptTitle": "Stays with you",
+    "rebuiltTitle": "Starts over",
+    "cycleShift": "Cycle {{from}} – {{to}}",
+    "stampReady": "Cleared",
+    "stampPending": "In progress",
+    "gainTitle": "You receive",
+    "kernelsEarned_one": "+{{count}} Permanent Kernel",
+    "kernelsEarned_other": "+{{count}} Permanent Kernels",
+    "progressLabel": "This cycle's production",
+    "progress": "{{have}} of {{need}}",
+    "atLine_one": "At that mark it pays {{count}} Permanent Kernel; the more the cycle produces first, the more kernels.",
+    "atLine_other": "At that mark it pays {{count}} Permanent Kernels; the more the cycle produces first, the more kernels.",
+    "kernelWorth": "Each kernel you hold adds {{each}} production: {{now}} now, {{after}} after.",
+    "startNuts": "The new cycle starts with {{value}} nuts (Head Start).",
+    "kept": {
+      "golden_one": "{{count}} golden nut",
+      "golden_other": "{{count}} golden nuts",
+      "decorations_one": "{{count}} decoration, where it stands",
+      "decorations_other": "{{count}} decorations, where they stand",
+      "decorationsWaiting_one": "{{count}} piece waits in a room that closes, until it reopens",
+      "decorationsWaiting_other": "{{count}} pieces wait in rooms that close, until they reopen",
+      "collections": "Collections: nuts {{nuts}} · moments {{moments}} · discoveries {{secrets}}",
+      "achievements": "Achievements: {{count}}",
+      "people_one": "Friendship and history: {{count}} teammate knows you",
+      "people_other": "Friendships and histories: {{count}} teammates know you",
+      "records": "Minigame records and masteries",
+      "identity": "Outfits, and the company's name, logo and founding date",
+      "permanent": "Kernels, skills, today's challenges and your settings"
+    },
+    "reset": {
+      "nuts": "Nuts: from {{value}} to {{start}}",
+      "hires_one": "{{count}} hire and the team's levels ({{founder}} stays)",
+      "hires_other": "{{count}} hires and the team's levels ({{founder}} stays)",
+      "hiresNone": "The team's levels ({{founder}} stays)",
+      "rooms_one": "{{count}} room closes until it reopens",
+      "rooms_other": "{{count}} rooms close until they reopen",
+      "upgrades_one": "{{count}} upgrade",
+      "upgrades_other": "{{count}} upgrades",
+      "standing": "Morale and reputation go back to the start",
+      "sets_one": "{{count}} complete set stops counting until its room reopens",
+      "sets_other": "{{count}} complete sets stop counting until their rooms reopen",
+      "crate": "The founder's crate ({{value}} nuts)",
+      "waiting_one": "{{count}} thing waiting in the office (a find, incident or curiosity)",
+      "waiting_other": "{{count}} things waiting in the office (finds, incidents, curiosities)",
+      "promises_one": "{{count}} pending promise",
+      "promises_other": "{{count}} pending promises",
+      "boosts": "Temporary boosts in progress",
+      "focus": "The focus session in progress"
+    },
+    "branchNote": "The branch lasts the whole cycle; you can switch at the next restructure.",
+    "branchCurrent": "Current",
+    "open": "Go Completely Nuts…",
+    "confirmTitle": "Restructure {{company}} now?",
+    "confirmBody_one": "You receive +{{count}} Permanent Kernel and the {{branch}} branch.",
+    "confirmBody_other": "You receive +{{count}} Permanent Kernels and the {{branch}} branch.",
+    "confirmLoses": "Starting over: {{list}}.",
+    "confirmFinal": "This cannot be undone.",
+    "confirmGo": "Go Completely Nuts",
+    "confirmCancel": "Not yet",
+    "skillTradeoff": "Each kernel you hold adds {{each}} production. Buying a skill trades those kernels for its effect, for good.",
+    "skillLevel": "Lv. {{level}}/{{max}}",
+    "skillNow": "Now: {{effect}}",
+    "skillNone": "Now: nothing yet",
+    "skillNext": "next level: {{effect}}",
+    "skillEffect": {
+      "startNuts": "start each cycle with {{value}} nuts",
+      "globalMultiplier": "{{value}} production",
+      "kernelGain": "{{value}} kernels per restructure",
+      "offlineCapHours": "+{{value}} h offline cap",
+      "moraleFloor": "morale never drops below {{value}}"
+    },
+    "skillCost_one": "{{count}} kernel",
+    "skillCost_other": "{{count}} kernels",
+    "skillShortNote_one": "Still {{count}} kernel short.",
+    "skillShortNote_other": "Still {{count}} kernels short.",
+    "skillBought": "Done! It counts from now.",
+    "lose": {
+      "hires_one": "{{count}} hire",
+      "hires_other": "{{count}} hires",
+      "rooms_one": "{{count}} room",
+      "rooms_other": "{{count}} rooms",
+      "upgrades_one": "{{count}} upgrade",
+      "upgrades_other": "{{count}} upgrades",
+      "nuts": "{{value}} nuts"
+    }
   },
   "focus": {
     "title": "Focus Harvest",
@@ -2322,13 +2401,22 @@
     "claimDaily": "A daily challenge is ready to claim!",
     "hire": "You can afford to hire {{name}}!",
     "upgrade": "You can afford a new upgrade.",
-    "prestige": "You're ready to Go Completely Nuts!",
+    "prestige": "The company can Go Completely Nuts.",
     "focus": "Try a Focus Harvest session.",
     "decorate": "You can afford a new decoration.",
     "firstConversation": "Meet {{name}} — a small conversation can change the workday.",
     "firstActivity": "Take a break with the team. Try an office activity.",
     "firstDecoration": "Make a little room for yourself. Your first decoration is within reach.",
-    "investigate": "There is an unfiled document in the office."
+    "investigate": "There is an unfiled document in the office.",
+    "why": {
+      "claimDaily_one": "Worth +{{count}} golden nut.",
+      "claimDaily_other": "Worth +{{count}} golden nuts.",
+      "prestige_one": "Pays +{{count}} Permanent Kernel.",
+      "prestige_other": "Pays +{{count}} Permanent Kernels.",
+      "investigate": "It is in: {{room}}.",
+      "firstActivity": "Pays nuts and a production boost.",
+      "focus": "The team produces more while it lasts."
+    }
   },
   "mood": {
     "focused": "Focused",
@@ -2374,9 +2462,6 @@
   },
   "collections": {
     "title": "Collections",
-    "nuts": "Nut Encyclopedia",
-    "moments": "Moment Cards",
-    "outfits": "Outfits",
     "secrets": "Secret Discoveries",
     "discovered": "{{count}} / {{total}} discovered",
     "undiscovered": "Undiscovered",
@@ -2428,6 +2513,68 @@
       "leadHappened": "“{{event}}”, already settled",
       "leadHappening": "“{{event}}”, happening now in {{room}}",
       "nut": "It is in the Nut Encyclopedia too."
+    },
+    "drawer": {
+      "nuts": "Nut Encyclopedia",
+      "curiosities": "Curiosities and secrets",
+      "sets": "Decoration sets",
+      "keepsakes": "Team keepsakes",
+      "masteries": "Masteries",
+      "outfits": "Special outfits",
+      "moments": "Moment Cards"
+    },
+    "back": "Collections",
+    "countOf": "{{have}} of {{total}}",
+    "countFiled_one": "{{count}} filed",
+    "countFiled_other": "{{count}} filed",
+    "secretFiles_one": "{{count}} secret file",
+    "secretFiles_other": "{{count}} secret files",
+    "curiositiesMore": "Rooms yet to open hold more.",
+    "toDecorate": "Open Decorate",
+    "toTeam": "Change outfits in Team",
+    "outfitsIntro": "Everyone has their usual clothes, free; these are bought with golden nuts.",
+    "outfitWearing": "Wearing",
+    "outfitOwned": "In the wardrobe",
+    "keepsakeOf": "{{name}}'s keepsake",
+    "keepsakeDrawer": "in the drawer for now",
+    "keepsakeAway": "off the team this cycle",
+    "keepsakeHire": "Once {{name}} is on the team.",
+    "keepsakeReady": "You can ask about it in a visit.",
+    "keepsakeTrust": "{{count}} more trust and you can talk about it.",
+    "masteryDone": "Mastered! Record {{best}}.",
+    "masteryProgress": "Record {{best}} of {{line}} for mastery.",
+    "souvenirOwned": "{{souvenir}}: already yours.",
+    "souvenirWaiting": "{{souvenir}} comes with mastery.",
+    "play": "Play",
+    "next": {
+      "complete": "Complete.",
+      "nutsWhere": "One can turn up in: {{room}}.",
+      "nutsLater": "The missing ones turn up later on.",
+      "nutsMilestone_one": "At {{value}}: +{{count}} golden nut.",
+      "nutsMilestone_other": "At {{value}}: +{{count}} golden nuts.",
+      "curiosityWaiting": "One is waiting now in: {{room}}.",
+      "curiosityRoom_one": "{{room}}: {{count}} left to complete its file.",
+      "curiosityRoom_other": "{{room}}: {{count}} left to complete its file.",
+      "curiosityMoreRooms": "Rooms yet to open hold more.",
+      "roomFileReward_one": "A complete room file: +{{count}} golden nut.",
+      "roomFileReward_other": "A complete room file: +{{count}} golden nuts.",
+      "setMissing_one": "{{set}}: {{count}} piece missing in {{room}}.",
+      "setMissing_other": "{{set}}: {{count}} pieces missing in {{room}}.",
+      "setsMoreRooms": "The other sets belong to rooms yet to open.",
+      "setReward": "Complete, it gives: {{effect}}",
+      "keepsakeAsk": "You can ask {{name}} in a visit.",
+      "keepsakeTrust": "{{count}} more trust with {{name}} and you can talk about the keepsake.",
+      "keepsakeTeam": "Every teammate keeps a keepsake: hire and talk.",
+      "masteryBest": "{{game}}: record {{best}} of {{line}}.",
+      "masteryFirst": "{{game}}: mastery comes at {{line}} points.",
+      "masteryReward_one": "Mastery: +{{count}} golden nut, a card and the {{souvenir}}.",
+      "masteryReward_other": "Mastery: +{{count}} golden nuts, a card and the {{souvenir}}.",
+      "masteryRewardOwned_one": "Mastery: +{{count}} golden nut and a card.",
+      "masteryRewardOwned_other": "Mastery: +{{count}} golden nuts and a card.",
+      "outfitNext_one": "{{name}}'s {{outfit}}: {{count}} golden nut.",
+      "outfitNext_other": "{{name}}'s {{outfit}}: {{count}} golden nuts.",
+      "outfitTeam": "Special outfits belong to people on the team.",
+      "momentsFirst": "Memorable decisions become cards: settle an event in the office."
     }
   },
   "company": {
@@ -2435,7 +2582,7 @@
     "rename": "Rename company",
     "renamePlaceholder": "Company name…",
     "founded": "Founded {{date}}",
-    "prestigeCount": "Timelines: {{count}}",
+    "prestigeCount": "Restructures: {{count}}",
     "timeline": "Recent decisions",
     "timelineEmpty": "No big decisions yet — events will appear here.",
     "timelineEmptyHint": "When something happens in a room, its sticker waits there: open it to decide.",
@@ -2487,7 +2634,7 @@
     "upgrades": "Upgrades",
     "passives": "Employee passives",
     "morale": "Morale",
-    "prestige": "Prestige",
+    "prestige": "Restructure",
     "focus": "Focus Mode",
     "mood": "Team mood",
     "boost": "Active boost",
@@ -2504,7 +2651,7 @@
     "events": "Events seen",
     "microgames": "Micro-games played",
     "peakNps": "Peak nuts/second",
-    "prestiges": "Prestiges"
+    "prestiges": "Restructures"
   },
   "settings": {
     "title": "Settings",
@@ -2744,7 +2891,9 @@
     "repTierUp": "{{name}} — {{blurb}}",
     "consequenceSettled": "{{title}} — {{body}}",
     "achievementsCaughtUp_one": "{{count}} earlier achievement recorded",
-    "achievementsCaughtUp_other": "{{count}} earlier achievements recorded"
+    "achievementsCaughtUp_other": "{{count}} earlier achievements recorded",
+    "restructured_one": "Cycle {{cycle}} has begun: +{{count}} Permanent Kernel · {{branch}}.",
+    "restructured_other": "Cycle {{cycle}} has begun: +{{count}} Permanent Kernels · {{branch}}."
   },
   "react": {
     "marlowApproves": "Marlow approved of this decision.",
@@ -3251,7 +3400,8 @@
     "progressLabel": "Progress to the next tier",
     "nextAt": "Next: {{name}} at {{at}}",
     "maxed": "Highest standing reached.",
-    "nextShort": "next {{at}}"
+    "nextShort": "next {{at}}",
+    "nextBrings": "When you get there: {{perks}}"
   },
   "synergy": {
     "title": "Department Network",

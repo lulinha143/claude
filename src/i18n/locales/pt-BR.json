@@ -64,7 +64,7 @@
     "decorate": "Decorar",
     "settings": "Ajustes",
     "stats": "Estatísticas",
-    "prestige": "Prestígio",
+    "prestige": "Reestruturação",
     "more": "Mais",
     "moreCurrent": "Mais, destino atual: {{destination}}",
     "moreDestinations": "Mais destinos"
@@ -76,7 +76,7 @@
     },
     "golden": {
       "t": "Castanhas Douradas",
-      "d": "Moeda rara, ganha em marcos e na reestruturação. Compra melhorias e habilidades poderosas."
+      "d": "Moeda rara, ganha jogando (conquistas, desafios do dia, achados raros). Compra roupas, peças e melhorias especiais, e fica com você ao reestruturar."
     },
     "morale": {
       "t": "Ânimo",
@@ -112,7 +112,7 @@
     },
     "kernels": {
       "t": "Grãos Permanentes",
-      "d": "Guardadas ao reestruturar. Sobrevivem a todos os ciclos e financiam habilidades permanentes."
+      "d": "Ganhos ao reestruturar. Cada Grão guardado soma {{each}} de produção em todos os ciclos, ou compra uma habilidade permanente."
     }
   },
   "office": {
@@ -217,7 +217,8 @@
     "dropToKeep": "Solte aqui para deixar no depósito",
     "layerAmongTip": "Volta para o meio da equipe, conforme onde está no piso",
     "filter": "Mostrar",
-    "allPieces": "Todas as peças"
+    "allPieces": "Todas as peças",
+    "roomClosed": "{{room}} (fechada até reabrir)"
   },
   "decoReact": {
     "plant": "Essa plantinha deixa o ambiente bem mais fresco.",
@@ -1471,12 +1472,12 @@
       "desc": "Tenha exatamente 69.420 castanhas."
     },
     "goingNuts": {
-      "name": "Ficando Completamente Louco",
-      "desc": "Faça seu primeiro prestígio."
+      "name": "Pirando na Castanha",
+      "desc": "Faça sua primeira reestruturação."
     },
     "multiverse": {
       "name": "Multiverso da Castanha",
-      "desc": "Faça prestígio 5 vezes."
+      "desc": "Reestruture a empresa 5 vezes."
     },
     "employeeMinute": {
       "name": "Funcionário do Minuto",
@@ -1933,19 +1934,16 @@
     }
   },
   "prestige": {
-    "title": "Ficar Completamente Louco",
-    "explain": "Reinicie sua empresa para ganhar Grãos Permanentes. Mantenha suas coleções, cosméticos, conquistas, memórias dos funcionários e árvore de habilidades.",
-    "confirm": "Ficar Completamente Louco?",
-    "willEarn": "Você vai ganhar {{value}} Grãos Permanentes.",
-    "lockedUntil": "Desbloqueia após produzir {{value}} castanhas neste ciclo da empresa.",
-    "chooseBranch": "Escolha um ramo da empresa",
+    "title": "Pirar na Castanha",
+    "explain": "A reestruturação recomeça a empresa do zero, mas a equipe leva a história junto. Em troca, você recebe Grãos Permanentes, que valem em todos os ciclos.",
+    "lockedUntil": "Libera quando este ciclo tiver produzido {{value}} castanhas.",
+    "chooseBranch": "Escolha o ramo do próximo ciclo",
     "effect": {
       "production": "{{value}} de produção",
       "morale": "{{value}} de ânimo",
       "rareEvents": "{{value}} de eventos raros"
     },
-    "skillTree": "Árvore de Habilidades Permanentes",
-    "memory": "Você se lembra de uma linha do tempo anterior…",
+    "skillTree": "Habilidades permanentes",
     "branch": {
       "industrial": {
         "name": "Castanhas Industriais",
@@ -1971,30 +1969,111 @@
     "skill": {
       "headStart": {
         "name": "Vantagem Inicial",
-        "desc": "Comece cada rodada com castanhas bônus."
+        "desc": "Um cofrinho que sobrevive a qualquer reestruturação."
       },
       "compound": {
         "name": "Castanhas Compostas",
-        "desc": "+5% de produção global por nível."
+        "desc": "Castanhas que rendem castanhas. Ninguém sabe explicar."
       },
       "refinery": {
         "name": "Refinaria de Grãos",
-        "desc": "Ganhe mais Grãos Permanentes no prestígio."
+        "desc": "Espreme mais Grão de cada ciclo."
       },
       "deepStorage": {
         "name": "Armazenamento Profundo",
-        "desc": "+1h de limite offline por nível."
+        "desc": "Um porão onde a produção espera por você."
       },
       "goodVibes": {
         "name": "Boas Vibrações",
-        "desc": "Aumente o piso mínimo de moral."
+        "desc": "Uma planta, um aquário e alguém que sempre lembra dos aniversários."
       }
     },
     "transferFile": "TERMO DE CONTINUIDADE",
-    "keptTitle": "Segue com a equipe",
-    "keptSummary": "{{objects}} objetos, {{moments}} momentos e {{talks}} conversas. Amizades, histórias, recordes e lembranças permanecem.",
-    "rebuiltTitle": "Recomeça neste ciclo",
-    "rebuiltSummary": "Contratações, níveis, departamentos, melhorias e recursos da empresa recomeçam. Promessas pendentes pertencem ao ciclo anterior."
+    "keptTitle": "Fica com você",
+    "rebuiltTitle": "Recomeça",
+    "cycleShift": "Ciclo {{from}} – {{to}}",
+    "stampReady": "Liberado",
+    "stampPending": "Em andamento",
+    "gainTitle": "Você recebe",
+    "kernelsEarned_one": "+{{count}} Grão Permanente",
+    "kernelsEarned_other": "+{{count}} Grãos Permanentes",
+    "progressLabel": "Produção deste ciclo",
+    "progress": "{{have}} de {{need}}",
+    "atLine_one": "Nessa marca rende {{count}} Grão Permanente; quanto mais o ciclo produzir antes, mais Grãos.",
+    "atLine_other": "Nessa marca rende {{count}} Grãos Permanentes; quanto mais o ciclo produzir antes, mais Grãos.",
+    "kernelWorth": "Cada Grão guardado soma {{each}} de produção: hoje {{now}}, depois {{after}}.",
+    "startNuts": "O novo ciclo começa com {{value}} castanhas (Vantagem Inicial).",
+    "kept": {
+      "golden_one": "{{count}} castanha dourada",
+      "golden_other": "{{count}} castanhas douradas",
+      "decorations_one": "{{count}} decoração, onde está",
+      "decorations_other": "{{count}} decorações, onde estão",
+      "decorationsWaiting_one": "{{count}} peça espera numa sala que fecha, até ela reabrir",
+      "decorationsWaiting_other": "{{count}} peças esperam em salas que fecham, até elas reabrirem",
+      "collections": "Coleções: castanhas {{nuts}} · momentos {{moments}} · descobertas {{secrets}}",
+      "achievements": "Conquistas: {{count}}",
+      "people_one": "Amizade e histórias: {{count}} colega te conhece",
+      "people_other": "Amizades e histórias: {{count}} colegas te conhecem",
+      "records": "Recordes e maestrias dos minijogos",
+      "identity": "Roupas, nome, logo e data de fundação da empresa",
+      "permanent": "Grãos, habilidades, desafios de hoje e configurações"
+    },
+    "reset": {
+      "nuts": "Castanhas: de {{value}} para {{start}}",
+      "hires_one": "{{count}} contratação e os níveis da equipe ({{founder}} fica)",
+      "hires_other": "{{count}} contratações e os níveis da equipe ({{founder}} fica)",
+      "hiresNone": "Os níveis da equipe ({{founder}} fica)",
+      "rooms_one": "{{count}} sala fecha até reabrir",
+      "rooms_other": "{{count}} salas fecham até reabrir",
+      "upgrades_one": "{{count}} melhoria",
+      "upgrades_other": "{{count}} melhorias",
+      "standing": "Ânimo e reputação voltam ao começo",
+      "sets_one": "{{count}} conjunto completo para de valer até a sala reabrir",
+      "sets_other": "{{count}} conjuntos completos param de valer até as salas reabrirem",
+      "crate": "A caixa do fundador ({{value}} castanhas)",
+      "waiting_one": "{{count}} coisa esperando no escritório (achado, incidente ou curiosidade)",
+      "waiting_other": "{{count}} coisas esperando no escritório (achados, incidentes, curiosidades)",
+      "promises_one": "{{count}} promessa pendente",
+      "promises_other": "{{count}} promessas pendentes",
+      "boosts": "Bônus temporários em andamento",
+      "focus": "A sessão de foco em andamento"
+    },
+    "branchNote": "O ramo vale o ciclo inteiro; na próxima reestruturação dá para trocar.",
+    "branchCurrent": "Atual",
+    "open": "Pirar na Castanha…",
+    "confirmTitle": "Reestruturar a {{company}} agora?",
+    "confirmBody_one": "Você recebe +{{count}} Grão Permanente e o ramo {{branch}}.",
+    "confirmBody_other": "Você recebe +{{count}} Grãos Permanentes e o ramo {{branch}}.",
+    "confirmLoses": "Recomeçam: {{list}}.",
+    "confirmFinal": "Não dá para desfazer.",
+    "confirmGo": "Pirar na Castanha",
+    "confirmCancel": "Ainda não",
+    "skillTradeoff": "Cada Grão guardado soma {{each}} de produção. Comprar uma habilidade troca esses Grãos pelo efeito dela, para sempre.",
+    "skillLevel": "Nv. {{level}}/{{max}}",
+    "skillNow": "Agora: {{effect}}",
+    "skillNone": "Agora: nada ainda",
+    "skillNext": "próximo nível: {{effect}}",
+    "skillEffect": {
+      "startNuts": "começa cada ciclo com {{value}} castanhas",
+      "globalMultiplier": "{{value}} de produção",
+      "kernelGain": "{{value}} de Grãos por reestruturação",
+      "offlineCapHours": "+{{value}} h de limite com o jogo fechado",
+      "moraleFloor": "o ânimo não cai abaixo de {{value}}"
+    },
+    "skillCost_one": "{{count}} Grão",
+    "skillCost_other": "{{count}} Grãos",
+    "skillShortNote_one": "Ainda falta {{count}} Grão.",
+    "skillShortNote_other": "Ainda faltam {{count}} Grãos.",
+    "skillBought": "Feito! Já está valendo.",
+    "lose": {
+      "hires_one": "{{count}} contratação",
+      "hires_other": "{{count}} contratações",
+      "rooms_one": "{{count}} sala",
+      "rooms_other": "{{count}} salas",
+      "upgrades_one": "{{count}} melhoria",
+      "upgrades_other": "{{count}} melhorias",
+      "nuts": "{{value}} castanhas"
+    }
   },
   "focus": {
     "title": "Colheita de Foco",
@@ -2322,13 +2401,22 @@
     "claimDaily": "Tem recompensa de desafio diário esperando por você!",
     "hire": "Você já pode contratar {{name}}!",
     "upgrade": "Você já pode comprar uma melhoria.",
-    "prestige": "A empresa está pronta para Pirar na Castanha!",
+    "prestige": "A empresa pode Pirar na Castanha.",
     "focus": "Experimente uma sessão de Colheita de Foco.",
     "decorate": "Você já pode comprar uma decoração.",
     "firstConversation": "Conheça {{name}} — uma conversa pode mudar o expediente.",
     "firstActivity": "Faça uma pausa com a equipe. Experimente uma atividade.",
     "firstDecoration": "Deixe sua marca no escritório. Você já pode comprar a primeira decoração.",
-    "investigate": "Há um documento sem registro no escritório."
+    "investigate": "Há um documento sem registro no escritório.",
+    "why": {
+      "claimDaily_one": "Vale +{{count}} castanha dourada.",
+      "claimDaily_other": "Vale +{{count}} castanhas douradas.",
+      "prestige_one": "Rende +{{count}} Grão Permanente.",
+      "prestige_other": "Rende +{{count}} Grãos Permanentes.",
+      "investigate": "Fica em: {{room}}.",
+      "firstActivity": "Rende castanhas e um bônus de produção.",
+      "focus": "A equipe produz mais enquanto dura."
+    }
   },
   "mood": {
     "focused_female": "Focada",
@@ -2388,9 +2476,6 @@
   },
   "collections": {
     "title": "Coleções",
-    "nuts": "Enciclopédia da Castanha",
-    "moments": "Cartões de Momento",
-    "outfits": "Roupas",
     "secrets": "Descobertas Secretas",
     "discovered": "{{count}} / {{total}} descobertos",
     "undiscovered": "Não descoberto",
@@ -2442,6 +2527,68 @@
       "leadHappened": "“{{event}}”, já resolvido",
       "leadHappening": "“{{event}}”, acontecendo agora em {{room}}",
       "nut": "Também está na Enciclopédia da Castanha."
+    },
+    "drawer": {
+      "nuts": "Enciclopédia da Castanha",
+      "curiosities": "Curiosidades e segredos",
+      "sets": "Conjuntos de decoração",
+      "keepsakes": "Lembranças da equipe",
+      "masteries": "Maestrias",
+      "outfits": "Roupas especiais",
+      "moments": "Cartões de Momento"
+    },
+    "back": "Coleções",
+    "countOf": "{{have}} de {{total}}",
+    "countFiled_one": "{{count}} arquivado",
+    "countFiled_other": "{{count}} arquivados",
+    "secretFiles_one": "{{count}} arquivo secreto",
+    "secretFiles_other": "{{count}} arquivos secretos",
+    "curiositiesMore": "Salas que ainda vão abrir guardam outras.",
+    "toDecorate": "Abrir o Decorar",
+    "toTeam": "Trocar de roupa na Equipe",
+    "outfitsIntro": "Cada colega tem a roupa de sempre, grátis; estas são compradas com castanhas douradas.",
+    "outfitWearing": "Vestindo",
+    "outfitOwned": "No armário",
+    "keepsakeOf": "A lembrança de {{name}}",
+    "keepsakeDrawer": "na gaveta por enquanto",
+    "keepsakeAway": "fora da equipe neste ciclo",
+    "keepsakeHire": "Quando {{name}} estiver na equipe.",
+    "keepsakeReady": "Dá para perguntar numa visita.",
+    "keepsakeTrust": "Mais {{count}} de confiança e vocês conversam sobre ela.",
+    "masteryDone": "Maestria! Recorde {{best}}.",
+    "masteryProgress": "Recorde {{best}} de {{line}} para a maestria.",
+    "souvenirOwned": "{{souvenir}}: já é sua.",
+    "souvenirWaiting": "{{souvenir}} vem com a maestria.",
+    "play": "Jogar",
+    "next": {
+      "complete": "Completo.",
+      "nutsWhere": "Uma pode aparecer em: {{room}}.",
+      "nutsLater": "As que faltam aparecem mais adiante.",
+      "nutsMilestone_one": "Com {{value}}: +{{count}} castanha dourada.",
+      "nutsMilestone_other": "Com {{value}}: +{{count}} castanhas douradas.",
+      "curiosityWaiting": "Tem uma esperando agora em: {{room}}.",
+      "curiosityRoom_one": "{{room}}: falta {{count}} para fechar o arquivo.",
+      "curiosityRoom_other": "{{room}}: faltam {{count}} para fechar o arquivo.",
+      "curiosityMoreRooms": "Salas que ainda vão abrir guardam outras.",
+      "roomFileReward_one": "Arquivo de sala completo: +{{count}} castanha dourada.",
+      "roomFileReward_other": "Arquivo de sala completo: +{{count}} castanhas douradas.",
+      "setMissing_one": "{{set}}: falta {{count}} peça em {{room}}.",
+      "setMissing_other": "{{set}}: faltam {{count}} peças em {{room}}.",
+      "setsMoreRooms": "Os outros conjuntos são de salas que ainda vão abrir.",
+      "setReward": "Completo, vale: {{effect}}",
+      "keepsakeAsk": "Dá para perguntar a {{name}} numa visita.",
+      "keepsakeTrust": "Mais {{count}} de confiança com {{name}} e vocês conversam sobre a lembrança.",
+      "keepsakeTeam": "Cada colega guarda uma lembrança: contrate e converse.",
+      "masteryBest": "{{game}}: recorde {{best}} de {{line}}.",
+      "masteryFirst": "{{game}}: a maestria vem com {{line}} pontos.",
+      "masteryReward_one": "Maestria: +{{count}} castanha dourada, um cartão e {{souvenir}}.",
+      "masteryReward_other": "Maestria: +{{count}} castanhas douradas, um cartão e {{souvenir}}.",
+      "masteryRewardOwned_one": "Maestria: +{{count}} castanha dourada e um cartão.",
+      "masteryRewardOwned_other": "Maestria: +{{count}} castanhas douradas e um cartão.",
+      "outfitNext_one": "{{outfit}}, de {{name}}: {{count}} castanha dourada.",
+      "outfitNext_other": "{{outfit}}, de {{name}}: {{count}} castanhas douradas.",
+      "outfitTeam": "As roupas especiais são de quem está na equipe.",
+      "momentsFirst": "Decisões marcantes viram cartões: resolva um evento no escritório."
     }
   },
   "company": {
@@ -2449,7 +2596,7 @@
     "rename": "Renomear empresa",
     "renamePlaceholder": "Nome da empresa…",
     "founded": "Fundada em {{date}}",
-    "prestigeCount": "Linhas do tempo: {{count}}",
+    "prestigeCount": "Reestruturações: {{count}}",
     "timeline": "Decisões recentes",
     "timelineEmpty": "Nenhuma grande decisão ainda — os eventos aparecerão aqui.",
     "timelineEmptyHint": "Quando algo acontecer numa sala, o aviso espera lá: abra para decidir.",
@@ -2501,7 +2648,7 @@
     "upgrades": "Melhorias",
     "passives": "Passivas dos funcionários",
     "morale": "Moral",
-    "prestige": "Prestígio",
+    "prestige": "Reestruturação",
     "focus": "Modo Foco",
     "mood": "Humor da equipe",
     "boost": "Bônus ativo",
@@ -2518,7 +2665,7 @@
     "events": "Eventos vistos",
     "microgames": "Mini-jogos jogados",
     "peakNps": "Pico de castanhas/segundo",
-    "prestiges": "Prestígios"
+    "prestiges": "Reestruturações"
   },
   "settings": {
     "title": "Ajustes",
@@ -2758,7 +2905,9 @@
     "repTierUp": "{{name}} — {{blurb}}",
     "consequenceSettled": "{{title}} — {{body}}",
     "achievementsCaughtUp_one": "{{count}} conquista anterior registrada",
-    "achievementsCaughtUp_other": "{{count}} conquistas anteriores registradas"
+    "achievementsCaughtUp_other": "{{count}} conquistas anteriores registradas",
+    "restructured_one": "Ciclo {{cycle}} começou: +{{count}} Grão Permanente · {{branch}}.",
+    "restructured_other": "Ciclo {{cycle}} começou: +{{count}} Grãos Permanentes · {{branch}}."
   },
   "react": {
     "marlowApproves": "Bento aprovou esta decisão.",
@@ -3265,7 +3414,8 @@
     "progressLabel": "Progresso para o próximo nível",
     "nextAt": "Próximo: {{name}} em {{at}}",
     "maxed": "Nível máximo alcançado.",
-    "nextShort": "próx. {{at}}"
+    "nextShort": "próx. {{at}}",
+    "nextBrings": "Ao chegar lá: {{perks}}"
   },
   "synergy": {
     "title": "Rede de Departamentos",

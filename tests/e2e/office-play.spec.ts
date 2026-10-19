@@ -229,7 +229,7 @@ test('a curiosity at the corkboard is noticed, remembered, and logged in the Arc
   await expect.poll(async () => (await saved(page)).flags['oddity.memo']).toBeTruthy();
 
   await openView(page, 'collections');
-  await page.getByRole('tab', { name: /secret/i }).click();
+  await page.locator('.collection-drawer[data-drawer="curiosities"]').click();
   const log = page.locator('.curiosity-log');
   await expect(log).toContainText(text('oddity.memo.title'));
   await expect(log.locator('.curiosity-room[data-room="founder-desk"]')).toContainText('1/2');

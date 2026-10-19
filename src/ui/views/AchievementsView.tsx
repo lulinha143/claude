@@ -26,8 +26,9 @@ export function AchievementsView() {
               <div className="ach__desc">
                 {hidden ? t('collections.undiscovered') : t(a.descriptionKey)}
               </div>
+              {/* A hidden achievement keeps its reward to itself until it is earned. */}
               <div className="ach__reward">
-                <GoldenNut size={14} /> {fmt.int(a.goldenReward)}
+                <GoldenNut size={14} /> {hidden ? '?' : fmt.int(a.goldenReward)}
               </div>
             </li>
           );

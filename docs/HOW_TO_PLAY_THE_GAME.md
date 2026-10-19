@@ -59,7 +59,8 @@ after you build it yourself with Option B.
   it does and who is helping.
 - **Look closer:** when a magnifier appears on a corkboard, a shelf or in a
   corner, click it — something odd has turned up. Everything you notice is kept
-  in **Archive → Secrets**, and some of it is the Nut Encyclopedia's missing nuts.
+  in **Archive → Collections → Curiosities and secrets**, and some of it is the Nut
+  Encyclopedia's missing nuts.
   Click a find there to read it again: where and when it turned up, what made it
   possible and where it led. Open leads are listed at the top.
 - **Decorate:** open **Decorate** in the dock. Each piece says where it goes
@@ -68,6 +69,18 @@ after you build it yourself with Option B.
   to the office: drag it into a room (or tap a spot) to place it, let go over
   the storage strip to put it away, or press Escape to drop the move. Furniture
   stands among the team by where you put it: further back, it is behind them.
+- **Collections:** **Archive → Collections** is a cabinet of drawers: nuts,
+  curiosities and secret files, decoration sets, keepsakes, minigame masteries,
+  special outfits and Moment Cards. Each says how far along it is, what you can do
+  for it now and what finishing it pays. Open a drawer to see the pieces (things not
+  found yet stay blank); Escape or **Collections** takes you back.
+- **Restructure (Go Completely Nuts):** once this cycle of the company has produced
+  a million nuts, **Archive → Restructure** shows the continuity file: the Permanent
+  Kernels you receive (each one you keep adds 2% production for good, or you can
+  spend them on permanent skills), what stays with you (golden nuts, collections,
+  decorations, achievements, friendships and stories) and what starts over (nuts,
+  hires, rooms, upgrades). Pick the next cycle's branch, press **Go Completely
+  Nuts…**, read the confirmation and confirm, or press **Not yet** / Escape.
 - **See what's happening:** when a teammate holds up a little **!** ticket (and
   the room's name has a **!** too), something has started happening there. It
   waits for you: click the ticket, or click the teammate twice, to look into it

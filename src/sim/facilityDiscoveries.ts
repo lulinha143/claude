@@ -3,6 +3,7 @@ import { ROOM_PLAY } from '../content/roomPlay';
 import { decorationEnsembles } from './decorationEnsembles';
 import { curiosityProgress } from './roomPlay';
 import { isRoomIdUnlocked } from './rooms';
+import { isMicroMastered } from './minigames';
 import type { GameState } from './types';
 
 /**
@@ -23,9 +24,9 @@ export function availableFacilityDiscoveries(state: GameState) {
       state.flags[`discovery.${discovery.id}`] === undefined &&
       (active.has(discovery.ensembleId) ||
         curiosityProgress(state, discovery.roomId).noticed >= ROOM_PLAY.discoveryAfter ||
-        (discovery.id === 'security' &&
-          state.flags['microgame.cableUntangle.mastered'] !== undefined) ||
-        (discovery.id === 'incubator' &&
-          state.flags['microgame.bugSquash.mastered'] !== undefined)),
+        // Mastery reads as it does on the Activities screen: the flag, or a record
+        // at or above today's line that predates it.
+        (discovery.id === 'security' && isMicroMastered(state, 'cableUntangle')) ||
+        (discovery.id === 'incubator' && isMicroMastered(state, 'bugSquash'))),
   );
 }

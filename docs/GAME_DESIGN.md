@@ -213,17 +213,36 @@ The loop is notice → investigate → choose → experience → consequence →
   first automation milestone within the first hour; first prestige after several
   hours; continued unlocks across prestige cycles.
 
-## Prestige — "Go Completely Nuts"
+## Prestige — the restructure ("Go Completely Nuts" / "Pirar na Castanha")
 
-Resets company progress; grants Permanent Kernels; preserves collections,
-cosmetics, achievements, employee memories (friendship), and the skill tree.
-Five branches (Industrial, Cooperative, Questionable Science, Aggressive
-Marketing, Underground Operations) alter bonuses, morale, and rare-event odds.
+Opens once the current cycle has produced 1M nuts (lifetime totals do not count
+twice) and pays ⌊√(nuts this cycle / 1M)⌋ Permanent Kernels (more with Kernel
+Refinery). Each kernel held adds +2% production in every cycle; buying a skill
+spends kernels for its effect instead. Five branches (Industrial, Cooperative,
+Questionable Science, Aggressive Marketing, Underground Operations) set the next
+cycle's production, morale and rare-event odds.
+
+- **Kept:** the company's name, logo and founding date; settings; kernels, skills
+  and the branch; golden nuts (and the dust still refining); every collection,
+  decorations where they stand, achievements, lifetime stats, minigame records and
+  focus sessions; each teammate's friendship, outfit, nickname, conversations and
+  history; the day's challenges (a claimed one stays claimed).
+- **Starts over:** nuts (Head Start excepted), hires and levels (Pip stays), rooms,
+  upgrades, morale and reputation, the crate, whatever was waiting in the office,
+  promised consequences, boosts and a focus session in progress. Decorations in a
+  room that closes wait there; its set counts again when the room reopens.
+- The Archive shows the continuity file from half way to the line. It states all
+  of this from the operation itself (`restructurePreview`); the confirmation repeats
+  the trade, and a second confirmation pays nothing. The guide offers the
+  restructure once per cycle.
 
 ## Long-term systems
 
-- **Collections:** Nut Encyclopedia (24 fictional nuts), Moment Cards, outfits,
-  logos, secret discoveries, achievement-linked decorations.
+- **Collections:** the Archive's cabinet: Nut Encyclopedia (24 fictional nuts),
+  office curiosities and secret files, decoration sets (9), team keepsakes (23),
+  minigame masteries (3), special outfits (24) and Moment Cards. Every count is read
+  from where the thing is earned (`src/sim/collections.ts`); what is not found yet is
+  never named, and Moment Cards and secret files keep their total to themselves.
 - **Daily challenges:** deterministic, date-seeded, offline, server-free.
 - **Focus Harvest:** opt-in, supportive productivity companion; never blocks the
   computer; never punishes cancellation.
