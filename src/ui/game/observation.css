@@ -1,0 +1,317 @@
+/* ==========================================================================
+   Game layer — the observation report: Nutshell's researchers' field notes on
+   the office. A paper file with a stamp; each entry is a line on it with a rubber
+   stamp saying who (the team, you, on file) or what (unobserved, a moment,
+   waiting), the time, what happened and where, and a way there. The stamp is a
+   word in a frame, so it reads without its colour; purple only for the rare.
+   ========================================================================== */
+@layer game {
+  .popup.observation-popup {
+    width: min(560px, 100%);
+    max-width: min(560px, 100%);
+  }
+
+  .observation {
+    display: grid;
+    gap: 10px;
+    min-width: 0;
+    container-type: inline-size;
+  }
+
+  /* ---- the letterhead -------------------------------------------------------- */
+  /* It starts under the strip of tape that holds the file on, never beneath it. */
+  .observation__head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 2px 10px;
+    padding: 10px 0 8px;
+    border-bottom: 1.5px dashed var(--paper-line);
+  }
+  .observation__kind {
+    color: var(--ink-soft);
+    font: 800 var(--fs-2xs) / 1.25 var(--font-body);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  /* Tilted like a rubber stamp; the margin keeps its corners on the page. */
+  .observation__stamp {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    margin: 2px 3px 0 0;
+    padding: 1px 7px;
+    color: var(--c-berry-700);
+    border: 2px solid currentColor;
+    border-radius: 4px;
+    font: 800 var(--fs-2xs) / 1.3 var(--font-body);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    transform: rotate(-4deg);
+  }
+  .popup__content .observation__title {
+    grid-column: 1;
+  }
+  .popup__content .observation__company {
+    grid-column: 1 / -1;
+    color: var(--ink-soft);
+    font: 700 var(--fs-xs) / 1.3 var(--font-body);
+  }
+  .popup__content .observation__lede {
+    grid-column: 1 / -1;
+    color: var(--ink-body);
+    font: 600 var(--fs-sm) / 1.4 var(--font-body);
+  }
+
+  /* ---- a day of notes ------------------------------------------------------------ */
+  .observation__day {
+    display: grid;
+    gap: 6px;
+  }
+  .observation__day-title {
+    margin: 0;
+    color: var(--ink-soft);
+    font: 800 var(--fs-2xs) / 1.2 var(--font-body);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .observation__rows {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .observation__row {
+    display: grid;
+    grid-template-columns: 6.4em minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 4px 10px;
+    padding: 7px 9px;
+    background: var(--paper-bg-sunken);
+    border: 1px solid var(--paper-line);
+    border-radius: 10px;
+  }
+  .observation__meta {
+    display: grid;
+    justify-items: start;
+    gap: 4px;
+  }
+  /* A rubber stamp: words and a frame. */
+  .observation__mark {
+    padding: 1px 6px;
+    color: var(--ink-soft);
+    border: 1.5px solid currentColor;
+    border-radius: 4px;
+    font: 800 var(--fs-2xs) / 1.3 var(--font-body);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .observation__mark[data-stamp='team'] {
+    color: var(--c-walnut-700);
+  }
+  .observation__mark[data-stamp='player'] {
+    color: var(--c-sage-700);
+  }
+  .observation__mark[data-stamp='passed'] {
+    color: var(--c-rare-600);
+    border-style: dashed;
+  }
+  /* The office's "something is waiting" orange, inked darker so small words read. */
+  .observation__mark[data-stamp='waiting'] {
+    color: color-mix(in srgb, var(--c-acorn-600) 60%, var(--c-walnut-700));
+  }
+  .observation__time {
+    color: var(--ink-soft);
+    font: 700 var(--fs-2xs) / 1.2 var(--font-numeric);
+    font-variant-numeric: tabular-nums;
+  }
+  .observation__body {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+  }
+  .observation__what {
+    color: var(--ink-strong);
+    font: 700 var(--fs-sm) / 1.25 var(--font-body);
+    overflow-wrap: anywhere;
+  }
+  .observation__text {
+    display: grid;
+    gap: 2px;
+    color: var(--ink-body);
+    font: 600 var(--fs-xs) / 1.4 var(--font-body);
+    overflow-wrap: anywhere;
+  }
+  .observation__line {
+    font-style: italic;
+  }
+  /* The next step of the same card, under the first decision. */
+  .observation__then {
+    padding-left: 8px;
+    border-left: 2px solid var(--paper-line);
+  }
+  [data-high-contrast='true'] .observation__then {
+    border-left-color: #000;
+  }
+  .observation__where {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--ink-soft);
+    font: 700 var(--fs-2xs) / 1.3 var(--font-body);
+  }
+  /* The name nobody saw: a black bar, as in a file released with redactions. */
+  .observation__redacted {
+    display: inline-block;
+    width: 8.5em;
+    max-width: 100%;
+    height: 0.95em;
+    vertical-align: -0.12em;
+    background: var(--ink-strong);
+    border-radius: 2px;
+  }
+  .app .observation__go {
+    align-self: center;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 34px;
+    padding: 4px 10px;
+    color: var(--ink-strong);
+    background: var(--paper-bg-bright);
+    border: 1px solid var(--paper-line);
+    border-radius: 9px;
+    font: 800 var(--fs-xs) / 1.2 var(--font-body);
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .app .observation__go:hover,
+  .app .observation__go:focus-visible {
+    border-color: var(--c-walnut-400);
+  }
+  .observation__go-arrow {
+    display: grid;
+    color: var(--ink-soft);
+    scale: -1 1;
+  }
+  .popup__content .observation__foot {
+    color: var(--ink-soft);
+    font: 600 var(--fs-2xs) / 1.4 var(--font-body);
+  }
+
+  /* A narrow page (a corner window): the title takes the whole line under the
+     stamp; on each entry the stamp, the time and the way there share the top
+     line, and the words take the full width under them. Nothing is cut or
+     squeezed, and more of the file fits before it scrolls. */
+  @container (max-width: 430px) {
+    .observation__stamp {
+      grid-row: 1;
+    }
+    .popup__content .observation__title {
+      grid-column: 1 / -1;
+    }
+    .observation__row {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+    }
+    .observation__meta {
+      grid-column: 1;
+      grid-row: 1;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 4px 8px;
+    }
+    .observation__body {
+      grid-column: 1 / -1;
+      grid-row: 2;
+    }
+    .app .observation__go {
+      grid-column: 2;
+      grid-row: 1;
+    }
+  }
+
+  /* ---- the Company timeline: who decided, and the way into the report ------- */
+  .company-timeline__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px 10px;
+    margin-bottom: 6px;
+  }
+  .panel .company-timeline__head h3 {
+    margin: 0;
+  }
+  .app .observation-open {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 32px;
+  }
+  .decision-by {
+    display: inline-block;
+    margin-right: 6px;
+    padding: 0 5px;
+    color: var(--ink-soft);
+    border: 1px solid currentColor;
+    border-radius: 4px;
+    font: 800 var(--fs-2xs) / 1.35 var(--font-body);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    vertical-align: 0.06em;
+  }
+  .decision-by[data-by='team'] {
+    color: var(--c-walnut-700);
+  }
+  .decision-by[data-by='player'] {
+    color: var(--c-sage-700);
+  }
+
+  /* ---- the welcome back's way into it -------------------------------------------- */
+  .app .return-note__report {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    min-height: 32px;
+    margin-top: 6px;
+    padding: 3px 8px 3px 7px;
+    color: var(--ink-strong);
+    background: none;
+    border: 1px dashed var(--paper-line);
+    border-radius: 9px;
+    font: 700 var(--fs-xs) / 1.2 var(--font-body);
+    text-align: left;
+    cursor: pointer;
+  }
+  /* Its words wrap rather than being cut: it is the only thing the link says. */
+  .app .return-note__report > span:not(.return-note__go-arrow) {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .app .return-note__report:hover,
+  .app .return-note__report:focus-visible {
+    border-style: solid;
+    border-color: var(--c-walnut-400);
+    background: var(--paper-bg-sunken);
+  }
+
+  /* ---- high contrast: black on white, frames and words carry the meaning ----- */
+  [data-high-contrast='true'] :is(.observation__mark, .observation__stamp, .decision-by) {
+    color: #000;
+  }
+  [data-high-contrast='true']
+    :is(.observation__time, .observation__where, .observation__kind, .observation__company) {
+    color: #000;
+  }
+  [data-high-contrast='true'] .observation__row,
+  [data-high-contrast='true'] .app .observation__go,
+  [data-high-contrast='true'] .app .return-note__report {
+    border-color: #000;
+  }
+}

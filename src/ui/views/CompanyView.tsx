@@ -8,6 +8,7 @@ import { GoldenNut } from '../../art/Icons';
 import { CompanyIcon } from '../../art/companyIcons';
 import { CompanyIconPicker } from '../modals/CompanyIconPicker';
 import { historyLabelKeys } from '../../content/historyLabels';
+import { decisionBy } from '../../sim/observation';
 import { ProductionBreakdown } from '../ProductionBreakdown';
 import { DepartmentNetwork } from '../DepartmentNetwork';
 import { ReputationLadder } from '../ReputationLadder';
@@ -51,6 +52,7 @@ export function CompanyView() {
   const { engine, state } = useGame();
   const fmt = useFmt();
   const audio = useStore((s) => s.audio);
+  const openObservation = useStore((s) => s.openObservation);
   const cap = moraleCap(state);
   const [iconPicker, setIconPicker] = useState(false);
   const tier = reputationTier(state.resources.reputation);
@@ -171,7 +173,15 @@ export function CompanyView() {
       </div>
 
       <div className="panel company-timeline">
-        <h3>{t('company.timeline')}</h3>
+        <div className="company-timeline__head">
+          <h3>{t('company.timeline')}</h3>
+          {/* The whole record: what the team decided on its own, what passed
+              unseen, the office's moments and what is waiting now. */}
+          <button type="button" className="ghost-btn observation-open" onClick={openObservation}>
+            <Icon name="company" size={14} />
+            {t('observation.open')}
+          </button>
+        </div>
         {state.eventHistory.length === 0 ? (
           <p className="empty-state empty-state--row">
             <span className="empty-state__mark" aria-hidden>
@@ -187,10 +197,19 @@ export function CompanyView() {
               .reverse()
               .map((h, i) => {
                 const labels = historyLabelKeys(h.eventId, h.choiceId);
+                // Who decided, when the record says (older saves do not).
+                const by = decisionBy(h);
                 return (
-                  <li key={`${h.at}-${i}`} className="timeline__row">
+                  <li key={`${h.at}-${i}`} className="timeline__row" data-by={by ?? undefined}>
                     <span className="timeline__title">{t(labels.titleKey)}</span>
-                    <span className="timeline__choice">{t(labels.choiceKey)}</span>
+                    <span className="timeline__choice">
+                      {by ? (
+                        <span className="decision-by" data-by={by}>
+                          {t(`observation.by.${by}`)}
+                        </span>
+                      ) : null}
+                      {t(labels.choiceKey)}
+                    </span>
                     <span className="timeline__date">{fmt.date(h.at)}</span>
                   </li>
                 );

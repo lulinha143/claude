@@ -118,6 +118,11 @@ export function formatDate(epochMs: number, locale = 'en'): string {
   return new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(epochMs));
 }
 
+/** The time of day, the locale's way ("14:32", "2:32 PM"). */
+export function formatTime(epochMs: number, locale = 'en'): string {
+  return new Intl.DateTimeFormat(locale, { timeStyle: 'short' }).format(new Date(epochMs));
+}
+
 /**
  * Date AND time, for anything the player needs to identify a specific moment —
  * "last saved", an exported file, a backup. A save stamped only with a date is

@@ -2840,6 +2840,41 @@
     },
     "goLabel": "Ir até lá: {{what}} — {{room}}"
   },
+  "observation": {
+    "title": "Relatório de observação",
+    "kind": "Anotações de campo",
+    "lede": "O que a equipe fez enquanto você olhava para outra janela.",
+    "stamp": "Uso interno",
+    "open": "Relatório de observação",
+    "fromReturn": "Ler o relatório de observação",
+    "now": "Acontecendo agora",
+    "today": "Hoje",
+    "yesterday": "Ontem",
+    "by": {
+      "team": "Equipe",
+      "player": "Você",
+      "unknown": "Arquivado"
+    },
+    "stampPassed": "Não observado",
+    "stampMoment": "Momento",
+    "stampWaiting": "Esperando",
+    "decision": {
+      "team": "A equipe decidiu sem você: {{choice}}",
+      "player": "Você decidiu: {{choice}}",
+      "unknown": "Decisão arquivada: {{choice}}"
+    },
+    "then": "Depois: {{choice}}",
+    "unnamed": "Nome não registrado",
+    "passed": "Aconteceu algo raro aqui, e ninguém viu de perto.",
+    "momentLine": "{{name}}: “{{line}}”",
+    "waitingWith": "{{name}} está esperando você dar uma olhada.",
+    "waitingAnon": "Está esperando você dar uma olhada.",
+    "go": "Ir até lá",
+    "goLabel": "Ir até: {{room}}",
+    "emptyTitle": "Nada registrado ainda neste ciclo.",
+    "emptyHint": "Deixe o escritório aberto num canto: o que a equipe decidir sozinha fica anotado aqui.",
+    "foot": "Anotado pelos pesquisadores da Nutshell. Só o que ficou registrado neste ciclo; uma reestruturação abre uma ficha nova."
+  },
   "moment": {
     "company": "Empresa",
     "rarityLabel": "Raridade",
