@@ -5,6 +5,7 @@ import {
   formatDuration,
   formatDate,
   formatDateTime,
+  formatTime,
 } from '../sim/format';
 
 // Locale-aware formatting bound to the active i18n language.
@@ -19,6 +20,7 @@ export function useFmt() {
     dur: (v: number) => formatDuration(v),
     date: (v: number) => formatDate(v, locale),
     dateTime: (v: number) => formatDateTime(v, locale),
+    time: (v: number) => formatTime(v, locale),
     /** names in a sentence, the locale's way: "Quincy e Nica", "Quincy and Nixie". */
     list: (items: readonly string[]) =>
       typeof Intl.ListFormat === 'function'

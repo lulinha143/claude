@@ -88,6 +88,13 @@ after you build it yourself with Option B.
   and decide. Under each answer is what it will do (costs, rewards, who it
   changes); point at an answer and the people it is about show how they would
   take it. What you choose can show up again later, in the office.
+- **What happened while you looked away:** if nobody opens an ordinary ticket in
+  time, the team decides on its own. **Archive → Company** marks each decision in
+  the timeline as **You** or **Team**, and **Observation report** (also linked from
+  the welcome-back note) is the researchers' file on the office: what is waiting
+  now, what the team decided without you, something rare that passed unseen (its
+  name blacked out) and the team's small moments, by day. **Go there** takes you to
+  the room. It covers the current cycle; a restructure starts a new file.
 - **Open menus:** use the tabs at the top (Upgrades, Team, Company, etc.).
 - **Move the window:** click-and-drag the **top bar** (the part with the company
   name) to anywhere on your screen — including a corner.

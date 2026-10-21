@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { SAVE_VERSION } from '../sim/config';
+import { EVENT_HISTORY_SIZE, SAVE_VERSION } from '../sim/config';
 
 // Zod schema for the persisted GameState. Defaults are set generously so a save
 // is NEVER rejected because one optional property is missing — missing fields
@@ -220,6 +220,19 @@ const diaryEntrySchema = z.object({
   momentId: z.string().optional().catch(undefined),
   roomId: z.string().optional().catch(undefined),
   employeeId: z.string().optional().catch(undefined),
+});
+
+/**
+ * A decision in the company's history. `by` and `roomId` came with the observation
+ * report: older saves have neither (the decision is then told without saying who
+ * took it), and a value that does not parse is dropped, never the record.
+ */
+const eventHistoryEntrySchema = z.object({
+  eventId: z.string(),
+  choiceId: z.string(),
+  at: z.number().finite(),
+  by: z.enum(['player', 'team']).optional().catch(undefined),
+  roomId: z.string().max(80).optional().catch(undefined),
 });
 
 /** Validate a list item by item, dropping what does not parse and keeping the newest `max`. */
@@ -444,9 +457,9 @@ export const gameStateSchema = z.object({
       }),
     )
     .catch({}),
-  eventHistory: z
-    .array(z.object({ eventId: z.string(), choiceId: z.string(), at: z.number() }))
-    .catch([]),
+  // Entry by entry: one bad record (or a bad optional field) must not wipe the
+  // whole history, which the timeline and the observation report read.
+  eventHistory: listOf(eventHistoryEntrySchema, EVENT_HISTORY_SIZE),
   /** Consequence memory: flagId -> epoch ms it was set. */
   flags: z.record(z.number().finite()).catch({}),
   /**

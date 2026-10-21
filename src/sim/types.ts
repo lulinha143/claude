@@ -90,7 +90,6 @@ export interface EmployeeEmotion {
   until: number | null;
 }
 
-/** A compact, persisted record of a resolved event decision (company timeline). */
 /**
  * A consequence that was deferred when a choice was made and fires later.
  *
@@ -113,10 +112,23 @@ export interface ScheduledConsequence {
   quiet?: boolean;
 }
 
+/** Who took a recorded decision. */
+export type DecidedBy = 'player' | 'team';
+
+/** A compact, persisted record of a resolved event decision (company timeline). */
 export interface EventHistoryEntry {
   eventId: string;
   choiceId: string;
   at: number;
+  /**
+   * Who took it: the player at the card, or the team (an incident nobody looked
+   * into in time, or every event while "decide for me" is on). Recorded when it is
+   * taken, because it cannot be worked out afterwards. Absent in saves from before
+   * the observation report: unknown, and said as such.
+   */
+  by?: DecidedBy;
+  /** The room the card was set in. Absent in saves from before the observation report. */
+  roomId?: string;
 }
 
 export type PrestigeBranchId =

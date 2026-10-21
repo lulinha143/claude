@@ -1,4 +1,4 @@
-import { BALANCE } from './config';
+import { BALANCE, EVENT_HISTORY_SIZE } from './config';
 import {
   MICRO_BOOST_SECONDS,
   MICRO_BOOST_SOURCE,
@@ -578,6 +578,13 @@ export class GameEngine {
    * what waits to be noticed holds its place instead of being decided offscreen.
    */
   private attended = true;
+
+  /**
+   * True while the team decides an event on its own (`autoResolveActiveEvent`), so
+   * the company's history can say who decided. Private: nothing outside the engine
+   * can claim a decision for the team.
+   */
+  private teamDeciding = false;
 
   /** Minigame rounds that have started and not yet been paid or left. */
   private openMicroRounds = new Map<string, MicroMode>();
@@ -2289,17 +2296,25 @@ export class GameEngine {
     // stops malformed content (a step pointing at itself) from spinning forever.
     const guard = Object.keys(this.activeEvent?.def.steps ?? {}).length + 2;
 
-    for (let i = 0; i < guard; i += 1) {
-      const active = this.activeEvent;
-      if (!active) break;
-      const picked = chooseAutoResolution(this.state, active.def, active.step);
-      if (!picked) break;
-      decisions.push({ def: active.def, choice: picked.choice });
-      const resolved = this.resolveEventChoice(picked.choice.id, {
-        eventInstanceId: active.instanceId,
-        step: active.step,
-      });
-      if (!resolved) break;
+    // Restored rather than cleared afterwards, so a call made inside another one
+    // would leave the outer decisions the team's too.
+    const teamWasDeciding = this.teamDeciding;
+    this.teamDeciding = true;
+    try {
+      for (let i = 0; i < guard; i += 1) {
+        const active = this.activeEvent;
+        if (!active) break;
+        const picked = chooseAutoResolution(this.state, active.def, active.step);
+        if (!picked) break;
+        decisions.push({ def: active.def, choice: picked.choice });
+        const resolved = this.resolveEventChoice(picked.choice.id, {
+          eventInstanceId: active.instanceId,
+          step: active.step,
+        });
+        if (!resolved) break;
+      }
+    } finally {
+      this.teamDeciding = teamWasDeciding;
     }
 
     if (decisions.length === 0) {
@@ -2359,9 +2374,16 @@ export class GameEngine {
       // A choice someone will bring up later, unprompted, when the player is around.
       const remembered = this.rememberChoice(flagsBefore);
 
-      // record the decision in the company timeline (capped)
-      this.state.eventHistory.push({ eventId: def.id, choiceId: choice.id, at: this.now() });
-      if (this.state.eventHistory.length > 50) this.state.eventHistory.shift();
+      // Record the decision in the company timeline (capped), with who took it and
+      // the room the card was set in: neither can be worked out afterwards.
+      this.state.eventHistory.push({
+        eventId: def.id,
+        choiceId: choice.id,
+        at: this.now(),
+        by: this.teamDeciding ? 'team' : 'player',
+        ...(active.place?.roomId ? { roomId: active.place.roomId } : {}),
+      });
+      if (this.state.eventHistory.length > EVENT_HISTORY_SIZE) this.state.eventHistory.shift();
 
       // build the consequence result panel (announces every change clearly)
       this.lastConsequence = {
@@ -2575,8 +2597,9 @@ export class GameEngine {
       eventId: `talk:${active.topic.id}`,
       choiceId: choice.id,
       at: now,
+      by: 'player',
     });
-    if (this.state.eventHistory.length > 50) this.state.eventHistory.shift();
+    if (this.state.eventHistory.length > EVENT_HISTORY_SIZE) this.state.eventHistory.shift();
 
     active.exchanges += 1;
     active.lastReplyKey = choice.replyKey;

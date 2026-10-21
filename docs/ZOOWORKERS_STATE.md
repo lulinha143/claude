@@ -10,6 +10,10 @@ on top of Chapter 10 (`f2c5b90`), Chapter 8 (`60fdd3c`), Chapter 7 (`4639fa2`), 
 (`d9fab09`), Chapter 4 (`e7bac62`), Chapter 1 (`80264a8`) and the setup commit `c55d356`; clean.
 `7a7ee3d` (architect's snapshot) is an ancestor; never roll back to it.
 
+`feat/zooworkers-observation-log`: Feature A (the observation report), one commit on the final
+integration `9f5ef83`, with a PR into `feat/zooworkers-3.0-facility-pass`. PR #9 stays open,
+unmerged and unchanged.
+
 ## Active configuration
 
 - Always loaded: root `AGENTS.md`. On matching files: `visual.md` (`src/art`, `src/ui`,
@@ -64,7 +68,7 @@ GC numbers are not kit numbers.
 | --- | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
 | 1   | `App`, `ui/GameHud`, `GameDock`, `Sheet`, `modals/OpeningSequence`, `Onboarding`, `art/OfficeScene`, `views/SettingsView` | Accepted (record below)               |
 | 4   | `sim/goals`, `crate`, `economy`, `ui/GoalTag`, `views/ShopView`                                                           | Accepted (record below)               |
-| 9   | `engine.catchUp`, `sim/offline`, `sim/timeline`, `state/returns`, `ui/ReturnNote`, `ui/Notifications`                     | Accepted (record below); diary unread |
+| 9   | `engine.catchUp`, `sim/offline`, `sim/timeline`, `state/returns`, `ui/ReturnNote`, `ui/Notifications`                     | Accepted; diary now read by Feature A |
 | 2   | `views/EmployeesView`, `modals/EmployeeTalk`, `sim/bonds`                                                                 | Accepted (record below)               |
 | 3   | `art/RoomDressing`, `RoomPlay`, `content/rooms`, `roomPlay`                                                               | Accepted (record below)               |
 | 5   | `ui/minigames/*`, `sim/minigames`                                                                                         | Accepted (record below)               |
@@ -892,6 +896,59 @@ broken): the Team sheet's first opening with all 23 and every decoration takes ~
 Release readiness: the browser build is integrated and green, but the release stays BLOCKED
 on the human checks below (audio, physical touch, native Windows/DPI). PR #9 is not merged.
 
+### Feature A record — the observation report
+
+The gap: the office diary was written but never read, and nothing said who decided an incident
+nobody opened. Now Nutshell's researchers keep a file on the office, read from what the game
+already records (`sim/observation.ts`, derived on render, never stored):
+
+- Data: `EventHistoryEntry` gains optional `by` (`player`/`team`) and `roomId`, written by
+  the engine when a decision is taken (the team only inside `autoResolveActiveEvent`, through
+  a private flag); conversations are the player's. No save version bump: older entries load
+  as they are and read "Arquivado / Decisão arquivada", with no who and no way there. The
+  history now parses entry by entry (`listOf`, newest `EVENT_HISTORY_SIZE` = 50, shared with
+  the engine): a bad field or record is dropped, not the list. No timestamp matching.
+- Rows: decisions from the history (a card's steps are one row, joined by the content's own
+  `next`; the same card twice is two rows; talks stay in the Album); rare/legendary incidents
+  that passed and small moments from the diary; what waits from the incidents. The diary's
+  started/opened/handled/landed/remark lines are never rows, so each incident is told once.
+  Newest first, at most 40, by day (Hoje, Ontem, a date). An unseen incident has no event id
+  in its row: a black bar, "Nome não registrado" for screen readers; no row shows rewards,
+  effects or secrets. Each row's "Ir até lá" goes to its room while that room is open (the
+  welcome back's way there; a waiting incident's ticket takes the keyboard). A restructure
+  resets history and diary, so the file starts over.
+- UI: a `PopupShell` document (letterhead, "Uso interno" stamp, worded stamps Equipe, Você,
+  Arquivado, Não observado, Momento, Esperando), opened from Arquivo → Empresa (the timeline
+  also marks rows Equipe/Você) and from the welcome back when the file has something. It opens
+  at its letterhead (`initialFocus="dialog"`; Tab and Shift+Tab enter it). Reuses the paper cue.
+- Files: `sim/observation.ts`, `ui/ObservationReport.tsx`, `ui/game/observation.css` (new);
+  `sim/types`, `config`, `engine`, `format`, `save/schema`, `state/store`, `ui/ReturnNote`,
+  `views/CompanyView`, `modals/PopupShell`, `useFmt`, `App`, `main`, en/pt-BR locales; tests
+  `observationReport.test.ts` (21), `observationReport.test.tsx` (7), `e2e/observation.spec.ts`
+  (5); a note each in `HOW_TO_PLAY_THE_GAME.md` and `GAME_DESIGN.md`.
+
+Rendered play (pt-BR, built game, real clicks and keys; a seeded company):
+
+- 380×460: the elevator to the lab, its ticket, "Puxar da tomada"; the meeting room's incident,
+  left alone, handled by the team; the timeline's Equipe and Você; the report with both; at
+  all six sizes the file inside the window, no sideways scroll, ways there 34 px, Close on
+  screen, no text under 11 px; Escape back to the button; "Ir até lá" closed the Archive with
+  the meeting floor in view; a reload kept who and where.
+- 320×420, closed 2 h: the note's crate line, one waiting line and "Ler o relatório de
+  observação" (35 px, above the dock); the file's unseen rare row with no name anywhere; high
+  contrast black words and frames; reduced motion without animation.
+- Fixed during play: the tape over the letterhead, a 1 px sideways scroll (the tilted stamp),
+  the file opening scrolled to its first button at 320×420, the waiting stamp's contrast
+  (3.69 → 5.22:1; every text role ≥ 5.22, 21 in high contrast), an arrow glyph the bundled
+  fonts lack (a card's next step is a "Depois:" line now), a truncated note link.
+- Six checks — see, understand, interact, feedback, why it matters, feel: PASS (audio not heard).
+
+Checks: `npm run validate` exit 0 (1063 tests, 86 files); full web E2E 382/382, exit 0 (an
+earlier full run had two `event-setting` boots time out under load; 4/4 alone). The Coffee
+"fills the order" round is a load flake on both trees: 2 failures in 63 repeated runs here, 1
+in 63 on a `9f5ef83` worktree; no minigame code changed. `npm run build:desktop` exit 0; no
+desktop code changed, and Electron still cannot start here.
+
 ## Blockers
 
 - Kiro Web listed no skills this session; `zooworkers-playtest/SKILL.md` was followed by hand.
@@ -916,7 +973,8 @@ on the human checks below (audio, physical touch, native Windows/DPI). PR #9 is 
   Chapter 10: the prestige cue on a restructure (once, then the office), the error cue on a
   refused restructure and on a short skill press, the upgrade cue on a skill bought, and the
   paper cue on opening a keepsake's album from the Collections. Final integration changed no
-  sound; all of the above is still unheard.
+  sound; all of the above is still unheard. Feature A: the paper cue on opening the
+  observation report, from the timeline and from the welcome back (right after its own cue).
 - Touch was driven through Chromium's touch emulation, not a physical touchscreen. Chapter 6:
   a tap takes an answer at once, so on touch the effect line is the explanation (the scene's
   preview needs a pointer or keys); check that it reads well on a physical screen. Chapter 7:
@@ -927,6 +985,9 @@ on the human checks below (audio, physical touch, native Windows/DPI). PR #9 is 
   branch card, the restructure action and both confirmation buttons, and a Collections drawer
   and its way back. Final integration: tap a lead on the curiosity board (its file comes into
   view), and scroll the tower with a finger right after the elevator lands (it must not drift).
+  Feature A: tap "Relatório de observação" in Arquivo → Empresa and on the welcome back, scroll
+  the file with a finger at 320×420 (it scrolls inside its paper, Fechar stays put), and tap a
+  row's "Ir até lá" (34 px) without hitting the row below.
 - LOCAL WINDOWS VERIFICATION REQUIRED: the last recorded native run is `a4e03ad`. In the final
   integration session the Electron binary downloaded but cannot start (`libgtk-3.so.0` missing,
   no display; `smoke:minimal` exit 1, "Process failed to launch!"), so no smoke, packaging or
@@ -997,9 +1058,18 @@ on the human checks below (audio, physical touch, native Windows/DPI). PR #9 is 
   20. Restructure a company past 1M and expect the gold note to read in full on two lines;
       in Arquivo → Coleções, a room that closed reads "Fechada até reabrir" with what was
       noticed in it.
+      Feature A (no desktop code changed):
+  21. With the window always on top in a corner, leave a **!** ticket unopened for 25 min
+      while working in another app. Expect it handled by the team, and Arquivo → Empresa to
+      mark the row "Equipe"; minimizing instead must leave it waiting.
+  22. At 320×420 and 125/150/200% DPI, open the report from Arquivo → Empresa and from the
+      welcome back after a night closed. Expect the letterhead on screen first, no sideways
+      scroll, Fechar in the window, and "Ir até lá" bringing the room's floor up.
 
 ## Next prompt
 
 Release verification on this branch: the human checks under Blockers (audio, a physical
 touchscreen, native Windows packaging and 100–200% DPI), then the merge of PR #9 when the user
 decides. Read CI's E2E job on the pushed commit first; `main` has none of this configuration.
+Feature A's PR targets `feat/zooworkers-3.0-facility-pass`: review and merge it when the user
+decides (after PR #9, or retarget it if PR #9 merges first).

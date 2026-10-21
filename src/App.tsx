@@ -19,6 +19,7 @@ import { EmployeeTalk } from './ui/modals/EmployeeTalk';
 import { OfficeScene } from './art/OfficeScene';
 import { EventModal } from './ui/modals/EventModal';
 import { ConsequenceModal } from './ui/modals/ConsequenceModal';
+import { ObservationReport } from './ui/ObservationReport';
 import { Onboarding } from './ui/modals/Onboarding';
 import { OpeningSequence } from './ui/modals/OpeningSequence';
 import { Notifications } from './ui/Notifications';
@@ -238,6 +239,7 @@ export function App() {
       <GameDock />
       <EventModal />
       <ConsequenceModal />
+      <ObservationReport />
       <OpeningSequence />
       <Onboarding />
       <Notifications />

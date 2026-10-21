@@ -206,6 +206,15 @@ The loop is notice → investigate → choose → experience → consequence →
   at most one incident per quarter hour, up to two, waiting in their rooms, and
   the welcome-back note counts them. `happenedSince` is what a "while you were
   away" view reads from.
+- **The observation report** (`src/sim/observation.ts`, opened from the Company
+  timeline and the welcome back) is derived, never stored: decisions from the
+  event history, which records who took each one (`by`: player or team) and the
+  card's room; rare incidents that passed and small moments from the diary;
+  what waits from the incidents. Each incident is one row (a card's steps join by
+  the content's own `next`; the diary's started/opened/handled lines are never
+  rows), newest first, at most 40, grouped by day. An unseen incident is never
+  named and no row shows rewards or effects. Older saves' decisions read "on
+  file", without a who or a way there.
 
 ## Progression targets
 

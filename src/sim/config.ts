@@ -4,6 +4,9 @@
 
 export const SAVE_VERSION = 13;
 
+/** Decisions the company's history keeps (the newest; the engine and the save agree). */
+export const EVENT_HISTORY_SIZE = 50;
+
 export const BALANCE = {
   /** starting nuts for a brand new company. */
   startingNuts: 0,

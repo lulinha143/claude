@@ -2826,6 +2826,41 @@
     },
     "goLabel": "Go there: {{what}} — {{room}}"
   },
+  "observation": {
+    "title": "Observation report",
+    "kind": "Field notes",
+    "lede": "What the team did while you were looking at another window.",
+    "stamp": "Internal use",
+    "open": "Observation report",
+    "fromReturn": "Read the observation report",
+    "now": "Happening now",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "by": {
+      "team": "Team",
+      "player": "You",
+      "unknown": "Filed"
+    },
+    "stampPassed": "Unobserved",
+    "stampMoment": "Moment",
+    "stampWaiting": "Waiting",
+    "decision": {
+      "team": "The team decided without you: {{choice}}",
+      "player": "You decided: {{choice}}",
+      "unknown": "Decision on file: {{choice}}"
+    },
+    "then": "Then: {{choice}}",
+    "unnamed": "Name not recorded",
+    "passed": "Something rare happened here, and nobody got a proper look.",
+    "momentLine": "{{name}}: “{{line}}”",
+    "waitingWith": "{{name}} is waiting for you to take a look.",
+    "waitingAnon": "It is waiting for you to take a look.",
+    "go": "Go there",
+    "goLabel": "Go to {{room}}",
+    "emptyTitle": "Nothing on file yet this cycle.",
+    "emptyHint": "Leave the office open in a corner: whatever the team decides on its own is written down here.",
+    "foot": "Noted by Nutshell's researchers. Only what was recorded this cycle; a restructure opens a fresh file."
+  },
   "moment": {
     "company": "Company",
     "rarityLabel": "Rarity",

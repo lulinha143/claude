@@ -8,6 +8,7 @@ import { Icon, type IconName } from '../art/UiIcon';
 import { BALANCE } from '../sim/config';
 import { offlineCapHours } from '../sim/economy';
 import { waitingInOffice, type WaitingThing } from '../sim/waiting';
+import { hasObservations } from '../sim/observation';
 import { EMPLOYEES_BY_ID } from '../content/employees';
 import { ROOMS_BY_ID } from '../content/rooms';
 import { focusFloor } from './officeEvents';
@@ -64,6 +65,7 @@ export function ReturnNote() {
   const summary = useStore((s) => s.returnSummary);
   const dismiss = useStore((s) => s.dismissReturn);
   const setView = useStore((s) => s.setView);
+  const openObservation = useStore((s) => s.openObservation);
   const maxRows = useRowLimit();
 
   // Escape puts the note away, unless something else is open to take it first.
@@ -216,6 +218,17 @@ export function ReturnNote() {
             </li>
           ))}
         </ul>
+      ) : null}
+      {/* The whole record of the office, for whoever wants more than the waiting:
+          what the team decided on its own, what passed unseen, its moments. */}
+      {hasObservations(state) ? (
+        <button type="button" className="return-note__report" onClick={openObservation}>
+          <Icon name="company" size={13} />
+          <span>{t('observation.fromReturn')}</span>
+          <span className="return-note__go-arrow" aria-hidden>
+            <Icon name="back" size={11} />
+          </span>
+        </button>
       ) : null}
     </section>
   );

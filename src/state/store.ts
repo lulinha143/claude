@@ -105,6 +105,10 @@ interface StoreState {
   devEnabled: boolean;
   /** The welcome-back note, while it is up. */
   returnSummary: ReturnSummary | null;
+  /** The observation report is open (from the Company timeline or the welcome back). */
+  observationOpen: boolean;
+  openObservation: () => void;
+  closeObservation: () => void;
   showOnboarding: boolean;
   showOpening: boolean;
   finishOpening: () => void;
@@ -186,6 +190,13 @@ export const useStore = create<StoreState>((set) => {
       set(id ? { decorationRequest: id, view: 'office' } : { decorationRequest: null });
     },
     dismissReturn: () => set({ returnSummary: null }),
+    observationOpen: false,
+    // A paper record: the soft paper cue the welcome back and the cards already use.
+    openObservation: () => {
+      audio.play('paper');
+      set({ observationOpen: true });
+    },
+    closeObservation: () => set({ observationOpen: false }),
     simulateAway: (seconds) => {
       // Measured from before the settlement, as if the game had been closed `seconds` ago.
       const left = leaveTally(engine.state, Date.now() - seconds * 1000);

@@ -22,6 +22,12 @@ interface PopupShellProps {
   closing?: boolean;
   onDismiss?: () => void;
   closeOnBackdrop?: boolean;
+  /**
+   * Where the keyboard starts: the first control (a choice, OK), or the dialog
+   * itself, for a long document whose first control would scroll its beginning
+   * out of a small window. Tab then goes on to the first control.
+   */
+  initialFocus?: 'first' | 'dialog';
 }
 
 const FOCUSABLE = [
@@ -45,18 +51,24 @@ export function PopupShell({
   closing = false,
   onDismiss,
   closeOnBackdrop = false,
+  initialFocus = 'first',
 }: PopupShellProps) {
   const popupRef = useRef<HTMLDivElement>(null);
   const wasClosingRef = useRef(closing);
   const dismissRef = useRef(onDismiss);
   dismissRef.current = onDismiss;
+  const initialFocusRef = useRef(initialFocus);
 
   useEffect(() => {
     const previousFocus =
       document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const popup = popupRef.current;
-    const first = popup?.querySelector<HTMLElement>(FOCUSABLE);
-    (first ?? popup)?.focus();
+    if (initialFocusRef.current === 'dialog') {
+      popup?.focus({ preventScroll: true });
+    } else {
+      const first = popup?.querySelector<HTMLElement>(FOCUSABLE);
+      (first ?? popup)?.focus();
+    }
 
     function onKeyDown(event: KeyboardEvent) {
       if (!popupRef.current) return;
@@ -76,7 +88,11 @@ export function PopupShell({
       }
       const firstElement = focusable[0];
       const lastElement = focusable[focusable.length - 1];
-      if (event.shiftKey && document.activeElement === firstElement) {
+      // On the dialog itself (where a document starts): into it, either way round.
+      if (document.activeElement === popupRef.current) {
+        event.preventDefault();
+        (event.shiftKey ? lastElement : firstElement).focus();
+      } else if (event.shiftKey && document.activeElement === firstElement) {
         event.preventDefault();
         lastElement.focus();
       } else if (!event.shiftKey && document.activeElement === lastElement) {
